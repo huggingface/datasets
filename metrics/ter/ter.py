@@ -68,7 +68,7 @@ Args:
     predictions: The system stream (a sequence of segments).
     references: A list of one or more reference streams (each a sequence of segments).
     normalized: Whether to apply basic tokenization to sentences.
-    no_punct: Whether to remove punctuations from sentences.
+    ignore_punct: Whether to remove punctuations from sentences.
     asian_support: Whether to support Asian character processing.
     ignore_case: Whether to disable lowercasing.
 
@@ -118,10 +118,11 @@ class Ter(datasets.Metric):
         predictions,
         references,
         normalized: bool = False,
-        no_punct: bool = False,
+        ignore_punct: bool = False,
         asian_support: bool = False,
         ignore_case: bool = False,
     ):
+        no_punct = ignore_punct
         case_sensitive = not ignore_case
         references_per_prediction = len(references[0])
         if any(len(refs) != references_per_prediction for refs in references):
