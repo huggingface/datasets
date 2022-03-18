@@ -24,12 +24,13 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         return datasets.DatasetInfo(
-            features=datasets.Features({
-                "audio": datasets.Audio(sampling_rate=self.config.sampling_rate),
-                "text": datasets.Value("string"),
+            features=datasets.Features(
+                {
+                    "audio": datasets.Audio(sampling_rate=self.config.sampling_rate),
+                    "text": datasets.Value("string"),
                 }
             ),
-            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="audio", transcription_column="text")]
+            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="audio", transcription_column="text")],
         )
 
     def _split_generators(self, dl_manager):
@@ -50,9 +51,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=split_name,
                     gen_kwargs={
-                        "files": [
-                                     (file, downloaded_file) for file, downloaded_file in zip(files, downloaded_files)
-                                 ],
+                        "files": [(file, downloaded_file) for file, downloaded_file in zip(files, downloaded_files)],
                         "transcript_file": downloaded_transcript,
                         "archive_path": downloaded_dirs[0] if downloaded_dirs else None,
                         "archive_files": dl_manager.iter_files(downloaded_dirs[0]) if downloaded_dirs else None,
