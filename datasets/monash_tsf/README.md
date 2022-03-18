@@ -173,13 +173,13 @@ After extracting and curating these datasets, we analysed them individually to i
 
 #### Who are the source language producers?
 
-[More Information Needed]
+The data comes from the datasets listed in the table above.
 
 ### Annotations
 
 #### Annotation process
 
-[More Information Needed]
+The annotations come from the datasets listed in the table above.
 
 #### Who are the annotators?
 
