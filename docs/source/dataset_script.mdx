@@ -280,9 +280,9 @@ datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 
 2. If your dataset loading script passed the test, you should now have a `dataset_infos.json` file in your dataset folder. This file contains information about the dataset, like its `features` and `download_size`.
 
-### Dummy data
+### (Optional) Dummy data
 
-Next, you need to create some dummy data for automated testing. There are two methods for generating dummy data: automatically and manually. 
+If you want to be able to test your dataset script without downloading the full dataset, you need to create some dummy data for automated testing. There are two methods for generating dummy data: automatically and manually. 
 
 #### Automatic
 
@@ -340,9 +340,9 @@ There should be two new files in your dataset folder:
 - `dummy_data.zip` is a file used to test the behavior of the loading script without having to download the full dataset.
 
 
-### Test
+#### Run the tests
 
-The last step is to actually test dataset generation with the real and dummy data. Run the following command to test the real data:
+The last step is to actually test dataset generation with the real and dummy data. Clone the `huggingface/datasets` repository and run the following command to test the real data:
 
 ```
 RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_real_dataset_<your_dataset_name>

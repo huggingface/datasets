@@ -17,7 +17,7 @@ import pytest
 from absl.testing import parameterized
 
 import datasets.arrow_dataset
-from datasets import concatenate_datasets, interleave_datasets, load_from_disk, temp_seed
+from datasets import concatenate_datasets, interleave_datasets, load_from_disk
 from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
@@ -33,6 +33,7 @@ from datasets.tasks import (
     TextClassification,
 )
 from datasets.utils.logging import WARNING
+from datasets.utils.py_utils import temp_seed
 
 from .conftest import s3_test_bucket_name
 from .utils import (
@@ -1099,7 +1100,7 @@ class BaseDatasetTest(TestCase):
                 with tempfile.TemporaryDirectory() as tmp_dir:
                     with self._caplog.at_level(WARNING):
                         with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                            datasets.set_caching_enabled(False)
+                            datasets.disable_caching()
                             with dset.map(lambda x: {"foo": "bar"}) as dset_test1:
                                 with dset.map(lambda x: {"foo": "bar"}) as dset_test2:
                                     self.assertNotEqual(dset_test1.cache_files, dset_test2.cache_files)
@@ -1110,7 +1111,7 @@ class BaseDatasetTest(TestCase):
                                     self.assertIn("tmp", dset_test1.cache_files[0]["filename"])
                                     self.assertIn("tmp", dset_test2.cache_files[0]["filename"])
             finally:
-                datasets.set_caching_enabled(True)
+                datasets.enable_caching()
 
     @require_torch
     def test_map_torch(self, in_memory):

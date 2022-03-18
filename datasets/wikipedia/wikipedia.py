@@ -876,10 +876,13 @@ _BASE_URL_TMPL = "https://dumps.wikimedia.org/{lang}wiki/{date}/"
 _INFO_FILE = "dumpstatus.json"
 
 
+_VERSION = datasets.Version("2.0.0", "")
+
+
 class WikipediaConfig(datasets.BuilderConfig):
     """BuilderConfig for Wikipedia."""
 
-    def __init__(self, language=None, date=None, **kwargs):
+    def __init__(self, language=None, date=None, version=_VERSION, **kwargs):
         """BuilderConfig for Wikipedia.
 
         Args:
@@ -888,16 +891,16 @@ class WikipediaConfig(datasets.BuilderConfig):
             available dates can be found at https://dumps.wikimedia.org/enwiki/.
           **kwargs: keyword arguments forwarded to super.
         """
-        super(WikipediaConfig, self).__init__(
+        super().__init__(
             name=f"{date}.{language}",
             description=f"Wikipedia dataset for {language}, parsed from {date} dump.",
+            version=version,
             **kwargs,
         )
         self.date = date
         self.language = language
 
 
-_VERSION = datasets.Version("2.0.0", "")
 _DATE = "20220301"
 
 
@@ -908,7 +911,6 @@ class Wikipedia(datasets.BeamBasedBuilder):
     BUILDER_CONFIG_CLASS = WikipediaConfig
     BUILDER_CONFIGS = [
         WikipediaConfig(
-            version=_VERSION,
             language=lang,
             date=_DATE,
         )  # pylint:disable=g-complex-comprehension

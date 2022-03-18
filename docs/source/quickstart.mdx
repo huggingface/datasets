@@ -27,6 +27,8 @@ Begin by loading the [Microsoft Research Paraphrase Corpus (MRPC)](https://huggi
 
 Next, import the pre-trained BERT model and its tokenizer from the [🤗 Transformers](https://huggingface.co/transformers/) library:
 
+<frameworkcontent>
+<pt>
 ```py
 >>> from transformers import AutoModelForSequenceClassification, AutoTokenizer
 >>> model = AutoModelForSequenceClassification.from_pretrained('bert-base-cased')
@@ -36,7 +38,10 @@ Some weights of the model checkpoint at bert-base-cased were not used when initi
 Some weights of BertForSequenceClassification were not initialized from the model checkpoint at bert-base-cased and are newly initialized: ['classifier.weight', 'classifier.bias']
 You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
 >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
-===PT-TF-SPLIT===
+```
+</pt>
+<tf>
+```py
 >>> from transformers import TFAutoModelForSequenceClassification, AutoTokenizer
 >>> model = TFAutoModelForSequenceClassification.from_pretrained("bert-base-cased")
 Some weights of the model checkpoint at bert-base-cased were not used when initializing TFBertForSequenceClassification: ['nsp___cls', 'mlm___cls']
@@ -46,6 +51,8 @@ Some weights of TFBertForSequenceClassification were not initialized from the mo
 You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
 >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 ```
+</tf>
+</frameworkcontent>
 
 ## Tokenize the dataset
 
@@ -72,7 +79,9 @@ Notice how there are three new columns in the dataset: `input_ids`, `token_type_
 
 Depending on whether you are using PyTorch, TensorFlow, or JAX, you will need to format the dataset accordingly. There are three changes you need to make to the dataset:
 
-1. Rename the `label` column to `labels`, the expected input name in [BertForSequenceClassification](https://huggingface.co/transformers/model_doc/bert#transformers.BertForSequenceClassification.forward) or [TFBertForSequenceClassification](https://huggingface.co/transformers/model_doc/bert#tfbertforsequenceclassification):
+<frameworkcontent>
+<pt>
+1. Rename the `label` column to `labels`, the expected input name in [BertForSequenceClassification](https://huggingface.co/transformers/model_doc/bert#transformers.BertForSequenceClassification.forward):
 
 ```py
 >>> dataset = dataset.map(lambda examples: {'labels': examples['label']}, batched=True)
@@ -81,7 +90,7 @@ Depending on whether you are using PyTorch, TensorFlow, or JAX, you will need to
 2. Retrieve the actual tensors from the Dataset object instead of using the current Python objects.
 3. Filter the dataset to only return the model inputs: `input_ids`, `token_type_ids`, and `attention_mask`.
 
-[`datasets.Dataset.set_format`] completes the last two steps on-the-fly. After you set the format, wrap the dataset in `torch.utils.data.DataLoader` or `tf.data.Dataset`:
+[`datasets.Dataset.set_format`] completes the last two steps on-the-fly. After you set the format, wrap the dataset in `torch.utils.data.DataLoader`:
 
 
 ```py
@@ -111,7 +120,22 @@ Depending on whether you are using PyTorch, TensorFlow, or JAX, you will need to
                      [0, 0, 0,  ..., 0, 0, 0],
                      [0, 0, 0,  ..., 0, 0, 0],
                      [0, 0, 0,  ..., 0, 0, 0]])}
-===PT-TF-SPLIT===
+```
+</pt>
+<tf>
+1. Rename the `label` column to `labels`, the expected input name in [TFBertForSequenceClassification](https://huggingface.co/transformers/model_doc/bert#tfbertforsequenceclassification):
+
+```py
+>>> dataset = dataset.map(lambda examples: {'labels': examples['label']}, batched=True)
+```
+
+2. Retrieve the actual tensors from the Dataset object instead of using the current Python objects.
+3. Filter the dataset to only return the model inputs: `input_ids`, `token_type_ids`, and `attention_mask`.
+
+[`datasets.Dataset.set_format`] completes the last two steps on-the-fly. After you set the format, wrap the dataset in `tf.data.Dataset`:
+
+
+```py
 >>> import tensorflow as tf
 >>> dataset.set_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
 >>> features = {x: dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length]) for x in ['input_ids', 'token_type_ids', 'attention_mask']}
@@ -142,9 +166,13 @@ array([[1, 1, 1, ..., 0, 0, 0],
 array([1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1,
    0, 1, 1, 1, 0, 0, 1, 1, 1, 0])>)
 ```
+</tf>
+</frameworkcontent>
 
 ## Train the model
 
+<frameworkcontent>
+<pt>
 Lastly, create a simple training loop and start training:
 
 ```py
@@ -162,12 +190,19 @@ Lastly, create a simple training loop and start training:
 ...         optimizer.zero_grad()
 ...         if i % 10 == 0:
 ...             print(f"loss: {loss}")
-===PT-TF-SPLIT===
+```
+</pt>
+<tf>
+Lastly, compile the model and start training:
+
+```py
 >>> loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(reduction=tf.keras.losses.Reduction.NONE, from_logits=True)
 >>> opt = tf.keras.optimizers.Adam(learning_rate=3e-5)
 >>> model.compile(optimizer=opt, loss=loss_fn, metrics=["accuracy"])
 >>> model.fit(tfdataset, epochs=3)
 ```
+</tf>
+</frameworkcontent>
 
 ## What's next?
 

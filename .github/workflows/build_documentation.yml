@@ -15,10 +15,6 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '16'
-
       - uses: actions/checkout@v2
         with:
           repository: 'huggingface/doc-builder'
@@ -63,20 +59,34 @@ jobs:
           git pull origin main
           cd ..
 
+      - name: Create build directory
+        run: |
+          cd doc-build
+          git pull
+          cd ..
+          mkdir build_dir
+          mkdir build_dir/datasets
+          cp doc-build/datasets/_versions.yml build_dir/datasets
+
       - name: Make documentation
         run: |
           cd doc-builder &&
-          doc-builder build datasets ../datasets/docs/source --build_dir ../doc-build --clean --html &&
+          doc-builder build datasets ../datasets/docs/source --build_dir ../build_dir --clean --html &&
           cd ..
         env:
           NODE_OPTIONS: --max-old-space-size=6656
 
       - name: Push to repositories
         run: |
-          cd doc-build &&
+          cd doc-build
+          git pull
+          mv ../build_dir/datasets/_versions.yml datasets/
+          rm -rf datasets/$(ls ../build_dir/datasets)
+          mv ../build_dir/datasets/$(ls ../build_dir/datasets) datasets/$(ls ../build_dir/datasets)
+          git status
           if [[ `git status --porcelain` ]]; then 
-            git add . &&
-            git commit -m "Updated with commit ${{ github.sha }} \n\nSee: https://github.com/huggingface/datasets/commit/${{ github.sha }}" &&
+            git add .
+            git commit -m "Updated with commit ${{ github.sha }} \n\nSee: https://github.com/huggingface/datasets/commit/${{ github.sha }}"
             git push origin main
           else
             echo "No diff in the documentation."

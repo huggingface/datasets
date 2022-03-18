@@ -13,4 +13,4 @@ The goal of the tutorials are to help new users build up a basic understanding o
 
 After completing the tutorials, we hope you will have the necessary skills to start using our library in your own projects!
 
-We understand that people who want to use 🤗 Datasets come from a wide and diverse range of disciplines. The tutorials are designed to be as accessible as possible to people without a developer background. If you already have some experience, take a look at our [Quick Start](../quickstart.rst) to see an end-to-end code example in context.
+We understand that people who want to use 🤗 Datasets come from a wide and diverse range of disciplines. The tutorials are designed to be as accessible as possible to people without a developer background. If you already have some experience, take a look at our [Quick Start](/docs/datasets/master/en/quickstart) to see an end-to-end code example in context.

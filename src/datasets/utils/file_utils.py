@@ -20,13 +20,12 @@ from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, Optional, TypeVar, Union
+from typing import Dict, List, Optional, Type, TypeVar, Union
 from urllib.parse import urljoin, urlparse
 
-import numpy as np
 import requests
 
-from .. import __version__, config, utils
+from .. import __version__, config
 from . import logging
 from .extract import ExtractManager
 from .filelock import FileLock
@@ -56,60 +55,6 @@ def init_hf_modules(hf_modules_cache: Optional[Union[Path, str]] = None) -> str:
             with open(os.path.join(hf_modules_cache, "__init__.py"), "w"):
                 pass
     return hf_modules_cache
-
-
-@contextmanager
-def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
-    """Temporarily set the random seed. This works for python numpy, pytorch and tensorflow."""
-    np_state = np.random.get_state()
-    np.random.seed(seed)
-
-    if set_pytorch and config.TORCH_AVAILABLE:
-        import torch
-
-        torch_state = torch.random.get_rng_state()
-        torch.random.manual_seed(seed)
-
-        if torch.cuda.is_available():
-            torch_cuda_states = torch.cuda.get_rng_state_all()
-            torch.cuda.manual_seed_all(seed)
-
-    if set_tensorflow and config.TF_AVAILABLE:
-        import tensorflow as tf
-        from tensorflow.python import context as tfpycontext
-
-        tf_state = tf.random.get_global_generator()
-        temp_gen = tf.random.Generator.from_seed(seed)
-        tf.random.set_global_generator(temp_gen)
-
-        if not tf.executing_eagerly():
-            raise ValueError("Setting random seed for TensorFlow is only available in eager mode")
-
-        tf_context = tfpycontext.context()  # eager mode context
-        tf_seed = tf_context._seed
-        tf_rng_initialized = hasattr(tf_context, "_rng")
-        if tf_rng_initialized:
-            tf_rng = tf_context._rng
-        tf_context._set_global_seed(seed)
-
-    try:
-        yield
-    finally:
-        np.random.set_state(np_state)
-
-        if set_pytorch and config.TORCH_AVAILABLE:
-            torch.random.set_rng_state(torch_state)
-            if torch.cuda.is_available():
-                torch.cuda.set_rng_state_all(torch_cuda_states)
-
-        if set_tensorflow and config.TF_AVAILABLE:
-            tf.random.set_global_generator(tf_state)
-
-            tf_context._seed = tf_seed
-            if tf_rng_initialized:
-                tf_context._rng = tf_rng
-            else:
-                delattr(tf_context, "_rng")
 
 
 def is_remote_url(url_or_filename: str) -> bool:
@@ -367,6 +312,32 @@ def _raise_if_offline_mode_is_enabled(msg: Optional[str] = None):
         )
 
 
+def _retry(
+    func,
+    func_args: Optional[tuple] = None,
+    func_kwargs: Optional[dict] = None,
+    exceptions: Type[requests.exceptions.RequestException] = requests.exceptions.RequestException,
+    status_codes: Optional[List[int]] = None,
+    max_retries: int = 0,
+    base_wait_time: float = 0.5,
+    max_wait_time: float = 2,
+):
+    func_args = func_args or ()
+    func_kwargs = func_kwargs or {}
+    retry = 0
+    while True:
+        try:
+            return func(*func_args, **func_kwargs)
+        except exceptions as err:
+            if retry >= max_retries or (status_codes and err.response.status_code not in status_codes):
+                raise err
+            else:
+                sleep_time = min(max_wait_time, base_wait_time * 2**retry)  # Exponential backoff
+                logger.info(f"{func} timed out, retrying in {sleep_time}s... [{retry/max_retries}]")
+                time.sleep(sleep_time)
+                retry += 1
+
+
 def _request_with_retry(
     method: str,
     url: str,
@@ -447,13 +418,13 @@ def http_get(
         return
     content_length = response.headers.get("Content-Length")
     total = resume_size + int(content_length) if content_length is not None else None
-    with utils.tqdm(
+    with logging.tqdm(
         unit="B",
         unit_scale=True,
         total=total,
         initial=resume_size,
         desc=desc or "Downloading",
-        disable=not utils.is_progress_bar_enabled(),
+        disable=not logging.is_progress_bar_enabled(),
     ) as progress:
         for chunk in response.iter_content(chunk_size=1024):
             progress.update(len(chunk))

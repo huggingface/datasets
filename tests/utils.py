@@ -3,6 +3,7 @@ import sys
 import tempfile
 import unittest
 from contextlib import contextmanager
+from copy import deepcopy
 from ctypes.util import find_library
 from distutils.util import strtobool
 from enum import Enum
@@ -412,3 +413,7 @@ def assert_arrow_memory_doesnt_increase():
     previous_allocated_memory = pa.total_allocated_bytes()
     yield
     assert pa.total_allocated_bytes() - previous_allocated_memory <= 0, "Arrow memory wasn't expected to increase."
+
+
+def is_rng_equal(rng1, rng2):
+    return deepcopy(rng1).integers(0, 100, 10).tolist() == deepcopy(rng2).integers(0, 100, 10).tolist()

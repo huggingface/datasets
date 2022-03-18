@@ -3,6 +3,7 @@ import tempfile
 import types
 from pathlib import Path
 from unittest import TestCase
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -518,6 +519,24 @@ class BuilderTest(TestCase):
                     os.path.join(tmp_dir, "dummy_generator_based_builder", "dummy", "0.0.0", "dataset_info.json")
                 )
             )
+
+        # Test that duplicated keys are ignored if ignore_verifications is True
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dummy_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy")
+            with patch("datasets.builder.ArrowWriter", side_effect=ArrowWriter) as mock_arrow_writer:
+                dummy_builder.download_and_prepare(download_mode=DownloadMode.FORCE_REDOWNLOAD)
+                mock_arrow_writer.assert_called_once()
+                args, kwargs = mock_arrow_writer.call_args_list[0]
+                self.assertTrue(kwargs["check_duplicates"])
+
+                mock_arrow_writer.reset_mock()
+
+                dummy_builder.download_and_prepare(
+                    download_mode=DownloadMode.FORCE_REDOWNLOAD, ignore_verifications=True
+                )
+                mock_arrow_writer.assert_called_once()
+                args, kwargs = mock_arrow_writer.call_args_list[0]
+                self.assertFalse(kwargs["check_duplicates"])
 
     def test_cache_dir_no_args(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
