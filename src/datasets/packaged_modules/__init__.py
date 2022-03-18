@@ -3,6 +3,7 @@ import re
 from hashlib import sha256
 from typing import List
 
+from .audiofolder import audiofolder
 from .csv import csv
 from .imagefolder import imagefolder
 from .json import json
@@ -32,6 +33,7 @@ _PACKAGED_DATASETS_MODULES = {
     "parquet": (parquet.__name__, _hash_python_lines(inspect.getsource(parquet).splitlines())),
     "text": (text.__name__, _hash_python_lines(inspect.getsource(text).splitlines())),
     "imagefolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(imagefolder).splitlines())),
+    "audiofolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(audiofolder).splitlines())),
 }
 
 _EXTENSION_TO_MODULE = {
