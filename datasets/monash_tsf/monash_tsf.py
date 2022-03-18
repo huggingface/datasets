@@ -64,6 +64,10 @@ class MonashTSFBuilderConfig(datasets.BuilderConfig):
     multivariate: bool = False
     rolling_evaluations: int = 1
 
+    def __post_init__(self):
+        if self.freq is not None and self.prediction_length is not None:
+            raise ValueError("Please use either `freq` or `prediction_length` but not both.")
+
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class MonashTSF(datasets.GeneratorBasedBuilder):
