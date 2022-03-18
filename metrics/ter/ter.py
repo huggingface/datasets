@@ -65,12 +65,12 @@ _KWARGS_DESCRIPTION = """
 Produces TER scores alongside the number of edits and reference length.
 
 Args:
-    predictions: The system stream (a sequence of segments).
-    references: A list of one or more reference streams (each a sequence of segments).
-    normalized: Whether to apply basic tokenization to sentences.
-    ignore_punct: Whether to remove punctuations from sentences.
-    asian_support: Whether to support Asian character processing.
-    ignore_case: Whether to disable lowercasing.
+    predictions (list of str): The system stream (a sequence of segments).
+    references (list of list of str): A list of one or more reference streams (each a sequence of segments).
+    normalized (boolean): If `True`, applies basic tokenization and normalization to sentences. Defaults to `False`.
+    ignore_punct (boolean): If `True`, applies basic tokenization and normalization to sentences. Defaults to `False`.
+    support_zh_ja_chars (boolean): If `True`, supports Asian character processing. Defaults to `False`.
+    ignore_case (boolean): If `True`, makes all predictions and references lowercase to ignore differences in case. Defaults to `False`.
 
 Returns:
     'score': TER score (num_edits / sum_ref_lengths * 100),
@@ -78,13 +78,17 @@ Returns:
     'ref_length': The cumulative average reference length.
 
 Examples:
-
-    >>> predictions = ["hello there general kenobi", "foo bar foobar"]
-    >>> references = [["hello there general kenobi", "hello there !"], ["foo bar foobar", "foo bar foobar"]]
-    >>> ter = datasets.load_metric("ter")
-    >>> results = ter.compute(predictions=predictions, references=references)
-    >>> print(results)
-    {'score': 0.0, 'num_edits': 0, 'ref_length': 6.5}
+    Example 1:
+        >>> predictions = ["does this sentence match??",
+                    "what about this sentence?",
+                    "What did the TER metric user say to the developer?"]
+        >>> references = [["does this sentence match", "does this sentence match!?!"],
+                    ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"],
+                    ["Your jokes are...", "...TERrible"]]
+        >>> ter = datasets.load_metric("ter")
+        >>> results = ter.compute(predictions=predictions, references=references)
+        >>> print(results)
+        {'score': 150.0, 'num_edits': 15, 'ref_length': 10.0}
 """
 
 
