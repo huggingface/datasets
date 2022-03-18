@@ -799,7 +799,7 @@ class InMemoryTable(TableBlock):
         Returns:
             :class:`datasets.table.Table`:
         """
-        return InMemoryTable(self.table.flatten(*args, **kwargs))
+        return InMemoryTable(table_flatten(self.table, *args, **kwargs))
 
     def combine_chunks(self, *args, **kwargs):
         """
@@ -993,6 +993,8 @@ class MemoryMappedTable(TableBlock):
             for name, args, kwargs in replays:
                 if name == "cast":
                     table = table_cast(table, *args, **kwargs)
+                elif name == "flatten":
+                    table = table_flatten(table, *args, **kwargs)
                 else:
                     table = getattr(table, name)(*args, **kwargs)
         return table
@@ -1043,7 +1045,7 @@ class MemoryMappedTable(TableBlock):
         """
         replay = ("flatten", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
-        return MemoryMappedTable(self.table.flatten(*args, **kwargs), self.path, replays)
+        return MemoryMappedTable(table_flatten(self.table, *args, **kwargs), self.path, replays)
 
     def combine_chunks(self, *args, **kwargs):
         """
@@ -1432,7 +1434,7 @@ class ConcatenationTable(Table):
         Returns:
             :class:`datasets.table.Table`:
         """
-        table = self.table.flatten(*args, **kwargs)
+        table = table_flatten(self.table, *args, **kwargs)
         blocks = []
         for tables in self.blocks:
             blocks.append([t.flatten(*args, **kwargs) for t in tables])
@@ -1843,7 +1845,7 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
 
 
 def table_cast(table: pa.Table, schema: pa.Schema):
-    """Improved version of pa.Table.cast
+    """Improved version of pa.Table.cast.
 
     It supports casting to feature types stored in the schema metadata.
 
@@ -1860,6 +1862,47 @@ def table_cast(table: pa.Table, schema: pa.Schema):
         return table.replace_schema_metadata(schema.metadata)
     else:
         return table
+
+
+def table_flatten(table: pa.Table):
+    """Improved version of pa.Table.flatten.
+
+    It behaves as pa.Table.flatten in a sense it does 1-step flatten of the columns with a struct type into one column per struct field,
+    but updates the metadata and skips decodable features unless the `decode` attribute of these features is set to False.
+
+    Args:
+        table (Table): PyArrow table to flatten
+
+    Returns:
+        Table: the flattened table
+    """
+    from .features import Features
+
+    features = Features.from_arrow_schema(table.schema)
+    if any(hasattr(subfeature, "flatten") and subfeature.flatten() == subfeature for subfeature in features.values()):
+        flat_arrays = []
+        flat_column_names = []
+        for field in table.schema:
+            array = table.column(field.name)
+            subfeature = features[field.name]
+            if pa.types.is_struct(field.type) and (
+                not hasattr(subfeature, "flatten") or subfeature.flatten() != subfeature
+            ):
+                flat_arrays.extend(array.flatten())
+                flat_column_names.extend([f"{field.name}.{subfield.name}" for subfield in field.type])
+            else:
+                flat_arrays.append(array)
+                flat_column_names.append(field.name)
+        flat_table = pa.Table.from_arrays(
+            flat_arrays,
+            names=flat_column_names,
+        )
+    else:
+        flat_table = table.flatten()
+    # Preserve complex types in the metadata
+    flat_features = features.flatten(max_depth=2)
+    flat_features = Features({column_name: flat_features[column_name] for column_name in flat_table.column_names})
+    return flat_table.replace_schema_metadata(flat_features.arrow_schema.metadata)
 
 
 def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
