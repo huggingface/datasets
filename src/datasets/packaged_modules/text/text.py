@@ -54,43 +54,55 @@ class Text(datasets.ArrowBasedBuilder):
     def _generate_tables(self, files):
         schema = pa.schema(self.config.features.type if self.config.features is not None else {"text": pa.string()})
         for file_idx, file in enumerate(files):
-            # open in text mode, by default translates universal newlines ("\n", "\r\n" and "\r") into "\n"
-            with open(file, encoding=self.config.encoding, newline=self.config.newline) as f:
+            # open in text mode:
+            # - By default (newline=None), it translates universal newlines ("\n", "\r\n" and "\r") into "\n"
+            # - If newline="", line endings are untranslated
+            with open(file, encoding=self.config.encoding, newline="" if self.config.newline else None) as f:
                 if self.config.sample_by == "line":
-                    batch_idx = 0
-                    while True:
-                        batch = f.read(self.config.chunksize)
-                        if not batch:
-                            break
-                        batch += f.readline()  # finish current line
-                        # StringIO.readlines, by default splits only on "\n" (and keeps line breaks)
-                        batch = StringIO(batch).readlines()
-                        if not self.config.keep_linebreaks:
-                            batch = [line.rstrip("\n") for line in batch]
-                        pa_table = pa.Table.from_arrays([pa.array(batch)], schema=schema)
-                        # Uncomment for debugging (will print the Arrow table size and elements)
-                        # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
-                        # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield (file_idx, batch_idx), pa_table
-                        batch_idx += 1
-                elif self.config.sample_by == "paragraph":
                     batch_idx = 0
                     batch = ""
                     while True:
-                        batch += f.read(self.config.chunksize)
+                        new_batch = f.read(self.config.chunksize)
+                        batch += new_batch
                         if not batch:
                             break
-                        batch += f.readline()  # finish current line
-                        batch = batch.split("\n\n")
+                        batch = batch.split(self.config.newline or "\n")
+                        if self.config.keep_linebreaks:
+                            batch = [line + (self.config.newline or "\n") for line in batch[:-1]] + [batch[-1]]
                         pa_table = pa.Table.from_arrays(
-                            [pa.array([example for example in batch[:-1] if example])], schema=schema
+                            [pa.array([example for example in batch[:-1] if example] if new_batch else batch)],
+                            schema=schema,
                         )
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                         yield (file_idx, batch_idx), pa_table
                         batch_idx += 1
-                        batch = batch[-1]
+                        batch = batch[-1] if new_batch else ""
+                elif self.config.sample_by == "paragraph":
+                    batch_idx = 0
+                    batch = ""
+                    while True:
+                        new_batch = f.read(self.config.chunksize)
+                        batch += new_batch
+                        if not batch:
+                            break
+                        batch = batch.split(self.config.newline * 2 if self.config.newline else "\n\n")
+                        if self.config.keep_linebreaks:
+                            batch = [
+                                line + (self.config.newline * 2 if self.config.newline else "\n\n")
+                                for line in batch[:-1]
+                            ] + [batch[-1]]
+                        pa_table = pa.Table.from_arrays(
+                            [pa.array([example for example in batch[:-1] if example] if new_batch else batch)],
+                            schema=schema,
+                        )
+                        # Uncomment for debugging (will print the Arrow table size and elements)
+                        # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+                        # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                        yield (file_idx, batch_idx), pa_table
+                        batch_idx += 1
+                        batch = batch[-1] if new_batch else ""
                 elif self.config.sample_by == "document":
                     text = f.read()
                     pa_table = pa.Table.from_arrays([pa.array([text])], schema=schema)
