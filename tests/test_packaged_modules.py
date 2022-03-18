@@ -59,8 +59,8 @@ def text_file(tmp_path):
 def text_with_newlines_file(tmp_path_factory):
     text_with_newlines = "Unix\nWindows\r\nMacintosh\rUnicode\u2029End"
     path = tmp_path_factory.mktemp("data") / "test_with_newlines.txt"
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(text_with_newlines)
+    with open(path, "wb") as f:
+        f.write(text_with_newlines.encode())
     return str(path)
 
 
