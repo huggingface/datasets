@@ -168,4 +168,3 @@ This wrapper of CoVal currently only works with [CoNLL line format](https://hugg
 - [CoNLL Evaluation details](https://github.com/ns-moosavi/coval/blob/master/conll/README.md)
 - [Hugging Face - Neural Coreference Resolution (Neuralcoref)](https://huggingface.co/coref/)
 
-  
