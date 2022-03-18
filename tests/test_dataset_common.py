@@ -80,6 +80,7 @@ def get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data):
         "csv": ".csv",
         "parquet": ".parquet",
         "imagefolder": "/",
+        "audiofolder": "/",
     }
     return {
         "train": os.path.join(path_to_dummy_data, "train" + extensions[dataset_name]),
