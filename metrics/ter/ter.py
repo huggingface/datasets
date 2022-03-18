@@ -175,17 +175,16 @@ class Ter(datasets.Metric):
         references,
         normalized: bool = False,
         ignore_punct: bool = False,
-        asian_support: bool = False,
+        support_zh_ja_chars: bool = False,
         ignore_case: bool = False,
     ):
-        no_punct = ignore_punct
         case_sensitive = not ignore_case
         references_per_prediction = len(references[0])
         if any(len(refs) != references_per_prediction for refs in references):
             raise ValueError("Sacrebleu requires the same number of references for each prediction")
         transformed_references = [[refs[i] for refs in references] for i in range(references_per_prediction)]
 
-        sb_ter = TER(normalized, no_punct, asian_support, case_sensitive)
+        sb_ter = TER(normalized=normalized, no_punct=ignore_punct, asian_support=support_zh_ja_chars, case_sensitive=case_sensitive)
         output = sb_ter.corpus_score(predictions, transformed_references)
 
         return {"score": output.score, "num_edits": output.num_edits, "ref_length": output.ref_length}
