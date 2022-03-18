@@ -1,6 +1,5 @@
 import glob
 import os
-from dataclasses import dataclass
 from typing import List
 
 import datasets
@@ -99,7 +98,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
         # from archive
         else:  # archive is not None
             # assuming there is only one transcripts.txt file
-            transcript_file = glob.glob(f"{archive_path}/**/transcripts.txt")[0]
+            transcript_file = glob.glob(f"{archive_path}/**/*/transcripts.txt")[0]
             transcript = _read_transcript(transcript_file)
 
             file_idx = 0
