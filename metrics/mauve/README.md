@@ -61,7 +61,7 @@ This metric outputs a dictionary with 5 key-value pairs:
 
 `p_hist`: a discrete distribution, which is a quantized version of the text distribution `p_text`
  
- `q_hist`: same as above, but with `q_text`.
+`q_hist`: same as above, but with `q_text`.
 
 
 ### Values from popular papers
