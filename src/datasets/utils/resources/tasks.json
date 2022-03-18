@@ -77,7 +77,8 @@
         "subtasks": [
             "extractive-qa",
             "open-domain-qa",
-            "closed-domain-qa"
+            "closed-domain-qa",
+            "visual-question-answering",
         ]
     },
     "sentence-similarity": {
