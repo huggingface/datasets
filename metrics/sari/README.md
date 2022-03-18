@@ -49,8 +49,7 @@ print(sari_score)
 {'sari': 26.953601953601954}
 ```
 
-The range of values for the SARI score is between 0 and 100 -- the higher the value, the better the performance of the model being evaluated, with a SARI of 
-100 being a perfect score.
+The range of values for the SARI score is between 0 and 100 -- the higher the value, the better the performance of the model being evaluated, with a SARI of 100 being a perfect score.
 
 ### Values from popular papers
 
