@@ -23,7 +23,7 @@ mauve_results = mauve.compute(predictions=predictions, references=references)
 
 It also has several optional arguments:
 
-`num_buckets`: the size of the histogram to quantize P and Q. Options: `auto` (default) or an integer
+`num_buckets`: the size of the histogram to quantize P and Q. Options: `auto` (default) or an integer.
 
 `pca_max_data`: the number data points to use for PCA dimensionality reduction prior to clustering. If -1, use all the data. The default is `-1`.
 
