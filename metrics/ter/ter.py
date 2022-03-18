@@ -70,7 +70,7 @@ Args:
     normalized: Whether to apply basic tokenization to sentences.
     no_punct: Whether to remove punctuations from sentences.
     asian_support: Whether to support Asian character processing.
-    case_sensitive: Whether to disable lowercasing.
+    ignore_case: Whether to disable lowercasing.
 
 Returns:
     'score': TER score (num_edits / sum_ref_lengths * 100),
@@ -120,8 +120,9 @@ class Ter(datasets.Metric):
         normalized: bool = False,
         no_punct: bool = False,
         asian_support: bool = False,
-        case_sensitive: bool = False,
+        ignore_case: bool = False,
     ):
+        case_sensitive = not ignore_case
         references_per_prediction = len(references[0])
         if any(len(refs) != references_per_prediction for refs in references):
             raise ValueError("Sacrebleu requires the same number of references for each prediction")
