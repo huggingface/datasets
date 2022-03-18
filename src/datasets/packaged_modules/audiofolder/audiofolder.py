@@ -28,7 +28,8 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                 "audio": datasets.Audio(sampling_rate=self.config.sampling_rate),
                 "text": datasets.Value("string"),
                 }
-            )
+            ),
+            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="audio", transcription_column="text")]
         )
 
     def _split_generators(self, dl_manager):
