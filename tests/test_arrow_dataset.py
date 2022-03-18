@@ -807,6 +807,21 @@ class BaseDatasetTest(TestCase):
                         self.assertNotEqual(dset._fingerprint, fingerprint)
                         assert_arrow_metadata_are_synced_with_dataset_features(dset)
 
+        # decoding turned on + nesting
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict(
+                {"a": [{"b": np.arange(4 * 4 * 3).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
+                features=Features({"a": {"b": Image()}, "foo": Value("int64")}),
+            ) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    fingerprint = dset._fingerprint
+                    with dset.flatten() as dset:
+                        self.assertListEqual(sorted(dset.column_names), ["a.b", "foo"])
+                        self.assertListEqual(sorted(dset.features.keys()), ["a.b", "foo"])
+                        self.assertDictEqual(dset.features, Features({"a.b": Image(), "foo": Value("int64")}))
+                        self.assertNotEqual(dset._fingerprint, fingerprint)
+                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
+
         # decoding turned off
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
@@ -821,6 +836,26 @@ class BaseDatasetTest(TestCase):
                         self.assertDictEqual(
                             dset.features,
                             Features({"a.bytes": Value("binary"), "a.path": Value("string"), "foo": Value("int64")}),
+                        )
+                        self.assertNotEqual(dset._fingerprint, fingerprint)
+                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
+
+        # decoding turned off + nesting
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict(
+                {"a": [{"b": np.arange(4 * 4 * 3).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
+                features=Features({"a": {"b": Image(decode=False)}, "foo": Value("int64")}),
+            ) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    fingerprint = dset._fingerprint
+                    with dset.flatten() as dset:
+                        self.assertListEqual(sorted(dset.column_names), ["a.b.bytes", "a.b.path", "foo"])
+                        self.assertListEqual(sorted(dset.features.keys()), ["a.b.bytes", "a.b.path", "foo"])
+                        self.assertDictEqual(
+                            dset.features,
+                            Features(
+                                {"a.b.bytes": Value("binary"), "a.b.path": Value("string"), "foo": Value("int64")}
+                            ),
                         )
                         self.assertNotEqual(dset._fingerprint, fingerprint)
                         assert_arrow_metadata_are_synced_with_dataset_features(dset)
