@@ -81,7 +81,6 @@ _METADATA_URLS = {
 
 _ATTRIBUTES_URLS = {
     "attributes_candidate_subsets": "https://github.com/Weixin-Liang/MetaShift/raw/main/dataset/attributes_MetaShift/attributes-candidate-subsets.pkl",
-    "structured_attributes_candidate_subsets": "https://github.com/Weixin-Liang/MetaShift/raw/main/dataset/attributes_MetaShift/structured-attributes-candidate-subsets.pkl",
 }
 
 
@@ -101,19 +100,29 @@ _CLASSES = [
 ]
 
 
+_ATTRIBUTES = [
+    "cat(orange)",
+    "cat(white)",
+    "dog(sitting)",
+    "dog(jumping)",
+]
+
+
 class MetashiftConfig(datasets.BuilderConfig):
     """BuilderConfig for MetaShift."""
 
-    def __init__(self, *args, selected_classes=None, **kwargs):
+    def __init__(self, *args, selected_classes=None, attributes_dataset=False, attributes=None, **kwargs):
         """BuilderConfig for MetaShift.
 
         Args:
         selected_classes: `list[string]`, list of the classes needed to generate subsets.
         **kwargs: keyword arguments forwarded to super.
         """
-
-        super(MetashiftConfig, self).__init__(*args, version=datasets.Version("1.0.0"), **kwargs)
+        super(MetashiftConfig, self).__init__(*args, **kwargs)
         self.selected_classes = _CLASSES if selected_classes is None else selected_classes
+        self.attributes_dataset = attributes_dataset
+        if attributes_dataset:
+            self.attributes = _ATTRIBUTES if attributes is None else attributes
 
 
 class Metashift(datasets.GeneratorBasedBuilder):
@@ -128,20 +137,28 @@ class Metashift(datasets.GeneratorBasedBuilder):
 
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "image_id": datasets.Value("string"),
-                    "image": datasets.Image(),
-                    "label": datasets.ClassLabel(names=self.config.selected_classes),
-                    "context": datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features(self._get_feature_types()),
             supervised_keys=("image", "label"),
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
             task_templates=[ImageClassification(image_column="image", label_column="label")],
         )
+
+    def _get_feature_types(self):
+        if self.config.attributes_dataset:
+            return {
+                "image_id": datasets.Value("string"),
+                "image": datasets.Image(),
+                "label": datasets.ClassLabel(names=self.config.attributes),
+            }
+        else:
+            return {
+                "image_id": datasets.Value("string"),
+                "image": datasets.Image(),
+                "label": datasets.ClassLabel(names=self.config.selected_classes),
+                "context": datasets.Value("string"),
+            }
 
     @staticmethod
     def _parse_node_str(node_str):
@@ -237,11 +254,16 @@ class Metashift(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         data_path = dl_manager.download_and_extract(_URLS)
-        metadata_path = dl_manager.download_and_extract(_METADATA_URLS)
-
-        subjects_to_all_set = self._preprocess_groups(
-            metadata_path["full_candidate_subsets"], subject_classes=self.config.selected_classes
-        )
+        metadata_path = None
+        subjects_to_all_set = None
+        attributes_path = None
+        if not self.config.attributes_dataset:
+            metadata_path = dl_manager.download_and_extract(_METADATA_URLS)
+            subjects_to_all_set = self._preprocess_groups(
+                metadata_path["full_candidate_subsets"], subject_classes=self.config.selected_classes
+            )
+        else:
+            attributes_path = dl_manager.download_and_extract(_ATTRIBUTES_URLS)
 
         return [
             datasets.SplitGenerator(
@@ -249,21 +271,38 @@ class Metashift(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "images_path": os.path.join(data_path["image_files"], "images"),
                     "subjects_to_all_set": subjects_to_all_set,
+                    "attributes_path": attributes_path,
                 },
             ),
         ]
 
-    def _generate_examples(self, images_path, subjects_to_all_set):
+    def _generate_examples(self, images_path, subjects_to_all_set, attributes_path):
         idx = 0
-        for subset in subjects_to_all_set:
-            class_name, context = self._parse_node_str(subset)
-            for image_id in subjects_to_all_set[subset]:
-                image_filename = image_id + ".jpg"
-                src_image_path = os.path.join(images_path, image_filename)
-                yield idx, {
-                    "image_id": image_id,
-                    "image": src_image_path,
-                    "label": class_name,
-                    "context": context,
-                }
-                idx += 1
+        if not self.config.attributes_dataset:
+            for subset in subjects_to_all_set:
+                class_name, context = self._parse_node_str(subset)
+                for image_id in subjects_to_all_set[subset]:
+                    image_filename = image_id + ".jpg"
+                    src_image_path = os.path.join(images_path, image_filename)
+                    yield idx, {
+                        "image_id": image_id,
+                        "image": src_image_path,
+                        "label": class_name,
+                        "context": context,
+                    }
+                    idx += 1
+        else:
+            attributes_candidate_subsets = self._load_candidate_subsets(
+                attributes_path["attributes_candidate_subsets"]
+            )
+            for attribute in self.config.attributes:
+                image_IDs = attributes_candidate_subsets[attribute]
+                for image_id in image_IDs:
+                    image_filename = image_id + ".jpg"
+                    src_image_path = os.path.join(images_path, image_filename)
+                    yield idx, {
+                        "image_id": image_id,
+                        "image": src_image_path,
+                        "label": attribute,
+                    }
+                    idx += 1
