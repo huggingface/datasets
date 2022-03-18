@@ -68,7 +68,7 @@ words = ['bc/cctv/00/cctv_0005   0   0       Thank   VBP  (TOP(S(VP*    thank  0
 ... 'bc/cctv/00/cctv_0005   0   3         for    IN        (PP*       -    -   -    Xu_li  *        (ARG2*         *       -',
 ... 'bc/cctv/00/cctv_0005   0   4    watching   VBG   (S(VP*))))   watch  01   1    Xu_li  *             *)      (V*)      -',
 ... 'bc/cctv/00/cctv_0005   0   5           .     .          *))      -    -   -    Xu_li  *             *         *       -']
- references = [words]
+references = [words]
 predictions = [words]
 results = coval.compute(predictions=predictions, references=references)
 print(results)
