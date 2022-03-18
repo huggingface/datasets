@@ -467,9 +467,6 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLS
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
@@ -503,15 +500,12 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
 
     # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     def _generate_examples(self, filepath, split):
-        # TODO: This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
-        # The `key` is for legacy reasons (tfds) and is not important in itself, but must be unique for each example.
-
         (
             loaded_data,
             frequency,
             forecast_horizon,
-            contain_missing_values,
-            contain_equal_length,
+            _,
+            _,
         ) = convert_tsf_to_dataframe(filepath, value_column_name="target")
 
         if forecast_horizon is None:
