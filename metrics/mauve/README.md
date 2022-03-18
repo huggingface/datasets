@@ -53,7 +53,7 @@ It also has several optional arguments:
 
 This metric outputs a dictionary with 5 key-value pairs:
 
-`mauve`: MAUVE score, which ranges between 0 and 1. **Larger** values indicate that P and Q are closer
+`mauve`: MAUVE score, which ranges between 0 and 1. **Larger** values indicate that P and Q are closer.
 
 `frontier_integral`: Frontier Integral, which ranges between 0 and 1. **Smaller** values indicate that P and Q are closer.
 
