@@ -1,3 +1,4 @@
+import glob
 import os
 from dataclasses import dataclass
 from typing import List
@@ -14,15 +15,12 @@ class AudioFolderConfig(datasets.BuilderConfig):
     """BuilderConfig for AudioFolder."""
 
     sampling_rate: int = 16_000
-    # features: Optional[datasets.Features] = None
-    # drop_labels: bool = False
 
 
 class AudioFolder(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = AudioFolderConfig
 
     AUDIO_EXTENSIONS: List[str] = []  # definition at the bottom of the script
-    # TRANSCRIPT_EXTENSIONS: List[str] = []  # definition at the bottom of the script
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -45,7 +43,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                 files = [files]
             files, transcript, archives = self._split_files_and_archives(files)
             downloaded_files = dl_manager.download(files)
-            downloaded_transcript = dl_manager.download(transcript)
+            downloaded_transcript = dl_manager.download(transcript) if transcript else None
             downloaded_dirs = dl_manager.download_and_extract(archives)
             splits.append(
                 datasets.SplitGenerator(
@@ -54,9 +52,6 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                         "files": [
                                      (file, downloaded_file) for file, downloaded_file in zip(files, downloaded_files)
                                  ],
-                                 # [
-                                 #     (None, dl_manager.iter_files(downloaded_dir)) for downloaded_dir in downloaded_dirs
-                                 # ],
                         "transcript_file": downloaded_transcript,
                         "archive_path": downloaded_dirs[0] if downloaded_dirs else None,
                         "archive_files": dl_manager.iter_files(downloaded_dirs[0]) if downloaded_dirs else None,
@@ -70,17 +65,17 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
         files, archives, transcript = [], [], None
         for data_file in data_files:
             _, data_file_ext = os.path.splitext(data_file)
-            if data_file_ext.lower() in self.AUDIO_EXTENSIONS:  # .txt is for transcription file
+            if data_file_ext.lower() in self.AUDIO_EXTENSIONS:
                 files.append(data_file)
             elif os.path.split(data_file)[-1] == "transcripts.txt":
                 transcript = data_file
             else:
                 archives.append(data_file)
-        assert len(archives) <= 1, "More than one data archive provided"
+        if len(archives) > 1:
+            raise ValueError("More than one data archive provided, cannot infer data structure")
 
         return files, transcript, archives
 
-    # @staticmethod
     def _read_transcript(self, transcript_filename):
         transcript = dict()
         with open(transcript_filename) as f:
@@ -92,9 +87,9 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, files, transcript_file, archive_path, archive_files):
 
+        # from local directory
         if files and transcript_file:
             transcript = self._read_transcript(transcript_file)
-            # transcript_path = os.path.join(data_dir, "transcripts.txt")
 
             file_idx = 0
             for file, downloaded_file_or_dir in files:
@@ -106,15 +101,17 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                 }
                 file_idx += 1
 
+        # from archive
         else:  # archive is not None
-            transcript = self._read_transcript(os.path.join(archive_path, "transcripts.txt"))
+            # assuming there is only one transcripts.txt file
+            transcript_file = glob.glob(f"{archive_path}/**/transcripts.txt")[0]
+            transcript = self._read_transcript(transcript_file)
 
             file_idx = 0
             for file in archive_files:
-                _, ext = os.path.splitext(file)
                 filename = os.path.split(file)[-1]
-                _id, ext = os.path.splitext(filename)
-                if ext.lower() in self.AUDIO_EXTENSIONS:
+                _id, file_ext = os.path.splitext(filename)
+                if file_ext.lower() in self.AUDIO_EXTENSIONS:
                     yield file_idx, {
                         "audio": file,
                         "text": transcript[_id],
@@ -122,13 +119,10 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                     file_idx += 1
 
 
+# TODO: get full list of extensions
 AudioFolder.AUDIO_EXTENSIONS = [
     ".wav",
     ".flac",
     ".mp3",
     ".opus",
-]
-
-AudioFolder.TRANSCRIPT_EXTENSIONS = [
-    ".txt"
 ]
