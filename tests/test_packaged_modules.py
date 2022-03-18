@@ -55,6 +55,15 @@ def text_file(tmp_path):
     return str(filename)
 
 
+@pytest.fixture(scope="session")
+def text_with_newlines_file(tmp_path_factory):
+    text_with_newlines = "Unix\nWindows\r\nMacintosh\rUnicode\u2029End"
+    path = tmp_path_factory.mktemp("data") / "test_with_newlines.txt"
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text_with_newlines)
+    return str(path)
+
+
 @pytest.fixture
 def image_file():
     return os.path.join(os.path.dirname(__file__), "features", "data", "test_image_rgb.jpg")
@@ -80,6 +89,22 @@ def test_text_linebreaks(text_file, keep_linebreaks):
         expected_content = f.read().splitlines(keepends=keep_linebreaks)
     text = Text(keep_linebreaks=keep_linebreaks, encoding="utf-8")
     generator = text._generate_tables([text_file])
+    generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()["text"]
+    assert generated_content == expected_content
+
+
+@pytest.mark.parametrize(
+    "newline, expected_content",
+    [
+        (None, ["Unix\n", "Windows\n", "Macintosh\n", "Unicode\u2029End"]),
+        ("\n", ["Unix\n", "Windows\r\n", "Macintosh\rUnicode\u2029End"]),
+        ("\r\n", ["Unix\nWindows\r\n", "Macintosh\rUnicode\u2029End"]),
+        ("\r", ["Unix\nWindows\r", "\nMacintosh\r", "Unicode\u2029End"]),
+    ],
+)
+def test_text_newline(newline, expected_content, text_with_newlines_file):
+    text = Text(encoding="utf-8", sample_by="line", keep_linebreaks=True, newline=newline)
+    generator = text._generate_tables([text_with_newlines_file])
     generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()["text"]
     assert generated_content == expected_content
 
