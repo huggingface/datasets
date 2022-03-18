@@ -10,11 +10,15 @@ from datasets.tasks import AutomaticSpeechRecognition
 logger = datasets.utils.logging.get_logger(__name__)
 
 
-@dataclass
 class AudioFolderConfig(datasets.BuilderConfig):
     """BuilderConfig for AudioFolder."""
 
-    sampling_rate: int = 16_000
+    def __init__(self, *args, sampling_rate, **kwargs):
+        self.sampling_rate = sampling_rate
+
+        super(AudioFolderConfig, self).__init__(
+            *args, **kwargs
+        )
 
 
 class AudioFolder(datasets.GeneratorBasedBuilder):
@@ -76,20 +80,11 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
 
         return files, transcript, archives
 
-    def _read_transcript(self, transcript_filename):
-        transcript = dict()
-        with open(transcript_filename) as f:
-            for line in f:
-                audio_id, text = line.strip().split("\t")
-                transcript[audio_id] = text
-
-        return transcript
-
     def _generate_examples(self, files, transcript_file, archive_path, archive_files):
 
         # from local directory
         if files and transcript_file:
-            transcript = self._read_transcript(transcript_file)
+            transcript = _read_transcript(transcript_file)
 
             file_idx = 0
             for file, downloaded_file_or_dir in files:
@@ -105,7 +100,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
         else:  # archive is not None
             # assuming there is only one transcripts.txt file
             transcript_file = glob.glob(f"{archive_path}/**/transcripts.txt")[0]
-            transcript = self._read_transcript(transcript_file)
+            transcript = _read_transcript(transcript_file)
 
             file_idx = 0
             for file in archive_files:
@@ -117,6 +112,17 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                         "text": transcript[_id],
                     }
                     file_idx += 1
+
+
+def _read_transcript(transcript_filename):
+    transcript = dict()
+    with open(transcript_filename) as f:
+        for line in f:
+            # TODO: remove extension just in case too
+            audio_id, text = line.strip().split("\t")
+            transcript[audio_id] = text
+
+    return transcript
 
 
 # TODO: get full list of extensions
