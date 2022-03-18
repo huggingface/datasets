@@ -1256,6 +1256,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         for depth in range(1, max_depth):
             if any(isinstance(field.type, pa.StructType) for field in dataset._data.schema):
                 dataset._data = dataset._data.flatten()
+                # dataset.info.features = dataset.info.features.flatten(max_depth=2)
+                # dataset._data = update_metadata_with_features(dataset._data, dataset.features)
             else:
                 break
         dataset.info.features = self.features.flatten(max_depth=max_depth)

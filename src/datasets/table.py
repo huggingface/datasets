@@ -1868,7 +1868,7 @@ def table_flatten(table: pa.Table):
     """Improved version of pa.Table.flatten.
 
     It behaves as pa.Table.flatten in a sense it does 1-step flatten of the columns with a struct type into one column per struct field,
-    but skips decodable features unless the `decode` attribute of these features is set to False.
+    but updates the metadata and skips decodable features unless the `decode` attribute of these features is set to False.
 
     Args:
         table (Table): PyArrow table to flatten
@@ -1893,13 +1893,16 @@ def table_flatten(table: pa.Table):
             else:
                 flat_arrays.append(array)
                 flat_column_names.append(field.name)
-        flat_features = features.flatten(max_depth=2)
-        flat_features = Features({column_name: flat_features[column_name] for column_name in flat_column_names})
-        return pa.Table.from_arrays(
-            flat_arrays, schema=flat_features.arrow_schema
-        )  # use `schema` and not `names` to preserve complex types in metadata
+        flat_table = pa.Table.from_arrays(
+            flat_arrays,
+            names=flat_column_names,
+        )
     else:
-        return table.flatten()
+        flat_table = table.flatten()
+    # Preserve complex types in the metadata
+    flat_features = features.flatten(max_depth=2)
+    flat_features = Features({column_name: flat_features[column_name] for column_name in flat_table.column_names})
+    return flat_table.replace_schema_metadata(flat_features.arrow_schema.metadata)
 
 
 def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
