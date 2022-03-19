@@ -39,6 +39,7 @@
 
 """MetaShift Dataset."""
 
+import json
 import os
 import pickle
 from collections import Counter, defaultdict
@@ -111,7 +112,15 @@ _ATTRIBUTES = [
 class MetashiftConfig(datasets.BuilderConfig):
     """BuilderConfig for MetaShift."""
 
-    def __init__(self, *args, selected_classes=None, attributes_dataset=False, attributes=None, **kwargs):
+    def __init__(
+        self,
+        *args,
+        selected_classes=None,
+        attributes_dataset=False,
+        attributes=None,
+        with_image_metadata=False,
+        **kwargs,
+    ):
         """BuilderConfig for MetaShift.
 
         Args:
@@ -123,6 +132,7 @@ class MetashiftConfig(datasets.BuilderConfig):
         self.attributes_dataset = attributes_dataset
         if attributes_dataset:
             self.attributes = _ATTRIBUTES if attributes is None else attributes
+        self.with_image_metadata = with_image_metadata
 
 
 class Metashift(datasets.GeneratorBasedBuilder):
@@ -146,19 +156,49 @@ class Metashift(datasets.GeneratorBasedBuilder):
         )
 
     def _get_feature_types(self):
+        features = {
+            "image_id": datasets.Value("string"),
+            "image": datasets.Image(),
+        }
+
         if self.config.attributes_dataset:
-            return {
-                "image_id": datasets.Value("string"),
-                "image": datasets.Image(),
-                "label": datasets.ClassLabel(names=self.config.attributes),
-            }
+            features.update({"label": datasets.ClassLabel(names=self.config.attributes)})
         else:
-            return {
-                "image_id": datasets.Value("string"),
-                "image": datasets.Image(),
-                "label": datasets.ClassLabel(names=self.config.selected_classes),
-                "context": datasets.Value("string"),
-            }
+            features.update(
+                {
+                    "label": datasets.ClassLabel(names=self.config.selected_classes),
+                    "context": datasets.Value("string"),
+                }
+            )
+
+        if self.config.with_image_metadata:
+            features.update(
+                {
+                    "width": datasets.Value("int64"),
+                    "height": datasets.Value("int64"),
+                    "location": datasets.Value("string"),
+                    "weather": datasets.Value("string"),
+                    "objects": datasets.Sequence(
+                        {
+                            "object_id": datasets.Value("string"),
+                            "name": datasets.Value("string"),
+                            "x": datasets.Value("int64"),
+                            "y": datasets.Value("int64"),
+                            "w": datasets.Value("int64"),
+                            "h": datasets.Value("int64"),
+                            "attributes": datasets.Sequence(datasets.Value("string")),
+                            "relations": datasets.Sequence(
+                                {
+                                    "name": datasets.Value("string"),
+                                    "object": datasets.Value("string"),
+                                }
+                            ),
+                        }
+                    ),
+                }
+            )
+
+        return features
 
     @staticmethod
     def _parse_node_str(node_str):
@@ -252,6 +292,12 @@ class Metashift(datasets.GeneratorBasedBuilder):
 
         return subjects_to_all_set
 
+    @staticmethod
+    def _load_scene_graph(json_path):
+        with open(json_path, "r") as f:
+            scene_graph = json.load(f)
+        return scene_graph
+
     def _split_generators(self, dl_manager):
         data_path = dl_manager.download_and_extract(_URLS)
         metadata_path = None
@@ -272,24 +318,54 @@ class Metashift(datasets.GeneratorBasedBuilder):
                     "images_path": os.path.join(data_path["image_files"], "images"),
                     "subjects_to_all_set": subjects_to_all_set,
                     "attributes_path": attributes_path,
+                    "image_metadata_path": data_path["scene_graph_annotations"],
                 },
             ),
         ]
 
-    def _generate_examples(self, images_path, subjects_to_all_set, attributes_path):
+    @staticmethod
+    def _get_processed_image_metadata(image_id, scene_graph):
+        image_metadata = scene_graph[image_id]
+        objects = image_metadata["objects"]
+        if isinstance(objects, list):
+            return image_metadata
+        processed_objects = []
+        for object_id, object_details in objects.items():
+            object_details["object_id"] = object_id
+            processed_objects.append(object_details)
+        image_metadata["objects"] = processed_objects
+        if "location" not in image_metadata:
+            image_metadata["location"] = None
+        if "weather" not in image_metadata:
+            image_metadata["weather"] = None
+
+        return image_metadata
+
+    def _generate_examples(self, images_path, subjects_to_all_set, attributes_path, image_metadata_path):
         idx = 0
+        if self.config.with_image_metadata:
+            train_scene_graph = os.path.join(image_metadata_path, "train_sceneGraphs.json")
+            test_scene_graph = os.path.join(image_metadata_path, "val_sceneGraphs.json")
+
+            scene_graph = self._load_scene_graph(train_scene_graph)
+            scene_graph.update(self._load_scene_graph(test_scene_graph))
+
         if not self.config.attributes_dataset:
             for subset in subjects_to_all_set:
                 class_name, context = self._parse_node_str(subset)
                 for image_id in subjects_to_all_set[subset]:
                     image_filename = image_id + ".jpg"
                     src_image_path = os.path.join(images_path, image_filename)
-                    yield idx, {
+                    features = {
                         "image_id": image_id,
                         "image": src_image_path,
                         "label": class_name,
                         "context": context,
                     }
+                    if self.config.with_image_metadata:
+                        image_metadata = self._get_processed_image_metadata(image_id, scene_graph)
+                        features.update(image_metadata)
+                    yield idx, features
                     idx += 1
         else:
             attributes_candidate_subsets = self._load_candidate_subsets(
@@ -300,9 +376,13 @@ class Metashift(datasets.GeneratorBasedBuilder):
                 for image_id in image_IDs:
                     image_filename = image_id + ".jpg"
                     src_image_path = os.path.join(images_path, image_filename)
-                    yield idx, {
+                    features = {
                         "image_id": image_id,
                         "image": src_image_path,
                         "label": attribute,
                     }
+                    if self.config.with_image_metadata:
+                        image_metadata = self._get_processed_image_metadata(image_id, scene_graph)
+                        features.update(image_metadata)
+                    yield idx, features
                     idx += 1
