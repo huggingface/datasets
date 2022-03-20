@@ -55,7 +55,7 @@ task_ids: []
 - **Homepage: https://github.com/doc-analysis/XFUND**
 - **Repository: https://github.com/doc-analysis/XFUND**
 - **Paper: https://arxiv.org/abs/2104.08836**
-- **Leaderboard:**
+- **Leaderboard: https://github.com/doc-analysis/XFUND#results**
 - **Point of Contact: Lei Cui (`lecu@microsoft.com`) or Furu Wei (`fuwei@microsoft.com`)**
 
 ### Dataset Summary
@@ -64,7 +64,8 @@ XFUND is a multilingual form understanding benchmark dataset that includes human
 
 ### Supported Tasks and Leaderboards
 
-Key-value pair relation-extraction.
+1. Semantic Entity Recognitionm
+2. Key-Value Pair Relation-Extraction
 
 ### Languages
 

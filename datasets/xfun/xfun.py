@@ -24,9 +24,10 @@ _DESCRIPTION = """
 XFUND is a multilingual form understanding benchmark dataset that includes human-labeled forms with key-value pairs in 7 languages (Chinese, Japanese, Spanish, French, Italian, German, Portuguese).
 """
 
+_VERSION = datasets.Version("1.0.0")
+
 _URL = "https://github.com/doc-analysis/XFUN/releases/download/v1.0/"
 _LANG = ["zh", "de", "es", "fr", "it", "ja", "pt"]
-_VERSION = datasets.Version("1.0.0")
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,8 @@ class XFUN(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         return datasets.DatasetInfo(
+            description=_DESCRIPTION,
+            citation=_CITATION,
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
@@ -115,6 +118,7 @@ class XFUN(datasets.GeneratorBasedBuilder):
                     ),
                 }
             ),
+            version=_VERSION,
             supervised_keys=None,
         )
 
