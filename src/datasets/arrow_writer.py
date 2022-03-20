@@ -22,7 +22,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 import numpy as np
 import pyarrow as pa
 
-from . import config, utils
+from . import config
 from .features import Features, Image, Value
 from .features.features import (
     FeatureType,
@@ -637,11 +637,11 @@ class BeamWriter:
 def parquet_to_arrow(sources, destination):
     """Convert parquet files to arrow file. Inputs can be str paths or file-like objects"""
     stream = None if isinstance(destination, str) else destination
-    disable = not utils.is_progress_bar_enabled()
+    disable = not logging.is_progress_bar_enabled()
     with ArrowWriter(path=destination, stream=stream) as writer:
-        for source in utils.tqdm_utils.tqdm(sources, unit="sources", disable=disable):
+        for source in logging.tqdm(sources, unit="sources", disable=disable):
             pf = pa.parquet.ParquetFile(source)
-            for i in utils.tqdm_utils.tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=disable):
+            for i in logging.tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=disable):
                 df = pf.read_row_group(i).to_pandas()
                 for col in df.columns:
                     df[col] = df[col].apply(json.loads)

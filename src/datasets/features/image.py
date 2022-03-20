@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, ClassVar, List, Optional, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Union
 
 import numpy as np
 import pyarrow as pa
@@ -14,6 +14,8 @@ from ..utils.streaming_download_manager import xopen
 
 if TYPE_CHECKING:
     import PIL.Image
+
+    from .features import FeatureType
 
 
 _IMAGE_COMPRESSION_FORMATS: Optional[List[str]] = None
@@ -113,6 +115,19 @@ class Image:
         else:
             image = PIL.Image.open(BytesIO(bytes_))
         return image
+
+    def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
+        """If in the decodable state, return the feature itself, otherwise flatten the feature into a dictionary."""
+        from .features import Value
+
+        return (
+            self
+            if self.decode
+            else {
+                "bytes": Value("binary"),
+                "path": Value("string"),
+            }
+        )
 
     def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray, pa.ListArray]) -> pa.StructArray:
         """Cast an Arrow array to the Image arrow storage type.

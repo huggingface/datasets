@@ -178,7 +178,7 @@ Use [`datasets.Dataset.cast_column`] to change the feature type of just one colu
 
 ## Map
 
-Similar to the [`datasets.Dataset.map`] function for a regular [`datasets.Dataset`], 🤗  Datasets features [`datasets.IterableDataset.map`] for processing [`datasets.IterableDataset`]\s.
+Similar to the [`datasets.Dataset.map`] function for a regular [`datasets.Dataset`], 🤗  Datasets features [`datasets.IterableDataset.map`] for processing an [`datasets.IterableDataset`].
 [`datasets.IterableDataset.map`] applies processing on-the-fly when examples are streamed.
 
 It allows you to apply a processing function to each example in a dataset, independently or in batches. This function can even create new rows and columns.
@@ -236,7 +236,7 @@ Specify the column to remove with the `remove_columns` argument in [`datasets.It
 
 <Tip>
 
-See other examples of batch processing in [the batched map processing documentation](./process#batch-processing). They work the same for iterable datasets.
+See other examples of batch processing in the [batched map processing](./process#batch-processing) documentation. They work the same for iterable datasets.
 
 </Tip>
 
@@ -266,6 +266,8 @@ You can filter rows in the dataset based on a predicate function using [`dataset
 
 [`datasets.IterableDataset`] can be integrated into a training loop. First, shuffle the dataset:
 
+<frameworkcontent>
+<pt>
 ```py
 >>> seed, buffer_size = 42, 10_000
 >>> dataset = dataset.shuffle(seed, buffer_size=buffer_size)
@@ -297,6 +299,8 @@ Lastly, create a simple training loop and start training:
 ...         optimizer.zero_grad()
 ...         if i % 10 == 0:
 ...             print(f"loss: {loss}")
-===PT-TF-SPLIT===
-# WIP
 ```
+</pt>
+</frameworkcontent>
+
+<!-- TODO: Write the TF content! -->

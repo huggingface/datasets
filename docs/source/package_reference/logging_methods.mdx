@@ -28,6 +28,7 @@ In order from the least to the most verbose (with their corresponding `int` valu
 4. `datasets.logging.INFO` (int value, 20): reports error, warnings and basic information.
 5. `datasets.logging.DEBUG` (int value, 10): report all information.
 
+By default, `tqdm` progress bars will be displayed during dataset download and preprocessing. [`datasets.logging.disable_progress_bar`] and [`datasets.logging.enable_progress_bar`] can be used to suppress or unsuppress this behavior. 
 
 ## Functions
 
@@ -48,6 +49,12 @@ In order from the least to the most verbose (with their corresponding `int` valu
 [[autodoc]] datasets.logging.enable_propagation
 
 [[autodoc]] datasets.logging.get_logger
+
+[[autodoc]] datasets.logging.enable_progress_bar
+
+[[autodoc]] datasets.logging.disable_progress_bar
+
+[[autodoc]] datasets.is_progress_bar_enabled
 
 ## Levels
 
