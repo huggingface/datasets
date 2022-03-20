@@ -70,15 +70,43 @@ The text of this dataset is Roman Urdu. The associated BCP-47 code is 'ur'.
 
 ### Data Instances
 
-[More Information Needed]
+The dataset consists of two parts divided as a set of two types, Coarse grained examples and Fine Grained examples. The difference is that in the coarse grained example the tweets are labelled as abusive or normal whereas in the fine grained version there are several classes of hate associated with a tweet.
+
+For the Coarse grained segment of the dataset the label mapping is:-
+Task 1: Coarse-grained Classification Labels
+0:  Abusive/Offensive
+1:  Normal
+
+Whereas for the Fine Grained segment of the dataset the label mapping is:-
+Task 2: Fine-grained Classification Labels
+0:  Abusive/Offensive
+1:  Normal
+2:  Religious Hate
+3:  Sexism
+4:  Profane/Untargeted
+
+An example from Roman Urdu Hate Speech looks as follows:
+{'tweet':'there are some yahodi daboo like imran chore zakat khore'
+'label':0
+}
 
 ### Data Fields
 
-[More Information Needed]
+-tweet:a string denoting the tweet which has been selected by using a random sampling from a tweet base of 50000 tweets to select 10000 tweets and annotated for the dataset.
+
+-label:An annotation manually labeled by three independent annotators, during the annotation process, all conflicts are resolved by a majority vote among three annotators. 
 
 ### Data Splits
 
-[More Information Needed]
+The data of each of the segments, Coarse Grained and Fine Grained is further split into training, validation and test set. The data  is split in train, test, and validation sets with 70,20,10 split ratio using stratification based on fine-grained labels.
+
+The use of stratified sampling is deemed necessary to preserve the same labels ratio across all splits. 
+
+The Final split sizes are as follows:
+
+Train Valid Test
+7209 2003 801
+
 
 ## Dataset Creation
 
@@ -128,11 +156,11 @@ The text of this dataset is Roman Urdu. The associated BCP-47 code is 'ur'.
 
 ### Dataset Curators
 
-[More Information Needed]
+The dataset was created by Hammad Rizwan, Muhammad Haroon Shakeel, Asim Karim during work done at Department of Computer Science, Lahore University of Management Sciences (LUMS), Lahore, Pakistan.
 
 ### Licensing Information
 
-MIT License from the GitHub repository
+The licensing status of the dataset hinges on the legal status of the [Roman Urdu Dataset Repository](https://github.com/haroonshakeel/roman_urdu_hate_speech) which is under MIT License.
 
 ### Citation Information
 
@@ -143,3 +171,5 @@ MIT License from the GitHub repository
   pages={2512--2522},
   year={2020}
 }
+
+### Contributions
