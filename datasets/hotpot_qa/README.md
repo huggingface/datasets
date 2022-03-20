@@ -1,6 +1,25 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- machine-generated
 languages:
 - en
+licenses:
+- cc-by-sa-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+- 100K<n<1M
+source_datasets:
+- extended|wikipedia
+task_categories:
+- question-answering
+task_ids:
+- open-domain-qa
+- extractive-qa
+- abstractive-qa
 paperswithcode_id: hotpotqa
 pretty_name: HotpotQA
 ---
