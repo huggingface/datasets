@@ -64,6 +64,41 @@ Two important benefits of MetaShift :
 - Contains orders of magnitude more natural data shifts than previously available.
 - Provides explicit explanations of what is unique about each of its data sets and a distance score that measures the amount of distribution shift between any two of its data sets.
 
+### Dataset Usage
+
+The dataset has the following configuration parameters:
+- selected_classes: `list[string]`, list of the classes needed to generate the MetaShift dataset.
+- attributes_dataset: `bool`, default=False, to generate the MetaShift-Attributes dataset, set as True. Refer [MetaShift-Attributes Dataset](https://github.com/Weixin-Liang/MetaShift#bonus-generate-the-metashift-attributes-dataset-subsets-defined-by-subject-attributes) for more information.
+- attributes: `list[string]`, list of attributes classes needed to generate the Attributes dataset. You can find the full attribute ontology in the above link.
+- with_image_metadata: `bool`, default=False, to include image metadata, set as True. This will give additional metadata about each image. See [Scene Graph](https://cs.stanford.edu/people/dorarad/gqa/download.html) for more information.
+- image_subset_size_threshold: `int`, default=25, The number of images required to consider a subset. If the number of images are less than image_subset_size_threshold, then the subset is not considered.
+- min_local_groups: `int`, default=5, The minimum number of local groups required to consider an object class.
+
+Consider the following examples to get an idea of how you can use the configuration parameters :
+
+1. To generate the MetaShift Dataset :
+```python
+load_dataset("metashift", selected_classes=['cat', 'dog', 'bus'])
+```
+The full object vocabulary and its hierarchy can be seen [here](https://github.com/Weixin-Liang/MetaShift/blob/main/dataset/meta_data/class_hierarchy.json).
+
+The default classes are _CLASSES = [ 'cat', 'dog', 'bus', 'truck', 'elephant', 'horse', 'bowl', 'cup']
+
+2. To generate the MetaShift-Attributes Dataset (subsets defined by subject attributes) :
+```python
+load_dataset("metashift", attributes_dataset = True, attributes=["dog(smiling)", "cat(resting)"])
+```
+
+The default attributes are _ATTRIBUTES = ["cat(orange)", "cat(white)","dog(sitting)","dog(jumping)"]
+
+3. To generate the dataset with additional image metadata information :
+```python
+load_dataset("metashift", selected_classes=['cat', 'dog', 'bus'], with_image_metadata=True)
+```
+4. Further, you can specify your own configuration different from those used in the papers as follows:
+```python
+load_dataset("metashift", image_subset_size_threshold=20, min_local_groups=3)
+```
 ### Dataset Meta-Graphs
 
 From the MetaShift Github Repo :
