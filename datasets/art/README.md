@@ -1,6 +1,21 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
 languages:
 - en
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+task_categories:
+- text-classification
+- question-answering
+task_ids:
+- natural-language-inference
+- multiple-choice-qa
+- extractive-qa
 paperswithcode_id: art-dataset
 pretty_name: Abductive Reasoning in narrative Text
 ---
