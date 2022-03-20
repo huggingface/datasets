@@ -1,4 +1,25 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+- machine-generated
+languages:
+- en
+licenses:
+- cc-by-4.0
+- mit
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- extended|squad
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
+- closed-domain-qa
 paperswithcode_id: squad-es
 pretty_name: SQuAD-es
 ---
