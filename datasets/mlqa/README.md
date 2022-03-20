@@ -19,12 +19,12 @@ size_categories:
 - 1K<n<10K
 - 10K<n<100K
 source_datasets:
-- extended|wikipedia
 - extended|squad
 task_categories:
 - question-answering
 task_ids:
 - extractive-qa
+- open-domain-qa
 pretty_name: MLQA (MultiLingual Question Answering)
 paperswithcode_id: mlqa
 ---
