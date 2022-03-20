@@ -68,7 +68,7 @@ task_ids:
 - sentiment-scoring
 - summarization
 - topic-classification
-paperswithcode_id: null
+paperswithcode_id: amazon_reviews_multi
 pretty_name: The Multilingual Amazon Reviews Corpus
 ---
 
