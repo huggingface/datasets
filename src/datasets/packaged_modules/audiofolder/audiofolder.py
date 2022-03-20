@@ -12,8 +12,13 @@ logger = datasets.utils.logging.get_logger(__name__)
 class AudioFolderConfig(datasets.BuilderConfig):
     """BuilderConfig for AudioFolder."""
 
-    def __init__(self, *args, sampling_rate, **kwargs):
+    def __init__(self, *args, sampling_rate=None, transcripts_filename="transcripts.txt",  **kwargs):
+        if not sampling_rate:
+            raise ValueError("To load an audio dataset, you must provide the `sampling_rate` parameter. "
+                             "For example: "
+                             ">>> load_dataset(\"audiofolder\", data_dir=\"path/to/dir\", sampling_rate=16_000)")
         self.sampling_rate = sampling_rate
+        self.transcripts_filename = transcripts_filename
 
         super(AudioFolderConfig, self).__init__(
             *args, **kwargs
