@@ -1,5 +1,4 @@
 ---
----
 annotations_creators:
 - crowdsourced
 language_creators:
@@ -13,7 +12,7 @@ languages:
 - vi	
 - hi
 licenses:
-- cc-by-4.0
+- cc-by-sa-3.0
 multilinguality:
 - multilingual
 size_categories:
