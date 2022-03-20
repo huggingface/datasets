@@ -1,7 +1,32 @@
 ---
-pretty_name: MLQA (MultiLingual Question Answering)
+---
+annotations_creators:
+- crowdsourced
+language_creators:
+- machine-generated
 languages:
 - en
+- de	
+- es	
+- ar	
+- zh	
+- vi	
+- hi
+licenses:
+- cc-by-4.0
+multilinguality:
+- multilingual
+size_categories:
+- 1K<n<10K
+- 10K<n<100K
+source_datasets:
+- extended|wikipedia
+- extended|squad
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
+pretty_name: MLQA (MultiLingual Question Answering)
 paperswithcode_id: mlqa
 ---
 
