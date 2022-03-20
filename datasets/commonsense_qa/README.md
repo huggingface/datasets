@@ -1,6 +1,22 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- expert-generated
 languages:
 - en
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+task_categories:
+- open-domain-qa
+- multiple-choice-qa
+- fact-checking
+- text-classification
+task_ids:
+- natural-language-inference
+- fact-checking
 paperswithcode_id: commonsenseqa
 pretty_name: CommonsenseQA
 ---
