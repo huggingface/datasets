@@ -1,6 +1,37 @@
 ---
+annotations_creators:
+- crowdsourced|found
+language_creators:
+- crowdsourced|found
 languages:
 - en
+licenses:
+- literature:
+  - cc-by-sa-4.0  
+- wikipedia:
+  - cc-by-sa-4.0  
+- children-stories:
+  - msr-la
+- school-exams:
+  - race
+- news:
+  - apache-2.0
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- extended|wikipedia
+- extended|race
+- extended|other-mctest
+- extended|other-deepmind-cnn
+task_categories:
+- question-answering
+- sequence-modeling
+task_ids:
+- abstractive-qa
+- multiple-choice-qa
+- dialogue-modeling
 paperswithcode_id: coqa
 pretty_name: Conversational Question Answering Challenge
 ---
