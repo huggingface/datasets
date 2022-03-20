@@ -114,25 +114,34 @@ class MetashiftConfig(datasets.BuilderConfig):
 
     def __init__(
         self,
-        *args,
         selected_classes=None,
         attributes_dataset=False,
         attributes=None,
         with_image_metadata=False,
+        image_subset_size_threshold=25,
+        min_local_groups=5,
         **kwargs,
     ):
         """BuilderConfig for MetaShift.
 
         Args:
         selected_classes: `list[string]`, list of the classes needed to generate subsets.
+        attributes_dataset: `bool`, default=False, to generate the MetaShift-Attributes dataset, set as True
+        attributes: `list[string]`, list of attributes classes needed to generate the Attributes dataset.
+        with_image_metadata: `bool`, default=False, to include image metadata, set as True
+        image_subset_size_threshold: `int`, default=25, The number of images required to consider a subset.
+        If the number of images are less than image_subset_size_threshold, then the subset is not considered.
+        min_local_groups: `int`, default=5, The minimum number of local groups required to consider an object class.
         **kwargs: keyword arguments forwarded to super.
         """
-        super(MetashiftConfig, self).__init__(*args, **kwargs)
+        super(MetashiftConfig, self).__init__(**kwargs)
         self.selected_classes = _CLASSES if selected_classes is None else selected_classes
         self.attributes_dataset = attributes_dataset
         if attributes_dataset:
             self.attributes = _ATTRIBUTES if attributes is None else attributes
         self.with_image_metadata = with_image_metadata
+        self.IMAGE_SUBSET_SIZE_THRESHOLD = image_subset_size_threshold
+        self.MIN_LOCAL_GROUPS = min_local_groups
 
 
 class Metashift(datasets.GeneratorBasedBuilder):
@@ -214,7 +223,7 @@ class Metashift(datasets.GeneratorBasedBuilder):
 
     def _preprocess_groups(self, pkl_save_path, output_files_flag=False, subject_classes=_CLASSES):
 
-        IMAGE_SUBSET_SIZE_THRESHOLD = 25
+        IMAGE_SUBSET_SIZE_THRESHOLD = self.config.IMAGE_SUBSET_SIZE_THRESHOLD
         trainsg_dupes = set()
 
         ##################################
@@ -278,7 +287,7 @@ class Metashift(datasets.GeneratorBasedBuilder):
             ##################################
             # Discard an object class if it has too few local groups
             ##################################
-            if len(subject_data) <= 5:
+            if len(subject_data) <= self.config.MIN_LOCAL_GROUPS:
                 # if len(subject_data) <= 10:
                 continue
             else:
