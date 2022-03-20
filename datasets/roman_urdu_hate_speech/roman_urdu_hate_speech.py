@@ -93,18 +93,18 @@ class RomanUrduHateSpeech(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
+        RomanUrduHateSpeechConfig(
             name="Coarse_Grained",
             version=VERSION,
             description="This part of my dataset covers the Coarse Grained dataset",
         ),
-        datasets.BuilderConfig(
+        RomanUrduHateSpeechConfig(
             name="Fine_Grained", version=VERSION, description="This part of my dataset covers the Fine Grained dataset"
         ),
     ]
 
     DEFAULT_CONFIG_NAME = "Coarse_Grained"
-    # It's not mandatory to have a default configuration. Just use one if it make sense.
+    # It's not mandatory to have a default configuration. Just use one if it makes sense.
 
     def _info(self):
 
@@ -193,17 +193,18 @@ class RomanUrduHateSpeech(datasets.GeneratorBasedBuilder):
             for key, row in enumerate(tsv_reader):
                 if key == 0:
                     continue
-                tweet, label = row
-                label = int(label)
-                # data = json.loads(row)
                 if self.config.name == "Coarse_Grained":
-                    # Yields examples as (key, example) tuples
+                    tweet, label = row
+                    label = int(label)
                     yield key, {
                         "tweet": tweet,
-                        "label": label,
+                        "label": None if split == "test" else label,
                     }
                 if self.config.name == "Fine_Grained":
+                    tweet, label = row
+                    label = int(label)
                     yield key, {
                         "tweet": tweet,
-                        "label": label,
+                        "label": None if split == "test" else label,
                     }
+                # Yields examples as (key, example) tuples
