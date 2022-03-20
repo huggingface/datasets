@@ -1,8 +1,26 @@
 ---
-pretty_name: Eraser Multi Rc
+annotations_creators:
+- crowdsourced
+language_creators:
+- expert-generated
 languages:
 - en
+licenses:
+- rau
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+task_categories:
+- closed-domain-qa
+- multiple-choice-qa
+- fact-checking
+- text-classification
+task_ids:
+- natural-language-inference
+- fact-checking
 paperswithcode_id: null
+pretty_name: Eraser Multi Rc
 ---
 
 # Dataset Card for "eraser_multi_rc"
