@@ -1,4 +1,8 @@
 ---
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
 languages:
 - zh
 - de
@@ -17,7 +21,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- text-classification
+task_ids:
+- entity-linking-classification
 ---
 
 # Dataset Card for XFUN

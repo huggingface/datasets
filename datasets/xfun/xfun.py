@@ -174,7 +174,7 @@ class XFUN(datasets.GeneratorBasedBuilder):
                         empty_entity.add(line["id"])
                         continue
                     id2label[line["id"]] = line["label"]
-                    relations.extend([tuple(sorted(l)) for l in line["linking"]])
+                    relations.extend([tuple(sorted(linking)) for linking in line["linking"]])
                     tokenized_inputs = self.tokenizer(
                         line["text"],
                         add_special_tokens=False,
