@@ -1,6 +1,22 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- other
 languages:
 - en
+licenses:
+- cc0-1.0
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- multi-label-classification
 paperswithcode_id: null
 pretty_name: CivilComments
 ---
