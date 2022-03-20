@@ -1,12 +1,12 @@
 import json
 import logging
 import os
+
 import numpy as np
+from PIL import Image
+from transformers import AutoTokenizer
 
 import datasets
-
-from transformers import AutoTokenizer
-from PIL import Image
 
 
 _CITATION = """
@@ -59,8 +59,8 @@ def load_image(image_path):
     with Image.open(image_path) as image:
         w, h = image.size
         image = image.resize((224, 224), resample=Image.BILINEAR)
-        image_arr = np.asarray(image.copy()) # copy to make it writeable
-        image_arr = image_arr[:,:,::-1] # BGR -> RGB
+        image_arr = np.asarray(image.copy())  # copy to make it writeable
+        image_arr = image_arr[:, :, ::-1]  # BGR -> RGB
         image_arr = np.transpose(image_arr, axes=(2, 0, 1))
     return image_arr, (w, h)
 
@@ -156,7 +156,7 @@ class XFUN(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepaths):
         for filepath in filepaths:
             logger.info("Generating examples from = %s", filepath)
-            with open(filepath[0], "r") as f:
+            with open(filepath[0], "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             for doc in data["documents"]:

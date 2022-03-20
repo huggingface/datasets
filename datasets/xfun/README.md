@@ -1,6 +1,4 @@
 ---
-annotations_creators: []
-language_creators: []
 languages:
 - zh
 - de
@@ -8,19 +6,18 @@ languages:
 - fr
 - it
 - ja
-- pt'
+- pt
 licenses:
 - cc-by-nc-sa-4.0
 multilinguality:
 - multilingual
-pretty_name: xfun
+pretty_name: XFUN
 size_categories:
 - unknown
 source_datasets:
 - original
 task_categories:
 - other
-task_ids: []
 ---
 
 # Dataset Card for XFUN
@@ -75,10 +72,24 @@ Chinese, Japanese, Spanish, French, Italian, German, Portuguese
 
 ### Data Instances
 
-[More Information Needed]
+There are seven configurations in this dataset, which are `xfun.zh`, `xfun.ja`, `xfun.es`, `xfun.fr`, `xfun.it`, `xfun.de`, and `xfun.pt`.
+
+An example of `xfun.fr` looks as follows:
+
+```
+DatasetDict({
+    train: Dataset({
+        features: ['id', 'input_ids', 'bbox', 'labels', 'image', 'entities', 'relations'],
+        num_rows: 202
+    })
+    validation: Dataset({
+        features: ['id', 'input_ids', 'bbox', 'labels', 'image', 'entities', 'relations'],
+        num_rows: 71
+    })
+})
+```
 
 ### Data Fields
-
 
 - `id`: a `string` feature.
 - `input_ids`: a sequence feature containing `int64` features.
@@ -103,22 +114,22 @@ Chinese, Japanese, Spanish, French, Italian, German, Portuguese
 
 ### Data Splits
 
-| config  | split    | header | question | answer | other | total  |
-| ------- | -------- | ------ | -------- | ------ | ----- | ------ |
-| xfun.zh | training | 441    | 3,266    | 2,808  | 896   | 7,411  |
-|         | testing  | 122    | 1,077    | 821    | 312   | 2,332  |
-| xfun.ja | training | 229    | 3,692    | 4,641  | 1,666 | 10,228 |
-|         | testing  | 58     | 1,253    | 1,732  | 586   | 3,629  |
-| xfun.es | training | 253    | 3,013    | 4,254  | 3,929 | 11,449 |
-|         | testing  | 90     | 909      | 1,218  | 1,196 | 3,413  |
-| xfun.fr | training | 183    | 2,497    | 3,427  | 2,709 | 8,816  |
-|         | testing  | 66     | 1,023    | 1,281  | 1,131 | 3,501  |
-| xfun.it | training | 166    | 3,762    | 4,932  | 3,355 | 12,215 |
-|         | testing  | 65     | 1,230    | 1,599  | 1,135 | 4,029  |
-| xfun.de | training | 155    | 2,609    | 3,992  | 1,876 | 8,632  |
-|         | testing  | 59     | 858      | 1,322  | 650   | 2,889  |
-| xfun.pt | training | 185    | 3,510    | 5,428  | 2,531 | 11,654 |
-|         | testing  | 59     | 1,288    | 1,940  | 882   | 4,169  |
+| config  | split      |     |
+| ------- | -----------| --- |
+| xfun.zh | training   | 187 |
+|         | validation |  65 |
+| xfun.ja | training   | 189 |
+|         | validation | 63  |
+| xfun.es | training   | 243 |
+|         | validation | 74  |
+| xfun.fr | training   | 202 |
+|         | validation | 71  |
+| xfun.it | training   | 205 |
+|         | validation | 92  |
+| xfun.de | training   | 194 |
+|         | validation | 71  |
+| xfun.pt | training   | 233 |
+|         | validation | 85  |
 
 ## Dataset Creation
 
