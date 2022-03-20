@@ -14,9 +14,9 @@ size_categories:
   axb:
   - 1K<n<10K
   cb:
-  - 100<n<1K
+  - n<1K
   copa:
-  - 100<n<1K
+  - n<1K
   multirc:
   - 10K<n<100K
   rte:
@@ -24,13 +24,13 @@ size_categories:
   wic:
   - 1K<n<10K
   wsc:
-  - 100<n<1K
+  - n<1K
   boolq:
   - 10K<n<100K
   record:
   - 100K<n<1M
   axg:
-  - 100<n<1K
+  - n<1K
 task_categories:
   axb:
   - text-classification
