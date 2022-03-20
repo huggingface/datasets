@@ -20,7 +20,7 @@ task_ids:
 - natural-language-inference
 - fact-checking
 paperswithcode_id: null
-pretty_name: Eraser Multi Rc
+pretty_name: Eraser Multi RC
 ---
 
 # Dataset Card for "eraser_multi_rc"
