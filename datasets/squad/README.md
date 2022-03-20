@@ -18,7 +18,7 @@ task_categories:
 - question-answering
 task_ids:
 - extractive-qa
-- closed-domain-qa
+- open-domain-qa
 paperswithcode_id: squad
 pretty_name: SQuAD
 ---
