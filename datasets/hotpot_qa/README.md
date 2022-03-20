@@ -16,10 +16,12 @@ source_datasets:
 - extended|wikipedia
 task_categories:
 - question-answering
+- text-retrieval
 task_ids:
 - open-domain-qa
 - extractive-qa
 - abstractive-qa
+- document-retrieval
 paperswithcode_id: hotpotqa
 pretty_name: HotpotQA
 ---
