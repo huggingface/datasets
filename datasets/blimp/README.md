@@ -1,6 +1,19 @@
 ---
+annotations_creators:
+- expert-generated
+language_creators:
+- machine-generated
 languages:
 - en
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+task_categories:
+- text-classification
+task_ids:
+- natural-language-inference
+- acceptability-classification
 paperswithcode_id: blimp
 pretty_name: Benchmark of Linguistic Minimal Pairs
 ---
