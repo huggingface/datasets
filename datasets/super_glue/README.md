@@ -1,6 +1,89 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+- expert-generated
 languages:
 - en
+licenses:
+  - cc-by-4-0
+multilinguality:
+- monolingual
+size_categories:
+  axb:
+  - 1K<n<10K
+  cb:
+  - 100<n<1K
+  copa:
+  - 100<n<1K
+  multirc:
+  - 10K<n<100K
+  rte:
+  - 1K<n<10K
+  wic:
+  - 1K<n<10K
+  wsc:
+  - 100<n<1K
+  boolq:
+  - 10K<n<100K
+  record:
+  - 100K<n<1M
+  axg:
+  - 100<n<1K
+task_categories:
+  axb:
+  - text-classification
+  cb:
+  - natural-language-inference
+  - textual-entailment
+  copa:
+  - text-classification
+  multirc:
+  - question-answering
+  - text-classification
+  rte:
+  - text-classification
+  wic:
+  - text-classification
+  wsc:
+  - text-classification
+  boolq:
+  - question-answering
+  - text-classification
+  record:
+  - question-answering
+  axg:
+  - text-classification
+task_ids:
+  axb:
+  - natural-language-inference
+  cb:
+  - natural-language-inference
+  - textual-entailment
+  copa:
+  - multiple-choice-qa
+  - natural-language-inference
+  multirc:
+  - open-domain-qa
+  - multiple-choice-qa
+  - natural-language-inference
+  - fact-checking
+  rte:
+  - natural-language-inference
+  wic:
+  - natural-language-inference
+  wsc:
+  - natural-language-inference
+  boolq:
+  - open-domain-qa
+  - natural-language-inference
+  record:
+  - open-domain-qa
+  - extractive-qa
+  - commonsense-reasoning
+  axg:
+  - natural-language-inference
 paperswithcode_id: superglue
 pretty_name: SuperGLUE
 ---
