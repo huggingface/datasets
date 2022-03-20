@@ -1,7 +1,11 @@
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, List, Optional
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Union
 
 import pyarrow as pa
+
+
+if TYPE_CHECKING:
+    from .features import FeatureType
 
 
 @dataclass
@@ -39,6 +43,12 @@ class Translation:
 
     def __call__(self):
         return pa.struct({lang: pa.string() for lang in sorted(self.languages)})
+
+    def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
+        """Flatten the Translation feature into a dictionary."""
+        from .features import Value
+
+        return {k: Value("string") for k in sorted(self.languages)}
 
 
 @dataclass
@@ -113,3 +123,12 @@ class TranslationVariableLanguages:
         languages, translations = zip(*sorted(translation_tuples))
 
         return {"language": languages, "translation": translations}
+
+    def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
+        """Flatten the TranslationVariableLanguages feature into a dictionary."""
+        from .features import Sequence, Value
+
+        return {
+            "language": Sequence(Value("string")),
+            "translation": Sequence(Value("string")),
+        }

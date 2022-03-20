@@ -41,9 +41,9 @@ Uganda and collected by the Makerere AI research lab.
 """
 
 _URLS = {
-    "train": "https://storage.googleapis.com/ibeans/train.zip",
-    "validation": "https://storage.googleapis.com/ibeans/validation.zip",
-    "test": "https://storage.googleapis.com/ibeans/test.zip",
+    "train": "https://huggingface.co/datasets/beans/resolve/main/data/train.zip",
+    "validation": "https://huggingface.co/datasets/beans/resolve/main/data/validation.zip",
+    "test": "https://huggingface.co/datasets/beans/resolve/main/data/test.zip",
 }
 
 _NAMES = ["angular_leaf_spot", "bean_rust", "healthy"]

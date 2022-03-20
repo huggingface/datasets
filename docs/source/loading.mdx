@@ -38,7 +38,7 @@ Some datasets may have more than one version, based on Git tags, branches or com
 
 <Tip>
 
-Refer to the [upload_dataset_repo](#upload_dataset_repo) guide for more instructions on how to create a dataset repository on the Hub, and how to upload your data files.
+Refer to the [Upload](./upload_dataset) guide for more instructions on how to create a dataset repository on the Hub, and how to upload your data files.
 
 </Tip>
 
@@ -72,6 +72,12 @@ Specify a custom split with the `split` parameter:
 ## Local and remote files
 
 🤗 Datasets can be loaded from local files stored on your computer, and also from remote files. The datasets are most likely stored as a `csv`, `json`, `txt` or `parquet` file. The [`datasets.load_dataset`] method is able to load each of these file types.
+
+<Tip>
+
+Curious about how to load datasets for vision? Check out the image loading guide [here](./image_process)!
+
+</Tip>
 
 ### CSV
 
@@ -178,38 +184,6 @@ To load remote parquet files via HTTP, you can pass the URLs:
 >>> wiki = load_dataset("parquet", data_files=data_files, split="train")
 ```
 
-### Image folders
-
-🤗 Datasets can also load generic image folders.
-
-The folder structure should look like this:
-
-```
-   data/dog/xxx.png
-   data/dog/xxy.png
-   data/dog/xxz.png
-
-   data/cat/123.png
-   data/cat/nsdf3.png
-   data/cat/asd932_.png
-```
-
-To load an `imagefolder` dataset, simply pass the root path of the image folder to the `data_dir` kwarg of [`datasets.load_dataset`], which is a shorthand syntax for `data_files=os.path.join(data_dir, **)`.
-
-```py
->>> from datasets import load_dataset
->>> dataset = load_dataset("imagefolder", data_dir="/path/to/data")
-```
-
-To load remote image folders via HTTP, you can pass the URLs:
-
-```py
->>> dataset = load_dataset("imagefolder", data_files="https://download.microsoft.com/download/3/E/1/3E1C3F21-ECDB-4869-8368-6DEBA77B919F/kagglecatsanddogs_3367a.zip", split="train")
-```
-
-The resulting dataset will include an `image` feature, which is a [`PIL.Image`] loaded from the image file, and the corresponding `label` inferred from the directory structure.
-
-
 ## In-memory data
 
 🤗 Datasets will also allow you to create a [`datasets.Dataset`] directly from in-memory data structures like Python dictionaries and Pandas DataFrames.
@@ -237,7 +211,7 @@ Load Pandas DataFrames with [`datasets.Dataset.from_pandas`]:
 
 <Tip warning={true}>
 
-An object data type in [pandas.Series](https://pandas.pydata.org/docs/reference/api/pandas.Series.html) doesn't always carry enough information for Arrow to automatically infer a data type. For example, if a DataFrame is of length 0 or the Series only contains None/nan objects, the type is set to null. Avoid potential errors by constructing an explicit schema with [`datasets.Features`] using the `from_dict` or `from_pandas` methods. See the [troubleshoot](#troubleshoot) for more details on how to explicitly specify your own features.
+An object data type in [pandas.Series](https://pandas.pydata.org/docs/reference/api/pandas.Series.html) doesn't always carry enough information for Arrow to automatically infer a data type. For example, if a DataFrame is of length 0 or the Series only contains None/nan objects, the type is set to null. Avoid potential errors by constructing an explicit schema with [`datasets.Features`] using the `from_dict` or `from_pandas` methods. See the [troubleshoot](./loading#specify-features) for more details on how to explicitly specify your own features.
 
 </Tip>
 
@@ -403,7 +377,7 @@ When the metric you want to use is not supported by 🤗 Datasets, you can write
 
 <Tip>
 
-See the [metric_script](#metric_script) guide for more details on how to write your own metric loading script.
+See the [Metrics](./how_to_metrics#custom-metric-loading-script) guide for more details on how to write your own metric loading script.
 
 </Tip>
 
