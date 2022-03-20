@@ -57,7 +57,7 @@ task_ids:
 
 ### Dataset Summary
 
-The Roman Urdu Hate-Speech and Offensive Language Detection (RUHSOLD) dataset is a Roman Urdu dataset of tweets annotated by experts in the relevant language. The authors develop the gold-standard for two sub-tasks. First sub-task is based on binary labels of Hate-Offensive content and Normal content (i.e., inoffensive language). These labels are self-explanatory. The authors refer to this sub-task as coarse-grained classification. Second sub-task defines Hate-Offensive content with four labels at a granular level. These labels are the most relevant for the demographic of users who converse in RU and are defined in related literature. The authors refer to this sub-task as fine-grained classification. The objective behind creating two gold-standards is to enable the researchers to evaluate the hate speech detection approaches on both easier (coarse-grained) and challenging (fine-grained) scenarios.  
+The Roman Urdu Hate-Speech and Offensive Language Detection (RUHSOLD) dataset is a Roman Urdu dataset of tweets annotated by experts in the relevant language. The authors develop the gold-standard for two sub-tasks. First sub-task is based on binary labels of Hate-Offensive content and Normal content (i.e., inoffensive language). These labels are self-explanatory. The authors refer to this sub-task as coarse-grained classification. Second sub-task defines Hate-Offensive content with four labels at a granular level. These labels are the most relevant for the demographic of users who converse in RU and are defined in related literature. The authors refer to this sub-task as fine-grained classification. The objective behind creating two gold-standards is to enable the researchers to evaluate the hate speech detection approaches on both easier (coarse-grained) and challenging (fine-grained) scenarios.  
 
 ### Supported Tasks and Leaderboards
 
@@ -161,7 +161,7 @@ The dataset was created by Hammad Rizwan, Muhammad Haroon Shakeel, Asim Karim du
 
 ### Licensing Information
 
-The licensing status of the dataset hinges on the legal status of the [Roman Urdu Dataset Repository](https://github.com/haroonshakeel/roman_urdu_hate_speech) which is under MIT License.
+The licensing status of the dataset hinges on the legal status of the [Roman Urdu Hate Speech Dataset Repository](https://github.com/haroonshakeel/roman_urdu_hate_speech) which is under MIT License.
 
 ### Citation Information
 
