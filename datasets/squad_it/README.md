@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - question-answering
 task_ids:
-- open-domain-qa
+- closed-domain-qa
 - extractive-qa
 paperswithcode_id: squad-it
 pretty_name: SQuAD-it
