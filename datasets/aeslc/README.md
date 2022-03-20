@@ -16,7 +16,6 @@ source_datasets:
 task_categories:
 - conditional-text-generation
 task_ids:
-- data-to-text
 - summarization
 paperswithcode_id: aeslc
 pretty_name: AESLC
