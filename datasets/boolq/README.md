@@ -1,6 +1,24 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
 languages:
 - en
+licenses:
+- cc-by-sa-3.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+task_categories:
+- question-answering
+- text-classification
+task_ids:
+- closed-domain-qa
+- acceptability-classification
+- fact-checking
+- natural-language-inference
 paperswithcode_id: boolq
 pretty_name: Boolean Questions
 ---
