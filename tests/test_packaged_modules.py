@@ -7,6 +7,7 @@ import pytest
 from datasets.packaged_modules.csv.csv import Csv
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder
 from datasets.packaged_modules.text.text import Text
+from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder
 
 
 @pytest.fixture
@@ -60,6 +61,19 @@ def image_file():
     return os.path.join(os.path.dirname(__file__), "features", "data", "test_image_rgb.jpg")
 
 
+@pytest.fixture
+def audio_files():
+    return [
+        os.path.join(os.path.dirname(__file__), "features", "data", "test_audio_44100.wav"),
+        os.path.join(os.path.dirname(__file__), "features", "data", "test_audio_44100_2.wav")
+    ]
+
+
+@pytest.fixture
+def transcripts_file():
+    return os.path.join(os.path.dirname(__file__), "features", "data", "transcripts.txt")
+
+
 def test_csv_generate_tables_raises_error_with_malformed_csv(csv_file, malformed_csv_file, caplog):
     csv = Csv()
     generator = csv._generate_tables([csv_file, malformed_csv_file])
@@ -92,3 +106,19 @@ def test_imagefolder_drop_labels(image_file, drop_labels):
         assert all(example.keys() == {"image", "label"} for _, example in generator)
     else:
         assert all(example.keys() == {"image"} for _, example in generator)
+
+
+@pytest.mark.parametrize("sampling_rate", [None, 16_000])
+def test_audiofolder_sampling_rate(audio_files, transcripts_file, sampling_rate):
+    if not sampling_rate:
+        with pytest.raises(ValueError):
+            _ = AudioFolder(sampling_rate=sampling_rate)
+    else:
+        audiofolder = AudioFolder(sampling_rate=sampling_rate)
+        generator = audiofolder._generate_examples(
+            files=(audio_files, audio_files),
+            transcript_file=transcripts_file,
+            archive_path=None,
+            archive_files=None
+        )
+        assert len([example for _id, example in generator]) == 2
