@@ -12,11 +12,11 @@ multilinguality:
 size_categories:
 - 10K<n<100K
 task_categories:
-- closed-domain-qa
-- multiple-choice-qa
-- fact-checking
+- question-answering
 - text-classification
 task_ids:
+- open-domain-qa
+- multiple-choice-qa
 - natural-language-inference
 - fact-checking
 paperswithcode_id: null
