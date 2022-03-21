@@ -116,6 +116,7 @@ class COMET(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
+                    "sources": datasets.Value("string", id="sequence"),
                     "predictions": datasets.Value("string", id="sequence"),
                     "references": datasets.Value("string", id="sequence"),
                 }
