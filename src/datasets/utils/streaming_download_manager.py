@@ -382,15 +382,19 @@ def _prepare_http_url_kwargs(url: str, use_auth_token: Optional[Union[str, bool]
     kwargs = {"headers": get_authentication_headers_for_url(url, use_auth_token=use_auth_token)}
     if "drive.google.com" in url:
         response = http_head(url)
-        cookies = None
-        for k, v in response.cookies.items():
-            if k.startswith("download_warning"):
-                url += "&confirm=" + v
-                cookies = response.cookies
-                kwargs["cookies"] = cookies
-    # Fix Google Drive URL to avoid Virus scan warning
-    if "drive.google.com" in url and "confirm=" not in url:
-        url += "&confirm=t"
+        # returns:
+        # - 200 if there is a Virus scan warning
+        # - 405 if no warning (in this case direct download works using GET)
+
+        # Fix Google Drive URL to avoid Virus scan warning
+        if response == 200:
+            for k, v in response.cookies.items():
+                if k.startswith("download_warning"):
+                    url += "&confirm=" + v
+                    kwargs["cookies"] = response.cookies
+                    break
+        else:
+            url += "&confirm=t"
     if url.startswith("https://raw.githubusercontent.com/"):
         # Workaround for served data with gzip content-encoding: https://github.com/fsspec/filesystem_spec/issues/389
         kwargs["block_size"] = 0
