@@ -98,7 +98,8 @@
     "time-series-forecasting": {
         "description": "tasks related to predicting future values of a time series",
         "options": [
-            "univariate-time-series-forecasting"
+            "univariate-time-series-forecasting",
+            "multivariate-time-series-forecasting"
         ]
     },
     "object-detection": {
