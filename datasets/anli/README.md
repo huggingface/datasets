@@ -1,26 +1,6 @@
 ---
-annotations_creators:
-- crowdsourced
-language_creators:
-- crowdsourced
 languages:
 - en
-licenses:
-- cc-by-4.0
-multilinguality:
-- monolingual
-size_categories:
-- 10K<n<100K
-source_datasets:
-- extended|Wikipedia
-- extended|MASC
-- extended|CBT
-- extended|WikiHow
-- extended|CommonCrawl
-task_categories:
-- text-classification
-task_ids:
-- natural-language-inference
 paperswithcode_id: anli
 pretty_name: Adversarial NLI
 ---

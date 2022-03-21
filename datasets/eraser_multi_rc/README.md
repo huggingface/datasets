@@ -1,28 +1,8 @@
 ---
-annotations_creators:
-- crowdsourced
-language_creators:
-- expert-generated
+pretty_name: Eraser Multi Rc
 languages:
 - en
-licenses:
-- unknown
-multilinguality:
-- monolingual
-size_categories:
-- 10K<n<100K
-source_datasets:
-- original
-task_categories:
-- question-answering
-- text-classification
-task_ids:
-- open-domain-qa
-- multiple-choice-qa
-- natural-language-inference
-- fact-checking
 paperswithcode_id: null
-pretty_name: Eraser Multi RC
 ---
 
 # Dataset Card for "eraser_multi_rc"

@@ -1,37 +1,6 @@
 ---
-annotations_creators:
-- crowdsourced
-language_creators:
-- crowdsourced
-- machine-generated
 languages:
-- ar
-- bg
-- de
-- el
 - en
-- es
-- fr
-- hi
-- ru
-- sw
-- th
-- tr
-- ur
-- vi
-- zh
-licenses:
-- cc-by-nc-4.0
-multilinguality:
-- monolingual
-size_categories:
-- 100K<n<1M
-source_datasets:
-- extended|snli
-task_categories:
-- text-classification
-task_ids:
-- natural-language-inference
 paperswithcode_id: xnli
 pretty_name: Cross-lingual Natural Language Inference
 ---

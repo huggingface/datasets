@@ -1,22 +1,6 @@
 ---
-annotations_creators:
-- expert-generated
-language_creators:
-- machine-generated
 languages:
 - en
-licenses:
-- cc-by-nc-4.0
-multilinguality:
-- monolingual
-size_categories:
-- 10K<n<100K
-source_datasets:
-- original
-task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
 paperswithcode_id: aslg-pc12
 pretty_name: English-ASL Gloss Parallel Corpus 2012
 ---
@@ -60,8 +44,6 @@ pretty_name: English-ASL Gloss Parallel Corpus 2012
 ### Dataset Summary
 
 Synthetic English-ASL Gloss Parallel Corpus 2012
-
-A Parallel Corpus of English phrases and American sign language for statistical NMT
 
 ### Supported Tasks and Leaderboards
 

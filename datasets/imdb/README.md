@@ -1,24 +1,8 @@
 ---
-annotations_creators:
-- found
-language_creators:
-- machine-generated
+pretty_name: IMDB
 languages:
 - en
-licenses:
-- unknown
-multilinguality:
-- monolingual
-size_categories:
-- 10K<n<100K
-source_datasets:
-- original
-task_categories:
-- text-classification
-task_ids:
-- sentiment-classification
 paperswithcode_id: imdb-movie-reviews
-pretty_name: IMDB
 ---
 
 # Dataset Card for "imdb"

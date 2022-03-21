@@ -1,4 +1,5 @@
 ---
+pretty_name: SQuAD
 annotations_creators:
 - crowdsourced
 language_creators:
@@ -18,9 +19,7 @@ task_categories:
 - question-answering
 task_ids:
 - extractive-qa
-- open-domain-qa
 paperswithcode_id: squad
-pretty_name: SQuAD
 ---
 
 # Dataset Card for "squad"

@@ -1,22 +1,6 @@
 ---
-annotations_creators:
-- crowdsourced
-language_creators:
-- crowdsourced
 languages:
 - en
-licenses:
-- mit
-multilinguality:
-- monolingual
-size_categories:
-- 100K<n<1M
-source_datasets:
-- extended|snli
-task_categories:
-- text-classification
-task_ids:
-- natural-language-inference
 paperswithcode_id: e-snli
 pretty_name: e-SNLI
 ---

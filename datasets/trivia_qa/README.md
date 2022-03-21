@@ -6,9 +6,11 @@ language_creators:
 languages:
 - en
 licenses:
-- apache-2.0
+- unknown
 multilinguality:
 - monolingual
+paperswithcode_id: triviaqa
+pretty_name: TriviaQA
 size_categories:
 - 10K<n<100K
 - 100K<n<1M
@@ -20,8 +22,6 @@ task_ids:
 - open-domain-qa
 - extractive-qa
 - abstractive-qa
-paperswithcode_id: triviaqa
-pretty_name: TriviaQA
 ---
 
 # Dataset Card for "trivia_qa"

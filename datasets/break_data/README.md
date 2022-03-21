@@ -1,36 +1,6 @@
 ---
-annotations_creators:
-- found
-language_creators:
-- found
 languages:
 - en
-licenses:
-- mit
-multilinguality:
-- monolingual
-size_categories:
-- 10K<n<100K
-- 1K<n<10K
-source_datasets:
-- extended|other-academic
-- extended|other-atis
-- extended|other-geo-query
-- extended|other-spider
-- extended|other-clevr-humans
-- extended|other-nlvr2
-- extended|com_qa
-- extended|other-complex-web-questions
-- extended|drop
-- extended|hotpot_qa
-task_categories:
-- text-classification
-task_ids:
-- open-domain-qa
-- closed-domain-qa
-- multiple-choice-qa
-- extractive-qa
-- abstractive-qa
 paperswithcode_id: break
 pretty_name: BREAK
 ---

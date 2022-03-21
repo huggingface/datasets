@@ -1,30 +1,6 @@
 ---
-annotations_creators:
-- crowdsourced
-language_creators:
-- crowdsourced
 languages:
 - en
-licenses:
-- mit
-multilinguality:
-- monolingual
-size_categories:
-- 10K<n<100K
-source_datasets:
-- extended|other-flicker-30k
-- extended|other-mscoco
-- extended|other-lsmdc
-- extended|other-active-net
-- extended|other-vatex
-task_categories:
-- conditional-text-generation
-- text-classification
-task_ids:
-- sentence-splitting-fusion
-- other-structured-to-text
-- acceptability-classification
-- natural-language-inference
 paperswithcode_id: commongen
 pretty_name: CommonGen
 ---

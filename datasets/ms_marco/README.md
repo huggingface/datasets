@@ -1,30 +1,6 @@
 ---
-annotations_creators:
-- crowdsourced
-language_creators:
-- crowdsourced
 languages:
 - en
-licenses:
-- unknown
-multilinguality:
-- monolingual
-size_categories:
-- 10K<n<100K
-- 100K<n<1M
-source_datasets:
-- original
-task_categories:
-- question-answering
-- text-classification
-- text-retrieval
-task_ids:
-- open-domain-qa
-- extractive-qa
-- abstractive-qa
-- fact-checking
-- multi-class-classification
-- document-retrieval
 paperswithcode_id: ms-marco
 pretty_name: Microsoft Machine Reading Comprehension Dataset
 ---

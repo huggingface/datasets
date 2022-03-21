@@ -1,29 +1,6 @@
 ---
-annotations_creators:
-- crowdsourced
-language_creators:
-- crowdsourced
 languages:
 - en
-licenses:
-- apache-2.0
-multilinguality:
-- monolingual
-size_categories:
-- 1K<n<10K
-source_datasets:
-- original
-task_categories:
-- question-answering
-- text-classification
-- text-retrieval
-task_ids:
-- open-domain-qa
-- extractive-qa
-- abstractive-qa
-- fact-checking
-- multi-class-classification
-- document-retrieval
 paperswithcode_id: openbookqa
 pretty_name: OpenBookQA
 ---

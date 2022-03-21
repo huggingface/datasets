@@ -1,23 +1,7 @@
 ---
-annotations_creators:
-- crowdsourced
-language_creators:
-- crowdsourced
+pretty_name: BlendedSkillTalk
 languages:
 - en
-licenses:
-- mit
-multilinguality:
-- monolingual
-size_categories:
-- 1K<n<10K
-source_datasets:
-- original
-task_categories:
-- sequence-modeling
-task_ids:
-- dialogue-modeling
-pretty_name: BlendedSkillTalk
 paperswithcode_id: blended-skill-talk
 ---
 
