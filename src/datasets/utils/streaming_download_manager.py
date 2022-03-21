@@ -387,14 +387,14 @@ def _prepare_http_url_kwargs(url: str, use_auth_token: Optional[Union[str, bool]
         # - 405 if no warning (in this case direct download works using GET)
 
         # Fix Google Drive URL to avoid Virus scan warning
-        if response == 200:
+        if response.status_code == 200:
             for k, v in response.cookies.items():
                 if k.startswith("download_warning"):
                     url += "&confirm=" + v
                     kwargs["cookies"] = response.cookies
-                    break
-        else:
-            url += "&confirm=t"
+            if "&confirm=" not in url:
+                url += "&confirm=t"
+
     if url.startswith("https://raw.githubusercontent.com/"):
         # Workaround for served data with gzip content-encoding: https://github.com/fsspec/filesystem_spec/issues/389
         kwargs["block_size"] = 0
