@@ -1334,7 +1334,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Returns:
             :class:`Dataset`
         """
-        if hasattr(feature, "cast_storage"):
+        if hasattr(feature, "decode_example"):
             dataset = copy.deepcopy(self)
             dataset.features[column] = feature
             dataset._fingerprint = new_fingerprint

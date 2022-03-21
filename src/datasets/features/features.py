@@ -29,11 +29,13 @@ from typing import Tuple, Union
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+import pyarrow.compute as pc
 import pyarrow.types
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from .. import config
+from ..table import array_cast
 from ..utils import logging
 from ..utils.py_utils import zip_dict
 from .audio import Audio
@@ -866,6 +868,31 @@ class ClassLabel:
         if not -1 <= example_data < self.num_classes:
             raise ValueError(f"Class label {example_data:d} greater than configured num_classes {self.num_classes}")
         return example_data
+
+    def cast_storage(self, storage: Union[pa.StringArray, pa.IntegerArray]) -> pa.Int64Array:
+        """Cast an Arrow array to the ClassLabel arrow storage type.
+        The Arrow types that can be converted to the ClassLabel pyarrow storage type are:
+
+        - pa.string()
+        - pa.int()
+
+        Args:
+            storage (Union[pa.StringArray, pa.IntegerArray]): PyArrow array to cast.
+
+        Returns:
+            pa.Int64Array: Array in the ClassLabel arrow storage type
+        """
+        if isinstance(storage, pa.IntegerArray):
+            min_max = pc.min_max(storage).as_py()
+            if min_max["min"] < -1:
+                raise ValueError(f"Class label {min_max['min']} less than -1")
+            if min_max["max"] >= self.num_classes:
+                raise ValueError(
+                    f"Class label {min_max['max']} greater than configured num_classes {self.num_classes}"
+                )
+        elif isinstance(storage, pa.StringArray):
+            storage = pa.array([self.str2int(label) if label is not None else None for label in storage.to_pylist()])
+        return array_cast(storage, self.pa_type)
 
     @staticmethod
     def _load_names_from_file(names_filepath):
