@@ -118,7 +118,6 @@ def test_audiofolder_sampling_rate(audio_files, transcripts_file, sampling_rate)
         generator = audiofolder._generate_examples(
             files=(audio_files, audio_files),
             transcript_file=transcripts_file,
-            archive_path=None,
             archive_files=None
         )
         assert len([example for _id, example in generator]) == 2
