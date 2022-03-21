@@ -1,7 +1,7 @@
 # Metric Card for TER
 
 ## Metric Description
-TER (Translation Edit Rate, also called Translation Error Rate) is a metric to quantify the edit operations that a hypothesis requires to match a reference translation. We use the implementation that is already present in [sacrebleu](https://github.com/mjpost/sacreBLEU#ter), which in turn is inspired by the TERCOM implementation, which can be found [here](https://github.com/jhclark/tercom).
+TER (Translation Edit Rate, also called Translation Error Rate) is a metric to quantify the edit operations that a hypothesis requires to match a reference translation. We use the implementation that is already present in [sacrebleu](https://github.com/mjpost/sacreBLEU#ter), which in turn is inspired by the [TERCOM implementation](https://github.com/jhclark/tercom).
 
 The implementation here is slightly different from sacrebleu in terms of the required input format. The length of the references and hypotheses lists need to be the same, so you may need to transpose your references compared to sacrebleu's required input format. See [this github issue](https://github.com/huggingface/datasets/issues/3154#issuecomment-950746534).
 
@@ -25,18 +25,18 @@ print(results)
 
 ### Inputs
 This metric takes the following as input:
-- **predictions** (list of str): The system stream (a sequence of segments).
-- **references** (list of list of str): A list of one or more reference streams (each a sequence of segments).
-- **normalized** (boolean): If `True`, applies basic tokenization and normalization to sentences. Defaults to `False`.
-- **ignore_punct** (boolean): If `True`, applies basic tokenization and normalization to sentences. Defaults to `False`.
-- **support_zh_ja_chars** (boolean): If `True`, tokenization/normalization supports processing of Chinese characters, as well as Japanese Kanji, Hiragana, Katakana, and Phonetic Extensions of Katakana. Only applies if `normalized = True`. Defaults to `False`.
-- **ignore_case** (boolean): If `True`, makes all predictions and references lowercase to ignore differences in case. Defaults to `False`.
+- **`predictions`** (`list` of `str`): The system stream (a sequence of segments).
+- **`references`** (`list` of `list` of `str`): A list of one or more reference streams (each a sequence of segments).
+- **`normalized`** (`boolean`): If `True`, applies basic tokenization and normalization to sentences. Defaults to `False`.
+- **`ignore_punct`** (`boolean`): If `True`, applies basic tokenization and normalization to sentences. Defaults to `False`.
+- **`support_zh_ja_chars`** (`boolean`): If `True`, tokenization/normalization supports processing of Chinese characters, as well as Japanese Kanji, Hiragana, Katakana, and Phonetic Extensions of Katakana. Only applies if `normalized = True`. Defaults to `False`.
+- **`ignore_case`** (`boolean`): If `True`, makes all predictions and references lowercase to ignore differences in case. Defaults to `False`.
 
 ### Output Values
 This metric returns the following:
-- **score** (float): TER score (num_edits / sum_ref_lengths * 100)
-- **num_edits** (int): The cumulative number of edits
-- **ref_length** (float): The cumulative average reference length
+- **`score`** (`float`): TER score (num_edits / sum_ref_lengths * 100)
+- **`num_edits`** (`int`): The cumulative number of edits
+- **`ref_length`** (`float`): The cumulative average reference length
 
 The output takes the following form:
 ```python
@@ -143,4 +143,4 @@ print(results)
 ```
 
 ## Further References
-- See [this github repo](https://github.com/mjpost/sacreBLEU#ter) for more information.
+- See [the sacreBLEU github repo](https://github.com/mjpost/sacreBLEU#ter) for more information.
