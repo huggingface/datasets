@@ -9,17 +9,17 @@ from datasets.tasks import AutomaticSpeechRecognition
 class AudioFolderConfig(datasets.BuilderConfig):
     """BuilderConfig for AudioFolder."""
 
-    def __init__(self, *args, sampling_rate=None, transcripts_filename="transcripts.txt",  **kwargs):
+    def __init__(self, *args, sampling_rate=None, transcripts_filename="transcripts.txt", **kwargs):
         if not sampling_rate:
-            raise ValueError("To load an audio dataset, you must provide the `sampling_rate` parameter. "
-                             "For example: "
-                             ">>> load_dataset(\"audiofolder\", data_dir=\"path/to/dir\", sampling_rate=16_000)")
+            raise ValueError(
+                "To load an audio dataset, you must provide the `sampling_rate` parameter. "
+                "For example: "
+                '>>> load_dataset("audiofolder", data_dir="path/to/dir", sampling_rate=16_000)'
+            )
         self.sampling_rate = sampling_rate
         self.transcripts_filename = transcripts_filename
 
-        super(AudioFolderConfig, self).__init__(
-            *args, **kwargs
-        )
+        super(AudioFolderConfig, self).__init__(*args, **kwargs)
 
 
 class AudioFolder(datasets.GeneratorBasedBuilder):
@@ -60,7 +60,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                         "files": [(file, downloaded_file) for file, downloaded_file in zip(files, downloaded_files)],
                         "transcript_file": downloaded_transcript,
                         # for loading from archive
-                        "archive_files": dl_manager.iter_files(downloaded_dir)
+                        "archive_files": dl_manager.iter_files(downloaded_dir),
                     },
                 )
             )
@@ -116,10 +116,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
 
             file_idx = 0
             for file_id, file in audio_data.items():
-                yield file_idx, {
-                    "audio": file,
-                    "text": transcript[file_id]
-                }
+                yield file_idx, {"audio": file, "text": transcript[file_id]}
                 file_idx += 1
 
 
