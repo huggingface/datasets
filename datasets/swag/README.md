@@ -1,12 +1,13 @@
 ---
 annotations_creators:
-- crowdsourced|machine-generated
+- crowdsourced
+- machine-generated
 language_creators:
 - found
 languages:
 - en
 licenses:
-- mit
+- unknown
 multilinguality:
 - monolingual
 size_categories:

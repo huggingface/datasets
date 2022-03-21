@@ -1,23 +1,6 @@
 ---
-annotations_creators:
-- crowdsourced
-- machine-generated
-language_creators:
-- found
 languages:
 - en
-licenses:
-- mit
-multilinguality:
-- monolingual
-size_categories:
-- 100K<n<1M
-source_datasets:
-- original
-task_categories:
-- text-classification
-task_ids:
-- natural-language-inference
 paperswithcode_id: hellaswag
 pretty_name: HellaSwag
 ---

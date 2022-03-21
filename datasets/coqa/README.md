@@ -1,26 +1,6 @@
 ---
-annotations_creators:
-- crowdsourced|found
-language_creators:
-- crowdsourced|found
 languages:
 - en
-licenses:
-- cc-by-sa-4.0
-multilinguality:
-- monolingual
-size_categories:
-- 1K<n<10K
-source_datasets:
-- extended|wikipedia
-- extended|race
-task_categories:
-- question-answering
-- sequence-modeling
-task_ids:
-- abstractive-qa
-- multiple-choice-qa
-- dialogue-modeling
 paperswithcode_id: coqa
 pretty_name: Conversational Question Answering Challenge
 ---

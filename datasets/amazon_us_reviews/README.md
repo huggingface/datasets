@@ -1,29 +1,6 @@
 ---
-annotations_creators:
-- found
-language_creators:
-- found
 languages:
-  - en
-licenses:
-- other-amazon-license
-multilinguality:
-  - monolingual
-size_categories:
-  - 100K<n<1M
-source_datasets:
-- original
-task_categories:
-- conditional-text-generation
-- sequence-modeling
-- text-classification
-- text-scoring
-task_ids:
-- language-modeling
-- sentiment-classification
-- sentiment-scoring
-- summarization
-- topic-classification
+- en
 paperswithcode_id: null
 pretty_name: AmazonUsReviews
 ---
