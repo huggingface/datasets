@@ -6,9 +6,6 @@ import datasets
 from datasets.tasks import AutomaticSpeechRecognition
 
 
-logger = datasets.utils.logging.get_logger(__name__)
-
-
 class AudioFolderConfig(datasets.BuilderConfig):
     """BuilderConfig for AudioFolder."""
 
@@ -95,11 +92,12 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
             for file, downloaded_file_or_dir in files:
                 audio_filename = os.path.split(file)[-1]
                 audio_id, _ = os.path.splitext(audio_filename)
-                yield file_idx, {
-                    "audio": downloaded_file_or_dir,
-                    "text": transcript[audio_id],
-                }
-                file_idx += 1
+                if audio_id in transcript:
+                    yield file_idx, {
+                        "audio": downloaded_file_or_dir,
+                        "text": transcript[audio_id],
+                    }
+                    file_idx += 1
 
         # from archive
         else:  # archive is not None
@@ -129,8 +127,8 @@ def _read_transcript(transcript_filename):
     transcript = dict()
     with open(transcript_filename) as f:
         for line in f:
-            # TODO: remove extension just in case too
             audio_id, text = line.strip().split("\t")
+            audio_id, ext = os.path.splitext(audio_id)
             transcript[audio_id] = text
 
     return transcript
