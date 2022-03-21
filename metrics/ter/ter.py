@@ -69,8 +69,8 @@ Args:
     references (list of list of str): A list of one or more reference streams (each a sequence of segments).
     normalized (boolean): If `True`, applies basic tokenization and normalization to sentences. Defaults to `False`.
     ignore_punct (boolean): If `True`, applies basic tokenization and normalization to sentences. Defaults to `False`.
-    support_zh_ja_chars (boolean): If `True`, tokenization/normalization supports processing of Chinese characters, 
-                                    as well as Japanese Kanji, Hiragana, Katakana, and Phonetic Extensions of Katakana. 
+    support_zh_ja_chars (boolean): If `True`, tokenization/normalization supports processing of Chinese characters,
+                                    as well as Japanese Kanji, Hiragana, Katakana, and Phonetic Extensions of Katakana.
                                     Only applies if `normalized = True`. Defaults to `False`.
     ignore_case (boolean): If `True`, makes all predictions and references lowercase to ignore differences in case. Defaults to `False`.
 
