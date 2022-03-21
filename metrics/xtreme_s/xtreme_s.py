@@ -52,12 +52,12 @@ Args:
 Returns: depending on the XTREME-S task, one or several of:
     "accuracy": Accuracy - for 'fleurs-lang_id', 'minds14'
     "f1": F1 score - for 'minds14'
-    "wer": Word error rate - for 'mls', 'fleurs-asr', 'voxpopuli'
-    "cer": Character error rate - for 'mls', 'fleurs-asr', 'voxpopuli'
+    "wer": Word error rate - for 'mls', 'fleurs-asr', 'voxpopuli', 'babel'
+    "cer": Character error rate - for 'mls', 'fleurs-asr', 'voxpopuli', 'babel'
     "bleu": BLEU score according to the `sacrebleu` metric - for 'covost2'
 Examples:
 
-    >>> xtreme_s_metric = datasets.load_metric('xtreme_s', 'mls')  # 'mls', 'voxpopuli', 'fleurs-asr'
+    >>> xtreme_s_metric = datasets.load_metric('xtreme_s', 'mls')  # 'mls', 'voxpopuli', 'fleurs-asr' or 'babel'
     >>> references = ["it is sunny here", "paper and pen are essentials"]
     >>> predictions = ["it's sunny", "paper pen are essential"]
     >>> results = xtreme_s_metric.compute(predictions=predictions, references=references)
@@ -86,7 +86,7 @@ Examples:
     {'f1': 0.58, 'accuracy': 0.6}
 """
 
-_CONFIG_NAMES = ["fleurs-asr", "mls", "voxpopuli", "covost2", "fleurs-lang_id", "minds14"]
+_CONFIG_NAMES = ["fleurs-asr", "mls", "voxpopuli", "babel", "covost2", "fleurs-lang_id", "minds14"]
 SENTENCE_DELIMITER = ""
 
 try:
@@ -263,7 +263,7 @@ class XtremeS(datasets.Metric):
                 tokenize=tokenize,
                 use_effective_order=use_effective_order,
             )
-        elif self.config_name in ["fleurs-asr", "mls", "voxpopuli"]:
+        elif self.config_name in ["fleurs-asr", "mls", "voxpopuli", "babel"]:
             concatenate_texts = wer_kwargs.pop("concatenate_texts", False)
             return wer_and_cer(predictions, references, concatenate_texts, self.config_name)
         else:
