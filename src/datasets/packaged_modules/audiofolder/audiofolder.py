@@ -51,18 +51,20 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
         for split_name, files in data_files.items():
             if isinstance(files, str):
                 files = [files]
-            files, transcript, archives = self._split_files_and_archives(files)
+            files, transcript, archive = self._split_files_and_archives(files)
             downloaded_files = dl_manager.download(files)
             downloaded_transcript = dl_manager.download(transcript) if transcript else None
-            downloaded_dirs = dl_manager.download_and_extract(archives)
+            downloaded_dir = dl_manager.download_and_extract(archive) if archive else None
             splits.append(
                 datasets.SplitGenerator(
                     name=split_name,
                     gen_kwargs={
+                        # for loading from local folder
                         "files": [(file, downloaded_file) for file, downloaded_file in zip(files, downloaded_files)],
                         "transcript_file": downloaded_transcript,
-                        "archive_path": downloaded_dirs[0] if downloaded_dirs else None,
-                        "archive_files": dl_manager.iter_files(downloaded_dirs[0]) if downloaded_dirs else None,
+                        # for loading from archive
+                        "archive_path": downloaded_dir,
+                        "archive_files": dl_manager.iter_files(downloaded_dir)
                     },
                 )
             )
@@ -82,7 +84,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
         if len(archives) > 1:
             raise ValueError("More than one data archive provided, cannot infer data structure")
 
-        return files, transcript, archives
+        return files, transcript, archives[0] if archives else None
 
     def _generate_examples(self, files, transcript_file, archive_path, archive_files):
 
@@ -103,7 +105,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
         # from archive
         else:  # archive is not None
             # assuming there is only one transcripts.txt file
-            transcript_file = glob.glob(f"{archive_path}/**/*/transcripts.txt")[0]
+            transcript_file = glob.glob(f"{archive_path}/**/*/transcripts.txt", recursive=True)[0]
             transcript = _read_transcript(transcript_file)
 
             file_idx = 0
