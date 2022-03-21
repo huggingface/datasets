@@ -2,12 +2,11 @@
 annotations_creators:
 - crowdsourced
 language_creators:
-- crowdsourced
-- expert-generated
+- crowdsourced|expert-generated
 languages:
 - en
 licenses:
-  - cc-by-4-0
+- cc-by-4-0
 multilinguality:
 - monolingual
 size_categories:
@@ -31,6 +30,10 @@ size_categories:
   - 100K<n<1M
   axg:
   - n<1K
+source_datasets:
+- extended|copa
+- extended|eraser_multi_rc
+- extended|boolq
 task_categories:
   axb:
   - text-classification

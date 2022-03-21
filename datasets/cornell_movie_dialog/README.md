@@ -15,12 +15,10 @@ source_datasets:
 - original
 task_categories:
 - conditional-text-generation
-- dialogue-modeling
 - text-classification
 task_ids:
 - text-simplification
 - dialogue-modeling
-- language-modeling
 - multi-class-classification
 - multi-label-classification
 paperswithcode_id: cornell-movie-dialogs-corpus

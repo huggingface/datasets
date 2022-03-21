@@ -5,16 +5,19 @@ language_creators:
 - expert-generated
 languages:
 - en
+licenses:
+- unknown
 multilinguality:
 - monolingual
 size_categories:
 - 10K<n<100K
 task_categories:
-- open-domain-qa
-- multiple-choice-qa
-- fact-checking
+- question-answering
 - text-classification
+source_datasets:
+- original
 task_ids:
+- open-domain-qa
 - natural-language-inference
 - fact-checking
 paperswithcode_id: commonsenseqa

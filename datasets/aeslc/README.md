@@ -12,7 +12,7 @@ multilinguality:
 size_categories:
 - 100K<n<1M
 source_datasets:
-- extended|enron
+- original
 task_categories:
 - conditional-text-generation
 task_ids:

@@ -6,16 +6,7 @@ language_creators:
 languages:
 - en
 licenses:
-- literature:
-  - cc-by-sa-4.0  
-- wikipedia:
-  - cc-by-sa-4.0  
-- children-stories:
-  - msr-la
-- school-exams:
-  - race
-- news:
-  - apache-2.0
+- cc-by-sa-4.0
 multilinguality:
 - monolingual
 size_categories:
@@ -23,8 +14,6 @@ size_categories:
 source_datasets:
 - extended|wikipedia
 - extended|race
-- extended|other-mctest
-- extended|other-deepmind-cnn
 task_categories:
 - question-answering
 - sequence-modeling

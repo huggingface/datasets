@@ -5,10 +5,14 @@ language_creators:
 - machine-generated
 languages:
 - en
+licenses:
+- unknown
 multilinguality:
 - monolingual
 size_categories:
 - 1K<n<10K
+source_datasets:
+- original
 task_categories:
 - text-classification
 task_ids:

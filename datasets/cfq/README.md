@@ -1,8 +1,6 @@
 ---
 languages:
 - en
-licenses:
-- cc-by-sa-3.0
 paperswithcode_id: cfq
 pretty_name: Compositional Freebase Questions
 ---

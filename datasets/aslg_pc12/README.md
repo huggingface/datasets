@@ -11,12 +11,12 @@ multilinguality:
 - monolingual
 size_categories:
 - 10K<n<100K
+source_datasets:
+- original
 task_categories:
 - conditional-text-generation
-- structure-prediction
 task_ids:
 - machine-translation
-- part-of-speech-tagging
 paperswithcode_id: aslg-pc12
 pretty_name: English-ASL Gloss Parallel Corpus 2012
 ---

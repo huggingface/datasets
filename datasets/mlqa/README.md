@@ -5,11 +5,11 @@ language_creators:
 - machine-generated
 languages:
 - en
-- de	
-- es	
-- ar	
-- zh	
-- vi	
+- de
+- es
+- ar
+- zh-Hans
+- vi
 - hi
 licenses:
 - cc-by-sa-3.0
