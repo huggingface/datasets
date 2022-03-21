@@ -77,7 +77,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
             _, data_file_ext = os.path.splitext(data_file)
             if data_file_ext.lower() in self.AUDIO_EXTENSIONS:
                 files.append(data_file)
-            elif os.path.split(data_file)[-1] == "transcripts.txt":
+            elif os.path.split(data_file)[-1] == self.config.transcripts_filename:
                 transcript = data_file
             else:
                 archives.append(data_file)
@@ -104,8 +104,8 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
 
         # from archive
         else:  # archive is not None
-            # assuming there is only one transcripts.txt file
-            transcript_file = glob.glob(f"{archive_path}/**/*/transcripts.txt", recursive=True)[0]
+            # assuming there is only one transcripts file
+            transcript_file = glob.glob(f"{archive_path}/**/*/{self.config.transcripts_filename}", recursive=True)[0]
             transcript = _read_transcript(transcript_file)
 
             file_idx = 0
