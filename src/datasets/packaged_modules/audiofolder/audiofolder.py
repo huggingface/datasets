@@ -131,10 +131,33 @@ def _read_transcript(transcript_filename):
     return transcript
 
 
-# TODO: get full list of extensions
+# TODO: get add extensions of librosa if there are any not included in soundfile support
 AudioFolder.AUDIO_EXTENSIONS = [
-    ".wav",
-    ".flac",
-    ".mp3",
-    ".opus",
+    '.aiff',
+    '.au',
+    '.avr',
+    '.caf',
+    '.flac',
+    '.htk',
+    '.svx',
+    '.mat4',
+    '.mat5',
+    '.mpc2k',
+    '.mp3'
+    '.ogg',
+    '.opus'
+    '.paf',
+    '.pvf',
+    '.raw',
+    '.rf64',
+    '.sd2',
+    '.sds',
+    '.ircam',
+    '.voc',
+    '.w64',
+    '.wav',
+    '.nist',
+    '.wavex',
+    '.wve',
+    '.xi'
 ]
