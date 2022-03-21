@@ -19,19 +19,21 @@ class Translation:
     Output: A dictionary mapping string language codes to translations as `Text`
         features.
 
-    Example::
+    Example:
 
-        # At construction time:
+    ```python
+    >>> # At construction time:
 
-        datasets.features.Translation(languages=['en', 'fr', 'de'])
+    >>> datasets.features.Translation(languages=['en', 'fr', 'de'])
 
-        # During data generation:
+    >>> # During data generation:
 
-        yield {
-                'en': 'the cat',
-                'fr': 'le chat',
-                'de': 'die katze'
-        }
+    >>> yield {
+    >>>     'en': 'the cat',
+    >>>     'fr': 'le chat',
+    >>>     'de': 'die katze'
+    >>> }
+    ```
     """
 
     languages: List[str]
@@ -66,26 +68,28 @@ class TranslationVariableLanguages:
         translation: variable-length 1D tf.Tensor of tf.string plain text
             translations, sorted to align with language codes.
 
-    Example::
+    Example:
 
-        # At construction time:
+    ```python
+    >>> # At construction time:
 
-        datasets.features.Translation(languages=['en', 'fr', 'de'])
+    >>> datasets.features.Translation(languages=['en', 'fr', 'de'])
 
-        # During data generation:
+    >>> # During data generation:
 
-        yield {
-                'en': 'the cat',
-                'fr': ['le chat', 'la chatte,']
-                'de': 'die katze'
-        }
+    >>> yield {
+    >>>     'en': 'the cat',
+    >>>     'fr': ['le chat', 'la chatte,']
+    >>>     'de': 'die katze'
+    >>> }
 
-        # Tensor returned :
+    >>> # Tensor returned :
 
-        {
-                'language': ['en', 'de', 'fr', 'fr'],
-                'translation': ['the cat', 'die katze', 'la chatte', 'le chat'],
-        }
+    >>> {
+    >>>     'language': ['en', 'de', 'fr', 'fr'],
+    >>>     'translation': ['the cat', 'die katze', 'la chatte', 'le chat'],
+    >>> }
+    ```
     """
 
     languages: Optional[List] = None
