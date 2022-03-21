@@ -49,7 +49,7 @@ The head pose range covers about +-75 degrees yaw and +-60 degrees pitch. The gr
 Biwi Kinect Head Pose Database supports the following tasks :
 - Head pose estimation
 - Pose estimation
-- Face Verification
+- Face verification
 
 ### Languages
 
@@ -59,15 +59,55 @@ Biwi Kinect Head Pose Database supports the following tasks :
 
 ### Data Instances
 
-[More Information Needed]
+A sample from the Biwi Kinect Head Pose dataset is provided below:
+
+```
+{
+    'sequence_number': '12', 
+    'subject_id': 'M06', 
+    'rgb': [<PIL.PngImagePlugin.PngImageFile image mode=RGB size=640x480 at 0x7F53A6446C10>,.....],
+    'rgb_cal': 
+        {
+            'intrisic_mat': [[517.679, 0.0, 320.0], [0.0, 517.679, 240.5], [0.0, 0.0, 1.0]],
+            'extrinsic_mat': 
+            {
+                'rotation': [[0.999947, 0.00432361, 0.00929419], [-0.00446314, 0.999877, 0.0150443], [-0.009228, -0.015085, 0.999844]], 
+                'translation': [-24.0198, 5.8896, -13.2308]
+            }
+        }
+    'depth': ['../hpdb/12/frame_00003_depth.bin', .....],
+    'depth_cal': 
+        {
+            'intrisic_mat': [[575.816, 0.0, 320.0], [0.0, 575.816, 240.0], [0.0, 0.0, 1.0]],
+            'extrinsic_mat': 
+            {
+                'rotation': [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], 
+                'translation': [0.0, 0.0, 0.0]
+            }
+        }
+    'head_pose_gt': 
+        {
+            'center': [[43.4019, -30.7038, 906.864], [43.0202, -30.8683, 906.94], [43.0255, -30.5611, 906.659], .....],
+            'rotation': [[[0.980639, 0.109899, 0.162077], [-0.11023, 0.993882, -0.00697376], [-0.161851, -0.011027, 0.986754]], ......]
+        }
+}
+```
 
 ### Data Fields
 
-[More Information Needed]
+- `sequence_number` : This refers to the sequence number in the dataset. There are a total of 24 sequences.
+- `subject_id` : This refers to the subjects in the dataset. There are a total of 20 people with 6 females and 14 males where 4 people were recorded twice.
+- `rgb` : List of png frames containing the poses.
+- `rgb_cal`: Contains calibration information for the color camera which includes intrinsic matrix, 
+global rotation and translation.
+- `depth` : List of depth frames for the poses.
+- `depth_cal`: Contains calibration information for the depth camera which includes intrinsic matrix, global rotation and translation.
+- `head_pose_gt` : Contains ground truth information, i.e., the location of the center of the head in 3D and the head rotation, encoded as a 3x3 rotation matrix.
+
 
 ### Data Splits
 
-[More Information Needed]
+All the data is contained in the training set.
 
 ## Dataset Creation
 
@@ -79,8 +119,7 @@ Biwi Kinect Head Pose Database supports the following tasks :
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
-
+The Biwi Kinect Head Pose Database is acquired with the Microsoft Kinect sensor, a structured IR light device.
 #### Who are the source language producers?
 
 [More Information Needed]
@@ -121,7 +160,8 @@ Biwi Kinect Head Pose Database supports the following tasks :
 
 ### Licensing Information
 
-This database is made available for non-commercial use such as university research and education.
+From Dataset's README : 
+> This database is made available for non-commercial use such as university research and education.
 
 ### Citation Information
 
