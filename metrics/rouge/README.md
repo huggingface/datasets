@@ -7,7 +7,7 @@ The metrics compare an automatically produced summary or translation against a r
 
 Note that ROUGE is case insensitive, meaning that upper case letters are treated the same way as lower case letters.
 
-This metrics is a wrapper around [Google Research reimplementation of ROUGE](https://github.com/google-research/google-research/tree/master/rouge)
+This metrics is a wrapper around the [Google Research reimplementation of ROUGE](https://github.com/google-research/google-research/tree/master/rouge)
 
 ## How to Use
 At minimum, this metric takes as input a list of predictions and a list of references:
@@ -26,27 +26,32 @@ print(results["rouge1"].mid.fmeasure)
 ```
 
 ### Inputs
-- **predictions** (list): list of predictions to score. Each prediction
+- **predictions** (`list`): list of predictions to score. Each prediction
         should be a string with tokens separated by spaces.
-- **references** (list): list of reference for each prediction. Each
+- **references** (`list`): list of reference for each prediction. Each
         reference should be a string with tokens separated by spaces.
-- **rouge_types** (list): A list of rouge types to calculate. Defaults to `['rouge1', 'rouge2', 'rougeL', 'rougeLsum']`.
+- **rouge_types** (`list`): A list of rouge types to calculate. Defaults to `['rouge1', 'rouge2', 'rougeL', 'rougeLsum']`.
     - Valid rouge types:
         - `"rouge1"`: unigram (1-gram) based scoring
         - `"rouge2"`: bigram (2-gram) based scoring
         - `"rougeL"`: Longest common subsequence based scoring.
         - `"rougeLSum"`: splits text using `"\n"`
         - See [here](https://github.com/huggingface/datasets/issues/617) for more information
-- **use_stemmer** (boolean): If `True`, uses Porter stemmer to strip word suffixes. Defaults to `True`.
-- **use_agregator** (boolean): If True, returns aggregates. Defaults to `False`.
+- **use_aggregator** (`boolean`): If True, returns aggregates. Defaults to `True`.
+- **use_stemmer** (`boolean`): If `True`, uses Porter stemmer to strip word suffixes. Defaults to `False`.
 
 ### Output Values
-- **rouge1**: rouge_1 (precision, recall, f1),
-- **rouge2**: rouge_2 (precision, recall, f1),
-- **rougeL**: rouge_l (precision, recall, f1),
-- **rougeLsum**: rouge_lsum (precision, recall, f1)
+The output is a dictionary with one entry for each rouge type in the input list `rouge_types`. If `use_aggregator=False`, each dictionary entry is a list of Score objects, with one score for each sentence. E.g. if `rouge_types=['rouge1', 'rouge2']` and `use_aggregator=False`, the output is:
 
-*Give an example of what the metric output looks like.*
+```python
+{'rouge1': [Score(precision=1.0, recall=0.5, fmeasure=0.6666666666666666), Score(precision=1.0, recall=1.0, fmeasure=1.0)], 'rouge2': [Score(precision=0.0, recall=0.0, fmeasure=0.0), Score(precision=1.0, recall=1.0, fmeasure=1.0)]}
+```
+
+If `rouge_types=['rouge1', 'rouge2']` and `use_aggregator=True`, the output is:
+```python
+{'rouge1': AggregateScore(low=Score(precision=1.0, recall=1.0, fmeasure=1.0), mid=Score(precision=1.0, recall=1.0, fmeasure=1.0), high=Score(precision=1.0, recall=1.0, fmeasure=1.0)), 'rouge2': AggregateScore(low=Score(precision=1.0, recall=1.0, fmeasure=1.0), mid=Score(precision=1.0, recall=1.0, fmeasure=1.0), high=Score(precision=1.0, recall=1.0, fmeasure=1.0))}
+```
+
 
 *State the possible values that the metric's output can take, as well as what is considered a good score.*
 
@@ -75,4 +80,4 @@ print(results["rouge1"].mid.fmeasure)
 ```
 
 ## Further References
-*Add any useful further references.*
+- This metrics is a wrapper around the [Google Research reimplementation of ROUGE](https://github.com/google-research/google-research/tree/master/rouge)
