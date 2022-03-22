@@ -226,6 +226,13 @@ class FeaturesTest(TestCase):
         assert flattened_features == {"foo.bar1": Value("int32"), "foo.bar2.foobar": Value("string")}
         assert features == _features, "calling flatten shouldn't alter the current features"
 
+    def test_flatten_with_sequence(self):
+        features = Features({"foo": Sequence({"bar": {"my_value": Value("int32")}})})
+        _features = features.copy()
+        flattened_features = features.flatten()
+        assert flattened_features == {"foo.bar": [{"my_value": Value("int32")}]}
+        assert features == _features, "calling flatten shouldn't alter the current features"
+
 
 def test_classlabel_init(tmp_path_factory):
     names = ["negative", "positive"]
