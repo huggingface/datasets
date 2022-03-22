@@ -4,7 +4,7 @@
 
 - Load an image dataset.
 - Load a generic image dataset with `ImageFolder`.
-- Use [`~Dataset.map`] to quickly apply transforms to an entire dataset.
+- Use [`Dataset.map`] to quickly apply transforms to an entire dataset.
 - Add data augmentations to your images with [`Dataset.set_transform`].
 
 ## Image datasets
@@ -37,7 +37,7 @@ The [`Image`] feature automatically decodes the data from the `image` column to 
 ![image_process_beignet](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/image_process_beignet.png)
 
 
-To load an image from its path, use the [`~Dataset.cast_column`] method. The [`Image`] feature will decode the data at the path to return an image object:
+To load an image from its path, use the [`Dataset.cast_column`] method. The [`Image`] feature will decode the data at the path to return an image object:
 
 ```py
 >>> from datasets import load_dataset, Image
@@ -83,7 +83,7 @@ Load remote datasets from their URLs with the `data_files` parameter:
 
 ## Map
 
-[`~Dataset.map`] can apply transforms over an entire dataset and it also generates a cache file.
+[`Dataset.map`] can apply transforms over an entire dataset and it also generates a cache file.
 
 Create a simple [`Resize`](https://pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html) function:
 
@@ -93,7 +93,7 @@ Create a simple [`Resize`](https://pytorch.org/vision/stable/generated/torchvisi
 ...     return examples
 ```
 
-Now [`~Dataset.map`] the function over the entire dataset and set `batched=True`. The transform returns `pixel_values` as a cacheable `PIL.Image` object:
+Now [`Dataset.map`] the function over the entire dataset and set `batched=True`. The transform returns `pixel_values` as a cacheable `PIL.Image` object:
 
 ```py
 >>> dataset = dataset.map(transforms, remove_columns=["image"], batched=True)
@@ -102,14 +102,14 @@ Now [`~Dataset.map`] the function over the entire dataset and set `batched=True`
  'pixel_values': <PIL.PngImagePlugin.PngImageFile image mode=RGB size=100x100 at 0x7F058237BB10>}
 ```
 
-This saves time because you don't have to execute the same transform twice. It is best to use [`~Dataset.map`] for operations you only run once per training - like resizing an image - instead of using it for operations executed for each epoch, like data augmentations.
+This saves time because you don't have to execute the same transform twice. It is best to use [`Dataset.map`] for operations you only run once per training - like resizing an image - instead of using it for operations executed for each epoch, like data augmentations.
 
-[`~Dataset.map`] takes up some memory, but you can reduce its memory requirements with the following parameters:
+[`Dataset.map`] takes up some memory, but you can reduce its memory requirements with the following parameters:
 
 - [`batch_size`](./package_reference/main_classes#datasets.DatasetDict.map.batch_size) determines the number of examples that are processed in one call to the transform function.
 - [`writer_batch_size`](./package_reference/main_classes#datasets.DatasetDict.map.writer_batch_size) determines the number of processed examples that are kept in memory before they are stored away.
 
-Both parameter values default to 1000, which can be expensive if you are storing images. Lower the value to use less memory when calling [`~Dataset.map`].
+Both parameter values default to 1000, which can be expensive if you are storing images. Lower the value to use less memory when calling [`Dataset.map`].
 
 ## Data augmentation
 
@@ -142,7 +142,7 @@ Create a function to apply the `ColorJitter` transform to an image:
 ...     return examples
 ```
 
-Then you can use the [`~Dataset.set_transform`] function to apply the transform on-the-fly to consume less disk space. Use this function if you only need to access the examples once:
+Then you can use the [`Dataset.set_transform`] function to apply the transform on-the-fly to consume less disk space. Use this function if you only need to access the examples once:
 
 ```py
 >>> dataset.set_transform(transforms)
