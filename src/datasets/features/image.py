@@ -108,6 +108,7 @@ class Image:
             else:
                 if is_local_path(path):
                     image = PIL.Image.open(path)
+                    image.load()
                 else:
                     with xopen(path, "rb") as f:
                         bytes_ = BytesIO(f.read())
