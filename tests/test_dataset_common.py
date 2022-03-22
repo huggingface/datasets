@@ -40,6 +40,7 @@ logger = get_logger(__name__)
 
 
 REQUIRE_FAISS = {"wiki_dpr"}
+PACKAGED_MODULES_TEST_KWARGS = {"audiofolder": {"sampling_rate": 16_000}}
 
 
 def skip_if_dataset_requires_faiss(test_case):
@@ -129,7 +130,8 @@ class DatasetTester:
                 # create config and dataset
                 dataset_builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
                 name = config.name if config is not None else None
-                dataset_builder = dataset_builder_cls(name=name, cache_dir=processed_temp_dir)
+                builder_kwargs = PACKAGED_MODULES_TEST_KWARGS.get(dataset_name, {})
+                dataset_builder = dataset_builder_cls(name=name, cache_dir=processed_temp_dir, **builder_kwargs)
 
                 # TODO: skip Beam datasets and datasets that lack dummy data for now
                 if not dataset_builder.test_dummy_data:
@@ -312,7 +314,8 @@ class PackagedDatasetTest(parameterized.TestCase):
         builder_cls = self.dataset_tester.load_builder_class(dataset_name)
         name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
-            builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
+            builder_kwargs = PACKAGED_MODULES_TEST_KWARGS.get(dataset_name, {})
+            builder = builder_cls(name=name, cache_dir=tmp_cache_dir, **builder_kwargs)
             self.assertIsInstance(builder, DatasetBuilder)
 
     def test_builder_configs(self, dataset_name):

@@ -103,7 +103,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
         # from archive
         else:  # archive is not None
 
-            transcript_file = glob.glob(f"{archive_path}/**/*/{self.config.transcripts_filename}", recursive=True)[0]
+            transcript_file = glob.glob(f"{archive_path}/**/{self.config.transcripts_filename}", recursive=True)[0]
             transcript = _read_transcript(transcript_file)
 
             file_idx = 0
@@ -129,7 +129,6 @@ def _read_transcript(transcript_filename):
     return transcript
 
 
-# TODO: get add extensions of librosa if there are any not included in soundfile support
 AudioFolder.AUDIO_EXTENSIONS = [
     ".aiff",
     ".au",
