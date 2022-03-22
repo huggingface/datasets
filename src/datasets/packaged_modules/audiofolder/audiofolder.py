@@ -60,6 +60,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                         "files": [(file, downloaded_file) for file, downloaded_file in zip(files, downloaded_files)],
                         "transcript_file": downloaded_transcript,
                         # for loading from archive
+                        "archive_path": downloaded_dir,
                         "archive_files": dl_manager.iter_files(downloaded_dir),
                     },
                 )
@@ -82,7 +83,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
 
         return files, transcript, archives[0] if archives else None
 
-    def _generate_examples(self, files, transcript_file, archive_files):
+    def _generate_examples(self, files, transcript_file, archive_path, archive_files):
 
         # from local directory
         if files and transcript_file:
@@ -102,22 +103,19 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
         # from archive
         else:  # archive is not None
 
-            audio_data, transcript = dict(), None
-            for file in archive_files:
-                filename = os.path.split(file)[-1]
-                if filename == self.config.transcripts_filename:
-                    transcript = _read_transcript(file)
-                file_id, file_ext = os.path.splitext(filename)
-                if file_ext in self.AUDIO_EXTENSIONS:
-                    audio_data[file_id] = file
-
-            if not transcript:
-                raise FileNotFoundError("Transcript file not found in provided archive.")
+            transcript_file = glob.glob(f"{archive_path}/**/*/{self.config.transcripts_filename}", recursive=True)[0]
+            transcript = _read_transcript(transcript_file)
 
             file_idx = 0
-            for file_id, file in audio_data.items():
-                yield file_idx, {"audio": file, "text": transcript[file_id]}
-                file_idx += 1
+            for file in archive_files:
+                filename = os.path.split(file)[-1]
+                _id, file_ext = os.path.splitext(filename)
+                if file_ext.lower() in self.AUDIO_EXTENSIONS:
+                    yield file_idx, {
+                        "audio": file,
+                        "text": transcript[_id],
+                    }
+                    file_idx += 1
 
 
 def _read_transcript(transcript_filename):
@@ -133,31 +131,29 @@ def _read_transcript(transcript_filename):
 
 # TODO: get add extensions of librosa if there are any not included in soundfile support
 AudioFolder.AUDIO_EXTENSIONS = [
-    '.aiff',
-    '.au',
-    '.avr',
-    '.caf',
-    '.flac',
-    '.htk',
-    '.svx',
-    '.mat4',
-    '.mat5',
-    '.mpc2k',
-    '.mp3'
-    '.ogg',
-    '.opus'
-    '.paf',
-    '.pvf',
-    '.raw',
-    '.rf64',
-    '.sd2',
-    '.sds',
-    '.ircam',
-    '.voc',
-    '.w64',
-    '.wav',
-    '.nist',
-    '.wavex',
-    '.wve',
-    '.xi'
+    ".aiff",
+    ".au",
+    ".avr",
+    ".caf",
+    ".flac",
+    ".htk",
+    ".svx",
+    ".mat4",
+    ".mat5",
+    ".mpc2k",
+    ".mp3" ".ogg",
+    ".opus" ".paf",
+    ".pvf",
+    ".raw",
+    ".rf64",
+    ".sd2",
+    ".sds",
+    ".ircam",
+    ".voc",
+    ".w64",
+    ".wav",
+    ".nist",
+    ".wavex",
+    ".wve",
+    ".xi",
 ]
