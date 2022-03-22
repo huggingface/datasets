@@ -33,7 +33,7 @@ The COMET metric outputs two lists:
 
 `scores`: a list of COMET scores for each of the input sentences, ranging from 0-1.
 
-`mean_score`: the mean value of COMET scores `scores` over all tge input sentences, ranging from 0-1.
+`mean_score`: the mean value of COMET scores `scores` over all the input sentences, ranging from 0-1.
 
 ### Values from popular papers
 
