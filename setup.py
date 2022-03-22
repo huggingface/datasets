@@ -153,7 +153,7 @@ TESTS_REQUIRE = [
     "jiwer",
     "sentencepiece",  # for bleurt
     "mauve-text",
-    "unbabel-comet>=1.0.0",
+    "unbabel-comet",
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
