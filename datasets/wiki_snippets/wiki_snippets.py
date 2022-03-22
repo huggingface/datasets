@@ -152,9 +152,9 @@ class WikiSnippets(datasets.GeneratorBasedBuilder):
         ),
         WikiSnippetsConfig(
             name="wikipedia_en_100_0",
-            version=datasets.Version("1.0.0"),
+            version=datasets.Version("2.0.0"),
             wikipedia_name="wikipedia",
-            wikipedia_version_name="20200501.en",
+            wikipedia_version_name="20220301.en",
             snippets_length=100,
             snippets_overlap=0,
         ),
