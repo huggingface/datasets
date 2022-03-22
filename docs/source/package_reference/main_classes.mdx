@@ -7,7 +7,7 @@
 
 ## Dataset
 
-The base class [`datasets.Dataset`] implements a Dataset backed by an Apache Arrow table.
+The base class [`Dataset`] implements a Dataset backed by an Apache Arrow table.
 
 [[autodoc]] datasets.Dataset
     -  add_column
@@ -104,7 +104,7 @@ The base class [`datasets.Dataset`] implements a Dataset backed by an Apache Arr
 
 ## DatasetDict
 
-Dictionary with split names as keys ('train', 'test' for example), and `datasets.Dataset` objects as values.
+Dictionary with split names as keys ('train', 'test' for example), and `Dataset` objects as values.
 It also has dataset transform methods like map or filter, to process all the splits at once.
 
 [[autodoc]] datasets.DatasetDict
@@ -145,7 +145,7 @@ It also has dataset transform methods like map or filter, to process all the spl
 
 ## IterableDataset
 
-The base class [`datasets.IterableDataset`] implements an iterable Dataset backed by python generators.
+The base class [`IterableDataset`] implements an iterable Dataset backed by python generators.
 
 [[autodoc]] datasets.IterableDataset
     -  remove_columns
@@ -174,7 +174,7 @@ The base class [`datasets.IterableDataset`] implements an iterable Dataset backe
 
 ## IterableDatasetDict
 
-Dictionary with split names as keys ('train', 'test' for example), and `datasets.IterableDataset` objects as values.
+Dictionary with split names as keys ('train', 'test' for example), and `IterableDataset` objects as values.
 
 [[autodoc]] datasets.IterableDatasetDict
     - map
@@ -219,7 +219,7 @@ Dictionary with split names as keys ('train', 'test' for example), and `datasets
 
 ## Metric
 
-The base class `Metric` implements a Metric backed by one or several [`datasets.Dataset`].
+The base class `Metric` implements a Metric backed by one or several [`Dataset`].
 
 [[autodoc]] datasets.Metric
 
