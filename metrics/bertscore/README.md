@@ -33,7 +33,6 @@ BERTScore also accepts multiple optional arguments:
 
 `rescale_with_baseline` (bool): Rescale BERTScore with the  pre-computed baseline. The default value is `False`. 
 
-
 `batch_size` (int): BERTScore processing batch size, at least one of `model_type` or `lang`. `lang` needs to be specified when `rescale_with_baseline` is `True`.
 
 `baseline_path` (str): Customized baseline file.
