@@ -5,7 +5,7 @@ languages: ['en']
 licenses: []
 multilinguality: []
 pretty_name: Adversarial GLUE
-paperswithcode_id: adversarial-glue-a-multi-task-benchmark-for
+paperswithcode_id: advglue
 size_categories:
 - unknown
 source_datasets: []
