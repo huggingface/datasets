@@ -81,6 +81,12 @@ Load remote datasets from their URLs with the `data_files` parameter:
 
 `ImageFolder` will create a `label` column, and the label name is based on the directory name.
 
+<Tip>
+
+If the image files come from a trusted source, pass `ignore_verifications=True` to [`load_dataset`] to skip checksum verification and speed up loading.
+
+</Tip>
+
 ## Map
 
 [`~Dataset.map`] can apply transforms over an entire dataset and it also generates a cache file.
