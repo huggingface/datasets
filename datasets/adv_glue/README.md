@@ -7,7 +7,7 @@ multilinguality: []
 pretty_name: Adversarial GLUE
 paperswithcode_id: advglue
 size_categories:
-- unknown
+- n<1K
 source_datasets: []
 task_categories: []
 task_ids: []
