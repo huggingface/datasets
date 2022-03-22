@@ -26,7 +26,7 @@ The range of `exact_match` is 0-100, where 0.0 means no answers were matched and
 
 The range of `f1` is 0-1 -- its lowest possible value is 0, if either the precision or the recall is 0, and its highest possible value is 1.0, which means perfect precision and recall.
 
-## Values from popular papers
+### Values from popular papers
 The [original SQuAD paper](https://nlp.stanford.edu/pubs/rajpurkar2016squad.pdf) reported an F1 score of 51.0% and an Exact Match score of 40.0%. They also report that human performance on the dataset represents an F1 score of 90.5% and an Exact Match score of 80.3%.
 
 For more recent model performance, see the [dataset leaderboard](https://paperswithcode.com/dataset/squad).
