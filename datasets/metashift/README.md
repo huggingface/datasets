@@ -107,32 +107,32 @@ From the MetaShift Github Repo :
 The following are the metagraphs for the default classes, these have been generated using the `generate_full_MetaShift.py` file.
 
 <p align='center'>
-  <img width='75%' src='./meta-graphs/cat_graph.jpg'/> </br>
+  <img width='75%' src='https://i.imgur.com/wrpezCK.jpg' alt="Cat Meta-graph" /> </br>
   <b>Figure: Meta-graph: visualizing the diverse data distributions within the “cat” class.  </b> 
 </p>
 
 <p align='center'>
-  <img width='75%' src='./meta-graphs/dog_graph.jpg'/> </br>
+  <img width='75%' src='https://i.imgur.com/FhuAwfT.jpg' alt="Dog Meta-graph" /> </br>
 <b>Figure: Meta-graph for the “Dog” class, which captures meaningful semantics of the multi-modal data distribution of “Dog”. </b> 
 </p>
 
 <p align='center'>
-  <img width='75%' src='./meta-graphs/bus_graph.jpg'/> </br>
+  <img width='75%' src='https://i.imgur.com/FFCcN6L.jpg' alt="Bus Meta-graph" /> </br>
 <b>Figure: Meta-graph for the “Bus” class. </b> 
 </p>
 
 <p align='center'>
-  <img width='75%' src='./meta-graphs/elephant_graph.jpg'/> </br>
+  <img width='75%' src='https://i.imgur.com/rx5b5Vo.jpg' alt="Elephant Meta-graph" /> </br>
 <b>Figure: Meta-graph for the "Elephant" class. </b> 
 </p>
 
 <p align='center'>
-  <img width='75%' src='./meta-graphs/horse_graph.jpg'/> </br>
+  <img width='75%' src='https://i.imgur.com/6f6U3S8.jpg' alt="Horse Meta-graph" /> </br>
 <b>Figure: Meta-graph for the "Horse" class. </b> 
 </p>
 
 <p align='center'>
-  <img width='75%' src='./meta-graphs/truck_graph.jpg'/> </br>
+  <img width='75%' src='https://i.imgur.com/x9zhQD7.jpg' alt="Truck Meta-graph"/> </br>
 <b>Figure: Meta-graph for the Truck class. </b> 
 </p>
 
