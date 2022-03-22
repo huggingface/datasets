@@ -96,7 +96,7 @@ Finally, calculating the BERTScore metric involves downloading the BERT model th
 ## Citation
 
 ```bibtex
-  @inproceedings{bert-score,
+@inproceedings{bert-score,
   title={BERTScore: Evaluating Text Generation with BERT},
   author={Tianyi Zhang* and Varsha Kishore* and Felix Wu* and Kilian Q. Weinberger and Yoav Artzi},
   booktitle={International Conference on Learning Representations},
