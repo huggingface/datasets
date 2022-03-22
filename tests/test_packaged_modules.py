@@ -114,8 +114,12 @@ def test_audiofolder_sampling_rate(audio_files, transcripts_file, sampling_rate)
         with pytest.raises(ValueError):
             _ = AudioFolder(sampling_rate=sampling_rate)
     else:
-        audiofolder = AudioFolder(sampling_rate=sampling_rate)
-        generator = audiofolder._generate_examples(
-            files=(audio_files, audio_files), transcript_file=transcripts_file, archive_files=None
-        )
-        assert len([example for _id, example in generator]) == 2
+        _ = AudioFolder(sampling_rate=sampling_rate)
+
+
+def test_audiofolder(audio_files, transcripts_file):
+    audiofolder = AudioFolder(sampling_rate=16_000)
+    generator = audiofolder._generate_examples(
+        files=(audio_files, audio_files), transcript_file=transcripts_file, archive_path=None, archive_files=None
+    )
+    assert len([example for _id, example in generator]) == 2
