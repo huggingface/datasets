@@ -18,7 +18,6 @@ source_datasets:
 task_categories: []
 task_ids: []
 paperswithcode_id: null
-pretty_name: WikiSnippets
 ---
 
 # Dataset Card for "wiki_snippets"
