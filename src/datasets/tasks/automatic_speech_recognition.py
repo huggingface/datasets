@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import ClassVar, Dict
 
-from ..features import Features, Value, Audio
+from ..features import Audio, Features, Value
 from .base import TaskTemplate
 
 
