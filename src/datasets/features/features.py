@@ -20,7 +20,7 @@ import re
 import sys
 from collections.abc import Iterable
 from dataclasses import InitVar, _asdict_inner, dataclass, field, fields
-from functools import reduce
+from functools import reduce, wraps
 from operator import mul
 from typing import Any, ClassVar, Dict, List, Optional
 from typing import Sequence as Sequence_
@@ -1164,6 +1164,28 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
         return hasattr(feature, "decode_example") and (feature.decode if not ignore_decode_attribute else True)
 
 
+def keep_features_dicts_synced(func):
+    """
+    Wrapper to keep the underlying dictionary of :class:`datasets.Features`, which tracks whether keys are decodable,
+    in sync with the main features dictionary.
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if args:
+            self: "Features" = args[0]
+            args = args[1:]
+        else:
+            self: "Features" = kwargs.pop("self")
+        out = func(self, *args, **kwargs)
+        assert hasattr(self, "_column_requires_decoding")
+        self._column_requires_decoding = {col: require_decoding(feature) for col, feature in self.items()}
+        return out
+
+    wrapper._decorator_name_ = "_keep_dicts_synced"
+    return wrapper
+
+
 class Features(dict):
     """A special dictionary that defines the internal structure of a dataset.
 
@@ -1203,23 +1225,13 @@ class Features(dict):
             col: require_decoding(feature) for col, feature in self.items()
         }
 
-    def __setitem__(self, column_name: str, feature: FeatureType):
-        super().__setitem__(column_name, feature)
-        self._column_requires_decoding[column_name] = require_decoding(feature)
-
-    def __delitem__(self, column_name: str):
-        super().__delitem__(column_name)
-        del self._column_requires_decoding[column_name]
-
-    def update(self, iterable, **kwds):
-        if hasattr(iterable, "keys"):
-            for key in iterable.keys():
-                self[key] = iterable[key]
-        else:
-            for key, value in iterable:
-                self[key] = value
-        for key in kwds:
-            self[key] = kwds[key]
+    __setitem__ = keep_features_dicts_synced(dict.__setitem__)
+    __delitem__ = keep_features_dicts_synced(dict.__getitem__)
+    update = keep_features_dicts_synced(dict.update)
+    setdefault = keep_features_dicts_synced(dict.setdefault)
+    pop = keep_features_dicts_synced(dict.pop)
+    popitem = keep_features_dicts_synced(dict.popitem)
+    clear = keep_features_dicts_synced(dict.clear)
 
     def __reduce__(self):
         return Features, (dict(self),)
