@@ -15,8 +15,12 @@ size_categories:
 source_datasets:
 - extended|wiki40b
 - extended|wikipedia
-task_categories: []
-task_ids: []
+task_categories:
+- sequence-modeling
+- other
+task_ids:
+- language-modeling
+- other-text-search
 paperswithcode_id: null
 ---
 
