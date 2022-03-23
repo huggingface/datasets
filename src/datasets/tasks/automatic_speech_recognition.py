@@ -6,7 +6,7 @@ from .base import TaskTemplate
 
 
 @dataclass(frozen=True)
-class AutomaticSpeechRecognition(TaskTemplate, sampling_rate=None):
+class AutomaticSpeechRecognition(TaskTemplate):
     task: str = "automatic-speech-recognition"
     input_schema: ClassVar[Features] = Features({"audio_file": Audio()})
     label_schema: ClassVar[Features] = Features({"transcription": Audio()})
