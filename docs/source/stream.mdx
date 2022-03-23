@@ -115,9 +115,9 @@ The following methods allow you to modify the columns of a dataset. These method
 
 ### Rename
 
-Use [`IterableDataset.rename_column`] when you need to rename a column in your dataset. Features associated with the original column are actually moved under the new column name, instead of just replacing the original column in-place.
+Use [`IterableDatasetDict.rename_column`] when you need to rename a column in your dataset. Features associated with the original column are actually moved under the new column name, instead of just replacing the original column in-place.
 
-Provide [`IterableDataset.rename_column`] with the name of the original column, and the new column name:
+Provide [`IterableDatasetDict.rename_column`] with the name of the original column, and the new column name:
 
 ```py
 >>> from datasets import load_dataset
@@ -137,7 +137,7 @@ When you need to remove one or more columns, give [`IterableDataset.remove_colum
 
 ### Cast
 
-[`IterableDataset.cast`] changes the feature type of one or more columns. This method takes your new `Features` as its argument. The following sample code shows how to change the feature types of `ClassLabel` and `Value`:
+[`IterableDataset.cast_column`] changes the feature type of one or more columns. This method takes your new `Features` as its argument. The following sample code shows how to change the feature types of `ClassLabel` and `Value`:
 
 ```py
 >>> from datasets import load_dataset
@@ -151,7 +151,7 @@ When you need to remove one or more columns, give [`IterableDataset.remove_colum
 >>> new_features = dataset.features.copy()
 >>> new_features["label"] = ClassLabel(names=['negative', 'positive'])
 >>> new_features["idx"] = Value('int64')
->>> dataset = dataset.cast(new_features)
+>>> dataset = dataset.cast_column(new_features)
 >>> dataset.features
 {'sentence1': Value(dtype='string', id=None),
 'sentence2': Value(dtype='string', id=None),
@@ -165,7 +165,7 @@ Casting only works if the original feature type and new feature type are compati
 
 </Tip>
 
-Use [`Dataset.cast_column`] to change the feature type of just one column. Pass the column name and its new feature type as arguments:
+Use [`IterableDataset.cast_column`] to change the feature type of just one column. Pass the column name and its new feature type as arguments:
 
 ```py
 >>> dataset.features

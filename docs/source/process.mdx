@@ -322,7 +322,7 @@ You can also use [`Dataset.map`] with indices if you set `with_indices=True`. Th
 ]
 ```
 
-You can also use [`Dataset.map`] with the rank of the process if you set `with_rank=True`. This is analogous to `with_indices`. The `rank` argument in the mapped function goes after the `index` one if it is already present. The main use-case for it is to parallelize your computation across several GPUs. This requires setting *multiprocess.set_start_method("spawn")*, without which you will receive a CUDA error: *RuntimeError: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method*.
+You can also use [`Dataset.map`] with the rank of the process if you set `with_rank=True`. This is analogous to `with_indices`. The `rank` argument in the mapped function goes after the `index` one if it is already present. The main use-case for it is to parallelize your computation across several GPUs. This requires setting `multiprocess.set_start_method("spawn")`, without which you will receive a CUDA error: `RuntimeError: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method`.
 
 
 ```py
@@ -558,7 +558,7 @@ Set a dataset to a TensorFlow compatible format with [`Dataset.set_format`]. Spe
 >>> dataset.set_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
 ```
 
-Then you can wrap the dataset with `tf.data.Dataset`. This method gives you more control over how to create a [TensorFlow Dataset](https://www.tensorflow.org/api_docs/python/tf/data/Dataset). In the example below, the dataset is created `from_tensor_slices`:
+Then you can wrap the dataset with [`~datasets.arrow_dataset.TensorflowDatasetMixin.to_tf_dataset]. This method gives you more control over how to create a [TensorFlow Dataset](https://www.tensorflow.org/api_docs/python/tf/data/Dataset). In the example below, the dataset is created `from_tensor_slices`:
 
 ```py
 >>> tfdataset = tf.data.Dataset.from_tensor_slices((features, dataset["label"])).batch(32)

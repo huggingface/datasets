@@ -32,7 +32,7 @@ FAISS retrieves documents based on the similarity of their vector representation
 >>> ds_with_embeddings.add_faiss_index(column='embeddings')
 ```
 
-4. Now you can query your dataset with the `embeddings` index. Load the DPR Question Encoder, and search for a question with [`Dataset.get_nearest_examples`]:
+4. Now you can query your dataset with the `embeddings` index. Load the DPR Question Encoder, and search for a question with [`~datasets.search.IndexableMixin.get_nearest_examples`]:
 
 ```py
 >>> from transformers import DPRQuestionEncoder, DPRQuestionEncoderTokenizer
@@ -46,13 +46,13 @@ FAISS retrieves documents based on the similarity of their vector representation
 '_that_ serious? It is not serious at all. It’s simply a fantasy to amuse\r\n'
 ```
 
-5. When you are done querying, save the index on disk with [`Dataset.save_faiss_index`]:
+5. When you are done querying, save the index on disk with [`~datasets.search.IndexableMixin.save_faiss_index`]:
 
 ```py
 >>> ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
 ```
 
-6. Reload it at a later time with [`Dataset.load_faiss_index`]:
+6. Reload it at a later time with [`~datasets.search.IndexableMixin.load_faiss_index`]:
 
 ```py
 >>> ds = load_dataset('crime_and_punish', split='train[:100]')
@@ -78,7 +78,7 @@ Start ElasticSearch on your machine, or see the [ElasticSearch installation guid
 >>> squad.add_elasticsearch_index("context", host="localhost", port="9200")
 ```
 
-3. Then you can query the `context` index with [`Dataset.get_nearest_examples`]:
+3. Then you can query the `context` index with [`~datasets.search.IndexableMixin.get_nearest_examples`]:
 
 ```py
 >>> query = "machine"
@@ -97,7 +97,7 @@ Start ElasticSearch on your machine, or see the [ElasticSearch installation guid
 hf_squad_val_context
 ```
 
-5. Reload it later with the index name when you call [`Dataset.load_elasticsearch_index`]:
+5. Reload it later with the index name when you call [`~datasets.search.IndexableMixin.load_elasticsearch_index`]:
 
 ```py
 >>> from datasets import load_dataset
