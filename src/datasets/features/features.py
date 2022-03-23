@@ -1226,7 +1226,7 @@ class Features(dict):
         }
 
     __setitem__ = keep_features_dicts_synced(dict.__setitem__)
-    __delitem__ = keep_features_dicts_synced(dict.__getitem__)
+    __delitem__ = keep_features_dicts_synced(dict.__delitem__)
     update = keep_features_dicts_synced(dict.update)
     setdefault = keep_features_dicts_synced(dict.setdefault)
     pop = keep_features_dicts_synced(dict.pop)

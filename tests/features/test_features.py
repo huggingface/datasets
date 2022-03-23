@@ -233,6 +233,30 @@ class FeaturesTest(TestCase):
         assert flattened_features == {"foo.bar": [{"my_value": Value("int32")}]}
         assert features == _features, "calling flatten shouldn't alter the current features"
 
+    def test_features_dicts_are_synced(self):
+        def assert_features_dicts_are_synced(features: Features):
+            assert (
+                hasattr(features, "_column_requires_decoding")
+                and features.keys() == features._column_requires_decoding.keys()
+            )
+
+        features = Features({"foo": Sequence({"bar": {"my_value": Value("int32")}})})
+        assert_features_dicts_are_synced(features)
+        features["barfoo"] = Value("binary")
+        assert_features_dicts_are_synced(features)
+        del features["barfoo"]
+        assert_features_dicts_are_synced(features)
+        features.update({"foobar": Value("string")})
+        assert_features_dicts_are_synced(features)
+        features.pop("foobar")
+        assert_features_dicts_are_synced(features)
+        features.popitem()
+        assert_features_dicts_are_synced(features)
+        features.setdefault("xyz", Value("bool"))
+        assert_features_dicts_are_synced(features)
+        features.clear()
+        assert_features_dicts_are_synced(features)
+
 
 def test_classlabel_init(tmp_path_factory):
     names = ["negative", "positive"]
