@@ -1166,8 +1166,8 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
 
 def keep_features_dicts_synced(func):
     """
-    Wrapper to keep the underlying dictionary of :class:`datasets.Features`, which tracks whether keys are decodable,
-    in sync with the main features dictionary.
+    Wrapper to keep the secondary dictionary, which tracks whether keys are decodable, of the :class:`datasets.Features` object
+    in sync with the main dictionary.
     """
 
     @wraps(func)
