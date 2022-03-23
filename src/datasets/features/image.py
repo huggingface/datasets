@@ -108,13 +108,13 @@ class Image:
             else:
                 if is_local_path(path):
                     image = PIL.Image.open(path)
-                    image.load()
                 else:
                     with xopen(path, "rb") as f:
                         bytes_ = BytesIO(f.read())
                     image = PIL.Image.open(bytes_)
         else:
             image = PIL.Image.open(BytesIO(bytes_))
+        image.load()
         return image
 
     def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
