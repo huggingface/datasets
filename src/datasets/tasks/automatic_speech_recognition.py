@@ -9,7 +9,7 @@ from .base import TaskTemplate
 class AutomaticSpeechRecognition(TaskTemplate):
     task: str = "automatic-speech-recognition"
     input_schema: ClassVar[Features] = Features({"audio_file": Audio()})
-    label_schema: ClassVar[Features] = Features({"transcription": Audio()})
+    label_schema: ClassVar[Features] = Features({"transcription": Value("string")})
     audio_file_column: str = "audio_file"
     transcription_column: str = "transcription"
 
