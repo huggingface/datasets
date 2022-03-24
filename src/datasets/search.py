@@ -232,6 +232,11 @@ class FaissIndex(BaseIndex):
         """
         if string_factory is not None and custom_index is not None:
             raise ValueError("Please specify either `string_factory` or `custom_index` but not both.")
+        if device is not None and custom_index is not None:
+            raise ValueError(
+                "Cannot pass both 'custom_index' and 'device'. "
+                "Pass 'custom_index' already transferred to the target device instead."
+            )
         self.device = device
         self.string_factory = string_factory
         self.metric_type = metric_type

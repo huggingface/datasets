@@ -2,7 +2,7 @@ from copy import deepcopy
 from unittest.case import TestCase
 
 from datasets.arrow_dataset import Dataset
-from datasets.features import ClassLabel, Features, Image, Sequence, Value
+from datasets.features import Audio, ClassLabel, Features, Image, Sequence, Value
 from datasets.info import DatasetInfo
 from datasets.tasks import (
     AutomaticSpeechRecognition,
@@ -110,18 +110,14 @@ class SummarizationTest(TestCase):
 
 class AutomaticSpeechRecognitionTest(TestCase):
     def test_column_mapping(self):
-        task = AutomaticSpeechRecognition(
-            audio_file_path_column="input_audio_file_path", transcription_column="input_transcription"
-        )
-        self.assertDictEqual(
-            {"input_audio_file_path": "audio_file_path", "input_transcription": "transcription"}, task.column_mapping
-        )
+        task = AutomaticSpeechRecognition(audio_column="input_audio", transcription_column="input_transcription")
+        self.assertDictEqual({"input_audio": "audio", "input_transcription": "transcription"}, task.column_mapping)
 
     def test_from_dict(self):
-        input_schema = Features({"audio_file_path": Value("string")})
+        input_schema = Features({"audio": Audio()})
         label_schema = Features({"transcription": Value("string")})
         template_dict = {
-            "audio_file_path_column": "input_audio_file_path",
+            "audio_column": "input_audio",
             "transcription_column": "input_transcription",
         }
         task = AutomaticSpeechRecognition.from_dict(template_dict)

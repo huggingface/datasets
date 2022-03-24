@@ -23,6 +23,7 @@ from datasets.dataset_dict import DatasetDict
 from datasets.features import (
     Array2D,
     Array3D,
+    Audio,
     ClassLabel,
     Features,
     Image,
@@ -3207,18 +3208,16 @@ class TaskTemplatesTest(TestCase):
         # Include a dummy extra column `dummy` to test we drop it correctly
         features_before_cast = Features(
             {
-                "input_audio_file_path": Value("string"),
+                "input_audio": Audio(sampling_rate=16_000),
                 "input_transcription": Value("string"),
                 "dummy": Value("string"),
             }
         )
-        features_after_cast = Features({"audio_file_path": Value("string"), "transcription": Value("string")})
-        task = AutomaticSpeechRecognition(
-            audio_file_path_column="input_audio_file_path", transcription_column="input_transcription"
-        )
+        features_after_cast = Features({"audio": Audio(sampling_rate=16_000), "transcription": Value("string")})
+        task = AutomaticSpeechRecognition(audio_column="input_audio", transcription_column="input_transcription")
         info = DatasetInfo(features=features_before_cast, task_templates=task)
         data = {
-            "input_audio_file_path": ["path/to/some/audio/file.wav"],
+            "input_audio": [{"bytes": None, "path": "path/to/some/audio/file.wav"}],
             "input_transcription": ["hello, my name is bob!"],
             "dummy": ["123456"],
         }
@@ -3226,7 +3225,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task="automatic-speech-recognition") as dset:
                 self.assertSetEqual(
-                    {"audio_file_path", "transcription"},
+                    {"audio", "transcription"},
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
@@ -3235,7 +3234,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
                 self.assertSetEqual(
-                    {"audio_file_path", "transcription"},
+                    {"audio", "transcription"},
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)

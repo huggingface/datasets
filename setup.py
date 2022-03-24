@@ -152,7 +152,6 @@ TESTS_REQUIRE = [
     "scikit-learn",
     "jiwer",
     "sentencepiece",  # for bleurt
-    "torchmetrics==0.6.0",  # for comet: https://github.com/PyTorchLightning/metrics/issues/770
     "mauve-text",
     # to speed up pip backtracking
     "toml>=0.10.1",
@@ -167,19 +166,6 @@ TESTS_REQUIRE = [
 
 TESTS_REQUIRE.extend(VISION_REQURE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
-
-if os.name != "nt":
-    # dependencies of unbabel-comet
-    # only test if not on windows since there're issues installing fairseq on windows
-    TESTS_REQUIRE.extend(
-        [
-            "wget>=3.2",
-            "pytorch-nlp==0.5.0",
-            "pytorch_lightning",
-            "fastBPE==0.1.0",
-            "fairseq",
-        ]
-    )
 
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
