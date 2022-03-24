@@ -984,6 +984,8 @@ def encode_nested_example(schema, obj):
                     return [encode_nested_example(sub_schema, o) for o in obj]
             return list(obj)
     elif isinstance(schema, Sequence):
+        if obj is None:
+            return None
         # We allow to reverse list of dict => dict of list for compatiblity with tfds
         if isinstance(schema.feature, dict):
             # dict of list to fill
@@ -995,16 +997,12 @@ def encode_nested_example(schema, obj):
                 return list_dict
             else:
                 # obj is a single dict
-                if obj is None:
-                    return None
                 for k, (sub_schema, sub_objs) in zip_dict(schema.feature, obj):
                     list_dict[k] = [encode_nested_example(sub_schema, o) for o in sub_objs]
                 return list_dict
         # schema.feature is not a dict
         if isinstance(obj, str):  # don't interpret a string as a list
             raise ValueError(f"Got a string but expected a list instead: '{obj}'")
-        if obj is None:
-            return None
         else:
             if len(obj) > 0:
                 for first_elmt in obj:
