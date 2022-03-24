@@ -18,7 +18,7 @@ The metric takes two files or two lists - one representing model predictions and
 
 *References*: List of question-answers dictionaries with the following key-value pairs:
 * `'id'`: id of the question-answer pair (see above),
-* `'answers'`: a list of Dict {'text': text of the answer as a string}
+* `'answers'`: a Dict {'text': list of string answers}
 *  `'no_answer_threshold'`: the probability threshold to decide that a question has no answer.
 
 ```python
