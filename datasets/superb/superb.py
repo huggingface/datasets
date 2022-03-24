@@ -147,7 +147,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             supervised_keys=("file", "text"),
             url="http://www.openslr.org/12",
             data_url="http://www.openslr.org/resources/12/",
-            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="text")],
         ),
         SuperbConfig(
             name="ks",
