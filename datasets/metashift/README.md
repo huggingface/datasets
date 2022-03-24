@@ -82,7 +82,7 @@ load_dataset("metashift", selected_classes=['cat', 'dog', 'bus'])
 ```
 The full object vocabulary and its hierarchy can be seen [here](https://github.com/Weixin-Liang/MetaShift/blob/main/dataset/meta_data/class_hierarchy.json).
 
-The default classes are _CLASSES = [ 'cat', 'dog', 'bus', 'truck', 'elephant', 'horse', 'bowl', 'cup']
+The default classes are _CLASSES = [ 'cat', 'dog', 'bus', 'truck', 'elephant', 'horse',]
 
 2. To generate the MetaShift-Attributes Dataset (subsets defined by subject attributes) :
 ```python
@@ -162,12 +162,47 @@ A sample from the MetaShift dataset is provided below:
 }
 ```
 
+A sample from the MetaShift-Attributes dataset is provided below:
+```
+{
+    'image_id': '2401643', 
+    'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=500x333 at 0x7FED371CE350>
+    'label': 0
+}
+```
+
+In config of load_dataset, if you include Image Metadata using with_image_metadata=True, the format is provided below :
+```
+{
+    'image_id': '2365745', 
+    'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=500x333 at 0x7FEBCD39E4D0>
+    'label': 0, 
+    'context': 'ground', 
+    'width': 500, 
+    'height': 333, 
+    'location': None, 
+    'weather': None, 
+    'objects': 
+    {
+        'object_id': ['2676428', '3215330', '1962110', '2615742', '3246028', '3232887', '3215329', '1889633', '3882667', '3882663', '1935409', '3882668', '3882669'], 
+        'name': ['wall', 'trailer', 'floor', 'building', 'walkway', 'head', 'tire', 'ground', 'dock', 'paint', 'tail', 'cat', 'wall'], 
+        'x': [194, 12, 0, 5, 3, 404, 27, 438, 2, 142, 324, 328, 224], 
+        'y': [1, 7, 93, 10, 100, 46, 215, 139, 90, 172, 157, 45, 246], 'w': [305, 477, 499, 492, 468, 52, 283, 30, 487, 352, 50, 122, 274], 
+        'h': [150, 310, 72, 112, 53, 59, 117, 23, 240, 72, 107, 214, 85], 
+        'attributes': [['wood', 'green'], [], ['broken', 'wood'], [], [], [], ['black'], [], [], [], ['thick'], ['small'], ['blue']], 
+        'relations': [{'name': [], 'object': []}, {'name': [], 'object': []}, {'name': [], 'object': []}, {'name': [], 'object': []}, {'name': [], 'object': []}, {'name': ['of'], 'object': ['3882668']}, {'name': ['to the left of'], 'object': ['3882669']}, {'name': ['to the right of'], 'object': ['3882668']}, {'name': [], 'object': []}, {'name': [], 'object': []}, {'name': ['of'], 'object': ['3882668']}, {'name': ['perched on', 'to the left of'], 'object': ['3882667', '1889633']}, {'name': ['to the right of'], 'object': ['3215329']}]
+    }
+}
+```
+
 ### Data Fields
 
 - `image_id`: Unique numeric ID of the image in Base Visual Genome dataset.
 - `image`:  A PIL.Image.Image object containing the image. 
 - `label`: an int classification label.
 - `context`: represents the context in which the label is seen. A given label could have multiple contexts.
+
+Image Metadata format can be seen [here](https://cs.stanford.edu/people/dorarad/gqa/download.html) and a sample above has been provided for reference.
 
 ### Data Splits
 
