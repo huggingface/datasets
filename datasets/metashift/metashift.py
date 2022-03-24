@@ -145,10 +145,7 @@ class MetashiftConfig(datasets.BuilderConfig):
 class Metashift(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
-        MetashiftConfig(
-            name = "metashift",
-            version=datasets.Version("1.0.0")
-        ),
+        MetashiftConfig(name="metashift", version=datasets.Version("1.0.0")),
     ]
 
     BUILDER_CONFIG_CLASS = MetashiftConfig
