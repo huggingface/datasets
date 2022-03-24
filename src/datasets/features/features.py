@@ -995,6 +995,8 @@ def encode_nested_example(schema, obj):
                 return list_dict
             else:
                 # obj is a single dict
+                if obj is None:
+                    return None
                 for k, (sub_schema, sub_objs) in zip_dict(schema.feature, obj):
                     list_dict[k] = [encode_nested_example(sub_schema, o) for o in sub_objs]
                 return list_dict
