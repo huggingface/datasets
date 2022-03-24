@@ -44,9 +44,9 @@ _HOMEPAGE = "https://sites.google.com/view/assin2"
 _LICENSE = ""
 
 _URLS = {
-    "train": "https://raw.githubusercontent.com/ruanchaves/assin/master/sources/assin2-train-only.xml",
-    "dev": "https://raw.githubusercontent.com/ruanchaves/assin/master/sources/assin2-dev.xml",
-    "test": "https://raw.githubusercontent.com/ruanchaves/assin/master/sources/assin2-test.xml",
+    "train": "https://github.com/ruanchaves/assin/raw/master/sources/assin2-train-only.xml",
+    "dev": "https://github.com/ruanchaves/assin/raw/master/sources/assin2-dev.xml",
+    "test": "https://github.com/ruanchaves/assin/raw/master/sources/assin2-test.xml",
 }
 
 
