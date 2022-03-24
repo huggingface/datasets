@@ -57,7 +57,7 @@ Args:
         - the probability that the question has no answer
     references: List of question-answers dictionaries with the following key-values:
             - 'id': id of the question-answer pair (see above),
-            - 'answers': a list of Dict {'text': text of the answer as a string}
+            - 'answers': a Dict {'text': list of string answers}
     no_answer_threshold: float
         Probability threshold to decide that a question has no answer.
 Returns:
