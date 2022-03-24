@@ -96,8 +96,6 @@ _CLASSES = [
     "truck",
     "elephant",
     "horse",
-    "bowl",
-    "cup",
 ]
 
 
