@@ -174,7 +174,7 @@ class Blimp(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Yields examples."""
-        with open(filepath, "rb") as f:
+        with open(filepath, "r") as f:
             for line in f:
                 line_dict = json.loads(line)
                 id_ = line_dict["UID"] + "_" + line_dict["pairID"]
