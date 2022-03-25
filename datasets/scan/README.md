@@ -1,8 +1,47 @@
 ---
+annotations_creators:
+- no-annotation
+language_creators:
+- expert-generated
 languages:
 - en
+licenses:
+- other-bsd
+multilinguality:
+  - monolingual
+pretty_name: SCAN
+size_categories:
+  simple:
+  - 10K<n<100K
+  addprim_jump:
+  - 10K<n<100K
+  addprim_turn_left:
+  - 10K<n<100K
+  filler_num0:
+  - 10K<n<100K
+  filler_num1:
+  - 10K<n<100K
+  filler_num2:
+  - 10K<n<100K
+  filler_num3:
+  - 10K<n<100K
+  length:
+  - 10K<n<100K
+  template_around_right:
+  - 10K<n<100K
+  template_jump_around_right:
+  - 10K<n<100K
+  template_opposite_right:
+  - 10K<n<100K
+  template_right:
+  - 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- sequence-modeling
+task_ids:
+- other-multi-turn
 paperswithcode_id: scan
-pretty_name: Simplified versions of the CommAI Navigation tasks
 ---
 
 # Dataset Card for "scan"
@@ -213,7 +252,6 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
 @inproceedings{Lake2018GeneralizationWS,
   title={Generalization without Systematicity: On the Compositional Skills of
          Sequence-to-Sequence Recurrent Networks},
@@ -222,7 +260,6 @@ The data fields are the same among all splits.
   year={2018},
   url={https://arxiv.org/pdf/1711.00350.pdf},
 }
-
 ```
 
 
