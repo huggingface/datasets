@@ -16,9 +16,6 @@
 # Lint as: python3
 """SCAN tasks with various different splits."""
 
-
-import os
-
 import datasets
 
 
@@ -44,7 +41,7 @@ Example usage:
 data = datasets.load_dataset('scan/length')
 """
 
-_DATA_URL = "https://github.com/brendenlake/SCAN/archive/master.zip"
+_DATA_URL = "https://raw.githubusercontent.com/brendenlake/SCAN/master/{directory}/tasks_{split}_{config}.txt"
 
 
 class ScanConfig(datasets.BuilderConfig):
@@ -106,18 +103,18 @@ class Scan(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_DATA_URL)
-        data_dir = os.path.join(data_dir, "SCAN-master", self.config.directory)
-        split = self.config.name
+        splits = [datasets.Split.TRAIN, datasets.Split.TEST]
+        urls = {
+            split: _DATA_URL.format(directory=self.config.directory, config=self.config.name, split=split)
+            for split in splits
+        }
+        data_paths = dl_manager.download(urls)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir, "tasks_train_" + split + ".txt")},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(data_dir, "tasks_test_" + split + ".txt")},
-            ),
+                name=split,
+                gen_kwargs={"filepath": data_paths[split]},
+            )
+            for split in splits
         ]
 
     def _generate_examples(self, filepath):
