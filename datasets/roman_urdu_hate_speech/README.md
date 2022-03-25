@@ -11,7 +11,7 @@ multilinguality:
 - monolingual
 pretty_name: roman_urdu_hate_speech
 size_categories:
-- unknown
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -87,9 +87,12 @@ Task 2: Fine-grained Classification Labels
 4:  Profane/Untargeted
 
 An example from Roman Urdu Hate Speech looks as follows:
-{'tweet':'there are some yahodi daboo like imran chore zakat khore'
-'label':0
+```
+{
+  'tweet': 'there are some yahodi daboo like imran chore zakat khore'
+  'label': 0
 }
+```
 
 ### Data Fields
 
@@ -165,6 +168,7 @@ The licensing status of the dataset hinges on the legal status of the [Roman Urd
 
 ### Citation Information
 
+```bibtex
 @inproceedings{rizwan2020hate,
   title={Hate-speech and offensive language detection in roman Urdu},
   author={Rizwan, Hammad and Shakeel, Muhammad Haroon and Karim, Asim},
@@ -172,7 +176,8 @@ The licensing status of the dataset hinges on the legal status of the [Roman Urd
   pages={2512--2522},
   year={2020}
 }
+```
 
 ### Contributions
 
-Thanks to 
+Thanks to [@bp-high](https://github.com/bp-high), for adding this dataset.
