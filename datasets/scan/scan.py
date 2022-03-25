@@ -47,7 +47,7 @@ _DATA_URL = "https://raw.githubusercontent.com/brendenlake/SCAN/master/{director
 class ScanConfig(datasets.BuilderConfig):
     """BuilderConfig for SCAN."""
 
-    def __init__(self, name, directory=None, **kwargs):
+    def __init__(self, name, directory=None, version=datasets.Version("1.0.0"), **kwargs):
         """BuilderConfig for SCAN.
 
         Args:
@@ -56,9 +56,7 @@ class ScanConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # Version history:
-        super(ScanConfig, self).__init__(
-            name=name, version=datasets.Version("1.0.0"), description=_DESCRIPTION, **kwargs
-        )
+        super().__init__(name=name, version=version, description=_DESCRIPTION, **kwargs)
         if directory is None:
             self.directory = name + "_split"
         else:
