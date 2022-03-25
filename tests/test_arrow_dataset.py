@@ -1312,18 +1312,27 @@ class BaseDatasetTest(TestCase):
                         Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
                     )
                     assert_arrow_metadata_are_synced_with_dataset_features(dset)
-                    with dset.map(lambda x: x, remove_columns=["id"]) as dset:
-                        self.assertTrue("id" not in dset[0])
+                    with dset.map(lambda x: x, remove_columns=["id"]) as mapped_dset:
+                        self.assertTrue("id" not in mapped_dset[0])
                         self.assertDictEqual(
-                            dset.features, Features({"filename": Value("string"), "name": Value("string")})
+                            mapped_dset.features, Features({"filename": Value("string"), "name": Value("string")})
                         )
-                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
-                        with dset.with_format("numpy", columns=dset.column_names) as dset:
-                            with dset.map(lambda x: {"name": 1}, remove_columns=dset.column_names) as dset:
-                                self.assertTrue("filename" not in dset[0])
-                                self.assertTrue("name" in dset[0])
-                                self.assertDictEqual(dset.features, Features({"name": Value(dtype="int64")}))
-                                assert_arrow_metadata_are_synced_with_dataset_features(dset)
+                        assert_arrow_metadata_are_synced_with_dataset_features(mapped_dset)
+                        with mapped_dset.with_format("numpy", columns=mapped_dset.column_names) as mapped_dset:
+                            with mapped_dset.map(
+                                lambda x: {"name": 1}, remove_columns=mapped_dset.column_names
+                            ) as mapped_dset:
+                                self.assertTrue("filename" not in mapped_dset[0])
+                                self.assertTrue("name" in mapped_dset[0])
+                                self.assertDictEqual(mapped_dset.features, Features({"name": Value(dtype="int64")}))
+                                assert_arrow_metadata_are_synced_with_dataset_features(mapped_dset)
+                    # empty dataset
+                    columns_names = dset.column_names
+                    with dset.select([]) as empty_dset:
+                        self.assertEqual(len(empty_dset), 0)
+                        with empty_dset.map(lambda x: {}, remove_columns=columns_names[0]) as mapped_dset:
+                            self.assertListEqual(columns_names[1:], mapped_dset.column_names)
+                            assert_arrow_metadata_are_synced_with_dataset_features(mapped_dset)
 
     def test_map_stateful_callable(self, in_memory):
         # be sure that the state of the map callable is unaffected
