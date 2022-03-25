@@ -72,9 +72,9 @@ class IdClickbait(datasets.GeneratorBasedBuilder):
             version=VERSION,
             description="Annotated clickbait dataset",
             label_classes=["non-clickbait", "clickbait"],
-            path="annotated/csv",
+            path=os.path.join("annotated", "csv"),
         ),
-        IdClickbaitConfig(name="raw", version=VERSION, description="Raw dataset", path="raw/csv"),
+        IdClickbaitConfig(name="raw", version=VERSION, description="Raw dataset", path=os.path.join("raw", "csv")),
     ]
 
     BUILDER_CONFIG_CLASS = IdClickbaitConfig
