@@ -126,7 +126,7 @@ class IdClickbait(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, article_dir, split):
         logger.info("⏳ Generating %s examples from = %s", split, article_dir)
         id = 0
-        for path in sorted(glob.glob(os.path.join(article_dir, "**/*.csv"), recursive=True)):
+        for path in sorted(glob.glob(os.path.join(article_dir, "*.csv"))):
             with open(path, encoding="utf-8-sig", newline="") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
