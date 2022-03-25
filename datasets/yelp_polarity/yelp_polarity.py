@@ -30,8 +30,6 @@
 """Yelp Polarity Reviews dataset."""
 
 
-import os
-
 import datasets
 from datasets.tasks import TextClassification
 
