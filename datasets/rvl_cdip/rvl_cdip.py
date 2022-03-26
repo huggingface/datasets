@@ -46,7 +46,7 @@ _LICENSE = "https://www.industrydocuments.ucsf.edu/help/copyright/"
 
 _URLS = {
     "rvl-cdip": "https://docs.google.com/uc?id=0Bz1dfcnrpXM-MUt4cHNzUEFXcmc&export=download",
-    "labels": "https://docs.google.com/uc?authuser=0&id=0B0NKIRwUL9KYcXo3bV9LU0t3SGs&export=download",
+    "labels": "https://mega.nz/file/AFdBwRLa#DjkaL1wRwUJuKsoq8Mg_vQunmWf3vbMEFk3u5bS-p6w",
 }
 
 _CLASSES = [
@@ -92,7 +92,7 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         data_dir = dl_manager.download_and_extract(_URLS)
-        labels_path = data_dir['labels']
+        labels_path = data_dir["labels"]
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
@@ -104,8 +104,8 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(labels_path, "labels_only", "labels", "test.txt"), 
-                    "split": "test"
+                    "filepath": os.path.join(labels_path, "labels_only", "labels", "test.txt"),
+                    "split": "test",
                 },
             ),
             datasets.SplitGenerator(
@@ -119,4 +119,16 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
 
     # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     def _generate_examples(self, filepath, split):
-        pass
+
+        with open(filepath, encoding="utf-8") as f:
+            data = f.read().splitlines()
+
+        idx = 0
+        for item in data:
+            image_path, class_index = item.split(" ")
+            class_name = _CLASSES[class_index]
+            yield idx, {
+                "image": image_path,
+                "label": class_name,
+            }
+            idx += 1
