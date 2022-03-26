@@ -61,7 +61,7 @@ def normalize_answer(s):
     """Lower text and remove punctuation, articles and extra whitespace."""
 
     def remove_articles(text):
-        return re.sub(ARTICLES_REGEX, " ", text)
+        return ARTICLES_REGEX.sub(" ", text)
 
     def white_space_fix(text):
         return " ".join(text.split())
