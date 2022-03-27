@@ -1,16 +1,24 @@
 ---
 annotations_creators: []
-language_creators: []
-languages: ['en']
-licenses: []
-multilinguality: []
+language_creators:
+- machine-generated
+languages: []
+licenses:
+- cc-by-4.0
+multilinguality:
+- monolingual
 pretty_name: Adversarial GLUE
-paperswithcode_id: advglue
 size_categories:
-- n<1K
-source_datasets: []
-task_categories: []
-task_ids: []
+- unknown
+source_datasets:
+- extended|glue
+task_categories:
+- text-classification
+- other
+task_ids:
+- sentiment-classification
+- semantic-similarity-classification
+- natural-language-inference
 ---
 
 # Dataset Card for Adversarial GLUE
@@ -77,6 +85,43 @@ We show detailed information for up to 5 configurations of the dataset.
 ### Data Fields
 
 The data fields are the same as in the GLUE dataset, which differ by task.
+
+
+The data fields are the same among all splits.
+
+#### adv_mnli
+- `premise`: a `string` feature.
+- `hypothesis`: a `string` feature.
+- `label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2).
+- `idx`: a `int32` feature.
+
+#### adv_mnli_matched
+- `premise`: a `string` feature.
+- `hypothesis`: a `string` feature.
+- `label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2).
+- `idx`: a `int32` feature.
+
+#### adv_mnli_mismatched
+- `premise`: a `string` feature.
+- `hypothesis`: a `string` feature.
+- `label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2).
+- `idx`: a `int32` feature.
+
+#### adv_qnli
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### adv_qqp
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### adv_rte
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### adv_sst2
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Data Splits
 
