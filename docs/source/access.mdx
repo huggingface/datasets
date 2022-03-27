@@ -28,7 +28,7 @@ DatasetInfo(
 )
 ```
 
-You can request specific attributes of the dataset, like `description`, `citation`, and `homepage`, by calling them directly. Take a look at [`datasets.DatasetInfo`] for a complete list of attributes you can return.
+You can request specific attributes of the dataset, like `description`, `citation`, and `homepage`, by calling them directly. Take a look at [`DatasetInfo`] for a complete list of attributes you can return.
 
 ```py
 >>> dataset.split
@@ -66,14 +66,14 @@ Return the number of rows and columns with the following standard attributes:
 3668
 ```
 
-List the columns names with [`datasets.Dataset.column_names`]:
+List the columns names with [`Dataset.column_names`]:
 
 ```py
 >>> dataset.column_names
 ['idx', 'label', 'sentence1', 'sentence2']
 ```
 
-Get detailed information about the columns with [`datasets.Dataset.features`]:
+Get detailed information about the columns with [`Dataset.features`]:
 
 ```py
 >>> dataset.features
@@ -84,7 +84,7 @@ Get detailed information about the columns with [`datasets.Dataset.features`]:
 }
 ```
 
-Return even more specific information about a feature like [`datasets.ClassLabel`], by calling its parameters `num_classes` and `names`:
+Return even more specific information about a feature like [`ClassLabel`], by calling its parameters `num_classes` and `names`:
 
 ```py
 >>> dataset.features['label'].num_classes

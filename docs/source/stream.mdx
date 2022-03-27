@@ -10,7 +10,7 @@ Dataset streaming lets you get started with a dataset without waiting for the en
     <img class="hidden dark:block" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/streaming-dark.gif"/>
 </div>
 
-For example, the English split of the [OSCAR](https://huggingface.co/datasets/oscar) dataset is 1.2 terabytes, but you can use it instantly with streaming. Stream a dataset by setting `streaming=True` in [`datasets.load_dataset`] as shown below:
+For example, the English split of the [OSCAR](https://huggingface.co/datasets/oscar) dataset is 1.2 terabytes, but you can use it instantly with streaming. Stream a dataset by setting `streaming=True` in [`load_dataset`] as shown below:
 
 ```py
 >>> from datasets import load_dataset
@@ -19,19 +19,19 @@ For example, the English split of the [OSCAR](https://huggingface.co/datasets/os
 {'text': 'Mtendere Village was inspired by the vision of Chief Napoleon Dzombe, which he shared with John Blanchard during his first visit to Malawi. Chief Napoleon conveyed the desperate need for a program to intervene and care for the orphans and vulnerable children (OVC) in Malawi, and John committed to help...
 ```
 
-Loading a dataset in streaming mode creates a new dataset type instance (instead of the classic [`datasets.Dataset`] object), known as an [`datasets.IterableDataset`]. This special type of dataset has its own set of processing methods shown below.
+Loading a dataset in streaming mode creates a new dataset type instance (instead of the classic [`Dataset`] object), known as an [`IterableDataset`]. This special type of dataset has its own set of processing methods shown below.
 
 <Tip>
 
-An [`datasets.IterableDataset`] is useful for iterative jobs like training a model. You shouldn't use a [`datasets.IterableDataset`] for jobs that require random access to examples because you have to iterate all over it using a for loop. Getting the last example in an iterable dataset would require you to iterate over all the previous examples.
+An [`IterableDataset`] is useful for iterative jobs like training a model. You shouldn't use a [`IterableDataset`] for jobs that require random access to examples because you have to iterate all over it using a for loop. Getting the last example in an iterable dataset would require you to iterate over all the previous examples.
 
 </Tip>
 
 ## Shuffle
 
-Like a regular [`datasets.Dataset`] object, you can also shuffle a [`datasets.IterableDataset`] with [`datasets.IterableDataset.shuffle`]. 
+Like a regular [`Dataset`] object, you can also shuffle a [`IterableDataset`] with [`IterableDataset.shuffle`].
 
-The `buffer_size` argument controls the size of the buffer to randomly sample examples from. Let's say your dataset has one million examples, and you set the `buffer_size` to ten thousand. [`datasets.IterableDataset.shuffle`] will randomly select examples from the first ten thousand examples in the buffer. Selected examples in the buffer are replaced with new examples. By default, the buffer size is 1,000.
+The `buffer_size` argument controls the size of the buffer to randomly sample examples from. Let's say your dataset has one million examples, and you set the `buffer_size` to ten thousand. [`IterableDataset.shuffle`] will randomly select examples from the first ten thousand examples in the buffer. Selected examples in the buffer are replaced with new examples. By default, the buffer size is 1,000.
 
 ```py
 >>> from datasets import load_dataset
@@ -41,13 +41,13 @@ The `buffer_size` argument controls the size of the buffer to randomly sample ex
 
 <Tip>
 
-[`datasets.IterableDataset.shuffle`] will also shuffle the order of the shards if the dataset is sharded into multiple sets.
+[`IterableDataset.shuffle`] will also shuffle the order of the shards if the dataset is sharded into multiple sets.
 
 </Tip>
 
 ## Reshuffle
 
-Sometimes you may want to reshuffle the dataset after each epoch. This will require you to set a different seed for each epoch. Use [`datasets.IterableDataset.set_epoch`] in between epochs to tell the dataset what epoch you're on. 
+Sometimes you may want to reshuffle the dataset after each epoch. This will require you to set a different seed for each epoch. Use [`IterableDataset.set_epoch`] in between epochs to tell the dataset what epoch you're on.
 
 Your seed effectively becomes: `initial seed + current epoch`.
 
@@ -62,7 +62,7 @@ Your seed effectively becomes: `initial seed + current epoch`.
 
 You can split your dataset one of two ways:
 
-- [`datasets.IterableDataset.take`] returns the first `n` examples in a dataset:
+- [`IterableDataset.take`] returns the first `n` examples in a dataset:
 
 ```py
 >>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
@@ -71,7 +71,7 @@ You can split your dataset one of two ways:
 [{'id': 0, 'text': 'Mtendere Village was...'}, {'id': 1, 'text': 'Lily James cannot fight the music...'}]
 ```
 
-- [`datasets.IterableDataset.skip`] omits the first `n` examples in a dataset and returns the remaining examples:
+- [`IterableDataset.skip`] omits the first `n` examples in a dataset and returns the remaining examples:
 
 ```py
 >>> train_dataset = shuffled_dataset.skip(1000)
@@ -87,7 +87,7 @@ You can split your dataset one of two ways:
 
 ## Interleave
 
-[`datasets.interleave_datasets`] can combine an [`datasets.IterableDataset`] with other datasets. The combined dataset returns alternating examples from each of the original datasets. 
+[`interleave_datasets`] can combine an [`IterableDataset`] with other datasets. The combined dataset returns alternating examples from each of the original datasets.
 
 ```py
 >>> from datasets import interleave_datasets
@@ -115,9 +115,9 @@ The following methods allow you to modify the columns of a dataset. These method
 
 ### Rename
 
-Use [`datasets.IterableDataset.rename_column`] when you need to rename a column in your dataset. Features associated with the original column are actually moved under the new column name, instead of just replacing the original column in-place.
+Use [`IterableDataset.rename_column`] when you need to rename a column in your dataset. Features associated with the original column are actually moved under the new column name, instead of just replacing the original column in-place.
 
-Provide [`datasets.IterableDataset.rename_column`] with the name of the original column, and the new column name:
+Provide [`IterableDataset.rename_column`] with the name of the original column, and the new column name:
 
 ```py
 >>> from datasets import load_dataset
@@ -127,7 +127,7 @@ Provide [`datasets.IterableDataset.rename_column`] with the name of the original
 
 ### Remove
 
-When you need to remove one or more columns, give [`datasets.IterableDataset.remove_columns`] the name of the column to remove. Remove more than one column by providing a list of column names:
+When you need to remove one or more columns, give [`IterableDataset.remove_columns`] the name of the column to remove. Remove more than one column by providing a list of column names:
 
 ```py
 >>> from datasets import load_dataset
@@ -137,7 +137,7 @@ When you need to remove one or more columns, give [`datasets.IterableDataset.rem
 
 ### Cast
 
-[`datasets.IterableDataset.cast`] changes the feature type of one or more columns. This method takes your new `datasets.Features` as its argument. The following sample code shows how to change the feature types of `datasets.ClassLabel` and `datasets.Value`:
+[`IterableDataset.cast`] changes the feature type of one or more columns. This method takes your new `Features` as its argument. The following sample code shows how to change the feature types of `ClassLabel` and `Value`:
 
 ```py
 >>> from datasets import load_dataset
@@ -165,7 +165,7 @@ Casting only works if the original feature type and new feature type are compati
 
 </Tip>
 
-Use [`datasets.Dataset.cast_column`] to change the feature type of just one column. Pass the column name and its new feature type as arguments:
+Use [`Dataset.cast_column`] to change the feature type of just one column. Pass the column name and its new feature type as arguments:
 
 ```py
 >>> dataset.features
@@ -178,12 +178,12 @@ Use [`datasets.Dataset.cast_column`] to change the feature type of just one colu
 
 ## Map
 
-Similar to the [`datasets.Dataset.map`] function for a regular [`datasets.Dataset`], 🤗  Datasets features [`datasets.IterableDataset.map`] for processing an [`datasets.IterableDataset`].
-[`datasets.IterableDataset.map`] applies processing on-the-fly when examples are streamed.
+Similar to the [`Dataset.map`] function for a regular [`Dataset`], 🤗  Datasets features [`IterableDataset.map`] for processing an [`IterableDataset`].
+[`IterableDataset.map`] applies processing on-the-fly when examples are streamed.
 
 It allows you to apply a processing function to each example in a dataset, independently or in batches. This function can even create new rows and columns.
 
-The following example demonstrates how to tokenize a [`datasets.IterableDataset`]. The function needs to accept and output a `dict`:
+The following example demonstrates how to tokenize a [`IterableDataset`]. The function needs to accept and output a `dict`:
 
 ```py
 >>> def add_prefix(example):
@@ -191,7 +191,7 @@ The following example demonstrates how to tokenize a [`datasets.IterableDataset`
 ...     return example
 ```
 
-Next, apply this function to the dataset with [`datasets.IterableDataset.map`]:
+Next, apply this function to the dataset with [`IterableDataset.map`]:
 
 ```py
 >>> from datasets import load_dataset
@@ -203,9 +203,9 @@ Next, apply this function to the dataset with [`datasets.IterableDataset.map`]:
  {'id': 2, 'text': 'My text: "I\'d love to help kickstart...'}]
 ```
 
-Let's take a look at another example, except this time, you will remove a column with [`datasets.IterableDataset.map`]. When you remove a column, it is only removed after the example has been provided to the mapped function. This allows the mapped function to use the content of the columns before they are removed.
+Let's take a look at another example, except this time, you will remove a column with [`IterableDataset.map`]. When you remove a column, it is only removed after the example has been provided to the mapped function. This allows the mapped function to use the content of the columns before they are removed.
 
-Specify the column to remove with the `remove_columns` argument in [`datasets.IterableDataset.map`]:
+Specify the column to remove with the `remove_columns` argument in [`IterableDataset.map`]:
 
 ```py
 >>> updated_dataset = dataset.map(add_prefix, remove_columns=["id"])
@@ -217,7 +217,7 @@ Specify the column to remove with the `remove_columns` argument in [`datasets.It
 
 ### Batch processing
 
-[`datasets.IterableDataset.map`] also supports working with batches of examples. Operate on batches by setting `batched=True`. The default batch size is 1000, but you can adjust it with the `batch_size` argument. This opens the door to many interesting applications such as tokenization, splitting long sentences into shorter chunks, and data augmentation.
+[`IterableDataset.map`] also supports working with batches of examples. Operate on batches by setting `batched=True`. The default batch size is 1000, but you can adjust it with the `batch_size` argument. This opens the door to many interesting applications such as tokenization, splitting long sentences into shorter chunks, and data augmentation.
 
 #### Tokenization
 
@@ -242,7 +242,7 @@ See other examples of batch processing in the [batched map processing](./process
 
 ### Filter
 
-You can filter rows in the dataset based on a predicate function using [`datasets.Dataset.filter`]. It returns rows that match a specified condition:
+You can filter rows in the dataset based on a predicate function using [`Dataset.filter`]. It returns rows that match a specified condition:
 
 ```py
 >>> from datasets import load_dataset
@@ -252,7 +252,7 @@ You can filter rows in the dataset based on a predicate function using [`dataset
 {'id': 4, 'text': 'Are you looking for Number the Stars (Essential Modern Classics)?...'}
 ```
 
-[`datasets.Dataset.filter`] can also filter by indices if you set `with_indices=True`:
+[`Dataset.filter`] can also filter by indices if you set `with_indices=True`:
 
 ```py
 >>> even_dataset = dataset.filter(lambda example, idx: idx % 2 == 0, with_indices=True)
@@ -264,7 +264,7 @@ You can filter rows in the dataset based on a predicate function using [`dataset
 
 ## Stream in a training loop
 
-[`datasets.IterableDataset`] can be integrated into a training loop. First, shuffle the dataset:
+[`IterableDataset`] can be integrated into a training loop. First, shuffle the dataset:
 
 <frameworkcontent>
 <pt>

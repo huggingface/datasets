@@ -3748,7 +3748,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The elasticsearch index name used to create the index.
             es_index_config (Optional :obj:`dict`):
                 The configuration of the elasticsearch index.
-                Default config is::
+                Default config is:
+                ```
 
                     {
                         "settings": {
@@ -3765,6 +3766,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             }
                         },
                     }
+                ```
 
         Example:
 

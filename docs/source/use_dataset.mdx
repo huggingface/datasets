@@ -50,7 +50,7 @@ Next, format the dataset into compatible PyTorch or TensorFlow types.
 
 ### PyTorch
 
-If you are using PyTorch, set the format with [`datasets.Dataset.set_format`], which accepts two main arguments:
+If you are using PyTorch, set the format with [`Dataset.set_format`], which accepts two main arguments:
 
 1. `type` defines the type of column to cast to. For example, `torch` returns PyTorch tensors.
 
@@ -82,9 +82,9 @@ After you set the format, wrap the dataset with `torch.utils.data.DataLoader`. Y
 
 ### TensorFlow
 
-If you are using TensorFlow, you can use [`datasets.Dataset.to_tf_dataset`] to wrap the dataset with a **tf.data.Dataset**, which is natively understood by Keras.
+If you are using TensorFlow, you can use [`Dataset.to_tf_dataset`] to wrap the dataset with a **tf.data.Dataset**, which is natively understood by Keras.
 This means a **tf.data.Dataset** object can be iterated over to yield batches of data, and can be passed directly to methods like **model.fit()**.
-[`datasets.Dataset.to_tf_dataset`] accepts several arguments:
+[`Dataset.to_tf_dataset`] accepts several arguments:
 
 1. `columns` specify which columns should be formatted (includes the inputs and labels).
 
@@ -129,7 +129,7 @@ This means a **tf.data.Dataset** object can be iterated over to yield batches of
 
 <Tip>
 
-[`datasets.Dataset.to_tf_dataset`] is the easiest way to create a TensorFlow compatible dataset. If you don't want a `tf.data.Dataset` and would rather the dataset emit `tf.Tensor` objects, take a look at the [format](./process#format) section instead!
+[`Dataset.to_tf_dataset`] is the easiest way to create a TensorFlow compatible dataset. If you don't want a `tf.data.Dataset` and would rather the dataset emit `tf.Tensor` objects, take a look at the [format](./process#format) section instead!
 
 </Tip>
 

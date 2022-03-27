@@ -1207,6 +1207,20 @@ class Features(dict):
         super().__setitem__(column_name, feature)
         self._column_requires_decoding[column_name] = require_decoding(feature)
 
+    def __delitem__(self, column_name: str):
+        super().__delitem__(column_name)
+        del self._column_requires_decoding[column_name]
+
+    def update(self, iterable, **kwds):
+        if hasattr(iterable, "keys"):
+            for key in iterable.keys():
+                self[key] = iterable[key]
+        else:
+            for key, value in iterable:
+                self[key] = value
+        for key in kwds:
+            self[key] = kwds[key]
+
     def __reduce__(self):
         return Features, (dict(self),)
 
@@ -1457,7 +1471,16 @@ class Features(dict):
                     del flattened[column_name]
                 elif isinstance(subfeature, Sequence) and isinstance(subfeature.feature, dict):
                     no_change = False
-                    flattened.update({f"{column_name}.{k}": Sequence(v) for k, v in subfeature.feature.items()})
+                    flattened.update(
+                        {
+                            f"{column_name}.{k}": Sequence(v) if not isinstance(v, dict) else [v]
+                            for k, v in subfeature.feature.items()
+                        }
+                    )
+                    del flattened[column_name]
+                elif hasattr(subfeature, "flatten") and subfeature.flatten() != subfeature:
+                    no_change = False
+                    flattened.update({f"{column_name}.{k}": v for k, v in subfeature.flatten().items()})
                     del flattened[column_name]
             self = flattened
             if no_change:
