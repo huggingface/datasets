@@ -14,6 +14,7 @@
 """Perplexity Metric."""
 
 import torch
+from torch.nn import CrossEntropyLoss
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 import datasets
@@ -88,7 +89,14 @@ class Perplexity(datasets.Metric):
             reference_urls=["https://huggingface.co/docs/transformers/perplexity"],
         )
 
-    def _compute(self, input_texts, model_id, stride=512, device=None):
+    def _compute(self,
+                input_texts,
+                model_id,
+                batch_size: int = 16,
+                add_start_token: bool = True,
+                stride: int = 512,
+                tensory_type: str = "pt",
+                device=None):
 
         if device is not None:
             assert device in ["gpu", "cpu", "cuda"], "device should be either gpu or cpu."
@@ -97,33 +105,47 @@ class Perplexity(datasets.Metric):
         else:
             device = "cuda" if torch.cuda.is_available() else "cpu"
 
+        print("cuda avail?", torch.cuda.is_available())
+        print(device)
+
         model = AutoModelForCausalLM.from_pretrained(model_id)
         model = model.to(device)
 
-        tokenizer = AutoTokenizer.from_pretrained(model_id, pad_token="<PAD>")
+        if add_start_token:
+            tokenizer = AutoTokenizer.from_pretrained(model_id, bos_token="<BOS>", pad_token="<PAD>")
+        else:
+            tokenizer = AutoTokenizer.from_pretrained(model_id, pad_token="<PAD>")
 
-        encodings = tokenizer(input_texts, padding=True, return_tensors="pt", return_special_tokens_mask=True).to(
+
+        encodings = tokenizer(input_texts, padding=True, return_tensors="pt", return_attention_mask=True).to(
             device
         )
 
         encoded_texts = encodings["input_ids"]
-        special_tokens_masks = encodings["special_tokens_mask"]
+        attn_masks = encodings["attention_mask"]
 
         max_model_length = model.config.n_positions
 
         ppls = []
 
-        for text_index in logging.tqdm(range(0, len(encoded_texts))):
-            encoded_text = encoded_texts[text_index]
-            special_tokens_mask = special_tokens_masks[text_index]
+        loss_fct = CrossEntropyLoss(reduction="none")
 
-            encoded_text_length = len(encoded_text) - special_tokens_mask.sum()
+        for text_index in logging.tqdm(range(0, len(encoded_texts), batch_size)):
+            encoded_batch = encoded_texts[text_index:min(text_index+batch_size, len(encoded_texts))]
+            attn_mask = attn_masks[text_index:min(text_index+batch_size, len(attn_masks))]
+
+            if add_start_token:
+                labels = torch.stack(torch.tensor([[-100]]*batch_size), encoded_batch[:, 1:])
+            else:
+                labels = encoded_batch
+
+            #encoded_text_length = len(encoded_text) - special_tokens_mask.sum()
 
             nlls = []
 
-            target_index = max(1, min(stride - 1, encoded_text_length - 1))
+            #target_index = max(1, min(stride - 1, encoded_text_length - 1))
 
-            while target_index < encoded_text_length:
+            while False: #target_index < encoded_text_length:
                 start_index = max(0, target_index - (max_model_length - 1))
 
                 input_ids = encoded_text[start_index : target_index + 1]
@@ -142,9 +164,21 @@ class Perplexity(datasets.Metric):
 
                 target_index += stride
 
-            if len(nlls) > 0:
-                ppls.append(torch.exp2(torch.mean(torch.stack(nlls))))
+            logits = model(encoded_batch, labels=labels, attention_mask=attn_mask).logits
 
-        ppl = torch.mean(torch.stack(ppls))
+            shift_logits = logits[..., :-1, :].contiguous()
+            shift_labels = labels[..., 1:].contiguous()
+            shift_attention_mask_batch = attention_mask_batch[..., 1:].contiguous()
 
-        return {"perplexity": float(ppl)}
+            perplexity_batch = torch.exp((loss_fct(shift_logits.transpose(1,2), shift_labels)*shift_attention_mask_batch).sum(1) / shift_attention_mask_batch.sum(1)).tolist()
+
+
+            ppls += perplexity_batch
+
+
+            #if len(nlls) > 0:
+            #ppls.append(torch.exp2(torch.mean(torch.stack(nlls))))
+
+        #ppl = torch.mean(torch.stack(ppls))
+
+        return {"perplexity": ppls}
