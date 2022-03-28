@@ -90,6 +90,7 @@ print(results)
 This metric hase multiple known limitations and biases:
 - BLEU compares overlap in tokens from the predictions and references, instead of comparing meaning. This can lead to discrepencies between BLEU scores and human ratings. 
 - BLEU scores are not comparable across different datasets, nor are they comparable across different languages.
+- BLEU scores can vary greatly depending on which parameters are used to generate the scores, especially when different tokenization and normalization techniques are used. It is therefore not possible to compare BLEU scores generated using different parameters, or when these parameters are unknown.
 - Shorter predicted translations achieve higher scores than longer ones, simply due to how the score is calculated. A brevity penalty is introduced to attempt to counteract this.
 
 
