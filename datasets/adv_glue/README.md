@@ -88,6 +88,7 @@ Leaderboard available on the homepage: [https://adversarialglue.github.io/](http
 ### Languages
 
 AdvGLUE deviates from the GLUE dataset, which has a base language of English.
+
 ## Dataset Structure
 
 We show detailed information for up to 5 configurations of the dataset.
@@ -147,31 +148,44 @@ The data fields are the same among all splits.
 ### Data Splits
 
 Adversarial GLUE provides only a 'dev' split.
+
 ## Dataset Creation
+
 ### Curation Rationale
+
 [More Information Needed]
 
 ### Source Data
+
 [More Information Needed]
+
 ### Annotations
+
 [More Information Needed]
+
 ### Personal and Sensitive Information
+
 [More Information Needed]
 
 ## Considerations for Using the Data
+
 ### Social Impact of Dataset
+
 [More Information Needed]
 
 ### Discussion of Biases
+
 [More Information Needed]
 
 ### Other Known Limitations
+
 [More Information Needed]
 
-## Additional Information 
+## Additional Information
+
 ### Citation Information
 
-```
+```bibtex
 @article{Wang2021AdversarialGA,
   title={Adversarial GLUE: A Multi-Task Benchmark for Robustness Evaluation of Language Models},
   author={Boxin Wang and Chejian Xu and Shuohang Wang and Zhe Gan and Yu Cheng and Jianfeng Gao and Ahmed Hassan Awadallah and B. Li},
@@ -180,7 +194,6 @@ Adversarial GLUE provides only a 'dev' split.
   volume={abs/2111.02840}
 }
 ```
-
 
 ### Contributions
 
