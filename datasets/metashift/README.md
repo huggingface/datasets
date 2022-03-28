@@ -12,7 +12,8 @@ multilinguality:
 pretty_name: MetaShift
 size_categories:
 - unknown
-source_datasets: []
+source_datasets:
+- original
 task_categories:
 - other
 task_ids:
