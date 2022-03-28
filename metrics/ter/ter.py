@@ -100,7 +100,7 @@ Examples:
         >>> references = [["does this sentence match", "does this sentence match!?!"],
         ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"]]
         >>> ter = datasets.load_metric("ter")
-        >>> results = ter.compute(predictions=predictions, 
+        >>> results = ter.compute(predictions=predictions,
         ...                         references=references,
         ...                         case_sensitive=True)
         >>> print(results)
@@ -112,8 +112,8 @@ Examples:
         >>> references = [["does this sentence match", "does this sentence match!?!"],
         ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"]]
         >>> ter = datasets.load_metric("ter")
-        >>> results = ter.compute(predictions=predictions, 
-        ...                         references=references, 
+        >>> results = ter.compute(predictions=predictions,
+        ...                         references=references,
         ...                         normalized=True,
         ...                         case_sensitive=True)
         >>> print(results)
@@ -125,8 +125,8 @@ Examples:
         >>> references = [["does this sentence match", "does this sentence match!?!"],
         ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"]]
         >>> ter = datasets.load_metric("ter")
-        >>> results = ter.compute(predictions=predictions, 
-        ...                         references=references, 
+        >>> results = ter.compute(predictions=predictions,
+        ...                         references=references,
         ...                         ignore_punct=True,
         ...                         case_sensitive=False)
         >>> print(results)
@@ -140,7 +140,7 @@ Examples:
         ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"],
         ...             ["Your jokes are...", "...TERrible"]]
         >>> ter = datasets.load_metric("ter")
-        >>> results = ter.compute(predictions=predictions, 
+        >>> results = ter.compute(predictions=predictions,
         ...                         references=references,
         ...                         ignore_punct=True,
         ...                         case_sensitive=False)
