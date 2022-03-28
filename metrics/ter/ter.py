@@ -82,11 +82,11 @@ Returns:
 Examples:
     Example 1:
         >>> predictions = ["does this sentence match??",
-                    "what about this sentence?",
-                    "What did the TER metric user say to the developer?"]
+        ...                     "what about this sentence?",
+        ...                     "What did the TER metric user say to the developer?"]
         >>> references = [["does this sentence match", "does this sentence match!?!"],
-                    ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"],
-                    ["Your jokes are...", "...TERrible"]]
+        ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"],
+        ...             ["Your jokes are...", "...TERrible"]]
         >>> ter = datasets.load_metric("ter")
         >>> results = ter.compute(predictions=predictions, references=references)
         >>> print(results)
@@ -94,51 +94,52 @@ Examples:
 
     Example 2:
         >>> predictions = ["does this sentence match??",
-                    "what about this sentence?"]
+        ...                     "what about this sentence?"]
         >>> references = [["does this sentence match", "does this sentence match!?!"],
-                    ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"]]
+        ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"]]
         >>> ter = datasets.load_metric("ter")
-        >>> results = ter.compute(predictions=predictions, references=references)
+        >>> results = ter.compute(predictions=predictions, 
+        ...                         references=references)
         >>> print(results)
         {'score': 62.5, 'num_edits': 5, 'ref_length': 8.0}
 
     Example 3:
         >>> predictions = ["does this sentence match??",
-                    "what about this sentence?"]
+        ...                     "what about this sentence?"]
         >>> references = [["does this sentence match", "does this sentence match!?!"],
-                    ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"]]
+        ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"]]
         >>> ter = datasets.load_metric("ter")
-        >>> results = ter.compute(predictions=predictions,
-                                    references=references,
-                                    normalization=True)
+        >>> results = ter.compute(predictions=predictions, 
+        ...                         references=references, 
+        ...                         normalized=True)
         >>> print(results)
         {'score': 57.14285714285714, 'num_edits': 6, 'ref_length': 10.5}
 
     Example 4:
         >>> predictions = ["does this sentence match??",
-                    "what about this sentence?"]
+        ...                     "what about this sentence?"]
         >>> references = [["does this sentence match", "does this sentence match!?!"],
-                    ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"]]
+        ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"]]
         >>> ter = datasets.load_metric("ter")
-        >>> results = ter.compute(predictions=predictions,
-                                    references=references,
-                                    ignore_punct=True
-                                    ignore_case=True)
+        >>> results = ter.compute(predictions=predictions, 
+        ...                         references=references, 
+        ...                         ignore_punct=True,
+        ...                         ignore_case=True)
         >>> print(results)
         {'score': 0.0, 'num_edits': 0, 'ref_length': 8.0}
 
     Example 5:
         >>> predictions = ["does this sentence match??",
-                    "what about this sentence?",
-                    "What did the TER metric user say to the developer?"]
+        ...                    "what about this sentence?",
+        ...                    "What did the TER metric user say to the developer?"]
         >>> references = [["does this sentence match", "does this sentence match!?!"],
-                    ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"],
-                    ["Your jokes are...", "...TERrible"]]
+        ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"],
+        ...             ["Your jokes are...", "...TERrible"]]
         >>> ter = datasets.load_metric("ter")
-        >>> results = ter.compute(predictions=predictions,
-                                    references=references,
-                                    ignore_punct=True,
-                                    ignore_case=True)
+        >>> results = ter.compute(predictions=predictions, 
+        ...                         references=references,
+        ...                         ignore_punct=True,
+        ...                         ignore_case=True)
         >>> print(results)
         {'score': 100.0, 'num_edits': 10, 'ref_length': 10.0}
 """
