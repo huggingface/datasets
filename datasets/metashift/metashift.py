@@ -301,7 +301,7 @@ class Metashift(datasets.GeneratorBasedBuilder):
 
     @staticmethod
     def _load_scene_graph(json_path):
-        with open(json_path, "r") as f:
+        with open(json_path, "r", encoding="utf-8") as f:
             scene_graph = json.load(f)
         return scene_graph
 
