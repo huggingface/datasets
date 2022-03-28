@@ -154,7 +154,7 @@ If you're a dataset owner and wish to update any part of it (description, citati
 
 ## BibTeX
 
-If you want to cite our 🤗 Datasets [paper](https://arxiv.org/abs/2109.02846) and library, you can use these:
+If you want to cite our 🤗 Datasets [paper](https://arxiv.org/abs/2109.02846) and library, you can use this:
 
 ```bibtex
 @inproceedings{lhoest-etal-2021-datasets,
@@ -204,3 +204,5 @@ If you want to cite our 🤗 Datasets [paper](https://arxiv.org/abs/2109.02846) 
     primaryClass={cs.CL},
 }
 ```
+
+You can also cite the library using the Zenodo DOI (one DOI per version of the library), see the full list [here](https://zenodo.org/search?q=conceptrecid:%224817768%22&sort=-version&all_versions=True).
