@@ -18,7 +18,9 @@ This metric takes, at minimum, predicted sentences and reference sentences:
 ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"],
 ...             ["Your jokes are...", "...TERrible"]]
 >>> ter = datasets.load_metric("ter")
->>> results = ter.compute(predictions=predictions, references=references)
+>>> results = ter.compute(predictions=predictions,
+...                         references=references,
+...                         case_sensitive=True)
 >>> print(results)
 {'score': 150.0, 'num_edits': 15, 'ref_length': 10.0}
 ```
@@ -30,7 +32,7 @@ This metric takes the following as input:
 - **`normalized`** (`boolean`): If `True`, applies basic tokenization and normalization to sentences. Defaults to `False`.
 - **`ignore_punct`** (`boolean`): If `True`, applies basic tokenization and normalization to sentences. Defaults to `False`.
 - **`support_zh_ja_chars`** (`boolean`): If `True`, tokenization/normalization supports processing of Chinese characters, as well as Japanese Kanji, Hiragana, Katakana, and Phonetic Extensions of Katakana. Only applies if `normalized = True`. Defaults to `False`.
-- **`ignore_case`** (`boolean`): If `True`, makes all predictions and references lowercase to ignore differences in case. Defaults to `False`.
+- **`case_sensitive`** (`boolean`): If `False`, makes all predictions and references lowercase to ignore differences in case. Defaults to `False`.
 
 ### Output Values
 This metric returns the following:
@@ -57,7 +59,8 @@ Basic example with only predictions and references as inputs:
 ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"]]
 >>> ter = datasets.load_metric("ter")
 >>> results = ter.compute(predictions=predictions, 
-...                         references=references)
+...                         references=references,
+...                         case_sensitive=True)
 >>> print(results)
 {'score': 62.5, 'num_edits': 5, 'ref_length': 8.0}
 ```
@@ -71,7 +74,8 @@ Example with `normalization = True`:
 >>> ter = datasets.load_metric("ter")
 >>> results = ter.compute(predictions=predictions, 
 ...                         references=references, 
-...                         normalized=True)
+...                         normalized=True,
+...                         case_sensitive=True)
 >>> print(results)
 {'score': 57.14285714285714, 'num_edits': 6, 'ref_length': 10.5}
 ```
@@ -86,7 +90,7 @@ Example ignoring punctuation and capitalization, and everything matches:
 >>> results = ter.compute(predictions=predictions, 
 ...                         references=references, 
 ...                         ignore_punct=True,
-...                         ignore_case=True)
+...                         case_sensitive=False)
 >>> print(results)
 {'score': 0.0, 'num_edits': 0, 'ref_length': 8.0}
 ```
@@ -103,7 +107,7 @@ Example ignoring punctuation and capitalization, but with an extra (incorrect) s
 >>> results = ter.compute(predictions=predictions, 
 ...                         references=references,
 ...                         ignore_punct=True,
-...                         ignore_case=True)
+...                         case_sensitive=False)
 >>> print(results)
 {'score': 100.0, 'num_edits': 10, 'ref_length': 10.0}
 ```

@@ -72,7 +72,7 @@ Args:
     support_zh_ja_chars (boolean): If `True`, tokenization/normalization supports processing of Chinese characters,
                                     as well as Japanese Kanji, Hiragana, Katakana, and Phonetic Extensions of Katakana.
                                     Only applies if `normalized = True`. Defaults to `False`.
-    ignore_case (boolean): If `True`, makes all predictions and references lowercase to ignore differences in case. Defaults to `False`.
+    case_sensitive (boolean): If `False`, makes all predictions and references lowercase to ignore differences in case. Defaults to `False`.
 
 Returns:
     'score' (float): TER score (num_edits / sum_ref_lengths * 100)
@@ -88,7 +88,9 @@ Examples:
         ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"],
         ...             ["Your jokes are...", "...TERrible"]]
         >>> ter = datasets.load_metric("ter")
-        >>> results = ter.compute(predictions=predictions, references=references)
+        >>> results = ter.compute(predictions=predictions,
+        ...                         references=references,
+        ...                         case_sensitive=True)
         >>> print(results)
         {'score': 150.0, 'num_edits': 15, 'ref_length': 10.0}
 
@@ -99,7 +101,8 @@ Examples:
         ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"]]
         >>> ter = datasets.load_metric("ter")
         >>> results = ter.compute(predictions=predictions, 
-        ...                         references=references)
+        ...                         references=references,
+        ...                         case_sensitive=True)
         >>> print(results)
         {'score': 62.5, 'num_edits': 5, 'ref_length': 8.0}
 
@@ -111,7 +114,8 @@ Examples:
         >>> ter = datasets.load_metric("ter")
         >>> results = ter.compute(predictions=predictions, 
         ...                         references=references, 
-        ...                         normalized=True)
+        ...                         normalized=True,
+        ...                         case_sensitive=True)
         >>> print(results)
         {'score': 57.14285714285714, 'num_edits': 6, 'ref_length': 10.5}
 
@@ -124,7 +128,7 @@ Examples:
         >>> results = ter.compute(predictions=predictions, 
         ...                         references=references, 
         ...                         ignore_punct=True,
-        ...                         ignore_case=True)
+        ...                         case_sensitive=False)
         >>> print(results)
         {'score': 0.0, 'num_edits': 0, 'ref_length': 8.0}
 
@@ -139,7 +143,7 @@ Examples:
         >>> results = ter.compute(predictions=predictions, 
         ...                         references=references,
         ...                         ignore_punct=True,
-        ...                         ignore_case=True)
+        ...                         case_sensitive=False)
         >>> print(results)
         {'score': 100.0, 'num_edits': 10, 'ref_length': 10.0}
 """
@@ -177,9 +181,8 @@ class Ter(datasets.Metric):
         normalized: bool = False,
         ignore_punct: bool = False,
         support_zh_ja_chars: bool = False,
-        ignore_case: bool = False,
+        case_sensitive: bool = False,
     ):
-        case_sensitive = not ignore_case
         references_per_prediction = len(references[0])
         if any(len(refs) != references_per_prediction for refs in references):
             raise ValueError("Sacrebleu requires the same number of references for each prediction")
