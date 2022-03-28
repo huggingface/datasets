@@ -15,9 +15,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
+- image-classification
 - other
 task_ids:
-- other-other-domain-generalization;subpopulation-shifts-settings;assess-training-conflicts
+- multi-label-image-classification
+- other-other-domain-generalization
 ---
 
 # Dataset Card for MetaShift
