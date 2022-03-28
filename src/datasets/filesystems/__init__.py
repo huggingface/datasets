@@ -5,13 +5,12 @@ import fsspec
 
 from . import compression
 from .hffilesystem import HfFileSystem
-from .s3filesystem import S3FileSystem
 
 
-# _has_s3fs = importlib.util.find_spec("s3fs") is not None
-#
-# if _has_s3fs:
-#     from .s3filesystem import S3FileSystem  # noqa: F401
+_has_s3fs = importlib.util.find_spec("s3fs") is not None
+
+if _has_s3fs:
+    from .s3filesystem import S3FileSystem  # noqa: F401
 
 COMPRESSION_FILESYSTEMS: List[compression.BaseCompressedFileFileSystem] = [
     compression.Bz2FileSystem,
