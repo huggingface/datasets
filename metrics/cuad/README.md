@@ -17,7 +17,7 @@ The CUAD metric takes two inputs :
 
 
 `references`: a list of question-answer dictionaries with the following key-values:
- - `id`: the id of the question-answer pair (the same as above)
+ - `id`: the id of the question-answer pair (the same as above).
  - `answers`: a dictionary *in the CUAD dataset format*:
 ```
     {
