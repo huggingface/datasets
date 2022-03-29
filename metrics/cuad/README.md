@@ -4,7 +4,7 @@
 
 This metric wraps the official scoring script for version 1 of the [Contract Understanding Atticus Dataset (CUAD)](https://huggingface.co/datasets/cuad), which is a corpus of more than 13,000 labels in 510 commercial legal contracts that have been manually labeled to identify 41 categories of important clauses that lawyers look for when reviewing contracts in connection with corporate transactions.
 
-The CUAD metric computes several scores: [exact match](https://huggingface.co/metrics/exact_match), [F1 score](https://huggingface.co/metrics/f1), Area Under the Precision-Recall curve, [Precision](https://huggingface.co/metrics/precision) at 80% [recall](https://huggingface.co/metrics/recall) and Precision at 90% recall.
+The CUAD metric computes several scores: [Exact Match](https://huggingface.co/metrics/exact_match), [F1 score](https://huggingface.co/metrics/f1), Area Under the Precision-Recall Curve, [Precision](https://huggingface.co/metrics/precision) at 80% [recall](https://huggingface.co/metrics/recall) and Precision at 90% recall.
 
 ## How to use 
 
