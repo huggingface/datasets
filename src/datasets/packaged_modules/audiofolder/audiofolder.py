@@ -36,7 +36,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                     "text": datasets.Value("string"),
                 }
             ),
-            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="path", transcription_column="text")],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="text")],
         )
 
     def _split_generators(self, dl_manager):
@@ -143,8 +143,10 @@ AudioFolder.AUDIO_EXTENSIONS = [
     ".mat4",
     ".mat5",
     ".mpc2k",
-    ".mp3" ".ogg",
-    ".opus" ".paf",
+    ".mp3",
+    ".ogg",
+    ".opus",
+    ".paf",
     ".pvf",
     ".raw",
     ".rf64",
