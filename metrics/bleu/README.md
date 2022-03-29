@@ -84,7 +84,7 @@ Example where the second sample has 2 references:
 ... ]
 >>> bleu = datasets.load_metric("bleu")
 >>> results = bleu.compute(predictions=predictions, references=references)
-... print(results)
+>>> print(results)
 {'bleu': 1.0, 'precisions': [1.0, 1.0, 1.0, 1.0], 'brevity_penalty': 1.0, 'length_ratio': 1.1666666666666667, 'translation_length': 7, 'reference_length': 6}
 ```
 
