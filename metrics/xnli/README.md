@@ -44,12 +44,12 @@ print(results)
 Minimal values:
 
 ```python
-from datasets import load_metric
-xnli_metric = load_metric("xnli")
-predictions = [1, 0]
-references = [0, 1]
-results = xnli_metric.compute(predictions=predictions, references=references)
-print(results)
+>>> from datasets import load_metric
+>>> xnli_metric = load_metric("xnli")
+>>> predictions = [1, 0]
+>>> references = [0, 1]
+>>> results = xnli_metric.compute(predictions=predictions, references=references)
+>>> print(results)
 {'accuracy': 0.0}
 ```
 
