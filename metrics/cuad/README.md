@@ -12,7 +12,7 @@ The CUAD metric takes two inputs :
 
 
 `predictions`, a list of question-answer dictionaries with the following key-values:
-- `id`: the id of the question-answer pair as given in the references 
+- `id`: the id of the question-answer pair as given in the references.
 - `prediction_text`: a list of possible texts for the answer, as a list of strings depending on a threshold on the confidence probability of each prediction.
 
 
