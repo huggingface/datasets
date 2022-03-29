@@ -173,9 +173,7 @@ The same as in the IIT-CDIP collection.
 
 ### Licensing Information
 
-- RVL-CDIP is a subset of IIT-CDIP, which came from the Legacy Tobacco Document Library [1], for which license information can be found [here](https://www.industrydocuments.ucsf.edu/help/copyright/).
-
-[1] https://www.industrydocuments.ucsf.edu/tobacco/
+RVL-CDIP is a subset of IIT-CDIP, which came from the [Legacy Tobacco Document Library](https://www.industrydocuments.ucsf.edu/tobacco/), for which license information can be found [here](https://www.industrydocuments.ucsf.edu/help/copyright/).
 
 ### Citation Information
 
