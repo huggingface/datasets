@@ -145,7 +145,7 @@ The same as in the IIT-CDIP collection.
 
 #### Who are the annotators?
 
-[More Information Needed]
+The same as in the IIT-CDIP collection.
 
 ### Personal and Sensitive Information
 
