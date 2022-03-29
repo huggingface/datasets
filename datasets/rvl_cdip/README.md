@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 licenses:
-- unknown
+- other
 multilinguality:
 - monolingual
 size_categories:
