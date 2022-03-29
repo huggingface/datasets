@@ -18,13 +18,10 @@ The CUAD metric takes two inputs :
 
 `references`: a list of question-answer dictionaries with the following key-values:
  - `id`: the id of the question-answer pair (the same as above).
- - `answers`: a dictionary *in the CUAD dataset format*:
-```
-    {
-        `text`: a list of possible texts for the answer, as a list of strings
-        `answer_start`: a list of start positions for the answer, as a list of ints
-    }
-```            
+ - `answers`: a dictionary *in the CUAD dataset format* with the following keys:
+   - `text`: a list of possible texts for the answer, as a list of strings.
+   - `answer_start`: a list of start positions for the answer, as a list of ints.
+
  Note that `answer_start` values are not taken into account to compute the metric.
 
 ```python
