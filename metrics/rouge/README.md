@@ -12,17 +12,17 @@ This metrics is a wrapper around the [Google Research reimplementation of ROUGE]
 ## How to Use
 At minimum, this metric takes as input a list of predictions and a list of references:
 ```python
-rouge = datasets.load_metric('rouge')
-predictions = ["hello there", "general kenobi"]
-references = ["hello there", "general kenobi"]
-results = rouge.compute(predictions=predictions,
-                        references=references)
-print(list(results.keys()))
-> ['rouge1', 'rouge2', 'rougeL', 'rougeLsum']
-print(results["rouge1"])
-> AggregateScore(low=Score(precision=1.0, recall=1.0, fmeasure=1.0), mid=Score(precision=1.0, recall=1.0, fmeasure=1.0), high=Score(precision=1.0, recall=1.0, fmeasure=1.0))
-print(results["rouge1"].mid.fmeasure)
-> 1.0
+>>> rouge = datasets.load_metric('rouge')
+>>> predictions = ["hello there", "general kenobi"]
+>>> references = ["hello there", "general kenobi"]
+>>> results = rouge.compute(predictions=predictions,
+...                         references=references)
+>>> print(list(results.keys()))
+['rouge1', 'rouge2', 'rougeL', 'rougeLsum']
+>>> print(results["rouge1"])
+AggregateScore(low=Score(precision=1.0, recall=1.0, fmeasure=1.0), mid=Score(precision=1.0, recall=1.0, fmeasure=1.0), high=Score(precision=1.0, recall=1.0, fmeasure=1.0))
+>>> print(results["rouge1"].mid.fmeasure)
+1.0
 ```
 
 ### Inputs
