@@ -1,4 +1,27 @@
-[Needs More Information]
+---
+annotations_creators:
+- found
+language_creators:
+- found
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- IIT-CDIP
+task_categories:
+- image-classification
+task_ids:
+- single-label-image-classification
+- other-other-document-classification
+- other-other-document-retrieval
+paperswithcode_id: rvl-cdip
+pretty_name: RVL-CDIP
+---
 
 # Dataset Card for RVL-CDIP
 
@@ -61,7 +84,7 @@ A sample from the training set is provided below :
 
 ### Data Fields
 
-- `image`: A `PIL.Image.Image` object containing the image.
+- `image`: A `PIL.Image.Image` object containing a document.
 - `label`: an `int` classification label.
 
 <details>
