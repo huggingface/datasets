@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 licenses:
-- unknown
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -53,7 +53,7 @@ pretty_name: RVL-CDIP
 - **Homepage:** [The RVL-CDIP Dataset](https://www.cs.cmu.edu/~aharley/rvl-cdip/)
 - **Repository:** [Needs More Information]
 - **Paper:** [RVL-CDIP Paper](https://arxiv.org/abs/1502.07058)
-- **Leaderboard:** [Needs More Information]
+- **Leaderboard:** [Document Image Classification leaderboard](https://paperswithcode.com/dataset/rvl-cdip)
 - **Point of Contact:** [Adam W. Harley](http://cs.cmu.edu/~aharley/)
 
 ### Dataset Summary
@@ -136,21 +136,21 @@ document images across 16 categories, useful for training new CNNs for document 
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+The same as in the IIT-CDIP collection.
 
 #### Who are the source language producers?
 
-[More Information Needed]
+The same as in the IIT-CDIP collection.
 
 ### Annotations
 
 #### Annotation process
 
-[More Information Needed]
+The same as in the IIT-CDIP collection.
 
 #### Who are the annotators?
 
-[More Information Needed]
+The same as in the IIT-CDIP collection.
 
 ### Personal and Sensitive Information
 
@@ -178,13 +178,11 @@ document images across 16 categories, useful for training new CNNs for document 
 
 ### Licensing Information
 
-- RVL-CDIP is a subset of IIT-CDIP, which came from the Legacy Tobacco Document Library [1], for which license information can be found [here](https://www.industrydocuments.ucsf.edu/help/copyright/).
-
-[1] https://www.industrydocuments.ucsf.edu/tobacco/
+RVL-CDIP is a subset of IIT-CDIP, which came from the [Legacy Tobacco Document Library](https://www.industrydocuments.ucsf.edu/tobacco/), for which license information can be found [here](https://www.industrydocuments.ucsf.edu/help/copyright/).
 
 ### Citation Information
 
-```
+```bibtex
 @inproceedings{harley2015icdar,
     title = {Evaluation of Deep Convolutional Nets for Document Image Classification and Retrieval},
     author = {Adam W Harley and Alex Ufkes and Konstantinos G Derpanis},
