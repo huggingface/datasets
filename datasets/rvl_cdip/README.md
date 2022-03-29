@@ -177,7 +177,7 @@ RVL-CDIP is a subset of IIT-CDIP, which came from the [Legacy Tobacco Document L
 
 ### Citation Information
 
-```
+```bibtex
 @inproceedings{harley2015icdar,
     title = {Evaluation of Deep Convolutional Nets for Document Image Classification and Retrieval},
     author = {Adam W Harley and Alex Ufkes and Konstantinos G Derpanis},
