@@ -141,7 +141,7 @@ The same as in the IIT-CDIP collection.
 
 #### Annotation process
 
-[More Information Needed]
+The same as in the IIT-CDIP collection.
 
 #### Who are the annotators?
 
