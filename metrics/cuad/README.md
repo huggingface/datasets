@@ -37,7 +37,7 @@ The output of the CUAD metric consists of a dictionary that contains one or seve
 
 `exact_match`: The normalized answers that exactly match the reference answer, with a range between 0.0 and 1.0 (see [exact match](https://huggingface.co/metrics/exact_match) for more information).
 
-`f1`: the harmonic mean of the precision and recall (see [F1 score](https://huggingface.co/metrics/f1) for more information). Its range is between 0.0 and 1.0 -- its lowest possible value is 0, if either the precision or the recall is 0, and its highest possible value is 1.0, which means perfect precision and recall.
+`f1`: The harmonic mean of the precision and recall (see [F1 score](https://huggingface.co/metrics/f1) for more information). Its range is between 0.0 and 1.0 -- its lowest possible value is 0, if either the precision or the recall is 0, and its highest possible value is 1.0, which means perfect precision and recall.
 
 `aupr`: The Area Under the Precision-Recall curve, with a range between 0.0 and 1.0, with a higher value representing both high recall and high precision, and a low value representing low values for both. See the [Wikipedia article](https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve) for more information.
 
