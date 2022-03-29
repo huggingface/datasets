@@ -31,7 +31,6 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             features=datasets.Features(
                 {
-                    "path": datasets.Value("string"),
                     "audio": datasets.Audio(sampling_rate=self.config.sampling_rate),
                     "text": datasets.Value("string"),
                 }
