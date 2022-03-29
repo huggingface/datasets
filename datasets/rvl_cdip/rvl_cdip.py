@@ -37,7 +37,7 @@ _DESCRIPTION = """\
 The RVL-CDIP (Ryerson Vision Lab Complex Document Information Processing) dataset consists of 400,000 grayscale images in 16 classes, with 25,000 images per class. There are 320,000 training images, 40,000 validation images, and 40,000 test images.
 """
 
-# TODO: Add a link to an official homepage for the dataset here
+
 _HOMEPAGE = "https://www.cs.cmu.edu/~aharley/rvl-cdip/"
 
 
@@ -46,7 +46,6 @@ _LICENSE = "https://www.industrydocuments.ucsf.edu/help/copyright/"
 
 _URLS = {
     "rvl-cdip": "https://docs.google.com/uc?id=0Bz1dfcnrpXM-MUt4cHNzUEFXcmc&export=download",
-    "labels": "https://mega.nz/file/AFdBwRLa#DjkaL1wRwUJuKsoq8Mg_vQunmWf3vbMEFk3u5bS-p6w",
 }
 
 _CLASSES = [
@@ -73,6 +72,20 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
     """Ryerson Vision Lab Complex Document Information Processing dataset."""
 
     VERSION = datasets.Version("1.0.0")
+    
+    @property
+    def manual_download_instructions(self):
+        return """
+        You need to
+        1. Manually download `rvl-cdip.tar.gz` from https://docs.google.com/uc?id=0Bz1dfcnrpXM-MUt4cHNzUEFXcmc&export=download
+        2. Extract the `rvl-cdip.tar.gz` at a folder <path/to/folder>.
+        The <path/to/folder> can e.g. be `~/RVL-CDIP_Dataset`.
+        After extracting the files, the structure of the <path/to/folder> would be as follows :
+        <path/to/folder> :
+            - images
+            - labels
+        RVL-CDIP can then be loaded using the following command `datasets.load_dataset("rvl_cdip", data_dir="<path/to/folder>")`.
+        """
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -91,34 +104,42 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        data_dir = dl_manager.download_and_extract(_URLS)
-        labels_path = data_dir["labels"]
+        local_data_path = dl_manager.manual_dir
+        if not os.path.exists(local_data_path):
+            raise FileNotFoundError(
+                f"{local_data_path} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('rvl_cdip', data_dir=...)`. Manual download instructions: {self.manual_download_instructions})"
+        )
+        
+        images_dir = os.path.join(local_data_path, "images")
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(labels_path, "labels_only", "labels", "train.txt"),
+                    "images_dir": images_dir,
+                    "filepath": os.path.join(local_data_path, "labels", "train.txt"),
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(labels_path, "labels_only", "labels", "test.txt"),
+                    "images_dir": images_dir,
+                    "filepath": os.path.join(local_data_path, "labels", "test.txt"),
                     "split": "test",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(labels_path, "labels_only", "labels", "val.txt"),
+                    "images_dir": images_dir,
+                    "filepath": os.path.join(local_data_path, "labels", "val.txt"),
                     "split": "dev",
                 },
             ),
         ]
 
-    # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
-    def _generate_examples(self, filepath, split):
+
+    def _generate_examples(self, images_dir, filepath, split):
 
         with open(filepath, encoding="utf-8") as f:
             data = f.read().splitlines()
@@ -126,7 +147,8 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
         idx = 0
         for item in data:
             image_path, class_index = item.split(" ")
-            class_name = _CLASSES[class_index]
+            image_path = os.path.join(images_dir, image_path)
+            class_name = _CLASSES[int(class_index)]
             yield idx, {
                 "image": image_path,
                 "label": class_name,
