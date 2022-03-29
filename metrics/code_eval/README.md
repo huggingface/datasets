@@ -30,7 +30,7 @@ pass_at_k, results = code_eval.compute(references=test_cases, predictions=candid
 ```
 
 N.B.
-Before running this metric, you will need to run the following commands:
+This metric exists to run untrusted model-generated code. Users are strongly encouraged not to do so outside of a robust security sandbox. Before running this metric and once you've taken the necessary precautions, you will need to set the `HF_ALLOW_CODE_EVAL` environment variable. Use it at your own risk:
 ```python
 import os
 os.environ["HF_ALLOW_CODE_EVAL"] = "1"` 
