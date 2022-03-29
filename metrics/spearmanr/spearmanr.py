@@ -86,8 +86,8 @@ class Spearmanr(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Value("int32"),
-                    "references": datasets.Value("int32"),
+                    "predictions": datasets.Value("float"),
+                    "references": datasets.Value("float"),
                 }
             ),
             reference_urls=["https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html"],
