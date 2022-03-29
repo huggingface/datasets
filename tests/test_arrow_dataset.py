@@ -23,6 +23,7 @@ from datasets.dataset_dict import DatasetDict
 from datasets.features import (
     Array2D,
     Array3D,
+    Audio,
     ClassLabel,
     Features,
     Image,
@@ -1311,18 +1312,27 @@ class BaseDatasetTest(TestCase):
                         Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
                     )
                     assert_arrow_metadata_are_synced_with_dataset_features(dset)
-                    with dset.map(lambda x: x, remove_columns=["id"]) as dset:
-                        self.assertTrue("id" not in dset[0])
+                    with dset.map(lambda x: x, remove_columns=["id"]) as mapped_dset:
+                        self.assertTrue("id" not in mapped_dset[0])
                         self.assertDictEqual(
-                            dset.features, Features({"filename": Value("string"), "name": Value("string")})
+                            mapped_dset.features, Features({"filename": Value("string"), "name": Value("string")})
                         )
-                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
-                        with dset.with_format("numpy", columns=dset.column_names) as dset:
-                            with dset.map(lambda x: {"name": 1}, remove_columns=dset.column_names) as dset:
-                                self.assertTrue("filename" not in dset[0])
-                                self.assertTrue("name" in dset[0])
-                                self.assertDictEqual(dset.features, Features({"name": Value(dtype="int64")}))
-                                assert_arrow_metadata_are_synced_with_dataset_features(dset)
+                        assert_arrow_metadata_are_synced_with_dataset_features(mapped_dset)
+                        with mapped_dset.with_format("numpy", columns=mapped_dset.column_names) as mapped_dset:
+                            with mapped_dset.map(
+                                lambda x: {"name": 1}, remove_columns=mapped_dset.column_names
+                            ) as mapped_dset:
+                                self.assertTrue("filename" not in mapped_dset[0])
+                                self.assertTrue("name" in mapped_dset[0])
+                                self.assertDictEqual(mapped_dset.features, Features({"name": Value(dtype="int64")}))
+                                assert_arrow_metadata_are_synced_with_dataset_features(mapped_dset)
+                    # empty dataset
+                    columns_names = dset.column_names
+                    with dset.select([]) as empty_dset:
+                        self.assertEqual(len(empty_dset), 0)
+                        with empty_dset.map(lambda x: {}, remove_columns=columns_names[0]) as mapped_dset:
+                            self.assertListEqual(columns_names[1:], mapped_dset.column_names)
+                            assert_arrow_metadata_are_synced_with_dataset_features(mapped_dset)
 
     def test_map_stateful_callable(self, in_memory):
         # be sure that the state of the map callable is unaffected
@@ -3207,18 +3217,16 @@ class TaskTemplatesTest(TestCase):
         # Include a dummy extra column `dummy` to test we drop it correctly
         features_before_cast = Features(
             {
-                "input_audio_file_path": Value("string"),
+                "input_audio": Audio(sampling_rate=16_000),
                 "input_transcription": Value("string"),
                 "dummy": Value("string"),
             }
         )
-        features_after_cast = Features({"audio_file_path": Value("string"), "transcription": Value("string")})
-        task = AutomaticSpeechRecognition(
-            audio_file_path_column="input_audio_file_path", transcription_column="input_transcription"
-        )
+        features_after_cast = Features({"audio": Audio(sampling_rate=16_000), "transcription": Value("string")})
+        task = AutomaticSpeechRecognition(audio_column="input_audio", transcription_column="input_transcription")
         info = DatasetInfo(features=features_before_cast, task_templates=task)
         data = {
-            "input_audio_file_path": ["path/to/some/audio/file.wav"],
+            "input_audio": [{"bytes": None, "path": "path/to/some/audio/file.wav"}],
             "input_transcription": ["hello, my name is bob!"],
             "dummy": ["123456"],
         }
@@ -3226,7 +3234,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task="automatic-speech-recognition") as dset:
                 self.assertSetEqual(
-                    {"audio_file_path", "transcription"},
+                    {"audio", "transcription"},
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
@@ -3235,7 +3243,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
                 self.assertSetEqual(
-                    {"audio_file_path", "transcription"},
+                    {"audio", "transcription"},
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)

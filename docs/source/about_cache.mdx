@@ -8,7 +8,7 @@ How does the cache keeps track of what transforms are applied to a dataset? Well
 
 <Tip>
 
-Transforms are any of the processing methods from the [How-to Process](./process) guides such as [`datasets.Dataset.map`] or [`datasets.Dataset.shuffle`].
+Transforms are any of the processing methods from the [How-to Process](./process) guides such as [`Dataset.map`] or [`Dataset.shuffle`].
 
 </Tip>
 
@@ -30,7 +30,7 @@ An example of when 🤗 Datasets recomputes everything is when caching is disabl
 
 <Tip>
 
-When caching is disabled, use [`datasets.Dataset.save_to_disk`] to save your transformed dataset or it will be deleted once the session ends.
+When caching is disabled, use [`Dataset.save_to_disk`] to save your transformed dataset or it will be deleted once the session ends.
 
 </Tip>
 
@@ -38,7 +38,7 @@ When caching is disabled, use [`datasets.Dataset.save_to_disk`] to save your tra
 
 The fingerprint of a dataset is updated by hashing the function passed to `map` as well as the `map` parameters (`batch_size`, `remove_columns`, etc.).
 
-You can check the hash of any Python object using the [`datasets.fingerprint.Hasher`]:
+You can check the hash of any Python object using the [`fingerprint.Hasher`]:
 
 ```py
 >>> from datasets.fingerprint import Hasher
