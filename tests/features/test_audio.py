@@ -64,6 +64,7 @@ def test_audio_feature_type_to_arrow():
         lambda audio_path: {"path": audio_path, "bytes": open(audio_path, "rb").read()},
         lambda audio_path: {"path": None, "bytes": open(audio_path, "rb").read()},
         lambda audio_path: {"bytes": open(audio_path, "rb").read()},
+        lambda audio_path: {"array": [0.1, 0.2, 0.3], "sampling_rate": 16_000},
     ],
 )
 def test_audio_feature_encode_example(shared_datadir, build_example):
