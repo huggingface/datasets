@@ -63,6 +63,52 @@ The `path` is useful if you want to load your own audio dataset. In this case, p
 >>> my_audio_dataset = my_audio_dataset.cast_column("paths_to_my_audio_files", Audio())
 ```
 
+## AudioFolder
+
+You can load your audio dataset with an `AudioFolder` dataset. Your dataset folder / archive should contain audio files and
+`transcripts.txt` file with transcriptions, for example like this:
+
+```
+audio/1889_1447_000071.flac
+audio/1889_1447_000096.flac
+audio/1889_1447_000063.flac
+audio/1889_1447_000097.flac
+...
+transcripts.txt
+```
+
+Transcripts file should contain audio id and corresponding text transcription, **separated by `"\t"`** at each line:
+```
+1889_1447_000071	staliśmy wszyscy bezradni wobec tej szalejącej furii złości która sama siebie trawiła i pożerała z ubolewaniem patrzyliśmy na smutny przebieg tego paroksyzmu i z pewną ulgą wróciliśmy do naszych zajęć gdy żałosny ten proces dobiegł swego naturalnego końca
+1889_1447_000096	nawet w obecności matki leżącej z zawiązaną głową na sofie nie mogły się powstrzymać robiły perskie oczko dawały sobie znaki mówiły niemym kolorowym alfabetem pełnym sekretnych znaczeń irytowało mnie to szydercze porozumienie ta migotliwa zmowa poza mymi plecami
+1889_1447_000063	staliśmy pod drzwiami i nasłuchiwali w lamentach wichru dawały się słyszeć wszelkie głosy perswazje nawoływania i gawędy zdawało się nam że słyszymy wołanie o pomoc ojca zbłąkanego w wichurze to znowu że brat z teodorem gwarzą beztrosko pod drzwiami
+1889_1447_000097	owego dnia był ciężki dzień zimowy i od rana już sypał się miękki puch zmierzchu matka miała migrenę i leżała na sofie samotnie w salonie
+...
+```
+
+Load a directory:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("audiofolder", data_dir="/path/to/audiofolder", sampling_rate=16_000)
+```
+
+Load a local `.zip` archive with the `data_files` parameter:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("audiofolder", data_files="/path/to/audioarchive.zip", sampling_rate=16_000)
+```
+
+Load remote datasets from their URLs with the `data_files` parameter:
+
+```py
+>>> dataset = load_dataset("audiofolder", data_files="https://huggingface.co/datasets/polinaeterna/test_audiofolder/resolve/main/MLSPolishSample.zip", sampling_rate=16_000)
+```
+
+Note that `sampling_rate` is a required argument. Only `.zip` archives are supported now.
+
+
 ## Resample
 
 Some models expect the audio data to have a certain sampling rate due to how the model was pretrained. For example, the [XLSR-Wav2Vec2](https://huggingface.co/facebook/wav2vec2-large-xlsr-53) model expects the input to have a sampling rate of 16kHz, but an audio file from the Common Voice dataset has a sampling rate of 48kHz. You can use [`Dataset.cast_column`] to downsample the sampling rate to 16kHz:
