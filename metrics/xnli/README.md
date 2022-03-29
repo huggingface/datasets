@@ -56,12 +56,12 @@ Minimal values:
 Partial match:
 
 ```python
-from datasets import load_metric
-xnli_metric = load_metric("xnli")
-predictions = [1, 0, 1]
-references = [1, 0, 0]
-results = xnli_metric.compute(predictions=predictions, references=references)
-print(results)
+>>> from datasets import load_metric
+>>> xnli_metric = load_metric("xnli")
+>>> predictions = [1, 0, 1]
+>>> references = [1, 0, 0]
+>>> results = xnli_metric.compute(predictions=predictions, references=references)
+>>> print(results)
 {'accuracy': 0.6666666666666666}
 ```
 
