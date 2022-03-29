@@ -95,7 +95,6 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                 audio_id, _ = os.path.splitext(audio_filename)
                 if audio_id in transcript:
                     yield file_idx, {
-                        "path": file,
                         "audio": downloaded_file_or_dir,
                         "text": transcript[audio_id],
                     }
@@ -113,7 +112,6 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                 _id, file_ext = os.path.splitext(filename)
                 if file_ext.lower() in self.AUDIO_EXTENSIONS:
                     yield file_idx, {
-                        "path": file,
                         "audio": file,
                         "text": transcript[_id],
                     }
