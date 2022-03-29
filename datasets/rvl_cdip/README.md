@@ -119,6 +119,11 @@ A sample from the training set is provided below :
 |----------|----:|----:|---------:|
 |# of examples|320000|40000|40000|
 
+The dataset was split in proportions similar to those of ImageNet.
+- 320000 images were used for training,
+- 40000 images for validation, and 
+- 40000 images for testing. 
+
 ## Dataset Creation
 
 ### Curation Rationale
