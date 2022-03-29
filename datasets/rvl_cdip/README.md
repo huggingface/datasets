@@ -135,7 +135,7 @@ The same as in the IIT-CDIP collection.
 
 #### Who are the source language producers?
 
-[More Information Needed]
+The same as in the IIT-CDIP collection.
 
 ### Annotations
 
