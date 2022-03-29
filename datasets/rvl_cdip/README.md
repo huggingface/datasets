@@ -174,7 +174,7 @@ The same as in the IIT-CDIP collection.
 
 ### Dataset Curators
 
-[Needs More Information]
+The dataset was curated by the authors - Adam W. Harley, Alex Ufkes, and Konstantinos G. Derpanis.
 
 ### Licensing Information
 
