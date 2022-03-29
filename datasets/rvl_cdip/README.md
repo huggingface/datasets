@@ -53,7 +53,7 @@ pretty_name: RVL-CDIP
 - **Homepage:** [The RVL-CDIP Dataset](https://www.cs.cmu.edu/~aharley/rvl-cdip/)
 - **Repository:** [Needs More Information]
 - **Paper:** [RVL-CDIP Paper](https://arxiv.org/abs/1502.07058)
-- **Leaderboard:** [Needs More Information]
+- **Leaderboard:** [Document Image Classification leaderboard](https://paperswithcode.com/dataset/rvl-cdip)
 - **Point of Contact:** [Adam W. Harley](http://cs.cmu.edu/~aharley/)
 
 ### Dataset Summary
