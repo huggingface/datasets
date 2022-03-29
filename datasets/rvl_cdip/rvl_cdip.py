@@ -15,8 +15,6 @@
 """RVL-CDIP (Ryerson Vision Lab Complex Document Information Processing) dataset"""
 
 
-import csv
-import json
 import os
 
 import datasets
@@ -72,7 +70,7 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
     """Ryerson Vision Lab Complex Document Information Processing dataset."""
 
     VERSION = datasets.Version("1.0.0")
-    
+
     @property
     def manual_download_instructions(self):
         return """
@@ -108,8 +106,8 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
         if not os.path.exists(local_data_path):
             raise FileNotFoundError(
                 f"{local_data_path} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('rvl_cdip', data_dir=...)`. Manual download instructions: {self.manual_download_instructions})"
-        )
-        
+            )
+
         images_dir = os.path.join(local_data_path, "images")
         return [
             datasets.SplitGenerator(
@@ -137,7 +135,6 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
                 },
             ),
         ]
-
 
     def _generate_examples(self, images_dir, filepath, split):
 
