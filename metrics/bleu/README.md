@@ -24,7 +24,7 @@ This metric takes as input lists of predicted sentences and reference sentences:
 ... ]
 >>> bleu = datasets.load_metric("bleu")
 >>> results = bleu.compute(predictions=predictions, references=references)
-... print(results)
+>>> print(results)
 {'bleu': 0.6370964381207871, 'precisions': [0.8333333333333334, 0.75, 1.0, 1.0], 'brevity_penalty': 0.7165313105737893, 'length_ratio': 0.75, 'translation_length': 6, 'reference_length': 8}
 ```
 
