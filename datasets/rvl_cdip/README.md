@@ -131,7 +131,7 @@ document images across 16 categories, useful for training new CNNs for document 
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+The same as in the IIT-CDIP collection.
 
 #### Who are the source language producers?
 
