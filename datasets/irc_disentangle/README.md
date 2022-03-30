@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
-- structure-prediction-other-conversation-disentanglement
+- token-classification-other-conversation-disentanglement
 paperswithcode_id: irc-disentanglement
 pretty_name: IRC Disentanglement
 ---

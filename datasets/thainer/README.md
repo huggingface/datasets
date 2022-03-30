@@ -16,7 +16,7 @@ size_categories:
 source_datasets:
 - extended|other-tirasaroj-aroonmanakun
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 - part-of-speech-tagging

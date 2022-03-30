@@ -15,11 +15,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
-- text-scoring
+- token-classification
+- text-classification
 task_ids:
+- text-scoring
 - sentiment-scoring
-- structure-prediction-other-pos-tagging
+- part-of-speech-tagging
 paperswithcode_id: null
 pretty_name: SentiWS
 ---

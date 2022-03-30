@@ -9,10 +9,12 @@ licenses:
 - cc-by-sa-3.0
 - gfdl-1.3-or-later
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 - other-text-search
 task_ids:
 - language-modeling
+- masked-language-modeling
 - other-neural-search
 source_datasets:
 - original

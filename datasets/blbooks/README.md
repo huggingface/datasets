@@ -20,10 +20,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 - other
 task_ids:
 - language-modeling
+- masked-language-modeling
 - other-other-digital-humanities-research
 ---
 

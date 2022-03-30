@@ -450,7 +450,7 @@ source_datasets:
 - extended|squad
 task_categories:
 - question-answering
-- structure-prediction
+- token-classification
 - text-classification
 - text-retrieval
 task_ids:

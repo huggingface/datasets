@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
-- structure-prediction-other-acronym-identification
+- token-classification-other-acronym-identification
 paperswithcode_id: acronym-identification
 pretty_name: Acronym Identification Dataset
 ---

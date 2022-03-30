@@ -23,9 +23,8 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- speech-processing
-task_ids:
 - automatic-speech-recognition
+task_ids: []
 ---
 
 # Dataset Card for MultiLingual LibriSpeech

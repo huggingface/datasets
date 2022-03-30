@@ -16,12 +16,12 @@ source_datasets:
 - extended|other-turkcorpus
 task_categories:
   ratings:
-  - text-scoring
+  - text-classification
   simplification:
-  - conditional-text-generation
+  - text2text-generation
 task_ids:
   ratings:
-  - text-scoring-other-simplification-evaluation
+  - text-classification-other-simplification-evaluation
   simplification:
   - text-simplification
 paperswithcode_id: asset
@@ -67,7 +67,7 @@ splitting in [HSplit](https://www.aclweb.org/anthology/D18-1081.pdf)), the simpl
 
 ### Supported Tasks and Leaderboards
 
-The dataset supports the evaluation of `test-simplification` systems. Success in this tasks is typically measured using the [SARI](https://huggingface.co/metrics/sari) and [FKBLEU](https://huggingface.co/metrics/fkbleu) metrics described in the paper [Optimizing Statistical Machine Translation for Text Simplification](https://www.aclweb.org/anthology/Q16-1029.pdf).
+The dataset supports the evaluation of `text-simplification` systems. Success in this tasks is typically measured using the [SARI](https://huggingface.co/metrics/sari) and [FKBLEU](https://huggingface.co/metrics/fkbleu) metrics described in the paper [Optimizing Statistical Machine Translation for Text Simplification](https://www.aclweb.org/anthology/Q16-1029.pdf).
 
 ### Languages
 

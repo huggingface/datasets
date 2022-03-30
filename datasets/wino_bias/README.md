@@ -14,7 +14,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - coreference-resolution
 paperswithcode_id: winobias
