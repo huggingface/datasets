@@ -1,9 +1,7 @@
 # Metric Card for ROUGE
 
 ## Metric Description
-ROUGE, or Recall-Oriented Understudy for Gisting Evaluation, is a set of metrics and a software package used for
-evaluating automatic summarization and machine translation software in natural language processing.
-The metrics compare an automatically produced summary or translation against a reference or a set of references (human-produced) summary or translation.
+ROUGE, or Recall-Oriented Understudy for Gisting Evaluation, is a set of metrics and a software package used for evaluating automatic summarization and machine translation software in natural language processing. The metrics compare an automatically produced summary or translation against a reference or a set of references (human-produced) summary or translation.
 
 Note that ROUGE is case insensitive, meaning that upper case letters are treated the same way as lower case letters.
 
@@ -41,28 +39,68 @@ AggregateScore(low=Score(precision=1.0, recall=1.0, fmeasure=1.0), mid=Score(pre
 - **use_stemmer** (`boolean`): If `True`, uses Porter stemmer to strip word suffixes. Defaults to `False`.
 
 ### Output Values
-The output is a dictionary with one entry for each rouge type in the input list `rouge_types`. If `use_aggregator=False`, each dictionary entry is a list of Score objects, with one score for each sentence. E.g. if `rouge_types=['rouge1', 'rouge2']` and `use_aggregator=False`, the output is:
+The output is a dictionary with one entry for each rouge type in the input list `rouge_types`. If `use_aggregator=False`, each dictionary entry is a list of Score objects, with one score for each sentence. Each Score object includes the `precision`, `recall`, and `fmeasure`. E.g. if `rouge_types=['rouge1', 'rouge2']` and `use_aggregator=False`, the output is:
 
 ```python
 {'rouge1': [Score(precision=1.0, recall=0.5, fmeasure=0.6666666666666666), Score(precision=1.0, recall=1.0, fmeasure=1.0)], 'rouge2': [Score(precision=0.0, recall=0.0, fmeasure=0.0), Score(precision=1.0, recall=1.0, fmeasure=1.0)]}
 ```
 
-If `rouge_types=['rouge1', 'rouge2']` and `use_aggregator=True`, the output is:
+If `rouge_types=['rouge1', 'rouge2']` and `use_aggregator=True`, the output is of the following format:
 ```python
 {'rouge1': AggregateScore(low=Score(precision=1.0, recall=1.0, fmeasure=1.0), mid=Score(precision=1.0, recall=1.0, fmeasure=1.0), high=Score(precision=1.0, recall=1.0, fmeasure=1.0)), 'rouge2': AggregateScore(low=Score(precision=1.0, recall=1.0, fmeasure=1.0), mid=Score(precision=1.0, recall=1.0, fmeasure=1.0), high=Score(precision=1.0, recall=1.0, fmeasure=1.0))}
 ```
 
+The `precision`, `recall`, and `fmeasure` values all have a range of 0 to 1.
 
-*State the possible values that the metric's output can take, as well as what is considered a good score.*
 
 #### Values from Popular Papers
 *Give examples, preferrably with links, to papers that have reported this metric, along with the values they have reported.*
 
 ### Examples
-*Give code examples of the metric being used. Try to include examples that clear up any potential ambiguity left from the metric description above.*
+An example without aggregation:
+```python
+>>> rouge = datasets.load_metric('rouge')
+>>> predictions = ["hello goodbye", "ankh morpork"]
+>>> references = ["goodbye", "general kenobi"]
+>>> results = rouge.compute(predictions=predictions,
+...                         references=references)
+>>> print(list(results.keys()))
+['rouge1', 'rouge2', 'rougeL', 'rougeLsum']
+>>> print(results["rouge1"])
+[Score(precision=0.5, recall=0.5, fmeasure=0.5), Score(precision=0.0, recall=0.0, fmeasure=0.0)]
+```
+
+The same example, but with aggregation:
+```python
+>>> rouge = datasets.load_metric('rouge')
+>>> predictions = ["hello goodbye", "ankh morpork"]
+>>> references = ["goodbye", "general kenobi"]
+>>> results = rouge.compute(predictions=predictions,
+...                         references=references,
+...                         use_aggregator=True)
+>>> print(list(results.keys()))
+['rouge1', 'rouge2', 'rougeL', 'rougeLsum']
+>>> print(results["rouge1"])
+AggregateScore(low=Score(precision=0.0, recall=0.0, fmeasure=0.0), mid=Score(precision=0.25, recall=0.25, fmeasure=0.25), high=Score(precision=0.5, recall=0.5, fmeasure=0.5))
+```
+
+The same example, but only calculating `rouge_1`:
+```python
+>>> rouge = datasets.load_metric('rouge')
+>>> predictions = ["hello goodbye", "ankh morpork"]
+>>> references = ["goodbye", "general kenobi"]
+>>> results = rouge.compute(predictions=predictions,
+...                         references=references,
+...                         rouge_types=['rouge_1'],
+...                         use_aggregator=True)
+>>> print(list(results.keys()))
+['rouge1']
+>>> print(results["rouge1"])
+AggregateScore(low=Score(precision=0.0, recall=0.0, fmeasure=0.0), mid=Score(precision=0.25, recall=0.25, fmeasure=0.25), high=Score(precision=0.5, recall=0.5, fmeasure=0.5))
+```
 
 ## Limitations and Bias
-*Note any limitations or biases that the metric has.*
+See [Schluter (2017)](https://aclanthology.org/E17-2007/) for an in-depth discussion of many of ROUGE's limits.
 
 ## Citation
 ```bibtex
