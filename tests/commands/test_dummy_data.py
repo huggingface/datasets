@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from packaging import version
 
 from datasets import config
-from datasets.commands.dummy_data import DummyDataCommand, DummyDataGeneratorDownloadManager
+from datasets.commands.dummy_data import DummyDataCommand
 
 
 if config.PY_VERSION >= version.parse("3.7"):
