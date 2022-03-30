@@ -23,7 +23,6 @@ from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
     CachedDatasetModuleFactory,
     CachedMetricModuleFactory,
-    GithubDatasetModuleFactory,
     GithubMetricModuleFactory,
     HubDatasetModuleFactoryWithoutScript,
     HubDatasetModuleFactoryWithScript,
@@ -183,9 +182,9 @@ class ModuleFactoryTest(TestCase):
             hf_modules_cache=self.hf_modules_cache,
         )
 
-    def test_GithubDatasetModuleFactory(self):
+    def test_HubDatasetModuleFactoryWithScript_with_github_dataset(self):
         # "wmt_t2t" has additional imports (internal)
-        factory = GithubDatasetModuleFactory(
+        factory = HubDatasetModuleFactoryWithScript(
             "wmt_t2t", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
         )
         module_factory_result = factory.get_module()
