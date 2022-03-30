@@ -1,6 +1,5 @@
 import importlib
 import os
-import re
 import shutil
 import tempfile
 import time
@@ -13,7 +12,7 @@ import pytest
 import requests
 
 import datasets
-from datasets import SCRIPTS_VERSION, config, load_dataset, load_from_disk
+from datasets import config, load_dataset, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.builder import DatasetBuilder
 from datasets.data_files import DataFilesDict
@@ -32,7 +31,7 @@ from datasets.load import (
     PackagedDatasetModuleFactory,
     infer_module_for_data_files_in_archives,
 )
-from datasets.utils.file_utils import DownloadConfig, is_remote_url
+from datasets.utils.file_utils import DownloadConfig
 
 from .utils import (
     OfflineSimulationMode,
@@ -409,7 +408,7 @@ class LoadTest(TestCase):
                     datasets.load_dataset("_dummy")
                 if offline_simulation_mode != OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1:
                     self.assertIn(
-                        f"Couldn't reach '_dummy' on the Hub",
+                        "Couldn't reach '_dummy' on the Hub",
                         str(context.exception),
                     )
 
