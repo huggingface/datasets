@@ -87,7 +87,7 @@ def test_text_linebreaks(text_file, keep_linebreaks):
 @pytest.mark.parametrize("drop_labels", [True, False])
 def test_imagefolder_drop_labels(image_file, drop_labels):
     imagefolder = ImageFolder(drop_labels=drop_labels)
-    generator = imagefolder._generate_examples([(image_file, image_file)])
+    generator = imagefolder._generate_examples([(image_file, image_file)], None)
     if not drop_labels:
         assert all(example.keys() == {"image", "label"} for _, example in generator)
     else:
