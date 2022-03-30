@@ -55,7 +55,7 @@
     "multiple-choice": {
         "type": "text",
         "subtasks": [
-            "multiple-choice-question-answering",
+            "multiple-choice-qa",
             "multiple-choice-coreference-resolution"
         ]
     },
@@ -200,6 +200,9 @@
         "type": "multimodal"
     },
     "reinforcement-learning": {
+        "type": "other"
+    },
+    "other": {
         "type": "other"
     }
 }
