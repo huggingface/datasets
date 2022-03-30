@@ -323,7 +323,7 @@ class DatasetMetadata:
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = [tid for _cat, d in known_task_ids.items() for tid in d.get("subtasks", [])]
         validated, error = tagset_validator(
-            task_ids, known_set, "task_ids", known_task_ids_url, lambda e: not e or "-other-" in e or e.startswith("other-")
+            task_ids, known_set, "task_ids", known_task_ids_url, lambda e: "-other-" in e or e.startswith("other-")
         )
         return validated, error
 
