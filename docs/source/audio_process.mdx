@@ -66,7 +66,7 @@ The `path` is useful if you want to load your own audio dataset. In this case, p
 ## AudioFolder
 
 You can load your audio dataset with an `AudioFolder` dataset. Your dataset folder / archive should contain audio files and
-`transcripts.txt` file with transcriptions, for example like this:
+file with transcriptions (default filename is `transcripts.txt`), for example like this:
 
 ```
 audio/1889_1447_000071.flac
@@ -77,7 +77,7 @@ audio/1889_1447_000097.flac
 transcripts.txt
 ```
 
-Transcripts file should contain audio id and corresponding text transcription, **separated by `"\t"`** at each line:
+Transcripts file should contain audio id and corresponding text transcription, separated by `"\t"` at each line:
 ```
 1889_1447_000071	staliśmy wszyscy bezradni wobec tej szalejącej furii złości która sama siebie trawiła i pożerała z ubolewaniem patrzyliśmy na smutny przebieg tego paroksyzmu i z pewną ulgą wróciliśmy do naszych zajęć gdy żałosny ten proces dobiegł swego naturalnego końca
 1889_1447_000096	nawet w obecności matki leżącej z zawiązaną głową na sofie nie mogły się powstrzymać robiły perskie oczko dawały sobie znaki mówiły niemym kolorowym alfabetem pełnym sekretnych znaczeń irytowało mnie to szydercze porozumienie ta migotliwa zmowa poza mymi plecami
@@ -106,7 +106,8 @@ Load remote datasets from their URLs with the `data_files` parameter:
 >>> dataset = load_dataset("audiofolder", data_files="https://huggingface.co/datasets/polinaeterna/test_audiofolder/resolve/main/MLSPolishSample.zip", sampling_rate=16_000)
 ```
 
-Note that `sampling_rate` is a required argument. Only `.zip` archives are supported now.
+Note that `sampling_rate` is a required argument.
+Only `.zip` archives are supported now.
 
 
 ## Resample
