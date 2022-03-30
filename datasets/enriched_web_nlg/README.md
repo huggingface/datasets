@@ -17,7 +17,7 @@ size_categories:
 source_datasets:
 - extended|other-web-nlg
 task_categories:
-- structured-to-text
+- tabular-to-text
 task_ids:
 - rdf-to-text
 paperswithcode_id: null

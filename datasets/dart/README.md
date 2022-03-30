@@ -19,7 +19,7 @@ source_datasets:
 - extended|web_nlg
 - extended|cleaned_e2e
 task_categories:
-- structured-to-text
+- tabular-to-text
 task_ids:
 - rdf-to-text
 paperswithcode_id: dart

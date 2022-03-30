@@ -32,7 +32,7 @@ source_datasets:
 - extended|other-db_pedia
 - original
 task_categories:
-- structured-to-text
+- tabular-to-text
 task_ids:
 - rdf-to-text
 paperswithcode_id: webnlg

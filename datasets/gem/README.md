@@ -219,7 +219,7 @@ task_categories:
   cs_restaurants:
   - text2text-generation
   dart:
-  - structured-to-text
+  - tabular-to-text
   e2e_nlg:
   - text2text-generation
   mlsum_de:
@@ -232,9 +232,9 @@ task_categories:
   totto:
   - text2text-generation
   web_nlg_en:
-  - structured-to-text
+  - tabular-to-text
   web_nlg_ru:
-  - structured-to-text
+  - tabular-to-text
   wiki_auto_asset_turk:
   - text2text-generation
   wiki_lingua_es_en:
