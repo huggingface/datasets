@@ -45,9 +45,9 @@ Returns:
 Examples:
 
     >>> spearmanr_metric = datasets.load_metric("spearmanr")
-    >>> results = spearmanr_metric.compute(references=[0, 1, 1], predictions=[0, 1, 1])
+    >>> results = spearmanr_metric.compute(references=[1, 2, 3, 4, 5], predictions=[10, 9, 2.5, 6, 4])
     >>> print(results)
-    {'spearmanr': 1.0}
+    {'spearmanr': -0.7}
 """
 
 _CITATION = r"""\
@@ -86,8 +86,8 @@ class Spearmanr(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Value("int32"),
-                    "references": datasets.Value("int32"),
+                    "predictions": datasets.Value("float"),
+                    "references": datasets.Value("float"),
                 }
             ),
             reference_urls=["https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html"],

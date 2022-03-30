@@ -27,7 +27,7 @@ The metric takes two inputs: references (a list of references for each speech in
 
 ```python
 from datasets import load_metric
-wer = load_metric("cer")
+cer = load_metric("cer")
 cer_score = cer.compute(predictions=predictions, references=references)
 ```
 ## Output values

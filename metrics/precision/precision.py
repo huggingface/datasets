@@ -52,8 +52,12 @@ Args:
             samples: Calculate metrics for each instance, and find their average
                 (only meaningful for multilabel classification).
     sample_weight: Sample weights.
+    zero_division ("warn", 0 or 1, default="warn"): Sets the value to return when there is a zero division.
+        If set to "warn", this acts as 0, but warnings are also raised.
+
 Returns:
     precision: Precision score.
+
 Examples:
 
     >>> precision_metric = datasets.load_metric("precision")
@@ -113,8 +117,23 @@ class Precision(datasets.Metric):
             reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_score.html"],
         )
 
-    def _compute(self, predictions, references, labels=None, pos_label=1, average="binary", sample_weight=None):
+    def _compute(
+        self,
+        predictions,
+        references,
+        labels=None,
+        pos_label=1,
+        average="binary",
+        sample_weight=None,
+        zero_division="warn",
+    ):
         score = precision_score(
-            references, predictions, labels=labels, pos_label=pos_label, average=average, sample_weight=sample_weight
+            references,
+            predictions,
+            labels=labels,
+            pos_label=pos_label,
+            average=average,
+            sample_weight=sample_weight,
+            zero_division=zero_division,
         )
         return {"precision": float(score) if score.size == 1 else score}

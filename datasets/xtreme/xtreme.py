@@ -659,22 +659,20 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             ]
         if self.config.name.startswith("bucc18"):
             lang = self.config.name.split(".")[1]
-            bucc18_dl_test_dir = dl_manager.download_and_extract(
+            bucc18_dl_test_archive = dl_manager.download(
                 self.config.data_url + f"bucc2018-{lang}-en.training-gold.tar.bz2"
             )
-            bucc18_dl_dev_dir = dl_manager.download_and_extract(
+            bucc18_dl_dev_archive = dl_manager.download(
                 self.config.data_url + f"bucc2018-{lang}-en.sample-gold.tar.bz2"
             )
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": os.path.join(bucc18_dl_dev_dir, "bucc2018", lang + "-en")},
+                    gen_kwargs={"filepath": dl_manager.iter_archive(bucc18_dl_dev_archive)},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": os.path.join(bucc18_dl_test_dir, "bucc2018", lang + "-en")},
+                    gen_kwargs={"filepath": dl_manager.iter_archive(bucc18_dl_test_archive)},
                 ),
             ]
         if self.config.name.startswith("udpos"):
@@ -886,26 +884,17 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                                 },
                             }
         if self.config.name.startswith("bucc18"):
-            files = sorted(os.listdir(filepath))
-            target_file = "/"
-            source_file = "/"
-            source_target_file = "/"
-            for file in files:
-                if file.endswith("en"):
-                    target_file = os.path.join(filepath, file)
-                elif file.endswith("gold"):
-                    source_target_file = os.path.join(filepath, file)
-                else:
-                    source_file = os.path.join(filepath, file)
-            with open(target_file, encoding="utf-8") as f:
-                data = csv.reader(f, delimiter="\t")
-                target_sentences = [row for row in data]
-            with open(source_file, encoding="utf-8") as f:
-                data = csv.reader(f, delimiter="\t")
-                source_sentences = [row for row in data]
-            with open(source_target_file, encoding="utf-8") as f:
-                data = csv.reader(f, delimiter="\t")
-                source_target_ids = [row for row in data]
+            lang = self.config.name.split(".")[1]
+            data_dir = f"bucc2018/{lang}-en"
+            for path, file in filepath:
+                if path.startswith(data_dir):
+                    csv_content = [line.decode("utf-8") for line in file]
+                    if path.endswith("en"):
+                        target_sentences = list(csv.reader(csv_content, delimiter="\t"))
+                    elif path.endswith("gold"):
+                        source_target_ids = list(csv.reader(csv_content, delimiter="\t"))
+                    else:
+                        source_sentences = list(csv.reader(csv_content, delimiter="\t"))
             for id_, pair in enumerate(source_target_ids):
                 source_id = pair[0]
                 target_id = pair[1]
