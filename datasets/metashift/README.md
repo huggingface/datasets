@@ -59,7 +59,7 @@ paperswithcode_id: metashift
 
 The MetaShift dataset is a collection of 12,868 sets of natural images across 410 classes. It was created for understanding the performance of a machine learning model across diverse data distributions.
 
-The authors leverage the natural heterogeneity of Visual Genome and  its annotations used to construct MetaShift.
+The authors leverage the natural heterogeneity of Visual Genome and its annotations to construct MetaShift.
 The key idea is to cluster images using its metadata which provides context for each image.
 For example : cats with cars or cats in bathroom.
 The main advantage is the dataset contains many more coherent sets of data compared to other benchmarks.
