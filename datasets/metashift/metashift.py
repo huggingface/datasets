@@ -123,14 +123,17 @@ class MetashiftConfig(datasets.BuilderConfig):
         """BuilderConfig for MetaShift.
 
         Args:
-        selected_classes: `list[string]`, list of the classes needed to generate subsets.
-        attributes_dataset: `bool`, default=False, to generate the MetaShift-Attributes dataset, set as True
-        attributes: `list[string]`, list of attributes classes needed to generate the Attributes dataset.
-        with_image_metadata: `bool`, default=False, to include image metadata, set as True
-        image_subset_size_threshold: `int`, default=25, The number of images required to consider a subset.
-        If the number of images are less than image_subset_size_threshold, then the subset is not considered.
-        min_local_groups: `int`, default=5, The minimum number of local groups required to consider an object class.
-        **kwargs: keyword arguments forwarded to super.
+            selected_classes: `list[string]`, optional, list of the classes to generate the MetaShift dataset for.
+                If `None`, the list is equal to `['cat', 'dog', 'bus', 'truck', 'elephant', 'horse']`.
+            attributes_dataset: `bool`, default `False`, if `True`, the script generates the MetaShift-Attributes dataset.
+            attributes: `list[string]`, optional, list of attributes classes included in the Attributes dataset.
+                If `None` and `attributes_dataset` is `True`, it's equal to `["cat(orange)", "cat(white)", "dog(sitting)", "dog(jumping)"]`.
+            with_image_metadata: `bool`, default `False`, whether to include image metadata.
+                If set to `True`, this will give additional metadata about each image.
+            image_subset_size_threshold: `int`, default `25`, the number of images required to be considered a subset.
+                If the number of images is less than this threshold, the subset is ignored.
+            min_local_groups: `int`, default `5`, the minimum number of local groups required to be considered an object class.
+            **kwargs: keyword arguments forwarded to super.
         """
         super(MetashiftConfig, self).__init__(**kwargs)
         self.selected_classes = _CLASSES if selected_classes is None else selected_classes
