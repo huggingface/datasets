@@ -580,7 +580,9 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
     ):
         self.name = name
         self.revision = revision
-        self.download_config = download_config or DownloadConfig()
+        self.download_config = download_config.copy() or DownloadConfig()
+        if self.download_config.max_retries < 3:
+            self.download_config.max_retries = 3
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
         assert self.name.count("/") == 0

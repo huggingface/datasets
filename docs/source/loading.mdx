@@ -383,7 +383,7 @@ See the [Metrics](./how_to_metrics#custom-metric-loading-script) guide for more 
 
 ### Load configurations
 
-It is possible for a metric to have different configurations. The configurations are stored in the ['datasets.Metric.config_name'] attribute. When you load a metric, provide the configuration name as shown in the following:
+It is possible for a metric to have different configurations. The configurations are stored in the `config_name` parameter in [`MetricInfo`] attribute. When you load a metric, provide the configuration name as shown in the following:
 
 ```
 >>> from datasets import load_metric
