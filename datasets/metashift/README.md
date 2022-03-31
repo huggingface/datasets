@@ -73,7 +73,7 @@ Two important benefits of MetaShift :
 The dataset has the following configuration parameters:
 - selected_classes: `list[string]`, optional, list of the classes to generate the MetaShift dataset for. If `None`, the list is equal to `['cat', 'dog', 'bus', 'truck', 'elephant', 'horse']`.
 - attributes_dataset: `bool`, default `False`, if `True`, the script generates the MetaShift-Attributes dataset. Refer [MetaShift-Attributes Dataset](https://github.com/Weixin-Liang/MetaShift#bonus-generate-the-metashift-attributes-dataset-subsets-defined-by-subject-attributes) for more information.
-- attributes: `list[string]`, list of attributes classes needed to generate the Attributes dataset. You can find the full attribute ontology in the above link.
+- attributes: `list[string]`, optional, list of attributes classes included in the Attributes dataset. If `None` and `attributes_dataset` is `True`, it's equal to `["cat(orange)", "cat(white)", "dog(sitting)", "dog(jumping)"]`. You can find the full attribute ontology in the above link. 
 - with_image_metadata: `bool`, default `False`, whether to include image metadata. If set to `True`, this will give additional metadata about each image. See [Scene Graph](https://cs.stanford.edu/people/dorarad/gqa/download.html) for more information.
 - image_subset_size_threshold: `int`, default `25`, the number of images required to be considered a subset. If the number of images is less than this threshold, the subset is ignored.
 - min_local_groups: `int`, default `5`, the minimum number of local groups required to be considered an object class.
