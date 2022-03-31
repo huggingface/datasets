@@ -66,7 +66,7 @@ Minimal values:
 >>> predictions = ["It is a guide to action which ensures that the military always obeys the commands of the party"]
 >>> references = ["Hello world"]
 >>> results = meteor.compute(predictions=predictions, references=references)
->>> print(round(results['meteor'],2))
+>>> print(round(results['meteor'], 2))
 0.0
 ```
 
