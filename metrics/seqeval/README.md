@@ -135,5 +135,5 @@ For more information about IOB formats, refer to the [Wikipedia page](https://en
 ```
     
 ## Further References 
-- [README for seqeval](https://github.com/chakki-works/seqeval)
+- [README for seqeval at GitHub](https://github.com/chakki-works/seqeval)
 - [CoNLL-2000 shared task](https://www.clips.uantwerpen.be/conll2002/ner/bin/conlleval.txt)
