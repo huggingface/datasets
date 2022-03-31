@@ -568,11 +568,9 @@ def _check_column_names(column_names: List[str]):
         raise ValueError(f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated.")
 
 
-def _check_valid_indices_value(value, size):
-    if (value < 0 and value + size < 0) or (value >= size):
-        raise IndexError(
-            f"Invalid value {value} in indices iterable. All values must be within range [-{size}, {size - 1}]."
-        )
+def _check_valid_indices_value(index, size):
+    if (index < 0 and index + size < 0) or (index >= size):
+        raise IndexError(f"Index {index} out of range for dataset of size {size}.")
 
 
 def _check_if_features_can_be_aligned(features_list: List[Features]):
