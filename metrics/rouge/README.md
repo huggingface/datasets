@@ -54,7 +54,7 @@ The `precision`, `recall`, and `fmeasure` values all have a range of 0 to 1.
 
 
 #### Values from Popular Papers
-*Give examples, preferrably with links, to papers that have reported this metric, along with the values they have reported.*
+
 
 ### Examples
 An example without aggregation:
