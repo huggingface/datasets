@@ -1,3 +1,6 @@
+# WARNING: Please, do not use the code in this script as a template to create another script:
+# - It is a bad practice to use `datasets.load_dataset` inside a loading script. Please, avoid doing it.
+
 import json
 import math
 
@@ -185,7 +188,7 @@ class WikiSnippets(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-
+        # WARNING: It is a bad practice to use `datasets.load_dataset` inside a loading script. Please, avoid doing it.
         wikipedia = datasets.load_dataset(
             path=self.config.wikipedia_name,
             name=self.config.wikipedia_version_name,
