@@ -25,7 +25,7 @@
 
 """
 
-import fixed_perplexity
+# import fixed_perplexity
 
 # import perplexity
 import datasets
@@ -59,7 +59,7 @@ def main():
     input_texts = ["lorem ipsum", "Happy Birthday!", "Bienvenue"]
     # input_texts = test_dataset
     # print(input_texts)
-    results = perplexity.compute(input_texts=input_texts, model_id="gpt2", device="gpu", stride=1)  # ,
+    results = perplexity.compute(input_texts=input_texts, model_id="gpt2", device="gpu", add_start_token=True)  # ,
     # device='gpu') #2)
 
     # results_w_mask = perplexity_w_mask.compute(input_texts=input_texts,
