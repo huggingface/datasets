@@ -76,7 +76,7 @@ The dataset has the following configuration parameters:
 - attributes: `list[string]`, list of attributes classes needed to generate the Attributes dataset. You can find the full attribute ontology in the above link.
 - with_image_metadata: `bool`, default `False`, whether to include image metadata. If set to `True`, this will give additional metadata about each image. See [Scene Graph](https://cs.stanford.edu/people/dorarad/gqa/download.html) for more information.
 - image_subset_size_threshold: `int`, default=25, The number of images required to consider a subset. If the number of images are less than image_subset_size_threshold, then the subset is not considered.
-- min_local_groups: `int`, default=5, The minimum number of local groups required to consider an object class.
+- min_local_groups: `int`, default `5`, the minimum number of local groups required to be considered an object class.
 
 Consider the following examples to get an idea of how you can use the configuration parameters :
 
