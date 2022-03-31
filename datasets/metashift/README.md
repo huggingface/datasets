@@ -93,7 +93,7 @@ The default classes are `['cat', 'dog', 'bus', 'truck', 'elephant', 'horse']`
 load_dataset("metashift", attributes_dataset = True, attributes=["dog(smiling)", "cat(resting)"])
 ```
 
-The default attributes are _ATTRIBUTES = ["cat(orange)", "cat(white)","dog(sitting)","dog(jumping)"]
+The default attributes are `["cat(orange)", "cat(white)", "dog(sitting)", "dog(jumping)"]`
 
 3. To generate the dataset with additional image metadata information :
 ```python
