@@ -20,6 +20,7 @@ task_categories:
 task_ids:
 - multi-label-image-classification
 - other-other-domain-generalization
+paperswithcode_id: metashift
 ---
 
 # Dataset Card for MetaShift
