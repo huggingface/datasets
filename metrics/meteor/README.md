@@ -33,8 +33,6 @@ Refer to the [METEOR paper](https://aclanthology.org/W05-0909.pdf) for more info
 >>> results = meteor.compute(predictions=predictions, references=references)
 ```
 
-You will need [NLTK](https://www.nltk.org/) version >=3.6.5 for METEOR score to work.
-
 ## Output values
 
 The metric outputs a dictionary containing the METEOR score. Its values range from 0 to 1. 
