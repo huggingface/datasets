@@ -54,7 +54,7 @@ Maximal values :
 >>> predictions = ["It is a guide to action which ensures that the military always obeys the commands of the party"]
 >>> references = ["It is a guide to action which ensures that the military always obeys the commands of the party"]
 >>> results = meteor.compute(predictions=predictions, references=references)
->>> print(round(results['meteor'],2))
+>>> print(round(results['meteor'], 2))
 1.0
 ```
 
