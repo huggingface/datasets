@@ -43,7 +43,8 @@ _LICENSE = "https://www.industrydocuments.ucsf.edu/help/copyright/"
 
 
 _URLS = {
-    "rvl-cdip": "https://docs.google.com/uc?id=0Bz1dfcnrpXM-MUt4cHNzUEFXcmc&export=download",
+    "rvl-cdip": "https://drive.google.com/uc?export=download&id=0Bz1dfcnrpXM-MUt4cHNzUEFXcmc",
+    "labels" : "https://huggingface.co/datasets/mariosasko/rvl_cdip/resolve/main/labels_only.tar.gz"
 }
 
 _CLASSES = [
@@ -65,26 +66,13 @@ _CLASSES = [
     "memo",
 ]
 
+_IMAGES_DIR = 'images/'
 
 class RvlCdip(datasets.GeneratorBasedBuilder):
     """Ryerson Vision Lab Complex Document Information Processing dataset."""
 
     VERSION = datasets.Version("1.0.0")
-
-    @property
-    def manual_download_instructions(self):
-        return """
-        You need to
-        1. Manually download `rvl-cdip.tar.gz` from https://docs.google.com/uc?id=0Bz1dfcnrpXM-MUt4cHNzUEFXcmc&export=download
-        2. Extract the `rvl-cdip.tar.gz` at a folder <path/to/folder>.
-        The <path/to/folder> can e.g. be `~/RVL-CDIP_Dataset`.
-        After extracting the files, the structure of the <path/to/folder> would be as follows :
-        <path/to/folder> :
-            - images
-            - labels
-        RVL-CDIP can then be loaded using the following command `datasets.load_dataset("rvl_cdip", data_dir="<path/to/folder>")`.
-        """
-
+    
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -102,41 +90,49 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        local_data_path = dl_manager.manual_dir
-        if not os.path.exists(local_data_path):
-            raise FileNotFoundError(
-                f"{local_data_path} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('rvl_cdip', data_dir=...)`. Manual download instructions: {self.manual_download_instructions})"
-            )
+        archive_path = dl_manager.download(_URLS["rvl-cdip"])
+        labels_path = dl_manager.download_and_extract(_URLS["labels"])
 
-        images_dir = os.path.join(local_data_path, "images")
+        # (Optional) In non-streaming mode, we can extract the archive locally to have actual local image files:
+        local_extracted_archive = dl_manager.extract(archive_path) if not dl_manager.is_streaming else None
+        
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "images_dir": images_dir,
-                    "filepath": os.path.join(local_data_path, "labels", "train.txt"),
+                    "local_extracted_archive": local_extracted_archive,
+                    "archive_iterator": dl_manager.iter_archive(
+                        archive_path
+                    ),
+                    "labels_filepath": os.path.join(labels_path, "labels", "train.txt"),
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "images_dir": images_dir,
-                    "filepath": os.path.join(local_data_path, "labels", "test.txt"),
+                    "local_extracted_archive": local_extracted_archive,
+                    "archive_iterator": dl_manager.iter_archive(
+                        archive_path
+                    ),
+                    "labels_filepath": os.path.join(labels_path, "labels", "test.txt"),
                     "split": "test",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "images_dir": images_dir,
-                    "filepath": os.path.join(local_data_path, "labels", "val.txt"),
+                    "local_extracted_archive": local_extracted_archive,
+                    "archive_iterator": dl_manager.iter_archive(
+                        archive_path
+                    ),
+                    "labels_filepath": os.path.join(labels_path, "labels", "val.txt"),
                     "split": "dev",
                 },
             ),
         ]
 
-    def _generate_examples(self, images_dir, filepath, split):
+    def _generate_examples(self, local_extracted_archive, archive_iterator, labels_filepath, split):
 
         with open(filepath, encoding="utf-8") as f:
             data = f.read().splitlines()
