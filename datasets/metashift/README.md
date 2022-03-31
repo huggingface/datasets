@@ -86,7 +86,7 @@ load_dataset("metashift", selected_classes=['cat', 'dog', 'bus'])
 ```
 The full object vocabulary and its hierarchy can be seen [here](https://github.com/Weixin-Liang/MetaShift/blob/main/dataset/meta_data/class_hierarchy.json).
 
-The default classes are _CLASSES = [ 'cat', 'dog', 'bus', 'truck', 'elephant', 'horse',]
+The default classes are `['cat', 'dog', 'bus', 'truck', 'elephant', 'horse']`
 
 2. To generate the MetaShift-Attributes Dataset (subsets defined by subject attributes) :
 ```python
