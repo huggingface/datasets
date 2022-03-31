@@ -25,7 +25,7 @@ It can also take several optional arguments:
 
 `sample_weight`: An array-like of shape (n_samples,) that provides weights for individual samples. The default is `None`. 
 
-`zero_division`: Which value to substitute as a metric value when encountering zero division. Should be on of [`0`,`1`,`"warn"`]. `"warn"` acts as `0`, but the warning is raised.
+`zero_division`: Which value to substitute as a metric value when encountering zero division. Should be one of [`0`,`1`,`"warn"`]. `"warn"` acts as `0`, but the warning is raised.
 
 
 ```python
