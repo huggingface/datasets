@@ -60,7 +60,7 @@ Per type (`MISC` and `PER`):
 
 
 ### Values from popular papers
-The 1995 "Text Chunking using Transformation-Based Learning" [paper](https://aclanthology.org/W95-0107.pdf) reported a baseline recall of 81.9% and a precision of 78.2% using non Deep Learning-based methods. 
+The 1995 "Text Chunking using Transformation-Based Learning" [paper](https://aclanthology.org/W95-0107) reported a baseline recall of 81.9% and a precision of 78.2% using non Deep Learning-based methods. 
 
 More recently, seqeval continues being used for reporting performance on tasks such as [named entity detection](https://www.mdpi.com/2306-5729/6/8/84/htm) and [information extraction](https://ieeexplore.ieee.org/abstract/document/9697942/).
 
