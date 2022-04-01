@@ -50,7 +50,7 @@ Overall:
 
 `f1`: the average [F1 score](https://huggingface.co/metrics/f1), which is the harmonic mean of the precision and recall. It also has a scale of 0.0 to 1.0.
 
-Per type (`MISC` and `PER`):
+Per type (e.g. `MISC`, `PER`, `LOC`,...):
 
 `precision`: the average [precision](https://huggingface.co/metrics/precision), on a scale between 0.0 and 1.0.
 
