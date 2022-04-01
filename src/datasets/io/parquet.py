@@ -99,4 +99,5 @@ class ParquetDatasetWriter:
             )
             writer.write_table(batch)
             written += batch.nbytes
+        writer.close()
         return written
