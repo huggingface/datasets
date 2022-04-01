@@ -73,22 +73,22 @@ _KWARGS_DESCRIPTION = """
 Produces ChrF(++) scores for hypotheses given reference translations.
 
 Args:
-    predictions: The system stream (a sequence of segments).
-    references: A list of one or more reference streams (each a sequence of segments).
-    char_order: Character n-gram order.
-    word_order: Word n-gram order. If equals to 2, the metric is referred to as chrF++.
-    beta: Determine the importance of recall w.r.t precision.
-    lowercase: Enable case-insensitivity.
-    whitespace: If `True`, include whitespaces when extracting character n-grams.
-    eps_smoothing: If `True`, applies epsilon smoothing similar
-    to reference chrF++.py, NLTK and Moses implementations. Otherwise,
-    it takes into account effective match order similar to sacreBLEU < 2.0.0.
+    predictions (list of str): The predicted sentences.
+    references (list of list of str): The references. There should be one reference sub-list for each prediction sentence.
+    char_order (int): Character n-gram order. Defaults to `6`.
+    word_order (int): Word n-gram order. If equals to `2`, the metric is referred to as chrF++. Defaults to `0`.
+    beta (int): Determine the importance of recall w.r.t precision. Defaults to `2`.
+    lowercase (bool): if `True`, enables case-insensitivity. Defaults to `False`.
+    whitespace (bool): If `True`, include whitespaces when extracting character n-grams.
+    eps_smoothing (bool): If `True`, applies epsilon smoothing similar
+    to reference chrF++.py, NLTK and Moses implementations. If `False`,
+    it takes into account effective match order similar to sacreBLEU < 2.0.0. Defaults to `False`.
 
 Returns:
-    'score': The chrF (chrF++) score,
-    'char_order': The character n-gram order,
-    'word_order': The word n-gram order. If equals to 2, the metric is referred to as chrF++,
-    'beta': Determine the importance of recall w.r.t precision
+    'score' (float): The chrF (chrF++) score,
+    'char_order' (int): The character n-gram order,
+    'word_order' (int): The word n-gram order. If equals to 2, the metric is referred to as chrF++,
+    'beta' (int): Determine the importance of recall w.r.t precision
 
 Examples:
     Example 1--a simple example of calculating chrF:
