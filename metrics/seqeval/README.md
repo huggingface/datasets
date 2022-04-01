@@ -17,7 +17,7 @@ It takes two mandatory arguments:
 
 It can also take several optional arguments:
 
-`suffix` (boolean): `True` if the IOB prefix is after type, `False` otherwise. The default value is `False`.
+`suffix` (boolean): `True` if the IOB tag is a suffix (after type) instead of a prefix (before type), `False` otherwise. The default value is `False`, i.e. the IOB tag is a prefix (before type).
 
 `scheme`: the target tagging scheme, which can be one of [`IOB1`, `IOB2`, `IOE1`, `IOE2`, `IOBES`, `BILOU`]. The default value is `None`.
 
