@@ -6,7 +6,7 @@
             "speaker-identification",
             "speaker-intent-classification",
             "emotion-recognition",
-            "speaker-language-identification"
+            "language-identification"
         ]
     },
     "audio-to-audio": {
