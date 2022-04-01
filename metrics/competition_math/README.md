@@ -12,7 +12,7 @@ This metric takes two arguments:
 
 `predictions`: a list of predictions to score. Each prediction is a string that contains natural language and LaTeX.
 
- `references`: list of reference for each prediction. Each reference is a string that contains natural language and LaTeX.
+`references`: list of reference for each prediction. Each reference is a string that contains natural language and LaTeX.
 
 
 ```python
