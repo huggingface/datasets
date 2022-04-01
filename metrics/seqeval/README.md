@@ -30,7 +30,7 @@ It can also take several optional arguments:
 
 ```python
 >>> from datasets import load_metric
->>> meteor = load_metric('seqeval')
+>>> seqeval = load_metric('seqeval')
 >>> predictions = [['O', 'O', 'B-MISC', 'I-MISC', 'I-MISC', 'I-MISC', 'O'], ['B-PER', 'I-PER', 'O']]
 >>> references = [['O', 'O', 'O', 'B-MISC', 'I-MISC', 'I-MISC', 'O'], ['B-PER', 'I-PER', 'O']]
 >>> results = seqeval.compute(predictions=predictions, references=references)
