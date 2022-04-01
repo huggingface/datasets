@@ -68,7 +68,7 @@ It was created for understanding the performance of a machine learning model acr
 _HOMEPAGE = "https://metashift.readthedocs.io/"
 
 
-_LICENSE = "https://github.com/Weixin-Liang/MetaShift/blob/main/LICENSE"
+_LICENSE = "Creative Commons Attribution 4.0 International License"
 
 
 _URLS = {
