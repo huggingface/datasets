@@ -54,8 +54,8 @@ Minimal values (no match):
 ```python
 >>> from datasets import load_metric
 >>> math = load_metric("competition_math")
->>> references=["\\frac{1}{2}"]
->>> predictions=["3/4"]
+>>> references = ["\\frac{1}{2}"]
+>>> predictions = ["3/4"]
 >>> results = math.compute(references=references, predictions=predictions)
 >>> print(results)
 {'accuracy': 0.0}
