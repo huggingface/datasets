@@ -48,7 +48,7 @@ The output is formatted as below:
 The chrF(++) score can be any value between `0.0` and `100.0`, inclusive.
 
 #### Values from Popular Papers
-*Give examples, preferrably with links, to papers that have reported this metric, along with the values they have reported.*
+
 
 ### Examples
 A simple example of calculating chrF:
@@ -88,7 +88,7 @@ The same chrF++ example as above, but with `lowercase=True` to normalize all cas
 
 
 ## Limitations and Bias
-*Note any limitations or biases that the metric has.*
+- According to [Popović 2017](https://www.statmt.org/wmt17/pdf/WMT70.pdf), chrF+ (where `word_order=1`) and chrF++ (where `word_order=2`) produce scores that correlate better with human judgements than chrF (where `word_order=0`) does. 
 
 ## Citation
 ```bibtex
