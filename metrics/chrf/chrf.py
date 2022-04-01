@@ -104,8 +104,8 @@ Examples:
         >>> reference = [["The relationship between dogs and cats is not exactly friendly."], ["A good bookshop is just a genteel Black Hole that knows how to read."]]
         >>> chrf = datasets.load_metric("chrf")
         >>> results = chrf.compute(predictions=prediction,
-                                    references=reference,
-                                    word_order=2)
+        ...                         references=reference,
+        ...                         word_order=2)
         >>> print(results)
         {'score': 82.87263732906315, 'char_order': 6, 'word_order': 2, 'beta': 2}
 
@@ -114,9 +114,9 @@ Examples:
         >>> reference = [["The relationship between dogs and cats is not exactly friendly."], ["A good bookshop is just a genteel Black Hole that knows how to read."]]
         >>> chrf = datasets.load_metric("chrf")
         >>> results = chrf.compute(predictions=prediction,
-                                    references=reference,
-                                    word_order=2,
-                                    lowercase=True)
+        ...                         references=reference,
+        ...                         word_order=2,
+        ...                         lowercase=True)
         >>> print(results)
         {'score': 92.12853119829202, 'char_order': 6, 'word_order': 2, 'beta': 2}
 """
