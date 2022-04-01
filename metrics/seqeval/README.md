@@ -21,7 +21,7 @@ It can also take several optional arguments:
 
 `scheme`: the target tagging scheme, which can be one of [`IOB1`, `IOB2`, `IOE1`, `IOE2`, `IOBES`, `BILOU`]. The default value is `None`.
 
-`mode`: whether to count correct entity labels with incorrect I/B tags as true positives or not. If you want to only count exact matches, pass `mode="strict"`. The default is `None`.
+`mode`: whether to count correct entity labels with incorrect I/B tags as true positives or not. If you want to only count exact matches, pass `mode="strict"` and a specific `scheme` value. The default is `None`.
 
 `sample_weight`: An array-like of shape (n_samples,) that provides weights for individual samples. The default is `None`. 
 
