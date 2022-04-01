@@ -100,4 +100,4 @@ N.B. The MATH dataset also assigns levels of difficulty to different problems, s
 ## Further References 
 - [MATH dataset](https://huggingface.co/datasets/competition_math)
 - [MATH leaderboard](https://paperswithcode.com/sota/math-word-problem-solving-on-math)
-- [MATH paper](https://arxiv.org/pdf/2103.03874.pdf)
+- [MATH paper](https://arxiv.org/abs/2103.03874)
