@@ -271,7 +271,7 @@ class Metashift(datasets.GeneratorBasedBuilder):
             subject_group_summary_dict[subject_str][node_name] = imageID_set_len
 
         ##################################
-        # Print the subject dict stats
+        # Get the subject dict stats
         ##################################
         subject_group_summary_list = sorted(
             subject_group_summary_dict.items(), key=lambda x: sum(x[1].values()), reverse=True
