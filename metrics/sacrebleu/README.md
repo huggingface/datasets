@@ -59,7 +59,7 @@ The output is in the following format:
 The score can take any value between `0.0` and `100.0`, inclusive.
 
 #### Values from Popular Papers
-*Give examples, preferrably with links, to papers that have reported this metric, along with the values they have reported.*
+
 
 ### Examples
 
@@ -78,7 +78,7 @@ The score can take any value between `0.0` and `100.0`, inclusive.
 ```
 
 ## Limitations and Bias
-*Note any limitations or biases that the metric has.*
+Because what this metric calculates is BLEU scores, it has the same limitations as that metric, except that sacreBLEU is more easily reproducible.
 
 ## Citation
 ```bibtex
