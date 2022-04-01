@@ -84,7 +84,7 @@ Minimal values (no match):
 
 ```python
 >>> from datasets import load_metric
->>> meteor = load_metric('seqeval')
+>>> seqeval = load_metric('seqeval')
 >>> predictions = [['O', 'B-MISC', 'I-MISC'], ['B-PER', 'I-PER', 'O']]
 >>> references = [['B-MISC', 'O', 'O'], ['I-PER', '0', 'I-PER']]
 >>> results = seqeval.compute(predictions=predictions, references=references)
