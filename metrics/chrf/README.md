@@ -12,12 +12,12 @@ See the [sacreBLEU README.md](https://github.com/mjpost/sacreBLEU#chrf--chrf) fo
 ## How to Use
 At minimum, this metric requires a `list` of predictions and a `list` of `list`s of references:
 ```python
->>> prediction = ["The relationship between Obama and Netanyahu is not exactly friendly."]
->>> reference = [["The ties between Obama and Netanyahu are not particularly friendly."]]
+>>> prediction = ["The relationship between cats and dogs is not exactly friendly.", "a good bookshop is just a genteel black hole that knows how to read."]
+>>> reference = [["The relationship between dogs and cats is not exactly friendly.", ], ["A good bookshop is just a genteel Black Hole that knows how to read."]]
 >>> chrf = datasets.load_metric("chrf")
 >>> results = chrf.compute(predictions=prediction, references=reference)
 >>> print(results)
-{'score': 61.576379378113785, 'char_order': 6, 'word_order': 0, 'beta': 2}
+{'score': 84.64214891738334, 'char_order': 6, 'word_order': 0, 'beta': 2}
 ```
 
 ### Inputs
@@ -28,7 +28,7 @@ At minimum, this metric requires a `list` of predictions and a `list` of `list`s
 - **`beta`** (`int`): Determine the importance of recall w.r.t precision. Defaults to `2`.
 - **`lowercase`** (`bool`): If `True`, enables case-insensitivity. Defaults to `False`.
 - **`whitespace`** (`bool`): If `True`, include whitespaces when extracting character n-grams. Defaults to `False`.
-- **`eps_smoothing`** (`bool`): If `True`, applies epsilon smoothing similar to reference chrF++.py, NLTK and Moses implementations. If `False`, takes into account effective match order similar to sacreBLEU < 2.0.0. Defaults to `False`.
+- **`eps_smoothing`** (`bool`): If `True`, applies epsilon smoothing similar to reference chrF++.py, NLTK, and Moses implementations. If `False`, takes into account effective match order similar to sacreBLEU < 2.0.0. Defaults to `False`.
 
 
 
@@ -45,13 +45,47 @@ The output is formatted as below:
 {'score': 61.576379378113785, 'char_order': 6, 'word_order': 0, 'beta': 2}
 ```
 
-*State the possible values that the metric's output can take, as well as what is considered a good score.*
+The chrF(++) score can be any value between `0.0` and `100.0`, inclusive.
 
 #### Values from Popular Papers
 *Give examples, preferrably with links, to papers that have reported this metric, along with the values they have reported.*
 
 ### Examples
-*Give code examples of the metric being used. Try to include examples that clear up any potential ambiguity left from the metric description above.*
+A simple example of calculating chrF:
+```python
+>>> prediction = ["The relationship between cats and dogs is not exactly friendly.", "a good bookshop is just a genteel black hole that knows how to read."]
+>>> reference = [["The relationship between dogs and cats is not exactly friendly.", ], ["A good bookshop is just a genteel Black Hole that knows how to read."]]
+>>> chrf = datasets.load_metric("chrf")
+>>> results = chrf.compute(predictions=prediction, references=reference)
+>>> print(results)
+{'score': 84.64214891738334, 'char_order': 6, 'word_order': 0, 'beta': 2}
+```
+
+The same example, but with the argument `word_order=2`, to calculate chrF++ instead of chrF:
+```python
+>>> prediction = ["The relationship between cats and dogs is not exactly friendly.", "a good bookshop is just a genteel black hole that knows how to read."]
+>>> reference = [["The relationship between dogs and cats is not exactly friendly.", ], ["A good bookshop is just a genteel Black Hole that knows how to read."]]
+>>> chrf = datasets.load_metric("chrf")
+>>> results = chrf.compute(predictions=prediction,
+                            references=reference,
+                            word_order=2)
+>>> print(results)
+{'score': 82.87263732906315, 'char_order': 6, 'word_order': 2, 'beta': 2}
+```
+
+The same chrF++ example as above, but with `lowercase=True` to normalize all case:
+```python
+>>> prediction = ["The relationship between cats and dogs is not exactly friendly.", "a good bookshop is just a genteel black hole that knows how to read."]
+>>> reference = [["The relationship between dogs and cats is not exactly friendly.", ], ["A good bookshop is just a genteel Black Hole that knows how to read."]]
+>>> chrf = datasets.load_metric("chrf")
+>>> results = chrf.compute(predictions=prediction,
+                            references=reference,
+                            word_order=2,
+                            lowercase=True)
+>>> print(results)
+{'score': 92.12853119829202, 'char_order': 6, 'word_order': 2, 'beta': 2}
+```
+
 
 ## Limitations and Bias
 *Note any limitations or biases that the metric has.*
