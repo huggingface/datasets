@@ -31,7 +31,7 @@ N.B. To be able to use Competition MATH, you need to install the `math_equivalen
 This metric returns a dictionary that contains the [accuracy](https://huggingface.co/metrics/accuracy) after canonicalizing inputs, on a scale between 0.0 and 1.0.
 
 ### Values from popular papers
-The [original MATH dataset paper](https://arxiv.org/pdf/2103.03874.pdf) reported accuracies ranging from 3.0% to 6.9% by different large language models. 
+The [original MATH dataset paper](https://arxiv.org/abs/2103.03874) reported accuracies ranging from 3.0% to 6.9% by different large language models. 
 
 More recent progress on the dataset can be found on the [dataset leaderboard](https://paperswithcode.com/sota/math-word-problem-solving-on-math).
 
