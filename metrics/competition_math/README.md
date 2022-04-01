@@ -42,8 +42,8 @@ Maximal values (full match) :
 ```python
 >>> from datasets import load_metric
 >>> math = load_metric("competition_math")
->>> references=["\\frac{1}{2}"]
->>> predictions=["1/2"]
+>>> references = ["\\frac{1}{2}"]
+>>> predictions = ["1/2"]
 >>> results = math.compute(references=references, predictions=predictions)
 >>> print(results)
 {'accuracy': 1.0}
