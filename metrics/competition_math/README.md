@@ -37,7 +37,7 @@ More recent progress on the dataset can be found on the [dataset leaderboard](ht
 
 ## Examples 
 
-Maximal values (full match) :
+Maximal values (full match):
 
 ```python
 >>> from datasets import load_metric
