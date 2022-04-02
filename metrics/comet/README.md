@@ -2,12 +2,11 @@
 
 ## Metric description
 
-Crosslingual Optimized Metric for Evaluation of Translation (COMET) is an open-source framework used to train Machine Translation metrics that achieve high levels of correlation with different types of human judgments. 
+Crosslingual Optimized Metric for Evaluation of Translation (COMET) is an open-source framework used to train Machine Translation metrics that achieve high levels of correlation with different types of human judgments.
 
+## How to use
 
-## How to use 
-
-COMET takes 3 lists of strings as input: `sources` (a list of source sentences), `predictions` (a list of candidate translations) and `references` (a list of reference translations). 
+COMET takes 3 lists of strings as input: `sources` (a list of source sentences), `predictions` (a list of candidate translations) and `references` (a list of reference translations).
 
 ```python
 from datasets import load_metric
@@ -17,13 +16,14 @@ hypothesis = ["The fire could be stopped", "Schools and kindergartens were open"
 reference = ["They were able to control the fire.", "Schools and kindergartens opened"]
 comet_score = comet_metric.compute(predictions=hypothesis, references=reference, sources=source)
 ```
+
+It has several configurations, named after the COMET model to be used. It will default to `wmt20-comet-da` (previously known as `wmt-large-da-estimator-1719`). Alternate models that can be chosen include `wmt20-comet-qe-da`, `wmt21-comet-mqm`, `wmt21-cometinho-da`, `wmt21-comet-qe-mqm` and `emnlp20-comet-rank`.
+
 It also has several optional arguments:
 
-`cuda`: a boolean -- if set to `True`, COMET will run using GPU; else, it will run using CPU. The default value is `True`.
+`gpus`: optional, an integer (number of GPUs to train on) or a list of integers (which GPUs to train on). Set to 0 to use CPU. The default value is `None` (uses one GPU if possible, else use CPU).
 
-`show_progress`a boolean -- if set to `True`, progress updates will be printed out. The default value is `False`.
-
-`model`: the COMET model to be used. Will default to `wmt-large-da-estimator-1719`. Alternate models that can be chosen include `wmt20-comet-da`, `wmt20-comet-qe-da`, `wmt21-comet-mqm`, `wmt21-cometinho-da`, `wmt21-comet-qe-mqm` and `emnlp20-comet-rank`. 
+`progress_bar`a boolean -- if set to `True`, progress updates will be printed out. The default value is `False`.
 
 More information about model characteristics can be found on the [COMET website](https://unbabel.github.io/COMET/html/models.html).
 
@@ -31,15 +31,15 @@ More information about model characteristics can be found on the [COMET website]
 
 The COMET metric outputs two lists:
 
-`samples`: a list of dictionaries with `src`, `mt`, `ref` and `score`
-
 `scores`: a list of COMET scores for each of the input sentences, ranging from 0-1.
 
+`mean_score`: the mean value of COMET scores `scores` over all the input sentences, ranging from 0-1.
 
 ### Values from popular papers
-The [original COMET paper](https://arxiv.org/pdf/2009.09025.pdf) reported average COMET scores ranging from 0.4 to 0.6, depending on the language pairs used for evaluating translation models. They also illustrate that COMET correlates well with human judgements compared to other metrics such as [BLEU](https://huggingface.co/metrics/bleu) and [CHRF](https://huggingface.co/metrics/chrf). 
 
-## Examples 
+The [original COMET paper](https://arxiv.org/pdf/2009.09025.pdf) reported average COMET scores ranging from 0.4 to 0.6, depending on the language pairs used for evaluating translation models. They also illustrate that COMET correlates well with human judgements compared to other metrics such as [BLEU](https://huggingface.co/metrics/bleu) and [CHRF](https://huggingface.co/metrics/chrf).
+
+## Examples
 
 Full match:
 
@@ -54,7 +54,7 @@ print([round(v, 1) for v in results["scores"]])
 [1.0, 1.0]
 ```
 
-Partial match: 
+Partial match:
 
 ```python
 from datasets import load_metric
@@ -67,7 +67,7 @@ print([round(v, 2) for v in results["scores"]])
 [0.19, 0.92]
 ```
 
-No match: 
+No match:
 
 ```python
 from datasets import load_metric
@@ -104,6 +104,7 @@ Also, calculating the COMET metric involves downloading the model from which fea
    pages     = {909--918},
 }
 ```
+
 ```bibtex
 @inproceedings{rei-etal-2020-comet,
    title = "{COMET}: A Neural Framework for {MT} Evaluation",
@@ -120,8 +121,8 @@ Also, calculating the COMET metric involves downloading the model from which fea
    pages = "2685--2702",
 
 ```
-    
-## Further References 
+
+## Further References
 
 - [COMET website](https://unbabel.github.io/COMET/html/index.html)
 - [Hugging Face Tasks - Machine Translation](https://huggingface.co/tasks/translation)

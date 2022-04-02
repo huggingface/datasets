@@ -10,13 +10,13 @@ This guide will show you how to:
 
 ## Add predictions and references
 
-When you want to add model predictions and references to a [`datasets.Metric`] instance, you have two options:
+When you want to add model predictions and references to a [`Metric`] instance, you have two options:
 
-- [`datasets.Metric.add`] adds a single `prediction` and `reference`.
+- [`Metric.add`] adds a single `prediction` and `reference`.
 
-- [`datasets.Metric.add_batch`] adds a batch of `predictions` and `references`.
+- [`Metric.add_batch`] adds a batch of `predictions` and `references`.
 
-Use [`datasets.Metric.add_batch`] by passing it your model predictions, and the references the model predictions should be evaluated against:
+Use [`Metric.add_batch`] by passing it your model predictions, and the references the model predictions should be evaluated against:
 
 ```py
 >>> import datasets
@@ -35,7 +35,7 @@ Metrics accepts various input formats (Python lists, NumPy arrays, PyTorch tenso
 
 ## Compute scores
 
-The most straightforward way to calculate a metric is to call [`datasets.Metric.compute`]. But some metrics have additional arguments that allow you to modify the metrics behavior. 
+The most straightforward way to calculate a metric is to call [`Metric.compute`]. But some metrics have additional arguments that allow you to modify the metrics behavior. 
 
 Let's load the [SacreBLEU](https://huggingface.co/metrics/sacrebleu) metric, and compute it with a different smoothing method.
 
@@ -74,7 +74,7 @@ Args:
 
 ## Custom metric loading script
 
-Write a metric loading script to use your own custom metric (or one that is not on the Hub). Then you can load it as usual with [`datasets.load_metric`].
+Write a metric loading script to use your own custom metric (or one that is not on the Hub). Then you can load it as usual with [`load_metric`].
 
 To help you get started, open the [SQuAD metric loading script](https://github.com/huggingface/datasets/blob/master/metrics/squad/squad.py) and follow along.
 
@@ -86,15 +86,15 @@ Get jump started with our metric loading script [template](https://github.com/hu
 
 ### Add metric attributes
 
-Start by adding some information about your metric in [`datasets.Metric._info`]. The most important attributes you should specify are:
+Start by adding some information about your metric in [`Metric._info`]. The most important attributes you should specify are:
 
-1. [`datasets.MetricInfo.description`] provides a brief description about your metric.
+1. [`MetricInfo.description`] provides a brief description about your metric.
 
-2. [`datasets.MetricInfo.citation`] contains a BibTex citation for the metric.
+2. [`MetricInfo.citation`] contains a BibTex citation for the metric.
 
-3. [`datasets.MetricInfo.inputs_description`] describes the expected inputs and outputs. It may also provide an example usage of the metric.
+3. [`MetricInfo.inputs_description`] describes the expected inputs and outputs. It may also provide an example usage of the metric.
 
-4. [`datasets.MetricInfo.features`] defines the name and type of the predictions and references.
+4. [`MetricInfo.features`] defines the name and type of the predictions and references.
 
 After you've filled out all these fields in the template, it should look like the following example from the SQuAD metric script:
 
@@ -126,7 +126,7 @@ class Squad(datasets.Metric):
 
 ### Download metric files
 
-If your metric needs to download, or retrieve local files, you will need to use the [`datasets.Metric._download_and_prepare`] method. For this example, let's examine the [BLEURT metric loading script](https://github.com/huggingface/datasets/blob/master/metrics/bleurt/bleurt.py). 
+If your metric needs to download, or retrieve local files, you will need to use the [`Metric._download_and_prepare`] method. For this example, let's examine the [BLEURT metric loading script](https://github.com/huggingface/datasets/blob/master/metrics/bleurt/bleurt.py). 
 
 1. Provide a dictionary of URLs that point to the metric files:
 
@@ -147,7 +147,7 @@ If the files are stored locally, provide a dictionary of path(s) instead of URLs
 
 </Tip>
 
-2. [`datasets.Metric._download_and_prepare`] will take the URLs and download the metric files specified:
+2. [`Metric._download_and_prepare`] will take the URLs and download the metric files specified:
 
 ```py
 def _download_and_prepare(self, dl_manager):
@@ -171,9 +171,9 @@ def _download_and_prepare(self, dl_manager):
 
 ### Compute score
 
-[`datasets.DatasetBuilder._compute`] provides the actual instructions for how to compute a metric given the predictions and references. Now let's take a look at the [GLUE metric loading script](https://github.com/huggingface/datasets/blob/master/metrics/glue/glue.py).
+[`DatasetBuilder._compute`] provides the actual instructions for how to compute a metric given the predictions and references. Now let's take a look at the [GLUE metric loading script](https://github.com/huggingface/datasets/blob/master/metrics/glue/glue.py).
 
-1. Provide the functions for [`datasets.DatasetBuilder._compute`] to calculate your metric:
+1. Provide the functions for [`DatasetBuilder._compute`] to calculate your metric:
 
 ```py
 def simple_accuracy(preds, labels):
@@ -196,7 +196,7 @@ def pearson_and_spearman(preds, labels):
     }
 ```
 
-2. Create [`datasets.DatasetBuilder._compute`] with instructions for what metric to calculate for each configuration:
+2. Create [`DatasetBuilder._compute`] with instructions for what metric to calculate for each configuration:
 
 ```py
 def _compute(self, predictions, references):

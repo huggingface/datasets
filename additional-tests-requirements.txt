@@ -1,4 +1,4 @@
-unbabel-comet>=0.0.6; platform_system != "Windows"
+unbabel-comet>=1.0.0;python_version>'3.6'
 git+https://github.com/google-research/bleurt.git
 git+https://github.com/ns-moosavi/coval.git
 git+https://github.com/hendrycks/math.git

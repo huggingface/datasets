@@ -226,6 +226,13 @@ class FeaturesTest(TestCase):
         assert flattened_features == {"foo.bar1": Value("int32"), "foo.bar2.foobar": Value("string")}
         assert features == _features, "calling flatten shouldn't alter the current features"
 
+    def test_flatten_with_sequence(self):
+        features = Features({"foo": Sequence({"bar": {"my_value": Value("int32")}})})
+        _features = features.copy()
+        flattened_features = features.flatten()
+        assert flattened_features == {"foo.bar": [{"my_value": Value("int32")}]}
+        assert features == _features, "calling flatten shouldn't alter the current features"
+
 
 def test_classlabel_init(tmp_path_factory):
     names = ["negative", "positive"]
@@ -282,8 +289,9 @@ def test_class_label_to_and_from_dict(class_label_arg, tmp_path_factory):
     assert generated_class_label == class_label
 
 
-def test_encode_nested_example_sequence_with_none():
-    schema = Sequence(Value("int32"))
+@pytest.mark.parametrize("inner_type", [Value("int32"), {"subcolumn": Value("int32")}])
+def test_encode_nested_example_sequence_with_none(inner_type):
+    schema = Sequence(inner_type)
     obj = None
     result = encode_nested_example(schema, obj)
     assert result is None

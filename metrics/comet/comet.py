@@ -34,7 +34,8 @@ predictions['scores']
 ```
 """
 
-import comet.models  # From: unbabel-comet
+import comet  # From: unbabel-comet
+import torch
 
 import datasets
 
@@ -93,9 +94,8 @@ Returns:
 
 Examples:
 
-    >>> comet_metric = datasets.load_metric('comet') # doctest:+ELLIPSIS
-    [...]Download succeeded. Loading model[...]
-    >>> # comet_metric = load_metric('comet', 'wmt-large-hter-estimator')  # you can also choose which model to use
+    >>> comet_metric = datasets.load_metric('comet')
+    >>> # comet_metric = load_metric('comet', 'wmt20-comet-da')  # you can also choose which model to use
     >>> source = ["Dem Feuer konnte Einhalt geboten werden", "Schulen und Kindergärten wurden eröffnet."]
     >>> hypothesis = ["The fire could be stopped", "Schools and kindergartens were open"]
     >>> reference = ["They were able to control the fire.", "Schools and kindergartens opened"]
@@ -116,6 +116,7 @@ class COMET(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
+                    "sources": datasets.Value("string", id="sequence"),
                     "predictions": datasets.Value("string", id="sequence"),
                     "references": datasets.Value("string", id="sequence"),
                 }
@@ -130,12 +131,14 @@ class COMET(datasets.Metric):
 
     def _download_and_prepare(self, dl_manager):
         if self.config_name == "default":
-            self.scorer = comet.models.download_model("wmt-large-da-estimator-1719")
+            self.scorer = comet.load_from_checkpoint(comet.download_model("wmt20-comet-da"))
         else:
-            self.scorer = comet.models.download_model(self.config_name)
+            self.scorer = comet.load_from_checkpoint(comet.download_model(self.config_name))
 
-    def _compute(self, sources, predictions, references, cuda=True, show_progress=False):
+    def _compute(self, sources, predictions, references, gpus=None, progress_bar=False):
+        if gpus is None:
+            gpus = 1 if torch.cuda.is_available() else 0
         data = {"src": sources, "mt": predictions, "ref": references}
         data = [dict(zip(data, t)) for t in zip(*data.values())]
-        samples, scores = self.scorer.predict(data, cuda=cuda, show_progress=show_progress)
-        return {"scores": scores, "samples": samples}
+        scores, mean_score = self.scorer.predict(data, gpus=gpus, progress_bar=progress_bar)
+        return {"mean_score": mean_score, "scores": scores}
