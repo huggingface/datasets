@@ -1,4 +1,25 @@
-[Needs More Information]
+---
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
+languages:
+- en
+licenses:
+- other
+multilinguality:
+- monolingual
+pretty_name: Biwi Kinect Head Pose
+size_categories:
+- unknown
+source_datasets:
+- original
+task_categories:
+- other
+task_ids:
+- other-other-head-pose-estimation
+paperswithcode_id: biwi
+---
 
 # Dataset Card for Biwi Kinect Head Pose Database
 
@@ -27,11 +48,11 @@
 
 ## Dataset Description
 
-- **Homepage:** https://icu.ee.ethz.ch/research/datsets.html
+- **Homepage:** [Biwi Kinect Head Pose homepage](https://icu.ee.ethz.ch/research/datsets.html)
 - **Repository:** [Needs More Information]
-- **Paper:** https://link.springer.com/article/10.1007/s11263-012-0549-0
+- **Paper:** [Biwi Kinect Head Pose paper](https://link.springer.com/article/10.1007/s11263-012-0549-0)
 - **Leaderboard:** [Needs More Information]
-- **Point of Contact:** [Needs More Information]
+- **Point of Contact:** [Gabriele Fanelli](mailto:gabriele.fanelli@gmail.com)
 
 ### Dataset Summary
 
@@ -128,7 +149,8 @@ The Biwi Kinect Head Pose Database is acquired with the Microsoft Kinect sensor,
 
 #### Annotation process
 
-[More Information Needed]
+From Dataset's README : 
+> The database contains 24 sequences acquired with a Kinect sensor. 20 people (some were recorded twice - 6 women and 14 men) were recorded while turning their heads, sitting in front of the sensor, at roughly one meter of distance.
 
 #### Who are the annotators?
 
@@ -165,7 +187,7 @@ From Dataset's README :
 
 ### Citation Information
 
-```
+```bibtex
 @article{fanelli_IJCV,
   author = {Fanelli, Gabriele and Dantone, Matthias and Gall, Juergen and Fossati, Andrea and Van Gool, Luc},
   title = {Random Forests for Real Time 3D Face Analysis},
