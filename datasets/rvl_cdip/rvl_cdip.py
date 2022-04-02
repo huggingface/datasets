@@ -43,7 +43,7 @@ _LICENSE = "https://www.industrydocuments.ucsf.edu/help/copyright/"
 
 
 _URLS = {
-    "rvl-cdip": "https://drive.google.com/uc?export=download&id=0Bz1dfcnrpXM-MUt4cHNzUEFXcmc",
+    "rvl-cdip": "https://drive.google.com/uc?export=download&confirm=pbef&id=0Bz1dfcnrpXM-MUt4cHNzUEFXcmc",
     "labels" : "https://huggingface.co/datasets/mariosasko/rvl_cdip/resolve/main/labels_only.tar.gz"
 }
 
@@ -93,6 +93,9 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
         archive_path = dl_manager.download(_URLS["rvl-cdip"])
         labels_path = dl_manager.download_and_extract(_URLS["labels"])
 
+        print(f"Archive path is: {labels_path}")
+        print(f"Labels path is: {labels_path}")
+        
         # (Optional) In non-streaming mode, we can extract the archive locally to have actual local image files:
         local_extracted_archive = dl_manager.extract(archive_path) if not dl_manager.is_streaming else None
         
@@ -132,18 +135,31 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
             ),
         ]
 
+    @staticmethod
+    def _get_image_to_class_map(data):
+        image_to_class_id = {}
+        for item in data:
+            image_path, class_id = item.split(' ')
+            image_to_class_id[image_path] = class_id
+        
+        return image_to_class_id
+    
     def _generate_examples(self, local_extracted_archive, archive_iterator, labels_filepath, split):
 
-        with open(filepath, encoding="utf-8") as f:
+        print(f"Labels path is: {labels_filepath}")
+        
+        
+        with open(labels_filepath, encoding="utf-8") as f:
             data = f.read().splitlines()
 
-        idx = 0
-        for item in data:
-            image_path, class_index = item.split(" ")
-            image_path = os.path.join(images_dir, image_path)
-            class_name = _CLASSES[int(class_index)]
-            yield idx, {
-                "image": image_path,
-                "label": class_name,
-            }
-            idx += 1
+        image_to_class_id = self._get_image_to_class_map(data)
+        
+        for file_path, file_obj in archive_iterator:
+            if file_path.startswith(_IMAGES_DIR):
+                if(file_path in image_to_class_id):
+                    class_id = image_to_class_id[file_path]
+                    label = _CLASSES[class_id]
+                    yield file_path, {
+                        "image": {"path": file_path, "bytes": file_obj.read()},
+                        "label": label,
+                    }
