@@ -4,6 +4,7 @@ import textwrap
 import pyarrow as pa
 import pytest
 
+from datasets import Features, Image, Value
 from datasets.packaged_modules.csv.csv import Csv
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder
 from datasets.packaged_modules.text.text import Text
@@ -60,6 +61,23 @@ def image_file():
     return os.path.join(os.path.dirname(__file__), "features", "data", "test_image_rgb.jpg")
 
 
+@pytest.fixture
+def image_file_with_metadata(tmp_path):
+    image_filename = tmp_path / "image_rgb.jpg"
+    with open(os.path.join(os.path.dirname(__file__), "features", "data", "test_image_rgb.jpg"), "rb") as f1:
+        with open(image_filename, "wb") as f2:
+            f2.write(f1.read())
+    image_metadata_filename = tmp_path / "metadata.jsonl"
+    image_metadata = textwrap.dedent(
+        """\
+        {"file_name": "image_rgb.jpg", "caption": "Nice image"}
+        """
+    )
+    with open(image_metadata_filename, "w", encoding="utf-8") as f:
+        f.write(image_metadata)
+    return str(image_filename), str(image_metadata_filename)
+
+
 def test_csv_generate_tables_raises_error_with_malformed_csv(csv_file, malformed_csv_file, caplog):
     csv = Csv()
     generator = csv._generate_tables([csv_file, malformed_csv_file])
@@ -92,3 +110,20 @@ def test_imagefolder_drop_labels(image_file, drop_labels):
         assert all(example.keys() == {"image", "label"} for _, example in generator)
     else:
         assert all(example.keys() == {"image"} for _, example in generator)
+
+
+@pytest.mark.parametrize("drop_metadata", [True, False])
+def test_imagefolder_drop_metadata(image_file_with_metadata, drop_metadata):
+    image_file, image_metadata_file = image_file_with_metadata
+    if not drop_metadata:
+        features = Features({"image": Image(), "label": Value("string"), "caption": Value("string")})
+    else:
+        features = Features({"image": Image(), "label": Value("string")})
+    imagefolder = ImageFolder(drop_metadata=drop_metadata, features=features)
+    generator = imagefolder._generate_examples(
+        [(image_file, image_file)], [(image_metadata_file, image_metadata_file)]
+    )
+    if not drop_metadata:
+        assert all(example.keys() == {"image", "label", "caption"} for _, example in generator)
+    else:
+        assert all(example.keys() == {"image", "label"} for _, example in generator)
