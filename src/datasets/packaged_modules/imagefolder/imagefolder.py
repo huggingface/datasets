@@ -27,6 +27,20 @@ else:
         return [{k: v for k, v in zip(keys, row_values)} for row_values in zip(*values)]
 
 
+def count_path_segments(path):
+    cnt = 0
+    while True:
+        parts = os.path.split(path)
+        if parts[0] == path:
+            break
+        elif parts[1] == path:
+            break
+        else:
+            path = parts[0]
+            cnt += 1
+    return cnt
+
+
 @dataclass
 class ImageFolderConfig(datasets.BuilderConfig):
     """BuilderConfig for ImageFolder."""
@@ -195,7 +209,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                             ]
                             if metadata_file_candidates:
                                 _, metadata_file, downloaded_metadata_file = min(
-                                    metadata_file_candidates, key=lambda x: os.path.split(x[0])
+                                    metadata_file_candidates, key=lambda x: count_path_segments(x[0])
                                 )
                                 with open(downloaded_metadata_file, "rb") as f:
                                     pa_metadata_table = paj.read_json(f)
@@ -254,7 +268,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                                 ]
                                 if metadata_file_candidates:
                                     _, metadata_file, downloaded_metadata_file = min(
-                                        metadata_file_candidates, key=lambda x: os.path.split(x[0])
+                                        metadata_file_candidates, key=lambda x: count_path_segments(x[0])
                                     )
                                     with open(downloaded_metadata_file, "rb") as f:
                                         pa_metadata_table = paj.read_json(f)
