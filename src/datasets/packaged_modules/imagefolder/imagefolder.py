@@ -120,6 +120,9 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 self.info.features = datasets.Features({"image": datasets.Image()})
 
             if not self.config.drop_metadata and metadata_files:
+                # Verify that all metadata files have the same set of features,
+                # that the `file_name` key is one of their keys and is of type string,
+                # and that there are no duplicated keys when compared to the existing features ("image", optionally "label")
                 metadata_features_all = []
                 for _, downloaded_metadata_file in itertools.chain.from_iterable(metadata_files.values()):
                     with open(downloaded_metadata_file, "rb") as f:
@@ -173,6 +176,8 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 if file is not None:
                     _, file_ext = os.path.splitext(file)
                     if file_ext.lower() in self.IMAGE_EXTENSIONS:
+                        # If the file is an image, and we've just entered a new directory,
+                        # find the nereast metadata file (by counting path segments) for the directory
                         current_dir = os.path.dirname(file)
                         if last_checked_dir is None or last_checked_dir != current_dir:
                             last_checked_dir = current_dir
