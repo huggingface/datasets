@@ -4,9 +4,9 @@
         "subtasks": [
             "keyword-spotting",
             "speaker-identification",
-            "intent-classification",
-            "emotion-recognition",
-            "language-identification"
+            "audio-intent-classification",
+            "audio-emotion-recognition",
+            "audio-language-identification"
         ]
     },
     "audio-to-audio": {
