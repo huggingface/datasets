@@ -68,12 +68,12 @@ Minimal values for the Wiki-NER subset (which outputs `accuracy` and `f1`):
 Partial match for the CVIT-Mann Ki Baat subset (which outputs `precision@10`) 
 
 ```python
-from datasets import load_metric
-indic_glue_metric = load_metric('indic_glue', 'cvit-mkb-clsr')
-references = [[0.5, 0.5, 0.5], [0.1, 0.2, 0.3]]
-predictions = [[0.5, 0.5, 0.5], [0.1, 0.2, 0.3]]
-results = indic_glue_metric.compute(predictions=predictions, references=references)
-print(results)
+>>> from datasets import load_metric
+>>> indic_glue_metric = load_metric('indic_glue', 'cvit-mkb-clsr')
+>>> references = [[0.5, 0.5, 0.5], [0.1, 0.2, 0.3]]
+>>> predictions = [[0.5, 0.5, 0.5], [0.1, 0.2, 0.3]]
+>>> results = indic_glue_metric.compute(predictions=predictions, references=references)
+>>> print(results)
 {'precision@10': 1.0}
 ```
 
