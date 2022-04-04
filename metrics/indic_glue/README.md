@@ -56,12 +56,12 @@ print(results)
 Minimal values for the Wiki-NER subset (which outputs `accuracy` and `f1`):
 
 ```python
-from datasets import load_metric
-indic_glue_metric = load_metric('indic_glue', 'wiki-ner')
-references = [0, 1]
-predictions = [1,0]
-results = indic_glue_metric.compute(predictions=predictions, references=references)
-print(results)
+>>> from datasets import load_metric
+>>> indic_glue_metric = load_metric('indic_glue', 'wiki-ner')
+>>> references = [0, 1]
+>>> predictions = [1,0]
+>>> results = indic_glue_metric.compute(predictions=predictions, references=references)
+>>> print(results)
 {'accuracy': 1.0, 'f1': 1.0}
 ```
 
