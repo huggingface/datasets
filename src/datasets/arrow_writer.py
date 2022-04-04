@@ -577,14 +577,12 @@ class BeamWriter:
         _ = pcoll_examples | "Count N. Examples" >> beam.Map(inc_num_examples)
 
         # save dataset
-        simplified_schema = pa.schema({field.name: pa.string() for field in self._schema})
         return (
             pcoll_examples
             | "Get values" >> beam.Values()
-            | "simplify" >> beam.Map(lambda ex: {k: json.dumps(v) for k, v in ex.items()})
             | "Save to parquet"
             >> beam.io.parquetio.WriteToParquet(
-                self._parquet_path, simplified_schema, shard_name_template="-SSSSS-of-NNNNN.parquet"
+                self._parquet_path, self._schema, shard_name_template="-SSSSS-of-NNNNN.parquet"
             )
         )
 
