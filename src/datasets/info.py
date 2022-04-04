@@ -336,8 +336,9 @@ class MetricInfo:
         with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "w", encoding="utf-8") as f:
             json.dump(asdict(self), f)
 
-        with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
-            f.write(self.license)
+        if self.license:
+            with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
+                f.write(self.license)
 
     @classmethod
     def from_directory(cls, metric_info_dir) -> "MetricInfo":
