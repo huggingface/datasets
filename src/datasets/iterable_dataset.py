@@ -55,12 +55,17 @@ class _BaseExamplesIterable:
         """
         raise NotImplementedError()
 
+    def shard_data_sources(self, shard_idx: int) -> "_BaseExamplesIterable":
+        """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        raise NotImplementedError()
+
     @property
     def n_shards(self) -> int:
         raise NotImplementedError()
 
 
 def _shuffle_kwargs(rng: np.random.Generator, kwargs: dict) -> dict:
+    """Return a shuffled copy of the input kwargs"""
     # We must shuffle all the lists, and lists of the same size must have the same shuffling.
     # This way entangled lists of (shard, shard_metadata) are still in the right order.
 
@@ -78,6 +83,11 @@ def _shuffle_kwargs(rng: np.random.Generator, kwargs: dict) -> dict:
     return shuffled_kwargs
 
 
+def _shard_kwargs(shard_idx: int, kwargs: dict) -> dict:
+    """Return a copy of the input kwargs but with only one shard"""
+    return {key: value[shard_idx] if isinstance(value, list) else value for key, value in kwargs.items}
+
+
 class ExamplesIterable(_BaseExamplesIterable):
     def __init__(self, generate_examples_fn: Callable, kwargs: dict):
         self.generate_examples_fn = generate_examples_fn
@@ -88,6 +98,11 @@ class ExamplesIterable(_BaseExamplesIterable):
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "ExamplesIterable":
         return ShardShuffledExamplesIterable(self.generate_examples_fn, self.kwargs, generator)
+
+    def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
+        """Keep only the requested shard."""
+        kwargs_with_requested_data_source = _shuffle_kwargs(shard_idx, self.kwargs)
+        yield from self.generate_examples_fn(**kwargs_with_requested_data_source)
 
     @property
     def n_shards(self) -> int:
@@ -105,6 +120,13 @@ class ShardShuffledExamplesIterable(ExamplesIterable):
         rng = deepcopy(self.generator)
         kwargs_with_shuffled_shards = _shuffle_kwargs(rng, self.kwargs)
         yield from self.generate_examples_fn(**kwargs_with_shuffled_shards)
+
+    def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
+        """Keep only the requested shard."""
+        rng = deepcopy(self.generator)
+        kwargs_with_shuffled_shards = _shuffle_kwargs(rng, self.kwargs)
+        kwargs_with_requested_data_source = _shard_kwargs(shard_idx, kwargs_with_shuffled_shards)
+        return ExamplesIterable(self.generate_examples_fn, kwargs_with_requested_data_source)
 
 
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
@@ -129,6 +151,10 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     @property
     def n_shards(self) -> int:
         return sum(ex_iterable.n_shards for ex_iterable in self.ex_iterables)
+
+    def shard_data_sources(self, shard_idx: int) -> "CyclingMultiSourcesExamplesIterable":
+        """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        raise NotImplementedError("Sharding a CyclingMultiSourcesExamplesIterable is not implemented")
 
 
 class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIterable):
@@ -169,6 +195,10 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         return RandomlyCyclingMultiSourcesExamplesIterable(
             ex_iterables, generator=generator, probabilities=self.probabilities
         )
+
+    def shard_data_sources(self, shard_idx: int) -> "RandomlyCyclingMultiSourcesExamplesIterable":
+        """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        raise NotImplementedError("Sharding a RandomlyCyclingMultiSourcesExamplesIterable is not implemented")
 
 
 class MappedExamplesIterable(_BaseExamplesIterable):
@@ -260,6 +290,18 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             remove_columns=self.remove_columns,
         )
 
+    def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
+        """Keep only the requested shard."""
+        return MappedExamplesIterable(
+            self.ex_iterable.shard_data_sources(shard_idx),
+            function=self.function,
+            with_indices=self.with_indices,
+            input_columns=self.input_columns,
+            batched=self.batched,
+            batch_size=self.batch_size,
+            remove_columns=self.remove_columns,
+        )
+
     @property
     def n_shards(self) -> int:
         return self.ex_iterable.n_shards
@@ -316,10 +358,21 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                     yield key, example
                 current_idx += 1
 
-    def shuffle_data_sources(self, seed: Optional[int]) -> "MappedExamplesIterable":
+    def shuffle_data_sources(self, seed: Optional[int]) -> "FilteredExamplesIterable":
         """Shuffle the wrapped examples iterable."""
         return FilteredExamplesIterable(
             self.ex_iterable.shuffle_data_sources(seed),
+            function=self.function,
+            with_indices=self.with_indices,
+            input_columns=self.input_columns,
+            batched=self.batched,
+            batch_size=self.batch_size,
+        )
+
+    def shard_data_sources(self, shard_idx: int) -> "FilteredExamplesIterable":
+        """Keep only the requested shard."""
+        return FilteredExamplesIterable(
+            self.ex_iterable.shard_data_sources(shard_idx),
             function=self.function,
             with_indices=self.with_indices,
             input_columns=self.input_columns,
@@ -364,6 +417,12 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         """Shuffle the wrapped examples iterable as well as the shuffling buffer."""
         return BufferShuffledExamplesIterable(
             self.ex_iterable.shuffle_data_sources(generator), buffer_size=self.buffer_size, generator=generator
+        )
+
+    def shard_data_sources(self, shard_idx: int) -> "BufferShuffledExamplesIterable":
+        """Keep only the requested shard."""
+        return BufferShuffledExamplesIterable(
+            self.ex_iterable.shard_data_sources(shard_idx), buffer_size=self.buffer_size, generator=self.generator
         )
 
     @property
@@ -425,6 +484,13 @@ class TypedExamplesIterable(_BaseExamplesIterable):
         """Shuffle the wrapped examples iterable."""
         return TypedExamplesIterable(
             self.ex_iterable.shuffle_data_sources(generator),
+            features=self.features,
+        )
+
+    def shard_data_sources(self, shard_idx: int) -> "TypedExamplesIterable":
+        """Keep only the requested shard."""
+        return TypedExamplesIterable(
+            self.ex_iterable.shard_data_sources(shard_idx),
             features=self.features,
         )
 
@@ -493,16 +559,26 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = self._ex_iterable
         yield from ex_iterable
 
+    def _iter_shard(self, shard_idx: int):
+        if self._shuffling:
+            ex_iterable = self._ex_iterable.shuffle_data_sources(self._effective_generator())
+        else:
+            ex_iterable = self._ex_iterable
+        yield from ex_iterable.shard_data_sources(shard_idx)
+
+    def _apply_feature_types(self, example):
+        if self.features:
+            # we encode the example for ClassLabel feature types for example
+            encoded_example = self.features.encode_example(example)
+            # Decode example for Audio feature, e.g.
+            decoded_example = self.features.decode_example(encoded_example)
+            return decoded_example
+        else:
+            return example
+
     def __iter__(self):
         for key, example in self._iter():
-            if self.features:
-                # we encode the example for ClassLabel feature types for example
-                encoded_example = self.features.encode_example(example)
-                # Decode example for Audio feature, e.g.
-                decoded_example = self.features.decode_example(encoded_example)
-                yield decoded_example
-            else:
-                yield example
+            yield self._apply_feature_types(example)
 
     def with_format(
         self,
@@ -878,10 +954,7 @@ def iterable_dataset(
     shuffling: Optional[ShufflingConfig] = None,
 ):
     if format_type is not None and format_type == "torch":
-        import torch
-
-        class TorchIterableDataset(IterableDataset, torch.utils.data.IterableDataset):
-            pass
+        from .formatting.dataset_wrappers.torch_iterable_dataset import TorchIterableDataset
 
         cls = TorchIterableDataset
     else:
