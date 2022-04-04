@@ -22,12 +22,12 @@ _DESCRIPTION = """
 The Spearman rank-order correlation coefficient is a measure of the
 relationship between two datasets. Like other correlation coefficients,
 this one varies between -1 and +1 with 0 implying no correlation.
-Positive correlations imply that as data in dataset x increases, so 
+Positive correlations imply that as data in dataset x increases, so
 does data in dataset y. Negative correlations imply that as x increases,
 y decreases. Correlations of -1 or +1 imply an exact monotonic relationship.
 
-Unlike the Pearson correlation, the Spearman correlation does not 
-assume that both datasets are normally distributed. 
+Unlike the Pearson correlation, the Spearman correlation does not
+assume that both datasets are normally distributed.
 
 The p-value roughly indicates the probability of an uncorrelated system
 producing datasets that have a Spearman correlation at least as extreme
