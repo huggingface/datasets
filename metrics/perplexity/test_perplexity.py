@@ -47,7 +47,7 @@ def main():
 
     # print(results)
 
-    # input_texts = load_dataset("wikitext", "wikitext-2-raw-v1", keep_in_memory=False, split="test")["text"][:10]
+    input_texts = load_dataset("wikitext", "wikitext-2-raw-v1", keep_in_memory=False, split="test")["text"][:10]
     # results2 = perp._compute(model_id=model_id,
     #                        input_list=test_dataset,
     #                        device='cuda')
@@ -56,10 +56,15 @@ def main():
 
     perplexity = datasets.load_metric("../perplexity")
     # perplexity_w_mask = fixed_perplexity.Perplexity() #datasets.load_metric("~/datasets/metrics/perplexity/fixed_perplexity")
-    input_texts = ["lorem ipsum", "Happy Birthday!", "Bienvenue"]
+    # input_texts = ["lorem ipsum", "Happy Birthday!", "Bienvenue"]
     # input_texts = test_dataset
     # print(input_texts)
-    results = perplexity.compute(input_texts=input_texts, model_id="gpt2", device="gpu", add_start_token=True)  # ,
+    results_w_start = perplexity.compute(input_texts=input_texts, model_id="gpt2", device="gpu", add_start_token=True)  # ,
+    results_no_start = perplexity.compute(input_texts=input_texts, model_id="gpt2", device="gpu", add_start_token=False)
+
+    print("\n\nRES W START:", results_w_start)
+    print("\n\nRES NO START:", results_no_start)
+    
     # device='gpu') #2)
 
     # results_w_mask = perplexity_w_mask.compute(input_texts=input_texts,
@@ -67,8 +72,8 @@ def main():
     #                                        stride=256,
     #                                        device='gpu')
 
-    print(results)
-    print(round(results["perplexity"], 1))
+    # print(results)
+    # print(round(results["perplexity"], 1))
 
     # print("w_mask:", results_w_mask)
 
