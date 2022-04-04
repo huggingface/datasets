@@ -81,7 +81,12 @@
         "type": "text"
     },
     "tabular-classification": {
-        "type": "text"
+        "type": "text",
+        "subtasks": [
+            "tabular_multi_class_classification",
+            "tabular_multi_label_classification",
+            "tabular_single_column_regression"
+        ]
     },
     "tabular-to-text": {
         "type": "text",
