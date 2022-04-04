@@ -37,7 +37,7 @@ The `cvit-mkb-clsr` subset returns `precision@10`, the `wiki-ner` subset returns
 
 ### Values from popular papers
 
-The [original IndicGleu paper](https://aclanthology.org/2020.findings-emnlp.445.pdf) reported an average accuracy of 0.766 on the dataset, which varies depending on the subset selected.
+The [original IndicGlue paper](https://aclanthology.org/2020.findings-emnlp.445.pdf) reported an average accuracy of 0.766 on the dataset, which varies depending on the subset selected.
 
 ## Examples 
 
