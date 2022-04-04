@@ -31,28 +31,24 @@ DEFAULT_N_EXAMPLES = 20
 DEFAULT_FILEPATH = "file.txt"
 
 
-@pytest.fixture
-def generate_examples_fn():
-    def generate_examples_fn(**kwargs):
-        n = kwargs.pop("n", DEFAULT_N_EXAMPLES)
-        filepaths = kwargs.pop("filepaths", None)
-        for filepath in filepaths or [DEFAULT_FILEPATH]:
-            if filepaths is not None:
-                kwargs["filepath"] = filepath
-            for i in range(n):
-                yield f"{filepath}_{i}", {"id": i, **kwargs}
-
-    return generate_examples_fn
+def generate_examples_fn(**kwargs):
+    n = kwargs.pop("n", DEFAULT_N_EXAMPLES)
+    filepaths = kwargs.pop("filepaths", None)
+    for filepath in filepaths or [DEFAULT_FILEPATH]:
+        if filepaths is not None:
+            kwargs["filepath"] = filepath
+        for i in range(n):
+            yield f"{filepath}_{i}", {"id": i, **kwargs}
 
 
 @pytest.fixture
-def dataset(generate_examples_fn):
+def dataset():
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
     return IterableDataset(ex_iterable, info=DatasetInfo(description="dummy"), split="train")
 
 
 @pytest.fixture
-def dataset_with_several_columns(generate_examples_fn):
+def dataset_with_several_columns():
     ex_iterable = ExamplesIterable(
         generate_examples_fn,
         {"filepath": ["data0.txt", "data1.txt", "data2.txt"], "metadata": {"sources": ["https://foo.bar"]}},
@@ -67,14 +63,14 @@ def dataset_with_several_columns(generate_examples_fn):
 ################################
 
 
-def test_examples_iterable(generate_examples_fn):
+def test_examples_iterable():
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
     expected = list(generate_examples_fn())
     assert next(iter(ex_iterable)) == expected[0]
     assert list(ex_iterable) == expected
 
 
-def test_examples_iterable_with_kwargs(generate_examples_fn):
+def test_examples_iterable_with_kwargs():
     ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": ["0.txt", "1.txt"], "split": "train"})
     expected = list(generate_examples_fn(filepaths=["0.txt", "1.txt"], split="train"))
     assert list(ex_iterable) == expected
@@ -82,7 +78,7 @@ def test_examples_iterable_with_kwargs(generate_examples_fn):
     assert sorted({ex["filepath"] for _, ex in ex_iterable}) == ["0.txt", "1.txt"]
 
 
-def test_examples_iterable_shuffle_data_sources(generate_examples_fn):
+def test_examples_iterable_shuffle_data_sources():
     ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]})
     ex_iterable = ex_iterable.shuffle_data_sources(np.random.default_rng(40))
     expected = list(generate_examples_fn(filepaths=["1.txt", "0.txt"]))  # shuffle the filepaths
@@ -109,7 +105,7 @@ def test_examples_iterable_shuffle_shards_and_metadata():
 
 
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
-def test_buffer_shuffled_examples_iterable(generate_examples_fn, seed):
+def test_buffer_shuffled_examples_iterable(seed):
     n, buffer_size = 100, 30
     generator = np.random.default_rng(seed)
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
@@ -142,7 +138,7 @@ def test_buffer_shuffled_examples_iterable(generate_examples_fn, seed):
     assert sorted(list(ex_iterable)) == sorted(all_examples)
 
 
-def test_cycling_multi_sources_examples_iterable(generate_examples_fn):
+def test_cycling_multi_sources_examples_iterable():
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"text": "foo"})
     ex_iterable2 = ExamplesIterable(generate_examples_fn, {"text": "bar"})
     ex_iterable = CyclingMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
@@ -154,7 +150,7 @@ def test_cycling_multi_sources_examples_iterable(generate_examples_fn):
 
 
 @pytest.mark.parametrize("probabilities", [None, (0.5, 0.5), (0.9, 0.1)])
-def test_randomly_cycling_multi_sources_examples_iterable(generate_examples_fn, probabilities):
+def test_randomly_cycling_multi_sources_examples_iterable(probabilities):
     seed = 42
     generator = np.random.default_rng(seed)
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"text": "foo"})
@@ -191,7 +187,7 @@ def test_randomly_cycling_multi_sources_examples_iterable(generate_examples_fn, 
         (3, lambda x: {k: v * 2 for k, v in x.items()}, 1),  # make a duplicate of each example
     ],
 )
-def test_mapped_examples_iterable(generate_examples_fn, n, func, batch_size):
+def test_mapped_examples_iterable(n, func, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
     ex_iterable = MappedExamplesIterable(base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size)
     all_examples = [x for _, x in generate_examples_fn(n=n)]
@@ -219,7 +215,7 @@ def test_mapped_examples_iterable(generate_examples_fn, n, func, batch_size):
         (25, lambda x, indices: {"id+idx": [i + j for i, j in zip(x["id"], indices)]}, 10),  # add the index to the id
     ],
 )
-def test_mapped_examples_iterable_with_indices(generate_examples_fn, n, func, batch_size):
+def test_mapped_examples_iterable_with_indices(n, func, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size, with_indices=True
@@ -256,7 +252,7 @@ def test_mapped_examples_iterable_with_indices(generate_examples_fn, n, func, ba
         ),  # make a duplicate of each example
     ],
 )
-def test_mapped_examples_iterable_remove_columns(generate_examples_fn, n, func, batch_size, remove_columns):
+def test_mapped_examples_iterable_remove_columns(n, func, batch_size, remove_columns):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n, "extra_column": "foo"})
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size, remove_columns=remove_columns
@@ -287,7 +283,7 @@ def test_mapped_examples_iterable_remove_columns(generate_examples_fn, n, func, 
         (25, lambda ids_: {"id+1": [i + 1 for i in ids_]}, 10, ["id"]),  # same with bs=10
     ],
 )
-def test_mapped_examples_iterable_input_columns(generate_examples_fn, n, func, batch_size, input_columns):
+def test_mapped_examples_iterable_input_columns(n, func, batch_size, input_columns):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size, input_columns=input_columns
@@ -322,7 +318,7 @@ def test_mapped_examples_iterable_input_columns(generate_examples_fn, n, func, b
         (3, lambda x: [False] * len(x["id"]), 10),  # same with bs=10
     ],
 )
-def test_filtered_examples_iterable(generate_examples_fn, n, func, batch_size):
+def test_filtered_examples_iterable(n, func, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
     ex_iterable = FilteredExamplesIterable(
         base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size
@@ -350,7 +346,7 @@ def test_filtered_examples_iterable(generate_examples_fn, n, func, batch_size):
         (25, lambda x, indices: [idx % 2 == 0 for idx in indices], 10),  # same with bs=10
     ],
 )
-def test_filtered_examples_iterable_with_indices(generate_examples_fn, n, func, batch_size):
+def test_filtered_examples_iterable_with_indices(n, func, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
     ex_iterable = FilteredExamplesIterable(
         base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size, with_indices=True
@@ -378,7 +374,7 @@ def test_filtered_examples_iterable_with_indices(generate_examples_fn, n, func, 
         (25, lambda ids_: [i % 2 == 0 for i in ids_], 10, ["id"]),  # same with bs=10
     ],
 )
-def test_filtered_examples_iterable_input_columns(generate_examples_fn, n, func, batch_size, input_columns):
+def test_filtered_examples_iterable_input_columns(n, func, batch_size, input_columns):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
     ex_iterable = FilteredExamplesIterable(
         base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size, input_columns=input_columns
@@ -399,7 +395,7 @@ def test_filtered_examples_iterable_input_columns(generate_examples_fn, n, func,
     assert list(x for _, x in ex_iterable) == expected
 
 
-def test_skip_examples_iterable(generate_examples_fn):
+def test_skip_examples_iterable():
     total, count = 10, 2
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": total})
     skip_ex_iterable = SkipExamplesIterable(base_ex_iterable, n=count)
@@ -410,7 +406,7 @@ def test_skip_examples_iterable(generate_examples_fn):
     ), "skip examples makes the shards order fixed"
 
 
-def test_take_examples_iterable(generate_examples_fn):
+def test_take_examples_iterable():
     total, count = 10, 2
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": total})
     take_ex_iterable = TakeExamplesIterable(base_ex_iterable, n=count)
@@ -428,14 +424,14 @@ def test_take_examples_iterable(generate_examples_fn):
 ############################
 
 
-def test_iterable_dataset(generate_examples_fn):
+def test_iterable_dataset():
     dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {}))
     expected = [x for _, x in generate_examples_fn()]
     assert next(iter(dataset)) == expected[0]
     assert list(dataset) == expected
 
 
-def test_iterable_dataset_factory(generate_examples_fn):
+def test_iterable_dataset_factory():
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
     dataset = iterable_dataset(ex_iterable)
     assert isinstance(dataset, IterableDataset)
@@ -443,7 +439,7 @@ def test_iterable_dataset_factory(generate_examples_fn):
 
 
 @require_torch
-def test_iterable_dataset_factory_torch_integration(generate_examples_fn):
+def test_iterable_dataset_factory_torch_integration():
     import torch
 
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
@@ -454,7 +450,43 @@ def test_iterable_dataset_factory_torch_integration(generate_examples_fn):
     assert dataset._ex_iterable is ex_iterable
 
 
-def test_iterable_dataset_info(generate_examples_fn):
+@require_torch
+def test_iterable_dataset_factory_torch_picklable():
+    import pickle
+
+    ex_iterable = ExamplesIterable(generate_examples_fn, {})
+    dataset = iterable_dataset(ex_iterable, format_type="torch")
+    reloaded_dataset = pickle.loads(pickle.dumps(dataset))
+
+    import torch
+
+    assert isinstance(reloaded_dataset, IterableDataset)
+    assert isinstance(reloaded_dataset, torch.utils.data.IterableDataset)
+    assert reloaded_dataset._format_type == "torch"
+    assert len(list(dataset)) == len(list(reloaded_dataset))
+
+
+@require_torch
+def test_iterable_dataset_with_format_torch():
+    from torch.utils.data import DataLoader
+
+    ex_iterable = ExamplesIterable(generate_examples_fn, {})
+    dataset = iterable_dataset(ex_iterable).with_format("torch")
+    dataloader = DataLoader(dataset)
+    assert len(list(dataloader)) == len(list(ex_iterable))
+
+
+@require_torch
+def test_iterable_dataset_torch_dataloader_parallel():
+    from torch.utils.data import DataLoader
+
+    ex_iterable = ExamplesIterable(generate_examples_fn, {})
+    dataset = iterable_dataset(ex_iterable).with_format("torch")
+    dataloader = DataLoader(dataset, num_workers=2)
+    assert len(list(dataloader)) == len(list(ex_iterable))
+
+
+def test_iterable_dataset_info():
     info = DatasetInfo(description="desc", citation="@article{}", size_in_bytes=42)
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
     dataset = IterableDataset(ex_iterable, info=info)
@@ -488,7 +520,9 @@ def test_iterable_dataset_set_epoch_of_shuffled_dataset(dataset: IterableDataset
         assert is_rng_equal(np.random.default_rng(effective_seed), shuffled_dataset._effective_generator())
 
 
-def test_iterable_dataset_map(dataset: IterableDataset, generate_examples_fn):
+def test_iterable_dataset_map(
+    dataset: IterableDataset,
+):
     func = lambda x: {"id+1": x["id"] + 1}  # noqa: E731
     mapped_dataset = dataset.map(func)
     assert isinstance(mapped_dataset._ex_iterable, MappedExamplesIterable)
@@ -497,7 +531,9 @@ def test_iterable_dataset_map(dataset: IterableDataset, generate_examples_fn):
     assert next(iter(mapped_dataset)) == {**next(iter(dataset)), **func(next(iter(generate_examples_fn()))[1])}
 
 
-def test_iterable_dataset_map_batched(dataset: IterableDataset, generate_examples_fn):
+def test_iterable_dataset_map_batched(
+    dataset: IterableDataset,
+):
     func = lambda x: {"id+1": [i + 1 for i in x["id"]]}  # noqa: E731
     batch_size = 3
     dataset = dataset.map(func, batched=True, batch_size=batch_size)
@@ -507,7 +543,9 @@ def test_iterable_dataset_map_batched(dataset: IterableDataset, generate_example
     assert next(iter(dataset)) == {"id": 0, "id+1": 1}
 
 
-def test_iterable_dataset_map_complex_features(dataset: IterableDataset, generate_examples_fn):
+def test_iterable_dataset_map_complex_features(
+    dataset: IterableDataset,
+):
     # https://github.com/huggingface/datasets/issues/3505
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": "positive"})
     features = Features(
@@ -528,7 +566,7 @@ def test_iterable_dataset_map_complex_features(dataset: IterableDataset, generat
 
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
 @pytest.mark.parametrize("epoch", [None, 0, 1])
-def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn, seed, epoch):
+def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch):
     buffer_size = 3
     dataset = deepcopy(dataset)
     dataset._ex_iterable.kwargs["filepaths"] = ["0.txt", "1.txt"]
@@ -573,7 +611,7 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn
         ),
     ],
 )
-def test_iterable_dataset_features(generate_examples_fn, features):
+def test_iterable_dataset_features(features):
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 0})
     dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
     if features:
@@ -611,7 +649,7 @@ def test_iterable_dataset_take(dataset: IterableDataset, n):
 
 
 @pytest.mark.parametrize("method", ["skip", "take"])
-def test_iterable_dataset_shuffle_after_skip_or_take(generate_examples_fn, method):
+def test_iterable_dataset_shuffle_after_skip_or_take(method):
     seed = 42
     n, n_shards = 3, 10
     count = 7
@@ -658,7 +696,7 @@ def test_iterable_dataset_remove_columns(dataset_with_several_columns):
     ]
 
 
-def test_iterable_dataset_cast_column(generate_examples_fn):
+def test_iterable_dataset_cast_column():
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
     features = Features({"id": Value("int64"), "label": Value("int64")})
     dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
@@ -668,7 +706,7 @@ def test_iterable_dataset_cast_column(generate_examples_fn):
     assert list(casted_dataset) == [casted_features.encode_example(ex) for _, ex in ex_iterable]
 
 
-def test_iterable_dataset_cast(generate_examples_fn):
+def test_iterable_dataset_cast():
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
     features = Features({"id": Value("int64"), "label": Value("int64")})
     dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
@@ -723,7 +761,9 @@ def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_le
     assert len(list(merged_dataset)) == expected_length
 
 
-def test_interleave_datasets_with_features(dataset: IterableDataset, generate_examples_fn):
+def test_interleave_datasets_with_features(
+    dataset: IterableDataset,
+):
     features = Features(
         {
             "id": Value("int64"),
