@@ -173,36 +173,43 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 if file is not None:
                     _, file_ext = os.path.splitext(file)
                     if file_ext.lower() in self.IMAGE_EXTENSIONS:
-                        if last_checked_dir is None or os.path.dirname(file) != last_checked_dir:
-                            last_checked_dir = os.path.dirname(file)
+                        current_dir = os.path.dirname(file)
+                        if last_checked_dir is None or last_checked_dir != current_dir:
+                            last_checked_dir = current_dir
                             metadata_dir = None
                             metadata_dict = None
-                            for metadata_file, downloaded_metadata_file in metadata_files:
-                                if metadata_file is not None and not os.path.relpath(
-                                    file, os.path.dirname(metadata_file)
-                                ).startswith(".."):
-                                    metadata_dir = os.path.dirname(metadata_file)
-                                    with open(downloaded_metadata_file, "rb") as f:
-                                        pa_metadata_table = paj.read_json(f)
-                                    pa_file_name_array = pa_metadata_table["file_name"]
-                                    pa_file_name_array = pc.replace_substring(
-                                        pa_file_name_array, pattern="\\", replacement="/"
+                            metadata_file_candidates = [
+                                (
+                                    os.path.relpath(file, os.path.dirname(metadata_file)),
+                                    metadata_file,
+                                    downloaded_metadata_file,
+                                )
+                                for metadata_file, downloaded_metadata_file in metadata_files
+                                if metadata_file is not None
+                                and not os.path.relpath(file, os.path.dirname(metadata_file)).startswith("..")
+                            ]
+                            if metadata_file_candidates:
+                                _, metadata_file, downloaded_metadata_file = min(
+                                    metadata_file_candidates, key=lambda x: os.path.split(x[0])
+                                )
+                                with open(downloaded_metadata_file, "rb") as f:
+                                    pa_metadata_table = paj.read_json(f)
+                                pa_file_name_array = pa_metadata_table["file_name"]
+                                pa_file_name_array = pc.replace_substring(
+                                    pa_file_name_array, pattern="\\", replacement="/"
+                                )
+                                pa_metadata_table = pa_metadata_table.drop(["file_name"])
+                                metadata_dir = os.path.dirname(metadata_file)
+                                metadata_dict = {
+                                    file_name: image_metadata
+                                    for file_name, image_metadata in zip(
+                                        pa_file_name_array.to_pylist(), pa_table_to_pylist(pa_metadata_table)
                                     )
-                                    pa_metadata_table = pa_metadata_table.drop(["file_name"])
-                                    metadata_dict = {
-                                        file_name: image_metadata
-                                        for file_name, image_metadata in zip(
-                                            pa_file_name_array.to_pylist(), pa_table_to_pylist(pa_metadata_table)
-                                        )
-                                    }
-                                    break
+                                }
                         if metadata_dir is not None:
                             file_relpath = os.path.relpath(file, metadata_dir)
                             file_relpath = file_relpath.replace("\\", "/")
-                            if not file_relpath.startswith(".."):
-                                image_metadata = metadata_dict.get(file_relpath, image_empty_metadata)
-                            else:
-                                image_metadata = image_empty_metadata
+                            image_metadata = metadata_dict.get(file_relpath, image_empty_metadata)
                         else:
                             image_metadata = image_empty_metadata
                         if self.config.drop_labels:
@@ -221,38 +228,47 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                     for downloaded_dir_file in downloaded_file_or_dir:
                         _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
                         if downloaded_dir_file_ext.lower() in self.IMAGE_EXTENSIONS:
-                            if last_checked_dir is None or os.path.dirname(downloaded_dir_file) != last_checked_dir:
-                                last_checked_dir = os.path.dirname(downloaded_dir_file)
+                            current_dir = os.path.dirname(downloaded_dir_file)
+                            if last_checked_dir is None or last_checked_dir != current_dir:
+                                last_checked_dir = current_dir
                                 metadata_dir = None
-                                metadata_file = None
-                                for metadata_file, downloaded_metadata_file in metadata_files:
-                                    if metadata_file is None and not os.path.relpath(
+                                metadata_dict = None
+                                metadata_file_candidates = [
+                                    (
+                                        os.path.relpath(
+                                            downloaded_dir_file, os.path.dirname(downloaded_metadata_file)
+                                        ),
+                                        metadata_file,
+                                        downloaded_metadata_file,
+                                    )
+                                    for metadata_file, downloaded_metadata_file in metadata_files
+                                    if metadata_file is None
+                                    and not os.path.relpath(
                                         downloaded_dir_file, os.path.dirname(downloaded_metadata_file)
-                                    ).startswith(".."):
-                                        metadata_dir = os.path.dirname(downloaded_metadata_file)
-                                        with open(downloaded_metadata_file, "rb") as f:
-                                            pa_metadata_table = paj.read_json(f)
-                                        pa_file_name_array = pa_metadata_table["file_name"]
-                                        pa_file_name_array = pc.replace_substring(
-                                            pa_file_name_array, pattern="\\", replacement="/"
+                                    ).startswith("..")
+                                ]
+                                if metadata_file_candidates:
+                                    _, metadata_file, downloaded_metadata_file = min(
+                                        metadata_file_candidates, key=lambda x: os.path.split(x[0])
+                                    )
+                                    with open(downloaded_metadata_file, "rb") as f:
+                                        pa_metadata_table = paj.read_json(f)
+                                    pa_file_name_array = pa_metadata_table["file_name"]
+                                    pa_file_name_array = pc.replace_substring(
+                                        pa_file_name_array, pattern="\\", replacement="/"
+                                    )
+                                    pa_metadata_table = pa_metadata_table.drop(["file_name"])
+                                    metadata_dir = os.path.dirname(downloaded_metadata_file)
+                                    metadata_dict = {
+                                        file_name: image_metadata
+                                        for file_name, image_metadata in zip(
+                                            pa_file_name_array.to_pylist(), pa_table_to_pylist(pa_metadata_table)
                                         )
-                                        pa_metadata_table = pa_metadata_table.drop(["file_name"])
-                                        metadata_dict = {
-                                            file_name: image_metadata
-                                            for file_name, image_metadata in zip(
-                                                pa_file_name_array.to_pylist(), pa_table_to_pylist(pa_metadata_table)
-                                            )
-                                        }
-                                        break
+                                    }
                             if metadata_dir is not None:
                                 downloaded_dir_file_relpath = os.path.relpath(downloaded_dir_file, metadata_dir)
                                 downloaded_dir_file_relpath = downloaded_dir_file_relpath.replace("\\", "/")
-                                if not file_relpath.startswith(".."):
-                                    image_metadata = metadata_dict.get(
-                                        downloaded_dir_file_relpath, image_empty_metadata
-                                    )
-                                else:
-                                    image_metadata = image_empty_metadata
+                                image_metadata = metadata_dict.get(downloaded_dir_file_relpath, image_empty_metadata)
                             else:
                                 image_metadata = image_empty_metadata
                             if self.config.drop_labels:
