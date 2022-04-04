@@ -638,11 +638,8 @@ def parquet_to_arrow(sources, destination):
     disable = not logging.is_progress_bar_enabled()
     with ArrowWriter(path=destination, stream=stream) as writer:
         for source in logging.tqdm(sources, unit="sources", disable=disable):
-            pf = pa.parquet.ParquetFile(source)
-            for i in logging.tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=disable):
-                df = pf.read_row_group(i).to_pandas()
-                for col in df.columns:
-                    df[col] = df[col].apply(json.loads)
-                reconstructed_table = pa.Table.from_pandas(df)
-                writer.write_table(reconstructed_table)
+            parquet_file = pa.parquet.ParquetFile(source)
+            for record_batch in parquet_file.iter_batches():
+                pa_table = pa.Table.from_batches([record_batch])
+                writer.write_table(pa_table)
     return destination
