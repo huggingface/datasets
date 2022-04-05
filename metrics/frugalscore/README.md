@@ -27,7 +27,7 @@ Its optional arguments are:
 
 `max_length`: the maximum sequence length (default value is `128`).
 
-`device`: either gpu or cpu (default value is `None`). 
+`device`: either "gpu" or "cpu" (default value is `None`). 
 
 ```python
 >>> results = frugalscore.compute(predictions=['hello there', 'huggingface'], references=['hello world', 'hugging face'], batch_size=16, max_length=64, device="gpu")
