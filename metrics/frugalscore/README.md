@@ -17,7 +17,7 @@ FrugalScore calculates how good are the predictions given some references, based
 
 The inputs it takes are:
 
-`predictions` : a list of strings representing the predictions to score. 
+`predictions`: a list of strings representing the predictions to score. 
 
 `references`: a list of string representing the references for each prediction. 
 
