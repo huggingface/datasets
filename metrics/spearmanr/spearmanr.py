@@ -51,6 +51,7 @@ Examples:
         >>> results = spearmanr_metric.compute(references=[1, 2, 3, 4, 5], predictions=[10, 9, 2.5, 6, 4])
         >>> print(results)
         {'spearmanr': -0.7}
+
     Example 2:
         >>> spearmanr_metric = datasets.load_metric("spearmanr")
         >>> results = spearmanr_metric.compute(references=[1, 2, 3, 4, 5], predictions=[10, 9, 2.5, 6, 4])
