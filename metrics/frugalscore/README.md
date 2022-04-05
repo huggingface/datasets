@@ -30,7 +30,7 @@ Its optional arguments are:
 `device`: either gpu or cpu (default value is `None`). 
 
 ```python
->>> results = frugalscore.compute(predictions=['hello there', 'huggingface'], references=['hello world', 'hugging face'], batch_size = 16, max_length = 64, device = "gpu")
+>>> results = frugalscore.compute(predictions=['hello there', 'huggingface'], references=['hello world', 'hugging face'], batch_size=16, max_length=64, device="gpu")
 ```
 
 ## Output values
