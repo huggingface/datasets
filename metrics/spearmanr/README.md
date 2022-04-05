@@ -68,7 +68,7 @@ A basic example:
 The same example, but that also returns the pvalue:
 ```python
 >>> spearmanr_metric = datasets.load_metric("spearmanr")
->>> results = spearmanr_metric.compute(references=[1, 2, 3, 4, 5], predictions=[10, 9, 2.5, 6, 4])
+>>> results = spearmanr_metric.compute(references=[1, 2, 3, 4, 5], predictions=[10, 9, 2.5, 6, 4], return_pvalue=True)
 >>> print(results)
 {'spearmanr': SpearmanrResult(correlation=-0.7, pvalue=0.1881204043741873)}
 >>> print(results['spearmanr'].correlation)
