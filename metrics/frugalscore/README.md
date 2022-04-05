@@ -5,7 +5,7 @@
 FrugalScore is a reference-based metric for Natural Language Generation (NLG) model evaluation. It is based on a distillation approach that allows to learn a fixed, low cost version of any expensive NLG metric, while retaining most of its original performance.
 
 The FrugalScore models are obtained by continuing the pretraining of small models on a synthetic dataset constructed using summarization, backtranslation and denoising models. During the training, the small models learn the internal mapping of the expensive metric, including any similarity function.
-The FrugalScore models are obtained by continuing the pretraining of small models on a synthetic dataset constructed using summarization, backtranslation and denoising models. During the training, the small models learn the internal mapping of the expensive metric, including any similarity function.
+
 ## How to use 
 
 When loading FrugalScore, you can indicate the model you wish to use to compute the score. The default model is `moussaKam/frugalscore_tiny_bert-base_bert-score`, and a full list of models can be found in the [Limitations and bias](#Limitations-and-bias) section.
