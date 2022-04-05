@@ -54,22 +54,22 @@ Examples:
         >>> perplexity = datasets.load_metric("perplexity")
         >>> input_texts = ["lorem ipsum", "Happy Birthday!", "Bienvenue"]
         >>> results = perplexity.compute(model_id='gpt2',
-        ...                              input_texts=input_texts,
-        ...                              stride=1)
-        >>> round(results["perplexity"], 1)
-        78.2
+        ...                              input_texts=input_texts)
+        >>> print(len(results["perplexity"]))
+        3
 
     Example 2:
         >>> perplexity = datasets.load_metric("perplexity")
         >>> input_texts = datasets.load_dataset("wikitext",
         ...                                     "wikitext-2-raw-v1",
-        ...                                     split="test")["text"][:10] # doctest:+ELLIPSIS
-        [...]
+        ...                                     split="test")["text"][:50] # doctest:+ELLIPSIS
+        >>> input_texts = [s in input_texts if s! = '']
+        >>> print(len(input_texts))
+        27
         >>> results = perplexity.compute(model_id='gpt2',
-        ...                              input_texts=input_texts,
-        ...                              stride=256)
-        >>> round(results["perplexity"], 1)
-        117.9
+        ...                              input_texts=input_texts)
+        >>> print(len(results["perplexity"]))
+        27
 
 """
 
