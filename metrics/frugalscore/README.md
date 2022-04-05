@@ -35,7 +35,7 @@ Its optional arguments are:
 
 ## Output values
 
-The output of FrugalScore is a dictionary with the list of scores:
+The output of FrugalScore is a dictionary with the list of scores for each prediction-reference pair:
 ```python
 {'scores': [0.6307541, 0.6449357]}
 ```
