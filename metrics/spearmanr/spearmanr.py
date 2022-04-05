@@ -55,9 +55,10 @@ Examples:
     Example 2:
         >>> spearmanr_metric = datasets.load_metric("spearmanr")
         >>> results = spearmanr_metric.compute(references=[1, 2, 3, 4, 5], predictions=[10, 9, 2.5, 6, 4])
-        >>> print(results)
-        {'spearmanr': SpearmanrResult(correlation=-0.7, pvalue=0.1881204043741873)}
-
+        >>> print(results['spearmanr'].correlation)
+        -0.7
+        >>> print(round(results['spearmanr'].pvalue, 2))
+        0.19
 """
 
 _CITATION = r"""\
