@@ -6,7 +6,7 @@ FrugalScore is a reference-based metric for Natural Language Generatio (NLG) mod
 
 ## How to use 
 
-When loading FrugalScore, you can indicate the model you wish to use to compute the score. The default model is `tiny_bert-base_bert-score`, and a full list of models can be found in the [Limitations and bias](#Limitations-and-bias) section.
+When loading FrugalScore, you can indicate the model you wish to use to compute the score. The default model is `moussaKam/frugalscore_tiny_bert-base_bert-score`, and a full list of models can be found in the [Limitations and bias](#Limitations-and-bias) section.
 
 ```python
 >>> from datasets import load_metric
