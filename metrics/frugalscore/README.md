@@ -2,7 +2,7 @@
 
 
 ## Metric Description
-FrugalScore is a reference-based metric for NLG models evaluation. It is based on a distillation approach that allows to learn a fixed, low cost version of any expensive NLG metric, while retaining most of its original performance.
+FrugalScore is a reference-based metric for Natural Language Generatio (NLG) models evaluation. It is based on a distillation approach that allows to learn a fixed, low cost version of any expensive NLG metric, while retaining most of its original performance.
 
 ## How to use 
 
