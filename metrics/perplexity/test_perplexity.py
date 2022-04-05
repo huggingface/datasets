@@ -1,84 +1,34 @@
-"""
-
-        device = "cuda"
-        model_id = "distilbert-base-uncased"
-
-        model = GPT2LMHeadModel.from_pretrained(model_id).to(device)
-        tokenizer = GPT2TokenizerFast.from_pretrained(model_id)
-        test = load_dataset("wikitext", "wikitext-2-raw-v1", split="test")
-        encodings = tokenizer("\n\n".join(test["text"]), return_tensors="pt")
-        max_length = model.config.n_positions
-
-        nlls = []
-        for i in tqdm(range(0, encodings.input_ids.size(1), stride)):
-            begin_loc = max(i + stride - max_length, 0)
-            end_loc = min(i + stride, encodings.input_ids.size(1))
-            trg_len = end_loc - i  # may be different from stride on last loop
-            input_ids = encodings.input_ids[:, begin_loc:end_loc].to(device)
-            target_ids = input_ids.clone()
-            target_ids[:, :-trg_len] = -100
-
-            with torch.no_grad():
-                outputs = model(input_ids, labels=target_ids)
-                neg_log_likelihood = outputs[0] * trg_len
-                nlls.append(neg_log_likelihood)
-
-"""
-
-# import fixed_perplexity
-
-# import perplexity
 import datasets
 from datasets import load_dataset
 
 
 def main():
-    print("\n\nworking...\n\n")
-
-    # model_id='gpt2'
-
-    print("\n\n-----STRING VERSION-----\n")
-    # perp = perplexity.Perplexity()
-    # perp.add_batch()
-    #print("created perplexity obj, now getting results...")
-    # results = perp._compute(model_id=model_id,
-    #                        input_list=["lorem ipsum","happy birthday", "no way!"],
-    #                        device='cuda')
-
-    # print(results)
-
-    input_texts = load_dataset("wikitext", "wikitext-2-raw-v1", keep_in_memory=False, split="test")["text"][:10]
-    print(len(input_texts))
+    print("\n\n\n------------  WIKITEXT:  ------------")
+    input_texts = load_dataset("wikitext", "wikitext-2-raw-v1", keep_in_memory=False, split="test")["text"][:50]
+    print("input len with empty strings:", len(input_texts))
     input_texts = [s for s in input_texts if s!='']
-    print(len(input_texts))
-    # results2 = perp._compute(model_id=model_id,
-    #                        input_list=test_dataset,
-    #                        device='cuda')
-
-    # print(results2)
+    print("input len without empty strings:", len(input_texts))
 
     perplexity = datasets.load_metric("../perplexity")
-    # perplexity_w_mask = fixed_perplexity.Perplexity() #datasets.load_metric("~/datasets/metrics/perplexity/fixed_perplexity")
-    # input_texts = ["lorem ipsum", "Happy Birthday!", "Bienvenue"]
-    # input_texts = test_dataset
-    # print(input_texts)
-    results_w_start = perplexity.compute(input_texts=input_texts, model_id="gpt2", device="gpu", add_start_token=True)  # ,
-    results_no_start = perplexity.compute(input_texts=input_texts, model_id="gpt2", device="gpu", add_start_token=False)
-
-    print("\n\nRES W START:", results_w_start)
-    print("\n\nRES NO START:", results_no_start)
     
-    # device='gpu') #2)
+    results_w_start = perplexity.compute(input_texts=input_texts, model_id="gpt2", device="gpu", add_start_token=True)
+    print("\n\nRES W START:", results_w_start)
 
-    # results_w_mask = perplexity_w_mask.compute(input_texts=input_texts,
-    #                                        model_id='gpt2',
-    #                                        stride=256,
-    #                                        device='gpu')
+    results_no_start = perplexity.compute(input_texts=input_texts, model_id="gpt2", device="gpu", add_start_token=False)
+    print("\n\nRES NO START:", results_no_start)
 
-    # print(results)
-    # print(round(results["perplexity"], 1))
 
-    # print("w_mask:", results_w_mask)
+    
+    print("\n\n\n------------  SMALL SNIPPETS:  ------------")
+    input_texts = ["lorem ipsum", "Happy Birthday!", "Bienvenue"]
+    print(input_texts)
+
+    results_w_start = perplexity.compute(input_texts=input_texts, model_id="gpt2", device="gpu", add_start_token=True)
+    print("\n\nRES W START:", results_w_start)
+
+    results_no_start = perplexity.compute(input_texts=input_texts, model_id="gpt2", device="gpu", add_start_token=False)
+    print("\n\nRES NO START:", results_no_start)
+
 
 
 if __name__ == "__main__":
