@@ -130,6 +130,10 @@ class Perplexity(datasets.Metric):
 
         encoded_texts = encodings["input_ids"]
         attn_masks = encodings["attention_mask"]
+        if add_start_token:
+            assert torch.all(torch.ge(attn_masks.sum(1), 1)), "Each input text must be at least one token long."
+        else:
+            assert torch.all(torch.ge(attn_masks.sum(1), 2)), "When add_start_token=False, each input text must be at least two tokens long. Run with add_start_token=True if inputting strings of only one token, and remove all empty input strings."
         special_tokens_masks = encodings["special_tokens_mask"]
 
         max_model_length = model.config.n_positions

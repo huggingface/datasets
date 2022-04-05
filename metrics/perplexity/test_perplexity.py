@@ -48,6 +48,9 @@ def main():
     # print(results)
 
     input_texts = load_dataset("wikitext", "wikitext-2-raw-v1", keep_in_memory=False, split="test")["text"][:10]
+    print(len(input_texts))
+    input_texts = [s for s in input_texts if s!='']
+    print(len(input_texts))
     # results2 = perp._compute(model_id=model_id,
     #                        input_list=test_dataset,
     #                        device='cuda')
