@@ -89,13 +89,9 @@ class Perplexity(datasets.Metric):
             reference_urls=["https://huggingface.co/docs/transformers/perplexity"],
         )
 
-    def _compute(self,
-                input_texts,
-                model_id,
-                batch_size: int = 16,
-                add_start_token: bool = True,
-                stride: int = 512,
-                device=None):
+    def _compute(
+        self, input_texts, model_id, batch_size: int = 16, add_start_token: bool = True, stride: int = 512, device=None
+    ):
 
         if device is not None:
             assert device in ["gpu", "cpu", "cuda"], "device should be either gpu or cpu."
@@ -103,6 +99,8 @@ class Perplexity(datasets.Metric):
                 device = "cuda"
         else:
             device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        print("cuda available?", torch.cuda.is_available())
 
         model = AutoModelForCausalLM.from_pretrained(model_id)
         model = model.to(device)
@@ -113,18 +111,21 @@ class Perplexity(datasets.Metric):
             # leave room for <BOS> token to be added:
             max_tokenized_len = model.config.n_positions - 1
             if tokenizer.bos_token is None:
-                tokenizer.add_special_tokens({'bos_token':'<BOS>'})
+                tokenizer.add_special_tokens({"bos_token": "<BOS>"})
         else:
             max_tokenized_len = model.config.n_positions
-        
-        encodings = tokenizer(input_texts,
-                                add_special_tokens=False,
-                                padding=True,
-                                truncation=True,
-                                max_length=max_tokenized_len,
-                                return_tensors="pt",
-                                return_attention_mask=True
-                                ).to(device)
+
+        model.resize_token_embeddings(len(tokenizer))
+
+        encodings = tokenizer(
+            input_texts,
+            add_special_tokens=False,
+            padding=True,
+            truncation=True,
+            max_length=max_tokenized_len,
+            return_tensors="pt",
+            return_attention_mask=True,
+        ).to(device)
 
         encoded_texts = encodings["input_ids"]
         attn_masks = encodings["attention_mask"]
@@ -133,21 +134,25 @@ class Perplexity(datasets.Metric):
         if add_start_token:
             assert torch.all(torch.ge(attn_masks.sum(1), 1)), "Each input text must be at least one token long."
         else:
-            assert torch.all(torch.ge(attn_masks.sum(1), 2)), "When add_start_token=False, each input text must be at least two tokens long. Run with add_start_token=True if inputting strings of only one token, and remove all empty input strings."
+            assert torch.all(
+                torch.ge(attn_masks.sum(1), 2)
+            ), "When add_start_token=False, each input text must be at least two tokens long. Run with add_start_token=True if inputting strings of only one token, and remove all empty input strings."
 
         ppls = []
 
         loss_fct = CrossEntropyLoss(reduction="none")
 
         for text_index in logging.tqdm(range(0, len(encoded_texts), batch_size)):
-            encoded_batch = encoded_texts[text_index:min(text_index+batch_size, len(encoded_texts))]
-            attn_mask = attn_masks[text_index:min(text_index+batch_size, len(attn_masks))]
-           
+            encoded_batch = encoded_texts[text_index : min(text_index + batch_size, len(encoded_texts))]
+            attn_mask = attn_masks[text_index : min(text_index + batch_size, len(attn_masks))]
+
             if add_start_token:
-                bos_tokens_tensor = torch.tensor([[tokenizer.bos_token_id]]*encoded_batch.size(dim=0)).to(device)
+                bos_tokens_tensor = torch.tensor([[tokenizer.bos_token_id]] * encoded_batch.size(dim=0)).to(device)
                 encoded_batch = torch.cat([bos_tokens_tensor, encoded_batch], dim=1)
-                attn_mask = torch.cat([torch.zeros(bos_tokens_tensor.size(), dtype=torch.int64).to(device), attn_mask], dim=1)
-                
+                attn_mask = torch.cat(
+                    [torch.zeros(bos_tokens_tensor.size(), dtype=torch.int64).to(device), attn_mask], dim=1
+                )
+
             labels = encoded_batch
 
             with torch.no_grad():
@@ -157,7 +162,10 @@ class Perplexity(datasets.Metric):
             shift_labels = labels[..., 1:].contiguous()
             shift_attention_mask_batch = attn_mask[..., 1:].contiguous()
 
-            perplexity_batch = torch.exp((loss_fct(shift_logits.transpose(1,2), shift_labels)*shift_attention_mask_batch).sum(1) / shift_attention_mask_batch.sum(1)).tolist()
+            perplexity_batch = torch.exp(
+                (loss_fct(shift_logits.transpose(1, 2), shift_labels) * shift_attention_mask_batch).sum(1)
+                / shift_attention_mask_batch.sum(1)
+            ).tolist()
 
             ppls += perplexity_batch
 
