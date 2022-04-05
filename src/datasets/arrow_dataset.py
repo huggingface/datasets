@@ -1404,7 +1404,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
         if new_column_name in dataset._data.column_names:
             raise ValueError(
-                f"New column name {original_column_name} already in the dataset. "
+                f"New column name {new_column_name} already in the dataset. "
                 f"Please choose a column name which is not already in the dataset. "
                 f"Current columns in the dataset: {dataset._data.column_names}"
             )
