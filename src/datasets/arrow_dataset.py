@@ -3364,7 +3364,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 repo_id,
                 token=token,
                 repo_type="dataset",
-                organization=organization,
                 private=private,
             )
         except HTTPError as err:
