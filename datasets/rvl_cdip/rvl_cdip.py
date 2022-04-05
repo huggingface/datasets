@@ -78,6 +78,7 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
+                    "path": datasets.Value("string"),
                     "image": datasets.Image(),
                     "label": datasets.ClassLabel(names=_CLASSES),
                 }
@@ -93,7 +94,7 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
         archive_path = dl_manager.download(_URLS["rvl-cdip"])
         labels_path = dl_manager.download_and_extract(_URLS["labels"])
 
-        print(f"Archive path is: {labels_path}")
+        print(f"Archive path is: {archive_path}")
         print(f"Labels path is: {labels_path}")
         
         # (Optional) In non-streaming mode, we can extract the archive locally to have actual local image files:
@@ -140,15 +141,13 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
         image_to_class_id = {}
         for item in data:
             image_path, class_id = item.split(' ')
-            image_to_class_id[image_path] = class_id
+            image_path = os.path.join(_IMAGES_DIR, image_path)
+            image_to_class_id[image_path] = int(class_id)
         
         return image_to_class_id
     
     def _generate_examples(self, local_extracted_archive, archive_iterator, labels_filepath, split):
 
-        print(f"Labels path is: {labels_filepath}")
-        
-        
         with open(labels_filepath, encoding="utf-8") as f:
             data = f.read().splitlines()
 
@@ -159,7 +158,9 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
                 if(file_path in image_to_class_id):
                     class_id = image_to_class_id[file_path]
                     label = _CLASSES[class_id]
+                    path = os.path.join(local_extracted_archive, file_path) if local_extracted_archive else None
                     yield file_path, {
+                        "path" : path,
                         "image": {"path": file_path, "bytes": file_obj.read()},
                         "label": label,
                     }
