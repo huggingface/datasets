@@ -3361,8 +3361,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         try:
             api.create_repo(
-                dataset_name,
-                token,
+                repo_id,
+                token=token,
                 repo_type="dataset",
                 organization=organization,
                 private=private,
