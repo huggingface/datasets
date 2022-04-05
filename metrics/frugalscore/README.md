@@ -10,7 +10,7 @@ When loading FrugalScore, you can indicate the model you wish to use to compute 
 
 ```python
 >>> from datasets import load_metric
->>> frugalscore = load_metric("frugalscore", checkpoint = "moussaKam/frugalscore_medium_bert-base_mover-score")
+>>> frugalscore = load_metric("frugalscore", "moussaKam/frugalscore_medium_bert-base_mover-score")
 ```
 
 FrugalScore calculates how good are the predictions given some references, based on a set of scores.
