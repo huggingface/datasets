@@ -19,7 +19,7 @@ The inputs it takes are:
 
 `predictions` : a list of strings representing the predictions to score. 
 
-`references` : a list of string representing the references for each prediction. 
+`references`: a list of string representing the references for each prediction. 
 
 Its optional arguments are:
 
