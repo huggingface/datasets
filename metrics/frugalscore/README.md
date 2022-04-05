@@ -23,7 +23,7 @@ The inputs it takes are:
 
 Its optional arguments are:
 
-`batch_size` : the batch size for predictions (default value is `32`).
+`batch_size`: the batch size for predictions (default value is `32`).
 
 `max_length`: the maximum sequence length (default value is `128`).
 
