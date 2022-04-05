@@ -43,24 +43,24 @@ Examples:
         >>> matthews_metric = datasets.load_metric("matthews_correlation")
         >>> results = matthews_metric.compute(references=[1, 3, 2, 0, 3, 2],
         ...                                     predictions=[1, 2, 2, 0, 3, 3])
-        >>> print(round(results, 2))
-        {'matthews_correlation': 0.54}
+        >>> print(round(results['matthews_correlation'], 2))
+        0.54
 
     Example 2, the same example as above, but also including sample weights:
         >>> matthews_metric = datasets.load_metric("matthews_correlation")
         >>> results = matthews_metric.compute(references=[1, 3, 2, 0, 3, 2],
         ...                                     predictions=[1, 2, 2, 0, 3, 3],
         ...                                     sample_weight=[0.5, 3, 1, 1, 1, 2])
-        >>> print(round(results, 2))
-        {'matthews_correlation': 0.098}
+        >>> print(round(results['matthews_correlation'], 2))
+        0.098
 
     Example 3, the same example as above, but with sample weights that cause a negative correlation:
         >>> matthews_metric = datasets.load_metric("matthews_correlation")
         >>> results = matthews_metric.compute(references=[1, 3, 2, 0, 3, 2],
         ...                                     predictions=[1, 2, 2, 0, 3, 3],
         ...                                     sample_weight=[0.5, 1, 0, 0, 0, 1])
-        >>> print(round(results, 2))
-        {'matthews_correlation': -0.25}
+        >>> print(round(results['matthews_correlation'], 2))
+        -0.25
 """
 
 _CITATION = """\
