@@ -1,4 +1,4 @@
-# Metric Card for WIKI_SPLIT
+# Metric Card for WikiSplit
 
 ## Metric description
 
