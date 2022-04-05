@@ -115,5 +115,5 @@ class Spearmanr(datasets.Metric):
             }
         else:
             return {
-            "spearmanr": spearmanr(references, predictions)[0],
-        }
+                "spearmanr": spearmanr(references, predictions)[0],
+            }
