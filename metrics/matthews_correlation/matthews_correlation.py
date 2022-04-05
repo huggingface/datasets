@@ -33,17 +33,39 @@ is also known as the phi coefficient. [source: Wikipedia]
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions: Predicted labels, as returned by a model.
-    references: Ground truth labels.
-    sample_weight: Sample weights.
+    predictions (list of int): Predicted labels, as returned by a model.
+    references (list of int): Ground truth labels.
+    sample_weight (list of int, float, or bool): Sample weights. Defaults to `None`.
 Returns:
-    matthews_correlation: Matthews correlation.
+    matthews_correlation (dict containing float): Matthews correlation.
 Examples:
+    Example 1, a basic example with only predictions and references as inputs:
+        ```python
+        >>> matthews_metric = datasets.load_metric("matthews_correlation")
+        >>> results = matthews_metric.compute(references=[1, 3, 2, 0, 3, 2],
+        ...                                     predictions=[1, 2, 2, 0, 3, 3])
+        >>> print(results)
+        {'matthews_correlation': 0.5384615384615384}
+        ```
 
-    >>> matthews_metric = datasets.load_metric("matthews_correlation")
-    >>> results = matthews_metric.compute(references=[0, 1], predictions=[0, 1])
-    >>> print(results)
-    {'matthews_correlation': 1.0}
+    Example 2, the same example as above, but also including sample weights:
+        ```python
+        >>> matthews_metric = datasets.load_metric("matthews_correlation")
+        >>> results = matthews_metric.compute(references=[1, 3, 2, 0, 3, 2],
+        ...                                     predictions=[1, 2, 2, 0, 3, 3],
+        ...                                     sample_weight=[0.5, 3, 1, 1, 1, 2])
+        >>> print(results)
+        {'matthews_correlation': 0.09782608695652174}
+        ```
+
+    Example 3, the same example as above, but with sample weights that cause a negative correlation:
+        ```python
+        >>> matthews_metric = datasets.load_metric("matthews_correlation")
+        >>> results = matthews_metric.compute(references=[1, 3, 2, 0, 3, 2],
+        ...                                     predictions=[1, 2, 2, 0, 3, 3],
+        ...                                     sample_weight=[0.5, 1, 0, 0, 0, 1])
+        >>> print(results)
+        {'matthews_correlation': -0.25}
 """
 
 _CITATION = """\
