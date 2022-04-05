@@ -71,20 +71,20 @@ FrugalScore is based on [BertScore](https://huggingface.co/metrics/bertscore) an
 
 The full list of available models for FrugalScore is:
 
-| FrugalScore |   Student   |    Teacher  |  Method     |
-| ----------- | ----------- | ----------- | ----------- |
-| [tiny_bert-base_bert-score](https://huggingface.co/moussaKam/frugalscore_tiny_bert-base_bert-score)      | BERT-tiny       | BERT-Base | BERTScore |
-| [small_bert-base_bert-score](https://huggingface.co/moussaKam/frugalscore_small_bert-base_bert-score)    | BERT-small       | BERT-Base | BERTScore |
-| [medium_bert-base_bert-score](https://huggingface.co/moussaKam/frugalscore_medium_bert-base_bert-score)  | BERT-medium     | BERT-Base | BERTScore |
-| [tiny_roberta_bert-score](https://huggingface.co/moussaKam/frugalscore_tiny_roberta_bert-score)      | BERT-tiny       | RoBERTa-Large | BERTScore |
-| [small_roberta_bert-score](https://huggingface.co/moussaKam/frugalscore_small_roberta_bert-score)    | BERT-small       | RoBERTa-Large | BERTScore |
-| [medium_roberta_bert-score](https://huggingface.co/moussaKam/frugalscore_medium_roberta_bert-score)   | BERT-medium  | 	RoBERTa-Large| BERTScore |
-| [tiny_deberta_bert-score](https://huggingface.co/moussaKam/frugalscore_tiny_deberta_bert-score)   | BERT-tiny  | DeBERTa-XLarge| BERTScore |
-| [small_deberta_bert-score](https://huggingface.co/moussaKam/frugalscore_small_deberta_bert-score)   | BERT-small  | DeBERTa-XLarge | BERTScore |
-| [medium_deberta_bert-score](https://huggingface.co/moussaKam/frugalscore_medium_deberta_bert-score)   | BERT-medium  | DeBERTa-XLarge | BERTScore |
-| [tiny_bert-base_mover-score](https://huggingface.co/moussaKam/frugalscore_tiny_bert-base_mover-score)   | BERT-tiny | BERT-Base | MoverScore |
-| [small_bert-base_mover-score](https://huggingface.co/moussaKam/frugalscore_small_bert-base_mover-score)  | BERT-small  | BERT-Base	 | MoverScore |
-| [medium_bert-base_mover-score](https://huggingface.co/moussaKam/frugalscore_medium_bert-base_mover-score)   | BERT-medium  | BERT-Base | MoverScore |
+| FrugalScore                                        | Student     | Teacher        | Method     |
+|----------------------------------------------------|-------------|----------------|------------|
+| [moussaKam/frugalscore_tiny_bert-base_bert-score](https://huggingface.co/moussaKam/frugalscore_tiny_bert-base_bert-score)    | BERT-tiny   | BERT-Base      | BERTScore  |
+| [moussaKam/frugalscore_small_bert-base_bert-score](https://huggingface.co/moussaKam/frugalscore_small_bert-base_bert-score)   | BERT-small  | BERT-Base      | BERTScore  |
+| [moussaKam/frugalscore_medium_bert-base_bert-score](https://huggingface.co/moussaKam/frugalscore_medium_bert-base_bert-score) | BERT-medium | BERT-Base      | BERTScore  |
+| [moussaKam/frugalscore_tiny_roberta_bert-score](https://huggingface.co/moussaKam/frugalscore_tiny_roberta_bert-score)     | BERT-tiny   | RoBERTa-Large  | BERTScore  |
+| [moussaKam/frugalscore_small_roberta_bert-score](https://huggingface.co/moussaKam/frugalscore_small_roberta_bert-score)     | BERT-small  | RoBERTa-Large  | BERTScore  |
+| [moussaKam/frugalscore_medium_roberta_bert-score](https://huggingface.co/moussaKam/frugalscore_medium_roberta_bert-score)    | BERT-medium | RoBERTa-Large  | BERTScore  |
+| [moussaKam/frugalscore_tiny_deberta_bert-score](https://huggingface.co/moussaKam/frugalscore_tiny_deberta_bert-score)      | BERT-tiny   | DeBERTa-XLarge | BERTScore  |
+| [moussaKam/frugalscore_small_deberta_bert-score](https://huggingface.co/moussaKam/frugalscore_small_deberta_bert-score)     | BERT-small  | DeBERTa-XLarge | BERTScore  |
+| [moussaKam/frugalscore_medium_deberta_bert-score](https://huggingface.co/moussaKam/frugalscore_medium_deberta_bert-score)    | BERT-medium | DeBERTa-XLarge | BERTScore  |
+| [moussaKam/frugalscore_tiny_bert-base_mover-score](https://huggingface.co/moussaKam/frugalscore_tiny_bert-base_mover-score)   | BERT-tiny   | BERT-Base      | MoverScore |
+| [moussaKam/frugalscore_small_bert-base_mover-score](https://huggingface.co/moussaKam/frugalscore_small_bert-base_mover-score)  | BERT-small  | BERT-Base      | MoverScore |
+| [moussaKam/frugalscore_medium_bert-base_mover-score](https://huggingface.co/moussaKam/frugalscore_medium_bert-base_mover-score) | BERT-medium | BERT-Base      | MoverScore |
 
 Depending on the size of the model picked, the loading time will vary: the `tiny` models will load very quickly, whereas the `medium` ones can take several minutes, depending on your Internet connection. 
 
