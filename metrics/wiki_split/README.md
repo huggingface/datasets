@@ -2,7 +2,7 @@
 
 ## Metric description
 
-WIKI_SPLIT is the combination of three metrics: [SARI](https://huggingface.co/metrics/sari), [EXACT_MATCH](https://huggingface.co/metrics/exact_match) and [SACREBLEU](https://huggingface.co/metrics/sacrebleu). 
+WikiSplit is the combination of three metrics: [SARI](https://huggingface.co/metrics/sari), [exact match](https://huggingface.co/metrics/exact_match) and [SacreBLEU](https://huggingface.co/metrics/sacrebleu). 
 
 It can be used to evaluate the quality of sentence splitting approaches, which require rewriting a long sentence into two or more coherent short sentences, e.g. based on the [WikiSplit dataset](https://huggingface.co/datasets/wiki_split).
 
