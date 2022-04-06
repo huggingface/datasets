@@ -44,7 +44,7 @@ _LICENSE = "https://www.industrydocuments.ucsf.edu/help/copyright/"
 
 _URLS = {
     "rvl-cdip": "https://drive.google.com/uc?export=download&confirm=pbef&id=0Bz1dfcnrpXM-MUt4cHNzUEFXcmc",
-    "labels" : "https://huggingface.co/datasets/mariosasko/rvl_cdip/resolve/main/labels_only.tar.gz"
+    "labels": "https://huggingface.co/datasets/mariosasko/rvl_cdip/resolve/main/labels_only.tar.gz",
 }
 
 _CLASSES = [
@@ -66,13 +66,14 @@ _CLASSES = [
     "memo",
 ]
 
-_IMAGES_DIR = 'images/'
+_IMAGES_DIR = "images/"
+
 
 class RvlCdip(datasets.GeneratorBasedBuilder):
     """Ryerson Vision Lab Complex Document Information Processing dataset."""
 
     VERSION = datasets.Version("1.0.0")
-    
+
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -96,18 +97,16 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
 
         print(f"Archive path is: {archive_path}")
         print(f"Labels path is: {labels_path}")
-        
+
         # (Optional) In non-streaming mode, we can extract the archive locally to have actual local image files:
         local_extracted_archive = dl_manager.extract(archive_path) if not dl_manager.is_streaming else None
-        
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "local_extracted_archive": local_extracted_archive,
-                    "archive_iterator": dl_manager.iter_archive(
-                        archive_path
-                    ),
+                    "archive_iterator": dl_manager.iter_archive(archive_path),
                     "labels_filepath": os.path.join(labels_path, "labels", "train.txt"),
                     "split": "train",
                 },
@@ -116,9 +115,7 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TEST,
                 gen_kwargs={
                     "local_extracted_archive": local_extracted_archive,
-                    "archive_iterator": dl_manager.iter_archive(
-                        archive_path
-                    ),
+                    "archive_iterator": dl_manager.iter_archive(archive_path),
                     "labels_filepath": os.path.join(labels_path, "labels", "test.txt"),
                     "split": "test",
                 },
@@ -127,9 +124,7 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "local_extracted_archive": local_extracted_archive,
-                    "archive_iterator": dl_manager.iter_archive(
-                        archive_path
-                    ),
+                    "archive_iterator": dl_manager.iter_archive(archive_path),
                     "labels_filepath": os.path.join(labels_path, "labels", "val.txt"),
                     "split": "dev",
                 },
@@ -140,27 +135,27 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
     def _get_image_to_class_map(data):
         image_to_class_id = {}
         for item in data:
-            image_path, class_id = item.split(' ')
+            image_path, class_id = item.split(" ")
             image_path = os.path.join(_IMAGES_DIR, image_path)
             image_to_class_id[image_path] = int(class_id)
-        
+
         return image_to_class_id
-    
+
     def _generate_examples(self, local_extracted_archive, archive_iterator, labels_filepath, split):
 
         with open(labels_filepath, encoding="utf-8") as f:
             data = f.read().splitlines()
 
         image_to_class_id = self._get_image_to_class_map(data)
-        
+
         for file_path, file_obj in archive_iterator:
             if file_path.startswith(_IMAGES_DIR):
-                if(file_path in image_to_class_id):
+                if file_path in image_to_class_id:
                     class_id = image_to_class_id[file_path]
                     label = _CLASSES[class_id]
                     path = os.path.join(local_extracted_archive, file_path) if local_extracted_archive else None
                     yield file_path, {
-                        "path" : path,
+                        "path": path,
                         "image": {"path": file_path, "bytes": file_obj.read()},
                         "label": label,
                     }
