@@ -29,4 +29,4 @@ reported vulnerability, what to expect if the vulnerability is accepted or
 declined, etc.
 -->
 
-To report a security vulnerability, please contact: feedback@huggingface.co
+To report a security vulnerability, please contact: security@huggingface.co
