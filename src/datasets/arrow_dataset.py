@@ -46,12 +46,14 @@ from typing import (
 )
 
 import fsspec
+import huggingface_hub
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 from huggingface_hub import HfApi, HfFolder
 from multiprocess import Pool, RLock
+from packaging import version
 from requests import HTTPError
 from tqdm.auto import tqdm
 
@@ -3352,12 +3354,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"The identifier should be in the format <repo_id> or <namespace>/<repo_id>. It is {identifier}, "
                 "which doesn't conform to either format."
             )
+        elif len(identifier) == 2:
+            organization_or_username, dataset_name = identifier
         elif len(identifier) == 1:
             dataset_name = identifier[0]
             organization_or_username = api.whoami(token)["name"]
             repo_id = f"{organization_or_username}/{dataset_name}"
 
-        api.create_repo(repo_id, token=token, repo_type="dataset", private=private, exist_ok=True)
+        if version.parse(huggingface_hub.__version__) < version.parse("0.5.0"):
+            api.create_repo(
+                dataset_name,
+                token=token,
+                repo_type="dataset",
+                private=private,
+                exist_ok=True,
+                organization=organization_or_username,
+            )
+        else:  # the `organization` parameter is deprecated in huggingface_hub>=0.5.0
+            api.create_repo(repo_id, token=token, repo_type="dataset", private=private, exist_ok=True)
 
         # Find decodable columns, because if there are any, we need to:
         # (1) adjust the dataset size computation (needed for sharding) to account for possible external files

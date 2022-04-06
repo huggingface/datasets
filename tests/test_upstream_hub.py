@@ -7,9 +7,11 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
+import huggingface_hub
 import numpy as np
 from huggingface_hub import HfApi
 from huggingface_hub.hf_api import HfFolder
+from packaging import version
 
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
 from tests.utils import require_pil, require_sndfile
@@ -36,6 +38,13 @@ def with_staging_testing(func):
 @with_staging_testing
 class TestPushToHub(TestCase):
     _api = HfApi(endpoint=ENDPOINT_STAGING)
+
+    def cleanup_repo(self, ds_name):
+        if version.parse(huggingface_hub.__version__) < version.parse("0.5.0"):
+            organization, name = ds_name.split("/")
+            self._api.delete_repo(name, token=self._token, repo_type="dataset", organization=organization)
+        else:  # the `organization` parameter is deprecated in huggingface_hub>=0.5.0
+            self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
 
     @classmethod
     def setUpClass(cls):
@@ -74,7 +83,7 @@ class TestPushToHub(TestCase):
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
             self.assertListEqual(files, [".gitattributes", "data/train-00000-of-00001.parquet", "dataset_infos.json"])
         finally:
-            self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+            self.cleanup_repo(ds_name)
 
     def test_push_dataset_dict_to_hub_name_without_namespace(self):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
