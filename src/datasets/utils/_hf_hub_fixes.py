@@ -22,9 +22,9 @@ def create_repo(
     Args:
         hf_api (`huggingface_hub.HfApi`): Hub client
         name (`str`): name of the repository (without the namespace)
+        token (`str`, *optional*): user or organization token. Defaults to None.
         organization (`str`, *optional*): namespace for the repository: the username or organization name.
             By default it uses the namespace associated to the token used.
-        token (`str`, *optional*): user or organization token. Defaults to None.
         private (`bool`, *optional*):
             Whether the model repo should be private.
         repo_type (`str`, *optional*):
