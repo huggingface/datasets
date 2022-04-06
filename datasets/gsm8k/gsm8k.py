@@ -42,7 +42,7 @@ _HOMEPAGE = "https://openai.com/blog/grade-school-math"
 
 _LICENSE = "MIT"
 
-_BASE_URL = "https://raw.githubusercontent.com/openai/grade-school-math/master/grade_school_math/data"
+_BASE_URL = "https://raw.githubusercontent.com/openai/grade-school-math/master/grade_school_math/data/"
 
 
 class Gsm8kConfig(datasets.BuilderConfig):
@@ -75,8 +75,8 @@ class Gsm8k(datasets.GeneratorBasedBuilder):
                 """,
             ),
             urls={
-                "train": os.path.join(_BASE_URL, "train.jsonl"),
-                "test": os.path.join(_BASE_URL, "test.jsonl"),
+                "train": _BASE_URL + "train.jsonl",
+                "test": _BASE_URL + "test.jsonl",
             },
         ),
         Gsm8kConfig(
@@ -88,8 +88,8 @@ class Gsm8k(datasets.GeneratorBasedBuilder):
                 """
             ),
             urls={
-                "train": os.path.join(_BASE_URL, "train_socratic.jsonl"),
-                "test": os.path.join(_BASE_URL, "test_socratic.jsonl"),
+                "train": _BASE_URL + "train_socratic.jsonl",
+                "test": _BASE_URL + "test_socratic.jsonl",
             },
         ),
     ]
