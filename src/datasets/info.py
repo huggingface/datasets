@@ -29,6 +29,7 @@ processed the dataset as well:
 """
 
 import copy
+from textwrap import indent
 import dataclasses
 import json
 import os
@@ -192,7 +193,7 @@ class DatasetInfo:
 
     def _dump_info(self, file):
         """Dump info in `file` file-like object open in bytes mode (to support remote files)"""
-        file.write(json.dumps(asdict(self)).encode("utf-8"))
+        file.write(json.dumps(asdict(self)).encode("utf-8"), indent=4)
 
     def _dump_license(self, file):
         """Dump license in `file` file-like object open in bytes mode (to support remote files)"""
@@ -279,7 +280,7 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
             logger.info(f"Writing new Dataset Infos in {dataset_infos_dir}")
         total_dataset_infos.update(self)
         with open(dataset_infos_path, "w", encoding="utf-8") as f:
-            json.dump({config_name: asdict(dset_info) for config_name, dset_info in total_dataset_infos.items()}, f)
+            json.dump({config_name: asdict(dset_info) for config_name, dset_info in total_dataset_infos.items()}, f, indent=4)
 
     @classmethod
     def from_directory(cls, dataset_infos_dir):
@@ -333,7 +334,7 @@ class MetricInfo:
         Also save the license separately in LICENCE.
         """
         with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "w", encoding="utf-8") as f:
-            json.dump(asdict(self), f)
+            json.dump(asdict(self), f, indent=4)
 
         with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
             f.write(self.license)
