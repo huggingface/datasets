@@ -14,7 +14,6 @@
 """Grade School Math 8k dataset."""
 
 import json
-import os
 import textwrap
 
 import datasets
