@@ -3352,12 +3352,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"The identifier should be in the format <repo_id> or <namespace>/<repo_id>. It is {identifier}, "
                 "which doesn't conform to either format."
             )
-        if len(identifier) == 2:
-            organization, dataset_name = identifier
-        else:
+        elif len(identifier) == 1:
             dataset_name = identifier[0]
-            organization = api.whoami(token)["name"]
-            repo_id = f"{organization}/{dataset_name}"
+            organization_or_username = api.whoami(token)["name"]
+            repo_id = f"{organization_or_username}/{dataset_name}"
 
         api.create_repo(repo_id, token=token, repo_type="dataset", private=private, exist_ok=True)
 
