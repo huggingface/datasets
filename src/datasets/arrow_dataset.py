@@ -46,14 +46,12 @@ from typing import (
 )
 
 import fsspec
-import huggingface_hub
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 from huggingface_hub import HfApi, HfFolder
 from multiprocess import Pool, RLock
-from packaging import version
 from requests import HTTPError
 from tqdm.auto import tqdm
 
@@ -88,6 +86,7 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
+from .utils._hf_hub_fixes import create_repo
 from .utils.file_utils import _retry, estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import temporary_assignment, unique_values
@@ -3361,17 +3360,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             organization_or_username = api.whoami(token)["name"]
             repo_id = f"{organization_or_username}/{dataset_name}"
 
-        if version.parse(huggingface_hub.__version__) < version.parse("0.5.0"):
-            api.create_repo(
-                dataset_name,
-                token=token,
-                repo_type="dataset",
-                private=private,
-                exist_ok=True,
-                organization=organization_or_username,
-            )
-        else:  # the `organization` parameter is deprecated in huggingface_hub>=0.5.0
-            api.create_repo(repo_id, token=token, repo_type="dataset", private=private, exist_ok=True)
+        create_repo(
+            hf_api=api,
+            name=dataset_name,
+            organization=organization_or_username,
+            token=token,
+            repo_type="dataset",
+            private=private,
+            exist_ok=True,
+        )
 
         # Find decodable columns, because if there are any, we need to:
         # (1) adjust the dataset size computation (needed for sharding) to account for possible external files
