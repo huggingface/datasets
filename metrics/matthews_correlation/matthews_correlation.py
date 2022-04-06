@@ -52,7 +52,7 @@ Examples:
         ...                                     predictions=[1, 2, 2, 0, 3, 3],
         ...                                     sample_weight=[0.5, 3, 1, 1, 1, 2])
         >>> print(round(results['matthews_correlation'], 2))
-        0.098
+        0.10
 
     Example 3, the same example as above, but with sample weights that cause a negative correlation:
         >>> matthews_metric = datasets.load_metric("matthews_correlation")
