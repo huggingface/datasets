@@ -8,8 +8,8 @@ from packaging import version
 def create_repo(
     hf_api: HfApi,
     name: str,
-    organization: str,
     token: Optional[str] = None,
+    organization: Optional[str] = None,
     private: Optional[bool] = None,
     repo_type: Optional[str] = None,
     exist_ok: Optional[bool] = False,
@@ -22,7 +22,8 @@ def create_repo(
     Args:
         hf_api (`huggingface_hub.HfApi`): Hub client
         name (`str`): name of the repository (without the namespace)
-        organization (`str`): namespace for the repository: the username or organization name.
+        organization (`str`, *optional*): namespace for the repository: the username or organization name.
+            By default it uses the namespace associated to the token used.
         token (`str`, *optional*): user or organization token. Defaults to None.
         private (`bool`, *optional*):
             Whether the model repo should be private.
