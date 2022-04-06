@@ -5,11 +5,27 @@
         "homepage": "https://github.com/sci2lab/Farsi-datasets",
         "license": "",
         "features": {
-            "title": { "dtype": "string", "id": null, "_type": "Value" },
-            "summary": { "dtype": "string", "id": null, "_type": "Value" },
-            "link": { "dtype": "string", "id": null, "_type": "Value" },
+            "title": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "summary": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "link": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
             "tags": {
-                "feature": { "dtype": "string", "id": null, "_type": "Value" },
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
                 "length": -1,
                 "id": null,
                 "_type": "Sequence"
