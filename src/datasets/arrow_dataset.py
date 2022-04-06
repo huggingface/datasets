@@ -3359,20 +3359,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             organization = api.whoami(token)["name"]
             repo_id = f"{organization}/{dataset_name}"
 
-        try:
-            api.create_repo(
-                dataset_name,
-                token,
-                repo_type="dataset",
-                organization=organization,
-                private=private,
-            )
-        except HTTPError as err:
-            if err.response.status_code == 409:
-                if private is not None:
-                    logger.warning("The repository already exists: the `private` keyword argument will be ignored.")
-            else:
-                raise
+        api.create_repo(repo_id, token=token, repo_type="dataset", private=private, exist_ok=True)
 
         # Find decodable columns, because if there are any, we need to:
         # (1) adjust the dataset size computation (needed for sharding) to account for possible external files
