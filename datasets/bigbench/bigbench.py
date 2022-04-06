@@ -28,6 +28,8 @@ import datasets
 try:
   import bigbench.bbseqio.bigbench_bridge as bbb
   from bigbench.bbseqio import bigbench_json_paths as bb_json_paths
+  import bigbench.api.util as bb_utils
+  
 except ModuleNotFoundError as error:
   print(f"Failed to import bigbench. Please see https://github.com/google/BIG-bench or install using 'pip install git+https://github.com/google/BIG-bench.git'")
   raise
@@ -56,6 +58,29 @@ def div_or_none(x, y):
 
 _GLOBAL_MIN_VALIDATION_EXAMPLES = 16
 
+def validate_task_name(task_name: str) -> None:
+  """Check that the requested task name is a valid bigbench json task."""
+  if task_name in bb_utils.get_all_json_task_names():
+    pass
+  elif task_name in bb_utils.get_all_programmatic_task_names():
+    raise ValueError("BIG-Bench does not support programmatic tasks through HuggingFace datasets"
+          			 f"Please see {_HOMEPAGE} for more information for how to interact with the programmatic tasks.")
+  else:
+    print("Invalid task_name. Please choose one from:")
+    for name in bb_utils.get_all_json_task_names():
+      print(f"-- {name}")
+    raise ValueError(f"Unknown task name. Got {task_name}.")
+    
+def validate_subtask_name(task_name: str, subtask_name: str) -> None:
+  """Check that the requested subtask name is a valid bigbench subtask."""
+  subtasks = [name.split(":")[-1] for name in bb_utils.get_subtask_names_from_task(task_name)]
+  if subtask_name not in subtasks:
+    print("Invalid subtask_name for task {task_name}. Please choose one from:")
+    for name in subtasks:
+      print(f"-- {name}")
+    raise ValueError(f"Unknown subtask name. Got subtask {subtask_name} for task {task_name}.")
+  
+
 class BigBenchConfig(datasets.BuilderConfig):
     def __init__(self,
                  task_name: str,
@@ -73,6 +98,10 @@ class BigBenchConfig(datasets.BuilderConfig):
         self.subtask_name = subtask_name
         self.num_shots = num_shots
         self.max_examples = max_examples
+        
+        validate_task_name(self.task_name)
+        if self.subtask_name:
+          validate_subtask_name(self.task_name, self.subtask_name)
 
 
 class BigBench(datasets.GeneratorBasedBuilder):
@@ -144,7 +173,7 @@ class BigBench(datasets.GeneratorBasedBuilder):
     ):
         """ Yields examples as (key, example) tuples. """
         task_path, json_util = bb_json_paths.get_task_path(self.config.task_name)
-        
+
         has_subtasks = bb_json_paths.has_subtasks(self.config.task_name)
 
         if not has_subtasks:
