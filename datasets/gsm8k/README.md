@@ -15,10 +15,11 @@ source_datasets:
 - original
 task_categories:
 - question-answering
-task_ids: []
+task_ids:
+- closed-domain-qa
 paperswithcode_id: gsm8k
 pretty_name: Grade School Math 8K
-----
+---
 
 # Dataset Card for GSM8K
 
