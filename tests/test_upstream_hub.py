@@ -103,7 +103,7 @@ class TestPushToHub(TestCase):
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
             self.assertListEqual(files, [".gitattributes", "data/train-00000-of-00001.parquet", "dataset_infos.json"])
         finally:
-            self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+            self.cleanup_repo(ds_name)
 
     def test_push_dataset_dict_to_hub_private(self):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
@@ -123,7 +123,7 @@ class TestPushToHub(TestCase):
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
             self.assertListEqual(files, [".gitattributes", "data/train-00000-of-00001.parquet", "dataset_infos.json"])
         finally:
-            self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+            self.cleanup_repo(ds_name)
 
     def test_push_dataset_dict_to_hub(self):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
@@ -143,7 +143,7 @@ class TestPushToHub(TestCase):
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
             self.assertListEqual(files, [".gitattributes", "data/train-00000-of-00001.parquet", "dataset_infos.json"])
         finally:
-            self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+            self.cleanup_repo(ds_name)
 
     def test_push_dataset_dict_to_hub_multiple_files(self):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
@@ -171,7 +171,7 @@ class TestPushToHub(TestCase):
                 ],
             )
         finally:
-            self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+            self.cleanup_repo(ds_name)
 
     def test_push_dataset_dict_to_hub_overwrite_files(self):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
@@ -221,7 +221,7 @@ class TestPushToHub(TestCase):
             self.assertDictEqual(local_ds["train"].features, hub_ds["train"].features)
 
         finally:
-            self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+            self.cleanup_repo(ds_name)
 
         # Push to hub two times, but the second time with fewer files.
         # Verify that the new files contain the correct dataset and that non-necessary files have been deleted.
@@ -263,7 +263,7 @@ class TestPushToHub(TestCase):
             self.assertDictEqual(local_ds["train"].features, hub_ds["train"].features)
 
         finally:
-            self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+            self.cleanup_repo(ds_name)
 
     def test_push_dataset_to_hub(self):
         local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
@@ -283,7 +283,7 @@ class TestPushToHub(TestCase):
                 self.assertListEqual(list(local_ds.features.keys()), list(hub_ds.features.keys()))
                 self.assertDictEqual(local_ds.features, hub_ds.features)
         finally:
-            self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+            self.cleanup_repo(ds_name)
 
     def test_push_dataset_to_hub_custom_features(self):
         features = Features({"x": Value("int64"), "y": ClassLabel(names=["neg", "pos"])})
@@ -299,7 +299,7 @@ class TestPushToHub(TestCase):
             self.assertDictEqual(ds.features, hub_ds.features)
             self.assertEqual(ds[:], hub_ds[:])
         finally:
-            self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+            self.cleanup_repo(ds_name)
 
     @require_sndfile
     def test_push_dataset_to_hub_custom_features_audio(self):
@@ -327,7 +327,7 @@ class TestPushToHub(TestCase):
                 self.assertTrue(bool(path) == (not embed_external_files))
                 self.assertTrue(bool(bytes_) == embed_external_files)
             finally:
-                self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+                self.cleanup_repo(ds_name)
 
     @require_pil
     def test_push_dataset_to_hub_custom_features_image(self):
@@ -352,7 +352,7 @@ class TestPushToHub(TestCase):
                 self.assertTrue(bool(path) == (not embed_external_files))
                 self.assertTrue(bool(bytes_) == embed_external_files)
             finally:
-                self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+                self.cleanup_repo(ds_name)
 
     def test_push_dataset_dict_to_hub_custom_features(self):
         features = Features({"x": Value("int64"), "y": ClassLabel(names=["neg", "pos"])})
@@ -369,7 +369,7 @@ class TestPushToHub(TestCase):
             self.assertListEqual(list(local_ds["test"].features.keys()), list(hub_ds["test"].features.keys()))
             self.assertDictEqual(local_ds["test"].features, hub_ds["test"].features)
         finally:
-            self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+            self.cleanup_repo(ds_name)
 
     def test_push_dataset_to_hub_custom_splits(self):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
@@ -383,7 +383,7 @@ class TestPushToHub(TestCase):
             self.assertListEqual(list(ds.features.keys()), list(hub_ds["random"].features.keys()))
             self.assertDictEqual(ds.features, hub_ds["random"].features)
         finally:
-            self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+            self.cleanup_repo(ds_name)
 
     def test_push_dataset_dict_to_hub_custom_splits(self):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
@@ -399,7 +399,7 @@ class TestPushToHub(TestCase):
             self.assertListEqual(list(local_ds["random"].features.keys()), list(hub_ds["random"].features.keys()))
             self.assertDictEqual(local_ds["random"].features, hub_ds["random"].features)
         finally:
-            self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+            self.cleanup_repo(ds_name)
 
     @unittest.skip("This test cannot pass until iterable datasets have push to hub")
     def test_push_streaming_dataset_dict_to_hub(self):
@@ -418,4 +418,4 @@ class TestPushToHub(TestCase):
                 self.assertListEqual(list(local_ds["train"].features.keys()), list(hub_ds["train"].features.keys()))
                 self.assertDictEqual(local_ds["train"].features, hub_ds["train"].features)
             finally:
-                self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+                self.cleanup_repo(ds_name)
