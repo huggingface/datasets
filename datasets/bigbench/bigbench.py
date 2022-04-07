@@ -31,7 +31,8 @@ try:
   import bigbench.api.util as bb_utils
   
 except ModuleNotFoundError as error:
-  print(f"Failed to import bigbench. Please see https://github.com/google/BIG-bench or install using 'pip install git+https://github.com/google/BIG-bench.git'")
+  print("Failed to import bigbench. Please see https://github.com/google/BIG-bench or install"
+        "using 'pip install git+https://github.com/google/BIG-bench.git'")
   raise
 
 _CITATION = """\
@@ -155,7 +156,7 @@ class BigBench(datasets.GeneratorBasedBuilder):
 		
         return [
           	datasets.SplitGenerator(
-              name=datasets.splits.NamedSplit('default'), # TODO(ajandreassen): Is there a way override and call this 'all'?
+              name=datasets.splits.NamedSplit('default'), # TODO(ajandreassen): Is there a way to call this 'all'?
               # These kwargs will be passed to _generate_examples
               gen_kwargs={
                 "split": "all",
