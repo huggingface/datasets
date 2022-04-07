@@ -14,6 +14,7 @@ from huggingface_hub.hf_api import HfFolder
 from packaging import version
 
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
+from datasets.utils._hf_hub_fixes import delete_repo
 from tests.utils import require_pil, require_sndfile
 
 
@@ -40,11 +41,8 @@ class TestPushToHub(TestCase):
     _api = HfApi(endpoint=ENDPOINT_STAGING)
 
     def cleanup_repo(self, ds_name):
-        if version.parse(huggingface_hub.__version__) < version.parse("0.5.0"):
-            organization, name = ds_name.split("/")
-            self._api.delete_repo(name, token=self._token, repo_type="dataset", organization=organization)
-        else:  # the `organization` parameter is deprecated in huggingface_hub>=0.5.0
-            self._api.delete_repo(ds_name, token=self._token, repo_type="dataset")
+        organization, name = ds_name.split("/")
+        delete_repo(hf_api=self._api, name=name, organization=organization, token=self._token, repo_type="dataset")
 
     @classmethod
     def setUpClass(cls):
