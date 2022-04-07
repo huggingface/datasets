@@ -19,16 +19,18 @@ For the programatic tasks, please use the BIG-Bench API on github.com/google/BIG
 
 import csv
 import json
-import numpy as np
 import os
 from typing import Optional
 
+import numpy as np
+
 import datasets
 
+
 try:
+    import bigbench.api.util as bb_utils
     import bigbench.bbseqio.bigbench_bridge as bbb
     from bigbench.bbseqio import bigbench_json_paths as bb_json_paths
-    import bigbench.api.util as bb_utils
 
 except ModuleNotFoundError as error:
     print(
