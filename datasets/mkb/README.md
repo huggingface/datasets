@@ -115,9 +115,10 @@ size_categories:
 licenses:
 - cc-by-4.0
 paperswithcode_id: null
+pretty_name: CVIT MKB
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for CVIT MKB
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -149,7 +150,7 @@ paperswithcode_id: null
 - **Repository:**
 - **Paper:** [ARXIV](https://arxiv.org/abs/2007.07691)
 - **Leaderboard:** 
-- **Point of Contact:** cvit-bhasha@googlegroups.com
+- **Point of Contact:** [email](cvit-bhasha@googlegroups.com)
 
 ### Dataset Summary
 

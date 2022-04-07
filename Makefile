@@ -1,4 +1,4 @@
-.PHONY: quality style test test-examples
+.PHONY: quality style test
 
 # Check that source code meets quality standards
 

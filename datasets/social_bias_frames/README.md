@@ -1,4 +1,5 @@
 ---
+pretty_name: Social Bias Frames
 annotations_creators:
 - crowdsourced
 language_creators:

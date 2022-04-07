@@ -1,4 +1,3 @@
-# coding=utf-8
 import io
 import json
 from dataclasses import dataclass
@@ -8,6 +7,7 @@ import pyarrow as pa
 import pyarrow.json as paj
 
 import datasets
+from datasets.table import table_cast
 from datasets.utils.file_utils import readline
 
 
@@ -27,7 +27,7 @@ class JsonConfig(datasets.BuilderConfig):
 
     @property
     def schema(self):
-        return pa.schema(self.features.type) if self.features is not None else None
+        return self.features.arrow_schema if self.features is not None else None
 
 
 class Json(datasets.ArrowBasedBuilder):
@@ -54,12 +54,14 @@ class Json(datasets.ArrowBasedBuilder):
             files = data_files
             if isinstance(files, str):
                 files = [files]
-            return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
+            return [
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_files(files)})
+            ]
         splits = []
         for split_name, files in data_files.items():
             if isinstance(files, str):
                 files = [files]
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": dl_manager.iter_files(files)}))
         return splits
 
     def _cast_classlabels(self, pa_table: pa.Table) -> pa.Table:
@@ -67,14 +69,16 @@ class Json(datasets.ArrowBasedBuilder):
             # Encode column if ClassLabel
             for i, col in enumerate(self.config.features.keys()):
                 if isinstance(self.config.features[col], datasets.ClassLabel):
-                    pa_table = pa_table.set_column(
-                        i, self.config.schema.field(col), [self.config.features[col].str2int(pa_table[col])]
-                    )
-            # Cast allows str <-> int/float
-            # Before casting, rearrange JSON field names to match passed features schema field names order
-            pa_table = pa.Table.from_arrays(
-                [pa_table[name] for name in self.config.features], schema=self.config.schema
-            )
+                    if pa_table[col].type == pa.string():
+                        pa_table = pa_table.set_column(
+                            i, self.config.schema.field(col), [self.config.features[col].str2int(pa_table[col])]
+                        )
+                    elif pa_table[col].type != self.config.schema.field(col).type:
+                        raise ValueError(
+                            f"Field '{col}' from the JSON data of type {pa_table[col].type} is not compatible with ClassLabel. Compatible types are int64 and string."
+                        )
+            # Cast allows str <-> int/float or str to Audio for example
+            pa_table = table_cast(pa_table, self.config.schema)
         return pa_table
 
     def _generate_tables(self, files):

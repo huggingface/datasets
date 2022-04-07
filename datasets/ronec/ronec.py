@@ -12,14 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Introduction in RONEC: Named Entity Corpus for ROmanian language"""
 
+import json
 
 import datasets
 
 
 logger = datasets.logging.get_logger(__name__)
-
 
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
@@ -33,8 +32,7 @@ _CITATION = """\
 
 # You can copy an official description
 _DESCRIPTION = """\
-The RONEC (Named Entity Corpus for the Romanian language) dataset  contains over 26000 entities in ~5000 annotated sentence,
-belonging to 16 distinct classes. It represents the first initiative in the Romanian language space specifically targeted for named entity recognition
+RONEC - the Romanian Named Entity Corpus, at version 2.0, holds 12330 sentences with over 0.5M tokens, annotated with 15 classes, to a total of 80.283 distinctly annotated entities. It is used for named entity recognition and represents the largest Romanian NER corpus to date.
 """
 
 _HOMEPAGE = "https://github.com/dumitrescustefan/ronec"
@@ -43,10 +41,10 @@ _LICENSE = "MIT License"
 
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = "https://raw.githubusercontent.com/dumitrescustefan/ronec/master/ronec/conllup/raw/"
-_TRAINING_FILE = "train.conllu"
-_TEST_FILE = "test.conllu"
-_DEV_FILE = "dev.conllu"
+_URL = "https://raw.githubusercontent.com/dumitrescustefan/ronec/master/data/"
+_TRAINING_FILE = "train.json"
+_DEV_FILE = "valid.json"
+_TEST_FILE = "test.json"
 
 
 class RONECConfig(datasets.BuilderConfig):
@@ -59,53 +57,52 @@ class RONECConfig(datasets.BuilderConfig):
 class RONEC(datasets.GeneratorBasedBuilder):
     """RONEC dataset"""
 
-    VERSION = datasets.Version("1.0.0")
+    VERSION = datasets.Version("2.0.0")
     BUILDER_CONFIGS = [
         RONECConfig(name="ronec", version=VERSION, description="RONEC dataset"),
     ]
 
     def _info(self):
-
         features = datasets.Features(
             {
-                "id": datasets.Value("string"),
+                "id": datasets.Value("int32"),
                 "tokens": datasets.Sequence(datasets.Value("string")),
+                "ner_ids": datasets.Sequence(datasets.Value("int32")),
+                "space_after": datasets.Sequence(datasets.Value("bool")),
                 "ner_tags": datasets.Sequence(
                     datasets.features.ClassLabel(
                         names=[
                             "O",
-                            "B-DATETIME",
-                            "B-EVENT",
-                            "B-FACILITY",
-                            "B-GPE",
-                            "B-LANGUAGE",
-                            "B-LOC",
-                            "B-MONEY",
-                            "B-NAT_REL_POL",
-                            "B-NUMERIC_VALUE",
-                            "B-ORDINAL",
-                            "B-ORGANIZATION",
-                            "B-PERIOD",
                             "B-PERSON",
-                            "B-PRODUCT",
-                            "B-QUANTITY",
-                            "B-WORK_OF_ART",
-                            "I-DATETIME",
-                            "I-EVENT",
-                            "I-FACILITY",
-                            "I-GPE",
-                            "I-LANGUAGE",
-                            "I-LOC",
-                            "I-MONEY",
-                            "I-NAT_REL_POL",
-                            "I-NUMERIC_VALUE",
-                            "I-ORDINAL",
-                            "I-ORGANIZATION",
-                            "I-PERIOD",
                             "I-PERSON",
-                            "I-PRODUCT",
-                            "I-QUANTITY",
+                            "B-ORG",
+                            "I-ORG",
+                            "B-GPE",
+                            "I-GPE",
+                            "B-LOC",
+                            "I-LOC",
+                            "B-NAT_REL_POL",
+                            "I-NAT_REL_POL",
+                            "B-EVENT",
+                            "I-EVENT",
+                            "B-LANGUAGE",
+                            "I-LANGUAGE",
+                            "B-WORK_OF_ART",
                             "I-WORK_OF_ART",
+                            "B-DATETIME",
+                            "I-DATETIME",
+                            "B-PERIOD",
+                            "I-PERIOD",
+                            "B-MONEY",
+                            "I-MONEY",
+                            "B-QUANTITY",
+                            "I-QUANTITY",
+                            "B-NUMERIC",
+                            "I-NUMERIC",
+                            "B-ORDINAL",
+                            "I-ORDINAL",
+                            "B-FACILITY",
+                            "I-FACILITY",
                         ]
                     )
                 ),
@@ -143,14 +140,14 @@ class RONEC(datasets.GeneratorBasedBuilder):
                 gen_kwargs={"filepath": downloaded_files["train"]},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": downloaded_files["test"]},
-            ),
-            datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": downloaded_files["dev"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"filepath": downloaded_files["test"]},
             ),
         ]
 
@@ -158,30 +155,7 @@ class RONEC(datasets.GeneratorBasedBuilder):
         """Yields examples."""
 
         logger.info("⏳ Generating examples from = %s", filepath)
-        with open(filepath, encoding="utf-8") as f:
-            guid = 0
-            tokens = []
-            ner_tags = []
-            for line in f:
-                if "#" in line or line == "\n":
-                    if tokens:
-                        yield guid, {
-                            "id": str(guid),
-                            "tokens": tokens,
-                            "ner_tags": ner_tags,
-                        }
-                        guid += 1
-                        tokens = []
-                        ner_tags = []
-                else:
-                    # ronec tokens are tab separated
-                    splits = line.split("\t")
-                    tokens.append(splits[1])
-                    ner_tags.append(splits[10].rstrip())
-            # last example
-            if tokens:
-                yield guid, {
-                    "id": str(guid),
-                    "tokens": tokens,
-                    "ner_tags": ner_tags,
-                }
+        with open(filepath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            for instance in data:
+                yield instance["id"], instance

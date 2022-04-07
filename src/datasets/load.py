@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +22,6 @@ import os
 import re
 import shutil
 import time
-import warnings
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
@@ -37,17 +35,24 @@ from huggingface_hub import HfApi, HfFolder
 from . import config
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
-from .data_files import DataFilesDict, DataFilesList, _sanitize_patterns
+from .data_files import (
+    DataFilesDict,
+    DataFilesList,
+    get_patterns_in_dataset_repository,
+    get_patterns_locally,
+    sanitize_patterns,
+)
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
 from .metric import Metric
-from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, hash_python_lines
+from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, _hash_python_lines
 from .splits import Split
 from .streaming import extend_module_for_streaming
 from .tasks import TaskTemplate
-from .utils.download_manager import GenerateMode
+from .utils.download_manager import DownloadMode
 from .utils.file_utils import (
     DownloadConfig,
     OfflineModeIsEnabled,
@@ -132,9 +137,9 @@ def files_to_hash(file_paths: List[str]) -> str:
     # Get the code from all these files
     lines = []
     for file_path in to_use_files:
-        with open(file_path, mode="r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             lines.extend(f.readlines())
-    return hash_python_lines(lines)
+    return _hash_python_lines(lines)
 
 
 def convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
@@ -143,16 +148,15 @@ def convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
     sub_directory = None
     if parsed.scheme in ("http", "https", "s3") and parsed.netloc == "github.com":
         if "blob" in url_path:
-            assert url_path.endswith(
-                ".py"
-            ), f"External import from github at {url_path} should point to a file ending with '.py'"
+            if not url_path.endswith(".py"):
+                raise ValueError(f"External import from github at {url_path} should point to a file ending with '.py'")
             url_path = url_path.replace("blob", "raw")  # Point to the raw file
         else:
             # Parse github url to point to zip
             github_path = parsed.path[1:]
             repo_info, branch = github_path.split("/tree/") if "/tree/" in github_path else (github_path, "master")
             repo_owner, repo_name = repo_info.split("/")
-            url_path = "https://github.com/{}/{}/archive/{}.zip".format(repo_owner, repo_name, branch)
+            url_path = f"https://github.com/{repo_owner}/{repo_name}/archive/{branch}.zip"
             sub_directory = f"{repo_name}-{branch}"
     return url_path, sub_directory
 
@@ -167,7 +171,7 @@ def increase_load_count(name: str, resource_type: str):
 
 
 def get_imports(file_path: str) -> Tuple[str, str, str, str]:
-    r"""Find whether we should import or clone additional files for a given processing script.
+    """Find whether we should import or clone additional files for a given processing script.
         And list the import.
 
     We allow:
@@ -180,17 +184,17 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
     Note that only direct import in the dataset processing script will be handled
     We don't recursively explore the additional import to download further files.
 
-    Examples::
+    Example::
 
         import tensorflow
         import .c4_utils
         import .clicr.dataset-code.build_json_dataset  # From: https://raw.githubusercontent.com/clips/clicr/master/dataset-code/build_json_dataset
     """
     lines = []
-    with open(file_path, mode="r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         lines.extend(f.readlines())
 
-    logger.debug("Checking %s for additional imports.", file_path)
+    logger.debug(f"Checking {file_path} for additional imports.")
     imports: List[Tuple[str, str, str, Optional[str]]] = []
     is_in_docstring = False
     for line in lines:
@@ -253,6 +257,9 @@ def _download_additional_modules(
     """
     local_imports = []
     library_imports = []
+    download_config = download_config.copy()
+    if download_config.download_desc is None:
+        download_config.download_desc = "Downloading extra modules"
     for import_type, import_name, import_path, sub_directory in imports:
         if import_type == "library":
             library_imports.append((import_name, import_path))  # Import from a library
@@ -303,7 +310,7 @@ def _copy_script_and_other_resources_in_importable_dir(
     original_local_path: str,
     local_imports: List[Tuple[str, str]],
     additional_files: List[Tuple[str, str]],
-    download_mode: Optional[GenerateMode],
+    download_mode: Optional[DownloadMode],
 ) -> str:
     """Copy a script and its required imports to an importable directory
 
@@ -314,7 +321,7 @@ def _copy_script_and_other_resources_in_importable_dir(
         original_local_path (str): local path to the resource script
         local_imports (List[Tuple[str, str]]): list of (destination_filename, import_file_to_copy)
         additional_files (List[Tuple[str, str]]): list of (destination_filename, additional_file_to_copy)
-        download_mode (Optional[GenerateMode]): download mode
+        download_mode (Optional[DownloadMode]): download mode
 
     Return:
         importable_local_file: path to an importable module with importlib.import_module
@@ -330,7 +337,7 @@ def _copy_script_and_other_resources_in_importable_dir(
     lock_path = importable_directory_path + ".lock"
     with FileLock(lock_path):
         # Create main dataset/metrics folder if needed
-        if download_mode == GenerateMode.FORCE_REDOWNLOAD and os.path.exists(importable_directory_path):
+        if download_mode == DownloadMode.FORCE_REDOWNLOAD and os.path.exists(importable_directory_path):
             shutil.rmtree(importable_directory_path)
         os.makedirs(importable_directory_path, exist_ok=True)
 
@@ -390,9 +397,9 @@ def _create_importable_file(
     dynamic_modules_path: str,
     module_namespace: str,
     name: str,
-    download_mode: GenerateMode,
+    download_mode: DownloadMode,
 ) -> Tuple[str, str]:
-    importable_directory_path = os.path.join(dynamic_modules_path, module_namespace, name.replace("/", "___"))
+    importable_directory_path = os.path.join(dynamic_modules_path, module_namespace, name.replace("/", "--"))
     Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
     (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
     hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
@@ -407,7 +414,7 @@ def _create_importable_file(
     )
     logger.debug(f"Created importable dataset file at {importable_local_file}")
     module_path = ".".join(
-        [os.path.basename(dynamic_modules_path), module_namespace, name.replace("/", "___"), hash, name.split("/")[-1]]
+        [os.path.basename(dynamic_modules_path), module_namespace, name.replace("/", "--"), hash, name.split("/")[-1]]
     )
     return module_path, hash
 
@@ -415,24 +422,35 @@ def _create_importable_file(
 def infer_module_for_data_files(
     data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]] = None
 ) -> Optional[str]:
-    extensions_counter = Counter(suffix[1:] for filepath in data_files_list for suffix in Path(filepath).suffixes)
+    extensions_counter = Counter(
+        suffix[1:]
+        for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE]
+        for suffix in Path(filepath).suffixes
+    )
     if extensions_counter:
-        most_common = extensions_counter.most_common(1)[0][0]
-        if most_common in _EXTENSION_TO_MODULE:
-            return _EXTENSION_TO_MODULE[most_common]
-        elif most_common == "zip":
-            return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
+        for ext, _ in extensions_counter.most_common():
+            if ext in _EXTENSION_TO_MODULE:
+                return _EXTENSION_TO_MODULE[ext]
+            elif ext == "zip":
+                return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
 
 
 def infer_module_for_data_files_in_archives(
     data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]]
 ) -> Optional[str]:
     archived_files = []
+    archive_files_counter = 0
     for filepath in data_files_list:
         if str(filepath).endswith(".zip"):
-            extracted = xjoin(StreamingDownloadManager().extract(filepath), "*")
+            archive_files_counter += 1
+            if archive_files_counter > config.GLOBBED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE:
+                break
+            extracted = xjoin(StreamingDownloadManager().extract(filepath), "**")
             archived_files += [
-                f.split("::")[0] for f in xglob(extracted, recursive=True, use_auth_token=use_auth_token)
+                f.split("::")[0]
+                for f in xglob(extracted, recursive=True, use_auth_token=use_auth_token)[
+                    : config.ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE
+                ]
             ]
     extensions_counter = Counter(suffix[1:] for filepath in archived_files for suffix in Path(filepath).suffixes)
     if extensions_counter:
@@ -464,20 +482,26 @@ class _MetricModuleFactory:
         raise NotImplementedError
 
 
-class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
-    """Get the module of a canonical dataset. The dataset script is downloaded from GitHub."""
+class GithubDatasetModuleFactory(_DatasetModuleFactory):
+    """
+    Get the module of a dataset from GitHub (legacy).
+    The dataset script is downloaded from GitHub.
+    This class will eventually be removed and a HubDatasetModuleFactory will be used instead.
+    """
 
     def __init__(
         self,
         name: str,
         revision: Optional[Union[str, Version]] = None,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
         dynamic_modules_path: Optional[str] = None,
     ):
         self.name = name
         self.revision = revision
-        self.download_config = download_config
+        self.download_config = download_config.copy() if download_config else DownloadConfig()
+        if self.download_config.max_retries < 3:
+            self.download_config.max_retries = 3
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
         assert self.name.count("/") == 0
@@ -485,15 +509,21 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
 
     def download_loading_script(self, revision: Optional[str]) -> str:
         file_path = hf_github_url(path=self.name, name=self.name + ".py", revision=revision)
-        return cached_path(file_path, download_config=self.download_config)
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading builder script"
+        return cached_path(file_path, download_config=download_config)
 
     def download_dataset_infos_file(self, revision: Optional[str]) -> str:
         dataset_infos = hf_github_url(path=self.name, name=config.DATASETDICT_INFOS_FILENAME, revision=revision)
         # Download the dataset infos file if available
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading metadata"
         try:
             return cached_path(
                 dataset_infos,
-                download_config=self.download_config,
+                download_config=download_config,
             )
         except (FileNotFoundError, ConnectionError):
             return None
@@ -535,11 +565,11 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
         )
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
-        builder_kwargs = {"hash": hash, "base_path": hf_github_url(self.name, "", revision=revision)}
+        builder_kwargs = {"hash": hash, "base_path": hf_hub_url(self.name, "", revision=self.revision)}
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
-class CanonicalMetricModuleFactory(_MetricModuleFactory):
+class GithubMetricModuleFactory(_MetricModuleFactory):
     """Get the module of a metric. The metric script is downloaded from GitHub."""
 
     def __init__(
@@ -547,12 +577,14 @@ class CanonicalMetricModuleFactory(_MetricModuleFactory):
         name: str,
         revision: Optional[Union[str, Version]] = None,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
         dynamic_modules_path: Optional[str] = None,
     ):
         self.name = name
         self.revision = revision
-        self.download_config = download_config
+        self.download_config = download_config.copy() if download_config else DownloadConfig()
+        if self.download_config.max_retries < 3:
+            self.download_config.max_retries = 3
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
         assert self.name.count("/") == 0
@@ -560,7 +592,10 @@ class CanonicalMetricModuleFactory(_MetricModuleFactory):
 
     def download_loading_script(self, revision: Optional[str]) -> str:
         file_path = hf_github_url(path=self.name, name=self.name + ".py", revision=revision, dataset=False)
-        return cached_path(file_path, download_config=self.download_config)
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading builder script"
+        return cached_path(file_path, download_config=download_config)
 
     def get_module(self) -> MetricModule:
         # get script and other files
@@ -608,12 +643,12 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
         self,
         path: str,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
         dynamic_modules_path: Optional[str] = None,
     ):
         self.path = path
         self.name = Path(path).stem
-        self.download_config = download_config
+        self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
 
@@ -649,12 +684,12 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         self,
         path: str,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
         dynamic_modules_path: Optional[str] = None,
     ):
         self.path = path
         self.name = Path(path).stem
-        self.download_config = download_config
+        self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
 
@@ -694,17 +729,24 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
     def __init__(
         self,
         path: str,
+        data_dir: Optional[str] = None,
         data_files: Optional[Union[str, List, Dict]] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
     ):
+        if data_files is None and data_dir is not None:
+            data_files = os.path.join(data_dir, "**")
+
         self.path = path
         self.name = Path(path).stem
         self.data_files = data_files
         self.download_mode = download_mode
 
     def get_module(self) -> DatasetModule:
+        patterns = (
+            sanitize_patterns(self.data_files) if self.data_files is not None else get_patterns_locally(self.path)
+        )
         data_files = DataFilesDict.from_local_or_remote(
-            _sanitize_patterns(self.data_files), base_path=self.path, allowed_extensions=ALL_ALLOWED_EXTENSIONS
+            patterns, base_path=self.path, allowed_extensions=ALL_ALLOWED_EXTENSIONS
         )
         infered_module_names = {
             key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
@@ -721,6 +763,11 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "name": os.path.basename(self.path),
             "base_path": self.path,
         }
+        if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
+            with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
+                dataset_infos: DatasetInfosDict = json.load(f)
+                builder_kwargs["name"] = next(iter(dataset_infos))
+                builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["name"]])
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
@@ -730,10 +777,14 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
     def __init__(
         self,
         name: str,
+        data_dir: Optional[str] = None,
         data_files: Optional[Union[str, List, Dict]] = None,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
     ):
+        if data_files is None and data_dir is not None:
+            data_files = os.path.join(data_dir, "**")
+
         self.name = name
         self.data_files = data_files
         self.downnload_config = download_config
@@ -741,15 +792,18 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        data_files = DataFilesDict.from_local_or_remote(
-            _sanitize_patterns(self.data_files), use_auth_token=self.downnload_config.use_auth_token
+        patterns = (
+            sanitize_patterns(self.data_files)
+            if self.data_files is not None
+            else get_patterns_locally(str(Path().resolve()))
         )
+        data_files = DataFilesDict.from_local_or_remote(patterns, use_auth_token=self.downnload_config.use_auth_token)
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
         builder_kwargs = {"hash": hash, "data_files": data_files}
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
-class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
+class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
     """
     Get the module of a dataset loaded from data files of a dataset repository.
     The dataset builder module to use is infered from the data files extensions.
@@ -759,10 +813,14 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self,
         name: str,
         revision: Optional[Union[str, Version]] = None,
+        data_dir: Optional[str] = None,
         data_files: Optional[Union[str, List, Dict]] = None,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
     ):
+        if data_files is None and data_dir is not None:
+            data_files = os.path.join(data_dir, "**")
+
         self.name = name
         self.revision = revision
         self.data_files = data_files
@@ -776,15 +834,20 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             token = HfFolder.get_token() if self.download_config.use_auth_token else None
         else:
             token = self.download_config.use_auth_token
-        dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
+        hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision=self.revision,
             token=token,
             timeout=100.0,
         )
+        patterns = (
+            sanitize_patterns(self.data_files)
+            if self.data_files is not None
+            else get_patterns_in_dataset_repository(hfh_dataset_info)
+        )
         data_files = DataFilesDict.from_hf_repo(
-            _sanitize_patterns(self.data_files),
-            dataset_info=dataset_info,
+            patterns,
+            dataset_info=hfh_dataset_info,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         infered_module_names = {
@@ -795,18 +858,32 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {infered_module_names}")
         infered_module_name = next(iter(infered_module_names.values()))
         if not infered_module_name:
-            raise FileNotFoundError(f"No data files or dataset script found in {self.path}")
+            raise FileNotFoundError(f"No data files or dataset script found in {self.name}")
         module_path, hash = _PACKAGED_DATASETS_MODULES[infered_module_name]
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "name": self.name.replace("/", "___"),
+            "name": self.name.replace("/", "--"),
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
         }
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading metadata"
+        try:
+            dataset_infos_path = cached_path(
+                hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision),
+                download_config=self.download_config,
+            )
+            with open(dataset_infos_path, encoding="utf-8") as f:
+                dataset_infos: DatasetInfosDict = json.load(f)
+                builder_kwargs["name"] = next(iter(dataset_infos))
+                builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["name"]])
+        except FileNotFoundError:
+            pass
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
-class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
+class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
     """Get the module of a dataset from a dataset repository. The dataset script comes from the script inside the dataset repository."""
 
     def __init__(
@@ -814,12 +891,12 @@ class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         name: str,
         revision: Optional[Union[str, Version]] = None,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
         dynamic_modules_path: Optional[str] = None,
     ):
         self.name = name
         self.revision = revision
-        self.download_config = download_config
+        self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
         assert self.name.count("/") == 1
@@ -827,15 +904,21 @@ class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
 
     def download_loading_script(self) -> str:
         file_path = hf_hub_url(path=self.name, name=self.name.split("/")[1] + ".py", revision=self.revision)
-        return cached_path(file_path, download_config=self.download_config)
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading builder script"
+        return cached_path(file_path, download_config=download_config)
 
     def download_dataset_infos_file(self) -> str:
         dataset_infos = hf_hub_url(path=self.name, name=config.DATASETDICT_INFOS_FILENAME, revision=self.revision)
         # Download the dataset infos file if available
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading metadata"
         try:
             return cached_path(
                 dataset_infos,
-                download_config=self.download_config,
+                download_config=download_config,
             )
         except (FileNotFoundError, ConnectionError):
             return None
@@ -890,7 +973,7 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
 
     def get_module(self) -> DatasetModule:
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        importable_directory_path = os.path.join(dynamic_modules_path, "datasets", self.name.replace("/", "___"))
+        importable_directory_path = os.path.join(dynamic_modules_path, "datasets", self.name.replace("/", "--"))
         hashes = (
             [h for h in os.listdir(importable_directory_path) if len(h) == 64]
             if os.path.isdir(importable_directory_path)
@@ -917,7 +1000,7 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             [
                 os.path.basename(dynamic_modules_path),
                 "datasets",
-                self.name.replace("/", "___"),
+                self.name.replace("/", "--"),
                 hash,
                 self.name.split("/")[-1],
             ]
@@ -976,13 +1059,14 @@ def dataset_module_factory(
     path: str,
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[GenerateMode] = None,
+    download_mode: Optional[DownloadMode] = None,
     force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
+    data_dir: Optional[str] = None,
     data_files: Optional[Union[Dict, List, str, DataFilesDict]] = None,
     **download_kwargs,
 ) -> DatasetModule:
-    r"""
+    """
     Download/extract/cache a dataset module.
 
     Dataset codes are cached inside the the dynamic modules cache to allow easy import (avoid ugly sys.path tweaks).
@@ -990,49 +1074,42 @@ def dataset_module_factory(
     Args:
 
         path (str): Path or name of the dataset.
-            Depending on ``path``, the module that is returned is either generic module (csv, json, text etc.) or a module defined by dataset cript (a python file).
+            Depending on ``path``, the dataset builder that is used comes from a generic dataset script (JSON, CSV, Parquet, text etc.) or from the dataset script (a python file) inside the dataset directory.
 
             For local datasets:
 
-            - if ``path`` is a local directory containing data files (but doesn't contain a dataset script)
-              -> load a generic module (csv, json, text etc.) based on the content of the directory
+            - if ``path`` is a local directory (containing data files only)
+              -> load a generic dataset builder (csv, json, text etc.) based on the content of the directory
               e.g. ``'./path/to/directory/with/my/csv/data'``.
             - if ``path`` is a local dataset script or a directory containing a local dataset script (if the script has the same name as the directory):
-              -> load the module from the dataset script
+              -> load the dataset builder from the dataset script
               e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
 
             For datasets on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
 
-            - if ``path`` is a canonical dataset on the HF Hub (ex: `glue`, `squad`)
-              -> load the module from the dataset script in the github repository at huggingface/datasets
-              e.g. ``'squad'`` or ``'glue'``.
-            - if ``path`` is a dataset repository on the HF hub containing data files (without a dataset script)
-              -> load a generic module (csv, text etc.) based on the content of the repository
+            - if ``path`` is a dataset repository on the HF hub (containing data files only)
+              -> load a generic dataset builder (csv, text etc.) based on the content of the repository
               e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing your data files.
             - if ``path`` is a dataset repository on the HF hub with a dataset script (if the script has the same name as the directory)
-              -> load the module from the dataset script in the dataset repository
-              e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
+              -> load the dataset builder from the dataset script in the dataset repository
+              e.g. ``glue``, ``squad``, ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
 
-        revision (Optional ``Union[str, datasets.Version]``):
-            Which revision of a dataset repository to use, or which revision of a canonical dataset to use.
-            If specified, the module will be loaded at this version.
-            By default for dataset repositories:
-            - for dataset repositories, it is set to the "main" branch
-            By default for canonical datasets:
-            - it is set to the local version of the lib.
-            - it will also try to load it from the master branch if it's not available at the local version of the lib.
-            Specifying a version that is different from your local version of the lib might cause compatibility issues.
+        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
+
+            - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
+              You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
+            - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
+              You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
             Used to inspect or modify the script folder.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default the datasets and metrics are stored inside the `datasets_modules` module.
+        data_dir (:obj:`str`, optional): Directory with the data files. Used only if `data_files` is not specified,
+            in which case it's equal to passing `os.path.join(data_dir, "**")` as `data_files`.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
-        script_version:
-            .. deprecated:: 1.13
-                'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
 
     Returns:
@@ -1040,8 +1117,10 @@ def dataset_module_factory(
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     download_config.extract_compressed_file = True
     download_config.force_extract = True
+    download_config.force_download = download_mode == DownloadMode.FORCE_REDOWNLOAD
 
     filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
     if not filename.endswith(".py"):
@@ -1058,8 +1137,9 @@ def dataset_module_factory(
     # - if path is a local directory (but no python file)
     #   -> use a packaged module (csv, text etc.) based on content of the directory
     #
-    # - if path has no "/" and is a module on github (in /datasets or in /metrics)
+    # - if path has no "/" and is a module on github (in /datasets)
     #   -> use the module from the python file on github
+    #   Note that this case will be removed in favor of loading from the HF Hub instead eventually
     # - if path has one "/" and is dataset repository on the HF hub with a python file
     #   -> the module from the python file in the dataset repository
     # - if path has one "/" and is dataset repository on the HF hub without a python file
@@ -1068,7 +1148,11 @@ def dataset_module_factory(
     # Try packaged
     if path in _PACKAGED_DATASETS_MODULES:
         return PackagedDatasetModuleFactory(
-            path, data_files=data_files, download_config=download_config, download_mode=download_mode
+            path,
+            data_dir=data_dir,
+            data_files=data_files,
+            download_config=download_config,
+            download_mode=download_mode,
         ).get_module()
     # Try locally
     elif path.endswith(filename):
@@ -1084,21 +1168,22 @@ def dataset_module_factory(
         ).get_module()
     elif os.path.isdir(path):
         return LocalDatasetModuleFactoryWithoutScript(
-            path, data_files=data_files, download_mode=download_mode
+            path, data_dir=data_dir, data_files=data_files, download_mode=download_mode
         ).get_module()
     # Try remotely
     elif is_relative_path(path) and path.count("/") <= 1 and not force_local_path:
         try:
             _raise_if_offline_mode_is_enabled()
-            if path.count("/") == 0:  # canonical datasets/metrics: github path
-                return CanonicalDatasetModuleFactory(
+            if path.count("/") == 0:  # even though the dataset is on the Hub, we get it from GitHub for now
+                # TODO(QL): use a Hub dataset module factory instead of GitHub
+                return GithubDatasetModuleFactory(
                     path,
                     revision=revision,
                     download_config=download_config,
                     download_mode=download_mode,
                     dynamic_modules_path=dynamic_modules_path,
                 ).get_module()
-            elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
+            elif path.count("/") == 1:  # community dataset on the Hub
                 hf_api = HfApi(config.HF_ENDPOINT)
                 try:
                     if isinstance(download_config.use_auth_token, bool):
@@ -1127,7 +1212,7 @@ def dataset_module_factory(
                     else:
                         raise e
                 if filename in [sibling.rfilename for sibling in dataset_info.siblings]:
-                    return CommunityDatasetModuleFactoryWithScript(
+                    return HubDatasetModuleFactoryWithScript(
                         path,
                         revision=revision,
                         download_config=download_config,
@@ -1135,9 +1220,10 @@ def dataset_module_factory(
                         dynamic_modules_path=dynamic_modules_path,
                     ).get_module()
                 else:
-                    return CommunityDatasetModuleFactoryWithoutScript(
+                    return HubDatasetModuleFactoryWithoutScript(
                         path,
                         revision=revision,
+                        data_dir=data_dir,
                         data_files=data_files,
                         download_config=download_config,
                         download_mode=download_mode,
@@ -1164,12 +1250,12 @@ def metric_module_factory(
     path: str,
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[GenerateMode] = None,
+    download_mode: Optional[DownloadMode] = None,
     force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
     **download_kwargs,
 ) -> MetricModule:
-    r"""
+    """
     Download/extract/cache a metric module.
 
     Metrics codes are cached inside the the dynamic modules cache to allow easy import (avoid ugly sys.path tweaks).
@@ -1181,7 +1267,7 @@ def metric_module_factory(
             - if ``path`` is a local metric script or a directory containing a local metric script (if the script has the same name as the directory):
               -> load the module from the metric script
               e.g. ``'./metrics/accuracy'`` or ``'./metrics/accuracy/accuracy.py'``.
-            - if ``path`` is a canonical metric (ex: `glue`, `squad`)
+            - if ``path`` is a metric on the Hugging Face Hub (ex: `glue`, `squad`)
               -> load the module from the metric script in the github repository at huggingface/datasets
               e.g. ``'accuracy'`` or ``'rouge'``.
 
@@ -1192,15 +1278,12 @@ def metric_module_factory(
             - it will also try to load it from the master branch if it's not available at the local version of the lib.
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
             Used to inspect or modify the script folder.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default the datasets and metrics are stored inside the `datasets_modules` module.
-        script_version:
-            .. deprecated:: 1.13
-                'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
 
     Returns:
@@ -1208,6 +1291,7 @@ def metric_module_factory(
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     download_config.extract_compressed_file = True
     download_config.force_extract = True
 
@@ -1229,7 +1313,7 @@ def metric_module_factory(
         ).get_module()
     elif is_relative_path(path) and path.count("/") == 0 and not force_local_path:
         try:
-            return CanonicalMetricModuleFactory(
+            return GithubMetricModuleFactory(
                 path,
                 revision=revision,
                 download_config=download_config,
@@ -1250,47 +1334,23 @@ def metric_module_factory(
         raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(combined_path)}.")
 
 
-def prepare_module(
-    path: str,
-    revision: Optional[Union[str, Version]] = None,
-    download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[GenerateMode] = None,
-    dataset: bool = True,
-    force_local_path: Optional[str] = None,
-    dynamic_modules_path: Optional[str] = None,
-    data_files: Optional[Union[Dict, List, str]] = None,
-    script_version="deprecated",
-    **download_kwargs,
-) -> Union[Tuple[str, str], Tuple[str, str, Optional[str]]]:
-    """For backward compatibility. Please use dataset_module_factory or metric_module_factory instead."""
-    if script_version != "deprecated":
-        warnings.warn(
-            "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
-        )
-        revision = script_version
-    if dataset:
-        results = dataset_module_factory(
-            path,
-            revision=revision,
-            download_config=download_config,
-            download_mode=download_mode,
-            force_local_path=force_local_path,
-            dynamic_modules_path=dynamic_modules_path,
-            data_files=data_files,
-            **download_kwargs,
-        )
-        return results.module_path, results.hash
-    else:
-        results = metric_module_factory(
-            path,
-            revision=revision,
-            download_config=download_config,
-            download_mode=download_mode,
-            force_local_path=force_local_path,
-            dynamic_modules_path=dynamic_modules_path,
-            **download_kwargs,
-        )
-        return results.module_path, results.hash
+def extend_dataset_builder_for_streaming(builder: DatasetBuilder, use_auth_token: Optional[Union[bool, str]] = None):
+    """Extend the dataset builder module and the modules imported by it to support streaming.
+
+    Args:
+        builder (:class:`DatasetBuilder`): Dataset builder instance.
+        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If True, will get token from `"~/.huggingface"`.
+    """
+    # this extends the open and os.path.join functions for data streaming
+    extend_module_for_streaming(builder.__module__, use_auth_token=use_auth_token)
+    # if needed, we also have to extend additional internal imports (like wmt14 -> wmt_utils)
+    if not builder.__module__.startswith("datasets."):  # check that it's not a packaged builder like csv
+        for imports in get_imports(inspect.getfile(builder.__class__)):
+            if imports[0] == "internal":
+                internal_import_name = imports[1]
+                internal_module_name = ".".join(builder.__module__.split(".")[:-1] + [internal_import_name])
+                extend_module_for_streaming(internal_module_name, use_auth_token=use_auth_token)
 
 
 def load_metric(
@@ -1302,12 +1362,11 @@ def load_metric(
     experiment_id: Optional[str] = None,
     keep_in_memory: bool = False,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[GenerateMode] = None,
+    download_mode: Optional[DownloadMode] = None,
     revision: Optional[Union[str, Version]] = None,
-    script_version="deprecated",
     **metric_init_kwargs,
 ) -> Metric:
-    r"""Load a `datasets.Metric`.
+    """Load a `datasets.Metric`.
 
     Args:
 
@@ -1317,30 +1376,23 @@ def load_metric(
                     e.g. ``'./metrics/rouge'`` or ``'./metrics/rogue/rouge.py'``
                 - a metric identifier on the HuggingFace datasets repo (list all available metrics with ``datasets.list_metrics()``)
                     e.g. ``'rouge'`` or ``'bleu'``
-        config_name (Optional ``str``): selecting a configuration for the metric (e.g. the GLUE metric has a configuration for each subset)
-        process_id (Optional ``int``): for distributed evaluation: id of the process
-        num_process (Optional ``int``): for distributed evaluation: total number of processes
+        config_name (:obj:`str`, optional): selecting a configuration for the metric (e.g. the GLUE metric has a configuration for each subset)
+        process_id (:obj:`int`, optional): for distributed evaluation: id of the process
+        num_process (:obj:`int`, optional): for distributed evaluation: total number of processes
         cache_dir (Optional str): path to store the temporary predictions and references (default to `~/.cache/huggingface/metrics/`)
         experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
         keep_in_memory (bool): Whether to store the temporary results in memory (defaults to False)
         download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         revision (Optional ``Union[str, datasets.Version]``): if specified, the module will be loaded from the datasets repository
             at this version. By default it is set to the local version of the lib. Specifying a version that is different from
             your local version of the lib might cause compatibility issues.
-        script_version:
-            .. deprecated:: 1.13
-                'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.
 
     Returns:
         `datasets.Metric`
     """
-    if script_version != "deprecated":
-        warnings.warn(
-            "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
-        )
-        revision = script_version
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     metric_module = metric_module_factory(
         path, revision=revision, download_config=download_config, download_mode=download_mode
     ).module_path
@@ -1369,25 +1421,31 @@ def load_dataset_builder(
     cache_dir: Optional[str] = None,
     features: Optional[Features] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[GenerateMode] = None,
+    download_mode: Optional[DownloadMode] = None,
     revision: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
-    script_version="deprecated",
     **config_kwargs,
 ) -> DatasetBuilder:
-    """Load a builder for the dataset. A dataset builder can be used to inspect general information that is required to build a dataset (cache directory, config, dataset info, etc.)
+    """Load a dataset builder from the Hugging Face Hub, or a local dataset. A dataset builder can be used to inspect general information that is required to build a dataset (cache directory, config, dataset info, etc.)
     without downloading the dataset itself.
 
-    This method will download and import the dataset loading script from ``path`` if it's not already cached inside the library.
+    You can find the list of datasets on the Hub at https://huggingface.co/datasets or with ``datasets.list_datasets()``.
+
+    A dataset is a directory that contains:
+
+    - some data files in generic formats (JSON, CSV, Parquet, text, etc.)
+    - and optionally a dataset script, if it requires some code to read the data files. This is used to load any kind of formats or structures.
+
+    Note that dataset scripts can also download and read data files from anywhere - in case your data files already exist online.
 
     Args:
 
         path (:obj:`str`): Path or name of the dataset.
-            Depending on ``path``, the dataset builder that is returned id either generic dataset builder (csv, json, text etc.) or a dataset builder defined defined a dataset script (a python file).
+            Depending on ``path``, the dataset builder that is used comes from a generic dataset script (JSON, CSV, Parquet, text etc.) or from the dataset script (a python file) inside the dataset directory.
 
             For local datasets:
 
-            - if ``path`` is a local directory (but doesn't contain a dataset script)
+            - if ``path`` is a local directory (containing data files only)
               -> load a generic dataset builder (csv, json, text etc.) based on the content of the directory
               e.g. ``'./path/to/directory/with/my/csv/data'``.
             - if ``path`` is a local dataset script or a directory containing a local dataset script (if the script has the same name as the directory):
@@ -1396,56 +1454,51 @@ def load_dataset_builder(
 
             For datasets on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
 
-            - if ``path`` is a canonical dataset on the HF Hub (ex: `glue`, `squad`)
-              -> load the dataset builder from the dataset script in the github repository at huggingface/datasets
-              e.g. ``'squad'`` or ``'glue'``.
-            - if ``path`` is a dataset repository on the HF hub (without a dataset script)
+            - if ``path`` is a dataset repository on the HF hub (containing data files only)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
               e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing your data files.
             - if ``path`` is a dataset repository on the HF hub with a dataset script (if the script has the same name as the directory)
               -> load the dataset builder from the dataset script in the dataset repository
-              e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
+              e.g. ``glue``, ``squad``, ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
 
 
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
-        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
+        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration. If specified for the generic builders (csv, text etc.) or the Hub datasets and `data_files` is None,
+            the behavior is equal to passing `os.path.join(data_dir, **)` as `data_files` to reference all the files in a directory.
         data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
         cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
-            - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version of the lib.
+            - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
               You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
-            - For community provided datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
+            - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
-        use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
-        script_version:
-            .. deprecated:: 1.13
-                'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.
 
     Returns:
         :class:`DatasetBuilder`
 
     """
-    if script_version != "deprecated":
-        warnings.warn(
-            "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
-        )
-        revision = script_version
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     if use_auth_token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
         download_config.use_auth_token = use_auth_token
-    dataset_module_factory_result = dataset_module_factory(
-        path, revision=revision, download_config=download_config, download_mode=download_mode, data_files=data_files
+    dataset_module = dataset_module_factory(
+        path,
+        revision=revision,
+        download_config=download_config,
+        download_mode=download_mode,
+        data_dir=data_dir,
+        data_files=data_files,
     )
 
     # Get dataset builder class from the processing script
-    dataset_module = dataset_module_factory_result.module_path
-    builder_cls = import_main_class(dataset_module)
-    builder_kwargs = dataset_module_factory_result.builder_kwargs
+    builder_cls = import_main_class(dataset_module.module_path)
+    builder_kwargs = dataset_module.builder_kwargs
     data_files = builder_kwargs.pop("data_files", data_files)
     name = builder_kwargs.pop("name", name)
     hash = builder_kwargs.pop("hash")
@@ -1484,7 +1537,7 @@ def load_dataset(
     cache_dir: Optional[str] = None,
     features: Optional[Features] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[GenerateMode] = None,
+    download_mode: Optional[DownloadMode] = None,
     ignore_verifications: bool = False,
     keep_in_memory: Optional[bool] = None,
     save_infos: bool = False,
@@ -1492,29 +1545,38 @@ def load_dataset(
     use_auth_token: Optional[Union[bool, str]] = None,
     task: Optional[Union[str, TaskTemplate]] = None,
     streaming: bool = False,
-    script_version="deprecated",
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
-    """Load a dataset.
+    """Load a dataset from the Hugging Face Hub, or a local dataset.
 
-    This method does the following under the hood:
+    You can find the list of datasets on the Hub at https://huggingface.co/datasets or with ``datasets.list_datasets()``.
 
-        1. Download and import in the library the dataset loading script from ``path`` if it's not already cached inside the library.
+    A dataset is a directory that contains:
 
-            Processing scripts are small python scripts that define the citation, info and format of the dataset,
-            contain the URL to the original data files and the code to load examples from the original data files.
+    - some data files in generic formats (JSON, CSV, Parquet, text, etc.)
+    - and optionally a dataset script, if it requires some code to read the data files. This is used to load any kind of formats or structures.
+
+    Note that dataset scripts can also download and read data files from anywhere - in case your data files already exist online.
+
+    This function does the following under the hood:
+
+        1. Download and import in the library the dataset script from ``path`` if it's not already cached inside the library.
+
+            If the dataset has no dataset script, then a generic dataset script is imported instead (JSON, CSV, Parquet, text, etc.)
+
+            Dataset scripts are small python scripts that define dataset builders. They define the citation, info and format of the dataset,
+            contain the path or URL to the original data files and the code to load examples from the original data files.
 
             You can find some of the scripts here: https://github.com/huggingface/datasets/tree/master/datasets
-            and easily upload yours to share them using the CLI ``huggingface-cli``.
             You can find the complete list of datasets in the Datasets Hub at https://huggingface.co/datasets
 
-        2. Run the dataset loading script which will:
+        2. Run the dataset script which will:
 
-            * Download the dataset file from the original URL (see the script) if it's not already downloaded and cached.
+            * Download the dataset file from the original URL (see the script) if it's not already available locally or cached.
             * Process and cache the dataset in typed Arrow tables for caching.
 
-                Arrow table are arbitrarily long, typed tables which can store nested objects and be mapped to numpy/pandas/python standard types.
-                They can be directly accessed from drive, loaded in RAM or even streamed over the web.
+                Arrow table are arbitrarily long, typed tables which can store nested objects and be mapped to numpy/pandas/python generic types.
+                They can be directly accessed from disk, loaded in RAM or even streamed over the web.
 
         3. Return a dataset built from the requested splits in ``split`` (default: all).
 
@@ -1524,11 +1586,11 @@ def load_dataset(
     Args:
 
         path (:obj:`str`): Path or name of the dataset.
-            Depending on ``path``, the dataset builder that is returned id either generic dataset builder (csv, json, text etc.) or a dataset builder defined defined a dataset script (a python file).
+            Depending on ``path``, the dataset builder that is used comes from a generic dataset script (JSON, CSV, Parquet, text etc.) or from the dataset script (a python file) inside the dataset directory.
 
             For local datasets:
 
-            - if ``path`` is a local directory (but doesn't contain a dataset script)
+            - if ``path`` is a local directory (containing data files only)
               -> load a generic dataset builder (csv, json, text etc.) based on the content of the directory
               e.g. ``'./path/to/directory/with/my/csv/data'``.
             - if ``path`` is a local dataset script or a directory containing a local dataset script (if the script has the same name as the directory):
@@ -1537,18 +1599,16 @@ def load_dataset(
 
             For datasets on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
 
-            - if ``path`` is a canonical dataset on the HF Hub (ex: `glue`, `squad`)
-              -> load the dataset builder from the dataset script in the github repository at huggingface/datasets
-              e.g. ``'squad'`` or ``'glue'``.
-            - if ``path`` is a dataset repository on the HF hub (without a dataset script)
+            - if ``path`` is a dataset repository on the HF hub (containing data files only)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
               e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing your data files.
             - if ``path`` is a dataset repository on the HF hub with a dataset script (if the script has the same name as the directory)
               -> load the dataset builder from the dataset script in the dataset repository
-              e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
+              e.g. ``glue``, ``squad``, ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
 
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
-        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
+        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration. If specified for the generic builders (csv, text etc.) or the Hub datasets and `data_files` is None,
+            the behavior is equal to passing `os.path.join(data_dir, **)` as `data_files` to reference all the files in a directory.
         data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
         split (:class:`Split` or :obj:`str`): Which split of the data to load.
             If None, will return a `dict` with all splits (typically `datasets.Split.TRAIN` and `datasets.Split.TEST`).
@@ -1557,7 +1617,7 @@ def load_dataset(
         cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         ignore_verifications (:obj:`bool`, default ``False``): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
         keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
@@ -1565,22 +1625,19 @@ def load_dataset(
         save_infos (:obj:`bool`, default ``False``): Save the dataset information (checksums/size/splits/...).
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
-            - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version of the lib.
+            - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
               You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
-            - For community provided datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
+            - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
-        use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
         task (``str``): The task to prepare the dataset for during training and evaluation. Casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
-        streaming (``bool``, default ``False``): If set to True, don't download the data files. Instead, it streams the data progressively while
+        streaming (:obj:`bool`, default ``False``): If set to True, don't download the data files. Instead, it streams the data progressively while
             iterating on the dataset. An IterableDataset or IterableDatasetDict is returned instead in this case.
 
             Note that streaming works for datasets that use data formats that support being iterated over like txt, csv, jsonl for example.
             Json files may be downloaded completely. Also streaming from remote zip or gzip files is supported but other compressed formats
             like rar and xz are not yet supported. The tgz format doesn't allow streaming.
-        script_version:
-            .. deprecated:: 1.13
-                'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.
         **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
 
     Returns:
@@ -1594,11 +1651,13 @@ def load_dataset(
         - if `split` is None, a ``datasets.streaming.IterableDatasetDict`` with each split.
 
     """
-    if script_version != "deprecated":
-        warnings.warn(
-            "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
+    if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():
+        raise ValueError(
+            "You are trying to load a dataset that was saved using `save_to_disk`. "
+            "Please use `load_from_disk` instead."
         )
-        revision = script_version
+
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     ignore_verifications = ignore_verifications or save_infos
 
     # Create a dataset builder
@@ -1618,8 +1677,7 @@ def load_dataset(
 
     # Return iterable dataset in case of streaming
     if streaming:
-        # this extends the open and os.path.join functions for data streaming
-        extend_module_for_streaming(builder_instance.__module__, use_auth_token=use_auth_token)
+        extend_dataset_builder_for_streaming(builder_instance, use_auth_token=use_auth_token)
         return builder_instance.as_streaming_dataset(
             split=split,
             use_auth_token=use_auth_token,
@@ -1681,12 +1739,12 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
         dest_dataset_path = dataset_path
 
     if not fs.exists(dest_dataset_path):
-        raise FileNotFoundError("Directory {} not found".format(dataset_path))
+        raise FileNotFoundError(f"Directory {dataset_path} not found")
     if fs.isfile(Path(dest_dataset_path, config.DATASET_INFO_FILENAME).as_posix()):
         return Dataset.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
     elif fs.isfile(Path(dest_dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()):
         return DatasetDict.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
     else:
         raise FileNotFoundError(
-            "Directory {} is neither a dataset directory nor a dataset dict directory.".format(dataset_path)
+            f"Directory {dataset_path} is neither a dataset directory nor a dataset dict directory."
         )

@@ -1,4 +1,5 @@
 ---
+pretty_name: PyAst
 annotations_creators:
 - machine-generated
 language_creators:
@@ -17,7 +18,7 @@ source_datasets:
 task_categories:
 - sequence-modeling
 task_ids:
-- sequence-modeling-code-modeling
+- sequence-modeling-other-code-modeling
 paperswithcode_id: null
 ---
 # Dataset Card for [py_ast]
@@ -89,11 +90,12 @@ The main key is `ast` wherein every program's AST is stored.
 ### Data Splits
 
 The data is split into a training and test set.   
-The final split sizes are as follow:
+The final split sizes are as follows:
 
-|                             | Tain   | Valid |
-| -----                       | ------ | ----- |
-| py_ast examples| 100000 |  50000 |
+|                  |   train |  validation |
+|------------------|--------:|------------:|
+| py_ast examples  |  100000 |       50000 |
+
 ## Dataset Creation
 [More Information Needed]
 ### Curation Rationale

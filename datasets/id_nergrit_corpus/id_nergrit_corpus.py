@@ -15,8 +15,6 @@
 """Nergrit Corpus"""
 
 
-import os
-
 import datasets
 
 
@@ -180,62 +178,60 @@ class IdNergritCorpus(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         my_urls = _URLs[0]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        archive = dl_manager.download(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(
-                        data_dir, "nergrit-corpus/{}/data/train_corrected.txt".format(self.config.name)
-                    ),
+                    "filepath": f"nergrit-corpus/{self.config.name}/data/train_corrected.txt",
                     "split": "train",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(
-                        data_dir, "nergrit-corpus/{}/data/test_corrected.txt".format(self.config.name)
-                    ),
+                    "filepath": f"nergrit-corpus/{self.config.name}/data/test_corrected.txt",
                     "split": "test",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(
-                        data_dir, "nergrit-corpus/{}/data/valid_corrected.txt".format(self.config.name)
-                    ),
+                    "filepath": f"nergrit-corpus/{self.config.name}/data/valid_corrected.txt",
                     "split": "dev",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
-        logger.info("⏳ Generating %s examples from = %s", split, filepath)
-        with open(filepath, encoding="utf-8") as f:
-            guid = 0
-            tokens = []
-            ner_tags = []
-            for line in f:
-                splits = line.strip().split()
-                if len(splits) != 2:
-                    if tokens:
-                        assert len(tokens) == len(ner_tags), "word len doesn't match label length"
-                        yield guid, {
-                            "id": str(guid),
-                            "tokens": tokens,
-                            "ner_tags": ner_tags,
-                        }
-                        guid += 1
-                        tokens = []
-                        ner_tags = []
-                else:
-                    tokens.append(splits[0])
-                    ner_tags.append(splits[1].rstrip())
-            # last example
-            yield guid, {
-                "id": str(guid),
-                "tokens": tokens,
-                "ner_tags": ner_tags,
-            }
+    def _generate_examples(self, filepath, split, files):
+        for path, f in files:
+            if path == filepath:
+                guid = 0
+                tokens = []
+                ner_tags = []
+                for line in f:
+                    splits = line.decode("utf-8").strip().split()
+                    if len(splits) != 2:
+                        if tokens:
+                            assert len(tokens) == len(ner_tags), "word len doesn't match label length"
+                            yield guid, {
+                                "id": str(guid),
+                                "tokens": tokens,
+                                "ner_tags": ner_tags,
+                            }
+                            guid += 1
+                            tokens = []
+                            ner_tags = []
+                    else:
+                        tokens.append(splits[0])
+                        ner_tags.append(splits[1].rstrip())
+                # last example
+                yield guid, {
+                    "id": str(guid),
+                    "tokens": tokens,
+                    "ner_tags": ner_tags,
+                }
+                break

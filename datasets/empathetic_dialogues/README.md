@@ -1,4 +1,5 @@
 ---
+pretty_name: EmpatheticDialogues
 languages:
 - en
 paperswithcode_id: empatheticdialogues

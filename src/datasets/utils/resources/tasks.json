@@ -8,7 +8,7 @@
             "table-to-text",
             "text-simplification",
             "explanation-generation",
-            "other-stuctured-to-text",
+            "other-structured-to-text",
             "other"
         ]
     },
@@ -40,6 +40,9 @@
             "named-entity-recognition",
             "part-of-speech-tagging",
             "parsing",
+            "semantic-role-labeling",
+            "lemmatization",
+            "word-sense-disambiguation",
             "other"
         ]
     },
@@ -92,6 +95,50 @@
             "emotion-recognition"
         ]
     },
+    "time-series-forecasting": {
+        "description": "tasks related to predicting future values of a time series",
+        "options": [
+            "univariate-time-series-forecasting",
+            "multivariate-time-series-forecasting"
+        ]
+    },
+    "object-detection": {
+        "description": "tasks related to detecting instances of objects from a particular class in an image",
+        "options": [
+            "face-detection",
+            "other"
+        ]
+    },
+    "image-to-text": {
+        "description": "tasks related to generating text from images",
+        "options": [
+            "image-captioning",
+            "other"
+        ]
+    },
+    "text-to-image": {
+        "description": "tasks related to generating images from text",
+        "options": []
+    },
+    "image-segmentation": {
+        "description": "tasks related to detecting and delineating distinct objects in images",
+        "options": [
+            "instance-segmentation",
+            "semantic-segmentation",
+            "panoptic-segmentation",
+            "other"
+        ]
+    },
+    "image-classification": {
+        "description": "tasks related to identifying what images represent",
+        "options": [
+            "multi-label-image-classification",
+            "single-label-image-classification",
+            "other"
+        ]
+
+    },
+
     "other": {
         "description": "other task family not mentioned here",
         "options": [

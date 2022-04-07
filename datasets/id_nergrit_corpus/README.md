@@ -1,4 +1,5 @@
 ---
+pretty_name: Nergrit Corpus
 annotations_creators:
 - expert-generated
 language_creators:

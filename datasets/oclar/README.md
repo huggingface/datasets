@@ -20,6 +20,7 @@ task_ids:
 - sentiment-classification
 - sentiment-scoring
 paperswithcode_id: null
+pretty_name: OCLAR
 ---
 
 # Dataset Card for OCLAR
@@ -52,7 +53,7 @@ paperswithcode_id: null
 
 - **Homepage:** [OCLAR homepage](http://archive.ics.uci.edu/ml/datasets/Opinion+Corpus+for+Lebanese+Arabic+Reviews+%28OCLAR%29#)
 - **Paper:** [paper link](https://www.semanticscholar.org/paper/Sentiment-Classifier%3A-Logistic-Regression-for-in-Omari-Al-Hajj/9319f4d9e8b3b7bfd0d214314911c071ba7ce1a0)
-- **Point of Contact:** Marwan Al Omari <marwanalomari '@' yahoo.com>
+- **Point of Contact:** [Marwan Al Omari](marwanalomari@yahoo.com)
 
 ### Dataset Summary
 

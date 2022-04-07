@@ -1,5 +1,12 @@
 ---
+pretty_name: WMT14
 paperswithcode_id: wmt-2014
+multilinguality:
+- translation
+task_categories:
+- conditional-text-generation
+task_ids:
+- machine-translation
 ---
 
 # Dataset Card for "wmt14"

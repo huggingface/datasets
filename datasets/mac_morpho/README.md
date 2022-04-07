@@ -1,4 +1,5 @@
 ---
+pretty_name: Mac-Morpho
 annotations_creators:
 - expert-generated
 language_creators:

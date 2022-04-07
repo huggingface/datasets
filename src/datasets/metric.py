@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,11 +29,11 @@ from .arrow_writer import ArrowWriter
 from .features import Features
 from .info import DatasetInfo, MetricInfo
 from .naming import camelcase_to_snakecase
-from .utils import copyfunc, temp_seed
 from .utils.download_manager import DownloadManager
 from .utils.file_utils import DownloadConfig
 from .utils.filelock import BaseFileLock, FileLock, Timeout
 from .utils.logging import get_logger
+from .utils.py_utils import copyfunc, temp_seed
 
 
 logger = get_logger(__name__)
@@ -60,6 +59,18 @@ class FileFreeLock(BaseFileLock):
 
     def _release(self):
         self._lock_file_fd = None
+
+
+# lists - summarize long lists similarly to NumPy
+# arrays/tensors - let the frameworks control formatting
+def summarize_if_long_list(obj):
+    if not type(obj) == list or len(obj) <= 6:
+        return f"{obj}"
+
+    def format_chunk(chunk):
+        return ", ".join(repr(x) for x in chunk)
+
+    return f"[{format_chunk(obj[:3])}, ..., {format_chunk(obj[-3:])}]"
 
 
 class MetricInfoMixin:
@@ -130,14 +141,14 @@ class Metric(MetricInfoMixin):
     Args:
         config_name (``str``): This is used to define a hash specific to a metrics computation script and prevents the metric's data
             to be overridden when the metric loading script is modified.
-        keep_in_memory (``bool``): keep all predictions and references in memory. Not possible in distributed settings.
+        keep_in_memory (:obj:`bool`): keep all predictions and references in memory. Not possible in distributed settings.
         cache_dir (``str``): Path to a directory in which temporary prediction/references data will be stored.
             The data directory should be located on a shared file-system in distributed setups.
         num_process (``int``): specify the total number of nodes in a distributed settings.
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
         process_id (``int``): specify the id of the current process in a distributed setup (between 0 and num_process-1)
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
-        seed (Optional ``int``): If specified, this will temporarily set numpy's random seed when :func:`datasets.Metric.compute` is run.
+        seed (:obj:`int`, optional): If specified, this will temporarily set numpy's random seed when :func:`datasets.Metric.compute` is run.
         experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
         max_concurrent_cache_files (``int``): Max number of concurrent metrics cache files (default 10000).
@@ -166,13 +177,13 @@ class Metric(MetricInfoMixin):
         MetricInfoMixin.__init__(self, info)  # For easy access on low level
 
         # Safety checks on num_process and process_id
-        assert isinstance(process_id, int) and process_id >= 0, "'process_id' should be a number greater than 0"
-        assert (
-            isinstance(num_process, int) and num_process > process_id
-        ), "'num_process' should be a number greater than process_id"
-        assert (
-            num_process == 1 or not keep_in_memory
-        ), "Using 'keep_in_memory' is not possible in distributed setting (num_process > 1)."
+        if not isinstance(process_id, int) or process_id < 0:
+            raise ValueError("'process_id' should be a number greater than 0")
+        if not isinstance(num_process, int) or num_process <= process_id:
+            raise ValueError("'num_process' should be a number greater than process_id")
+        if keep_in_memory and num_process != 1:
+            raise ValueError("Using 'keep_in_memory' is not possible in distributed setting (num_process > 1).")
+
         self.num_process = num_process
         self.process_id = process_id
         self.max_concurrent_cache_files = max_concurrent_cache_files
@@ -180,7 +191,11 @@ class Metric(MetricInfoMixin):
         self.keep_in_memory = keep_in_memory
         self._data_dir_root = os.path.expanduser(cache_dir or config.HF_METRICS_CACHE)
         self.data_dir = self._build_data_dir()
-        self.seed: int = seed or np.random.get_state()[1][0]
+        if seed is None:
+            _, seed, pos, *_ = np.random.get_state()
+            self.seed: int = seed[pos] if pos < 624 else seed[0]
+        else:
+            self.seed: int = seed
         self.timeout: Union[int, float] = timeout
 
         # Update 'compute' and 'add' docstring
@@ -387,9 +402,21 @@ class Metric(MetricInfoMixin):
             - Dictionary with the metrics if this metric is run on the main process (``process_id == 0``).
             - None if the metric is not run on the main process (``process_id != 0``).
         """
+        all_kwargs = {"predictions": predictions, "references": references, **kwargs}
+        if predictions is None and references is None:
+            missing_kwargs = {k: None for k in self.features if k not in all_kwargs}
+            all_kwargs.update(missing_kwargs)
+        else:
+            missing_inputs = [k for k in self.features if k not in all_kwargs]
+            if missing_inputs:
+                raise ValueError(
+                    f"Metric inputs are missing: {missing_inputs}. All required inputs are {list(self.features)}"
+                )
+        inputs = {input_name: all_kwargs[input_name] for input_name in self.features}
+        compute_kwargs = {k: kwargs[k] for k in kwargs if k not in self.features}
 
-        if predictions is not None:
-            self.add_batch(predictions=predictions, references=references)
+        if any(v is not None for v in inputs.values()):
+            self.add_batch(**inputs)
         self._finalize()
 
         self.cache_file_name = None
@@ -398,10 +425,9 @@ class Metric(MetricInfoMixin):
         if self.process_id == 0:
             self.data.set_format(type=self.info.format)
 
-            predictions = self.data["predictions"]
-            references = self.data["references"]
+            inputs = {input_name: self.data[input_name] for input_name in self.features}
             with temp_seed(self.seed):
-                output = self._compute(predictions=predictions, references=references, **kwargs)
+                output = self._compute(**inputs, **compute_kwargs)
 
             if self.buf_writer is not None:
                 self.buf_writer = None
@@ -422,47 +448,69 @@ class Metric(MetricInfoMixin):
         else:
             return None
 
-    def add_batch(self, *, predictions=None, references=None):
+    def add_batch(self, *, predictions=None, references=None, **kwargs):
         """Add a batch of predictions and references for the metric's stack.
 
         Args:
             predictions (list/array/tensor, optional): Predictions.
             references (list/array/tensor, optional): References.
         """
-        batch = {"predictions": predictions, "references": references}
+        bad_inputs = [input_name for input_name in kwargs if input_name not in self.features]
+        if bad_inputs:
+            raise ValueError(f"Bad inputs for metric: {bad_inputs}. All required inputs are {list(self.features)}")
+        batch = {"predictions": predictions, "references": references, **kwargs}
+        batch = {intput_name: batch[intput_name] for intput_name in self.features}
         batch = self.info.features.encode_batch(batch)
         if self.writer is None:
             self._init_writer()
         try:
             self.writer.write_batch(batch)
         except pa.ArrowInvalid:
-            raise ValueError(
-                f"Predictions and/or references don't match the expected format.\n"
-                f"Expected format: {self.features},\n"
-                f"Input predictions: {predictions},\n"
-                f"Input references: {references}"
-            ) from None
+            if any(len(batch[c]) != len(next(iter(batch.values()))) for c in batch):
+                col0 = next(iter(batch))
+                bad_col = [c for c in batch if len(batch[c]) != len(batch[col0])][0]
+                error_msg = (
+                    f"Mismatch in the number of {col0} ({len(batch[col0])}) and {bad_col} ({len(batch[bad_col])})"
+                )
+            elif sorted(self.features) != ["references", "predictions"]:
+                error_msg = f"Metric inputs don't match the expected format.\n" f"Expected format: {self.features},\n"
+                error_msg_inputs = ",\n".join(
+                    f"Input {input_name}: {summarize_if_long_list(batch[input_name])}" for input_name in self.features
+                )
+                error_msg += error_msg_inputs
+            else:
+                error_msg = (
+                    f"Predictions and/or references don't match the expected format.\n"
+                    f"Expected format: {self.features},\n"
+                    f"Input predictions: {summarize_if_long_list(predictions)},\n"
+                    f"Input references: {summarize_if_long_list(references)}"
+                )
+            raise ValueError(error_msg) from None
 
-    def add(self, *, prediction=None, reference=None):
+    def add(self, *, prediction=None, reference=None, **kwargs):
         """Add one prediction and reference for the metric's stack.
 
         Args:
             prediction (list/array/tensor, optional): Predictions.
             reference (list/array/tensor, optional): References.
         """
-        example = {"predictions": prediction, "references": reference}
+        bad_inputs = [input_name for input_name in kwargs if input_name not in self.features]
+        if bad_inputs:
+            raise ValueError(f"Bad inputs for metric: {bad_inputs}. All required inputs are {list(self.features)}")
+        example = {"predictions": prediction, "references": reference, **kwargs}
+        example = {intput_name: example[intput_name] for intput_name in self.features}
         example = self.info.features.encode_example(example)
         if self.writer is None:
             self._init_writer()
         try:
             self.writer.write(example)
         except pa.ArrowInvalid:
-            raise ValueError(
-                f"Prediction and/or reference don't match the expected format.\n"
-                f"Expected format: {self.features},\n"
-                f"Input predictions: {prediction},\n"
-                f"Input references: {reference}"
-            ) from None
+            error_msg = f"Metric inputs don't match the expected format.\n" f"Expected format: {self.features},\n"
+            error_msg_inputs = ",\n".join(
+                f"Input {input_name}: {summarize_if_long_list(example[input_name])}" for input_name in self.features
+            )
+            error_msg += error_msg_inputs
+            raise ValueError(error_msg) from None
 
     def _init_writer(self, timeout=1):
         if self.num_process > 1:

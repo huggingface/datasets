@@ -26,7 +26,6 @@ of their systems on the full range of English levels and abilities."""
 
 
 import json
-from pathlib import Path
 
 import datasets
 
@@ -160,19 +159,24 @@ submissions and assigned them a CEFR level."""
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        data_dir = Path(dl_manager.download_and_extract(_URL)) / "wi+locness" / "json"
+        archive = dl_manager.download(_URL)
+        data_dir = "wi+locness/json"
 
         if self.config.name == "wi":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": data_dir, "split": "train"},
+                    gen_kwargs={"data_dir": data_dir, "split": "train", "files": dl_manager.iter_archive(archive)},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": data_dir, "split": "validation"},
+                    gen_kwargs={
+                        "data_dir": data_dir,
+                        "split": "validation",
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
             ]
         elif self.config.name == "locness":
@@ -180,13 +184,17 @@ submissions and assigned them a CEFR level."""
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": data_dir, "split": "validation"},
+                    gen_kwargs={
+                        "data_dir": data_dir,
+                        "split": "validation",
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
             ]
         else:
             assert False
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, data_dir, split, files):
         """Yields examples."""
 
         if split == "validation":
@@ -198,12 +206,15 @@ submissions and assigned them a CEFR level."""
             levels = ["N"]
         else:
             assert False
-
+        filepaths = [f"{data_dir}/{level}.{split}.json" for level in levels]
         id_ = 0
-        for level in levels:
-            with open(filepath / f"{level}.{split}.json", "r", encoding="utf-8") as fp:
+        for path, fp in files:
+            if not filepaths:
+                break
+            if path in filepaths:
+                filepaths.remove(path)
                 for line in fp:
-                    o = json.loads(line)
+                    o = json.loads(line.decode("utf-8"))
 
                     edits = []
                     for (start, end, text) in o["edits"][0][1:][0]:

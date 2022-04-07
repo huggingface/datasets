@@ -1,4 +1,5 @@
 ---
+pretty_name: Reuters-21578 Text Categorization Collection
 languages:
 - en
 paperswithcode_id: reuters-21578

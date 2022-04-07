@@ -16,7 +16,6 @@
 
 
 import csv
-import os
 
 import datasets
 
@@ -42,7 +41,7 @@ _HOMEPAGE = "https://registry.opendata.aws/"
 _LICENSE = "Apache License 2.0"
 
 _URLs = {
-    "amazon_polarity": "https://drive.google.com/u/0/uc?id=0Bz8a_Dbh9QhbaW12WVVZS2drcnM&export=download",
+    "amazon_polarity": "https://s3.amazonaws.com/fast-ai-nlp/amazon_review_polarity_csv.tgz",
 }
 
 
@@ -94,32 +93,34 @@ class AmazonPolarity(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         my_urls = _URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        archive = dl_manager.download(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "amazon_review_polarity_csv", "train.csv"),
-                    "split": "train",
+                    "filepath": "/".join(["amazon_review_polarity_csv", "train.csv"]),
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "amazon_review_polarity_csv", "test.csv"),
-                    "split": "test",
+                    "filepath": "/".join(["amazon_review_polarity_csv", "test.csv"]),
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath, files):
         """Yields examples."""
-
-        with open(filepath, encoding="utf-8") as f:
-            data = csv.reader(f, delimiter=",", quoting=csv.QUOTE_ALL)
-            for id_, row in enumerate(data):
-                yield id_, {
-                    "title": row[1],
-                    "content": row[2],
-                    "label": int(row[0]) - 1,
-                }
+        for path, f in files:
+            if path == filepath:
+                lines = (line.decode("utf-8") for line in f)
+                data = csv.reader(lines, delimiter=",", quoting=csv.QUOTE_ALL)
+                for id_, row in enumerate(data):
+                    yield id_, {
+                        "title": row[1],
+                        "content": row[2],
+                        "label": int(row[0]) - 1,
+                    }
+                break

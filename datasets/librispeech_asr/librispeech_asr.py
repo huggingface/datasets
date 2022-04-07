@@ -17,9 +17,6 @@
 """Librispeech automatic speech recognition dataset."""
 
 
-import glob
-import os
-
 import datasets
 from datasets.tasks import AutomaticSpeechRecognition
 
@@ -93,6 +90,7 @@ class LibrispeechASRConfig(datasets.BuilderConfig):
 class LibrispeechASR(datasets.GeneratorBasedBuilder):
     """Librispeech dataset."""
 
+    DEFAULT_WRITER_BATCH_SIZE = 256
     BUILDER_CONFIGS = [
         LibrispeechASRConfig(name="clean", description="'Clean' speech."),
         LibrispeechASRConfig(name="other", description="'Other', more challenging, speech."),
@@ -104,7 +102,7 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=16_000),
+                    "audio": datasets.Audio(sampling_rate=16_000),
                     "text": datasets.Value("string"),
                     "speaker_id": datasets.Value("int64"),
                     "chapter_id": datasets.Value("int64"),
@@ -114,45 +112,66 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
             supervised_keys=("file", "text"),
             homepage=_URL,
             citation=_CITATION,
-            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="text")],
         )
 
     def _split_generators(self, dl_manager):
-        archive_path = dl_manager.download_and_extract(_DL_URLS[self.config.name])
+        archive_path = dl_manager.download(_DL_URLS[self.config.name])
 
         if self.config.name == "clean":
             train_splits = [
-                datasets.SplitGenerator(name="train.100", gen_kwargs={"archive_path": archive_path["train.100"]}),
-                datasets.SplitGenerator(name="train.360", gen_kwargs={"archive_path": archive_path["train.360"]}),
+                datasets.SplitGenerator(
+                    name="train.100", gen_kwargs={"files": dl_manager.iter_archive(archive_path["train.100"])}
+                ),
+                datasets.SplitGenerator(
+                    name="train.360", gen_kwargs={"files": dl_manager.iter_archive(archive_path["train.360"])}
+                ),
             ]
         elif self.config.name == "other":
             train_splits = [
-                datasets.SplitGenerator(name="train.500", gen_kwargs={"archive_path": archive_path["train.500"]}),
+                datasets.SplitGenerator(
+                    name="train.500", gen_kwargs={"files": dl_manager.iter_archive(archive_path["train.500"])}
+                ),
             ]
 
         return train_splits + [
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"archive_path": archive_path["dev"]}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"archive_path": archive_path["test"]}),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION, gen_kwargs={"files": dl_manager.iter_archive(archive_path["dev"])}
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"files": dl_manager.iter_archive(archive_path["test"])}
+            ),
         ]
 
-    def _generate_examples(self, archive_path):
+    def _generate_examples(self, files):
         """Generate examples from a LibriSpeech archive_path."""
-        transcripts_glob = os.path.join(archive_path, "LibriSpeech", "*/*/*/*.txt")
         key = 0
-        for transcript_path in sorted(glob.glob(transcripts_glob)):
-            transcript_dir_path = os.path.dirname(transcript_path)
-            with open(transcript_path, "r", encoding="utf-8") as f:
+        audio_data = {}
+        transcripts = []
+        for path, f in files:
+            if path.endswith(".flac"):
+                id_ = path.split("/")[-1][: -len(".flac")]
+                audio_data[id_] = f.read()
+            elif path.endswith(".trans.txt"):
                 for line in f:
-                    line = line.strip()
-                    id_, transcript = line.split(" ", 1)
-                    audio_file = f"{id_}.flac"
-                    speaker_id, chapter_id = [int(el) for el in id_.split("-")[:2]]
-                    yield key, {
-                        "id": id_,
-                        "speaker_id": speaker_id,
-                        "chapter_id": chapter_id,
-                        "file": os.path.join(transcript_dir_path, audio_file),
-                        "audio": os.path.join(transcript_dir_path, audio_file),
-                        "text": transcript,
-                    }
+                    if line:
+                        line = line.decode("utf-8").strip()
+                        id_, transcript = line.split(" ", 1)
+                        audio_file = f"{id_}.flac"
+                        speaker_id, chapter_id = [int(el) for el in id_.split("-")[:2]]
+                        transcripts.append(
+                            {
+                                "id": id_,
+                                "speaker_id": speaker_id,
+                                "chapter_id": chapter_id,
+                                "file": audio_file,
+                                "text": transcript,
+                            }
+                        )
+            if audio_data and len(audio_data) == len(transcripts):
+                for transcript in transcripts:
+                    audio = {"path": transcript["file"], "bytes": audio_data[transcript["id"]]}
+                    yield key, {"audio": audio, **transcript}
                     key += 1
+                audio_data = {}
+                transcripts = []

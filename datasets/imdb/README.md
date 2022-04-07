@@ -1,4 +1,5 @@
 ---
+pretty_name: IMDB
 languages:
 - en
 paperswithcode_id: imdb-movie-reviews

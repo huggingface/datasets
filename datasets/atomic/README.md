@@ -1,4 +1,5 @@
 ---
+pretty_name: ATOMIC
 annotations_creators:
 - crowdsourced
 language_creators:
@@ -16,7 +17,7 @@ source_datasets:
 task_categories:
 - conditional-text-generation
 task_ids:
-- other-stuctured-to-text
+- other-structured-to-text
 paperswithcode_id: atomic
 ---
 
@@ -74,6 +75,10 @@ you have any concerns.
 
 
 For more information, see: https://homes.cs.washington.edu/~msap/atomic/
+
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
 
 ### Languages
 en

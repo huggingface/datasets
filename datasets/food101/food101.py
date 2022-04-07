@@ -15,6 +15,7 @@
 """Dataset class for Food-101 dataset."""
 
 import datasets
+from datasets.tasks import ImageClassification
 
 
 _BASE_URL = "http://data.vision.ee.ethz.ch/cvl/food-101.tar.gz"
@@ -171,14 +172,15 @@ class Food101(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "image": {"filename": datasets.Value("string"), "data": datasets.Value("binary")},
-                    "label": datasets.features.ClassLabel(names=_NAMES),
+                    "image": datasets.Image(),
+                    "label": datasets.ClassLabel(names=_NAMES),
                 }
             ),
             supervised_keys=("image", "label"),
             homepage=_HOMEPAGE,
             citation=_CITATION,
             license=_LICENSE,
+            task_templates=[ImageClassification(image_column="image", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):
@@ -210,6 +212,6 @@ class Food101(datasets.GeneratorBasedBuilder):
                 if file_path[len(_IMAGES_DIR) : -len(".jpg")] in files_to_keep:
                     label = file_path.split("/")[2]
                     yield file_path, {
-                        "image": {"filename": file_path.split("/")[-1], "data": file_obj.read()},
+                        "image": {"path": file_path, "bytes": file_obj.read()},
                         "label": label,
                     }

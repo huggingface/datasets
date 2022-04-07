@@ -5,7 +5,13 @@ import fsspec
 import pytest
 from moto import mock_s3
 
-from datasets.filesystems import COMPRESSION_FILESYSTEMS, S3FileSystem, extract_path_from_uri, is_remote_filesystem
+from datasets.filesystems import (
+    COMPRESSION_FILESYSTEMS,
+    HfFileSystem,
+    S3FileSystem,
+    extract_path_from_uri,
+    is_remote_filesystem,
+)
 
 from .utils import require_lz4, require_zstandard
 
@@ -67,3 +73,24 @@ def test_compression_filesystems(compression_fs_class, gz_file, bz2_file, lz4_fi
     assert fs.ls("/") == [expected_filename]
     with fs.open(expected_filename, "r", encoding="utf-8") as f, open(text_file, encoding="utf-8") as expected_file:
         assert f.read() == expected_file.read()
+
+
+@pytest.mark.parametrize("protocol", ["zip", "gzip"])
+def test_fs_isfile(protocol, zip_jsonl_path, jsonl_gz_path):
+    compressed_file_paths = {"zip": zip_jsonl_path, "gzip": jsonl_gz_path}
+    compressed_file_path = compressed_file_paths[protocol]
+    member_file_path = "dataset.jsonl"
+    path = f"{protocol}://{member_file_path}::{compressed_file_path}"
+    fs, *_ = fsspec.get_fs_token_paths(path)
+    assert fs.isfile(member_file_path)
+    assert not fs.isfile("non_existing_" + member_file_path)
+
+
+def test_hf_filesystem(hf_token, hf_api, hf_private_dataset_repo_txt_data, text_file):
+    repo_info = hf_api.dataset_info(hf_private_dataset_repo_txt_data, token=hf_token)
+    hffs = HfFileSystem(repo_info=repo_info, token=hf_token)
+    assert sorted(hffs.glob("*")) == [".gitattributes", "data"]
+    assert hffs.isdir("data")
+    assert hffs.isfile(".gitattributes") and hffs.isfile("data/text_data.txt")
+    with open(text_file) as f:
+        assert hffs.open("data/text_data.txt", "r").read() == f.read()

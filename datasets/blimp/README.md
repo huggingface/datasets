@@ -1,6 +1,23 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- machine-generated
 languages:
 - en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: BLiMP
+size_categories:
+- "10K<n<100K"
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- acceptability-classification
 paperswithcode_id: blimp
 ---
 

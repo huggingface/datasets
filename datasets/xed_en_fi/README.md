@@ -29,6 +29,7 @@ task_ids:
 - multi-label-classification
 - sentiment-classification
 paperswithcode_id: xed
+pretty_name: XedEnglishFinnish
 ---
 
 # Dataset Card for xed_english_finnish

@@ -77,7 +77,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=16_000),
+                    "audio": datasets.Audio(sampling_rate=16_000),
                     "text": datasets.Value("string"),
                     "phonetic_detail": datasets.Sequence(
                         {
@@ -102,7 +102,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
             supervised_keys=("file", "text"),
             homepage=_HOMEPAGE,
             citation=_CITATION,
-            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="text")],
         )
 
     def _split_generators(self, dl_manager):
@@ -137,11 +137,11 @@ class TimitASR(datasets.GeneratorBasedBuilder):
             wav_path = os.path.join(data_path, *(audio_data["path_from_data_dir"].split("/")))
 
             # extract transcript
-            with open(wav_path.replace(".WAV", ".TXT"), "r", encoding="utf-8") as op:
+            with open(wav_path.replace(".WAV", ".TXT"), encoding="utf-8") as op:
                 transcript = " ".join(op.readlines()[0].split()[2:])  # first two items are sample number
 
             # extract phonemes
-            with open(wav_path.replace(".WAV", ".PHN"), "r", encoding="utf-8") as op:
+            with open(wav_path.replace(".WAV", ".PHN"), encoding="utf-8") as op:
                 phonemes = [
                     {
                         "start": i.split(" ")[0],
@@ -152,7 +152,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
                 ]
 
             # extract words
-            with open(wav_path.replace(".WAV", ".WRD"), "r", encoding="utf-8") as op:
+            with open(wav_path.replace(".WAV", ".WRD"), encoding="utf-8") as op:
                 words = [
                     {
                         "start": i.split(" ")[0],

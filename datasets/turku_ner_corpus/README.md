@@ -1,4 +1,5 @@
 ---
+pretty_name: Turku NER corpus
 annotations_creators:
 - expert-generated
 language_creators:

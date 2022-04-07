@@ -15,7 +15,6 @@
 """Wikicorpus dataset."""
 
 import re
-from pathlib import Path
 
 import datasets
 
@@ -111,69 +110,69 @@ class Wikicorpus(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         url_to_download = _URLs.format(form=self.config.form, language=self.config.language)
-        downloaded_dir = dl_manager.download_and_extract(url_to_download)
+        archive = dl_manager.download(url_to_download)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "dirpath": downloaded_dir,
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, dirpath):
-        for file_idx, filepath in enumerate(sorted(Path(dirpath).iterdir())):
-            with open(filepath, encoding="latin-1") as f:
-                example = {}
-                # raw
-                text = []
-                # tagged
-                words = []
-                lemmas = []
-                pos_tags = []
-                wordnet_senses = []
-                for row_idx, row in enumerate(f):
-                    if self.config.form == "raw":
-                        if row.startswith("<doc id"):
-                            metadata_match = METADATA_PATTERN.match(row)
-                            example["id"] = metadata_match.group("id") if metadata_match else ""
-                            example["title"] = metadata_match.group("title") if metadata_match else ""
-                        elif row.startswith("</doc>"):
-                            pass
-                        elif row.startswith("ENDOFARTICLE"):
+    def _generate_examples(self, files):
+        for file_idx, (path, f) in enumerate(files):
+            example = {}
+            # raw
+            text = []
+            # tagged
+            words = []
+            lemmas = []
+            pos_tags = []
+            wordnet_senses = []
+            for row_idx, row in enumerate(f):
+                row = row.decode("latin-1")
+                if self.config.form == "raw":
+                    if row.startswith("<doc id"):
+                        metadata_match = METADATA_PATTERN.match(row)
+                        example["id"] = metadata_match.group("id") if metadata_match else ""
+                        example["title"] = metadata_match.group("title") if metadata_match else ""
+                    elif row.startswith("</doc>"):
+                        pass
+                    elif row.startswith("ENDOFARTICLE"):
+                        yield f"{file_idx}_{row_idx}", {
+                            "id": example["id"],
+                            "title": example["title"],
+                            "text": "\n".join(text).strip(),
+                        }
+                        example = {}
+                        text = []
+                    else:
+                        text.append(row)
+                elif self.config.form == "tagged":
+                    if row.startswith("<doc id"):
+                        metadata_match = METADATA_PATTERN.match(row)
+                        example["id"] = metadata_match.group("id") if metadata_match else ""
+                        example["title"] = metadata_match.group("title") if metadata_match else ""
+                    elif row.startswith("</doc>"):
+                        pass
+                    elif row.startswith("ENDOFARTICLE") or row.startswith("\n"):
+                        if len(words) > 1:  # some content besides only (. . Fp 0)
                             yield f"{file_idx}_{row_idx}", {
                                 "id": example["id"],
                                 "title": example["title"],
-                                "text": "\n".join(text).strip(),
+                                "sentence": words,
+                                "lemmas": lemmas,
+                                "pos_tags": pos_tags,
+                                "wordnet_senses": wordnet_senses,
                             }
+                        words = []
+                        lemmas = []
+                        pos_tags = []
+                        wordnet_senses = []
+                        if row.startswith("ENDOFARTICLE"):
                             example = {}
-                            text = []
-                        else:
-                            text.append(row)
-                    elif self.config.form == "tagged":
-                        if row.startswith("<doc id"):
-                            metadata_match = METADATA_PATTERN.match(row)
-                            example["id"] = metadata_match.group("id") if metadata_match else ""
-                            example["title"] = metadata_match.group("title") if metadata_match else ""
-                        elif row.startswith("</doc>"):
-                            pass
-                        elif row.startswith("ENDOFARTICLE") or row.startswith("\n"):
-                            if len(words) > 1:  # some content besides only (. . Fp 0)
-                                yield f"{file_idx}_{row_idx}", {
-                                    "id": example["id"],
-                                    "title": example["title"],
-                                    "sentence": words,
-                                    "lemmas": lemmas,
-                                    "pos_tags": pos_tags,
-                                    "wordnet_senses": wordnet_senses,
-                                }
-                            words = []
-                            lemmas = []
-                            pos_tags = []
-                            wordnet_senses = []
-                            if row.startswith("ENDOFARTICLE"):
-                                example = {}
-                        else:
-                            splits = row.split()
-                            for tag, tags in zip(splits, [words, lemmas, pos_tags, wordnet_senses]):
-                                tags.append(tag)
+                    else:
+                        splits = row.split()
+                        for tag, tags in zip(splits, [words, lemmas, pos_tags, wordnet_senses]):
+                            tags.append(tag)

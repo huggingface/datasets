@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +20,7 @@ import datasets
 
 _DESCRIPTION = """
 Recall is the fraction of the total amount of relevant examples that were actually retrieved. It can be computed with:
-Precision = TP / (TP + FN)
+Recall = TP / (TP + FN)
 TP: True positive
 FN: False negative
 """
@@ -53,8 +52,12 @@ Args:
             samples: Calculate metrics for each instance, and find their average
                 (only meaningful for multilabel classification).
     sample_weight: Sample weights.
+    zero_division ("warn", 0 or 1, default="warn"): Sets the value to return when there is a zero division.
+        If set to "warn", this acts as 0, but warnings are also raised.
+
 Returns:
     recall: Recall score.
+
 Examples:
 
     >>> recall_metric = datasets.load_metric("recall")
@@ -114,8 +117,23 @@ class Recall(datasets.Metric):
             reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html"],
         )
 
-    def _compute(self, predictions, references, labels=None, pos_label=1, average="binary", sample_weight=None):
+    def _compute(
+        self,
+        predictions,
+        references,
+        labels=None,
+        pos_label=1,
+        average="binary",
+        sample_weight=None,
+        zero_division="warn",
+    ):
         score = recall_score(
-            references, predictions, labels=labels, pos_label=pos_label, average=average, sample_weight=sample_weight
+            references,
+            predictions,
+            labels=labels,
+            pos_label=pos_label,
+            average=average,
+            sample_weight=sample_weight,
+            zero_division=zero_division,
         )
         return {"recall": float(score) if score.size == 1 else score}

@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from pathlib import Path
@@ -11,22 +12,41 @@ from datasets.utils.streaming_download_manager import (
     StreamingDownloadManager,
     _as_posix,
     _get_extraction_protocol,
+    xbasename,
+    xgetsize,
     xglob,
+    xisdir,
+    xisfile,
     xjoin,
+    xlistdir,
     xopen,
     xpathglob,
     xpathjoin,
+    xpathname,
     xpathopen,
+    xpathparent,
     xpathrglob,
     xpathstem,
     xpathsuffix,
+    xrelpath,
+    xsplitext,
 )
 
-from .utils import require_lz4, require_zstandard
+from .utils import require_lz4, require_zstandard, slow
 
 
 TEST_URL = "https://huggingface.co/datasets/lhoestq/test/raw/main/some_text.txt"
 TEST_URL_CONTENT = "foo\nbar\nfoobar"
+
+TEST_GG_DRIVE_FILENAME = "train.tsv"
+TEST_GG_DRIVE_URL = "https://drive.google.com/uc?export=download&id=17bOgBDc3hRCoPZ89EYtKDzK-yXAWat94"
+TEST_GG_DRIVE_GZIPPED_URL = "https://drive.google.com/uc?export=download&id=1Bt4Garpf0QLiwkJhHJzXaVa0I0H5Qhwz"
+TEST_GG_DRIVE_ZIPPED_URL = "https://drive.google.com/uc?export=download&id=1k92sUfpHxKq8PXWRr7Y5aNHXwOCNUmqh"
+TEST_GG_DRIVE_CONTENT = """\
+pokemon_name, type
+Charmander, fire
+Squirtle, water
+Bulbasaur, grass"""
 
 
 class DummyTestFS(AbstractFileSystem):
@@ -75,7 +95,7 @@ class DummyTestFS(AbstractFileSystem):
         for item in self._fs_contents:
             if item["name"] == name:
                 return item
-        raise IndexError("{name} not found!".format(name=name))
+        raise IndexError(f"{name} not found!")
 
     def ls(self, path, detail=True, refresh=True, **kwargs):
         if kwargs.pop("strip_proto", True):
@@ -212,6 +232,28 @@ def test_xdirname(input_path, expected_path):
     assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
 
 
+@pytest.mark.parametrize(
+    "input_path, expected_path_and_ext",
+    [
+        (
+            str(Path(__file__).resolve()),
+            (str(Path(__file__).resolve().with_suffix("")), str(Path(__file__).resolve().suffix)),
+        ),
+        ("https://host.com/archive.zip", ("https://host.com/archive", ".zip")),
+        ("zip://file.txt::https://host.com/archive.zip", ("zip://file::https://host.com/archive.zip", ".txt")),
+        ("zip://folder::https://host.com/archive.zip", ("zip://folder::https://host.com/archive.zip", "")),
+        ("zip://::https://host.com/archive.zip", ("zip://::https://host.com/archive.zip", "")),
+    ],
+)
+def test_xsplitext(input_path, expected_path_and_ext):
+    output_path, ext = xsplitext(input_path)
+    expected_path, expected_ext = expected_path_and_ext
+    output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
+    expected_path = _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+    assert output_path == expected_path
+    assert ext == expected_ext
+
+
 def test_xopen_local(text_path):
     with xopen(text_path, "r", encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
         assert list(f) == list(expected_file)
@@ -224,6 +266,73 @@ def test_xopen_remote():
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
     with xpathopen(Path(TEST_URL), "r", encoding="utf-8") as f:
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
+
+
+@pytest.mark.parametrize(
+    "input_path, expected_paths",
+    [
+        ("tmp_path", ["file1.txt", "file2.txt"]),
+        ("mock://", ["glob_test", "misc", "top_level"]),
+        ("mock://top_level", ["second_level"]),
+        ("mock://top_level/second_level/date=2019-10-01", ["a.parquet", "b.parquet"]),
+    ],
+)
+def test_xlistdir(input_path, expected_paths, tmp_path, mock_fsspec):
+    if input_path.startswith("tmp_path"):
+        input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+        for file in ["file1.txt", "file2.txt"]:
+            (tmp_path / file).touch()
+    output_paths = sorted(xlistdir(input_path))
+    assert output_paths == expected_paths
+
+
+@pytest.mark.parametrize(
+    "input_path, isdir",
+    [
+        ("tmp_path", True),
+        ("tmp_path/file.txt", False),
+        ("mock://", True),
+        ("mock://top_level", True),
+        ("mock://dir_that_doesnt_exist", False),
+    ],
+)
+def test_xisdir(input_path, isdir, tmp_path, mock_fsspec):
+    if input_path.startswith("tmp_path"):
+        input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+        (tmp_path / "file.txt").touch()
+    assert xisdir(input_path) == isdir
+
+
+@pytest.mark.parametrize(
+    "input_path, isfile",
+    [
+        ("tmp_path/file.txt", True),
+        ("tmp_path/file_that_doesnt_exist.txt", False),
+        ("mock://", False),
+        ("mock://top_level/second_level/date=2019-10-01/a.parquet", True),
+    ],
+)
+def test_xisfile(input_path, isfile, tmp_path, mock_fsspec):
+    if input_path.startswith("tmp_path"):
+        input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+        (tmp_path / "file.txt").touch()
+    assert xisfile(input_path) == isfile
+
+
+@pytest.mark.parametrize(
+    "input_path, size",
+    [
+        ("tmp_path/file.txt", 100),
+        ("mock://", 0),
+        ("mock://top_level/second_level/date=2019-10-01/a.parquet", 100),
+    ],
+)
+def test_xgetsize(input_path, size, tmp_path, mock_fsspec):
+    if input_path.startswith("tmp_path"):
+        input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+        (tmp_path / "file.txt").touch()
+        (tmp_path / "file.txt").write_bytes(b"x" * 100)
+    assert xgetsize(input_path) == size
 
 
 @pytest.mark.parametrize(
@@ -259,6 +368,29 @@ def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
             (tmp_path / file).touch()
     output_paths = sorted(xglob(input_path))
     assert output_paths == expected_paths
+
+
+@pytest.mark.parametrize(
+    "input_path, start_path, expected_path",
+    [
+        ("dir1/dir2/file.txt".replace("/", os.path.sep), "dir1", "dir2/file.txt".replace("/", os.path.sep)),
+        ("dir1/dir2/file.txt".replace("/", os.path.sep), "dir1/dir2".replace("/", os.path.sep), "file.txt"),
+        ("zip://file.txt::https://host.com/archive.zip", "zip://::https://host.com/archive.zip", "file.txt"),
+        (
+            "zip://folder/file.txt::https://host.com/archive.zip",
+            "zip://::https://host.com/archive.zip",
+            "folder/file.txt",
+        ),
+        (
+            "zip://folder/file.txt::https://host.com/archive.zip",
+            "zip://folder::https://host.com/archive.zip",
+            "file.txt",
+        ),
+    ],
+)
+def test_xrelpath(input_path, start_path, expected_path):
+    output_path = xrelpath(input_path, start=start_path)
+    assert output_path == expected_path
 
 
 @pytest.mark.parametrize(
@@ -356,6 +488,39 @@ def test_xpathrglob(input_path, pattern, expected_paths, tmp_path, mock_fsspec):
         expected_paths = [Path(file) for file in expected_paths]
     output_paths = sorted(xpathrglob(Path(input_path), pattern))
     assert output_paths == expected_paths
+
+
+@pytest.mark.parametrize(
+    "input_path, expected_path",
+    [
+        (Path(__file__).resolve(), Path(__file__).resolve().parent),
+        (Path("https://host.com/archive.zip"), Path("https://host.com")),
+        (
+            Path("zip://file.txt::https://host.com/archive.zip"),
+            Path("zip://::https://host.com/archive.zip"),
+        ),
+        (
+            Path("zip://folder/file.txt::https://host.com/archive.zip"),
+            Path("zip://folder::https://host.com/archive.zip"),
+        ),
+    ],
+)
+def test_xpathparent(input_path, expected_path):
+    output_path = xpathparent(input_path)
+    output_path = _readd_double_slash_removed_by_path(output_path.as_posix())
+    assert output_path == _readd_double_slash_removed_by_path(expected_path.as_posix())
+
+
+@pytest.mark.parametrize(
+    "input_path, expected",
+    [
+        ("zip://file.txt::https://host.com/archive.zip", "file.txt"),
+        ("datasets/file.txt", "file.txt"),
+        ((Path().resolve() / "file.txt").as_posix(), "file.txt"),
+    ],
+)
+def test_xpathname(input_path, expected):
+    assert xpathname(Path(input_path)) == expected
 
 
 @pytest.mark.parametrize(
@@ -465,6 +630,18 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
         ("https://zenodo.org/record/2787612/files/SICK.zip?download=1", "zip"),
     ],
 )
+def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected_protocol):
+    assert _get_extraction_protocol(urlpath) == expected_protocol
+
+
+@pytest.mark.parametrize(
+    "urlpath, expected_protocol",
+    [
+        (TEST_GG_DRIVE_GZIPPED_URL, "gzip"),
+        (TEST_GG_DRIVE_ZIPPED_URL, "zip"),
+    ],
+)
+@slow  # otherwise it spams google drive and the CI gets banned
 def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):
     assert _get_extraction_protocol(urlpath) == expected_protocol
 
@@ -480,3 +657,73 @@ def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol
 @pytest.mark.xfail(raises=NotImplementedError)
 def test_streaming_dl_manager_get_extraction_protocol_throws(urlpath):
     _get_extraction_protocol(urlpath)
+
+
+@slow  # otherwise it spams google drive and the CI gets banned
+def test_streaming_gg_drive():
+    with xopen(TEST_GG_DRIVE_URL) as f:
+        assert f.read() == TEST_GG_DRIVE_CONTENT
+
+
+@slow  # otherwise it spams google drive and the CI gets banned
+def test_streaming_gg_drive_no_extract():
+    urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_URL)
+    with xopen(urlpath) as f:
+        assert f.read() == TEST_GG_DRIVE_CONTENT
+
+
+@slow  # otherwise it spams google drive and the CI gets banned
+def test_streaming_gg_drive_gzipped():
+    urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_GZIPPED_URL)
+    with xopen(urlpath) as f:
+        assert f.read() == TEST_GG_DRIVE_CONTENT
+
+
+@slow  # otherwise it spams google drive and the CI gets banned
+def test_streaming_gg_drive_zipped():
+    urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_ZIPPED_URL)
+    all_files = list(xglob(xjoin(urlpath, "*")))
+    assert len(all_files) == 1
+    assert xbasename(all_files[0]) == TEST_GG_DRIVE_FILENAME
+    with xopen(all_files[0]) as f:
+        assert f.read() == TEST_GG_DRIVE_CONTENT
+
+
+def _test_jsonl(path, file):
+    assert path.endswith(".jsonl")
+    for num_items, line in enumerate(file, start=1):
+        item = json.loads(line.decode("utf-8"))
+        assert item.keys() == {"col_1", "col_2", "col_3"}
+    assert num_items == 4
+
+
+def test_iter_archive_path(tar_jsonl_path):
+    dl_manager = StreamingDownloadManager()
+    archive_iterable = dl_manager.iter_archive(str(tar_jsonl_path))
+    num_jsonl = 0
+    for num_jsonl, (path, file) in enumerate(archive_iterable, start=1):
+        _test_jsonl(path, file)
+    assert num_jsonl == 2
+    # do it twice to make sure it's reset correctly
+    num_jsonl = 0
+    for num_jsonl, (path, file) in enumerate(archive_iterable, start=1):
+        _test_jsonl(path, file)
+    assert num_jsonl == 2
+
+
+def test_iter_archive_file(tar_nested_jsonl_path):
+    dl_manager = StreamingDownloadManager()
+    files_iterable = dl_manager.iter_archive(str(tar_nested_jsonl_path))
+    num_tar, num_jsonl = 0, 0
+    for num_tar, (path, file) in enumerate(files_iterable, start=1):
+        for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
+            _test_jsonl(subpath, subfile)
+    assert num_tar == 1
+    assert num_jsonl == 2
+    # do it twice to make sure it's reset correctly
+    num_tar, num_jsonl = 0, 0
+    for num_tar, (path, file) in enumerate(files_iterable, start=1):
+        for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
+            _test_jsonl(subpath, subfile)
+    assert num_tar == 1
+    assert num_jsonl == 2

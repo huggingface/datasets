@@ -1,5 +1,12 @@
 ---
+pretty_name: WMT19
 paperswithcode_id: null
+multilinguality:
+- translation
+task_categories:
+- conditional-text-generation
+task_ids:
+- machine-translation
 ---
 
 # Dataset Card for "wmt19"

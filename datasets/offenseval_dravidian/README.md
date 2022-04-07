@@ -31,6 +31,7 @@ task_categories:
 task_ids:
 - text-classification-other-offensive-language
 paperswithcode_id: null
+pretty_name: Offenseval Dravidian
 ---
 
 # Dataset Card for Offenseval Dravidian
@@ -123,11 +124,11 @@ Kannada
 
 ### Data Splits
 
-|              | Tain   | Valid |
-| -----        | ------: | -----: |
-| Tamil      |  35139 |  4388 |
-| Malayalam        |  16010 |  1999 |
-| Kannada    |  6217  |  777 |
+|           | train | validation |
+|-----------|------:|-----------:|
+| Tamil     | 35139 |       4388 |
+| Malayalam | 16010 |       1999 |
+| Kannada   |  6217 |        777 |
 
 ## Dataset Creation
 

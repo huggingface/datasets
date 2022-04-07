@@ -1,4 +1,5 @@
 ---
+pretty_name: Opus100
 task_categories:
 - sequence-modeling
 multilinguality:

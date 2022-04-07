@@ -1,21 +1,24 @@
 ---
 annotations_creators:
-- experts
+- expert-generated
 language_creators:
 - found
-languages: []
+languages:
+- en
 licenses:
-- MIT
-multilinguality: []
+- mit
+multilinguality:
+- monolingual
 size_categories:
 - 10K<n<100K
 source_datasets:
 - extended|other-nist
 task_categories:
-- other
+- image-classification
 task_ids:
-- other-other-image-classification
+- single-label-image-classification
 paperswithcode_id: mnist
+pretty_name: MNIST
 ---
 
 # Dataset Card for MNIST
@@ -59,7 +62,7 @@ Half of the image were drawn by Census Bureau employees and the other half by hi
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `image-classification`: The goal of this task is to classify a given image of a handwritten digit into one of 10 classes representing integer values from 0 to 9, inclusively. The leaderboard is available [here](https://paperswithcode.com/sota/image-classification-on-mnist).
 
 ### Languages
 
@@ -69,12 +72,19 @@ English
 
 ### Data Instances
 
-A data point comprises an image and its label.
+A data point comprises an image and its label:
+
+```
+{
+  'image': <PIL.PngImagePlugin.PngImageFile image mode=L size=28x28 at 0x276021F6DD8>,
+  'label': 5
+}
+```
 
 ### Data Fields
 
-- image: a 2d array of integers representing the 28x28 image.
-- label: an integer between 0 and 9 representing the digit.
+- `image`: A `PIL.Image.Image` object containing the 28x28 image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
+- `label`: an integer between 0 and 9 representing the digit.
 
 ### Data Splits
 
@@ -93,7 +103,7 @@ The goal in building MNIST was to have a training and test set following the sam
 
 The original images from NIST were size normalized to fit a 20x20 pixel box while preserving their aspect ratio. The resulting images contain grey levels (i.e., pixels don't simply have a value of black and white, but a level of greyness from 0 to 255) as a result of the anti-aliasing technique used by the normalization algorithm. The images were then centered in a 28x28 image by computing the center of mass of the pixels, and translating the image so as to position this point at the center of the 28x28 field.
 
-#### Who are the source image producers?
+#### Who are the source language producers?
 
 Half of the source images were drawn by Census Bureau employees, half by high school students. According to the dataset curator, the images from the first group are more easily recognizable.
 

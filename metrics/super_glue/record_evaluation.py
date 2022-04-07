@@ -63,7 +63,7 @@ def evaluate(dataset, predictions):
         for qa in passage["qas"]:
             total += 1
             if qa["id"] not in predictions:
-                message = "Unanswered question {} will receive score 0.".format(qa["id"])
+                message = f'Unanswered question {qa["id"]} will receive score 0.'
                 print(message, file=sys.stderr)
                 continue
 
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         dataset_json = json.load(data_file)
         if dataset_json["version"] != expected_version:
             print(
-                "Evaluation expects v-{}, but got dataset with v-{}".format(expected_version, dataset_json["version"]),
+                f'Evaluation expects v-{expected_version}, but got dataset with v-{dataset_json["version"]}',
                 file=sys.stderr,
             )
         dataset = dataset_json["data"]
@@ -106,6 +106,6 @@ if __name__ == "__main__":
     metrics, correct_ids = evaluate(dataset, predictions)
 
     if args.output_correct_ids:
-        print("Output {} correctly answered question IDs.".format(len(correct_ids)))
+        print(f"Output {len(correct_ids)} correctly answered question IDs.")
         with open("correct_ids.json", "w") as f:
             json.dump(correct_ids, f)

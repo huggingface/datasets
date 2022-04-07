@@ -74,7 +74,7 @@ class LJSpeech(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=22050),
+                    "audio": datasets.Audio(sampling_rate=22050),
                     "file": datasets.Value("string"),
                     "text": datasets.Value("string"),
                     "normalized_text": datasets.Value("string"),
@@ -83,7 +83,7 @@ class LJSpeech(datasets.GeneratorBasedBuilder):
             supervised_keys=("file", "text"),
             homepage=_URL,
             citation=_CITATION,
-            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="text")],
         )
 
     def _split_generators(self, dl_manager):

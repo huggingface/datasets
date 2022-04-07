@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - natural-language-inference
 paperswithcode_id: imppres
+pretty_name: IMPPRES
 ---
 
 # Dataset Card for IMPPRES

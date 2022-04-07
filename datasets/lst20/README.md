@@ -22,6 +22,7 @@ task_ids:
 - structure-prediction-other-sentence-segmentation
 - structure-prediction-other-word-segmentation
 paperswithcode_id: null
+pretty_name: LST20
 ---
 
 # Dataset Card for LST20
@@ -56,7 +57,7 @@ paperswithcode_id: null
 - **Repository:**
 - **Paper:** 
 - **Leaderboard:**
-- **Point of Contact:** thepchai@nectec.or.th
+- **Point of Contact:** [email](thepchai@nectec.or.th)
 
 ### Dataset Summary
 

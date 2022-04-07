@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - topic-classification
 paperswithcode_id: moroco
+pretty_name: "MOROCO: The Moldavian and Romanian Dialectal Corpus"
 ---
 
 # Dataset Card for MOROCO
@@ -53,7 +54,7 @@ paperswithcode_id: moroco
 - **Repository:** [Github](https://github.com/butnaruandrei/MOROCO)
 - **Paper:** [Arxiv](https://arxiv.org/abs/1901.06543)
 - **Leaderboard:** [Needs More Information]
-- **Point of Contact:** raducu.ionescu@gmail.com
+- **Point of Contact:** [email](raducu.ionescu@gmail.com)
 
 ### Dataset Summary
 

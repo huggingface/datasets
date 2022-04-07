@@ -19,6 +19,7 @@ task_ids:
 - closed-domain-qa
 - extractive-qa
 paperswithcode_id: cuad
+pretty_name: CUAD
 ---
 
 # Dataset Card for CUAD
@@ -52,7 +53,7 @@ paperswithcode_id: cuad
 - **Homepage:** [Contract Understanding Atticus Dataset](https://www.atticusprojectai.org/cuad)
 - **Repository:** [Contract Understanding Atticus Dataset](https://github.com/TheAtticusProject/cuad/)
 - **Paper:** [CUAD: An Expert-Annotated NLP Dataset for Legal Contract Review](https://arxiv.org/abs/2103.06268)
-- **Point of Contact:** [info@atticusprojectai.org](Atticus Project Team)
+- **Point of Contact:** [Atticus Project Team](info@atticusprojectai.org)
 
 ### Dataset Summary
 

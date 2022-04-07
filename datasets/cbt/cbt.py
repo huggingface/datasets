@@ -15,8 +15,6 @@
 """Children's Book Test Dataset."""
 
 
-import os
-
 import datasets
 
 
@@ -126,91 +124,83 @@ class Cbt(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         my_urls = ZIP_URL  # Cannot download just one single type as it is a compressed file.
-        data_dir = dl_manager.download_and_extract(my_urls)
+        archive = dl_manager.download(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, paths[self.config.name]["train"]),
-                },
+                gen_kwargs={"filepath": paths[self.config.name]["train"], "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, paths[self.config.name]["test"]),
-                },
+                gen_kwargs={"filepath": paths[self.config.name]["test"], "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, paths[self.config.name]["valid"]),
-                },
+                gen_kwargs={"filepath": paths[self.config.name]["valid"], "files": dl_manager.iter_archive(archive)},
             ),
         ]
 
-    def _generate_examples(
-        self, filepath  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
-    ):
+    def _generate_examples(self, filepath, files):
         """Yields examples as (key, example) tuples."""
-        # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
-        # The `key` is here for legacy reason (tfds) and is not important in itself.
+        for path, f in files:
+            if path == filepath:
+                if self.config.name != "raw":
+                    sentences = []
+                    example_idx = 0
+                    for idx, line in enumerate(f):
+                        line = line.decode("utf-8")
+                        if line.strip() == "":
+                            continue
 
-        if self.config.name != "raw":
-            with open(filepath, encoding="utf-8") as f:
-                sentences = []
-                example_idx = 0
-                for idx, line in enumerate(f):
-                    if line.strip() == "":
-                        continue
-
-                    elif line.split()[0] == "21":
-                        splitline = line.split("\t")  # question, answer options are tab separated
-                        question = splitline[0]
-                        answer = splitline[1]
-                        options = splitline[-1]
-                        question = question[2:].strip()  # The first two indices contain `21`.
-                        answer = answer.strip()
-                        options = options.strip().split("|")
-                        yield example_idx, {
-                            "sentences": sentences,
-                            "question": question,
-                            "options": options,
-                            "answer": answer,
-                        }
-
-                        sentences = []
-                        example_idx += 1
-                    else:
-                        if len(line.split()[0]) == 1:
-                            sentences.append(line[1:].strip())
-                        else:
-                            sentences.append(line[2:].strip())
-                            # Text might contain double spaces.
-        else:
-            with open(filepath, encoding="utf=8") as f:
-                book_idx = 0
-                book_sentences = []
-                for idx, line in enumerate(f):
-                    if line[:12] == "_BOOK_TITLE_":
-                        if idx == 0:  # First line:
-                            title = line.split(":")[1].strip()
-                        else:
-                            yield book_idx, {
-                                "title": title,
-                                "content": "".join(book_sentences),
+                        elif line.split()[0] == "21":
+                            splitline = line.split("\t")  # question, answer options are tab separated
+                            question = splitline[0]
+                            answer = splitline[1]
+                            options = splitline[-1]
+                            question = question[2:].strip()  # The first two indices contain `21`.
+                            answer = answer.strip()
+                            options = options.strip().split("|")
+                            yield example_idx, {
+                                "sentences": sentences,
+                                "question": question,
+                                "options": options,
+                                "answer": answer,
                             }
-                            title = line.split(":")[1].strip()
-                            book_sentences = []
-                            book_idx += 1
-                    else:
-                        book_sentences.append(line)
+
+                            sentences = []
+                            example_idx += 1
+                        else:
+                            if len(line.split()[0]) == 1:
+                                sentences.append(line[1:].strip())
+                            else:
+                                sentences.append(line[2:].strip())
+                                # Text might contain double spaces.
                 else:
-                    yield book_idx, {
-                        "title": title,
-                        "content": "".join(book_sentences),
-                    }
+                    book_idx = 0
                     book_sentences = []
-                    book_idx += 1
+                    for idx, line in enumerate(f):
+                        line = line.decode("utf-8")
+                        if line[:12] == "_BOOK_TITLE_":
+                            if idx == 0:  # First line:
+                                title = line.split(":")[1].strip()
+                            else:
+                                yield book_idx, {
+                                    "title": title,
+                                    "content": "".join(book_sentences),
+                                }
+                                title = line.split(":")[1].strip()
+                                book_sentences = []
+                                book_idx += 1
+                        else:
+                            book_sentences.append(line)
+                    else:
+                        yield book_idx, {
+                            "title": title,
+                            "content": "".join(book_sentences),
+                        }
+                        book_sentences = []
+                        book_idx += 1
+                break

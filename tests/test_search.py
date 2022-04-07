@@ -1,3 +1,4 @@
+import os
 import tempfile
 from functools import partial
 from unittest import TestCase
@@ -50,9 +51,16 @@ class IndexableDatasetTest(TestCase):
             index_name="vecs",
             metric_type=faiss.METRIC_INNER_PRODUCT,
         )
-        with tempfile.NamedTemporaryFile() as tmp_file:
+
+        # Setting delete=False and unlinking manually is not pretty... but it is required on Windows to
+        # ensure somewhat stable behaviour. If we don't, we get PermissionErrors. This is an age-old issue.
+        # see https://bugs.python.org/issue14243 and
+        # https://stackoverflow.com/questions/23212435/permission-denied-to-write-to-my-temporary-file/23212515
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             dset.save_faiss_index("vecs", tmp_file.name)
             dset.load_faiss_index("vecs2", tmp_file.name)
+        os.unlink(tmp_file.name)
+
         scores, examples = dset.get_nearest_examples("vecs2", np.ones(5, dtype=np.float32))
         self.assertEqual(examples["filename"][0], "my_name-train_29")
 
@@ -99,12 +107,14 @@ class FaissIndexTest(TestCase):
         query = np.zeros(5, dtype=np.float32)
         query[1] = 1
         scores, indices = index.search(query)
+        self.assertRaises(ValueError, index.search, query.reshape(-1, 1))
         self.assertGreater(scores[0], 0)
         self.assertEqual(indices[0], 1)
 
         # batched queries
         queries = np.eye(5, dtype=np.float32)[::-1]
         total_scores, total_indices = index.search_batch(queries)
+        self.assertRaises(ValueError, index.search_batch, queries[0])
         best_scores = [scores[0] for scores in total_scores]
         best_indices = [indices[0] for indices in total_indices]
         self.assertGreater(np.min(best_scores), 0)
@@ -119,6 +129,8 @@ class FaissIndexTest(TestCase):
         index = FaissIndex(string_factory="LSH")
         index.add_vectors(np.eye(5, dtype=np.float32))
         self.assertIsInstance(index.faiss_index, faiss.IndexLSH)
+        with self.assertRaises(ValueError):
+            _ = FaissIndex(string_factory="Flat", custom_index=faiss.IndexFlat(5))
 
     def test_custom(self):
         import faiss
@@ -133,9 +145,16 @@ class FaissIndexTest(TestCase):
 
         index = FaissIndex(metric_type=faiss.METRIC_INNER_PRODUCT)
         index.add_vectors(np.eye(5, dtype=np.float32))
-        with tempfile.NamedTemporaryFile() as tmp_file:
+
+        # Setting delete=False and unlinking manually is not pretty... but it is required on Windows to
+        # ensure somewhat stable behaviour. If we don't, we get PermissionErrors. This is an age-old issue.
+        # see https://bugs.python.org/issue14243 and
+        # https://stackoverflow.com/questions/23212435/permission-denied-to-write-to-my-temporary-file/23212515
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             index.save(tmp_file.name)
             index = FaissIndex.load(tmp_file.name)
+        os.unlink(tmp_file.name)
+
         query = np.zeros(5, dtype=np.float32)
         query[1] = 1
         scores, indices = index.search(query)

@@ -16,6 +16,7 @@
 
 
 import json
+import os
 
 import datasets
 
@@ -81,13 +82,13 @@ class Spider(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "data_filepath": downloaded_filepath + "/spider/train_spider.json",
+                    "data_filepath": os.path.join(downloaded_filepath, "spider/train_spider.json"),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "data_filepath": downloaded_filepath + "/spider/dev.json",
+                    "data_filepath": os.path.join(downloaded_filepath, "spider/dev.json"),
                 },
             ),
         ]

@@ -14,9 +14,6 @@
 # limitations under the License.
 """Movie Dialog Dataset."""
 
-
-import os
-
 import datasets
 
 
@@ -134,28 +131,22 @@ class Mdd(datasets.GeneratorBasedBuilder):
             my_urls = ZIP_URL  # Cannot download just one single type as it is a compressed file.
         else:
             my_urls = REDDIT_URL
-        data_dir = dl_manager.download_and_extract(my_urls)
+        archive = dl_manager.download(my_urls)
         splits = [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, paths[self.config.name]["train"]),
-                },
+                gen_kwargs={"filepath": paths[self.config.name]["train"], "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, paths[self.config.name]["test"]),
-                },
+                gen_kwargs={"filepath": paths[self.config.name]["test"], "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, paths[self.config.name]["dev"]),
-                },
+                gen_kwargs={"filepath": paths[self.config.name]["dev"], "files": dl_manager.iter_archive(archive)},
             ),
         ]
         if self.config.name == "task4_reddit":
@@ -164,71 +155,76 @@ class Mdd(datasets.GeneratorBasedBuilder):
                     name=datasets.Split("cand_valid"),
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, paths[self.config.name]["cand_valid"]),
+                        "filepath": paths[self.config.name]["cand_valid"],
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split("cand_test"),
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, paths[self.config.name]["cand_test"]),
+                        "filepath": paths[self.config.name]["cand_test"],
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
         return splits
 
-    def _generate_examples(self, filepath):
-        if "cand" not in filepath:
-            with open(filepath, encoding="utf-8") as f:
-                dialogue_turns = []
-                example_idx = 0
-                for idx, line in enumerate(f):
-                    if line.strip() == "":
+    def _generate_examples(self, filepath, files):
+        for path, f in files:
+            if path == filepath:
+                if "cand" not in filepath:
+                    dialogue_turns = []
+                    example_idx = 0
+                    for idx, line in enumerate(f):
+                        line = line.decode("utf-8")
+                        if line.strip() == "":
+                            if dialogue_turns != []:
+                                yield example_idx, {"dialogue_turns": dialogue_turns}
+                                example_idx += 1
+                                dialogue_turns = []
+                        elif line.strip().split()[0] == "1":  # New convo
+                            if dialogue_turns != []:  # Already some convo, flush it out
+                                yield example_idx, {"dialogue_turns": dialogue_turns}
+                                example_idx += 1
+                                dialogue_turns = []
+                            exchange = line[len(line.split()[0]) :].strip().split("\t")  # Skip the number in the front
+                            sp1 = exchange[0]
+                            sp2 = exchange[-1]  # Might contain multiple tabs in between.
+                            dialogue_turns.append({"speaker": 0, "utterance": sp1})
+                            dialogue_turns.append({"speaker": 1, "utterance": sp2})
+                        else:
+                            exchange = line[len(line.split()[0]) :].strip().split("\t")  # Skip the number in the front
+                            sp1 = exchange[0]
+                            sp2 = exchange[-1]  # Might contain multiple tabs in between.
+                            dialogue_turns.append({"speaker": 0, "utterance": sp1})
+                            dialogue_turns.append({"speaker": 1, "utterance": sp2})
+                    else:
                         if dialogue_turns != []:
                             yield example_idx, {"dialogue_turns": dialogue_turns}
-                            example_idx += 1
-                            dialogue_turns = []
-                    elif line.strip().split()[0] == "1":  # New convo
-                        if dialogue_turns != []:  # Already some convo, flush it out
-                            yield example_idx, {"dialogue_turns": dialogue_turns}
-                            example_idx += 1
-                            dialogue_turns = []
-                        exchange = line[len(line.split()[0]) :].strip().split("\t")  # Skip the number in the front
-                        sp1 = exchange[0]
-                        sp2 = exchange[-1]  # Might contain multiple tabs in between.
-                        dialogue_turns.append({"speaker": 0, "utterance": sp1})
-                        dialogue_turns.append({"speaker": 1, "utterance": sp2})
-                    else:
-                        exchange = line[len(line.split()[0]) :].strip().split("\t")  # Skip the number in the front
-                        sp1 = exchange[0]
-                        sp2 = exchange[-1]  # Might contain multiple tabs in between.
-                        dialogue_turns.append({"speaker": 0, "utterance": sp1})
-                        dialogue_turns.append({"speaker": 1, "utterance": sp2})
                 else:
-                    if dialogue_turns != []:
-                        yield example_idx, {"dialogue_turns": dialogue_turns}
-        else:
-            with open(filepath, encoding="utf-8") as f:
-                dialogue_turns = []
-                example_idx = 0
-                for idx, line in enumerate(f):
-                    if line.strip() == "":
+                    dialogue_turns = []
+                    example_idx = 0
+                    for idx, line in enumerate(f):
+                        line = line.decode("utf-8")
+                        if line.strip() == "":
+                            if dialogue_turns != []:
+                                yield example_idx, {"dialogue_turns": dialogue_turns}
+                                example_idx += 1
+                                dialogue_turns = []
+                        elif line.strip().split()[0] == "1":  # New convo
+                            if dialogue_turns != []:  # Already some convo, flush it out
+                                yield example_idx, {"dialogue_turns": dialogue_turns}
+                                example_idx += 1
+                                dialogue_turns = []
+                            exchange = line[len(line.split()[0]) :].strip()  # Skip the number in the front
+                            sp1 = exchange
+                            dialogue_turns.append({"speaker": 0, "utterance": sp1})
+                        else:
+                            exchange = line[len(line.split()[0]) :].strip()  # Skip the number in the front
+                            sp1 = exchange
+                            dialogue_turns.append({"speaker": 0, "utterance": sp1})
+                    else:  # Last line, new example
                         if dialogue_turns != []:
                             yield example_idx, {"dialogue_turns": dialogue_turns}
-                            example_idx += 1
-                            dialogue_turns = []
-                    elif line.strip().split()[0] == "1":  # New convo
-                        if dialogue_turns != []:  # Already some convo, flush it out
-                            yield example_idx, {"dialogue_turns": dialogue_turns}
-                            example_idx += 1
-                            dialogue_turns = []
-                        exchange = line[len(line.split()[0]) :].strip()  # Skip the number in the front
-                        sp1 = exchange
-                        dialogue_turns.append({"speaker": 0, "utterance": sp1})
-                    else:
-                        exchange = line[len(line.split()[0]) :].strip()  # Skip the number in the front
-                        sp1 = exchange
-                        dialogue_turns.append({"speaker": 0, "utterance": sp1})
-                else:  # Last line, new example
-                    if dialogue_turns != []:
-                        yield example_idx, {"dialogue_turns": dialogue_turns}
+                break

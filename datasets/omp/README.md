@@ -200,11 +200,11 @@ For each article, the data set contains the following data:
 
 Training split only.
 
-|      name       | train |
-|-----------------|------:|
-| posts_labeled   |  40567|
-| posts_unlabeled |1000000|
-| articles        |  12087|
+|      name       |   train |
+|-----------------|--------:|
+| posts_labeled   |   40567 |
+| posts_unlabeled | 1000000 |
+| articles        |   12087 |
 
 ## Dataset Creation
 

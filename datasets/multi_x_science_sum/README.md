@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - summarization
 paperswithcode_id: multi-xscience
+pretty_name: Multi-XScience
 ---
 
 # Dataset Card for Multi-XScience
@@ -94,9 +95,9 @@ The text in the dataset is in English
 
 The data is split into a training, validation and test.
 
-| Tain   | Valid | Test |
-| ------ | ----- | ---- |
-| 30369  |  5066 | 5093 |
+| train | validation | test |
+|------:|-----------:|-----:|
+| 30369 |       5066 | 5093 |
 
 
 ## Dataset Creation
@@ -155,7 +156,14 @@ The data is split into a training, validation and test.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@article{lu2020multi,
+  title={Multi-XScience: A Large-scale Dataset for Extreme Multi-document Summarization of Scientific Articles},
+  author={Lu, Yao and Dong, Yue and Charlin, Laurent},
+  journal={arXiv preprint arXiv:2010.14235},
+  year={2020}
+}
+```
 
 ### Contributions
 

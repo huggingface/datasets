@@ -33,6 +33,7 @@ task_ids:
 - multi-class-classification
 - parsing
 paperswithcode_id: wizard-of-oz
+pretty_name: Wizard-of-Oz
 ---
 
 # Dataset Card Creation Guide

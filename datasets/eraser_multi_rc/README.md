@@ -1,4 +1,5 @@
 ---
+pretty_name: Eraser Multi Rc
 languages:
 - en
 paperswithcode_id: null

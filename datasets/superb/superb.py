@@ -137,7 +137,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=16_000),
+                    "audio": datasets.Audio(sampling_rate=16_000),
                     "text": datasets.Value("string"),
                     "speaker_id": datasets.Value("int64"),
                     "chapter_id": datasets.Value("int64"),
@@ -147,7 +147,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             supervised_keys=("file", "text"),
             url="http://www.openslr.org/12",
             data_url="http://www.openslr.org/resources/12/",
-            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="text")],
         ),
         SuperbConfig(
             name="ks",
@@ -162,7 +162,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=16_000),
+                    "audio": datasets.Audio(sampling_rate=16_000),
                     "label": datasets.ClassLabel(
                         names=[
                             "yes",
@@ -196,7 +196,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=16_000),
+                    "audio": datasets.Audio(sampling_rate=16_000),
                     "speaker_id": datasets.Value("string"),
                     "text": datasets.Value("string"),
                     "action": datasets.ClassLabel(
@@ -238,7 +238,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=16_000),
+                    "audio": datasets.Audio(sampling_rate=16_000),
                     # VoxCeleb1 contains 1251 speaker IDs in range ["id10001",..."id11251"]
                     "label": datasets.ClassLabel(names=[f"id{i + 10001}" for i in range(1251)]),
                 }
@@ -261,7 +261,7 @@ class Superb(datasets.GeneratorBasedBuilder):
                 {
                     "record_id": datasets.Value("string"),
                     "file": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=16_000),
+                    "audio": datasets.Audio(sampling_rate=16_000),
                     "start": datasets.Value("int64"),
                     "end": datasets.Value("int64"),
                     "speakers": [
@@ -289,7 +289,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=16_000),
+                    "audio": datasets.Audio(sampling_rate=16_000),
                     "label": datasets.ClassLabel(names=["neu", "hap", "ang", "sad"]),
                 }
             ),

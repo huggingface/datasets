@@ -14,8 +14,6 @@
 # limitations under the License.
 """Mac-Morpho dataset"""
 
-
-import os
 import re
 
 import datasets
@@ -121,51 +119,53 @@ class MacMorpho(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URL)
+        archive = dl_manager.download(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "macmorpho-train.txt"),
-                    "split": "train",
+                    "filepath": "macmorpho-train.txt",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(data_dir, "macmorpho-test.txt"), "split": "test"},
+                gen_kwargs={
+                    "filepath": "macmorpho-test.txt",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "macmorpho-dev.txt"),
-                    "split": "dev",
+                    "filepath": "macmorpho-dev.txt",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath, files):
         """Yields examples."""
-        logger.info("⏳ Generating examples from = %s", filepath)
+        for path, f in files:
+            if path == filepath:
+                id_ = 0
 
-        with open(filepath, "r", encoding="utf-8") as f:
+                for line in f:
 
-            id_ = 0
+                    line = line.decode("utf-8").rstrip()
+                    chunks = re.split(r"\s+", line)
 
-            for line in f:
+                    tokens = []
+                    pos_tags = []
+                    for chunk in chunks:
+                        token, tag = chunk.rsplit("_", 1)
+                        tokens.append(token)
+                        pos_tags.append(tag)
 
-                line = line.rstrip()
-                chunks = re.split(r"\s+", line)
-
-                tokens = []
-                pos_tags = []
-                for chunk in chunks:
-                    token, tag = chunk.rsplit("_", 1)
-                    tokens.append(token)
-                    pos_tags.append(tag)
-
-                yield id_, {
-                    "id": str(id_),
-                    "tokens": tokens,
-                    "pos_tags": pos_tags,
-                }
-                id_ += 1
+                    yield id_, {
+                        "id": str(id_),
+                        "tokens": tokens,
+                        "pos_tags": pos_tags,
+                    }
+                    id_ += 1
+                break

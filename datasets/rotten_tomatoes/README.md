@@ -1,4 +1,5 @@
 ---
+pretty_name: RottenTomatoes - Movie Review Data
 languages:
 - en
 paperswithcode_id: null

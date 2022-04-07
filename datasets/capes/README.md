@@ -19,9 +19,10 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: capes
+pretty_name: CAPES
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for CAPES
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

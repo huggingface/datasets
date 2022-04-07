@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +32,7 @@ logger = get_logger(__name__)
 class MockDownloadManager:
     dummy_file_name = "dummy_data"
     datasets_scripts_dir = "datasets"
+    is_streaming = False
 
     def __init__(
         self,
@@ -173,9 +173,9 @@ class MockDownloadManager:
         # trick: if there are many shards named like `data.txt-000001-of-00300`, only use the first one
         is_tf_records = all(bool(re.findall("[0-9]{3,}-of-[0-9]{3,}", url)) for url in data_url)
         is_pubmed_records = all(
-            url.startswith("ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed21n") for url in data_url
+            url.startswith("https://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed") for url in data_url
         )
-        if is_tf_records or is_pubmed_records:
+        if data_url and (is_tf_records or is_pubmed_records):
             data_url = [data_url[0]] * len(data_url)
         for single_url in data_url:
             for download_callback in self.download_callbacks:
@@ -213,3 +213,14 @@ class MockDownloadManager:
         for file_path in path.rglob("*"):
             if file_path.is_file() and not file_path.name.startswith(".") and not file_path.name.startswith("__"):
                 yield file_path.relative_to(path).as_posix(), file_path.open("rb")
+
+    def iter_files(self, paths):
+        if not isinstance(paths, list):
+            paths = [paths]
+        for path in paths:
+            if os.path.isfile(path):
+                yield path
+            else:
+                for dirpath, _, filenames in os.walk(path):
+                    for filename in filenames:
+                        yield os.path.join(dirpath, filename)

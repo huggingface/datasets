@@ -17,7 +17,6 @@
 """TED talk multilingual data set."""
 
 import csv
-import os
 
 import datasets
 
@@ -134,36 +133,51 @@ class TedMultiTranslate(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        dl_dir = dl_manager.download_and_extract(_DATA_URL)
+        archive = dl_manager.download(_DATA_URL)
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"data_file": os.path.join(dl_dir, "all_talks_train.tsv")}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "data_file": "all_talks_train.tsv",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"data_file": os.path.join(dl_dir, "all_talks_dev.tsv")}
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "data_file": "all_talks_dev.tsv",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"data_file": os.path.join(dl_dir, "all_talks_test.tsv")}
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "data_file": "all_talks_test.tsv",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
         ]
 
-    def _generate_examples(self, data_file):
+    def _generate_examples(self, data_file, files):
         """This function returns the examples in the raw (text) form."""
-        with open(data_file, encoding="utf-8") as f:
-            reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
-            for idx, row in enumerate(reader):
-                # Everything in the row except for 'talk_name' will be a translation.
-                # Missing/incomplete translations will contain the string "__NULL__" or
-                # "_ _ NULL _ _".
-                yield idx, {
-                    "translations": {
-                        lang: text
-                        for lang, text in row.items()
-                        if lang != "talk_name" and _is_translation_complete(text)
-                    },
-                    "talk_name": row["talk_name"],
-                }
+        for path, f in files:
+            if path == data_file:
+                lines = (line.decode("utf-8") for line in f)
+                reader = csv.DictReader(lines, delimiter="\t", quoting=csv.QUOTE_NONE)
+                for idx, row in enumerate(reader):
+                    # Everything in the row except for 'talk_name' will be a translation.
+                    # Missing/incomplete translations will contain the string "__NULL__" or
+                    # "_ _ NULL _ _".
+                    yield idx, {
+                        "translations": {
+                            lang: text
+                            for lang, text in row.items()
+                            if lang != "talk_name" and _is_translation_complete(text)
+                        },
+                        "talk_name": row["talk_name"],
+                    }
+                break
 
 
 def _is_translation_complete(text):

@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: MtEngVietnamese
 ---
 
 # Dataset Card for mt_eng_vietnamese

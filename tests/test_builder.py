@@ -3,6 +3,7 @@ import tempfile
 import types
 from pathlib import Path
 from unittest import TestCase
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -15,7 +16,7 @@ from datasets.dataset_dict import DatasetDict
 from datasets.features import Features, Value
 from datasets.info import DatasetInfo, PostProcessedInfo
 from datasets.splits import Split, SplitDict, SplitGenerator, SplitInfo
-from datasets.utils.download_manager import GenerateMode
+from datasets.utils.download_manager import DownloadMode
 
 from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_faiss
 
@@ -28,7 +29,7 @@ class DummyBuilder(DatasetBuilder):
         return [SplitGenerator(name=Split.TRAIN)]
 
     def _prepare_split(self, split_generator, **kwargs):
-        fname = "{}-{}.arrow".format(self.name, split_generator.name)
+        fname = f"{self.name}-{split_generator.name}.arrow"
         with ArrowWriter(features=self.info.features, path=os.path.join(self._cache_dir, fname)) as writer:
             writer.write_batch({"text": ["foo"] * 100})
             num_examples, num_bytes = writer.finalize()
@@ -119,7 +120,7 @@ class DummyBuilderWithManualDownload(DummyBuilderWithMultipleConfigs):
 
 def _run_concurrent_download_and_prepare(tmp_dir):
     dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
-    dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=GenerateMode.REUSE_DATASET_IF_EXISTS)
+    dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.REUSE_DATASET_IF_EXISTS)
     return dummy_builder
 
 
@@ -127,7 +128,7 @@ class BuilderTest(TestCase):
     def test_download_and_prepare(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
-            dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=GenerateMode.FORCE_REDOWNLOAD)
+            dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD)
             self.assertTrue(
                 os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dummy_builder-train.arrow"))
             )
@@ -166,13 +167,13 @@ class BuilderTest(TestCase):
             dummy_builder = DummyBuilderWithDownload(cache_dir=tmp_dir, name="dummy", rel_path=rel_path)
             with self.assertRaises(FileNotFoundError):
                 dummy_builder.download_and_prepare(
-                    try_from_hf_gcs=False, download_mode=GenerateMode.FORCE_REDOWNLOAD, base_path=tmp_dir
+                    try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD, base_path=tmp_dir
                 )
             # test absolute path is missing
             dummy_builder = DummyBuilderWithDownload(cache_dir=tmp_dir, name="dummy", abs_path=abs_path)
             with self.assertRaises(FileNotFoundError):
                 dummy_builder.download_and_prepare(
-                    try_from_hf_gcs=False, download_mode=GenerateMode.FORCE_REDOWNLOAD, base_path=tmp_dir
+                    try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD, base_path=tmp_dir
                 )
             # test that they are both properly loaded when they exist
             open(os.path.join(tmp_dir, rel_path), "w")
@@ -181,7 +182,7 @@ class BuilderTest(TestCase):
                 cache_dir=tmp_dir, name="dummy", rel_path=rel_path, abs_path=abs_path
             )
             dummy_builder.download_and_prepare(
-                try_from_hf_gcs=False, download_mode=GenerateMode.FORCE_REDOWNLOAD, base_path=tmp_dir
+                try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD, base_path=tmp_dir
             )
             self.assertTrue(
                 os.path.exists(
@@ -203,7 +204,7 @@ class BuilderTest(TestCase):
             return dataset.map(char_tokenize, cache_file_name=resources_paths["tokenized_dataset"])
 
         def _post_processing_resources(self, split):
-            return {"tokenized_dataset": "tokenized_dataset-{split}.arrow".format(split=split)}
+            return {"tokenized_dataset": f"tokenized_dataset-{split}.arrow"}
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
@@ -344,7 +345,7 @@ class BuilderTest(TestCase):
                 return dataset
 
         def _post_processing_resources(self, split):
-            return {"index": "Flat-{split}.faiss".format(split=split)}
+            return {"index": f"Flat-{split}.faiss"}
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
@@ -412,7 +413,7 @@ class BuilderTest(TestCase):
             return dataset.map(char_tokenize, cache_file_name=resources_paths["tokenized_dataset"])
 
         def _post_processing_resources(self, split):
-            return {"tokenized_dataset": "tokenized_dataset-{split}.arrow".format(split=split)}
+            return {"tokenized_dataset": f"tokenized_dataset-{split}.arrow"}
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
@@ -421,7 +422,7 @@ class BuilderTest(TestCase):
             )
             dummy_builder._post_process = types.MethodType(_post_process, dummy_builder)
             dummy_builder._post_processing_resources = types.MethodType(_post_processing_resources, dummy_builder)
-            dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=GenerateMode.FORCE_REDOWNLOAD)
+            dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD)
             self.assertTrue(
                 os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dummy_builder-train.arrow"))
             )
@@ -441,7 +442,7 @@ class BuilderTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
             dummy_builder._post_process = types.MethodType(_post_process, dummy_builder)
-            dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=GenerateMode.FORCE_REDOWNLOAD)
+            dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD)
             self.assertTrue(
                 os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dummy_builder-train.arrow"))
             )
@@ -464,13 +465,13 @@ class BuilderTest(TestCase):
                 return dataset
 
         def _post_processing_resources(self, split):
-            return {"index": "Flat-{split}.faiss".format(split=split)}
+            return {"index": f"Flat-{split}.faiss"}
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
             dummy_builder._post_process = types.MethodType(_post_process, dummy_builder)
             dummy_builder._post_processing_resources = types.MethodType(_post_processing_resources, dummy_builder)
-            dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=GenerateMode.FORCE_REDOWNLOAD)
+            dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD)
             self.assertTrue(
                 os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dummy_builder-train.arrow"))
             )
@@ -492,14 +493,14 @@ class BuilderTest(TestCase):
                 ValueError,
                 dummy_builder.download_and_prepare,
                 try_from_hf_gcs=False,
-                download_mode=GenerateMode.FORCE_REDOWNLOAD,
+                download_mode=DownloadMode.FORCE_REDOWNLOAD,
             )
             self.assertRaises(AssertionError, dummy_builder.as_dataset)
 
     def test_generator_based_download_and_prepare(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy")
-            dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=GenerateMode.FORCE_REDOWNLOAD)
+            dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD)
             self.assertTrue(
                 os.path.exists(
                     os.path.join(
@@ -518,6 +519,24 @@ class BuilderTest(TestCase):
                     os.path.join(tmp_dir, "dummy_generator_based_builder", "dummy", "0.0.0", "dataset_info.json")
                 )
             )
+
+        # Test that duplicated keys are ignored if ignore_verifications is True
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dummy_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy")
+            with patch("datasets.builder.ArrowWriter", side_effect=ArrowWriter) as mock_arrow_writer:
+                dummy_builder.download_and_prepare(download_mode=DownloadMode.FORCE_REDOWNLOAD)
+                mock_arrow_writer.assert_called_once()
+                args, kwargs = mock_arrow_writer.call_args_list[0]
+                self.assertTrue(kwargs["check_duplicates"])
+
+                mock_arrow_writer.reset_mock()
+
+                dummy_builder.download_and_prepare(
+                    download_mode=DownloadMode.FORCE_REDOWNLOAD, ignore_verifications=True
+                )
+                mock_arrow_writer.assert_called_once()
+                args, kwargs = mock_arrow_writer.call_args_list[0]
+                self.assertFalse(kwargs["check_duplicates"])
 
     def test_cache_dir_no_args(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -718,7 +737,7 @@ def test_generator_based_builder_as_dataset(in_memory, tmp_path):
     cache_dir.mkdir()
     cache_dir = str(cache_dir)
     dummy_builder = DummyGeneratorBasedBuilder(cache_dir=cache_dir, name="dummy")
-    dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=GenerateMode.FORCE_REDOWNLOAD)
+    dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD)
     with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
         dataset = dummy_builder.as_dataset("train", in_memory=in_memory)
     assert dataset.data.to_pydict() == {"text": ["foo"] * 100}
@@ -733,6 +752,6 @@ def test_custom_writer_batch_size(tmp_path, writer_batch_size, default_writer_ba
         DummyGeneratorBasedBuilder.DEFAULT_WRITER_BATCH_SIZE = default_writer_batch_size
     dummy_builder = DummyGeneratorBasedBuilder(cache_dir=cache_dir, name="dummy", writer_batch_size=writer_batch_size)
     assert dummy_builder._writer_batch_size == (writer_batch_size or default_writer_batch_size)
-    dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=GenerateMode.FORCE_REDOWNLOAD)
+    dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD)
     dataset = dummy_builder.as_dataset("train")
     assert len(dataset.data[0].chunks) == expected_chunks

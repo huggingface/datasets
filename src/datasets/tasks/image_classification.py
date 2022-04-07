@@ -1,31 +1,33 @@
+import copy
 from dataclasses import dataclass
-from typing import ClassVar, Dict, Optional, Tuple
+from typing import ClassVar, Dict
 
-from ..features import ClassLabel, Features, Value
+from ..features import ClassLabel, Features, Image
 from .base import TaskTemplate
 
 
 @dataclass(frozen=True)
 class ImageClassification(TaskTemplate):
     task: str = "image-classification"
-    input_schema: ClassVar[Features] = Features({"image_file_path": Value("string")})
-    # TODO(lewtun): Find a more elegant approach without descriptors.
+    input_schema: ClassVar[Features] = Features({"image": Image()})
     label_schema: ClassVar[Features] = Features({"labels": ClassLabel})
-    image_file_path_column: str = "image_file_path"
+    image_column: str = "image"
     label_column: str = "labels"
-    labels: Optional[Tuple[str]] = None
 
-    def __post_init__(self):
-        if self.labels:
-            assert len(self.labels) == len(set(self.labels)), "Labels must be unique"
-            # Cast labels to tuple to allow hashing
-            self.__dict__["labels"] = tuple(sorted(self.labels))
-            self.__dict__["label_schema"] = self.label_schema.copy()
-            self.label_schema["labels"] = ClassLabel(names=self.labels)
+    def align_with_features(self, features):
+        if self.label_column not in features:
+            raise ValueError(f"Column {self.label_column} is not present in features.")
+        if not isinstance(features[self.label_column], ClassLabel):
+            raise ValueError(f"Column {self.label_column} is not a ClassLabel.")
+        task_template = copy.deepcopy(self)
+        label_schema = self.label_schema.copy()
+        label_schema["labels"] = features[self.label_column]
+        task_template.__dict__["label_schema"] = label_schema
+        return task_template
 
     @property
     def column_mapping(self) -> Dict[str, str]:
         return {
-            self.image_file_path_column: "image_file_path",
+            self.image_column: "image",
             self.label_column: "labels",
         }

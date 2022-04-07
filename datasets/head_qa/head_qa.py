@@ -50,10 +50,7 @@ _HOMEPAGE = "https://aghie.github.io/head-qa/"
 
 _LICENSE = "MIT License"
 
-_URLs = {
-    "es": "https://drive.google.com/uc?export=download&id=1dUIqVwvoZAtbX_-z5axCoe97XNcFo1No",
-    "en": "https://drive.google.com/uc?export=download&id=1phryJg4FjCFkn0mSCqIOP2-FscAeKGV0",
-}
+_URL = "https://drive.google.com/uc?export=download&confirm=t&id=1a_95N5zQQoUCq8IBNVZgziHbeM-QxG2t"
 
 _DIRS = {"es": "HEAD", "en": "HEAD_EN"}
 
@@ -81,7 +78,7 @@ class HeadQA(datasets.GeneratorBasedBuilder):
                     "qid": datasets.Value("int32"),
                     "qtext": datasets.Value("string"),
                     "ra": datasets.Value("int32"),
-                    "image": datasets.Value("string"),
+                    "image": datasets.Image(),
                     "answers": [
                         {
                             "aid": datasets.Value("int32"),
@@ -98,25 +95,27 @@ class HeadQA(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URLs[self.config.name])
+        data_dir = dl_manager.download_and_extract(_URL)
 
         dir = _DIRS[self.config.name]
-        data_dir = os.path.join(data_dir, dir)
+        data_lang_dir = os.path.join(data_dir, dir)
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "train_{}.json".format(dir))}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_lang_dir, f"train_{dir}.json")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "test_{}.json".format(dir))}
+                name=datasets.Split.TEST,
+                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_lang_dir, f"test_{dir}.json")},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(data_dir, "dev_{}.json".format(dir))},
+                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_lang_dir, f"dev_{dir}.json")},
             ),
         ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, data_dir, filepath):
         """Yields examples."""
         with open(filepath, encoding="utf-8") as f:
             head_qa = json.load(f)
@@ -129,7 +128,7 @@ class HeadQA(datasets.GeneratorBasedBuilder):
                     qid = int(question["qid"].strip())
                     qtext = question["qtext"].strip()
                     ra = int(question["ra"].strip())
-                    image = question["image"].strip()
+                    image_path = question["image"].strip()
 
                     aids = [answer["aid"] for answer in question["answers"]]
                     atexts = [answer["atext"].strip() for answer in question["answers"]]
@@ -143,6 +142,6 @@ class HeadQA(datasets.GeneratorBasedBuilder):
                         "qid": qid,
                         "qtext": qtext,
                         "ra": ra,
-                        "image": image,
+                        "image": os.path.join(data_dir, image_path) if image_path else None,
                         "answers": answers,
                     }

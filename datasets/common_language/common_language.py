@@ -110,7 +110,7 @@ class CommonLanguage(datasets.GeneratorBasedBuilder):
             {
                 "client_id": datasets.Value("string"),
                 "path": datasets.Value("string"),
-                "audio": datasets.features.Audio(sampling_rate=48_000),
+                "audio": datasets.Audio(sampling_rate=48_000),
                 "sentence": datasets.Value("string"),
                 "age": datasets.Value("string"),
                 "gender": datasets.Value("string"),

@@ -1,11 +1,20 @@
 # flake8: noqa
+
+__all__ = [
+    "Audio",
+    "Array2D",
+    "Array3D",
+    "Array4D",
+    "Array5D",
+    "ClassLabel",
+    "Features",
+    "Sequence",
+    "Value",
+    "Image",
+    "Translation",
+    "TranslationVariableLanguages",
+]
 from .audio import Audio
-from .features import *
-from .features import (
-    _ArrayXD,
-    _ArrayXDExtensionType,
-    _arrow_to_datasets_dtype,
-    _cast_to_python_objects,
-    _is_zero_copy_only,
-)
+from .features import Array2D, Array3D, Array4D, Array5D, ClassLabel, Features, Sequence, Value
+from .image import Image
 from .translation import Translation, TranslationVariableLanguages

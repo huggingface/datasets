@@ -15,8 +15,6 @@
 """OHSUMED: An Interactive Retrieval Evaluation and New Large Test Collection for Research."""
 
 
-import os
-
 import datasets
 
 
@@ -128,24 +126,27 @@ class Ohsumed(datasets.GeneratorBasedBuilder):
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         my_urls = _URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        archive = dl_manager.download(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "ohsu-trec/trec9-train/ohsumed.87"),
-                    "split": "train",
+                    "filepath": "ohsu-trec/trec9-train/ohsumed.87",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "ohsu-trec/trec9-test/ohsumed.88-91"), "split": "test"},
+                gen_kwargs={
+                    "filepath": "ohsu-trec/trec9-test/ohsumed.88-91",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath, files):
         """Yields examples."""
         # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
@@ -179,44 +180,46 @@ class Ohsumed(datasets.GeneratorBasedBuilder):
             ".S": "source",
         }
 
-        with open(filepath, encoding="utf-8") as f:
-            data = ohsumed_dict()
+        for path, f in files:
+            if path == filepath:
+                data = ohsumed_dict()
 
-            for line in f.readlines():
-                line = line.strip()
+                for line in f.readlines():
+                    line = line.decode("utf-8").strip()
 
-                if line.startswith(".I"):
-                    tag = ".I"
-                    if data["medline_ui"] != -1:
-                        id_ = data["seq_id"] + "_" + data["medline_ui"]
-                        yield id_, {
-                            "seq_id": data["seq_id"],
-                            "medline_ui": data["medline_ui"],
-                            "mesh_terms": str(data["mesh_terms"]),
-                            "title": str(data["title"]),
-                            "publication_type": str(data["publication_type"]),
-                            "abstract": str(data["abstract"]),
-                            "author": str(data["author"]),
-                            "source": str(data["source"]),
-                        }
-                    else:
-                        data = ohsumed_dict()
-                        line = line.replace(".I", "").strip()
-                        data["seq_id"] = line
-                elif tag and not line.startswith("."):
-                    key = column_map[tag]
-                    data[key] = line
-                elif ".U" in line:
-                    tag = ".U"
-                elif ".M" in line:
-                    tag = ".M"
-                elif ".T" in line:
-                    tag = ".T"
-                elif ".P" in line:
-                    tag = ".P"
-                elif ".W" in line:
-                    tag = ".W"
-                elif ".A" in line:
-                    tag = ".A"
-                elif ".S" in line:
-                    tag = ".S"
+                    if line.startswith(".I"):
+                        tag = ".I"
+                        if data["medline_ui"] != -1:
+                            id_ = data["seq_id"] + "_" + data["medline_ui"]
+                            yield id_, {
+                                "seq_id": data["seq_id"],
+                                "medline_ui": data["medline_ui"],
+                                "mesh_terms": str(data["mesh_terms"]),
+                                "title": str(data["title"]),
+                                "publication_type": str(data["publication_type"]),
+                                "abstract": str(data["abstract"]),
+                                "author": str(data["author"]),
+                                "source": str(data["source"]),
+                            }
+                        else:
+                            data = ohsumed_dict()
+                            line = line.replace(".I", "").strip()
+                            data["seq_id"] = line
+                    elif tag and not line.startswith("."):
+                        key = column_map[tag]
+                        data[key] = line
+                    elif ".U" in line:
+                        tag = ".U"
+                    elif ".M" in line:
+                        tag = ".M"
+                    elif ".T" in line:
+                        tag = ".T"
+                    elif ".P" in line:
+                        tag = ".P"
+                    elif ".W" in line:
+                        tag = ".W"
+                    elif ".A" in line:
+                        tag = ".A"
+                    elif ".S" in line:
+                        tag = ".S"
+                break

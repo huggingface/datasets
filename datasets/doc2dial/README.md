@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - closed-domain-qa
 paperswithcode_id: doc2dial
+pretty_name: doc2dial
 ---
 
 # Dataset Card for doc2dial
@@ -48,11 +49,11 @@ paperswithcode_id: doc2dial
 
 ## Dataset Description
 
-- **Homepage:** https://doc2dial.github.io/file/doc2dial/
+- **Homepage:** https://doc2dial.github.io
 - **Repository:** [Needs More Information]
 - **Paper:** https://www.aclweb.org/anthology/2020.emnlp-main.652.pdf
 - **Leaderboard:**
-- **Point of Contact:** kmfoda@gmai.com
+- **Point of Contact:**
 
 ### Dataset Summary
 

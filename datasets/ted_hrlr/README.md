@@ -1,4 +1,5 @@
 ---
+pretty_name: TEDHrlr
 paperswithcode_id: null
 ---
 

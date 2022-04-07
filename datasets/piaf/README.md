@@ -19,9 +19,10 @@ task_ids:
 - extractive-qa
 - open-domain-qa
 paperswithcode_id: null
+pretty_name: Piaf
 ---
 
-# Dataset Card for "piaf"
+# Dataset Card for Piaf
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -111,7 +112,7 @@ The data fields are the same among all splits.
 ### Data Splits
 
 | name       | train |
-| ---------- | ----: |
+|------------|------:|
 | plain_text |  3835 |
 
 ## Dataset Creation

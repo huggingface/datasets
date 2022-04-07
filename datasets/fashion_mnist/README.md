@@ -1,20 +1,24 @@
 ---
 annotations_creators:
 - expert-generated
-language_creators: []
-languages: []
+language_creators:
+- found
+languages:
+- en
 licenses:
 - mit
-multilinguality: []
+multilinguality:
+- monolingual
 size_categories:
 - 10K<n<100K
 source_datasets:
 - original
 task_categories:
-- other
+- image-classification
 task_ids:
-- other-other-image-classification
+- single-label-image-classification
 paperswithcode_id: fashion-mnist
+pretty_name: FashionMNIST
 ---
 
 # Dataset Card for FashionMNIST
@@ -57,7 +61,7 @@ Fashion-MNIST is a dataset of Zalando's article images—consisting of a trainin
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `image-classification`: The goal of this task is to classify a given image of Zalando's article into one of 10 classes. The leaderboard is available [here](https://paperswithcode.com/sota/image-classification-on-fashion-mnist).
 
 ### Languages
 
@@ -69,9 +73,16 @@ Fashion-MNIST is a dataset of Zalando's article images—consisting of a trainin
 
 A data point comprises an image and its label.
 
+```
+{
+  'image': <PIL.PngImagePlugin.PngImageFile image mode=L size=28x28 at 0x27601169DD8>,
+  'label': 9
+}
+```
+
 ### Data Fields
 
-- `image`: a 2d array of integers representing the 28x28 image.
+- `image`: A `PIL.Image.Image` object containing the 28x28 image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`.
 - `label`: an integer between 0 and 9 representing the classes with the following mapping:
   | Label | Description |
   | --- | --- |
@@ -120,7 +131,7 @@ We use the front look thumbnail images of 70,000 unique products to build Fashio
 6. Negating the intensities of the image.
 7. Converting the image to 8-bit grayscale pixels.
 
-#### Who are the source image producers?
+#### Who are the source language producers?
 
 **From the arXiv paper:**
 Every fashion product on Zalando has a set of pictures shot by professional photographers, demonstrating different aspects of the product, i.e. front and back looks, details, looks with model and in an outfit.

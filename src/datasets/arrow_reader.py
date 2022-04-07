@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,11 +26,10 @@ from typing import TYPE_CHECKING, List, Optional, Union
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from datasets.utils.file_utils import DownloadConfig
-
 from .naming import _split_re, filename_for_dataset_split
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables
-from .utils import cached_path, logging
+from .utils import logging
+from .utils.file_utils import DownloadConfig, cached_path
 
 
 if TYPE_CHECKING:
@@ -44,9 +42,9 @@ logger = logging.get_logger(__name__)
 HF_GCP_BASE_URL = "https://storage.googleapis.com/huggingface-nlp/cache/datasets"
 
 _SUB_SPEC_RE = re.compile(
-    r"""
+    rf"""
 ^
- (?P<split>{split_re})
+ (?P<split>{_split_re[1:-1]})
  (\[
     ((?P<from>-?\d+)
      (?P<from_pct>%)?)?
@@ -55,9 +53,7 @@ _SUB_SPEC_RE = re.compile(
      (?P<to_pct>%)?)?
  \])?(\((?P<rounding>[^\)]*)\))?
 $
-""".format(
-        split_re=_split_re[1:-1]
-    ),  # remove ^ and $
+""",  # remove ^ and $
     re.X,
 )
 
@@ -98,7 +94,7 @@ def make_file_instructions(name, split_infos, instruction, filetype_suffix=None)
         name: Name of the dataset.
         split_infos: `List[SplitInfo]`, Dataset splits information
         instruction: `ReadInstruction` or `str`
-        filetype_suffix: `Optional[str]` suffix of dataset files, e.g. 'arrow' or 'parquet'
+        filetype_suffix: :obj:`str`, optional suffix of dataset files, e.g. 'arrow' or 'parquet'
 
     Returns:
         file_intructions: FileInstructions instance
@@ -164,7 +160,8 @@ class BaseReader:
                 skip/take indicates which example read in the file: `ds.slice(skip, take)`
             in_memory (bool, default False): Whether to copy the data in-memory.
         """
-        assert len(files) > 0 and all(isinstance(f, dict) for f in files), "please provide valid file informations"
+        if len(files) == 0 or not all(isinstance(f, dict) for f in files):
+            raise ValueError("please provide valid file informations")
         pa_tables = []
         files = copy.deepcopy(files)
         for f in files:
@@ -212,7 +209,7 @@ class BaseReader:
 
         files = self.get_file_instructions(name, instructions, split_infos)
         if not files:
-            msg = 'Instruction "%s" corresponds to no data!' % instructions
+            msg = f'Instruction "{instructions}" corresponds to no data!'
             raise AssertionError(msg)
         return self.read_files(files=files, original_instructions=instructions, in_memory=in_memory)
 
@@ -378,8 +375,10 @@ class _RelativeInstruction:
     rounding: Optional[str] = None
 
     def __post_init__(self):
-        assert self.unit is None or self.unit in ["%", "abs"]
-        assert self.rounding is None or self.rounding in ["closest", "pct1_dropremainder"]
+        if self.unit is not None and self.unit not in ["%", "abs"]:
+            raise ValueError("unit must be either % or abs")
+        if self.rounding is not None and self.rounding not in ["closest", "pct1_dropremainder"]:
+            raise ValueError("rounding must be either closest or pct1_dropremainder")
         if self.unit != "%" and self.rounding is not None:
             raise AssertionError("It is forbidden to specify rounding if not using percent slicing.")
         if self.unit == "%" and self.from_ is not None and abs(self.from_) > 100:
@@ -394,7 +393,7 @@ def _str_to_read_instruction(spec):
     """Returns ReadInstruction for given string."""
     res = _SUB_SPEC_RE.match(spec)
     if not res:
-        raise AssertionError("Unrecognized instruction format: %s" % spec)
+        raise AssertionError(f"Unrecognized instruction format: {spec}")
     unit = "%" if res.group("from_pct") or res.group("to_pct") else "abs"
     return ReadInstruction(
         split_name=res.group("split"),
@@ -430,7 +429,7 @@ def _rel_to_abs_instr(rel_instr, name2len):
     pct_to_abs = _pct_to_abs_closest if rel_instr.rounding == "closest" else _pct_to_abs_pct1
     split = rel_instr.splitname
     if split not in name2len:
-        raise ValueError('Unknown split "{}". Should be one of {}.'.format(split, list(name2len)))
+        raise ValueError(f'Unknown split "{split}". Should be one of {list(name2len)}.')
     num_examples = name2len[split]
     from_ = rel_instr.from_
     to = rel_instr.to
@@ -441,7 +440,7 @@ def _rel_to_abs_instr(rel_instr, name2len):
         from_ = 0 if from_ is None else from_
         to = num_examples if to is None else to
     if abs(from_) > num_examples or abs(to) > num_examples:
-        msg = "Requested slice [%s:%s] incompatible with %s examples." % (from_ or "", to or "", num_examples)
+        msg = f'Requested slice [{from_ or ""}:{to or ""}] incompatible with {num_examples} examples.'
         raise AssertionError(msg)
     if from_ < 0:
         from_ = num_examples + from_
@@ -457,9 +456,7 @@ def _rel_to_abs_instr(rel_instr, name2len):
 class ReadInstruction:
     """Reading instruction for a dataset.
 
-    Examples of usage:
-
-    .. code:: python
+    Examples::
 
       # The following lines are equivalent:
       ds = datasets.load_dataset('mnist', split='test[:33%]')
@@ -559,9 +556,9 @@ class ReadInstruction:
         spec = str(spec)  # Need to convert to str in case of NamedSplit instance.
         subs = _ADDITION_SEP_RE.split(spec)
         if not subs:
-            raise AssertionError("No instructions could be built out of %s" % spec)
+            raise AssertionError(f"No instructions could be built out of {spec}")
         instruction = _str_to_read_instruction(subs[0])
-        return sum([_str_to_read_instruction(sub) for sub in subs[1:]], instruction)
+        return sum((_str_to_read_instruction(sub) for sub in subs[1:]), instruction)
 
     def to_spec(self):
         rel_instr_specs = []
@@ -602,7 +599,7 @@ class ReadInstruction:
         return self.to_spec()
 
     def __repr__(self):
-        return "ReadInstruction(%s)" % self._relative_instructions
+        return f"ReadInstruction({self._relative_instructions})"
 
     def to_absolute(self, name2len):
         """Translate instruction into a list of absolute instructions.

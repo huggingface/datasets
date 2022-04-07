@@ -16,39 +16,46 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
-- emotion-classification
+- sentiment-classification
 paperswithcode_id: null
+pretty_name: Emotional Tone in Arabic
 ---
 
-# Dataset Card for MetRec
+# Dataset Card for Emotional Tone in Arabic
 
 ## Table of Contents
-- [Dataset Description](#dataset-description)
-  - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-  - [Languages](#languages)
-- [Dataset Structure](#dataset-structure)
-  - [Data Instances](#data-instances)
-  - [Data Fields](#data-fields)
-  - [Data Splits](#data-splits)
-- [Dataset Creation](#dataset-creation)
-  - [Curation Rationale](#curation-rationale)
-  - [Source Data](#source-data)
-  - [Annotations](#annotations)
-  - [Personal and Sensitive Information](#personal-and-sensitive-information)
-- [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Impact of Dataset](#social-impact-of-dataset)
-  - [Discussion of Biases](#discussion-of-biases)
-  - [Other Known Limitations](#other-known-limitations)
-- [Additional Information](#additional-information)
-  - [Dataset Curators](#dataset-curators)
-  - [Licensing Information](#licensing-information)
-  - [Citation Information](#citation-information)
-  - [Contributions](#contributions)
+- [Dataset Card for Emotional Tone in Arabic](#dataset-card-for-emotional-tone-in-arabic)
+  - [Table of Contents](#table-of-contents)
+  - [Dataset Description](#dataset-description)
+    - [Dataset Summary](#dataset-summary)
+    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+    - [Languages](#languages)
+  - [Dataset Structure](#dataset-structure)
+    - [Data Instances](#data-instances)
+    - [Data Fields](#data-fields)
+    - [Data Splits](#data-splits)
+  - [|split|num examples|](#splitnum-examples)
+  - [Dataset Creation](#dataset-creation)
+    - [Curation Rationale](#curation-rationale)
+    - [Source Data](#source-data)
+      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
+      - [Who are the source language producers?](#who-are-the-source-language-producers)
+    - [Annotations](#annotations)
+      - [Annotation process](#annotation-process)
+      - [Who are the annotators?](#who-are-the-annotators)
+    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Considerations for Using the Data](#considerations-for-using-the-data)
+    - [Social Impact of Dataset](#social-impact-of-dataset)
+    - [Discussion of Biases](#discussion-of-biases)
+    - [Other Known Limitations](#other-known-limitations)
+  - [Additional Information](#additional-information)
+    - [Dataset Curators](#dataset-curators)
+    - [Licensing Information](#licensing-information)
+    - [Citation Information](#citation-information)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:** [Homepage](https://github.com/AmrMehasseb/Emotional-Tone)
 - **Repository:** [Repository](https://github.com/AmrMehasseb/Emotional-Tone)
 - **Paper:** [Emotional Tone Detection in Arabic Tweets](https://www.researchgate.net/publication/328164296_Emotional_Tone_Detection_in_Arabic_Tweets_18th_International_Conference_CICLing_2017_Budapest_Hungary_April_17-23_2017_Revised_Selected_Papers_Part_II)
 - **Point of Contact:** [Amr Al-Khatib](https://github.com/AmrMehasseb)
@@ -97,9 +104,9 @@ the dataset distribution and balance for each class looks like the following
 
 The dataset is not split. 
 
-|           | Tain   | 
-|---------- | ------ | 
-|no split   | 10,065  | 
+|          |   train |
+|----------|--------:|
+| no split |  10,065 |
 
 ## Dataset Creation
 
@@ -137,13 +144,17 @@ The dataset is not split.
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
 
-[More Information Needed]
+[Needs More Information]
+
+### Discussion of Biases
+
+[Needs More Information]
 
 ### Other Known Limitations
 
-[More Information Needed]
+[Needs More Information]
 
 ## Additional Information
 
@@ -157,6 +168,7 @@ The dataset is not split.
 
 ### Citation Information
 
+```
 @inbook{inbook,
 author = {Al-Khatib, Amr and El-Beltagy, Samhaa},
 year = {2018},
@@ -166,6 +178,8 @@ title = {Emotional Tone Detection in Arabic Tweets: 18th International Conferenc
 isbn = {978-3-319-77115-1},
 doi = {10.1007/978-3-319-77116-8_8}
 }
+```
+
 ### Contributions
 
 Thanks to [@abdulelahsm](https://github.com/abdulelahsm) for adding this dataset.

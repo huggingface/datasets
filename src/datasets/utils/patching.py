@@ -10,7 +10,7 @@ class _PatchedModuleObj:
     def __init__(self, module, attrs=None):
         attrs = attrs or []
         if module is not None:
-            for key in getattr(module, "__all__", module.__dict__):
+            for key in module.__dict__:
                 if key in attrs or not key.startswith("__"):
                     setattr(self, key, getattr(module, key))
 
@@ -19,14 +19,14 @@ class patch_submodule:
     """
     Patch a submodule attribute of an object, by keeping all other submodules intact at all levels.
 
-    Examples:
+    Example::
 
         >>> import importlib
-        >>> from datasets.load import prepare_module
+        >>> from datasets.load import dataset_module_factory
         >>> from datasets.streaming import patch_submodule, xjoin
         >>>
-        >>> snli_module_path, _ = prepare_module("snli")
-        >>> snli_module = importlib.import_module(snli_module_path)
+        >>> dataset_module = dataset_module_factory("snli")
+        >>> snli_module = importlib.import_module(dataset_module.module_path)
         >>> patcher = patch_submodule(snli_module, "os.path.join", xjoin)
         >>> patcher.start()
         >>> assert snli_module.os.path.join is xjoin

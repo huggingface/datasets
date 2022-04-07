@@ -613,6 +613,7 @@ class CommonVoiceConfig(datasets.BuilderConfig):
 
 class CommonVoice(datasets.GeneratorBasedBuilder):
 
+    DEFAULT_WRITER_BATCH_SIZE = 1000
     BUILDER_CONFIGS = [
         CommonVoiceConfig(
             name=lang_id,
@@ -632,7 +633,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             {
                 "client_id": datasets.Value("string"),
                 "path": datasets.Value("string"),
-                "audio": datasets.features.Audio(sampling_rate=48_000),
+                "audio": datasets.Audio(sampling_rate=48_000),
                 "sentence": datasets.Value("string"),
                 "up_votes": datasets.Value("int64"),
                 "down_votes": datasets.Value("int64"),
@@ -651,56 +652,104 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-            task_templates=[
-                AutomaticSpeechRecognition(audio_file_path_column="path", transcription_column="sentence")
-            ],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="sentence")],
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        dl_path = dl_manager.download_and_extract(_DATA_URL.format(self.config.name))
-        abs_path_to_data = os.path.join(dl_path, "cv-corpus-6.1-2020-12-11", self.config.name)
-        abs_path_to_clips = os.path.join(abs_path_to_data, "clips")
+        # Download the TAR archive that contains the audio files:
+        archive_path = dl_manager.download(_DATA_URL.format(self.config.name))
+
+        # First we locate the data using the path within the archive:
+        path_to_data = "/".join(["cv-corpus-6.1-2020-12-11", self.config.name])
+        path_to_clips = "/".join([path_to_data, "clips"])
+        metadata_filepaths = {
+            split: "/".join([path_to_data, f"{split}.tsv"])
+            for split in ["train", "test", "dev", "other", "validated", "invalidated"]
+        }
+        # (Optional) In non-streaming mode, we can extract the archive locally to have actual local audio files:
+        local_extracted_archive = dl_manager.extract(archive_path) if not dl_manager.is_streaming else None
+
+        # To access the audio data from the TAR archives using the download manager,
+        # we have to use the dl_manager.iter_archive method.
+        #
+        # This is because dl_manager.download_and_extract
+        # doesn't work to stream TAR archives in streaming mode.
+        # (we have to stream the files of a TAR archive one by one)
+        #
+        # The iter_archive method returns an iterable of (path_within_archive, file_obj) for every
+        # file in the TAR archive.
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(abs_path_to_data, "train.tsv"),
-                    "path_to_clips": abs_path_to_clips,
+                    "local_extracted_archive": local_extracted_archive,
+                    "archive_iterator": dl_manager.iter_archive(
+                        archive_path
+                    ),  # use iter_archive here to access the files in the TAR archives
+                    "metadata_filepath": metadata_filepaths["train"],
+                    "path_to_clips": path_to_clips,
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(abs_path_to_data, "test.tsv"),
-                    "path_to_clips": abs_path_to_clips,
+                    "local_extracted_archive": local_extracted_archive,
+                    "archive_iterator": dl_manager.iter_archive(
+                        archive_path
+                    ),  # use iter_archive here to access the files in the TAR archives
+                    "metadata_filepath": metadata_filepaths["test"],
+                    "path_to_clips": path_to_clips,
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(abs_path_to_data, "dev.tsv"),
-                    "path_to_clips": abs_path_to_clips,
+                    "local_extracted_archive": local_extracted_archive,
+                    "archive_iterator": dl_manager.iter_archive(
+                        archive_path
+                    ),  # use iter_archive here to access the files in the TAR archives
+                    "metadata_filepath": metadata_filepaths["dev"],
+                    "path_to_clips": path_to_clips,
                 },
             ),
             datasets.SplitGenerator(
                 name="other",
                 gen_kwargs={
-                    "filepath": os.path.join(abs_path_to_data, "other.tsv"),
-                    "path_to_clips": abs_path_to_clips,
+                    "local_extracted_archive": local_extracted_archive,
+                    "archive_iterator": dl_manager.iter_archive(
+                        archive_path
+                    ),  # use iter_archive here to access the files in the TAR archives
+                    "metadata_filepath": metadata_filepaths["other"],
+                    "path_to_clips": path_to_clips,
+                },
+            ),
+            datasets.SplitGenerator(
+                name="validated",
+                gen_kwargs={
+                    "local_extracted_archive": local_extracted_archive,
+                    "archive_iterator": dl_manager.iter_archive(
+                        archive_path
+                    ),  # use iter_archive here to access the files in the TAR archives
+                    "metadata_filepath": metadata_filepaths["validated"],
+                    "path_to_clips": path_to_clips,
                 },
             ),
             datasets.SplitGenerator(
                 name="invalidated",
                 gen_kwargs={
-                    "filepath": os.path.join(abs_path_to_data, "invalidated.tsv"),
-                    "path_to_clips": abs_path_to_clips,
+                    "local_extracted_archive": local_extracted_archive,
+                    "archive_iterator": dl_manager.iter_archive(
+                        archive_path
+                    ),  # use iter_archive here to access the files in the TAR archives
+                    "metadata_filepath": metadata_filepaths["invalidated"],
+                    "path_to_clips": path_to_clips,
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, path_to_clips):
+    def _generate_examples(self, local_extracted_archive, archive_iterator, metadata_filepath, path_to_clips):
         """Yields examples."""
         data_fields = list(self._info().features.keys())
 
@@ -708,28 +757,43 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
         data_fields.remove("audio")
         path_idx = data_fields.index("path")
 
-        with open(filepath, encoding="utf-8") as f:
-            lines = f.readlines()
-            headline = lines[0]
+        all_field_values = {}
+        metadata_found = False
+        # Here we iterate over all the files within the TAR archive:
+        for path, f in archive_iterator:
+            # Parse the metadata CSV file
+            if path == metadata_filepath:
+                metadata_found = True
+                lines = f.readlines()
+                headline = lines[0].decode("utf-8")
 
-            column_names = headline.strip().split("\t")
-            assert (
-                column_names == data_fields
-            ), f"The file should have {data_fields} as column names, but has {column_names}"
+                column_names = headline.strip().split("\t")
+                assert (
+                    column_names == data_fields
+                ), f"The file should have {data_fields} as column names, but has {column_names}"
+                for line in lines[1:]:
+                    field_values = line.decode("utf-8").strip().split("\t")
+                    # set full path for mp3 audio file
+                    audio_path = "/".join([path_to_clips, field_values[path_idx]])
+                    all_field_values[audio_path] = field_values
+            # Else, read the audio file and yield an example
+            elif path.startswith(path_to_clips):
+                assert metadata_found, "Found audio clips before the metadata TSV file."
+                if not all_field_values:
+                    break
+                if path in all_field_values:
+                    # retrieve the metadata corresponding to this audio file
+                    field_values = all_field_values[path]
 
-            for id_, line in enumerate(lines[1:]):
-                field_values = line.strip().split("\t")
+                    # if data is incomplete, fill with empty values
+                    if len(field_values) < len(data_fields):
+                        field_values += (len(data_fields) - len(field_values)) * ["''"]
 
-                # set absolute path for mp3 audio file
-                field_values[path_idx] = os.path.join(path_to_clips, field_values[path_idx])
+                    result = {key: value for key, value in zip(data_fields, field_values)}
 
-                # if data is incomplete, fill with empty values
-                if len(field_values) < len(data_fields):
-                    field_values += (len(data_fields) - len(field_values)) * ["''"]
+                    # set audio feature
+                    result["audio"] = {"path": path, "bytes": f.read()}
+                    # set path to None if the audio file doesn't exist locally (i.e. in streaming mode)
+                    result["path"] = os.path.join(local_extracted_archive, path) if local_extracted_archive else None
 
-                result = {key: value for key, value in zip(data_fields, field_values)}
-
-                # set audio feature
-                result["audio"] = field_values[path_idx]
-
-                yield id_, result
+                    yield path, result

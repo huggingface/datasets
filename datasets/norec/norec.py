@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Lint as: python3
-import glob
-import os
+import tarfile
 
 import conllu
 
@@ -41,9 +39,6 @@ NoReC was created as part of the SANT project (Sentiment Analysis for Norwegian 
 """
 
 _URL = "https://www.mn.uio.no/ifi/english/research/projects/sant/data/norec/norec-1.0.1.tar.gz"
-_TRAIN = "conllu/train"
-_DEV = "conllu/dev"
-_TEST = "conllu/test"
 
 
 class Norec(datasets.GeneratorBasedBuilder):
@@ -95,52 +90,60 @@ class Norec(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        path = dl_manager.download_and_extract(_URL)
-        sub_path = os.path.join(path, "norec", "conllu.tar.gz")
-        conllu_path = dl_manager.extract(sub_path)
+        archive = dl_manager.download(_URL)
+        subarchive_path = "norec/conllu.tar.gz"
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "datapath": os.path.join(conllu_path, "conllu", "train"),
-                    "path": path,
+                    "data_dir": "conllu/train",
+                    "subarchive_path": subarchive_path,
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "datapath": os.path.join(conllu_path, "conllu", "dev"),
-                    "path": path,
+                    "data_dir": "conllu/dev",
+                    "subarchive_path": subarchive_path,
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "datapath": os.path.join(conllu_path, "conllu", "test"),
-                    "path": path,
+                    "data_dir": "conllu/test",
+                    "subarchive_path": subarchive_path,
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, datapath, path):
-        conllu_files = sorted(glob.glob(os.path.join(datapath, "*.conllu")))
+    def _generate_examples(self, data_dir, subarchive_path, files):
         counter = 0
-        for cf in conllu_files:
-            with open(cf, "r", encoding="utf-8") as data_file:
-                tokenlist = list(conllu.parse_incr(data_file))
-                for sent in tokenlist:
-                    res = {
-                        "idx": sent.metadata["sent_id"],
-                        "text": sent.metadata["text"],
-                        "tokens": [str(token["form"]) for token in sent],
-                        "lemmas": [str(token["lemma"]) for token in sent],
-                        "pos_tags": [str(token["upostag"]) for token in sent],
-                        "xpos_tags": [str(token["xpostag"]) for token in sent],
-                        "feats": [str(token["feats"]) for token in sent],
-                        "head": [str(token["head"]) for token in sent],
-                        "deprel": [str(token["deprel"]) for token in sent],
-                        "deps": [str(token["deps"]) for token in sent],
-                        "misc": [str(token["misc"]) for token in sent],
-                    }
-                    yield counter, res
-                    counter += 1
+        for path, f in files:
+            if path == subarchive_path:
+                stream = tarfile.open(fileobj=f, mode="r|*")
+                for tarinfo in stream:
+                    file_path = tarinfo.name
+                    if file_path.startswith(data_dir) and file_path.endswith(".conllu"):
+                        data = stream.extractfile(tarinfo).read().decode("utf-8")
+                        for sent in conllu.parse(data):
+                            res = {
+                                "idx": sent.metadata["sent_id"],
+                                "text": sent.metadata["text"],
+                                "tokens": [str(token["form"]) for token in sent],
+                                "lemmas": [str(token["lemma"]) for token in sent],
+                                "pos_tags": [str(token["upostag"]) for token in sent],
+                                "xpos_tags": [str(token["xpostag"]) for token in sent],
+                                "feats": [str(token["feats"]) for token in sent],
+                                "head": [str(token["head"]) for token in sent],
+                                "deprel": [str(token["deprel"]) for token in sent],
+                                "deps": [str(token["deps"]) for token in sent],
+                                "misc": [str(token["misc"]) for token in sent],
+                            }
+                            yield counter, res
+                            counter += 1
+                    stream.members = []
+                del stream
+                break

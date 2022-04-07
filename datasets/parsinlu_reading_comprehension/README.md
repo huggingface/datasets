@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: null
+pretty_name: PersiNLU (Reading Comprehension)
 ---
 
 # Dataset Card for PersiNLU (Reading Comprehension)
@@ -52,7 +53,7 @@ paperswithcode_id: null
 - **Repository:** [Github](https://github.com/persiannlp/parsinlu/)
 - **Paper:** [Arxiv](https://arxiv.org/abs/2012.06154)
 - **Leaderboard:** 
-- **Point of Contact:** d.khashabi@gmail.com
+- **Point of Contact:** [email](d.khashabi@gmail.com)
 
 ### Dataset Summary
 
@@ -138,7 +139,7 @@ For more details, check [the corresponding draft](https://arxiv.org/abs/2012.061
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

@@ -1,4 +1,5 @@
 ---
+pretty_name: Question Answering via Sentence Composition (QASC)
 languages:
 - en
 paperswithcode_id: qasc

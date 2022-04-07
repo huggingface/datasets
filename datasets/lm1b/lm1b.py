@@ -17,8 +17,8 @@
 """The Language Model 1 Billion dataset."""
 
 
-import glob
 import os
+from fnmatch import fnmatch
 
 import datasets
 
@@ -55,8 +55,8 @@ modeling. This has almost one billion words in the training data.
 
 _DOWNLOAD_URL = "http://www.statmt.org/lm-benchmark/" "1-billion-word-language-modeling-benchmark-r13output.tar.gz"
 _TOP_LEVEL_DIR = "1-billion-word-language-modeling-benchmark-r13output"
-_TRAIN_FILE_FORMAT = os.path.join(_TOP_LEVEL_DIR, "training-monolingual.tokenized.shuffled", "news.en-*")
-_HELDOUT_FILE_FORMAT = os.path.join(_TOP_LEVEL_DIR, "heldout-monolingual.tokenized.shuffled", "news.en.heldout-*")
+_TRAIN_FILE_FORMAT = "/".join([_TOP_LEVEL_DIR, "training-monolingual.tokenized.shuffled", "news.en-*"])
+_HELDOUT_FILE_FORMAT = "/".join([_TOP_LEVEL_DIR, "heldout-monolingual.tokenized.shuffled", "news.en.heldout-*"])
 
 
 class Lm1bConfig(datasets.BuilderConfig):
@@ -69,14 +69,6 @@ class Lm1bConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(Lm1bConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
-
-
-def _train_data_filenames(tmp_dir):
-    return sorted(glob.glob(os.path.join(tmp_dir, _TRAIN_FILE_FORMAT)))
-
-
-def _test_data_filenames(tmp_dir):
-    return sorted(glob.glob(os.path.join(tmp_dir, _HELDOUT_FILE_FORMAT)))
 
 
 class Lm1b(datasets.GeneratorBasedBuilder):
@@ -99,21 +91,23 @@ class Lm1b(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        lm1b_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
-
-        train_files = _train_data_filenames(lm1b_path)
-        test_files = _test_data_filenames(lm1b_path)
+        archive = dl_manager.download(_DOWNLOAD_URL)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": train_files}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"files": test_files}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "pattern": _TRAIN_FILE_FORMAT},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "pattern": _HELDOUT_FILE_FORMAT},
+            ),
         ]
 
-    def _generate_examples(self, files):
-        for filepath in files:
-            logger.info("generating examples from = %s", filepath)
-            with open(filepath, encoding="utf-8") as f:
+    def _generate_examples(self, files, pattern):
+        for path, f in files:
+            if fnmatch(path, pattern):
                 for idx, line in enumerate(f):
-                    yield "%s_%d" % (os.path.basename(filepath), idx), {
-                        "text": line.strip(),
+                    yield "%s_%d" % (os.path.basename(path), idx), {
+                        "text": line.decode("utf-8").strip(),
                     }

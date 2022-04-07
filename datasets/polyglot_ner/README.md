@@ -1,8 +1,66 @@
 ---
+annotations_creators:
+- machine-generated
+language_creators:
+- found
+languages:
+- ca
+- de
+- es
+- fi
+- hi
+- id
+- ko
+- ms
+- pl
+- ru
+- sr
+- tl
+- vi
+- ar
+- cs
+- el
+- et
+- fr
+- hr
+- it
+- lt
+- nl
+- pt
+- sk
+- sv
+- tr
+- zh
+- bg
+- da
+- en
+- fa
+- he
+- hu
+- ja
+- lv
+- "no"
+- ro
+- sl
+- th
+- uk
+licenses:
+- unknown
+multilinguality:
+- multilingual
+pretty_name: Polyglot-NER
+size_categories:
+- unknown
+source_datasets:
+- original
+task_categories:
+- structure-prediction
+task_ids:
+- named-entity-recognition
 paperswithcode_id: polyglot-ner
 ---
 
-# Dataset Card for "polyglot_ner"
+# Dataset Card for Polyglot-NER
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -188,13 +246,13 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-|  name  | train  |
-|--------|-------:|
-|ar      |  339109|
-|bg      |  559694|
-|ca      |  372665|
-|combined|21070925|
-|cs      |  564462|
+| name     |    train |
+|----------|---------:|
+| ar       |   339109 |
+| bg       |   559694 |
+| ca       |   372665 |
+| combined | 21070925 |
+| cs       |   564462 |
 
 ## Dataset Creation
 

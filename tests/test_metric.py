@@ -168,6 +168,12 @@ class TestMetric(TestCase):
 
         metric = DummyMetric(keep_in_memory=True, experiment_id="test_dummy_metric")
         self.assertDictEqual({}, metric.compute(predictions=[], references=[]))
+        del metric
+
+        metric = DummyMetric(keep_in_memory=True, experiment_id="test_dummy_metric")
+        with self.assertRaisesRegex(ValueError, "Mismatch in the number"):
+            metric.add_batch(predictions=[1, 2, 3], references=[1, 2, 3, 4])
+        del metric
 
     def test_metric_with_cache_dir(self):
         preds, refs = DummyMetric.predictions_and_references()
@@ -378,7 +384,7 @@ class TestMetric(TestCase):
             del results
 
             # With keep_in_memory is not allowed
-            with self.assertRaises(AssertionError):
+            with self.assertRaises(ValueError):
                 DummyMetric(
                     experiment_id="test_distributed_metrics_4",
                     keep_in_memory=True,
@@ -512,3 +518,64 @@ def test_metric_with_multilabel(config_name, predictions, references, expected, 
     metric = MetricWithMultiLabel(config_name, cache_dir=cache_dir)
     results = metric.compute(predictions=predictions, references=references)
     assert results["accuracy"] == expected
+
+
+def test_safety_checks_process_vars():
+    with pytest.raises(ValueError):
+        _ = DummyMetric(process_id=-2)
+
+    with pytest.raises(ValueError):
+        _ = DummyMetric(num_process=2, process_id=3)
+
+
+class AccuracyWithNonStandardFeatureNames(Metric):
+    def _info(self):
+        return MetricInfo(
+            description="dummy metric for tests",
+            citation="insert citation here",
+            features=Features({"inputs": Value("int64"), "targets": Value("int64")}),
+        )
+
+    def _compute(self, inputs, targets):
+        return (
+            {
+                "accuracy": sum(i == j for i, j in zip(inputs, targets)) / len(targets),
+            }
+            if targets
+            else {}
+        )
+
+    @classmethod
+    def inputs_and_targets(cls):
+        return ([1, 2, 3, 4], [1, 2, 4, 3])
+
+    @classmethod
+    def expected_results(cls):
+        return {"accuracy": 0.5}
+
+
+def test_metric_with_non_standard_feature_names_add(tmp_path):
+    cache_dir = tmp_path / "cache"
+    inputs, targets = AccuracyWithNonStandardFeatureNames.inputs_and_targets()
+    metric = AccuracyWithNonStandardFeatureNames(cache_dir=cache_dir)
+    for input, target in zip(inputs, targets):
+        metric.add(inputs=input, targets=target)
+    results = metric.compute()
+    assert results == AccuracyWithNonStandardFeatureNames.expected_results()
+
+
+def test_metric_with_non_standard_feature_names_add_batch(tmp_path):
+    cache_dir = tmp_path / "cache"
+    inputs, targets = AccuracyWithNonStandardFeatureNames.inputs_and_targets()
+    metric = AccuracyWithNonStandardFeatureNames(cache_dir=cache_dir)
+    metric.add_batch(inputs=inputs, targets=targets)
+    results = metric.compute()
+    assert results == AccuracyWithNonStandardFeatureNames.expected_results()
+
+
+def test_metric_with_non_standard_feature_names_compute(tmp_path):
+    cache_dir = tmp_path / "cache"
+    inputs, targets = AccuracyWithNonStandardFeatureNames.inputs_and_targets()
+    metric = AccuracyWithNonStandardFeatureNames(cache_dir=cache_dir)
+    results = metric.compute(inputs=inputs, targets=targets)
+    assert results == AccuracyWithNonStandardFeatureNames.expected_results()

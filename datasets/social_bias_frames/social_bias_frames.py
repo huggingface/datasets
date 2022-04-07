@@ -18,7 +18,6 @@
 
 
 import csv
-import os
 
 import datasets
 
@@ -78,22 +77,28 @@ class SocialBiasFrames(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        dl_dir = dl_manager.download_and_extract(_DATA_URL)
+        archive = dl_manager.download(_DATA_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, "SBIC.v2.tst.csv")}
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": "SBIC.v2.tst.csv", "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(dl_dir, "SBIC.v2.dev.csv")}
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": "SBIC.v2.dev.csv", "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_dir, "SBIC.v2.trn.csv")}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": "SBIC.v2.trn.csv", "files": dl_manager.iter_archive(archive)},
             ),
         ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, filepath, files):
         """This function returns the examples in the raw (text) form."""
-        with open(filepath, encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for idx, row in enumerate(reader):
-                yield idx, row
+        for path, f in files:
+            if path == filepath:
+                lines = (line.decode("utf-8") for line in f)
+                reader = csv.DictReader(lines)
+                for idx, row in enumerate(reader):
+                    yield idx, row
+                break

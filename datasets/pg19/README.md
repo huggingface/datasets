@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: pg-19
+pretty_name: PG-19
 ---
 
 # Dataset Card for "pg19"

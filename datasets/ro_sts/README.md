@@ -17,6 +17,7 @@ task_categories:
 task_ids:
 - semantic-similarity-scoring
 paperswithcode_id: null
+pretty_name: RO-STS
 ---
 
 # Dataset Card for RO-STS
@@ -51,7 +52,7 @@ paperswithcode_id: null
 - **Repository:** [GitHub](https://github.com/dumitrescustefan/RO-STS)
 - **Paper:** [Needs More Information]
 - **Leaderboard:** [Needs More Information]
-- **Point of Contact:** dumitrescu.stefan@gmail.com
+- **Point of Contact:** [email](dumitrescu.stefan@gmail.com)
 
 ### Dataset Summary
 

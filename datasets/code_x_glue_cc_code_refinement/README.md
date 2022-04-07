@@ -17,6 +17,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - conditional-text-generation-other-debugging
+pretty_name: CodeXGlueCcCodeRefinement
 ---
 
 # Dataset Card for "code_x_glue_cc_code_refinement"

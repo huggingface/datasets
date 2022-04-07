@@ -1,4 +1,5 @@
 ---
+pretty_name: SETimes – A Parallel Corpus of English and South-East European Languages
 annotations_creators:
 - found
 language_creators:

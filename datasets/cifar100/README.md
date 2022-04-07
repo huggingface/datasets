@@ -1,20 +1,23 @@
 ---
+pretty_name: Cifar100
 annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages: []
+languages:
+- en
 licenses:
 - unknown
-multilinguality: []
+multilinguality:
+- monolingual
 size_categories:
 - 10K<n<100K
 source_datasets:
 - extended|other-80-Million-Tiny-Images
 task_categories:
-- other
+- image-classification
 task_ids:
-- other-other-image-classification
+- single-label-image-classification
 paperswithcode_id: cifar-100
 ---
  
@@ -60,7 +63,7 @@ There are two labels per image - fine label (actual class) and coarse label (sup
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `image-classification`: The goal of this task is to classify a given image into one of 100 classes. The leaderboard is available [here](https://paperswithcode.com/sota/image-classification-on-cifar-100).
 
 ### Languages
 
@@ -70,9 +73,18 @@ English
 
 ### Data Instances
 
+A sample from the training set is provided below:
+
+```
+{
+  'img': <PIL.PngImagePlugin.PngImageFile image mode=RGB size=32x32 at 0x2767F58E080>, 'fine_label': 19,
+  'coarse_label': 11
+}
+```
+
 ### Data Fields
 
-- `img`:  a 32x32x3 image array
+- `img`: A `PIL.Image.Image` object containing the 32x32 image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
 - `fine_label`: an `int` classification label with the following mapping:
 
   `0`: apple
@@ -389,3 +401,7 @@ English
     year = {2009}
 }
 ```
+
+### Contributions
+
+Thanks to [@gchhablani](https://github.com/gchablani) for adding this dataset.

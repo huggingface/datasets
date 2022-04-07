@@ -1,6 +1,7 @@
 import platform
 from argparse import ArgumentParser
 
+import pandas
 import pyarrow
 
 from datasets import __version__ as version
@@ -23,6 +24,7 @@ class EnvironmentCommand(BaseDatasetsCLICommand):
             "Platform": platform.platform(),
             "Python version": platform.python_version(),
             "PyArrow version": pyarrow.__version__,
+            "Pandas version": pandas.__version__,
         }
 
         print("\nCopy-and-paste the text below in your GitHub issue.\n")
@@ -32,4 +34,4 @@ class EnvironmentCommand(BaseDatasetsCLICommand):
 
     @staticmethod
     def format_dict(d):
-        return "\n".join(["- {}: {}".format(prop, val) for prop, val in d.items()]) + "\n"
+        return "\n".join([f"- {prop}: {val}" for prop, val in d.items()]) + "\n"

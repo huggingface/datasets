@@ -51,7 +51,7 @@ task_ids:
 - **Repository:** https://github.com/hirupert/sede
 - **Paper:** https://arxiv.org/abs/2106.05006
 - **Leaderboard:** https://paperswithcode.com/sota/text-to-sql-on-sede
-- **Point of Contact:** moshe@hirupert.com
+- **Point of Contact:** [email](moshe@hirupert.com)
 
 ### Dataset Summary
 

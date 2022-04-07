@@ -8,7 +8,7 @@ import datasets.config
 from datasets.builder import DatasetBuilder
 from datasets.commands import BaseDatasetsCLICommand
 from datasets.load import dataset_module_factory, import_main_class
-from datasets.utils.download_manager import GenerateMode
+from datasets.utils.download_manager import DownloadMode
 from datasets.utils.filelock import logger as fl_logger
 from datasets.utils.logging import ERROR, get_logger
 
@@ -107,6 +107,8 @@ class TestCommand(BaseDatasetsCLICommand):
                 "Please provide a --cache_dir that will be used to test the dataset script."
             )
             exit(1)
+        if save_infos:
+            self._ignore_verifications = True
 
     def run(self):
         fl_logger().setLevel(ERROR)
@@ -127,24 +129,35 @@ class TestCommand(BaseDatasetsCLICommand):
             if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
                 for i, config in enumerate(builder_cls.BUILDER_CONFIGS):
                     if i % self._num_proc == self._proc_rank:
-                        yield builder_cls(
-                            name=config.name,
-                            cache_dir=self._cache_dir,
-                            data_dir=self._data_dir,
-                            **module.builder_kwargs,
-                        )
+                        if "name" in module.builder_kwargs:
+                            yield builder_cls(
+                                cache_dir=self._cache_dir,
+                                data_dir=self._data_dir,
+                                **module.builder_kwargs,
+                            )
+                        else:
+                            yield builder_cls(
+                                name=config.name,
+                                cache_dir=self._cache_dir,
+                                data_dir=self._data_dir,
+                                **module.builder_kwargs,
+                            )
             else:
                 if self._proc_rank == 0:
-                    yield builder_cls(
-                        name=name, cache_dir=self._cache_dir, data_dir=self._data_dir, **module.builder_kwargs
-                    )
+                    if "name" in module.builder_kwargs:
+                        yield builder_cls(cache_dir=self._cache_dir, data_dir=self._data_dir, **module.builder_kwargs)
+                    else:
+                        yield builder_cls(
+                            name=name, cache_dir=self._cache_dir, data_dir=self._data_dir, **module.builder_kwargs
+                        )
 
         for j, builder in enumerate(get_builders()):
             print(f"Testing builder '{builder.config.name}' ({j + 1}/{n_builders})")
+            builder._record_infos = True
             builder.download_and_prepare(
-                download_mode=GenerateMode.REUSE_CACHE_IF_EXISTS
+                download_mode=DownloadMode.REUSE_CACHE_IF_EXISTS
                 if not self._force_redownload
-                else GenerateMode.FORCE_REDOWNLOAD,
+                else DownloadMode.FORCE_REDOWNLOAD,
                 ignore_verifications=self._ignore_verifications,
                 try_from_hf_gcs=False,
             )
@@ -165,15 +178,17 @@ class TestCommand(BaseDatasetsCLICommand):
                     dataset_dir = os.path.dirname(path)
                 elif os.path.isfile(combined_path):
                     dataset_dir = path
+                elif os.path.isdir(path):  # for local directories containing only data files
+                    dataset_dir = path
                 else:  # in case of a remote dataset
                     dataset_dir = None
-                    print("Dataset Infos file saved at {}".format(dataset_infos_path))
+                    print(f"Dataset Infos file saved at {dataset_infos_path}")
 
                 # Move dataset_info back to the user
                 if dataset_dir is not None:
                     user_dataset_infos_path = os.path.join(dataset_dir, datasets.config.DATASETDICT_INFOS_FILENAME)
                     copyfile(dataset_infos_path, user_dataset_infos_path)
-                    print("Dataset Infos file saved at {}".format(user_dataset_infos_path))
+                    print(f"Dataset Infos file saved at {user_dataset_infos_path}")
 
             # If clear_cache=True, the download folder and the dataset builder cache directory are deleted
             if self._clear_cache:

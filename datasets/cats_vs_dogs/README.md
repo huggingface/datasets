@@ -15,9 +15,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- image-classification
 task_ids:
-- other-other-image-classification
+- single-label-image-classification
 ---
 
 # Dataset Card for Cats Vs. Dogs
@@ -61,7 +61,7 @@ A large set of images of cats and dogs. There are 1738 corrupted images that are
 
 ### Supported Tasks and Leaderboards
 
-- image-classification
+- `image-classification`: The goal of this task is to classify a given image as either containing a cat or a dog. The leaderboard is available [here](https://paperswithcode.com/sota/image-classification-on-cats-vs-dogs).
 
 ### Languages
 
@@ -75,7 +75,8 @@ A sample from the training set is provided below:
 
 ```
 {
-  'image': '/root/.cache/huggingface/datasets/downloads/extracted/6e1e8c9052e9f3f7ecbcb4b90860668f81c1d36d86cc9606d49066f8da8bfb4f/PetImages/Cat/1.jpg',
+  'image_file_path': '/root/.cache/huggingface/datasets/downloads/extracted/6e1e8c9052e9f3f7ecbcb4b90860668f81c1d36d86cc9606d49066f8da8bfb4f/PetImages/Cat/1.jpg',
+  'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=500x375 at 0x29CEAD71780>,
   'label': 0
 }
 ```
@@ -85,6 +86,7 @@ A sample from the training set is provided below:
 The data instances have the following fields:
 
 - `image_file_path`: a `string` filepath to an image.
+- `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`.
 - `labels`: an `int` classification label.
 
 Class Label Mappings:
@@ -98,10 +100,9 @@ Class Label Mappings:
 
 ### Data Splits
 
- 
 |               | train |
 |---------------|------:|
-| # of examples | 23410 |
+| # of examples | 23422 |
 
 ## Dataset Creation
 

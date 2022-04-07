@@ -16,9 +16,6 @@
 # Lint as: python3
 """The BookCorpus dataset based on Shawn Presser's work https://github.com/soskek/bookcorpus/issues/27 """
 
-
-from pathlib import Path
-
 import datasets
 
 
@@ -39,7 +36,8 @@ _CITATION = """\
 }
 """
 _PROJECT_URL = "https://github.com/soskek/bookcorpus/issues/27#issuecomment-716104208"
-_DOWNLOAD_URL = "https://the-eye.eu/public/AI/pile_preliminary_components/books3.tar.gz"
+_HOST_URL = "https://mystic.the-eye.eu"  # Before: "https://the-eye.eu"
+_DOWNLOAD_URL = f"{_HOST_URL}/public/AI/pile_preliminary_components/books3.tar.gz"
 
 
 class Books3Config(datasets.BuilderConfig):
@@ -80,19 +78,21 @@ class ThePileBooks3(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        extracted_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)
-        leaf_dirs = Path(extracted_dir).glob("**/Bibliotik/*")
-        leaf_dirs = sorted(leaf_dirs)
+        archive = dl_manager.download(_DOWNLOAD_URL)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"leaf_dirs": leaf_dirs}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "files": dl_manager.iter_archive(archive),
+                },
+            )
         ]
 
-    def _generate_examples(self, leaf_dirs):
+    def _generate_examples(self, files):
         _id = 0
-        for leaf_dir in leaf_dirs:
-            for path in sorted(leaf_dir.glob("**/*.epub.txt")):
-                with path.open(mode="r", encoding="utf-8") as f:
-                    entry = {"title": path.name, "text": f.read()}
+        for path, f in files:
+            if path.endswith(".epub.txt"):
+                entry = {"title": path.split("/")[-1].split(".")[0], "text": f.read().decode("utf-8")}
                 yield _id, entry
                 _id += 1

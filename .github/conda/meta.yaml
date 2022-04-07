@@ -15,34 +15,34 @@ requirements:
     - python
     - pip
     - numpy >=1.17
-    - pyarrow >=0.17.1
+    - pyarrow >=5.0.0
     - python-xxhash
     - dill
     - pandas
     - requests >=2.19.0
-    - tqdm >=4.27,<4.50.0
+    - tqdm >=4.62.1
     - dataclasses
     - multiprocess
     - importlib_metadata
     - fsspec
-    - huggingface_hub <0.1.0
+    - huggingface_hub >=0.1.0,<1.0.0
     - packaging
     - aiohttp
   run:
     - python
     - pip
     - numpy >=1.17
-    - pyarrow >=0.17.1
+    - pyarrow >=5.0.0
     - python-xxhash
     - dill
     - pandas
     - requests >=2.19.0
-    - tqdm >=4.27,<4.50.0
+    - tqdm >=4.62.1
     - dataclasses
     - multiprocess
     - importlib_metadata
     - fsspec
-    - huggingface_hub <0.1.0
+    - huggingface_hub >=0.1.0,<1.0.0
     - packaging
     - aiohttp
 

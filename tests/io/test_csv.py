@@ -127,7 +127,7 @@ def test_csv_datasetdict_reader_split(split, csv_path, tmp_path):
 
 
 def iter_csv_file(csv_path):
-    with open(csv_path, "r", encoding="utf-8") as csvfile:
+    with open(csv_path, encoding="utf-8") as csvfile:
         yield from csv.reader(csvfile)
 
 
@@ -155,3 +155,11 @@ def test_dataset_to_csv_multiproc(csv_path, tmp_path):
 
     for row1, row2 in zip(original_csv, expected_csv):
         assert row1 == row2
+
+
+def test_dataset_to_csv_invalidproc(csv_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    output_csv = os.path.join(cache_dir, "tmp.csv")
+    dataset = CsvDatasetReader({"train": csv_path}, cache_dir=cache_dir).read()
+    with pytest.raises(ValueError):
+        CsvDatasetWriter(dataset["train"], output_csv, index=False, num_proc=0)

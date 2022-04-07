@@ -38,6 +38,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: europarl-bilingual
 ---
 
 # Dataset Card for europarl-bilingual

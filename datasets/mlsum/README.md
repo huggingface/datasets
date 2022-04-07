@@ -37,9 +37,10 @@ task_ids:
 - summarization
 - topic-classification
 paperswithcode_id: mlsum
+pretty_name: MLSUM
 ---
 
-# Dataset Card for "mlsum"
+# Dataset Card for MLSUM
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -70,7 +71,7 @@ paperswithcode_id: mlsum
 - **Homepage:** []()
 - **Repository:** https://github.com/recitalAI/MLSUM
 - **Paper:** https://www.aclweb.org/anthology/2020.emnlp-main.647/
-- **Point of Contact:** thomas@recital.ai
+- **Point of Contact:** [email](thomas@recital.ai)
 - **Size of downloaded dataset files:** 1748.64 MB
 - **Size of the generated dataset:** 4635.42 MB
 - **Total amount of disk used:** 6384.06 MB

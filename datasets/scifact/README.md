@@ -1,4 +1,5 @@
 ---
+pretty_name: SciFact
 languages:
 - en
 paperswithcode_id: null

@@ -1,4 +1,5 @@
 ---
+pretty_name: BlendedSkillTalk
 languages:
 - en
 paperswithcode_id: blended-skill-talk

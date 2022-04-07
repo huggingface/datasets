@@ -34,9 +34,10 @@ task_categories:
 task_ids:
 - other-other-knowledge-extraction
 paperswithcode_id: cord-19
+pretty_name: CORD-19
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for CORD-19
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -146,14 +147,13 @@ Extra fields based on selected configuration during loading:
 
 No annotation provided in this dataset so all instances are provided in training split.
 
-The sizes of each configurations are:
+The sizes of each configuration are:
 
-|          | Tain   |
-| -----    | ------ |
-| metadata | 368618  |
-| fulltext | 368618  |
-| embeddings | 368618  |
-
+|            |  train |
+|------------|-------:|
+| metadata   | 368618 |
+| fulltext   | 368618 |
+| embeddings | 368618 |
 
 ## Dataset Creation
 

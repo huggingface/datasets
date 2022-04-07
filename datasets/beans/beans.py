@@ -14,7 +14,7 @@
 # limitations under the License.
 """Beans leaf dataset with images of diseased and health leaves."""
 
-from pathlib import Path
+import os
 
 import datasets
 from datasets.tasks import ImageClassification
@@ -41,9 +41,9 @@ Uganda and collected by the Makerere AI research lab.
 """
 
 _URLS = {
-    "train": "https://storage.googleapis.com/ibeans/train.zip",
-    "validation": "https://storage.googleapis.com/ibeans/validation.zip",
-    "test": "https://storage.googleapis.com/ibeans/test.zip",
+    "train": "https://huggingface.co/datasets/beans/resolve/main/data/train.zip",
+    "validation": "https://huggingface.co/datasets/beans/resolve/main/data/validation.zip",
+    "test": "https://huggingface.co/datasets/beans/resolve/main/data/test.zip",
 }
 
 _NAMES = ["angular_leaf_spot", "bean_rust", "healthy"]
@@ -58,15 +58,14 @@ class Beans(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "image_file_path": datasets.Value("string"),
+                    "image": datasets.Image(),
                     "labels": datasets.features.ClassLabel(names=_NAMES),
                 }
             ),
-            supervised_keys=("image_file_path", "labels"),
+            supervised_keys=("image", "labels"),
             homepage=_HOMEPAGE,
             citation=_CITATION,
-            task_templates=[
-                ImageClassification(image_file_path_column="image_file_path", label_column="labels", labels=_NAMES)
-            ],
+            task_templates=[ImageClassification(image_column="image", label_column="labels")],
         )
 
     def _split_generators(self, dl_manager):
@@ -75,24 +74,29 @@ class Beans(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "archive": data_files["train"],
+                    "files": dl_manager.iter_files([data_files["train"]]),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "archive": data_files["validation"],
+                    "files": dl_manager.iter_files([data_files["validation"]]),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "archive": data_files["test"],
+                    "files": dl_manager.iter_files([data_files["test"]]),
                 },
             ),
         ]
 
-    def _generate_examples(self, archive):
-        for i, path in enumerate(Path(archive).glob("**/*")):
-            if path.suffix == ".jpg":
-                yield i, dict(image_file_path=str(path), labels=path.parent.name.lower())
+    def _generate_examples(self, files):
+        for i, path in enumerate(files):
+            file_name = os.path.basename(path)
+            if file_name.endswith(".jpg"):
+                yield i, {
+                    "image_file_path": path,
+                    "image": path,
+                    "labels": os.path.basename(os.path.dirname(path)).lower(),
+                }

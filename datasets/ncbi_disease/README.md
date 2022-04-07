@@ -59,7 +59,7 @@ pretty_name: NCBI Disease
 - **Repository:** [Github](https://github.com/spyysalo/ncbi-disease)
 - **Paper:** [NCBI disease corpus: A resource for disease name recognition and concept normalization](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3951655)
 - **Leaderboard:** [Named Entity Recognition on NCBI-disease](https://paperswithcode.com/sota/named-entity-recognition-ner-on-ncbi-disease)
-- **Point of Contact:** zhiyong.lu@nih.gov
+- **Point of Contact:** [email](zhiyong.lu@nih.gov)
 
 ### Dataset Summary
 

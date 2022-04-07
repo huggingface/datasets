@@ -14,7 +14,7 @@
 # limitations under the License.
 """The Microsoft Cats vs. Dogs dataset"""
 
-from pathlib import Path
+import os
 from typing import List
 
 import datasets
@@ -44,38 +44,39 @@ _CITATION = """\
 
 
 class CatsVsDogs(datasets.GeneratorBasedBuilder):
+    VERSION = datasets.Version("0.0.1")
+
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
                     "image_file_path": datasets.Value("string"),
+                    "image": datasets.Image(),
                     "labels": datasets.features.ClassLabel(names=["cat", "dog"]),
                 }
             ),
-            supervised_keys=("image_file_path", "labels"),
-            task_templates=[
-                ImageClassification(
-                    image_file_path_column="image_file_path", label_column="labels", labels=["cat", "dog"]
-                )
-            ],
+            supervised_keys=("image", "labels"),
+            task_templates=[ImageClassification(image_column="image", label_column="labels")],
             homepage=_HOMEPAGE,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
-        images_path = Path(dl_manager.download_and_extract(_URL)) / "PetImages"
+        images_path = os.path.join(dl_manager.download_and_extract(_URL), "PetImages")
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"images_path": images_path}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_files([images_path])}
+            ),
         ]
 
-    def _generate_examples(self, images_path):
-        logger.info("generating examples from = %s", images_path)
-        for i, filepath in enumerate(images_path.glob("**/*.jpg")):
-            with filepath.open("rb") as f:
-                if b"JFIF" in f.peek(10):
-                    yield str(i), {
-                        "image_file_path": str(filepath),
-                        "labels": filepath.parent.name.lower(),
-                    }
-                    continue
+    def _generate_examples(self, files):
+        for i, file in enumerate(files):
+            if os.path.basename(file).endswith(".jpg"):
+                with open(file, "rb") as f:
+                    if b"JFIF" in f.peek(10):
+                        yield str(i), {
+                            "image_file_path": file,
+                            "image": file,
+                            "labels": os.path.basename(os.path.dirname(file)).lower(),
+                        }

@@ -84,7 +84,7 @@ class Newsroom(datasets.GeneratorBasedBuilder):
     @property
     def manual_download_instructions(self):
         return """\
-  You should download the dataset from http://lil.datasets.cornell.edu/newsroom/
+  You should download the dataset from https://lil.nlp.cornell.edu/newsroom/download/index.html
   The webpage requires registration.
   To unzip the .tar file run `tar -zxvf complete.tar`. To unzip the .gz files
   run `gunzip train.json.gz` , ...
@@ -102,7 +102,7 @@ class Newsroom(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(features),
             supervised_keys=(_DOCUMENT, _SUMMARY),
-            homepage="http://lil.datasets.cornell.edu/newsroom/",
+            homepage="https://lil.nlp.cornell.edu/newsroom/index.html",
             citation=_CITATION,
         )
 
@@ -111,9 +111,7 @@ class Newsroom(datasets.GeneratorBasedBuilder):
         data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
         if not os.path.exists(data_dir):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('newsroom', data_dir=...)` that includes files unzipped from the reclor zip. Manual download instructions: {}".format(
-                    data_dir, self.manual_download_instructions
-                )
+                f"{data_dir} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('newsroom', data_dir=...)` that includes files unzipped from the reclor zip. Manual download instructions: {self.manual_download_instructions}"
             )
         return [
             datasets.SplitGenerator(

@@ -1,6 +1,7 @@
 import io
 import json
 
+import fsspec
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
@@ -250,3 +251,20 @@ class TestJsonDatasetWriter:
             assert len(exported_content[len_at]) == 10
         else:
             assert len(exported_content) == 10
+
+    def test_dataset_to_json_orient_invalidproc(self, dataset):
+        with pytest.raises(ValueError):
+            with io.BytesIO() as buffer:
+                JsonDatasetWriter(dataset, buffer, num_proc=0)
+
+    @pytest.mark.parametrize("compression, extension", [("gzip", "gz"), ("bz2", "bz2"), ("xz", "xz")])
+    def test_dataset_to_json_compression(self, shared_datadir, tmp_path_factory, extension, compression, dataset):
+        path = tmp_path_factory.mktemp("data") / f"test.json.{extension}"
+        original_path = str(shared_datadir / f"test_file.json.{extension}")
+        JsonDatasetWriter(dataset, path, compression=compression).write()
+
+        with fsspec.open(path, "rb", compression="infer") as f:
+            exported_content = f.read()
+        with fsspec.open(original_path, "rb", compression="infer") as f:
+            original_content = f.read()
+        assert exported_content == original_content

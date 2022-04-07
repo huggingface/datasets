@@ -14,7 +14,6 @@
 # limitations under the License.
 
 # Lint as: python3
-import os
 
 import datasets
 
@@ -73,47 +72,63 @@ class TurkuNERCorpus(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        path = dl_manager.download_and_extract(_URL)
+        archive = dl_manager.download(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"data_path": path, "data_type": "train"},
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "data_type": "train"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"data_path": path, "data_type": "valid"},
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "data_type": "valid"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"data_path": path, "data_type": "test"},
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "data_type": "test"},
             ),
         ]
 
-    def _generate_examples(self, data_path, data_type):
+    def _generate_examples(self, files, data_type):
         if data_type == "train":
-            data_path = os.path.join(data_path, "turku-ner-corpus-1.0/data/conll/train.tsv")
+            data_path = "turku-ner-corpus-1.0/data/conll/train.tsv"
         elif data_type == "valid":
-            data_path = os.path.join(data_path, "turku-ner-corpus-1.0/data/conll/dev.tsv")
+            data_path = "turku-ner-corpus-1.0/data/conll/dev.tsv"
         elif data_type == "test":
-            data_path = os.path.join(data_path, "turku-ner-corpus-1.0/data/conll/test.tsv")
+            data_path = "turku-ner-corpus-1.0/data/conll/test.tsv"
         else:
             raise Exception("data_type not understood")
 
         sentence_counter = 0
-        with open(data_path, encoding="utf-8") as f:
-            current_words = []
-            current_labels = []
-            for row in f:
-                row = row.rstrip()
-                row_split = row.split("\t")
-                if len(row_split) == 2:
-                    token, label = row_split
-                    current_words.append(token)
-                    current_labels.append(label)
-                else:
-                    if not current_words:
-                        continue
-                    assert len(current_words) == len(current_labels), "word len doesnt match label length"
+        for path, f in files:
+            if path == data_path:
+                current_words = []
+                current_labels = []
+                for row in f:
+                    row = row.decode("utf-8").rstrip()
+                    row_split = row.split("\t")
+                    if len(row_split) == 2:
+                        token, label = row_split
+                        current_words.append(token)
+                        current_labels.append(label)
+                    else:
+                        if not current_words:
+                            continue
+                        assert len(current_words) == len(current_labels), "word len doesnt match label length"
+                        sentence = (
+                            sentence_counter,
+                            {
+                                "id": str(sentence_counter),
+                                "tokens": current_words,
+                                "ner_tags": current_labels,
+                            },
+                        )
+                        sentence_counter += 1
+                        current_words = []
+                        current_labels = []
+                        yield sentence
+
+                # if something remains:
+                if current_words:
                     sentence = (
                         sentence_counter,
                         {
@@ -122,19 +137,5 @@ class TurkuNERCorpus(datasets.GeneratorBasedBuilder):
                             "ner_tags": current_labels,
                         },
                     )
-                    sentence_counter += 1
-                    current_words = []
-                    current_labels = []
                     yield sentence
-
-            # if something remains:
-            if current_words:
-                sentence = (
-                    sentence_counter,
-                    {
-                        "id": str(sentence_counter),
-                        "tokens": current_words,
-                        "ner_tags": current_labels,
-                    },
-                )
-                yield sentence
+                break

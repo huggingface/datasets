@@ -18,7 +18,6 @@
 
 
 import json
-import os
 
 import datasets
 
@@ -39,8 +38,8 @@ A dataset containing 1585 papers with 5049 information-seeking questions asked b
 """
 
 _HOMEPAGE = "https://allenai.org/data/qasper"
-_DOWNLOAD_URLS = {"data": "https://qasper-dataset.s3-us-west-2.amazonaws.com/qasper-train-dev-v0.1.tgz"}
-data_files = {"train": "qasper-train-v0.1.json", "dev": "qasper-dev-v0.1.json"}
+_URL = "https://qasper-dataset.s3-us-west-2.amazonaws.com/qasper-train-dev-v0.1.tgz"
+_DATA_FILES = {"train": "qasper-train-v0.1.json", "dev": "qasper-dev-v0.1.json"}
 
 _VERSION = "0.1.0"
 
@@ -107,24 +106,26 @@ class Qasper(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        downloaded_files = dl_manager.download_and_extract(_DOWNLOAD_URLS)
+        archive = dl_manager.download(_URL)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(downloaded_files["data"], data_files["train"])},
+                gen_kwargs={"filepath": _DATA_FILES["train"], "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(downloaded_files["data"], data_files["dev"])},
+                gen_kwargs={"filepath": _DATA_FILES["dev"], "files": dl_manager.iter_archive(archive)},
             ),
         ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, filepath, files):
         """This function returns the examples in the raw (text) form."""
         logger.info("generating examples from = %s", filepath)
-        with open(filepath, encoding="utf-8") as f:
-            qasper = json.load(f)
-            for id_ in qasper:
-                qasper[id_]["id"] = id_
-                yield id_, qasper[id_]
+        for path, f in files:
+            if path == filepath:
+                qasper = json.loads(f.read().decode("utf-8"))
+                for id_ in qasper:
+                    qasper[id_]["id"] = id_
+                    yield id_, qasper[id_]
+                break

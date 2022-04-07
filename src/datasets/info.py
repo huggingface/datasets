@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,9 +33,7 @@ import dataclasses
 import json
 import os
 from dataclasses import asdict, dataclass, field
-from typing import List, Optional, Union
-
-from datasets.tasks.text_classification import TextClassification
+from typing import Dict, List, Optional, Union
 
 from . import config
 from .features import Features, Value
@@ -44,6 +41,7 @@ from .splits import SplitDict
 from .tasks import TaskTemplate, task_template_from_dict
 from .utils import Version
 from .utils.logging import get_logger
+from .utils.py_utils import unique_values
 
 
 logger = get_logger(__name__)
@@ -81,7 +79,7 @@ class PostProcessedInfo:
 
     @classmethod
     def from_dict(cls, post_processed_info_dict: dict) -> "PostProcessedInfo":
-        field_names = set(f.name for f in dataclasses.fields(cls))
+        field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in post_processed_info_dict.items() if k in field_names})
 
 
@@ -170,30 +168,28 @@ class DatasetInfo:
                 template = task_template_from_dict(self.task_templates)
                 self.task_templates = [template] if template is not None else []
 
-        # Insert labels and mappings for text classification
+        # Align task templates with features
         if self.task_templates is not None:
             self.task_templates = list(self.task_templates)
             if self.features is not None:
-                for idx, template in enumerate(self.task_templates):
-                    if isinstance(template, TextClassification):
-                        labels = self.features[template.label_column].names
-                        self.task_templates[idx] = TextClassification(
-                            text_column=template.text_column, label_column=template.label_column, labels=labels
-                        )
+                self.task_templates = [
+                    template.align_with_features(self.features) for template in (self.task_templates)
+                ]
 
     def _license_path(self, dataset_info_dir):
         return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)
 
     def write_to_directory(self, dataset_info_dir):
-        """Write `DatasetInfo` as JSON to `dataset_info_dir`.
+        """Write `DatasetInfo` and license (if present) as JSON files to `dataset_info_dir`.
 
-        Also save the license separately in LICENCE.
+        Args:
+            dataset_info_dir (str): Destination directory.
         """
         with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f)
-
-        with open(os.path.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
-            self._dump_license(f)
+        if self.license:
+            with open(os.path.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
+                self._dump_license(f)
 
     def _dump_info(self, file):
         """Dump info in `file` file-like object open in bytes mode (to support remote files)"""
@@ -205,18 +201,11 @@ class DatasetInfo:
 
     @classmethod
     def from_merge(cls, dataset_infos: List["DatasetInfo"]):
-        def unique(values):
-            seen = set()
-            for value in values:
-                if value not in seen:
-                    seen.add(value)
-                    yield value
-
         dataset_infos = [dset_info.copy() for dset_info in dataset_infos if dset_info is not None]
-        description = "\n\n".join(unique(info.description for info in dataset_infos))
-        citation = "\n\n".join(unique(info.citation for info in dataset_infos))
-        homepage = "\n\n".join(unique(info.homepage for info in dataset_infos))
-        license = "\n\n".join(unique(info.license for info in dataset_infos))
+        description = "\n\n".join(unique_values(info.description for info in dataset_infos))
+        citation = "\n\n".join(unique_values(info.citation for info in dataset_infos))
+        homepage = "\n\n".join(unique_values(info.homepage for info in dataset_infos))
+        license = "\n\n".join(unique_values(info.license for info in dataset_infos))
         features = None
         supervised_keys = None
         task_templates = None
@@ -253,17 +242,17 @@ class DatasetInfo:
             dataset_info_dir (`str`): The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
         """
-        logger.info("Loading Dataset info from %s", dataset_info_dir)
+        logger.info(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
 
-        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), encoding="utf-8") as f:
             dataset_info_dict = json.load(f)
         return cls.from_dict(dataset_info_dict)
 
     @classmethod
     def from_dict(cls, dataset_info_dict: dict) -> "DatasetInfo":
-        field_names = set(f.name for f in dataclasses.fields(cls))
+        field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in dataset_info_dict.items() if k in field_names})
 
     def update(self, other_dataset_info: "DatasetInfo", ignore_none=True):
@@ -280,23 +269,23 @@ class DatasetInfo:
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
 
 
-class DatasetInfosDict(dict):
+class DatasetInfosDict(Dict[str, DatasetInfo]):
     def write_to_directory(self, dataset_infos_dir, overwrite=False):
         total_dataset_infos = {}
         dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)
         if os.path.exists(dataset_infos_path) and not overwrite:
-            logger.info("Dataset Infos already exists in {}. Completing it with new infos.".format(dataset_infos_dir))
+            logger.info(f"Dataset Infos already exists in {dataset_infos_dir}. Completing it with new infos.")
             total_dataset_infos = self.from_directory(dataset_infos_dir)
         else:
-            logger.info("Writing new Dataset Infos in {}".format(dataset_infos_dir))
+            logger.info(f"Writing new Dataset Infos in {dataset_infos_dir}")
         total_dataset_infos.update(self)
         with open(dataset_infos_path, "w", encoding="utf-8") as f:
             json.dump({config_name: asdict(dset_info) for config_name, dset_info in total_dataset_infos.items()}, f)
 
     @classmethod
     def from_directory(cls, dataset_infos_dir):
-        logger.info("Loading Dataset Infos from {}".format(dataset_infos_dir))
-        with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), "r", encoding="utf-8") as f:
+        logger.info(f"Loading Dataset Infos from {dataset_infos_dir}")
+        with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
             dataset_infos_dict = {
                 config_name: DatasetInfo.from_dict(dataset_info_dict)
                 for config_name, dataset_info_dict in json.load(f).items()
@@ -332,7 +321,6 @@ class MetricInfo:
     experiment_id: Optional[str] = None
 
     def __post_init__(self):
-        assert "predictions" in self.features, "Need to have at least a 'predictions' field in 'features'."
         if self.format is not None:
             for key, value in self.features.items():
                 if not isinstance(value, Value):
@@ -348,8 +336,9 @@ class MetricInfo:
         with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "w", encoding="utf-8") as f:
             json.dump(asdict(self), f)
 
-        with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
-            f.write(self.license)
+        if self.license:
+            with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
+                f.write(self.license)
 
     @classmethod
     def from_directory(cls, metric_info_dir) -> "MetricInfo":
@@ -359,15 +348,15 @@ class MetricInfo:
             metric_info_dir: `str` The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
         """
-        logger.info("Loading Metric info from %s", metric_info_dir)
+        logger.info(f"Loading Metric info from {metric_info_dir}")
         if not metric_info_dir:
             raise ValueError("Calling MetricInfo.from_directory() with undefined metric_info_dir.")
 
-        with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), encoding="utf-8") as f:
             metric_info_dict = json.load(f)
         return cls.from_dict(metric_info_dict)
 
     @classmethod
     def from_dict(cls, metric_info_dict: dict) -> "MetricInfo":
-        field_names = set(f.name for f in dataclasses.fields(cls))
+        field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in metric_info_dict.items() if k in field_names})

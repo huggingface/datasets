@@ -42,26 +42,19 @@ class TurkishProductReviews(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        dl_paths = dl_manager.download_and_extract(_URL)
-        filenames = list(os.listdir(dl_paths))
+        archive = dl_manager.download(_URL)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": dl_paths, "filenames": filenames}
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_archive(archive)}),
         ]
 
-    def _generate_examples(self, filepath, filenames):
+    def _generate_examples(self, files):
         """Generate TurkishProductReviews examples."""
-        logger.info("⏳ Generating examples from = %s", filepath)
-        for file_idx, f in enumerate(sorted(filenames)):
-            filename, file_extension = os.path.splitext(f)
+        for file_idx, (path, f) in enumerate(files):
+            _, file_extension = os.path.splitext(path)
             label = "negative" if file_extension == ".neg" else "positive"
-
-            file_fullpath = os.path.join(filepath, f)
-            with open(file_fullpath, encoding="utf-8") as f:
-                for idx, line in enumerate(f):
-                    line = line.strip()
-                    yield f"{file_idx}_{idx}", {
-                        "sentence": line,
-                        "sentiment": label,
-                    }
+            for idx, line in enumerate(f):
+                line = line.decode("utf-8").strip()
+                yield f"{file_idx}_{idx}", {
+                    "sentence": line,
+                    "sentiment": label,
+                }

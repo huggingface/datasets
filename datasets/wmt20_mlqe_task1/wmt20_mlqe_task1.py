@@ -15,8 +15,6 @@
 """WMT20 MLQE Shared task 1."""
 
 
-import os
-
 import datasets
 
 
@@ -56,7 +54,7 @@ _HOMEPAGE = "http://www.statmt.org/wmt20/quality-estimation-task.html"
 _LICENSE = "Unknown"
 
 _LANGUAGE_PAIRS = [("en", "de"), ("en", "zh"), ("et", "en"), ("ne", "en"), ("ro", "en"), ("si", "en"), ("ru", "en")]
-_MAIN_URL = "https://github.com/facebookresearch/mlqe/raw/master/data"
+_MAIN_URL = "https://github.com/facebookresearch/mlqe/raw/main/data"
 
 
 def inject_to_link(src_lg, tgt_lg):
@@ -124,73 +122,79 @@ class Wmt20MlqeTask1(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         my_urls = _URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        data_dir = dl_manager.download(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir["train+dev"], f"{self.config.src_lg}-{self.config.tgt_lg}"),
+                    "filepath": f"{self.config.src_lg}-{self.config.tgt_lg}",
                     "split": "train",
                     "source_lg": self.config.src_lg,
                     "target_lg": self.config.tgt_lg,
+                    "files": dl_manager.iter_archive(data_dir["train+dev"]),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir["test"], f"{self.config.src_lg}-{self.config.tgt_lg}"),
+                    "filepath": f"{self.config.src_lg}-{self.config.tgt_lg}",
                     "split": "test20",
                     "source_lg": self.config.src_lg,
                     "target_lg": self.config.tgt_lg,
+                    "files": dl_manager.iter_archive(data_dir["test"]),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir["train+dev"], f"{self.config.src_lg}-{self.config.tgt_lg}"),
+                    "filepath": f"{self.config.src_lg}-{self.config.tgt_lg}",
                     "split": "dev",
                     "source_lg": self.config.src_lg,
                     "target_lg": self.config.tgt_lg,
+                    "files": dl_manager.iter_archive(data_dir["train+dev"]),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split, source_lg, target_lg):
+    def _generate_examples(self, filepath, split, source_lg, target_lg, files):
         """Yields examples."""
-        docids_filepath = os.path.join(filepath, f"{split}.doc_ids")
-        with open(docids_filepath, encoding="utf-8") as f:
-            docids = f.read().splitlines()[1:]
+        docids_filepath = "/".join([filepath, f"{split}.doc_ids"])
+        mt_filepath = "/".join([filepath, "word-probas", f"mt.{split}.{source_lg}{target_lg}"])
+        word_probas_filepath = "/".join([filepath, "word-probas", f"word_probas.{split}.{source_lg}{target_lg}"])
+        translations_filepath = "/".join([filepath, f"{split}.{source_lg}{target_lg}.df.short.tsv"])
 
-        mt_filepath = os.path.join(filepath, "word-probas", f"mt.{split}.{source_lg}{target_lg}")
-        with open(mt_filepath, encoding="utf-8") as f:
-            nmt_outputs = f.read().splitlines()
-
-        word_probas_filepath = os.path.join(filepath, "word-probas", f"word_probas.{split}.{source_lg}{target_lg}")
-        with open(word_probas_filepath, encoding="utf-8") as f:
-            word_probas = [seq.split(" ") for seq in f.read().splitlines()]
-
-        translations_filepath = os.path.join(filepath, f"{split}.{source_lg}{target_lg}.df.short.tsv")
-        with open(translations_filepath, encoding="utf-8") as f:
-            translations = [t.split("\t") for t in f.read().splitlines()[1:]]
-
-            for id_, (row_, docid_, nmt_out_, word_prob_) in enumerate(
-                zip(translations, docids, nmt_outputs, word_probas)
-            ):
-                yield id_, {
-                    "segid": row_[0],
-                    "translation": {source_lg: row_[1], target_lg: row_[2]},
-                    "scores": []
-                    if (split == "test20" and (source_lg, target_lg) == ("ru", "en"))
-                    else row_[3].strip("][").split(", "),
-                    "mean": -10_000 if (split == "test20" and (source_lg, target_lg) == ("ru", "en")) else row_[4],
-                    "z_scores": []
-                    if (split == "test20" and (source_lg, target_lg) == ("ru", "en"))
-                    else row_[5].strip("][").split(", "),
-                    "z_mean": -10_000 if (split == "test20" and (source_lg, target_lg) == ("ru", "en")) else row_[6],
-                    "model_score": -10_000
-                    if (split == "test20" and (source_lg, target_lg) == ("ru", "en"))
-                    else row_[7],
-                    "doc_id": docid_,
-                    "nmt_output": nmt_out_,
-                    "word_probas": word_prob_,
-                }
+        docids, nmt_outputs, word_probas, translations = None, None, None, None
+        for path, f in files:
+            if path == docids_filepath:
+                docids = f.read().decode("utf-8").splitlines()[1:]
+            elif path == mt_filepath:
+                nmt_outputs = f.read().decode("utf-8").splitlines()
+            elif path == word_probas_filepath:
+                word_probas = [seq.split(" ") for seq in f.read().decode("utf-8").splitlines()]
+            elif path == translations_filepath:
+                translations = [t.split("\t") for t in f.read().decode("utf-8").splitlines()[1:]]
+            if all(x is not None for x in [docids, nmt_outputs, word_probas, translations]):
+                for id_, (row_, docid_, nmt_out_, word_prob_) in enumerate(
+                    zip(translations, docids, nmt_outputs, word_probas)
+                ):
+                    yield id_, {
+                        "segid": row_[0],
+                        "translation": {source_lg: row_[1], target_lg: row_[2]},
+                        "scores": []
+                        if (split == "test20" and (source_lg, target_lg) == ("ru", "en"))
+                        else row_[3].strip("][").split(", "),
+                        "mean": -10_000 if (split == "test20" and (source_lg, target_lg) == ("ru", "en")) else row_[4],
+                        "z_scores": []
+                        if (split == "test20" and (source_lg, target_lg) == ("ru", "en"))
+                        else row_[5].strip("][").split(", "),
+                        "z_mean": -10_000
+                        if (split == "test20" and (source_lg, target_lg) == ("ru", "en"))
+                        else row_[6],
+                        "model_score": -10_000
+                        if (split == "test20" and (source_lg, target_lg) == ("ru", "en"))
+                        else row_[7],
+                        "doc_id": docid_,
+                        "nmt_output": nmt_out_,
+                        "word_probas": word_prob_,
+                    }
+                break

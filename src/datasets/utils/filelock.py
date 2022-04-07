@@ -99,7 +99,7 @@ class Timeout(TimeoutError):
         return None
 
     def __str__(self):
-        temp = "The file lock '{}' could not be acquired.".format(self.lock_file)
+        temp = f"The file lock '{self.lock_file}' could not be acquired."
         return temp
 
 
@@ -132,8 +132,9 @@ class BaseFileLock:
     Implements the base class of a file lock.
     """
 
-    def __init__(self, lock_file, timeout=-1, max_filename_length=255):
+    def __init__(self, lock_file, timeout=-1, max_filename_length=None):
         """ """
+        max_filename_length = max_filename_length if max_filename_length is not None else 255
         # Hash the filename if it's too long
         lock_file = self.hash_filename_if_too_long(lock_file, max_filename_length)
         # The path to the lock file.
@@ -176,7 +177,7 @@ class BaseFileLock:
         A timeout of 0 means, that there is exactly one attempt to acquire the
         file lock.
 
-        .. versionadded:: 2.0.0
+        *New in version 2.0.0*
         """
         return self._timeout
 
@@ -211,8 +212,6 @@ class BaseFileLock:
         """
         True, if the object holds the file lock.
 
-        .. versionchanged:: 2.0.0
-
             This was previously a method and is now a property.
         """
         return self._lock_file_fd is not None
@@ -221,18 +220,18 @@ class BaseFileLock:
         """
         Acquires the file lock or fails with a :exc:`Timeout` error.
 
-        .. code-block:: python
+        ```py
+        # You can use this method in the context manager (recommended)
+        with lock.acquire():
+            pass
 
-            # You can use this method in the context manager (recommended)
-            with lock.acquire():
-                pass
-
-            # Or use an equivalent try-finally construct:
-            lock.acquire()
-            try:
-                pass
-            finally:
-                lock.release()
+        # Or use an equivalent try-finally construct:
+        lock.acquire()
+        try:
+            pass
+        finally:
+            lock.release()
+        ```
 
         :arg float timeout:
             The maximum time waited for the file lock.
@@ -246,8 +245,6 @@ class BaseFileLock:
 
         :raises Timeout:
             if the lock could not be acquired in *timeout* seconds.
-
-        .. versionchanged:: 2.0.0
 
             This method returns now a *proxy* object instead of *self*,
             so that it can be used in a with statement without side effects.
@@ -268,18 +265,18 @@ class BaseFileLock:
             while True:
                 with self._thread_lock:
                     if not self.is_locked:
-                        logger().debug("Attempting to acquire lock %s on %s", lock_id, lock_filename)
+                        logger().debug(f"Attempting to acquire lock {lock_id} on {lock_filename}")
                         self._acquire()
 
                 if self.is_locked:
-                    logger().debug("Lock %s acquired on %s", lock_id, lock_filename)
+                    logger().debug(f"Lock {lock_id} acquired on {lock_filename}")
                     break
                 elif timeout >= 0 and time.time() - start_time > timeout:
-                    logger().debug("Timeout on acquiring lock %s on %s", lock_id, lock_filename)
+                    logger().debug(f"Timeout on acquiring lock {lock_id} on {lock_filename}")
                     raise Timeout(self._lock_file)
                 else:
                     logger().debug(
-                        "Lock %s not acquired on %s, waiting %s seconds ...", lock_id, lock_filename, poll_intervall
+                        f"Lock {lock_id} not acquired on {lock_filename}, waiting {poll_intervall} seconds ..."
                     )
                     time.sleep(poll_intervall)
         except:  # noqa
@@ -312,10 +309,10 @@ class BaseFileLock:
                     lock_id = id(self)
                     lock_filename = self._lock_file
 
-                    logger().debug("Attempting to release lock %s on %s", lock_id, lock_filename)
+                    logger().debug(f"Attempting to release lock {lock_id} on {lock_filename}")
                     self._release()
                     self._lock_counter = 0
-                    logger().debug("Lock %s released on %s", lock_id, lock_filename)
+                    logger().debug(f"Lock {lock_id} released on {lock_filename}")
 
         return None
 
@@ -352,7 +349,7 @@ class WindowsFileLock(BaseFileLock):
     windows systems.
     """
 
-    def __init__(self, lock_file, timeout=-1, max_filename_length=255):
+    def __init__(self, lock_file, timeout=-1, max_filename_length=None):
         from .file_utils import relative_to_absolute_path
 
         super().__init__(lock_file, timeout=timeout, max_filename_length=max_filename_length)
@@ -368,7 +365,7 @@ class WindowsFileLock(BaseFileLock):
         else:
             try:
                 msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
-            except (IOError, OSError):
+            except OSError:
                 os.close(fd)
             else:
                 self._lock_file_fd = fd
@@ -398,13 +395,17 @@ class UnixFileLock(BaseFileLock):
     Uses the :func:`fcntl.flock` to hard lock the lock file on unix systems.
     """
 
+    def __init__(self, lock_file, timeout=-1, max_filename_length=None):
+        max_filename_length = os.statvfs(os.path.dirname(lock_file)).f_namemax
+        super().__init__(lock_file, timeout=timeout, max_filename_length=max_filename_length)
+
     def _acquire(self):
         open_mode = os.O_RDWR | os.O_CREAT | os.O_TRUNC
         fd = os.open(self._lock_file, open_mode)
 
         try:
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except (IOError, OSError):
+        except OSError:
             os.close(fd)
         else:
             self._lock_file_fd = fd
@@ -435,7 +436,7 @@ class SoftFileLock(BaseFileLock):
         open_mode = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_TRUNC
         try:
             fd = os.open(self._lock_file, open_mode)
-        except (IOError, OSError):
+        except OSError:
             pass
         else:
             self._lock_file_fd = fd

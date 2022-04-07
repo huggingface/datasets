@@ -1,4 +1,5 @@
 ---
+pretty_name: 20 Newsgroups
 languages:
 - en
 paperswithcode_id: null

@@ -112,20 +112,6 @@ SLR71, SLR71, SLR72, SLR73, SLR74, SLR75:
     ISBN = {979-10-95546-34-4},
 }
 
-SLR83
-@inproceedings{demirsahin-etal-2020-open,
-    title = {{Open-source Multi-speaker Corpora of the English Accents in the British Isles}},
-    author = {Demirsahin, Isin and Kjartansson, Oddur and Gutkin, Alexander and Rivera, Clara},
-    booktitle = {Proceedings of The 12th Language Resources and Evaluation Conference (LREC)},
-    month = may,
-    year = {2020},
-    pages = {6532--6541},
-    address = {Marseille, France},
-    publisher = {European Language Resources Association (ELRA)},
-    url = {https://www.aclweb.org/anthology/2020.lrec-1.804},
-    ISBN = {979-10-95546-34-4},
-}
-
 SLR80
 @inproceedings{oo-etal-2020-burmese,
     title = {{Burmese Speech Corpus, Finite-State Text Normalization and Pronunciation Grammars with an Application
@@ -176,10 +162,10 @@ _RESOURCES = {
         "Setswana and isiXhosa.",
         "Files": ["af_za.tar.gz", "st_za.tar.gz", "tn_za.tar.gz", "xh_za.tar.gz"],
         "IndexFiles": [
-            "af_za/za/afr/line_index.tsv",
-            "st_za/za/sso/line_index.tsv",
-            "tn_za/za/tsn/line_index.tsv",
-            "xh_za/za/xho/line_index.tsv",
+            "https://s3.amazonaws.com/datasets.huggingface.co/openslr/SLR32/af_za/line_index.tsv",
+            "https://s3.amazonaws.com/datasets.huggingface.co/openslr/SLR32/st_za/line_index.tsv",
+            "https://s3.amazonaws.com/datasets.huggingface.co/openslr/SLR32/tn_za/line_index.tsv",
+            "https://s3.amazonaws.com/datasets.huggingface.co/openslr/SLR32/xh_za/line_index.tsv",
         ],
         "DataDirs": ["af_za/za/afr/wavs", "st_za/za/sso/wavs", "tn_za/za/tsn/wavs", "xh_za/za/xho/wavs"],
     },
@@ -493,39 +479,6 @@ _RESOURCES = {
         "IndexFiles": ["line_index.tsv"],
         "DataDirs": [""],
     },
-    "SLR83": {
-        "Language": "English",
-        "LongName": "Crowdsourced high-quality UK and Ireland English Dialect speech data set",
-        "Category": "Speech",
-        "Summary": "Data set which contains male and female recordings of English from various dialects of the UK and Ireland",
-        "Files": [
-            "irish_english_male.zip",
-            "midlands_english_female.zip",
-            "midlands_english_male.zip",
-            "northern_english_female.zip",
-            "northern_english_male.zip",
-            "scottish_english_female.zip",
-            "scottish_english_male.zip",
-            "southern_english_female.zip",
-            "southern_english_male.zip",
-            "welsh_english_female.zip",
-            "welsh_english_male.zip",
-        ],
-        "IndexFiles": [
-            "line_index.csv",
-            "line_index.csv",
-            "line_index.csv",
-            "line_index.csv",
-            "line_index.csv",
-            "line_index.csv",
-            "line_index.csv",
-            "line_index.csv",
-            "line_index.csv",
-            "line_index.csv",
-            "line_index.csv",
-        ],
-        "DataDirs": ["", "", "", "", "", "", "", "", "", "", ""],
-    },
     "SLR86": {
         "Language": "Yoruba",
         "LongName": "Crowdsourced high-quality Yoruba speech data set",
@@ -565,6 +518,7 @@ class OpenSlrConfig(datasets.BuilderConfig):
 
 
 class OpenSlr(datasets.GeneratorBasedBuilder):
+    DEFAULT_WRITER_BATCH_SIZE = 32
 
     BUILDER_CONFIGS = [
         OpenSlrConfig(
@@ -584,7 +538,7 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "path": datasets.Value("string"),
-                "audio": datasets.features.Audio(sampling_rate=48_000),
+                "audio": datasets.Audio(sampling_rate=48_000),
                 "sentence": datasets.Value("string"),
             }
         )
@@ -596,30 +550,35 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-            task_templates=[
-                AutomaticSpeechRecognition(audio_file_path_column="path", transcription_column="sentence")
-            ],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="sentence")],
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         resource_number = self.config.name.replace("SLR", "")
         urls = [f"{_DATA_URL.format(resource_number)}/{file}" for file in self.config.files]
-        dl_paths = dl_manager.download_and_extract(urls)
-        abs_path_to_indexs = [os.path.join(path, f"{self.config.index_files[i]}") for i, path in enumerate(dl_paths)]
-        abs_path_to_datas = [os.path.join(path, f"{self.config.data_dirs[i]}") for i, path in enumerate(dl_paths)]
+        if urls[0].endswith(".zip"):
+            dl_paths = dl_manager.download_and_extract(urls)
+            path_to_indexs = [os.path.join(path, f"{self.config.index_files[i]}") for i, path in enumerate(dl_paths)]
+            path_to_datas = [os.path.join(path, f"{self.config.data_dirs[i]}") for i, path in enumerate(dl_paths)]
+            archives = None
+        else:
+            archives = dl_manager.download(urls)
+            path_to_indexs = dl_manager.download(self.config.index_files)
+            path_to_datas = self.config.data_dirs
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "path_to_indexs": abs_path_to_indexs,
-                    "path_to_datas": abs_path_to_datas,
+                    "path_to_indexs": path_to_indexs,
+                    "path_to_datas": path_to_datas,
+                    "archive_files": [dl_manager.iter_archive(archive) for archive in archives] if archives else None,
                 },
             ),
         ]
 
-    def _generate_examples(self, path_to_indexs, path_to_datas):
+    def _generate_examples(self, path_to_indexs, path_to_datas, archive_files):
         """Yields examples."""
 
         counter = -1
@@ -640,6 +599,26 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
                     sentence = sentence_index[filename]
                     counter += 1
                     yield counter, {"path": path, "audio": path, "sentence": sentence}
+        elif self.config.name in ["SLR32"]:  # use archives
+            for path_to_index, path_to_data, files in zip(path_to_indexs, path_to_datas, archive_files):
+                sentences = {}
+                with open(path_to_index, encoding="utf-8") as f:
+                    for line in f:
+                        # Following regexs are needed to normalise the lines, since the datasets
+                        # are not always consistent and have bugs:
+                        line = re.sub(r"\t[^\t]*\t", "\t", line.strip())
+                        field_values = re.split(r"\t\t?", line)
+                        if len(field_values) != 2:
+                            continue
+                        filename, sentence = field_values
+                        # set absolute path for audio file
+                        path = f"{path_to_data}/{filename}.wav"
+                        sentences[path] = sentence
+                for path, f in files:
+                    if path.startswith(path_to_data):
+                        counter += 1
+                        audio = {"path": path, "bytes": f.read()}
+                        yield counter, {"path": path, "audio": audio, "sentence": sentences[path]}
         else:
             for i, path_to_index in enumerate(path_to_indexs):
                 with open(path_to_index, encoding="utf-8") as f:

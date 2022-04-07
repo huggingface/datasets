@@ -18,38 +18,45 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: Arabic Jordanian General Tweets
 ---
 
-# Dataset Card for MetRec
+# Dataset Card for Arabic Jordanian General Tweets
 
 ## Table of Contents
-- [Dataset Description](#dataset-description)
-  - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-  - [Languages](#languages)
-- [Dataset Structure](#dataset-structure)
-  - [Data Instances](#data-instances)
-  - [Data Fields](#data-fields)
-  - [Data Splits](#data-splits)
-- [Dataset Creation](#dataset-creation)
-  - [Curation Rationale](#curation-rationale)
-  - [Source Data](#source-data)
-  - [Annotations](#annotations)
-  - [Personal and Sensitive Information](#personal-and-sensitive-information)
-- [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Impact of Dataset](#social-impact-of-dataset)
-  - [Discussion of Biases](#discussion-of-biases)
-  - [Other Known Limitations](#other-known-limitations)
-- [Additional Information](#additional-information)
-  - [Dataset Curators](#dataset-curators)
-  - [Licensing Information](#licensing-information)
-  - [Citation Information](#citation-information)
-  - [Contributions](#contributions)
+- [Dataset Card for Arabic Jordanian General Tweets](#dataset-card-for-arabic-jordanian-general-tweets)
+  - [Table of Contents](#table-of-contents)
+  - [Dataset Description](#dataset-description)
+    - [Dataset Summary](#dataset-summary)
+    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+    - [Languages](#languages)
+  - [Dataset Structure](#dataset-structure)
+    - [Data Instances](#data-instances)
+    - [Data Fields](#data-fields)
+    - [Data Splits](#data-splits)
+  - [|split|num examples|](#splitnum-examples)
+  - [Dataset Creation](#dataset-creation)
+    - [Curation Rationale](#curation-rationale)
+    - [Source Data](#source-data)
+      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
+      - [Who are the source language producers?](#who-are-the-source-language-producers)
+    - [Annotations](#annotations)
+      - [Annotation process](#annotation-process)
+      - [Who are the annotators?](#who-are-the-annotators)
+    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Considerations for Using the Data](#considerations-for-using-the-data)
+    - [Social Impact of Dataset](#social-impact-of-dataset)
+    - [Discussion of Biases](#discussion-of-biases)
+    - [Other Known Limitations](#other-known-limitations)
+  - [Additional Information](#additional-information)
+    - [Dataset Curators](#dataset-curators)
+    - [Licensing Information](#licensing-information)
+    - [Citation Information](#citation-information)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:** [AJGT](https://github.com/komari6/Arabic-twitter-corpus-AJGT)
-- **Repository:** [AJGT](https://github.com/komari6/Arabic-twitter-corpus-AJGT)
+- **Repository:** [Arabic Jordanian General Tweets](https://github.com/komari6/Arabic-twitter-corpus-AJGT)
 - **Paper:** [Arabic Tweets Sentimental Analysis Using Machine Learning](https://link.springer.com/chapter/10.1007/978-3-319-60042-0_66)
 - **Point of Contact:** [Khaled Alomari](khaled.alomari@adu.ac.ae)
 
@@ -73,15 +80,16 @@ A binary datset with with negative and positive sentiments.
 
 ### Data Fields
 
-[More Information Needed]
+- `text` (str): Tweet text.
+- `label` (int): Sentiment.
 
 ### Data Splits
 
-The dataset is not split. 
+The dataset is not split.
 
-|           | Tain   | 
-|---------- | ------ | 
-|no split   | 1,800  | 
+|          | train |
+|----------|------:|
+| no split | 1,800 | 
 
 ## Dataset Creation
 
@@ -119,13 +127,17 @@ The dataset does not contain any additional annotations.
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
 
-[More Information Needed]
+[Needs More Information]
+
+### Discussion of Biases
+
+[Needs More Information]
 
 ### Other Known Limitations
 
-[More Information Needed]
+[Needs More Information]
 
 ## Additional Information
 
@@ -139,7 +151,16 @@ The dataset does not contain any additional annotations.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@inproceedings{alomari2017arabic,
+  title={Arabic tweets sentimental analysis using machine learning},
+  author={Alomari, Khaled Mohammad and ElSherif, Hatem M and Shaalan, Khaled},
+  booktitle={International Conference on Industrial, Engineering and Other Applications of Applied Intelligent Systems},
+  pages={602--610},
+  year={2017},
+  organization={Springer}
+}
+```
 
 ### Contributions
 

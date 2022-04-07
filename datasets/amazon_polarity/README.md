@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: Amazon Review Polarity
 ---
 
-# Dataset Card for amazon_polarity
+# Dataset Card for Amazon Review Polarity
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

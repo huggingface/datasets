@@ -44,7 +44,7 @@ def interleave_datasets(
         parameter. `Dataset` if the input is a list of `Dataset`, `IterableDataset` if the input is a list of
         `IterableDataset`.
 
-    Examples:
+    Example::
 
         For regular datasets (map-style):
 
@@ -119,15 +119,6 @@ def _interleave_map_style_datasets(
     """
     from .arrow_dataset import concatenate_datasets
 
-    if not all([dset.features.type == datasets[0].features.type for dset in datasets]):
-        raise ValueError("Features must match for all datasets")
-
-    # Find common format or reset format
-    format = datasets[0].format
-    if any(dset.format != format for dset in datasets):
-        format = {}
-        logger.info("Some of the datasets have disparate format. Resetting the format of the interleaved dataset.")
-
     # To interleave the datasets, we concatenate them and then we re-order the indices
     concatenated_datasets = concatenate_datasets(datasets, info=info, split=split)
 
@@ -135,7 +126,7 @@ def _interleave_map_style_datasets(
     lengths = [len(dset) for dset in datasets]
     offsets = np.cumsum([0] + lengths[:-1])
     if probabilities is None:
-        # Example: If lengths of the datasets are [3, 4, 5]
+        # Example:: If lengths of the datasets are [3, 4, 5]
         # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 6, 9]
         # Note that we only have 3 examples per dataset since the first dataset ran out of examples
         indices = (offsets.reshape(1, -1) + np.arange(min(lengths)).reshape(-1, 1)).flatten().tolist()
@@ -183,21 +174,25 @@ def _interleave_iterable_datasets(
     """
     from .iterable_dataset import (
         CyclingMultiSourcesExamplesIterable,
-        MappedExamplesIterable,
         RandomlyCyclingMultiSourcesExamplesIterable,
+        TypedExamplesIterable,
         iterable_dataset,
     )
 
-    # Keep individual features formatting
     ex_iterables = [
-        MappedExamplesIterable(d._ex_iterable, d.features.encode_example) if d.features is not None else d._ex_iterable
+        TypedExamplesIterable(d._ex_iterable, d.features)
+        if not isinstance(d._ex_iterable, TypedExamplesIterable) and d.features is not None
+        else d._ex_iterable
         for d in datasets
     ]
     # Use cycling or random cycling or sources
     if probabilities is None:
         ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables)
     else:
-        ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(ex_iterables, seed=seed, probabilities=probabilities)
+        generator = np.random.default_rng(seed)
+        ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
+            ex_iterables, generator=generator, probabilities=probabilities
+        )
     # Set new info - we reset the features
     if info is None:
         info = DatasetInfo.from_merge([d.info for d in datasets])
