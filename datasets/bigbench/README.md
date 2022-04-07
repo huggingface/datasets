@@ -3,7 +3,7 @@ YAML tags:
 - copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for BIG-bench
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -27,24 +27,28 @@ YAML tags:
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
-  - [Citation Information](#citation-information)
+  - [Citation Inform ation](#citation-information)
   - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage/Repository:** [https://github.com/google/BIG-bench](https://github.com/google/BIG-bench)
+- **Paper:** In progress
 - **Leaderboard:**
-- **Point of Contact:**
+- **Point of Contact:** [bigbench@googlegroups.com](mailto:bigbench@googlegroups.com)
 
 ### Dataset Summary
 
-[More Information Needed]
+The Beyond the Imitation Game Benchmark (BIG-bench) is a collaborative benchmark intended to probe large language models and extrapolate their future capabilities. Tasks included in BIG-bench are summarized by keyword [here](https://github.com/google/BIG-bench/blob/main/bigbench/benchmark_tasks/keywords_to_tasks.md), and by task name [here](https://github.com/google/BIG-bench/blob/main/bigbench/benchmark_tasks/README.md). A paper introducing the benchmark, including evaluation results on large language models, is currently in preparation.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+BIG-Bench consists of both json and programmatic tasks.
+This implementation in HuggingFace datasets implements
+	- 24 BIG-bench Lite tasks
+    - 167 BIG-bench json tasks (includes BIG-bench Lite)
+    
+To study the remaining programmatic tasks, please see the BIG-bench GitHub [repo](https://github.com/google/BIG-bench)
 
 ### Languages
 
@@ -116,7 +120,7 @@ YAML tags:
 
 ### Licensing Information
 
-[More Information Needed]
+[Apache License 2.0](https://github.com/google/BIG-bench/blob/main/LICENSE)
 
 ### Citation Information
 
@@ -124,4 +128,4 @@ YAML tags:
 
 ### Contributions
 
-Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.
+Thanks to [@andersjohanandreassen](https://github.com/andersjohanandreassen) for adding this dataset.
