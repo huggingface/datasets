@@ -241,8 +241,8 @@ class BigBench(datasets.GeneratorBasedBuilder):
             unique_key_counter +=1
             yield unique_key_counter, {
               "idx": example["idx"],
-              "inputs": example["inputs"].numpy().decode(),
-              "targets": [target.numpy().decode() for target in example["targets"]],
-              "multiple_choice_targets": [targets.decode() for targets in example["multiple_choice_targets"].numpy()],
+              "inputs": example["inputs"].numpy().decode().strip(),
+              "targets": [target.numpy().decode().strip() for target in example["targets"]],
+              "multiple_choice_targets": [targets.decode().strip() for targets in example["multiple_choice_targets"].numpy()],
               "multiple_choice_scores": [scores for scores in example["multiple_choice_scores"].numpy()],
               }
