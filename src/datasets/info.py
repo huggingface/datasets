@@ -180,15 +180,17 @@ class DatasetInfo:
         return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)
 
     def write_to_directory(self, dataset_info_dir, pretty_print=False):
-        """Write `DatasetInfo` as JSON to `dataset_info_dir`.
-        Also save the license separately in LICENCE.
-        If `pretty_print` is True, the JSON will be pretty-printed with the indent level of 4.
+        """Write `DatasetInfo` and license (if present) as JSON files to `dataset_info_dir`.
+
+        Args:
+            dataset_info_dir (str): Destination directory.
+            pretty_print (bool, default ``False``): If True, the JSON will be pretty-printed with the indent level of 4.
         """
         with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f, pretty_print=pretty_print)
-
-        with open(os.path.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
-            self._dump_license(f)
+        if self.license:
+            with open(os.path.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
+                self._dump_license(f)
 
     def _dump_info(self, file, pretty_print=False):
         """Dump info in `file` file-like object open in bytes mode (to support remote files)"""
@@ -340,8 +342,9 @@ class MetricInfo:
         with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "w", encoding="utf-8") as f:
             json.dump(asdict(self), f, indent=4 if pretty_print else None)
 
-        with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
-            f.write(self.license)
+        if self.license:
+            with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
+                f.write(self.license)
 
     @classmethod
     def from_directory(cls, metric_info_dir) -> "MetricInfo":
