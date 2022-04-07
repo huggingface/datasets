@@ -93,6 +93,14 @@ class BigBenchConfig(datasets.BuilderConfig):
             *args,
             **kwargs,
         )
+        """BIG-bench configuration. 
+        
+        Args:
+          task_name: BIG-bench task name.
+          subtask_name: BIG-bench subtask name. Accepts both "task_name:subtask_name" and "subtask_name" formats.
+          num_shots: Number of few-shot examples in input prompt. Default is zero.
+          max_examples: Limit number of examples for each task. Default is including all examples.
+        """ 
         self.task_name = task_name
         self.subtask_name = subtask_name
         self.num_shots = num_shots
