@@ -53,10 +53,10 @@ _HOMEPAGE = "https://github.com/google/BIG-bench"
 
 _LICENSE = "Apache License 2.0"
 
+
 def div_or_none(x, y):
   return x // y if x else x
 
-_GLOBAL_MIN_VALIDATION_EXAMPLES = 16
 
 def validate_task_name(task_name: str) -> None:
   """Check that the requested task name is a valid bigbench json task."""
@@ -75,7 +75,7 @@ def validate_subtask_name(task_name: str, subtask_name: str) -> None:
   """Check that the requested subtask name is a valid bigbench subtask."""
   subtasks = [name.split(":")[-1] for name in bb_utils.get_subtask_names_from_task(task_name)]
   if subtask_name not in subtasks:
-    print("Invalid subtask_name for task {task_name}. Please choose one from:")
+    print(f"Invalid subtask_name {subtask_name} for task {task_name}. Please choose one from:")
     for name in subtasks:
       print(f"-- {name}")
     raise ValueError(f"Unknown subtask name. Got subtask {subtask_name} for task {task_name}.")
@@ -84,7 +84,6 @@ def validate_subtask_name(task_name: str, subtask_name: str) -> None:
 class BigBenchConfig(datasets.BuilderConfig):
     def __init__(self,
                  task_name: str,
-                 
                  *args, 
                  subtask_name: Optional[str] = None, 
                  num_shots: int = 0,
@@ -101,6 +100,9 @@ class BigBenchConfig(datasets.BuilderConfig):
         
         validate_task_name(self.task_name)
         if self.subtask_name:
+          # Subtasks are sometimes in bigbench written as task_name:subtask_name.
+          # We want to remove the task_name from the subtask names:
+          self.subtask_name = self.subtask_name.split(':')[-1]
           validate_subtask_name(self.task_name, self.subtask_name)
 
 
@@ -144,15 +146,14 @@ class BigBench(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 		
         return [
-            # TODO(ajandreassen): Is there a way to implement all in HF? 
-          	# datasets.SplitGenerator(
-          	# name=datasets.Split('default'),
-          	# # These kwargs will be passed to _generate_examples
-          	# gen_kwargs={
-          	# "split": "all",
-          	# },
-          	# ),
           	datasets.SplitGenerator(
+              name=datasets.splits.NamedSplit('default'), # TODO(ajandreassen): Is there a way override and call this 'all'?
+              # These kwargs will be passed to _generate_examples
+              gen_kwargs={
+                "split": "all",
+              },
+            ),
+            datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
@@ -172,53 +173,67 @@ class BigBench(datasets.GeneratorBasedBuilder):
         self, split # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
         """ Yields examples as (key, example) tuples. """
-        task_path, json_util = bb_json_paths.get_task_path(self.config.task_name)
-
-        has_subtasks = bb_json_paths.has_subtasks(self.config.task_name)
-
-        if not has_subtasks:
-          ds_fn = bbb.get_dataset_fn(task_name = self.config.task_name, 
-                                     task_path = task_path,
-                                     subtask_name = None, 
-                                     num_shots = self.config.num_shots, 
-                                     bigbench_task_type = bbb.BigBenchTaskType.HUGGINGFACE, 
-                                     max_examples = self.config.max_examples, 
-                                     json_util = json_util, 
-                                     min_validation_examples = _GLOBAL_MIN_VALIDATION_EXAMPLES
-                                    )
-          ds_list = [ds_fn(split)]
-        elif self.config.subtask_name is not None:
-          ds_fn = bbb.get_dataset_fn(task_name = self.config.task_name, 
-                                     task_path = task_path,
-                                     subtask_name = self.config.subtask_name, 
-                                     num_shots = self.config.num_shots, 
-                                     bigbench_task_type = bbb.BigBenchTaskType.HUGGINGFACE, 
-                                     max_examples = self.config.max_examples, 
-                                     json_util = json_util, 
-                                     min_validation_examples = _GLOBAL_MIN_VALIDATION_EXAMPLES
-                                    )
-          ds_list = [ds_fn(split)]
+        if split == 'all':
+          # not cutoff in number of examples for 'all' split
+          MIN_VALIDATION_EXAMPLES = 0
         else:
-          # Create mixture of all subtasks
-          subtask_names = bb_json_paths.get_subtask_names(self.config.task_name)
-          num_subtasks = len(subtask_names)
-          max_examples_per_subtask = div_or_none(self.config.max_examples, num_subtasks)
-          min_validation_examples_per_subtask = div_or_none(
-              _GLOBAL_MIN_VALIDATION_EXAMPLES, num_subtasks)
-          ds_list = []
-          for subtask_name in subtask_names:
-            subtask_name = subtask_name.split(':')[-1]
-            print(f"Loading subtask {split} split", subtask_name)
+          MIN_VALIDATION_EXAMPLES = 16
+
+        try:
+          task_path, json_util = bb_json_paths.get_task_path(self.config.task_name)
+
+          has_subtasks = bb_json_paths.has_subtasks(self.config.task_name)
+          if has_subtasks:
+            subtask_names = bb_json_paths.get_subtask_names(self.config.task_name)
+            num_subtasks = len(subtask_names)
+            min_validation_examples_per_subtask = div_or_none(
+              MIN_VALIDATION_EXAMPLES, num_subtasks)
+
+          if not has_subtasks:
             ds_fn = bbb.get_dataset_fn(task_name = self.config.task_name, 
-                                     task_path = task_path,
-                                     subtask_name = subtask_name, 
-                                     num_shots = self.config.num_shots, 
-                                     bigbench_task_type = bbb.BigBenchTaskType.HUGGINGFACE, 
-                                     max_examples = max_examples_per_subtask, 
-                                     json_util = json_util, 
-                                     min_validation_examples = min_validation_examples_per_subtask
-                                  	)
-            ds_list.append(ds_fn(split))
+                                       task_path = task_path,
+                                       subtask_name = None, 
+                                       num_shots = self.config.num_shots, 
+                                       bigbench_task_type = bbb.BigBenchTaskType.HUGGINGFACE, 
+                                       max_examples = self.config.max_examples, 
+                                       json_util = json_util, 
+                                       min_validation_examples = MIN_VALIDATION_EXAMPLES
+                                      )
+            ds_list = [ds_fn(split)]
+          elif self.config.subtask_name is not None:
+            ds_fn = bbb.get_dataset_fn(task_name = self.config.task_name, 
+                                       task_path = task_path,
+                                       subtask_name = self.config.subtask_name, 
+                                       num_shots = self.config.num_shots, 
+                                       bigbench_task_type = bbb.BigBenchTaskType.HUGGINGFACE, 
+                                       max_examples = self.config.max_examples, 
+                                       json_util = json_util, 
+                                       min_validation_examples = min_validation_examples_per_subtask)
+            ds_list = [ds_fn(split)]
+          else:
+            # Create mixture of all subtasks
+            ds_list = []
+            for subtask_name in subtask_names:
+              subtask_name = subtask_name.split(':')[-1]
+              print(f"Loading subtask {split} split", subtask_name)
+              ds_fn = bbb.get_dataset_fn(task_name = self.config.task_name, 
+                                       task_path = task_path,
+                                       subtask_name = subtask_name, 
+                                       num_shots = self.config.num_shots, 
+                                       bigbench_task_type = bbb.BigBenchTaskType.HUGGINGFACE, 
+                                       max_examples = div_or_none(self.config.max_examples, num_subtasks), 
+                                       json_util = json_util, 
+                                       min_validation_examples = min_validation_examples_per_subtask
+                                      )
+              ds_list.append(ds_fn(split))
+        except ValueError as value_error:
+          # BIG-Bench requires at least 16 examples to use the train & validation splits, 
+          # while using 'all'/'default' does not have such a requirement.
+          if "has too few examples" in value_error.args[0] and split != 'all':
+            print(f'-- WARNING: skipping split {split} because it has too few examples.')
+            print(value_error)
+            return
+          raise value_error
         
         unique_key_counter = 0
         for ds in ds_list:
