@@ -17,12 +17,7 @@ For the programatic tasks, please use the BIG-Bench API on github.com/google/BIG
 """
 
 
-import csv
-import json
-import os
 from typing import Optional
-
-import numpy as np
 
 import datasets
 
@@ -37,6 +32,7 @@ except ModuleNotFoundError as error:
         "Failed to import bigbench. Please see https://github.com/google/BIG-bench or install"
         "using 'pip install git+https://github.com/google/BIG-bench.git'"
     )
+    print(error)
     raise
 
 _CITATION = """\
@@ -50,7 +46,7 @@ year={2022}
 """
 
 _DESCRIPTION = """\
-The Beyond the Imitation Game Benchmark (BIG-bench) is a collaborative benchmark intended to 
+The Beyond the Imitation Game Benchmark (BIG-bench) is a collaborative benchmark intended to
 probe large language models, and extrapolate their future capabilities.
 """
 
@@ -103,8 +99,8 @@ class BigBenchConfig(datasets.BuilderConfig):
             *args,
             **kwargs,
         )
-        """BIG-bench configuration. 
-        
+        """BIG-bench configuration.
+
         Args:
           task_name: BIG-bench task name.
           subtask_name: BIG-bench subtask name. Accepts both "task_name:subtask_name" and "subtask_name" formats.
