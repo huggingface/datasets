@@ -7,11 +7,9 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
-import huggingface_hub
 import numpy as np
 from huggingface_hub import HfApi
 from huggingface_hub.hf_api import HfFolder
-from packaging import version
 
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
 from datasets.utils._hf_hub_fixes import delete_repo
