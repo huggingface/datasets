@@ -35,10 +35,7 @@ def with_staging_testing(func):
         ENDPOINT_STAGING,
     )
 
-    repository = patch(
-        "huggingface_hub.repository.ENDPOINT",
-        ENDPOINT_STAGING,
-    )
+    repository = patch("huggingface_hub.repository.ENDPOINT", ENDPOINT_STAGING, create=True)
 
     config = patch.multiple(
         "datasets.config",
