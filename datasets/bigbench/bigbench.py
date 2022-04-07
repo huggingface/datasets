@@ -190,24 +190,24 @@ class BigBench(datasets.GeneratorBasedBuilder):
               MIN_VALIDATION_EXAMPLES, num_subtasks)
 
           if not has_subtasks:
-            ds_fn = bbb.get_dataset_fn(task_name = self.config.task_name, 
+            ds_fn = bbb.get_dataset_fn(task_name = self.config.task_name,
                                        task_path = task_path,
-                                       subtask_name = None, 
-                                       num_shots = self.config.num_shots, 
-                                       bigbench_task_type = bbb.BigBenchTaskType.HUGGINGFACE, 
-                                       max_examples = self.config.max_examples, 
-                                       json_util = json_util, 
+                                       subtask_name = None,
+                                       num_shots = self.config.num_shots,
+                                       bigbench_task_type = bbb.BigBenchTaskType.HUGGINGFACE,
+                                       max_examples = self.config.max_examples,
+                                       json_util = json_util,
                                        min_validation_examples = MIN_VALIDATION_EXAMPLES
                                       )
             ds_list = [ds_fn(split)]
           elif self.config.subtask_name is not None:
-            ds_fn = bbb.get_dataset_fn(task_name = self.config.task_name, 
+            ds_fn = bbb.get_dataset_fn(task_name = self.config.task_name,
                                        task_path = task_path,
-                                       subtask_name = self.config.subtask_name, 
-                                       num_shots = self.config.num_shots, 
-                                       bigbench_task_type = bbb.BigBenchTaskType.HUGGINGFACE, 
-                                       max_examples = self.config.max_examples, 
-                                       json_util = json_util, 
+                                       subtask_name = self.config.subtask_name,
+                                       num_shots = self.config.num_shots,
+                                       bigbench_task_type = bbb.BigBenchTaskType.HUGGINGFACE,
+                                       max_examples = self.config.max_examples,
+                                       json_util = json_util,
                                        min_validation_examples = min_validation_examples_per_subtask)
             ds_list = [ds_fn(split)]
           else:
@@ -216,13 +216,13 @@ class BigBench(datasets.GeneratorBasedBuilder):
             for subtask_name in subtask_names:
               subtask_name = subtask_name.split(':')[-1]
               print(f"Loading subtask {split} split", subtask_name)
-              ds_fn = bbb.get_dataset_fn(task_name = self.config.task_name, 
+              ds_fn = bbb.get_dataset_fn(task_name = self.config.task_name,
                                        task_path = task_path,
-                                       subtask_name = subtask_name, 
-                                       num_shots = self.config.num_shots, 
-                                       bigbench_task_type = bbb.BigBenchTaskType.HUGGINGFACE, 
-                                       max_examples = div_or_none(self.config.max_examples, num_subtasks), 
-                                       json_util = json_util, 
+                                       subtask_name = subtask_name,
+                                       num_shots = self.config.num_shots,
+                                       bigbench_task_type = bbb.BigBenchTaskType.HUGGINGFACE,
+                                       max_examples = div_or_none(self.config.max_examples, num_subtasks),
+                                       json_util = json_util,
                                        min_validation_examples = min_validation_examples_per_subtask
                                       )
               ds_list.append(ds_fn(split))
@@ -230,7 +230,7 @@ class BigBench(datasets.GeneratorBasedBuilder):
           # BIG-Bench requires at least 16 examples to use the train & validation splits, 
           # while using 'all'/'default' does not have such a requirement.
           if "has too few examples" in value_error.args[0] and split != 'all':
-            print(f'-- WARNING: skipping split {split} because it has too few examples.')
+            print(f"-- WARNING: skipping split {split} because it has too few examples. Please use 'default' split.")
             print(value_error)
             return
           raise value_error
