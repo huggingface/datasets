@@ -180,15 +180,16 @@ class DatasetInfo:
         return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)
 
     def write_to_directory(self, dataset_info_dir):
-        """Write `DatasetInfo` as JSON to `dataset_info_dir`.
+        """Write `DatasetInfo` and license (if present) as JSON files to `dataset_info_dir`.
 
-        Also save the license separately in LICENCE.
+        Args:
+            dataset_info_dir (str): Destination directory.
         """
         with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f)
-
-        with open(os.path.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
-            self._dump_license(f)
+        if self.license:
+            with open(os.path.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
+                self._dump_license(f)
 
     def _dump_info(self, file):
         """Dump info in `file` file-like object open in bytes mode (to support remote files)"""
@@ -335,8 +336,9 @@ class MetricInfo:
         with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "w", encoding="utf-8") as f:
             json.dump(asdict(self), f)
 
-        with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
-            f.write(self.license)
+        if self.license:
+            with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
+                f.write(self.license)
 
     @classmethod
     def from_directory(cls, metric_info_dir) -> "MetricInfo":

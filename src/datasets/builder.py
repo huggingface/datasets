@@ -1287,8 +1287,9 @@ class BeamBasedBuilder(DatasetBuilder):
             fs = beam.io.filesystems.FileSystems
             with fs.create(os.path.join(self._cache_dir, config.DATASET_INFO_FILENAME)) as f:
                 self.info._dump_info(f)
-            with fs.create(os.path.join(self._cache_dir, config.LICENSE_FILENAME)) as f:
-                self.info._dump_license(f)
+            if self.info.license:
+                with fs.create(os.path.join(self._cache_dir, config.LICENSE_FILENAME)) as f:
+                    self.info._dump_license(f)
 
     def _prepare_split(self, split_generator, pipeline):
         import apache_beam as beam
