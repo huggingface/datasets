@@ -58,15 +58,49 @@ To study the remaining programmatic tasks, please see the BIG-bench GitHub [repo
 
 ### Data Instances
 
-[More Information Needed]
+Each dataset contains 5 features. For example an instance from the `emoji_movie` task is:
+
+- `idx`:
+
+      0
+- `inputs`:
+
+      Q: What movie does this emoji describe? 👦👓⚡️
+       choice: harry potter
+       choice: shutter island
+       choice: inglourious basterds
+       choice: die hard
+       choice: moonlight
+      A:
+      
+- `targets`:
+
+      ['harry potter']
+- `multiple_choice_targets`:
+
+      ['harry potter', 'shutter island', 'die hard', 'inglourious basterds', 'moonlight']
+      
+- `multiple_choice_scores`:
+     
+      [1, 0, 0, 0, 0]
+      
+For tasks that do not have multiple choice targets, the lists are empty.
+
 
 ### Data Fields
 
-[More Information Needed]
+Every example has the following fields
+  - `idx`: an `int` feature
+  - `inputs`: a `string` feature
+  - `targets`: a sequence of `string` feature
+  - `multiple_choice_targets`: a sequence of `string` features
+  - `multiple_choice_scores`: a sequence of `int` features
 
 ### Data Splits
 
-[More Information Needed]
+Each task has a `default`, `train` and `validation` split.
+The split `default` uses all the samples for each task (and it's the same as `all` used in the `bigbench.bbseqio` implementation.)
+For standard evaluation on BIG-bench, we recommend using the `default` split, and the `train` and `validation` split is to be used if one wants to train a model on BIG-bench.
 
 ## Dataset Creation
 
@@ -78,7 +112,7 @@ To study the remaining programmatic tasks, please see the BIG-bench GitHub [repo
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+Tasks were contributed by the research community through [https://github.com/google/BIG-bench](https://github.com/google/BIG-bench), and [reviewed](https://github.com/google/BIG-bench/blob/main/docs/doc.md#submission-review-process) by members of the collaboration.
 
 #### Who are the source language producers?
 
@@ -124,7 +158,7 @@ To study the remaining programmatic tasks, please see the BIG-bench GitHub [repo
 
 ### Citation Information
 
-[More Information Needed]
+A paper is in progress. Until then, please cite the BIG-bench collaboration and the GitHub [https://github.com/google/BIG-bench](https://github.com/google/BIG-bench).
 
 ### Contributions
 
