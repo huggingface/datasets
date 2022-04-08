@@ -5,3 +5,4 @@ git+https://github.com/hendrycks/math.git
 git+https://github.com/google/BIG-bench.git
 t5
 seqio
+tensorflow_datasets
