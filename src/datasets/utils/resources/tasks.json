@@ -1,54 +1,115 @@
 {
-    "conditional-text-generation": {
-        "description": "data-to-text and text transduction tasks such as translation or summarization",
-        "options": [
-            "machine-translation",
-            "sentence-splitting-fusion",
-            "summarization",
-            "table-to-text",
-            "text-simplification",
-            "explanation-generation",
-            "other-structured-to-text",
-            "other"
+    "audio-classification": {
+        "type": "audio",
+        "subtasks": [
+            "keyword-spotting",
+            "speaker-identification",
+            "audio-intent-classification",
+            "audio-emotion-recognition",
+            "audio-language-identification"
+        ]
+    },
+    "audio-to-audio": {
+        "type": "audio"
+    },
+    "automatic-speech-recognition": {
+        "type": "multimodal"
+    },
+    "conversational": {
+        "type": "text",
+        "subtasks": [
+            "dialogue-generation"
+        ]
+    },
+    "feature-extraction": {
+        "type": "multimodal"
+    },
+    "fill-mask": {
+        "type": "text",
+        "subtasks": [
+            "slot-filling",
+            "masked-language-modeling"
+        ]
+    },
+    "image-classification": {
+        "type": "image",
+        "subtasks": [
+            "multi-label-image-classification",
+            "multi-class-image-classification"
+        ]
+    },
+    "image-segmentation": {
+        "type": "image",
+        "subtasks": [
+            "instance-segmentation",
+            "semantic-segmentation",
+            "panoptic-segmentation"
+        ]
+    },
+    "image-to-text": {
+        "type": "multimodal",
+        "subtasks": [
+            "image-captioning"
+        ]
+    },
+    "multiple-choice": {
+        "type": "text",
+        "subtasks": [
+            "multiple-choice-qa",
+            "multiple-choice-coreference-resolution"
+        ]
+    },
+    "object-detection": {
+        "type": "image",
+        "subtasks": [
+            "face-detection",
+            "vehicle-detection"
         ]
     },
     "question-answering": {
-        "description": "question answering tasks",
-        "options": [
-            "open-domain-qa",
-            "closed-domain-qa",
-            "multiple-choice-qa",
+        "type": "text",
+        "aliases": [
+            "extractive-question-answering"
+        ],
+        "subtasks": [
             "extractive-qa",
-            "abstractive-qa",
-            "other"
+            "open-domain-qa",
+            "closed-domain-qa"
         ]
     },
-    "sequence-modeling": {
-        "description": "such as language modeling or dialogue",
-        "options": [
-            "dialogue-modeling",
-            "language-modeling",
-            "other-multi-turn",
-            "slot-filling",
-            "other"
+    "sentence-similarity": {
+        "type": "text"
+    },
+    "tabular-classification": {
+        "type": "text",
+        "subtasks": [
+            "tabular-multi-class-classification",
+            "tabular-multi-label-classification",
+            "tabular-single-column-regression"
         ]
     },
-    "structure-prediction": {
-        "description": "predicting structural properties of the text, such as syntax",
-        "options": [
-            "coreference-resolution",
-            "named-entity-recognition",
-            "part-of-speech-tagging",
-            "parsing",
-            "semantic-role-labeling",
-            "lemmatization",
-            "word-sense-disambiguation",
-            "other"
+    "tabular-to-text": {
+        "type": "text",
+        "subtasks": [
+            "rdf-to-text"
         ]
+    },
+    "summarization": {
+        "type": "text",
+        "subtasks": [
+            "news-articles-summarization",
+            "news-articles-headline-generation"
+        ]
+    },
+    "table-to-text": {
+        "type": "text"
+    },
+    "table-question-answering": {
+        "type": "text"
     },
     "text-classification": {
-        "description": "predicting a class index or boolean value",
-        "options": [
+        "type": "text",
+        "subtasks": [
             "acceptability-classification",
             "entity-linking-classification",
             "fact-checking",
@@ -59,90 +120,94 @@
             "semantic-similarity-classification",
             "sentiment-classification",
             "topic-classification",
-            "other"
+            "semantic-similarity-scoring",
+            "sentiment-scoring",
+            "sentiment-analysis",
+            "hate-speech-detection",
+            "text-scoring"
+        ]
+    },
+    "text-generation": {
+        "type": "text",
+        "subtasks": [
+            "dialogue-modeling",
+            "language-modeling"
         ]
     },
     "text-retrieval": {
-        "description": "information or text retrieval tasks",
-        "options": [
+        "type": "text",
+        "subtasks": [
             "document-retrieval",
             "utterance-retrieval",
             "entity-linking-retrieval",
-            "fact-checking-retrieval",
-            "other"
+            "fact-checking-retrieval"
         ]
     },
-    "text-scoring": {
-        "description": "text scoring tasks, predicting a real valued score for some text",
-        "options": [
-            "semantic-similarity-scoring",
-            "sentiment-scoring",
-            "other"
+    "text-to-image": {
+        "type": "multimodal"
+    },
+    "text-to-tabular": {
+        "type": "text",
+        "subtasks": [
+            "relation-extraction",
+            "semantic-role-labeling"
         ]
     },
-    "speech-processing": {
-        "description": "tasks related to the analysis and representations of speech signals",
-        "options": [
-            "automatic-speech-recognition",
-            "phoneme-recognition",
-            "keyword-spotting",
-            "query-by-example-spoken-term-detection",
-            "speaker-identification",
-            "automatic-speaker-verification",
-            "speaker-diarization",
-            "intent-classification",
-            "slot-filling",
-            "emotion-recognition"
+    "text-to-speech": {
+        "type": "multimodal"
+    },
+    "text2text-generation": {
+        "type": "text",
+        "subtasks": [
+            "text-simplification",
+            "explanation-generation",
+            "abstractive-qa",
+            "open-domain-abstractive-qa",
+            "closed-domain-qa",
+            "open-book-qa",
+            "closed-book-qa"
         ]
     },
     "time-series-forecasting": {
-        "description": "tasks related to predicting future values of a time series",
-        "options": [
+        "type": "time series",
+        "subtasks": [
             "univariate-time-series-forecasting",
             "multivariate-time-series-forecasting"
         ]
     },
-    "object-detection": {
-        "description": "tasks related to detecting instances of objects from a particular class in an image",
-        "options": [
-            "face-detection",
-            "other"
+    "token-classification": {
+        "type": "text",
+        "aliases": [
+            "structure-prediction"
+        ],
+        "subtasks": [
+            "named-entity-recognition",
+            "part-of-speech-tagging",
+            "parsing",
+            "lemmatization",
+            "word-sense-disambiguation",
+            "coreference-resolution"
         ]
     },
-    "image-to-text": {
-        "description": "tasks related to generating text from images",
-        "options": [
-            "image-captioning",
-            "other"
-        ]
+    "translation": {
+        "type": "text"
     },
-    "text-to-image": {
-        "description": "tasks related to generating images from text",
-        "options": []
+    "visual-question-answering": {
+        "type": "multimodal"
     },
-    "image-segmentation": {
-        "description": "tasks related to detecting and delineating distinct objects in images",
-        "options": [
-            "instance-segmentation",
-            "semantic-segmentation",
-            "panoptic-segmentation",
-            "other"
-        ]
+    "voice-activity-detection": {
+        "type": "audio"
     },
-    "image-classification": {
-        "description": "tasks related to identifying what images represent",
-        "options": [
-            "multi-label-image-classification",
-            "single-label-image-classification",
-            "other"
-        ]
-
+    "zero-shot-classification": {
+        "type": "text"
     },
-
+    "zero-shot-image-classification": {
+        "type": "multimodal"
+    },
+    "reinforcement-learning": {
+        "type": "other"
+    },
     "other": {
-        "description": "other task family not mentioned here",
-        "options": [
-            "other"
-        ]
+        "type": "other"
     }
 }
