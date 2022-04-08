@@ -8,6 +8,7 @@ seqio
 tensorflow_datasets
 tensorflow_metadata
 tensorflow_text
+tensorflow_hub
 promise
 gin-config
 babel
