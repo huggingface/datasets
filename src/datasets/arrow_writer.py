@@ -165,6 +165,7 @@ class TypedSequence:
         optimized_int_pa_type = (
             get_nested_type(self.optimized_int_type) if self.optimized_int_type is not None else None
         )
+        trying_cast_to_python_objects = False
         try:
             # custom pyarrow types
             if isinstance(pa_type, _ArrayXDExtensionType):
@@ -182,6 +183,7 @@ class TypedSequence:
             elif isinstance(data, list) and data and isinstance(first_non_null_value(data)[1], np.ndarray):
                 out = list_of_np_array_to_pyarrow_listarray(data)
             else:
+                trying_cast_to_python_objects = True
                 out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
             # use smaller integer precisions if possible
             if self.trying_int_optimization:
@@ -207,6 +209,7 @@ class TypedSequence:
                     elif isinstance(data, list) and data and any(isinstance(value, np.ndarray) for value in data):
                         return list_of_np_array_to_pyarrow_listarray(data)
                     else:
+                        trying_cast_to_python_objects = True
                         return pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
                 except pa.lib.ArrowInvalid as e:
                     if "overflow" in str(e):
@@ -219,6 +222,11 @@ class TypedSequence:
                             f"Failed to cast a sequence to {optimized_int_pa_type_str}. Falling back to int64."
                         )
                         return out
+                    elif trying_cast_to_python_objects and "Could not convert" in str(e):
+                        out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False))
+                        if type is not None:
+                            out = cast_array_to_feature(out, type, allow_number_to_str=True)
+                        return out
                     else:
                         raise
             elif "overflow" in str(e):
@@ -228,6 +236,11 @@ class TypedSequence:
             elif self.trying_int_optimization and "not in range" in str(e):
                 optimized_int_pa_type_str = np.dtype(optimized_int_pa_type.to_pandas_dtype()).name
                 logger.info(f"Failed to cast a sequence to {optimized_int_pa_type_str}. Falling back to int64.")
+                return out
+            elif trying_cast_to_python_objects and "Could not convert" in str(e):
+                out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False))
+                if type is not None:
+                    out = cast_array_to_feature(out, type, allow_number_to_str=True)
                 return out
             else:
                 raise
