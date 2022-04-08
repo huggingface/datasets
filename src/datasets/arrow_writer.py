@@ -194,7 +194,7 @@ class TypedSequence:
                         out = array_cast(out, pa.list_(pa.list_(optimized_int_pa_type)))
             # otherwise we can finally use the user's type
             elif type is not None:
-                # We use array_cast_to_feature to support casting to custom types like Audio and Image
+                # We use cast_array_to_feature to support casting to custom types like Audio and Image
                 # Also, when trying type "string", we don't want to convert integers or floats to "string".
                 # We only do it if trying_type is False - since this is what the user asks for.
                 out = cast_array_to_feature(out, type, allow_number_to_str=not self.trying_type)
