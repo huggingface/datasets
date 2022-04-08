@@ -145,6 +145,7 @@ def fetch_images(batch, num_threads, timeout=None, retries=0):
         batch["image"] = list(executor.map(lambda image_urls: [fetch_single_image_with_args(image_url) for image_url in image_urls], batch["image_url"]))
     return batch
 
+
 def process_image_urls(batch):
     processed_batch_image_urls = []
     for image_url in batch["image_url"]:
@@ -170,6 +171,7 @@ def process_image_urls(batch):
         processed_batch_image_urls.append(processed_example_image_urls)
     batch["image_url"] = processed_batch_image_urls
     return batch
+
 
 dset = load_dataset("red_caps", "rabbits_2017")
 dset = dset.map(process_image_urls, batched=True, num_proc=4)
