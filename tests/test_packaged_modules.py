@@ -105,11 +105,17 @@ def test_text_linebreaks(text_file, keep_linebreaks):
 @pytest.mark.parametrize("drop_labels", [True, False])
 def test_imagefolder_drop_labels(image_file, drop_labels):
     imagefolder = ImageFolder(drop_labels=drop_labels)
-    generator = imagefolder._generate_examples([(image_file, image_file)], None)
+    generator = imagefolder._generate_examples([(image_file, image_file)], None, "train")
     if not drop_labels:
-        assert all(example.keys() == {"image", "label"} for _, example in generator)
+        assert all(
+            example.keys() == {"image", "label"} and all(val is not None for val in example.values())
+            for _, example in generator
+        )
     else:
-        assert all(example.keys() == {"image"} for _, example in generator)
+        assert all(
+            example.keys() == {"image"} and all(val is not None for val in example.values())
+            for _, example in generator
+        )
 
 
 @pytest.mark.parametrize("drop_metadata", [True, False])
@@ -121,9 +127,15 @@ def test_imagefolder_drop_metadata(image_file_with_metadata, drop_metadata):
         features = Features({"image": Image(), "label": Value("string")})
     imagefolder = ImageFolder(drop_metadata=drop_metadata, features=features)
     generator = imagefolder._generate_examples(
-        [(image_file, image_file)], [(image_metadata_file, image_metadata_file)]
+        [(image_file, image_file)], {"train": [(image_metadata_file, image_metadata_file)]}, "train"
     )
     if not drop_metadata:
-        assert all(example.keys() == {"image", "label", "caption"} for _, example in generator)
+        assert all(
+            example.keys() == {"image", "label", "caption"} and all(val is not None for val in example.values())
+            for _, example in generator
+        )
     else:
-        assert all(example.keys() == {"image", "label"} for _, example in generator)
+        assert all(
+            example.keys() == {"image", "label"} and all(val is not None for val in example.values())
+            for _, example in generator
+        )

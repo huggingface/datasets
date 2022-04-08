@@ -2,7 +2,7 @@ import collections
 import itertools
 import os
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import pyarrow.compute as pc
 import pyarrow.json as paj
@@ -63,7 +63,10 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
 
-        do_analyze = self.config.features is None and (not self.config.drop_labels or not self.config.drop_metadata)
+        # Do an early pass if:
+        # * `features` are not specified, to infer the class labels
+        # * `drop_metadata` is False, to find the metadata files
+        do_analyze = (self.config.features is None and not self.config.drop_labels) or not self.config.drop_metadata
         if do_analyze:
             labels = set()
             metadata_files = collections.defaultdict(list)
@@ -74,14 +77,14 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 # The files are separated from the archives at this point, so check the first sample
                 # to see if it's a file or a directory and iterate accordingly
                 if os.path.isfile(downloaded_files_or_dirs[0]):
-                    files, downloaded_files = files_or_archives, downloaded_files_or_dirs
-                    for file, downloaded_file in zip(files, downloaded_files):
-                        file, downloaded_file = str(file), str(downloaded_file)
-                        _, file_ext = os.path.splitext(file)
-                        if file_ext.lower() in self.IMAGE_EXTENSIONS:
-                            labels.add(os.path.basename(os.path.dirname(file)))
-                        elif os.path.basename(file) == self.METADATA_FILENAME:
-                            metadata_files[split].append((file, downloaded_file))
+                    original_files, downloaded_files = files_or_archives, downloaded_files_or_dirs
+                    for original_file, downloaded_file in zip(original_files, downloaded_files):
+                        original_file, downloaded_file = str(original_file), str(downloaded_file)
+                        _, original_file_ext = os.path.splitext(original_file)
+                        if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
+                            labels.add(os.path.basename(os.path.dirname(original_file)))
+                        elif os.path.basename(original_file) == self.METADATA_FILENAME:
+                            metadata_files[split].append((original_file, downloaded_file))
                 else:
                     archives, downloaded_dirs = files_or_archives, downloaded_files_or_dirs
                     for archive, downloaded_dir in zip(archives, downloaded_dirs):
@@ -115,10 +118,36 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                     gen_kwargs={
                         "files": [(file, downloaded_file) for file, downloaded_file in zip(files, downloaded_files)]
                         + [(None, dl_manager.iter_files(downloaded_dir)) for downloaded_dir in downloaded_dirs],
-                        "metadata_files": metadata_files.get(split_name) if not self.config.drop_metadata else None,
+                        "metadata_files": metadata_files if not self.config.drop_metadata else None,
+                        "split_name": split_name,
                     },
                 )
             )
+
+        if not self.config.drop_metadata and metadata_files:
+            # Verify that:
+            # * all metadata files have the same set of features
+            # * the `file_name` key is one of the metadata keys and is of type string
+            features_per_metadata_file: List[Tuple[str, datasets.Features]] = []
+            for _, downloaded_metadata_file in itertools.chain.from_iterable(metadata_files.values()):
+                with open(downloaded_metadata_file, "rb") as f:
+                    pa_metadata_table = paj.read_json(f)
+                features_per_metadata_file.append(
+                    (downloaded_metadata_file, datasets.Features.from_arrow_schema(pa_metadata_table.schema))
+                )
+            for downloaded_metadata_file, metadata_features in features_per_metadata_file:
+                if metadata_features != features_per_metadata_file[0][1]:
+                    raise ValueError(
+                        f"Metadata files {downloaded_metadata_file} and {features_per_metadata_file[0][0]} have different features: {metadata_features_all[0]} != {metadata_features}"
+                    )
+            metadata_features = features_per_metadata_file[0][1]
+            if "file_name" not in metadata_features:
+                raise ValueError("`file_name` must be present as dictionary key in metadata files")
+            if metadata_features["file_name"] != datasets.Value("string"):
+                raise ValueError("`file_name` key must be a string")
+            del metadata_features["file_name"]
+        else:
+            metadata_features = None
 
         # Normally, we would do this in _info, but we need to know the labels and/or metadata
         # before building the features
@@ -134,27 +163,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 self.info.features = datasets.Features({"image": datasets.Image()})
 
             if not self.config.drop_metadata and metadata_files:
-                # Verify that all metadata files have the same set of features,
-                # that the `file_name` key is one of their keys and is of type string,
-                # and that there are no duplicated keys when compared to the existing features ("image", optionally "label")
-                metadata_features_all = []
-                for _, downloaded_metadata_file in itertools.chain.from_iterable(metadata_files.values()):
-                    with open(downloaded_metadata_file, "rb") as f:
-                        pa_metadata_table = paj.read_json(f)
-                    metadata_features_all.append(
-                        (downloaded_metadata_file, datasets.Features.from_arrow_schema(pa_metadata_table.schema))
-                    )
-                for downloaded_metadata_file, metadata_features in metadata_features_all:
-                    if metadata_features != metadata_features_all[0][1]:
-                        raise ValueError(
-                            f"Metadata files {downloaded_metadata_file} and {metadata_features_all[0][0]} have different features: {metadata_features_all[0]} != {metadata_features}"
-                        )
-                metadata_features = metadata_features_all[0][1]
-                if "file_name" not in metadata_features:
-                    raise ValueError("`file_name` must be present as dictionary key in metadata files")
-                if metadata_features["file_name"] != datasets.Value("string"):
-                    raise ValueError("`file_name` key must be a string")
-                del metadata_features["file_name"]
+                # Verify that there are no duplicated keys when compared to the existing features ("image", optionally "label")
                 duplicated_keys = set(self.info.features) & set(metadata_features)
                 if duplicated_keys:
                     raise ValueError(
@@ -176,8 +185,9 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 archives.append(data_file)
         return files, archives
 
-    def _generate_examples(self, files, metadata_files):
+    def _generate_examples(self, files, metadata_files, split_name):
         if not self.config.drop_metadata and metadata_files:
+            split_metadata_files = metadata_files.get(split_name, [])
             non_metadata_keys = ["image", "label"] if not self.config.drop_labels else ["image"]
             image_empty_metadata = {k: None for k in self.info.features if k not in non_metadata_keys}
 
@@ -186,26 +196,26 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
             metadata_dict = None
 
             file_idx = 0
-            for file, downloaded_file_or_dir in files:
-                if file is not None:
-                    _, file_ext = os.path.splitext(file)
-                    if file_ext.lower() in self.IMAGE_EXTENSIONS:
+            for original_file, downloaded_file_or_dir in files:
+                if original_file is not None:
+                    _, original_file_ext = os.path.splitext(original_file)
+                    if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
                         # If the file is an image, and we've just entered a new directory,
                         # find the nereast metadata file (by counting path segments) for the directory
-                        current_dir = os.path.dirname(file)
+                        current_dir = os.path.dirname(original_file)
                         if last_checked_dir is None or last_checked_dir != current_dir:
                             last_checked_dir = current_dir
                             metadata_dir = None
                             metadata_dict = None
                             metadata_file_candidates = [
                                 (
-                                    os.path.relpath(file, os.path.dirname(metadata_file)),
+                                    os.path.relpath(original_file, os.path.dirname(metadata_file)),
                                     metadata_file,
                                     downloaded_metadata_file,
                                 )
-                                for metadata_file, downloaded_metadata_file in metadata_files
-                                if metadata_file is not None
-                                and not os.path.relpath(file, os.path.dirname(metadata_file)).startswith("..")
+                                for metadata_file, downloaded_metadata_file in split_metadata_files
+                                if metadata_file is not None  # ignore metadata_files that are inside archives
+                                and not os.path.relpath(original_file, os.path.dirname(metadata_file)).startswith("..")
                             ]
                             if metadata_file_candidates:
                                 _, metadata_file, downloaded_metadata_file = min(
@@ -226,7 +236,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                                     )
                                 }
                         if metadata_dir is not None:
-                            file_relpath = os.path.relpath(file, metadata_dir)
+                            file_relpath = os.path.relpath(original_file, metadata_dir)
                             file_relpath = file_relpath.replace("\\", "/")
                             image_metadata = metadata_dict.get(file_relpath, image_empty_metadata)
                         else:
@@ -239,7 +249,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                         else:
                             yield file_idx, {
                                 "image": downloaded_file_or_dir,
-                                "label": os.path.basename(os.path.dirname(file)),
+                                "label": os.path.basename(os.path.dirname(original_file)),
                                 **image_metadata,
                             }
                         file_idx += 1
@@ -260,8 +270,8 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                                         metadata_file,
                                         downloaded_metadata_file,
                                     )
-                                    for metadata_file, downloaded_metadata_file in metadata_files
-                                    if metadata_file is None
+                                    for metadata_file, downloaded_metadata_file in split_metadata_files
+                                    if metadata_file is None  # ignore metadata_files that are not inside archives
                                     and not os.path.relpath(
                                         downloaded_dir_file, os.path.dirname(downloaded_metadata_file)
                                     ).startswith("..")
@@ -304,10 +314,10 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                             file_idx += 1
         else:
             file_idx = 0
-            for file, downloaded_file_or_dir in files:
-                if file is not None:
-                    _, file_ext = os.path.splitext(file)
-                    if file_ext.lower() in self.IMAGE_EXTENSIONS:
+            for original_file, downloaded_file_or_dir in files:
+                if original_file is not None:
+                    _, original_file_ext = os.path.splitext(original_file)
+                    if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
                         if self.config.drop_labels:
                             yield file_idx, {
                                 "image": downloaded_file_or_dir,
@@ -315,7 +325,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                         else:
                             yield file_idx, {
                                 "image": downloaded_file_or_dir,
-                                "label": os.path.basename(os.path.dirname(file)),
+                                "label": os.path.basename(os.path.dirname(original_file)),
                             }
                         file_idx += 1
                 else:
