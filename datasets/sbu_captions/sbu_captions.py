@@ -37,9 +37,7 @@ _DESCRIPTION = """\
 The SBU Captioned Photo Dataset is a collection of over 1 million images with associated text descriptions extracted from Flicker.
 """
 
-_LICENSE = """\
-
-"""
+_LICENSE = "unknown"
 
 _HOMEPAGE = "http://www.cs.virginia.edu/~vicente/sbucaptions"
 
