@@ -1,6 +1,45 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+annotations_creators:
+- crowdsourced
+- expert-generated
+- machine-generated
+language_creators:
+- crowdsourced
+- expert-generated
+- machine-generated
+- other
+languages: []
+licenses:
+- apache-2.0
+multilinguality:
+- multilingual
+- monolingual
+pretty_name: bigbench
+size_categories:
+- unknown
+source_datasets:
+- original
+task_categories:
+- multiple-choice
+- question-answering
+- text-classification
+- text-generation
+- zero-shot-classification
+- other
+task_ids:
+- multiple-choice-qa
+- extractive-qa
+- open-domain-qa
+- closed-domain-qa
+- fact-checking
+- acceptability-classification
+- intent-classification
+- multi-class-classification
+- multi-label-classification
+- text-scoring
+- hate-speech-detection
+- language-modeling
 ---
 
 # Dataset Card for BIG-bench
