@@ -2,7 +2,6 @@
 
 
 import json
-import os
 
 import datasets
 
@@ -36,7 +35,7 @@ creation of XCOPA and the implementation of the baselines are available in the p
 """
 
 _LANG = ["et", "ht", "it", "id", "qu", "sw", "zh", "ta", "th", "tr", "vi"]
-_URL = "https://github.com/cambridgeltl/xcopa/archive/master.zip"
+_URL = "https://raw.githubusercontent.com/cambridgeltl/xcopa/master/{subdir}/{language}/{split}.{language}.jsonl"
 _VERSION = datasets.Version("1.1.0", "Minor fixes to the 'question' values in Italian")
 
 
@@ -79,22 +78,19 @@ class Xcopa(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        dl_dir = dl_manager.download_and_extract(_URL)
-
-        *translation_prefix, lang = self.config.name.split("-")
-        sub_dir = "data" if not translation_prefix else "data-gmt"
-        data_dir = os.path.join(dl_dir, "xcopa-master", sub_dir, lang)
+        *translation_prefix, language = self.config.name.split("-")
+        data_subdir = "data" if not translation_prefix else "data-gmt"
+        splits = {datasets.Split.VALIDATION: "val", datasets.Split.TEST: "test"}
+        data_urls = {
+            split: _URL.format(subdir=data_subdir, language=language, split=splits[split]) for split in splits
+        }
+        dl_paths = dl_manager.download(data_urls)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "test." + lang + ".jsonl")},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "val." + lang + ".jsonl")},
-            ),
+                name=split,
+                gen_kwargs={"filepath": dl_paths[split]},
+            )
+            for split in splits
         ]
 
     def _generate_examples(self, filepath):

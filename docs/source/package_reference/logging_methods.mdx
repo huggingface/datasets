@@ -17,18 +17,18 @@ DATASETS_VERBOSITY=error ./myprogram.py
 
 All the methods of this logging module are documented below. The main ones are:
 
-- [`datasets.logging.get_verbosity`] to get the current level of verbosity in the logger
-- [`datasets.logging.set_verbosity`] to set the verbosity to the level of your choice
+- [`logging.get_verbosity`] to get the current level of verbosity in the logger
+- [`logging.set_verbosity`] to set the verbosity to the level of your choice
 
 In order from the least to the most verbose (with their corresponding `int` values):
 
-1. `datasets.logging.CRITICAL` or `datasets.logging.FATAL` (int value, 50): only report the most critical errors.
-2. `datasets.logging.ERROR` (int value, 40): only report errors.
-3. `datasets.logging.WARNING` or `datasets.logging.WARN` (int value, 30): only reports error and warnings. This the default level used by the library.
-4. `datasets.logging.INFO` (int value, 20): reports error, warnings and basic information.
-5. `datasets.logging.DEBUG` (int value, 10): report all information.
+1. `logging.CRITICAL` or `logging.FATAL` (int value, 50): only report the most critical errors.
+2. `logging.ERROR` (int value, 40): only report errors.
+3. `logging.WARNING` or `logging.WARN` (int value, 30): only reports error and warnings. This the default level used by the library.
+4. `logging.INFO` (int value, 20): reports error, warnings and basic information.
+5. `logging.DEBUG` (int value, 10): report all information.
 
-By default, `tqdm` progress bars will be displayed during dataset download and preprocessing. [`datasets.logging.disable_progress_bar`] and [`datasets.logging.enable_progress_bar`] can be used to suppress or unsuppress this behavior. 
+By default, `tqdm` progress bars will be displayed during dataset download and preprocessing. [`logging.disable_progress_bar`] and [`logging.enable_progress_bar`] can be used to suppress or unsuppress this behavior. 
 
 ## Functions
 
