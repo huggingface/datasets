@@ -83,32 +83,38 @@ def validate_subtask_name(task_name: str, subtask_name: str) -> None:
     subtasks = [
         name.split(":")[-1] for name in bb_utils.get_subtask_names_from_task(task_name)
     ]
-    if subtask_name not in subtasks:
+    if not subtasks:
+        raise ValueError(
+            f"Task {task_name} has no subtasks. Got subtask_name {subtask_name}."
+        )
+    elif subtask_name not in subtasks:
         logger.error(
             f"Invalid subtask_name {subtask_name} for task {task_name}. Please choose one from:\n -- "
             + "\n -- ".join(subtasks)
         )
         raise ValueError(
-            f"Unknown subtask name. Got subtask {subtask_name} for task {task_name}."
+            f"Invalid subtask_name {subtask_name} for task {task_name}. Please choose one from:\n -- "
+            + "\n -- ".join(subtasks)
         )
 
 
 class BigBenchConfig(datasets.BuilderConfig):
     def __init__(
         self,
-      	name,
+        name,
         subtask_name: Optional[str] = None,
         num_shots: int = 0,
         max_examples: Optional[int] = None,
         **kwargs,
     ):
-        super().__init__(name=name,
+        super().__init__(
+            name=name,
             **kwargs,
         )
         """BIG-bench configuration.
 
         Args:
-          task_name: BIG-bench task name.
+          name: BIG-bench task name.
           subtask_name: BIG-bench subtask name. Accepts both "task_name:subtask_name" and "subtask_name" formats.
           num_shots: Number of few-shot examples in input prompt. Default is zero.
           max_examples: Limit number of examples for each task. Default is including all examples.
@@ -118,15 +124,8 @@ class BigBenchConfig(datasets.BuilderConfig):
         self.num_shots = num_shots
         self.max_examples = max_examples
 
-        validate_task_name(self.task_name)
-        if self.subtask_name:
-            # Subtasks are sometimes in bigbench written as task_name:subtask_name.
-            # We want to remove the task_name from the subtask names:
-            self.subtask_name = self.subtask_name.split(":")[-1]
-            validate_subtask_name(self.task_name, self.subtask_name)
 
-
-class BigBench(datasets.GeneratorBasedBuilder):
+class Bigbench(datasets.GeneratorBasedBuilder):
     """The Beyond the Imitation Game Benchmark (BIG-bench) is a collaborative benchmark
     intended to probe large language models, and extrapolate their future capabilities."""
 
@@ -134,7 +133,9 @@ class BigBench(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIG_CLASS = BigBenchConfig
 
-    BUILDER_CONFIGS = [BigBenchConfig(name='emoji_movie')]# for name in bb_utils.get_all_json_task_names()]
+    BUILDER_CONFIGS = [
+        BigBenchConfig(name=name) for name in bb_utils.get_all_json_task_names()
+    ]
 
     def _info(self):
         features = datasets.Features(
@@ -165,7 +166,6 @@ class BigBench(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-
         return [
             datasets.SplitGenerator(
                 name=datasets.splits.NamedSplit(
@@ -196,6 +196,14 @@ class BigBench(datasets.GeneratorBasedBuilder):
         self,
         split,  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
+        validate_task_name(self.config.task_name)
+        if self.config.subtask_name:
+            print("validating subtask_names", self.config.subtask_name)
+            # Subtasks are sometimes in bigbench written as task_name:subtask_name.
+            # We want to remove the task_name from the subtask names:
+            self.config.subtask_name = self.config.subtask_name.split(":")[-1]
+            validate_subtask_name(self.config.task_name, self.config.subtask_name)
+
         """Yields examples as (key, example) tuples."""
         if split == "all":
             # not cutoff in number of examples for 'all' split
