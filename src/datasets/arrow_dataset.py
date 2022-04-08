@@ -86,6 +86,7 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
+from .utils._hf_hub_fixes import create_repo
 from .utils.file_utils import _retry, estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import temporary_assignment, unique_values
@@ -3352,27 +3353,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"The identifier should be in the format <repo_id> or <namespace>/<repo_id>. It is {identifier}, "
                 "which doesn't conform to either format."
             )
-        if len(identifier) == 2:
-            organization, dataset_name = identifier
-        else:
+        elif len(identifier) == 2:
+            organization_or_username, dataset_name = identifier
+        elif len(identifier) == 1:
             dataset_name = identifier[0]
-            organization = api.whoami(token)["name"]
-            repo_id = f"{organization}/{dataset_name}"
+            organization_or_username = api.whoami(token)["name"]
+            repo_id = f"{organization_or_username}/{dataset_name}"
 
-        try:
-            api.create_repo(
-                dataset_name,
-                token,
-                repo_type="dataset",
-                organization=organization,
-                private=private,
-            )
-        except HTTPError as err:
-            if err.response.status_code == 409:
-                if private is not None:
-                    logger.warning("The repository already exists: the `private` keyword argument will be ignored.")
-            else:
-                raise
+        create_repo(
+            hf_api=api,
+            name=dataset_name,
+            organization=organization_or_username,
+            token=token,
+            repo_type="dataset",
+            private=private,
+            exist_ok=True,
+        )
 
         # Find decodable columns, because if there are any, we need to:
         # (1) adjust the dataset size computation (needed for sharding) to account for possible external files
