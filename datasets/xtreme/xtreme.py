@@ -900,7 +900,7 @@ class UdposParser:
                     "split": split_names[split],
                 },
             )
-            for split in [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]
+            for split in split_names
         }
         lang = config.name.split(".")[1]
         if lang in ["Tagalog", "Thai", "Yoruba"]:
