@@ -387,7 +387,7 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_cast
         only_1d_for_numpy (bool, default ``False``): whether to keep the full multi-dim tensors as multi-dim numpy arrays, or convert them to
             nested lists of 1-dimensional numpy arrays. This can be useful to keep only 1-d arrays to instantiate Arrow arrays.
             Indeed Arrow only support converting 1-dimensional array values.
-        optimize_list_casting (bool): whether to optimize list casting by checking the first non-null element to see if it needs to be casted
+        optimize_list_casting (bool, default ``True``): whether to optimize list casting by checking the first non-null element to see if it needs to be casted
             and if it doesn't, not checking the rest of the list elements.
 
     Returns:
