@@ -185,7 +185,7 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
         """
         *processed, data_lang = self.config.name.split(".")
         if processed:
-            with open(filepaths, encoding="utf-8", block_size=0) as f:
+            with open(filepaths, encoding="utf-8") as f:
                 if self.config.name == "processed.en":
                     data = json.load(f)
                     for idx, item in enumerate(data):
