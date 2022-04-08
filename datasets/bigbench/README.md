@@ -8,7 +8,8 @@ language_creators:
 - expert-generated
 - machine-generated
 - other
-languages: []
+languages:
+- en-US
 licenses:
 - apache-2.0
 multilinguality:
