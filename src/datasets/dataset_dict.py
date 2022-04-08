@@ -860,8 +860,8 @@ class DatasetDict(dict):
 
         Args:
             repo_id (:obj:`str`):
-                The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
-                `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
+                The ID of the repository to push to in the following format: ``<user>/<dataset_name>`` or
+                ``<org>/<dataset_name>``. Also accepts ``<dataset_name>``, which will default to the namespace
                 of the logged-in user.
             private (Optional :obj:`bool`):
                 Whether the dataset repository should be set to private or not. Only affects repository creation:
