@@ -7,3 +7,7 @@ t5
 seqio
 tensorflow_datasets
 tensorflow_metadata
+promise
+gin-config
+babel
+editdistance
