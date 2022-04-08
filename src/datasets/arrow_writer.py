@@ -223,7 +223,9 @@ class TypedSequence:
                         )
                         return out
                     elif trying_cast_to_python_objects and "Could not convert" in str(e):
-                        out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False))
+                        out = pa.array(
+                            cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False)
+                        )
                         if type is not None:
                             out = cast_array_to_feature(out, type, allow_number_to_str=True)
                         return out

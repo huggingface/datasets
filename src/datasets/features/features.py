@@ -295,24 +295,42 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj, False
         else:
-            return [_cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting)[0] for x in obj], True
+            return [
+                _cast_to_python_objects(
+                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0]
+                for x in obj
+            ], True
     elif config.TORCH_AVAILABLE and "torch" in sys.modules and isinstance(obj, torch.Tensor):
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj.detach().cpu().numpy(), True
         else:
             return [
-                _cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting)[0] for x in obj.detach().cpu().numpy()
+                _cast_to_python_objects(
+                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0]
+                for x in obj.detach().cpu().numpy()
             ], True
     elif config.TF_AVAILABLE and "tensorflow" in sys.modules and isinstance(obj, tf.Tensor):
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj.numpy(), True
         else:
-            return [_cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting)[0] for x in obj.numpy()], True
+            return [
+                _cast_to_python_objects(
+                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0]
+                for x in obj.numpy()
+            ], True
     elif config.JAX_AVAILABLE and "jax" in sys.modules and isinstance(obj, jnp.ndarray):
         if not only_1d_for_numpy or obj.ndim == 1:
             return np.asarray(obj), True
         else:
-            return [_cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting)[0] for x in np.asarray(obj)], True
+            return [
+                _cast_to_python_objects(
+                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0]
+                for x in np.asarray(obj)
+            ], True
     elif config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(obj, PIL.Image.Image):
         return encode_pil_image(obj), True
     elif isinstance(obj, pd.Series):
@@ -323,7 +341,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         output = {}
         has_changed = False
         for k, v in obj.items():
-            casted_v, has_changed_v = _cast_to_python_objects(v, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting)
+            casted_v, has_changed_v = _cast_to_python_objects(
+                v, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+            )
             has_changed |= has_changed_v
             output[k] = casted_v
         return output if has_changed else obj, has_changed
@@ -336,7 +356,12 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 first_elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
             )
             if has_changed_first_elmt or not optimize_list_casting:
-                return [_cast_to_python_objects(elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting)[0] for elmt in obj], True
+                return [
+                    _cast_to_python_objects(
+                        elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                    )[0]
+                    for elmt in obj
+                ], True
             else:
                 if isinstance(obj, list):
                     return obj, False
@@ -368,7 +393,9 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_cast
     Returns:
         casted_obj: the casted object
     """
-    return _cast_to_python_objects(obj, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting)[0]
+    return _cast_to_python_objects(
+        obj, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+    )[0]
 
 
 @dataclass
