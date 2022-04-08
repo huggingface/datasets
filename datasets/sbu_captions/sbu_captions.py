@@ -44,18 +44,11 @@ _HOMEPAGE = "http://www.cs.virginia.edu/~vicente/sbucaptions"
 _URL = "http://www.cs.virginia.edu/~vicente/sbucaptions/sbu-captions-all.tar.gz"
 
 _FEATURES = datasets.Features(
-    {
-        "image_url": datasets.Value("string"),
-        "user_id": datasets.Value("string"),
-        "caption": datasets.Value("string")
-    }
+    {"image_url": datasets.Value("string"), "user_id": datasets.Value("string"), "caption": datasets.Value("string")}
 )
 
-_MAP_SBU_FEATURES_TO_DATASETS_FEATURES = {
-    "image_urls": "image_url",
-    "user_ids": "user_id",
-    "captions": "caption"
-}
+_MAP_SBU_FEATURES_TO_DATASETS_FEATURES = {"image_urls": "image_url", "user_ids": "user_id", "captions": "caption"}
+
 
 class SBUCaptionedPhotoDatasetConfig(datasets.BuilderConfig):
     """BuilderConfig for COCO."""
@@ -91,7 +84,7 @@ class SBUCaptionedPhotoDataset(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "annotations_file": f"{annotations_file}/sbu-captions-all.json",
-                }
+                },
             )
         ]
 
@@ -106,7 +99,4 @@ class SBUCaptionedPhotoDataset(datasets.GeneratorBasedBuilder):
         keys = tuple(annotations.keys())
 
         for idx in range(nb_samples):
-            yield idx, {
-                _MAP_SBU_FEATURES_TO_DATASETS_FEATURES[key]: annotations[key][idx]
-                for key in keys
-            }
+            yield idx, {_MAP_SBU_FEATURES_TO_DATASETS_FEATURES[key]: annotations[key][idx] for key in keys}
