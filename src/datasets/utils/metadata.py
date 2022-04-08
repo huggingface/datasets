@@ -146,7 +146,14 @@ def validate_type(value: Any, expected_type: Type):
                         error_string += "\nOR\n" + "(" + temp_error_string + ")"
 
         else:
-            # Assuming `List`/`Dict`/`Tuple`
+            # Assuming non empty `List`/`Dict`/`Tuple`
+            if expected_type == EmptyList:
+                if len(value) == 0:
+                    return ""
+                else:
+                    return f"Expected `{expected_type_origin}` of length 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
+
+            # Assuming non empty
             if not isinstance(value, expected_type_origin) or len(value) == 0:
                 return f"Expected `{expected_type_origin}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
 
@@ -185,18 +192,25 @@ def validate_metadata_type(metadata_dict: dict):
         raise TypeError(f"The following typing errors are found: {typing_errors}")
 
 
+class _nothing:
+    pass
+
+
+EmptyList = List[_nothing]
+
+
 @dataclass
 class DatasetMetadata:
     annotations_creators: Union[List[str], Dict[str, List[str]]]
-    language_creators: Union[List[str], Dict[str, List[str]]]
-    languages: Union[List[str], Dict[str, List[str]]]
+    language_creators: Union[EmptyList, List[str], Dict[str, List[str]]]
+    languages: Union[EmptyList, List[str], Dict[str, List[str]]]
     licenses: Union[List[str], Dict[str, List[str]]]
     multilinguality: Union[List[str], Dict[str, List[str]]]
     pretty_name: Union[str, Dict[str, str]]
     size_categories: Union[List[str], Dict[str, List[str]]]
     source_datasets: Union[List[str], Dict[str, List[str]]]
     task_categories: Union[List[str], Dict[str, List[str]]]
-    task_ids: Union[List[str], Dict[str, List[str]]]
+    task_ids: Union[EmptyList, List[str], Dict[str, List[str]]]
     paperswithcode_id: Optional[str] = None
 
     def validate(self):
