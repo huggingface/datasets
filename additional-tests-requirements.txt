@@ -7,6 +7,7 @@ t5
 seqio
 tensorflow_datasets
 tensorflow_metadata
+tensorflow_text
 promise
 gin-config
 babel
