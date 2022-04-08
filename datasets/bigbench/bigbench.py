@@ -64,18 +64,17 @@ def div_or_none(x, y):
 def validate_task_name(task_name: str) -> None:
     """Check that the requested task name is a valid bigbench json task."""
     if task_name in bb_utils.get_all_json_task_names():
-        pass
+        return
     elif task_name in bb_utils.get_all_programmatic_task_names():
         raise ValueError(
             "BIG-Bench does not support programmatic tasks through HuggingFace datasets"
             f"Please see {_HOMEPAGE} for more information for how to interact with the programmatic tasks."
         )
     else:
-        logger.error(
-            "Invalid task_name. Please choose one from:\n -- "
+        raise ValueError(
+            f"Invalid task_name. Got task_name = {task_name}. Please choose one from:\n -- "
             + "\n -- ".join(bb_utils.get_all_json_task_names())
         )
-        raise ValueError(f"Unknown task name. Got {task_name}.")
 
 
 def validate_subtask_name(task_name: str, subtask_name: str) -> None:
@@ -85,13 +84,9 @@ def validate_subtask_name(task_name: str, subtask_name: str) -> None:
     ]
     if not subtasks:
         raise ValueError(
-            f"Task {task_name} has no subtasks. Got subtask_name {subtask_name}."
+            f"Task {task_name} has no subtasks. Got subtask_name = {subtask_name}."
         )
     elif subtask_name not in subtasks:
-        logger.error(
-            f"Invalid subtask_name {subtask_name} for task {task_name}. Please choose one from:\n -- "
-            + "\n -- ".join(subtasks)
-        )
         raise ValueError(
             f"Invalid subtask_name {subtask_name} for task {task_name}. Please choose one from:\n -- "
             + "\n -- ".join(subtasks)
@@ -198,7 +193,6 @@ class Bigbench(datasets.GeneratorBasedBuilder):
     ):
         validate_task_name(self.config.task_name)
         if self.config.subtask_name:
-            print("validating subtask_names", self.config.subtask_name)
             # Subtasks are sometimes in bigbench written as task_name:subtask_name.
             # We want to remove the task_name from the subtask names:
             self.config.subtask_name = self.config.subtask_name.split(":")[-1]
