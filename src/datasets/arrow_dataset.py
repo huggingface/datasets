@@ -3555,7 +3555,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         }
         buffer = BytesIO()
         buffer.write(f'{{"{organization}--{dataset_name}": '.encode())
-        info_to_dump._dump_info(buffer)
+        info_to_dump._dump_info(buffer, pretty_print=True)
         buffer.write(b"}")
         HfApi(endpoint=config.HF_ENDPOINT).upload_file(
             path_or_fileobj=buffer.getvalue(),
