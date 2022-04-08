@@ -59,6 +59,11 @@ pretty_name: SBU Captioned Photo Dataset
 
 ### Dataset Summary
 
+SBU Captioned Photo Dataset is a collection of associated captions and images. From the paper:
+> performing a huge number of Flickr queries and
+then filtering the noisy results down to 1 million images with associated visually
+relevant captions
+
 ### Dataset Preprocessing
 
 This dataset doesn't download the images locally by default. Instead, it exposes URLs to the images. To fetch the images, use the following code:

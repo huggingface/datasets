@@ -90,7 +90,7 @@ class SBUCaptionedPhotoDataset(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, annotations_file):
         # Download all images
-        with open(annotations_file, "r") as fi:
+        with open(annotations_file, "r", encoding="utf-8") as fi:
             annotations = json.load(fi)
 
         # Sanity check
