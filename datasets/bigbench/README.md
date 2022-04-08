@@ -1,5 +1,4 @@
 ---
-YAML tags:
 annotations_creators:
 - crowdsourced
 - expert-generated
