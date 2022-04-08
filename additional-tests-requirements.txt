@@ -13,3 +13,4 @@ promise
 gin-config
 babel
 editdistance
+immutabledict
