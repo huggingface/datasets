@@ -24,7 +24,9 @@ source_datasets:
 - original
 task_categories:
 - automatic-speech-recognition
-task_ids: []
+- audio-classification
+task_ids:
+- audio-speaker-identification
 ---
 
 # Dataset Card for MultiLingual LibriSpeech
@@ -66,7 +68,7 @@ Multilingual LibriSpeech (MLS) dataset is a large multilingual corpus suitable f
 
 ### Supported Tasks and Leaderboards
 
-- `automatic-speech-recognition`, `speaker-identification`: The dataset can be used to train a model for Automatic Speech Recognition (ASR). The model is presented with an audio file and asked to transcribe the audio file to written text. The most common evaluation metric is the word error rate (WER). The task has an active leaderboard which can be found at https://paperswithcode.com/dataset/multilingual-librispeech and ranks models based on their WER.
+- `automatic-speech-recognition`, `audio-speaker-identification`: The dataset can be used to train a model for Automatic Speech Recognition (ASR). The model is presented with an audio file and asked to transcribe the audio file to written text. The most common evaluation metric is the word error rate (WER). The task has an active leaderboard which can be found at https://paperswithcode.com/dataset/multilingual-librispeech and ranks models based on their WER.
 
 ### Languages
 

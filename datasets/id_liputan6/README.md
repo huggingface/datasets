@@ -15,7 +15,9 @@ source_datasets:
 - original
 task_categories:
 - summarization
-task_ids: []
+task_ids:
+- summarization-other-extractive-summarization
+- news-articles-summarization
 paperswithcode_id: null
 pretty_name: Large-scale Indonesian Summarization
 ---

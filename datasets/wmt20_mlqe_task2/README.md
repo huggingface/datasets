@@ -22,13 +22,16 @@ source_datasets:
 - extended|wikipedia
 task_categories:
 - translation
-task_ids: []
+- text-classification
+task_ids:
+- text-classification-other-translation-quality-estimation
 paperswithcode_id: null
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for WMT20 - MultiLingual Quality Estimation (MLQE) Task2
 
 ## Table of Contents
+
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
   - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
