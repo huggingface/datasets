@@ -71,34 +71,38 @@ def validate_task_name(task_name: str) -> None:
             f"Please see {_HOMEPAGE} for more information for how to interact with the programmatic tasks."
         )
     else:
-        logger.error("Invalid task_name. Please choose one from:")
-        for name in bb_utils.get_all_json_task_names():
-            logger.info(f"-- {name}")
+        logger.error(
+            "Invalid task_name. Please choose one from:\n -- "
+            + "\n -- ".join(bb_utils.get_all_json_task_names())
+        )
         raise ValueError(f"Unknown task name. Got {task_name}.")
 
 
 def validate_subtask_name(task_name: str, subtask_name: str) -> None:
     """Check that the requested subtask name is a valid bigbench subtask."""
-    subtasks = [name.split(":")[-1] for name in bb_utils.get_subtask_names_from_task(task_name)]
+    subtasks = [
+        name.split(":")[-1] for name in bb_utils.get_subtask_names_from_task(task_name)
+    ]
     if subtask_name not in subtasks:
-        logger.error(f"Invalid subtask_name {subtask_name} for task {task_name}. Please choose one from:")
-        for name in subtasks:
-            logger.info(f"-- {name}")
-        raise ValueError(f"Unknown subtask name. Got subtask {subtask_name} for task {task_name}.")
+        logger.error(
+            f"Invalid subtask_name {subtask_name} for task {task_name}. Please choose one from:\n -- "
+            + "\n -- ".join(subtasks)
+        )
+        raise ValueError(
+            f"Unknown subtask name. Got subtask {subtask_name} for task {task_name}."
+        )
 
 
 class BigBenchConfig(datasets.BuilderConfig):
     def __init__(
         self,
-        task_name: str,
-        *args,
+      	name,
         subtask_name: Optional[str] = None,
         num_shots: int = 0,
         max_examples: Optional[int] = None,
         **kwargs,
     ):
-        super().__init__(
-            *args,
+        super().__init__(name=name,
             **kwargs,
         )
         """BIG-bench configuration.
@@ -109,7 +113,7 @@ class BigBenchConfig(datasets.BuilderConfig):
           num_shots: Number of few-shot examples in input prompt. Default is zero.
           max_examples: Limit number of examples for each task. Default is including all examples.
         """
-        self.task_name = task_name
+        self.task_name = name
         self.subtask_name = subtask_name
         self.num_shots = num_shots
         self.max_examples = max_examples
@@ -129,6 +133,8 @@ class BigBench(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIG_CLASS = BigBenchConfig
+
+    BUILDER_CONFIGS = [BigBenchConfig(name='emoji_movie')]# for name in bb_utils.get_all_json_task_names()]
 
     def _info(self):
         features = datasets.Features(
@@ -162,7 +168,9 @@ class BigBench(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.splits.NamedSplit("default"),  # TODO(ajandreassen): Is there a way to call this 'all'?
+                name=datasets.splits.NamedSplit(
+                    "default"
+                ),  # TODO(ajandreassen): Is there a way to call this 'all'?
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "split": "all",
@@ -202,7 +210,9 @@ class BigBench(datasets.GeneratorBasedBuilder):
             if has_subtasks:
                 subtask_names = bb_json_paths.get_subtask_names(self.config.task_name)
                 num_subtasks = len(subtask_names)
-                min_validation_examples_per_subtask = div_or_none(MIN_VALIDATION_EXAMPLES, num_subtasks)
+                min_validation_examples_per_subtask = div_or_none(
+                    MIN_VALIDATION_EXAMPLES, num_subtasks
+                )
 
             if not has_subtasks:
                 ds_fn = bbb.get_dataset_fn(
@@ -240,7 +250,9 @@ class BigBench(datasets.GeneratorBasedBuilder):
                         subtask_name=subtask_name,
                         num_shots=self.config.num_shots,
                         bigbench_task_type=bbb.BigBenchTaskType.HUGGINGFACE,
-                        max_examples=div_or_none(self.config.max_examples, num_subtasks),
+                        max_examples=div_or_none(
+                            self.config.max_examples, num_subtasks
+                        ),
                         json_util=json_util,
                         min_validation_examples=min_validation_examples_per_subtask,
                     )
@@ -263,9 +275,14 @@ class BigBench(datasets.GeneratorBasedBuilder):
                 yield unique_key_counter, {
                     "idx": example["idx"],
                     "inputs": example["inputs"].numpy().decode().strip(),
-                    "targets": [target.numpy().decode().strip() for target in example["targets"]],
-                    "multiple_choice_targets": [
-                        targets.decode().strip() for targets in example["multiple_choice_targets"].numpy()
+                    "targets": [
+                        target.numpy().decode().strip() for target in example["targets"]
                     ],
-                    "multiple_choice_scores": [scores for scores in example["multiple_choice_scores"].numpy()],
+                    "multiple_choice_targets": [
+                        targets.decode().strip()
+                        for targets in example["multiple_choice_targets"].numpy()
+                    ],
+                    "multiple_choice_scores": [
+                        scores for scores in example["multiple_choice_scores"].numpy()
+                    ],
                 }
