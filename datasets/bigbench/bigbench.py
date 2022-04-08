@@ -21,6 +21,7 @@ from typing import Optional
 
 import datasets
 
+logger = datasets.logging.get_logger(__name__)
 
 try:
     import bigbench.api.util as bb_utils
@@ -28,11 +29,11 @@ try:
     from bigbench.bbseqio import bigbench_json_paths as bb_json_paths
 
 except ModuleNotFoundError as error:
-    print(
+    logger.info(
         "Failed to import bigbench. Please see https://github.com/google/BIG-bench or install"
         "using 'pip install git+https://github.com/google/BIG-bench.git'"
     )
-    print(error)
+    logger.error(error)
     raise
 
 _CITATION = """\
@@ -69,9 +70,9 @@ def validate_task_name(task_name: str) -> None:
             f"Please see {_HOMEPAGE} for more information for how to interact with the programmatic tasks."
         )
     else:
-        print("Invalid task_name. Please choose one from:")
+        logger.error("Invalid task_name. Please choose one from:")
         for name in bb_utils.get_all_json_task_names():
-            print(f"-- {name}")
+            logger.info(f"-- {name}")
         raise ValueError(f"Unknown task name. Got {task_name}.")
 
 
@@ -79,9 +80,9 @@ def validate_subtask_name(task_name: str, subtask_name: str) -> None:
     """Check that the requested subtask name is a valid bigbench subtask."""
     subtasks = [name.split(":")[-1] for name in bb_utils.get_subtask_names_from_task(task_name)]
     if subtask_name not in subtasks:
-        print(f"Invalid subtask_name {subtask_name} for task {task_name}. Please choose one from:")
+        logger.error(f"Invalid subtask_name {subtask_name} for task {task_name}. Please choose one from:")
         for name in subtasks:
-            print(f"-- {name}")
+            logger.info(f"-- {name}")
         raise ValueError(f"Unknown subtask name. Got subtask {subtask_name} for task {task_name}.")
 
 
@@ -231,7 +232,7 @@ class BigBench(datasets.GeneratorBasedBuilder):
                 ds_list = []
                 for subtask_name in subtask_names:
                     subtask_name = subtask_name.split(":")[-1]
-                    print(f"Loading subtask {split} split", subtask_name)
+                    logger.info(f"Loading subtask {split} split", subtask_name)
                     ds_fn = bbb.get_dataset_fn(
                         task_name=self.config.task_name,
                         task_path=task_path,
@@ -247,10 +248,10 @@ class BigBench(datasets.GeneratorBasedBuilder):
             # BIG-Bench requires at least 16 examples to use the train & validation splits,
             # while using 'all'/'default' does not have such a requirement.
             if "has too few examples" in value_error.args[0] and split != "all":
-                print(
+                logger.warning(
                     f"-- WARNING: skipping split {split} because it has too few examples. Please use 'default' split."
                 )
-                print(value_error)
+                logger.warning(value_error)
                 return
             raise value_error
 
