@@ -43,8 +43,13 @@ _LICENSE = "https://www.industrydocuments.ucsf.edu/help/copyright/"
 
 
 _URLS = {
-    "rvl-cdip": "https://drive.google.com/uc?export=download&confirm=pbef&id=0Bz1dfcnrpXM-MUt4cHNzUEFXcmc",
-    "labels": "https://huggingface.co/datasets/mariosasko/rvl_cdip/resolve/main/labels_only.tar.gz",
+    "rvl-cdip": "https://huggingface.co/datasets/mariosasko/rvl_cdip/resolve/main/rvl-cdip.tar.gz",
+}
+
+_METADATA_URLS = {
+    "train": "https://huggingface.co/datasets/mariosasko/rvl_cdip/resolve/main/train.txt",
+    "test": "https://huggingface.co/datasets/mariosasko/rvl_cdip/resolve/main/test.txt",
+    "val": "https://huggingface.co/datasets/mariosasko/rvl_cdip/resolve/main/val.txt",
 }
 
 _CLASSES = [
@@ -93,10 +98,7 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         archive_path = dl_manager.download(_URLS["rvl-cdip"])
-        labels_path = dl_manager.download_and_extract(_URLS["labels"])
-
-        print(f"Archive path is: {archive_path}")
-        print(f"Labels path is: {labels_path}")
+        labels_path = dl_manager.download(_METADATA_URLS)
 
         # (Optional) In non-streaming mode, we can extract the archive locally to have actual local image files:
         local_extracted_archive = dl_manager.extract(archive_path) if not dl_manager.is_streaming else None
@@ -107,7 +109,7 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "local_extracted_archive": local_extracted_archive,
                     "archive_iterator": dl_manager.iter_archive(archive_path),
-                    "labels_filepath": os.path.join(labels_path, "labels", "train.txt"),
+                    "labels_filepath": labels_path["train"],
                     "split": "train",
                 },
             ),
@@ -116,7 +118,7 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "local_extracted_archive": local_extracted_archive,
                     "archive_iterator": dl_manager.iter_archive(archive_path),
-                    "labels_filepath": os.path.join(labels_path, "labels", "test.txt"),
+                    "labels_filepath": labels_path["test"],
                     "split": "test",
                 },
             ),
@@ -125,7 +127,7 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "local_extracted_archive": local_extracted_archive,
                     "archive_iterator": dl_manager.iter_archive(archive_path),
-                    "labels_filepath": os.path.join(labels_path, "labels", "val.txt"),
+                    "labels_filepath": labels_path["val"],
                     "split": "dev",
                 },
             ),
