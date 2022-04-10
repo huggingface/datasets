@@ -25,7 +25,7 @@ pretty_name:
 - MedMCQA
 ---
 
-# Dataset Card for medmcqa
+# Dataset Card for MedMCQA
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
