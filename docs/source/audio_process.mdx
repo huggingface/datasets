@@ -8,17 +8,26 @@
 
 ## Installation
 
-The [`Audio`] feature is an experimental feature and should be installed as an extra dependency in 🤗 Datasets. Install the [`Audio`] feature with pip:
+The [`Audio`] feature should be installed as an extra dependency in 🤗 Datasets. Install the [`Audio`] feature (and its dependencies) with pip:
 
-```py
->>> pip install datasets[audio]
+```bash
+pip install datasets[audio]
 ```
 
-Users should also install [torchaudio](https://pytorch.org/audio/stable/index.html) and [librosa](https://librosa.org/doc/latest/index.html), two common libraries used by 🤗 Datasets for handling audio data.
+<Tip warning={true}>
 
-```py
->>> pip install librosa
->>> pip install torchaudio
+On Linux, non-Python dependency on `libsndfile` package must be installed manually, using your distribution package manager, for example:
+
+```bash
+sudo apt-get install libsndfile1
+```
+
+</Tip>
+
+To support loading audio datasets containing MP3 files, users should additionally install [torchaudio](https://pytorch.org/audio/stable/index.html), so that audio data is handled with high performance.
+
+```bash
+pip install torchaudio
 ```
 
 <Tip warning={true}>

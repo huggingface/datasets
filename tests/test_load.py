@@ -314,6 +314,30 @@ class ModuleFactoryTest(TestCase):
                 assert importlib.import_module(module_factory_result.module_path) is not None
 
 
+@pytest.mark.parametrize(
+    "factory_class",
+    [
+        CachedDatasetModuleFactory,
+        CachedMetricModuleFactory,
+        GithubDatasetModuleFactory,
+        GithubMetricModuleFactory,
+        HubDatasetModuleFactoryWithoutScript,
+        HubDatasetModuleFactoryWithScript,
+        LocalDatasetModuleFactoryWithoutScript,
+        LocalDatasetModuleFactoryWithScript,
+        LocalMetricModuleFactory,
+        PackagedDatasetModuleFactory,
+    ],
+)
+def test_module_factories(factory_class):
+    if issubclass(factory_class, (HubDatasetModuleFactoryWithoutScript, HubDatasetModuleFactoryWithScript)):
+        name = "dummy_org/dummy_name"
+    else:
+        name = "dummy_name"
+    factory = factory_class(name)
+    assert factory.name == name
+
+
 class LoadTest(TestCase):
     @pytest.fixture(autouse=True)
     def inject_fixtures(self, caplog):

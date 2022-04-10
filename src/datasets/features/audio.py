@@ -72,7 +72,7 @@ class Audio:
             return {"bytes": None, "path": value}
         elif isinstance(value, dict) and "array" in value:
             buffer = BytesIO()
-            sf.write(buffer, value["array"], value["sampling_rate"])
+            sf.write(buffer, value["array"], value["sampling_rate"], format="wav")
             return {"bytes": buffer.getvalue(), "path": value.get("path")}
         elif value.get("bytes") is not None or value.get("path") is not None:
             return {"bytes": value.get("bytes"), "path": value.get("path")}

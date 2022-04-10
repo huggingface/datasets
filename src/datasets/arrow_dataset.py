@@ -86,6 +86,7 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
+from .utils._hf_hub_fixes import create_repo
 from .utils.file_utils import _retry, estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import temporary_assignment, unique_values
@@ -568,11 +569,9 @@ def _check_column_names(column_names: List[str]):
         raise ValueError(f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated.")
 
 
-def _check_valid_indices_value(value, size):
-    if (value < 0 and value + size < 0) or (value >= size):
-        raise IndexError(
-            f"Invalid value {value} in indices iterable. All values must be within range [-{size}, {size - 1}]."
-        )
+def _check_valid_indices_value(index, size):
+    if (index < 0 and index + size < 0) or (index >= size):
+        raise IndexError(f"Index {index} out of range for dataset of size {size}.")
 
 
 def _check_if_features_can_be_aligned(features_list: List[Features]):
@@ -669,9 +668,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
 
         if self._indices is not None:
-            if not pa.types.is_unsigned_integer(self._indices.column(0)[0].type):
+            if not pa.types.is_unsigned_integer(self._indices.column(0).type):
                 raise ValueError(
-                    f"indices must be an Arrow table of unsigned integers, current type is {self._indices.column(0)[0].type}"
+                    f"indices must be an Arrow table of unsigned integers, current type is {self._indices.column(0).type}"
                 )
         _check_column_names(self._data.column_names)
 
@@ -1406,7 +1405,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
         if new_column_name in dataset._data.column_names:
             raise ValueError(
-                f"New column name {original_column_name} already in the dataset. "
+                f"New column name {new_column_name} already in the dataset. "
                 f"Please choose a column name which is not already in the dataset. "
                 f"Current columns in the dataset: {dataset._data.column_names}"
             )
@@ -1890,9 +1889,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if num_proc is not None and num_proc <= 0:
             raise ValueError("num_proc must be an integer > 0.")
 
-        # If the array is empty we do nothing
+        # If the array is empty we do nothing (but we make sure to remove the requested columns anyway)
         if len(self) == 0:
-            return self
+            if remove_columns:
+                return self.remove_columns(remove_columns)
+            else:
+                return self
 
         if function is None:
             function = lambda x: x  # noqa: E731
@@ -2598,8 +2600,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         indices = list(indices)
 
         size = len(self)
-        _check_valid_indices_value(int(max(indices)), size=size)
-        _check_valid_indices_value(int(min(indices)), size=size)
+        if indices:
+            _check_valid_indices_value(int(max(indices)), size=size)
+            _check_valid_indices_value(int(min(indices)), size=size)
 
         indices_array = pa.array(indices, type=pa.uint64())
         # Check if we need to convert indices
@@ -3350,27 +3353,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"The identifier should be in the format <repo_id> or <namespace>/<repo_id>. It is {identifier}, "
                 "which doesn't conform to either format."
             )
-        if len(identifier) == 2:
-            organization, dataset_name = identifier
-        else:
+        elif len(identifier) == 2:
+            organization_or_username, dataset_name = identifier
+        elif len(identifier) == 1:
             dataset_name = identifier[0]
-            organization = api.whoami(token)["name"]
-            repo_id = f"{organization}/{dataset_name}"
+            organization_or_username = api.whoami(token)["name"]
+            repo_id = f"{organization_or_username}/{dataset_name}"
 
-        try:
-            api.create_repo(
-                dataset_name,
-                token,
-                repo_type="dataset",
-                organization=organization,
-                private=private,
-            )
-        except HTTPError as err:
-            if err.response.status_code == 409:
-                if private is not None:
-                    logger.warning("The repository already exists: the `private` keyword argument will be ignored.")
-            else:
-                raise
+        create_repo(
+            hf_api=api,
+            name=dataset_name,
+            organization=organization_or_username,
+            token=token,
+            repo_type="dataset",
+            private=private,
+            exist_ok=True,
+        )
 
         # Find decodable columns, because if there are any, we need to:
         # (1) adjust the dataset size computation (needed for sharding) to account for possible external files
@@ -3557,7 +3555,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         }
         buffer = BytesIO()
         buffer.write(f'{{"{organization}--{dataset_name}": '.encode())
-        info_to_dump._dump_info(buffer)
+        info_to_dump._dump_info(buffer, pretty_print=True)
         buffer.write(b"}")
         HfApi(endpoint=config.HF_ENDPOINT).upload_file(
             path_or_fileobj=buffer.getvalue(),
