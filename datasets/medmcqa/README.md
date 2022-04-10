@@ -15,6 +15,7 @@ source_datasets:
 - original
 task_categories:
 - question-answering
+- multiple-choice
 task_ids:
 - multiple-choice-qa
 - open-domain-qa
