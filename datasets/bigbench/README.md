@@ -99,29 +99,15 @@ To study the remaining programmatic tasks, please see the BIG-bench GitHub [repo
 
 Each dataset contains 5 features. For example an instance from the `emoji_movie` task is:
 
-- `idx`:
-
-      0
-- `inputs`:
-
-      Q: What movie does this emoji describe? 👦👓⚡️
-       choice: harry potter
-       choice: shutter island
-       choice: inglourious basterds
-       choice: die hard
-       choice: moonlight
-      A:
-      
-- `targets`:
-
-      ['harry potter']
-- `multiple_choice_targets`:
-
-      ['harry potter', 'shutter island', 'die hard', 'inglourious basterds', 'moonlight']
-      
-- `multiple_choice_scores`:
-     
-      [1, 0, 0, 0, 0]
+```
+{
+  "idx": 0,
+  "inputs": "Q: What movie does this emoji describe? 👦👓⚡️\n  choice: harry potter\n. choice: shutter island\n. choice: inglourious basterds\n. choice: die hard\n. choice: moonlight\nA:"
+  "targets": ["harry potter"],
+  "multiple_choice_targets":["harry potter", "shutter island", "die hard", "inglourious basterds", "moonlight"],
+  "multiple_choice_scores": [1, 0, 0, 0, 0]
+}
+```
       
 For tasks that do not have multiple choice targets, the lists are empty.
 
