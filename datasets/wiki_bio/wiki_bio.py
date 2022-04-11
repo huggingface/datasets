@@ -17,7 +17,6 @@ This dataset gathers 728,321 biographies from Wikipedia. It aims at evaluating t
 algorithms. For each article, we provide the first paragraph and the infobox.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
@@ -57,9 +56,7 @@ _HOMEPAGE = "https://github.com/DavidGrangier/wikipedia-biography-dataset"
 
 _LICENSE = "CC BY-SA 3.0"
 
-# The HuggingFace dataset library don't host the datasets but only point to the original files
-# This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = "https://drive.google.com/uc?export=download&id=1L7aoUXzHPzyzQ0ns4ApBbYepsjFOtXil"
+_URL = "https://huggingface.co/datasets/wiki_bio/resolve/main/data/wikipedia-biography-dataset.zip"
 
 
 def _get_table(infobox_line):
@@ -93,7 +90,7 @@ def _get_table(infobox_line):
 class WikiBio(datasets.GeneratorBasedBuilder):
     """Infoboxes and first paragraph from Wikipedia biography pages."""
 
-    VERSION = datasets.Version("1.1.0")
+    VERSION = datasets.Version("1.2.0")
 
     def _info(self):
         features = datasets.Features(
@@ -122,8 +119,7 @@ class WikiBio(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        my_urls = _URL
-        data_dir = dl_manager.download_and_extract(my_urls)
+        data_dir = dl_manager.download_and_extract(_URL)
         data_path = os.path.join(data_dir, "wikipedia-biography-dataset")
         return [
             datasets.SplitGenerator(
@@ -159,7 +155,7 @@ class WikiBio(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, id_file, infobox_file, nb_lines_file, sentences_file, article_title_file):
-        """ Yields examples."""
+        """Yields examples."""
         with open(id_file, "r", encoding="utf-8") as id_src, open(
             infobox_file, "r", encoding="utf-8"
         ) as infobox_src, open(nb_lines_file, "r", encoding="utf-8") as nb_lines_src, open(

@@ -16,7 +16,6 @@
 # Lint as: python3
 """The French Language Understanding Evaluation (FLUE) benchmark."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
@@ -25,7 +24,6 @@ import textwrap
 import unicodedata
 from shutil import copyfile
 
-import six
 from lxml import etree
 
 import datasets
@@ -203,15 +201,13 @@ class Flue(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         if self.config.name == "CLS" or self.config.name == "XNLI":
-            features = {
-                text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)
-            }
+            features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
             features[self.config.label_column] = datasets.features.ClassLabel(names=self.config.label_classes)
             features["idx"] = datasets.Value("int32")
         elif self.config.name == "WSD-V":
             features = {
                 text_feature: datasets.Sequence(datasets.Value("string"))
-                for text_feature in six.iterkeys(self.config.text_features)
+                for text_feature in self.config.text_features.keys()
             }
             features["fine_pos_tags"] = datasets.Sequence(
                 datasets.features.ClassLabel(
@@ -275,9 +271,7 @@ class Flue(datasets.GeneratorBasedBuilder):
             features["disambiguate_labels"] = datasets.Sequence(datasets.Value("string"))
             features["idx"] = datasets.Value("string")
         else:
-            features = {
-                text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)
-            }
+            features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
             features[self.config.label_column] = datasets.Value("int32")
             features["idx"] = datasets.Value("int32")
         return datasets.DatasetInfo(
@@ -289,47 +283,52 @@ class Flue(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         if self.config.name == "CLS":
-            data_folder = dl_manager.download_and_extract(self.config.data_url)
+            archive = dl_manager.download(self.config.data_url)
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "data_file": os.path.join(data_folder, "cls-acl10-unprocessed", "fr"),
+                        "data_file": ("cls-acl10-unprocessed", "fr"),
                         "split": "train",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "data_file": os.path.join(data_folder, "cls-acl10-unprocessed", "fr"),
+                        "data_file": ("cls-acl10-unprocessed", "fr"),
                         "split": "test",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
         elif self.config.name == "PAWS-X":
-            data_folder = dl_manager.download_and_extract(self.config.data_url)
+            archive = dl_manager.download(self.config.data_url)
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "data_file": os.path.join(data_folder, "x-final", "fr", "dev_2k.tsv"),
+                        "data_file": ("x-final", "fr", "dev_2k.tsv"),
                         "split": "",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "data_file": os.path.join(data_folder, "x-final", "fr", "test_2k.tsv"),
+                        "data_file": ("x-final", "fr", "test_2k.tsv"),
                         "split": "",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "data_file": os.path.join(data_folder, "x-final", "fr", "translated_train.tsv"),
+                        "data_file": ("x-final", "fr", "translated_train.tsv"),
                         "split": "",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
@@ -361,6 +360,7 @@ class Flue(datasets.GeneratorBasedBuilder):
                 ),
             ]
         elif self.config.name == "WSD-V":
+            # TODO(QL): make streamable using iter_archive
             data_folder = dl_manager.download_and_extract(self.config.data_url)
             self._wsdv_prepare_data(os.path.join(data_folder, self.config.data_dir))
 
@@ -381,33 +381,35 @@ class Flue(datasets.GeneratorBasedBuilder):
                 ),
             ]
 
-    def _generate_examples(self, data_file, split):
+    def _generate_examples(self, data_file, split, files=None):
         if self.config.name == "CLS":
-            for category in ["books", "dvd", "music"]:
-                file_path = os.path.join(data_file, category, split + ".review")
-                with open(file_path, "rt", encoding="utf-8") as f:
-                    next(f)
-                    id = 0
-                    text = f.read()
-                    for id_, line in enumerate(text.split("\n\n")):
-                        if len(line) > 9:
-                            id += 1
-                            review_text, label = self._cls_extractor(line)
-                            yield id_, {"idx": id, "text": review_text, "label": label}
+            for path, f in files:
+                for category in ["books", "dvd", "music"]:
+                    file_path = "/".join(data_file + (category, split + ".review"))
+                    if path == file_path:
+                        next(f)
+                        id = 0
+                        text = f.read().decode("utf-8")
+                        for id_, line in enumerate(text.split("\n\n")):
+                            if len(line) > 9:
+                                id += 1
+                                review_text, label = self._cls_extractor(line)
+                                yield f"{category}_{id_}", {"idx": id, "text": review_text, "label": label}
         elif self.config.name == "PAWS-X":
-            with open(data_file, encoding="utf-8") as f:
-                data = csv.reader(f, delimiter="\t")
-                next(data)  # skip header
-                id = 0
-                for id_, row in enumerate(data):
-                    if len(row) == 4:
-                        id += 1
-                        yield id_, {
-                            "idx": id,
-                            "sentence1": self._cleaner(row[1]),
-                            "sentence2": self._cleaner(row[2]),
-                            "label": int(row[3].strip()),
-                        }
+            for path, f in files:
+                if path == "/".join(data_file):
+                    data = csv.reader((line.decode("utf-8") for line in f), delimiter="\t")
+                    next(data)  # skip header
+                    id = 0
+                    for id_, row in enumerate(data):
+                        if len(row) == 4:
+                            id += 1
+                            yield id_, {
+                                "idx": id,
+                                "sentence1": self._cleaner(row[1]),
+                                "sentence2": self._cleaner(row[2]),
+                                "label": int(row[3].strip()),
+                            }
         elif self.config.name == "XNLI":
             with open(data_file, encoding="utf-8") as f:
                 data = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
@@ -467,16 +469,16 @@ class Flue(datasets.GeneratorBasedBuilder):
         Converts `text` to Unicode (if it's not already), assuming UTF-8 input.
         from: https://github.com/getalp/Flaubert/blob/master/tools/clean_text.py
         """
-        # six_ensure_text is copied from https://github.com/benjaminp/six
-        def six_ensure_text(s, encoding="utf-8", errors="strict"):
-            if isinstance(s, six.binary_type):
+
+        def ensure_text(s, encoding="utf-8", errors="strict"):
+            if isinstance(s, bytes):
                 return s.decode(encoding, errors)
-            elif isinstance(s, six.text_type):
+            elif isinstance(s, str):
                 return s
             else:
                 raise TypeError("not expecting type '%s'" % type(s))
 
-        return six_ensure_text(text, encoding="utf-8", errors="ignore")
+        return ensure_text(text, encoding="utf-8", errors="ignore")
 
     def _cleaner(self, text):
         """
@@ -502,7 +504,7 @@ class Flue(datasets.GeneratorBasedBuilder):
         return text
 
     def _wsdv_prepare_data(self, dirpath):
-        """ Get data paths from FSE dir"""
+        """Get data paths from FSE dir"""
         paths = {}
 
         for f in os.listdir(dirpath):
@@ -526,10 +528,10 @@ class Flue(datasets.GeneratorBasedBuilder):
 
 # The WSDDatasetReader classes come from https://github.com/getalp/Flaubert/blob/master/flue/wsd/verbs/modules/dataset.py
 class WSDDatasetReader:
-    """ Class to read a WSD data directory. The directory should contain .data.xml and .gold.key.txt files"""
+    """Class to read a WSD data directory. The directory should contain .data.xml and .gold.key.txt files"""
 
     def get_data_paths(self, indir):
-        """ Get file paths from WSD dir """
+        """Get file paths from WSD dir"""
         xml_fpath, gold_fpath = None, None
 
         for f in os.listdir(indir):
@@ -552,7 +554,7 @@ class WSDDatasetReader:
         }
 
     def read_from_data_dirs(self, data_dirs):
-        """ Read WSD data and return as WSDDataset """
+        """Read WSD data and return as WSDDataset"""
         for d in data_dirs:
             xml_fpath, gold_fpath = self.get_data_paths(d)
 
@@ -620,13 +622,13 @@ class WSDDatasetReader:
                     )
 
     def read_sentences(self, data_dir, keep_mwe=True):
-        """ Read sentences from WSD data"""
+        """Read sentences from WSD data"""
 
         xml_fpath, _ = self.get_data_paths(data_dir)
         return self.read_sentences_from_xml(xml_fpath, keep_mwe=keep_mwe)
 
     def read_sentences_from_xml(self, infile, keep_mwe=False):
-        """ Read sentences from xml file """
+        """Read sentences from xml file"""
 
         # Parse xml
         tree = etree.parse(infile)
@@ -641,5 +643,5 @@ class WSDDatasetReader:
                 yield sent
 
     def read_target_keys(self, infile):
-        """ Read target keys """
+        """Read target keys"""
         return [x.rstrip("\n") for x in open(infile, encoding="utf-8").readlines()]

@@ -1,36 +1,37 @@
 ---
 annotations_creators:
-  - expert-generated
+- expert-generated
 language_creators:
-  - crowdsourced
+- crowdsourced
 languages:
-  - ur
+- ur
 licenses:
-  - unknown
+- unknown
 multilinguality:
-  - monolingual
+- monolingual
 size_categories:
-  - 1K<n<10K
+- 1K<n<10K
 source_datasets:
-  - original
+- original
 task_categories:
-  - text-classification
+- text-classification
 task_ids:
-  - sentiment-classification
+- sentiment-classification
+paperswithcode_id: urdu-sentiment-corpus
+pretty_name: Urdu Sentiment Corpus (USC)
 ---
 
 # Dataset Card for Urdu Sentiment Corpus (USC)
 
 ## Table of Contents
-
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -44,14 +45,15 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:** https://github.com/MuhammadYaseenKhan/Urdu-Sentiment-Corpus
-- **Paper:** https://ieeexplore.ieee.org/abstract/document/9080043
+- **Homepage:** [Github](https://github.com/MuhammadYaseenKhan/Urdu-Sentiment-Corpus)
+- **Repository:** [Github](https://github.com/MuhammadYaseenKhan/Urdu-Sentiment-Corpus)
+- **Paper:** [IEEE](https://ieeexplore.ieee.org/abstract/document/9080043)
 - **Leaderboard:**
-- **Point of Contact:** <a href="https://github.com/MuhammadYaseenKhan">Muhammad Yaseen Khan</a>
+- **Point of Contact:** [Muhammad Yaseen Khan](https://github.com/MuhammadYaseenKhan)
 
 ### Dataset Summary
 
@@ -137,3 +139,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@chaitnayabasava](https://github.com/chaitnayabasava) for adding this dataset.

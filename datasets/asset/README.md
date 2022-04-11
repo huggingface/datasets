@@ -13,7 +13,7 @@ size_categories:
 - 1K<n<10K
 source_datasets:
 - original
-- extented|other-turkcorpus
+- extended|other-turkcorpus
 task_categories:
   ratings:
   - text-scoring
@@ -24,6 +24,8 @@ task_ids:
   - text-scoring-other-simplification-evaluation
   simplification:
   - text-simplification
+paperswithcode_id: asset
+pretty_name: ASSET
 ---
 
 # Dataset Card for ASSET
@@ -31,12 +33,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -50,6 +52,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -164,7 +167,7 @@ The dataset may contain some social biases, as the input sentences are based on 
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 
@@ -199,3 +202,7 @@ Facebook AI Research, and Imperial College London. The work was partly supported
 ```
 
 This dataset card uses material written by [Juan Diego Rodriguez](https://github.com/juand-r).
+
+### Contributions
+
+Thanks to [@yjernite](https://github.com/yjernite) for adding this dataset.

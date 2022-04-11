@@ -1,4 +1,5 @@
 ---
+pretty_name: "PAWS-X: A Cross-lingual Adversarial Dataset for Paraphrase Identification"
 annotations_creators:
 - expert-generated
 - machine-generated
@@ -28,19 +29,20 @@ task_ids:
 - semantic-similarity-classification
 - semantic-similarity-scoring
 - text-scoring-other-paraphrase-identification
+paperswithcode_id: paws-x
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for PAWS-X: A Cross-lingual Adversarial Dataset for Paraphrase Identification
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -54,6 +56,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -117,17 +120,18 @@ corresponding file in PAWS-Wiki.
 
 ### Data Splits
 
-The numbers of examples for each of the six languages are shown below:
+The numbers of examples for each of the seven languages are shown below:
 
 Language | Train   | Dev    | Test
 :------- | ------: | -----: | -----:
-fr       | 49,401  | 1,992  | 1,985
-es       | 49,401  | 1,962  | 1,999
-de       | 49,401  | 1,932  | 1,967
-zh       | 49,401  | 1,984  | 1,975
-ja       | 49,401  | 1,980  | 1,946
-ko       | 49,401  | 1,965  | 1,972
-Total    | 296,406 | 11,815 | 11,844
+en       | 49,401  | 2,000  | 2,000
+fr       | 49,401  | 2,000  | 2,000
+es       | 49,401  | 2,000  | 2,000
+de       | 49,401  | 2,000  | 2,000
+zh       | 49,401  | 2,000  | 2,000
+ja       | 49,401  | 2,000  | 2,000
+ko       | 49,401  | 2,000  | 2,000
+
 
 > **Caveat**: please note that the dev and test sets of PAWS-X are both sourced
 > from the dev set of PAWS-Wiki. As a consequence, the same `sentence 1` may
@@ -201,3 +205,6 @@ The dataset may be freely used for any purpose, although acknowledgement of Goog
   year = {2019}
 }
 ```
+### Contributions
+
+Thanks to [@bhavitvyamalik](https://github.com/bhavitvyamalik), [@gowtham1997](https://github.com/gowtham1997) for adding this dataset.

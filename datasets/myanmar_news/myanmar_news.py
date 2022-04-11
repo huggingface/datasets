@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 # no BibTeX citation
@@ -54,6 +54,7 @@ class MyanmarNews(datasets.GeneratorBasedBuilder):
             homepage="https://github.com/ayehninnkhine/MyanmarNewsClassificationSystem",
             license=_LICENSE,
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="text", label_column="category")],
         )
 
     def _split_generators(self, dl_manager):

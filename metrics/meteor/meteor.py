@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +17,12 @@ import numpy as np
 from nltk.translate import meteor_score
 
 import datasets
+from datasets.config import importlib_metadata, version
+
+
+NLTK_VERSION = version.parse(importlib_metadata.version("nltk"))
+if NLTK_VERSION >= version.Version("3.6.4"):
+    from nltk import word_tokenize
 
 
 _CITATION = """\
@@ -65,9 +70,18 @@ Args:
     gamma: Relative weight assigned to fragmentation penalty. default: 0.5
 Returns:
     'meteor': meteor score.
+Examples:
+
+    >>> meteor = datasets.load_metric('meteor')
+    >>> predictions = ["It is a guide to action which ensures that the military always obeys the commands of the party"]
+    >>> references = ["It is a guide to action that ensures that the military will forever heed Party commands"]
+    >>> results = meteor.compute(predictions=predictions, references=references)
+    >>> print(round(results["meteor"], 4))
+    0.6944
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Meteor(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
@@ -87,10 +101,27 @@ class Meteor(datasets.Metric):
             ],
         )
 
+    def _download_and_prepare(self, dl_manager):
+        import nltk
+
+        nltk.download("wordnet")
+        if NLTK_VERSION >= version.Version("3.6.5"):
+            nltk.download("punkt")
+        if NLTK_VERSION >= version.Version("3.6.6"):
+            nltk.download("omw-1.4")
+
     def _compute(self, predictions, references, alpha=0.9, beta=3, gamma=0.5):
-        scores = [
-            meteor_score.single_meteor_score(ref, pred, alpha=alpha, beta=beta, gamma=gamma)
-            for ref, pred in zip(references, predictions)
-        ]
+        if NLTK_VERSION >= version.Version("3.6.5"):
+            scores = [
+                meteor_score.single_meteor_score(
+                    word_tokenize(ref), word_tokenize(pred), alpha=alpha, beta=beta, gamma=gamma
+                )
+                for ref, pred in zip(references, predictions)
+            ]
+        else:
+            scores = [
+                meteor_score.single_meteor_score(ref, pred, alpha=alpha, beta=beta, gamma=gamma)
+                for ref, pred in zip(references, predictions)
+            ]
 
         return {"meteor": np.mean(scores)}

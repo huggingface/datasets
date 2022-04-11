@@ -1,11 +1,11 @@
 """TODO(tydiqa): Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import textwrap
 
 import datasets
+from datasets.tasks import QuestionAnsweringExtractive
 
 
 # TODO(tydiqa): BibTeX citation
@@ -42,7 +42,7 @@ _SECONDARY_URLS = {
 
 class TydiqaConfig(datasets.BuilderConfig):
 
-    """ BuilderConfig for Tydiqa"""
+    """BuilderConfig for Tydiqa"""
 
     def __init__(self, **kwargs):
         """
@@ -152,6 +152,11 @@ class Tydiqa(datasets.GeneratorBasedBuilder):
                 supervised_keys=None,
                 homepage="https://github.com/google-research-datasets/tydiqa",
                 citation=_CITATION,
+                task_templates=[
+                    QuestionAnsweringExtractive(
+                        question_column="question", context_column="context", answers_column="answers"
+                    )
+                ],
             )
 
     def _split_generators(self, dl_manager):

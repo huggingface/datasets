@@ -14,7 +14,6 @@
 # limitations under the License.
 """QED: A Dataset for Explanations in Question Answering"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 
@@ -65,7 +64,7 @@ class Qed(datasets.GeneratorBasedBuilder):
         reference_features = {
             "start": datasets.Value("int32"),
             "end": datasets.Value("int32"),
-            "bridge": datasets.Value("bool_"),
+            "bridge": datasets.Value("string"),
             "string": datasets.Value("string"),
         }
         return datasets.DatasetInfo(
@@ -133,6 +132,12 @@ class Qed(datasets.GeneratorBasedBuilder):
                     }
                 if "referential_equalities" not in example["annotation"]:
                     example["annotation"]["referential_equalities"] = []
+                else:
+                    for referential_equalities in example["annotation"]["referential_equalities"]:
+                        bridge = referential_equalities["sentence_reference"]["bridge"]
+                        referential_equalities["sentence_reference"]["bridge"] = (
+                            bridge if bridge is not False else None
+                        )
 
                 # remove the nested list
                 example["original_nq_answers"] = example["original_nq_answers"][0]

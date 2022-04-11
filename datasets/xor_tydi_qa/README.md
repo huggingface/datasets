@@ -25,6 +25,8 @@ task_categories:
 - question-answering
 task_ids:
 - open-domain-qa
+paperswithcode_id: xor-tydi-qa
+pretty_name: XOR QA
 ---
 
 # Dataset Card for XOR QA
@@ -32,12 +34,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -51,6 +53,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -105,10 +108,10 @@ A typical data point comprises a `question`, it's `answer` the `language` of the
 
 The data is split into a training, validation and test set for each of the two configurations.
 
-|                            | Tain   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| XOR Retrieve               |   15250|   2113|  2501|
-| XOR Full                   |   61360|   3179|  8177|
+|              | train | validation | test |
+|--------------|------:|-----------:|-----:|
+| XOR Retrieve | 15250 |       2113 | 2501 |
+| XOR Full     | 61360 |       3179 | 8177 |
 
 ## Dataset Creation
 
@@ -175,3 +178,6 @@ XOR-TyDi QA is distributed under the [CC BY-SA 4.0](https://creativecommons.org/
     year    = {2020}
 }
 ```
+### Contributions
+
+Thanks to [@sumanthd17](https://github.com/sumanthd17) for adding this dataset.

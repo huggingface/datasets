@@ -14,7 +14,6 @@
 # limitations under the License.
 """Medical Question Pairs (MQP) Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 
@@ -72,7 +71,7 @@ class MedicalQuestionsPairs(datasets.GeneratorBasedBuilder):
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_file})]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, encoding="utf-8") as f:
             data = csv.reader(f)
             for id_, row in enumerate(data):

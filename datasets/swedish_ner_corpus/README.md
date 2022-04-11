@@ -17,19 +17,21 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
+paperswithcode_id: null
+pretty_name: Swedish NER Corpus
 ---
 
-# Swedish NER Corpus
+# Dataset Card of Swedish NER Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,12 +45,13 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
 - **Homepage:** [https://github.com/klintan/swedish-ner-corpus]()
 - **Repository:** [https://github.com/klintan/swedish-ner-corpus]()
-- **Point of contact:** Andreas Klintberg (ankl@kth.se)
+- **Point of contact:** [Andreas Klintberg](ankl@kth.se)
 
 ### Dataset Summary
 
@@ -190,3 +193,7 @@ https://github.com/klintan/swedish-ner-corpus/blob/master/LICENSE
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@abhishekkrthakur](https://github.com/abhishekkrthakur) for adding this dataset.

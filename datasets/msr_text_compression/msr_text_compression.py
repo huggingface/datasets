@@ -14,7 +14,6 @@
 # limitations under the License.
 """TODO: Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 from collections import namedtuple
@@ -91,9 +90,7 @@ class MsrTextCompression(datasets.GeneratorBasedBuilder):
         data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
         if not os.path.exists(data_dir):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('msr_text_compression', data_dir=...)` per the manual download instructions: {}".format(
-                    data_dir, self.manual_download_instructions
-                )
+                f"{data_dir} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('msr_text_compression', data_dir=...)` per the manual download instructions: {self.manual_download_instructions}"
             )
         return [
             datasets.SplitGenerator(

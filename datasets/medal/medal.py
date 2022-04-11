@@ -16,15 +16,13 @@
 # Lint as: python3
 """MeDAL: Medical Abbreviation Disambiguation Dataset for Natural Language Understanding Pretraining"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
-import logging
 
 import datasets
 
 
-logger = logging.getLogger(__name__)
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -47,7 +45,7 @@ _DESCRIPTION = """\
 A large medical text dataset (14Go) curated to 4Go for abbreviation disambiguation, designed for natural language understanding pre-training in the medical domain. For example, DHF can be disambiguated to dihydrofolate, diastolic heart failure, dengue hemorragic fever or dihydroxyfumarate
 """
 
-_URL = "https://zenodo.org/record/4276178/files/"
+_URL = "https://zenodo.org/record/4482922/files/"
 _URLS = {
     "train": _URL + "train.csv",
     "test": _URL + "test.csv",
@@ -59,7 +57,7 @@ _URLS = {
 class Medal(datasets.GeneratorBasedBuilder):
     """Medal: Medical Abbreviation Disambiguation Dataset for Natural Language Understanding Pretraining"""
 
-    VERSION = datasets.Version("1.0.0")
+    VERSION = datasets.Version("4.0.0")
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -126,7 +124,6 @@ class Medal(datasets.GeneratorBasedBuilder):
             data = csv.reader(f)
             # Skip header
             next(data)
-            # print(split, filepath, next(data))
             if split == "full":
                 id_ = 0
                 for id_, row in enumerate(data):

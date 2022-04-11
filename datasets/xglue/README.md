@@ -219,7 +219,7 @@ source_datasets:
   - original
   paws-x:
   - original
-  pos: 
+  pos:
   - original
   qadsm:
   - original
@@ -265,7 +265,7 @@ task_ids:
   ntg:
   - summarization
   paws-x:
-  - text-classification-other-paraphrase identification
+  - text-classification-other-paraphrase-identification
   pos:
   - parsing
   qadsm:
@@ -278,6 +278,8 @@ task_ids:
   - acceptability-classification
   xnli:
   - natural-language-inference
+paperswithcode_id: null
+pretty_name: XGLUE
 ---
 
 # Dataset Card for XGLUE
@@ -285,11 +287,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Leaderboards](#leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -303,6 +306,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -862,3 +866,7 @@ The licensing status of the dataset hinges on the legal status of [XGLUE](https:
   volume={abs/2004.01401}
 }
 ```
+
+### Contributions
+
+Thanks to [@patrickvonplaten](https://github.com/patrickvonplaten) for adding this dataset.

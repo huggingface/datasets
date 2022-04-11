@@ -19,6 +19,8 @@ task_categories:
 task_ids:
 - natural-language-inference
 - semantic-similarity-scoring
+paperswithcode_id: null
+pretty_name: SemEval 2014 - Task 1
 ---
 
 # Dataset Card for SemEval 2014 - Task 1
@@ -26,12 +28,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -45,12 +47,13 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:** [SemEval-2014 Task 1](https://alt.qcri.org/semeval2014/task1/)
 - **Repository:**
-- **Paper:**
+- **Paper:** [Aclweb](https://www.aclweb.org/anthology/S14-2001/)
 - **Leaderboard:**
 - **Point of Contact:**
 
@@ -137,3 +140,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@ashmeet13](https://github.com/ashmeet13) for adding this dataset.

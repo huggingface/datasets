@@ -42,81 +42,78 @@ multilinguality:
 - monolingual
 size_categories:
   DGT:
-  - n>1M
+  - 1M<n<10M
   DOGC:
-  - n>1M
+  - 10M<n<100M
   ECB:
-  - n>1M
+  - 1M<n<10M
   EMEA:
-  - n>1M
+  - 1M<n<10M
   EUBookShop:
-  - n>1M
+  - 1M<n<10M
   Europarl:
-  - n>1M
+  - 1M<n<10M
   GlobalVoices:
   - 100K<n<1M
   JRC:
-  - n>1M
+  - 1M<n<10M
   NewsCommentary11:
   - 100K<n<1M
   OpenSubtitles2018:
-  - n>1M
+  - 100M<n<1B
   ParaCrawl:
-  - n>1M
+  - 10M<n<100M
   TED:
   - 100K<n<1M
   UN:
   - 10K<n<100K
   all_wikis:
-  - n>1M
+  - 10M<n<100M
   combined:
-  - n>1M
+  - 100M<n<1B
   multiUN:
-  - n>1M
+  - 10M<n<100M
 source_datasets:
 - original
 task_categories:
 - other
 task_ids:
 - other-other-pretraining-language-models
+paperswithcode_id: null
+pretty_name: The Large Spanish Corpus
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for The Large Spanish Corpus
 
 ## Table of Contents
-- [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
-  - [Table of Contents](#table-of-contents)
-  - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
-      - [Who are the source language producers?](#who-are-the-source-language-producers)
-    - [Annotations](#annotations)
-      - [Annotation process](#annotation-process)
-      - [Who are the annotators?](#who-are-the-annotators)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
 - **Homepage:** [https://github.com/josecannete/spanish-corpora](https://github.com/josecannete/spanish-corpora)
 - **Repository:** [https://github.com/josecannete/spanish-corpora](https://github.com/josecannete/spanish-corpora)
-- **Paper:** 
+- **Paper:**
 - **Leaderboard:**
 - **Point of Contact:** [José Cañete](mailto:jose.canete@ug.uchile.cl) (corpus creator) or [Lewis Tunstall](mailto:lewis.c.tunstall@gmail.com) (corpus submitter)
 
@@ -242,3 +239,7 @@ The following is taken from the corpus' source repsository:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@lewtun](https://github.com/lewtun) for adding this dataset.

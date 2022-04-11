@@ -14,12 +14,14 @@
 # limitations under the License.
 """OneStopEnglish Corpus: Dataset of texts classified into reading levels/text complexities."""
 
-from __future__ import absolute_import, division, print_function
 
-import logging
 import os
 
 import datasets
+from datasets.tasks import TextClassification
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -62,6 +64,7 @@ class OnestopEnglish(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="text", label_column="label")],
         )
 
     def _vocab_text_gen(self, train_file):
@@ -92,7 +95,7 @@ class OnestopEnglish(datasets.GeneratorBasedBuilder):
                     text = myfile.read().strip()
                     ele_samples.append(text)
             except Exception as e:
-                logging.info("Error with:", os.path.join(dir_path, f), e)
+                logger.info("Error with:", os.path.join(dir_path, f), e)
 
         int_samples = []
         dir_path = os.path.join(data_dir, "Int-Txt")
@@ -103,7 +106,7 @@ class OnestopEnglish(datasets.GeneratorBasedBuilder):
                     text = myfile.read().strip()
                     int_samples.append(text)
             except Exception as e:
-                logging.info("Error with:", os.path.join(dir_path, f), e)
+                logger.info("Error with:", os.path.join(dir_path, f), e)
 
         adv_samples = []
         dir_path = os.path.join(data_dir, "Adv-Txt")
@@ -114,7 +117,7 @@ class OnestopEnglish(datasets.GeneratorBasedBuilder):
                     text = myfile.read().strip()
                     adv_samples.append(text)
             except Exception as e:
-                logging.info("Error with:", os.path.join(dir_path, f), e)
+                logger.info("Error with:", os.path.join(dir_path, f), e)
 
         train_samples = ele_samples + int_samples + adv_samples
         train_labels = (["ele"] * len(ele_samples)) + (["int"] * len(int_samples)) + (["adv"] * len(adv_samples))
@@ -127,7 +130,6 @@ class OnestopEnglish(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, split_key, data_dir):
         """Yields examples for a given split of dataset."""
         split_text, split_labels = self._get_examples_from_split(split_key, data_dir)
-        for text, label in zip(split_text, split_labels):
-            data_key = split_key + "_" + text
+        for id_, (text, label) in enumerate(zip(split_text, split_labels)):
             feature_dict = {"text": text, "label": label}
-            yield data_key, feature_dict
+            yield id_, feature_dict

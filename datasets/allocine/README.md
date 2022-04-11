@@ -17,107 +17,148 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+paperswithcode_id: allocine
+pretty_name: Allociné
 ---
 
 # Dataset Card for Allociné
 
 ## Table of Contents
-- [Tasks Supported](#tasks-supported)
-- [Purpose](#purpose)
-- [Languages](#languages)
-- [People Involved](#who-iswas-involved-in-the-dataset-use-and-creation)
-- [Data Characteristics](#data-characteristics)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
-- [Known Limitations](#known-limitations)
-- [Licensing information](#licensing-information)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
-## Tasks supported:
-### Task categorization / tags
+## Dataset Description
 
-Text to binary text classification
+- **Homepage:** 
+- **Repository:** [Allociné dataset repository](https://github.com/TheophileBlard/french-sentiment-analysis-with-bert/tree/master/allocine_dataset)
+- **Paper:**
+- **Leaderboard:**
+- **Point of Contact:** [Théophile Blard](mailto:theophile.blard@gmail.com)
 
-## Purpose
+### Dataset Summary
 
-The Allociné dataset was developed for large-scale sentiment analysis in French. 
+The Allociné dataset is a French-language dataset for sentiment analysis. The texts are movie reviews written between 2006 and 2020 by members of the [Allociné.fr](https://www.allocine.fr/) community for various films. It contains 100k positive and 100k negative reviews divided into train (160k), validation (20k), and test (20k). 
 
-## Languages 
-### Per language:
+### Supported Tasks and Leaderboards
 
-The BCP-47 code for French is fr. Dialect information is unknown (see Speaker section for further details).
+- `text-classification`, `sentiment-classification`: The dataset can be used to train a model for sentiment classification. The model performance is evaluated based on the accuracy of the predicted labels as compared to the given labels in the dataset. A BERT-based model, [tf-allociné](https://huggingface.co/tblard/tf-allocine), achieves 97.44% accuracy on the test set. 
 
-## Who is/was involved in the dataset use and creation?
-### Who are the dataset curators?
+### Languages
 
-The Allociné dataset was collected by Théophile Blard. 
+The text is in French, as spoken by users of the [Allociné.fr](https://www.allocine.fr/) website. The BCP-47 code for French is fr.
 
-### Who are the language producers (who wrote the text / created the base content)?
+## Dataset Structure
 
-The dataset contains movie reviews collected from [Allociné.fr](https://www.allocine.fr/). The content of each review may include information and opinions about the film's actors, film crew, and plot.
+### Data Instances
 
-### Who are the annotators?
+Each data instance contains the following features: _review_ and _label_. In the Hugging Face distribution of the dataset, the _label_ has 2 possible values, _0_ and _1_, which correspond to _negative_ and _positive_ respectively. See the [Allociné corpus viewer](https://huggingface.co/datasets/viewer/?dataset=allocine) to explore more examples.
 
-No annotations were included in this dataset. 
+An example from the Allociné train set looks like the following:
+```
+{'review': 'Premier film de la saga Kozure Okami, "Le Sabre de la vengeance" est un très bon film qui mêle drame et action, et qui, en 40 ans, n'a pas pris une ride.',
+ 'label': 1}
 
-## Data characteristics
+```
 
-The texts are movie reviews written by members of the [Allociné.fr](https://www.allocine.fr/) community for various films. The reviews were written between 2006 and 2020. Further information on the kinds of films included in the dataset has not been documented.
+### Data Fields
 
-### How was the data collected?
+- 'review': a string containing the review text
+- 'label': an integer, either _0_ or _1_, indicating a _negative_ or _positive_ review, respectively
+
+### Data Splits
+
+The Allociné dataset has 3 splits: _train_, _validation_, and _test_. The splits contain disjoint sets of movies. The following table contains the number of reviews in each split and the percentage of positive and negative reviews. 
+
+| Dataset Split | Number of Instances in Split | Percent Negative Reviews | Percent Positive Reviews |
+| ------------- | ---------------------------- | ------------------------ | ------------------------ |
+| Train         | 160,000                      | 49.6%                    | 50.4%                    |
+| Validation    | 20,000                       | 51.0%                    | 49.0%                    |
+| Test          | 20,000                       | 52.0%                    | 48.0%                    |
+
+## Dataset Creation
+
+### Curation Rationale
+
+The Allociné dataset was developed to support large-scale sentiment analysis in French. It was released alongside the [tf-allociné](https://huggingface.co/tblard/tf-allocine) model and used to compare the performance of several language models on this task. 
+
+### Source Data
+
+#### Initial Data Collection and Normalization
 
 The reviews and ratings were collected using a list of [film page urls](https://github.com/TheophileBlard/french-sentiment-analysis-with-bert/blob/master/allocine_dataset/allocine_films_urls.txt) and the [allocine_scraper.py](https://github.com/TheophileBlard/french-sentiment-analysis-with-bert/blob/master/allocine_dataset/allocine_scraper.py) tool. Up to 30 reviews were collected for each film. 
 
-### Normalization information
-
 The reviews were originally labeled with a rating from 0.5 to 5.0 with a step of 0.5 between each rating. Ratings less than or equal to 2 are labeled as negative and ratings greater than or equal to 4 are labeled as positive. Only reviews with less than 2000 characters are included in the dataset. 
 
-### Annotation process
+#### Who are the source language producers?
 
-No annotations were included in this dataset. 
+The dataset contains movie reviews produced by the online community of the [Allociné.fr](https://www.allocine.fr/) website. 
 
-## Dataset Structure
-### Splits, features, and labels
+### Annotations
 
-The Allociné dataset has 3 splits: _train_, _validation_, and _test_. The splits contain disjoint sets of movies. The following table contains the number of reviews in each split and the percentage of positive and negative reviews. 
-Dataset Split | Number of Instances in Split | Percent Negative Reviews | Percent Positive Reviews
---------------|------------------------------|--------------------------|-------------------------
-Train | 160,000 | 49.6% | 50.4%
-Validation | 20,000 | 51.0% | 49.0%
-Test | 20,000 | 52.0% | 48.0%
+The dataset does not contain any additional annotations. 
 
-Each data instance contains the following features: _review_ and _label_. In the Hugging Face distribution of the dataset, the _label_ has 2 possible values, _0_ and _1_, which correspond to _negative_ and _positive_ respectively. 
+#### Annotation process
 
-### Span indices
+[N/A]
 
-No span indices are included in this dataset.
+#### Who are the annotators?
 
-### Example ID
+[N/A]
 
-The ID is an integer starting from 0. It has no inherent meaning. 
+### Personal and Sensitive Information
 
-### Free text description for context (e.g. describe difference between title / selftext / body in Reddit data) and example
+Reviewer usernames or personal information were not collected with the reviews, but could potentially be recovered. The content of each review may include information and opinions about the film's actors, film crew, and plot.
 
-For each ID, there is a string for the review and an integer for the label. See the [Allociné corpus viewer](https://huggingface.co/datasets/viewer/?dataset=allocine) to explore more examples.
+## Considerations for Using the Data
 
-ID | Review | Label
----|--------|-------
-4	| Premier film de la saga Kozure Okami, "Le Sabre de la vengeance" est un très bon film qui mêle drame et action, et qui, en 40 ans, n'a pas pris une ride.	| 1
-5	| L'amnésie est un thème en or pour susciter le mystère. Encore faut-il être capable de construire un scénario qui se tienne. Celui-ci est boursouflé et accumule incohérences et invraisemblances. Notons aussi la stupidité du titre français, sans lien avec l'histoire.	| 0
+### Social Impact of Dataset
 
+Sentiment classification is a complex task which requires sophisticated language understanding skills. Successful models can support decision-making based on the outcome of the sentiment analysis, though such models currently require a high degree of domain specificity. 
 
-### Suggested metrics / models:
+It should be noted that the community represented in the dataset may not represent any downstream application's potential users, and the observed behavior of a model trained on this dataset may vary based on the domain and use case. 
 
-[tf-allociné](https://huggingface.co/tblard/tf-allocine) achieves 97.44% accuracy on the test set. 
+### Discussion of Biases
 
-## Known Limitations
-### Known social biases
+The Allociné website lists a number of topics which violate their [terms of service](https://www.allocine.fr/service/conditions.html#charte). Further analysis is needed to determine the extent to which moderators have successfully removed such content. 
 
-The social biases of this dataset have not yet been investigated.
-
-### Other known limitations
+### Other Known Limitations
 
 The limitations of the Allociné dataset have not yet been investigated, however [Staliūnaitė and Bonfil (2017)](https://www.aclweb.org/anthology/W17-5410.pdf) detail linguistic phenomena that are generally present in sentiment analysis but difficult for models to accurately label, such as negation, adverbial modifiers, and reviewer pragmatics. 
 
-## Licensing information
+## Additional Information
+
+### Dataset Curators
+
+The Allociné dataset was collected by Théophile Blard. 
+
+### Licensing Information
 
 The Allociné dataset is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
+### Citation Information
+
+> Théophile Blard, French sentiment analysis with BERT, (2020), GitHub repository, <https://github.com/TheophileBlard/french-sentiment-analysis-with-bert>
+
+### Contributions
+
+Thanks to [@thomwolf](https://github.com/thomwolf), [@TheophileBlard](https://github.com/TheophileBlard), [@lewtun](https://github.com/lewtun) and [@mcmillanmajora](https://github.com/mcmillanmajora) for adding this dataset.

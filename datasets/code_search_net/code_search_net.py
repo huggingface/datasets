@@ -21,7 +21,6 @@
 # TODO: enable custom configs; such as: "java+python"
 # TODO: enable fetching examples with a given license, eg: "java_MIT"
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
@@ -58,7 +57,7 @@ _URLs["all"] = _URLs.copy()
 
 
 class CodeSearchNet(datasets.GeneratorBasedBuilder):
-    """"CodeSearchNet corpus: proxy dataset for semantic code search."""
+    """ "CodeSearchNet corpus: proxy dataset for semantic code search."""
 
     VERSION = datasets.Version("1.0.0", "Add CodeSearchNet corpus dataset")
     BUILDER_CONFIGS = [
@@ -200,9 +199,9 @@ class CodeSearchNet(datasets.GeneratorBasedBuilder):
         for file_id_, filepath in enumerate(filepaths):
             with open(filepath, encoding="utf-8") as f:
                 for row_id_, row in enumerate(f):
-                    # Key of the example = dir_id_ + entry_id + row_id,
+                    # Key of the example = file_id + row_id,
                     # to ensure all examples have a distinct key
-                    id_ = file_id_ + row_id_
+                    id_ = f"{file_id_}_{row_id_}"
                     data = json.loads(row)
                     yield id_, {
                         "repository_name": data["repo"],

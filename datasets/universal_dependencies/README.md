@@ -129,7 +129,7 @@ languages:
   fr_pud:
   - fr
   fr_sequoia:
-   - fr
+  - fr
   fr_spoken:
   - fr
   gl_ctg:
@@ -247,11 +247,11 @@ languages:
   sme_giella:
   - sme
   no_bokmaal:
-  - no
+  - 'no'
   no_nynorsk:
-  - no
+  - 'no'
   no_nynorsklia:
-  - no
+  - 'no'
   cu_proiel:
   - cu
   fro_srcmf:
@@ -383,6 +383,8 @@ task_categories:
 task_ids:
 - constituency-parsing
 - dependency-parsing
+paperswithcode_id: universal-dependencies
+pretty_name: Universal Dependencies Treebank
 ---
 
 # Dataset Card for Universal Dependencies Treebank
@@ -390,12 +392,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -409,10 +411,11 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:** [Universal Dependencies](https://universaldependencies.org/)
 - **Repository:**
 - **Paper:**
 - **Leaderboard:**
@@ -501,3 +504,6 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+### Contributions
+
+Thanks to [@patrickvonplaten](https://github.com/patrickvonplaten), [@jplu](https://github.com/jplu) for adding this dataset.

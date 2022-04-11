@@ -14,12 +14,12 @@
 # limitations under the License.
 """NKJP-NER"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -69,6 +69,7 @@ class NkjpNer(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="sentence", label_column="target")],
         )
 
     def _split_generators(self, dl_manager):
@@ -96,7 +97,7 @@ class NkjpNer(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             for id_, row in enumerate(reader):

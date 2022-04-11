@@ -14,7 +14,6 @@
 # limitations under the License.
 """TODO: Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
@@ -85,10 +84,7 @@ class TeluguNews(datasets.GeneratorBasedBuilder):
 
         if not os.path.exists(data_dir):
             raise FileNotFoundError(
-                "{} does not exist. Download instructions: {} ".format(
-                    data_dir,
-                    self.manual_download_instructions,
-                )
+                f"{data_dir} does not exist. Download instructions: {self.manual_download_instructions} "
             )
 
         return [
@@ -109,7 +105,7 @@ class TeluguNews(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(csv_file)

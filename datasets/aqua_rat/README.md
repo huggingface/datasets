@@ -18,7 +18,8 @@ task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
-
+paperswithcode_id: aqua-rat
+pretty_name: Algebra Question Answering with Rationales
 ---
 
 # Dataset Card for AQUA-RAT
@@ -26,13 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -46,14 +46,13 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/deepmind/AQuA
-- **Repository:** https://github.com/deepmind/AQuA
-- **Paper:** https://arxiv.org/pdf/1705.04146.pdf
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** [https://github.com/deepmind/AQuA](https://github.com/deepmind/AQuA)
+- **Repository:** [https://github.com/deepmind/AQuA](https://github.com/deepmind/AQuA)
+- **Paper:** [https://arxiv.org/pdf/1705.04146.pdf](https://arxiv.org/pdf/1705.04146.pdf)
 
 ### Dataset Summary
 
@@ -96,43 +95,52 @@ en
 
 ### Curation Rationale
 
+[Needs More Information]
 
 ### Source Data
 
-
 #### Initial Data Collection and Normalization
 
+[Needs More Information]
 
 #### Who are the source language producers?
 
+[Needs More Information]
 
 ### Annotations
 
 #### Annotation process
 
+[Needs More Information]
 
 #### Who are the annotators?
 
+[Needs More Information]
 
 ### Personal and Sensitive Information
 
+[Needs More Information]
 
 ## Considerations for Using the Data
 
-
 ### Social Impact of Dataset
+
+[Needs More Information]
 
 ### Discussion of Biases
 
+[Needs More Information]
 
 ### Other Known Limitations
 
+[Needs More Information]
 
 ## Additional Information
 
 
 ### Dataset Curators
 
+[Needs More Information]
 
 ### Licensing Information
 Copyright 2017 Google Inc.
@@ -158,3 +166,7 @@ limitations under the License.
   year={2017}
 }
 ```
+
+### Contributions
+
+Thanks to [@arkhalid](https://github.com/arkhalid) for adding this dataset.

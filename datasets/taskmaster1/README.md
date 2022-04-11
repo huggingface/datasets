@@ -17,19 +17,21 @@ task_categories:
 - sequence-modeling
 task_ids:
 - dialogue-modeling
+paperswithcode_id: taskmaster-1
+pretty_name: Taskmaster-1
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Taskmaster-1
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -178,17 +181,17 @@ Each annotation has a single field:
 
 The data in `one_person_dialogs` config is split into `train`, `dev` and `test` splits.
 
-|                            | Tain   | Valid | Test  |
-| -----                      | ------ | ----- | ----- |
-| N. Instances               | 6168   | 770   | 770   |
+|              |  train |  validation |  test |
+|--------------|-------:|------------:|------:|
+| N. Instances |   6168 |         770 |   770 |
 
 - woz_dialogs
 
 The data in `woz_dialogs` config has no default splits.
 
-|                            | Tain   |
-| -----                      | ------ |
-| N. Instances               | 5507   |
+|              |  train |
+|--------------|-------:|
+| N. Instances |   5507 |
 
 
 ## Dataset Creation
@@ -259,3 +262,6 @@ author	= {Bill Byrne and Karthik Krishnamoorthi and Chinnadhurai Sankar and Arvi
 year	= {2019}
 }
 ```
+### Contributions
+
+Thanks to [@patil-suraj](https://github.com/patil-suraj) for adding this dataset.

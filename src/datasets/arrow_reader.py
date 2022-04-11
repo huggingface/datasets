@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,19 +21,20 @@ import os
 import re
 import shutil
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import pyarrow as pa
-import pyarrow.parquet
-
-from datasets.utils.file_utils import DownloadConfig
+import pyarrow.parquet as pq
 
 from .naming import _split_re, filename_for_dataset_split
-from .utils import cached_path, logging
+from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables
+from .utils import logging
+from .utils.file_utils import DownloadConfig, cached_path
 
 
 if TYPE_CHECKING:
     from .info import DatasetInfo  # noqa: F401
+    from .splits import Split  # noqa: F401
 
 
 logger = logging.get_logger(__name__)
@@ -42,33 +42,31 @@ logger = logging.get_logger(__name__)
 HF_GCP_BASE_URL = "https://storage.googleapis.com/huggingface-nlp/cache/datasets"
 
 _SUB_SPEC_RE = re.compile(
-    r"""
+    rf"""
 ^
- (?P<split>{split_re})
+ (?P<split>{_split_re[1:-1]})
  (\[
     ((?P<from>-?\d+)
      (?P<from_pct>%)?)?
     :
     ((?P<to>-?\d+)
      (?P<to_pct>%)?)?
- \])?
+ \])?(\((?P<rounding>[^\)]*)\))?
 $
-""".format(
-        split_re=_split_re[1:-1]
-    ),  # remove ^ and $
+""",  # remove ^ and $
     re.X,
 )
 
 _ADDITION_SEP_RE = re.compile(r"\s*\+\s*")
 
 
-class DatasetNotOnHfGcs(ConnectionError):
+class DatasetNotOnHfGcsError(ConnectionError):
     """When you can't get the dataset from the Hf google cloud storage"""
 
     pass
 
 
-class MissingFilesOnHfGcs(ConnectionError):
+class MissingFilesOnHfGcsError(ConnectionError):
     """When some files are missing on the Hf oogle cloud storage"""
 
     pass
@@ -96,7 +94,7 @@ def make_file_instructions(name, split_infos, instruction, filetype_suffix=None)
         name: Name of the dataset.
         split_infos: `List[SplitInfo]`, Dataset splits information
         instruction: `ReadInstruction` or `str`
-        filetype_suffix: `Optional[str]` suffix of dataset files, e.g. 'arrow' or 'parquet'
+        filetype_suffix: :obj:`str`, optional suffix of dataset files, e.g. 'arrow' or 'parquet'
 
     Returns:
         file_intructions: FileInstructions instance
@@ -149,33 +147,35 @@ class BaseReader:
         self._info: Optional["DatasetInfo"] = info
         self._filetype_suffix: Optional[str] = None
 
-    def _get_dataset_from_filename(self, filename_skip_take):
+    def _get_table_from_filename(self, filename_skip_take, in_memory=False) -> Table:
         """Returns a Dataset instance from given (filename, skip, take)."""
         raise NotImplementedError
 
-    def _read_files(self, files) -> pa.Table:
+    def _read_files(self, files, in_memory=False) -> Table:
         """Returns Dataset for given file instructions.
 
         Args:
             files: List[dict(filename, skip, take)], the files information.
                 The filenames contain the absolute path, not relative.
                 skip/take indicates which example read in the file: `ds.slice(skip, take)`
+            in_memory (bool, default False): Whether to copy the data in-memory.
         """
-        assert len(files) > 0 and all(isinstance(f, dict) for f in files), "please provide valid file informations"
+        if len(files) == 0 or not all(isinstance(f, dict) for f in files):
+            raise ValueError("please provide valid file informations")
         pa_tables = []
         files = copy.deepcopy(files)
         for f in files:
-            f.update(filename=os.path.join(self._path, f["filename"]))
+            f["filename"] = os.path.join(self._path, f["filename"])
         for f_dict in files:
-            pa_table: pa.Table = self._get_dataset_from_filename(f_dict)
+            pa_table: Table = self._get_table_from_filename(f_dict, in_memory=in_memory)
             pa_tables.append(pa_table)
         pa_tables = [t for t in pa_tables if len(t) > 0]
         if not pa_tables and (self._info is None or self._info.features is None):
             raise ValueError(
                 "Tried to read an empty table. Please specify at least info.features to create an empty table with the right type."
             )
-        pa_tables = pa_tables or [pa.Table.from_batches([], schema=pa.schema(self._info.features.type))]
-        pa_table = pa.concat_tables(pa_tables)
+        pa_tables = pa_tables or [InMemoryTable.from_batches([], schema=pa.schema(self._info.features.type))]
+        pa_table = concat_tables(pa_tables) if len(pa_tables) != 1 else pa_tables[0]
         return pa_table
 
     def get_file_instructions(self, name, instruction, split_infos):
@@ -191,6 +191,7 @@ class BaseReader:
         name,
         instructions,
         split_infos,
+        in_memory=False,
     ):
         """Returns Dataset instance(s).
 
@@ -200,6 +201,7 @@ class BaseReader:
                 Instruction can be string and will then be passed to the Instruction
                 constructor as it.
             split_infos (list of SplitInfo proto): the available splits for dataset.
+            in_memory (bool, default False): Whether to copy the data in-memory.
 
         Returns:
              kwargs to build a single Dataset instance.
@@ -207,14 +209,15 @@ class BaseReader:
 
         files = self.get_file_instructions(name, instructions, split_infos)
         if not files:
-            msg = 'Instruction "%s" corresponds to no data!' % instructions
+            msg = f'Instruction "{instructions}" corresponds to no data!'
             raise AssertionError(msg)
-        return self.read_files(files=files, original_instructions=instructions)
+        return self.read_files(files=files, original_instructions=instructions, in_memory=in_memory)
 
     def read_files(
         self,
-        files,
-        original_instructions=None,
+        files: List[dict],
+        original_instructions: Union[None, "ReadInstruction", "Split"] = None,
+        in_memory=False,
     ):
         """Returns single Dataset instance for the set of file instructions.
 
@@ -222,17 +225,22 @@ class BaseReader:
             files: List[dict(filename, skip, take)], the files information.
                 The filenames contains the relative path, not absolute.
                 skip/take indicates which example read in the file: `ds.skip().take()`
-            original_instructions: store the original instructions used to build the dataset split in the dataset
+            original_instructions: store the original instructions used to build the dataset split in the dataset.
+            in_memory (bool, default False): Whether to copy the data in-memory.
 
         Returns:
             kwargs to build a Dataset instance.
         """
         # Prepend path to filename
-        pa_table = self._read_files(files)
-        files = copy.deepcopy(files)
-        for f in files:
-            f.update(filename=os.path.join(self._path, f["filename"]))
-        dataset_kwargs = dict(arrow_table=pa_table, data_files=files, info=self._info, split=original_instructions)
+        pa_table = self._read_files(files, in_memory=in_memory)
+        # If original_instructions is not None, convert it to a human-readable NamedSplit
+        if original_instructions is not None:
+            from .splits import Split  # noqa
+
+            split = Split(str(original_instructions))
+        else:
+            split = None
+        dataset_kwargs = dict(arrow_table=pa_table, info=self._info, split=split)
         return dataset_kwargs
 
     def download_from_hf_gcs(self, download_config: DownloadConfig, relative_data_dir):
@@ -252,8 +260,8 @@ class BaseReader:
             shutil.move(downloaded_dataset_info, os.path.join(self._path, "dataset_info.json"))
             if self._info is not None:
                 self._info.update(self._info.from_directory(self._path))
-        except FileNotFoundError:
-            raise DatasetNotOnHfGcs()
+        except FileNotFoundError as err:
+            raise DatasetNotOnHfGcsError(err) from None
         try:
             for split in self._info.splits:
                 file_instructions = self.get_file_instructions(
@@ -267,14 +275,14 @@ class BaseReader:
                         remote_prepared_filename.replace(os.sep, "/"), download_config=download_config
                     )
                     shutil.move(downloaded_prepared_filename, os.path.join(self._path, file_instruction["filename"]))
-        except FileNotFoundError:
-            raise MissingFilesOnHfGcs()
+        except FileNotFoundError as err:
+            raise MissingFilesOnHfGcsError(err) from None
 
 
 class ArrowReader(BaseReader):
     """
     Build a Dataset object out of Instruction instance(s).
-    This Reader uses memory mapping on arrow files.
+    This Reader uses either memory mapping or file descriptors (in-memory) on arrow files.
     """
 
     def __init__(self, path: str, info: Optional["DatasetInfo"]):
@@ -287,20 +295,33 @@ class ArrowReader(BaseReader):
         super().__init__(path, info)
         self._filetype_suffix = "arrow"
 
-    def _get_dataset_from_filename(self, filename_skip_take):
+    def _get_table_from_filename(self, filename_skip_take, in_memory=False) -> Table:
         """Returns a Dataset instance from given (filename, skip, take)."""
         filename, skip, take = (
             filename_skip_take["filename"],
             filename_skip_take["skip"] if "skip" in filename_skip_take else None,
             filename_skip_take["take"] if "take" in filename_skip_take else None,
         )
-        mmap = pa.memory_map(filename)
-        f = pa.ipc.open_stream(mmap)
-        pa_table = f.read_all()
+        table = ArrowReader.read_table(filename, in_memory=in_memory)
         # here we don't want to slice an empty table, or it may segfault
-        if skip is not None and take is not None and not (skip == 0 and take == len(pa_table)):
-            pa_table = pa_table.slice(skip, take)
-        return pa_table
+        if skip is not None and take is not None and not (skip == 0 and take == len(table)):
+            table = table.slice(skip, take)
+        return table
+
+    @staticmethod
+    def read_table(filename, in_memory=False) -> Table:
+        """
+        Read table from file.
+
+        Args:
+            filename (str): File name of the table.
+            in_memory (bool, default=False): Whether to copy the data in-memory.
+
+        Returns:
+            pyarrow.Table
+        """
+        table_cls = InMemoryTable if in_memory else MemoryMappedTable
+        return table_cls.from_file(filename)
 
 
 class ParquetReader(BaseReader):
@@ -319,14 +340,15 @@ class ParquetReader(BaseReader):
         super().__init__(path, info)
         self._filetype_suffix = "parquet"
 
-    def _get_dataset_from_filename(self, filename_skip_take):
+    def _get_table_from_filename(self, filename_skip_take, **kwargs):
         """Returns a Dataset instance from given (filename, skip, take)."""
         filename, skip, take = (
             filename_skip_take["filename"],
             filename_skip_take["skip"] if "skip" in filename_skip_take else None,
             filename_skip_take["take"] if "take" in filename_skip_take else None,
         )
-        pa_table = pa.parquet.read_table(filename, memory_map=True)
+        # Parquet read_table always loads data in memory, independently of memory_map
+        pa_table = pq.read_table(filename, memory_map=True)
         # here we don't want to slice an empty table, or it may segfault
         if skip is not None and take is not None and not (skip == 0 and take == len(pa_table)):
             pa_table = pa_table.slice(skip, take)
@@ -353,23 +375,29 @@ class _RelativeInstruction:
     rounding: Optional[str] = None
 
     def __post_init__(self):
-        assert self.unit is None or self.unit in ["%", "abs"]
-        assert self.rounding is None or self.rounding in ["closest", "pct1_dropremainder"]
+        if self.unit is not None and self.unit not in ["%", "abs"]:
+            raise ValueError("unit must be either % or abs")
+        if self.rounding is not None and self.rounding not in ["closest", "pct1_dropremainder"]:
+            raise ValueError("rounding must be either closest or pct1_dropremainder")
+        if self.unit != "%" and self.rounding is not None:
+            raise AssertionError("It is forbidden to specify rounding if not using percent slicing.")
         if self.unit == "%" and self.from_ is not None and abs(self.from_) > 100:
             raise AssertionError("Percent slice boundaries must be > -100 and < 100.")
         if self.unit == "%" and self.to is not None and abs(self.to) > 100:
             raise AssertionError("Percent slice boundaries must be > -100 and < 100.")
+        # Update via __dict__ due to instance being "frozen"
+        self.__dict__["rounding"] = "closest" if self.rounding is None and self.unit == "%" else self.rounding
 
 
-def _str_to_relative_instruction(spec):
+def _str_to_read_instruction(spec):
     """Returns ReadInstruction for given string."""
     res = _SUB_SPEC_RE.match(spec)
     if not res:
-        raise AssertionError("Unrecognized instruction format: %s" % spec)
+        raise AssertionError(f"Unrecognized instruction format: {spec}")
     unit = "%" if res.group("from_pct") or res.group("to_pct") else "abs"
     return ReadInstruction(
         split_name=res.group("split"),
-        rounding="closest",
+        rounding=res.group("rounding"),
         from_=int(res.group("from")) if res.group("from") else None,
         to=int(res.group("to")) if res.group("to") else None,
         unit=unit,
@@ -401,7 +429,7 @@ def _rel_to_abs_instr(rel_instr, name2len):
     pct_to_abs = _pct_to_abs_closest if rel_instr.rounding == "closest" else _pct_to_abs_pct1
     split = rel_instr.splitname
     if split not in name2len:
-        raise ValueError('Unknown split "{}". Should be one of {}.'.format(split, list(name2len)))
+        raise ValueError(f'Unknown split "{split}". Should be one of {list(name2len)}.')
     num_examples = name2len[split]
     from_ = rel_instr.from_
     to = rel_instr.to
@@ -412,7 +440,7 @@ def _rel_to_abs_instr(rel_instr, name2len):
         from_ = 0 if from_ is None else from_
         to = num_examples if to is None else to
     if abs(from_) > num_examples or abs(to) > num_examples:
-        msg = "Requested slice [%s:%s] incompatible with %s examples." % (from_ or "", to or "", num_examples)
+        msg = f'Requested slice [{from_ or ""}:{to or ""}] incompatible with {num_examples} examples.'
         raise AssertionError(msg)
     if from_ < 0:
         from_ = num_examples + from_
@@ -425,37 +453,42 @@ def _rel_to_abs_instr(rel_instr, name2len):
     return _AbsoluteInstruction(split, from_, to)
 
 
-class ReadInstruction(object):
+class ReadInstruction:
     """Reading instruction for a dataset.
 
-    Examples of usage:
+    Examples::
 
-    ```
-    # The following lines are equivalent:
-    ds = datasets.load_dataset('mnist', split='test[:33%]')
-    ds = datasets.load_dataset('mnist', split=ReadInstruction.from_spec('test[:33%]'))
-    ds = datasets.load_dataset('mnist', split=ReadInstruction('test', to=33, unit='%'))
-    ds = datasets.load_dataset('mnist', split=ReadInstruction(
-            'test', from_=0, to=33, unit='%'))
+      # The following lines are equivalent:
+      ds = datasets.load_dataset('mnist', split='test[:33%]')
+      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction.from_spec('test[:33%]'))
+      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction('test', to=33, unit='%'))
+      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction(
+          'test', from_=0, to=33, unit='%'))
 
-    # The following lines are equivalent:
-    ds = datasets.load_dataset('mnist', split='test[:33%]+train[1:-1]')
-    ds = datasets.load_dataset('mnist', split=ReadInstruction.from_spec(
-            'test[:33%]+train[1:-1]'))
-    ds = datasets.load_dataset('mnist', split=(
-            ReadInstruction.('test', to=33, unit='%') +
-            ReadInstruction.('train', from_=1, to=-1, unit='abs')))
+      # The following lines are equivalent:
+      ds = datasets.load_dataset('mnist', split='test[:33%]+train[1:-1]')
+      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction.from_spec(
+          'test[:33%]+train[1:-1]'))
+      ds = datasets.load_dataset('mnist', split=(
+          datasets.ReadInstruction('test', to=33, unit='%') +
+          datasets.ReadInstruction('train', from_=1, to=-1, unit='abs')))
 
-    # 10-fold validation:
-    tests = datasets.load_dataset(
-            'mnist',
-            [ReadInstruction('train', from_=k, to=k+10, unit='%')
-             for k in range(0, 100, 10)])
-    trains = datasets.load_dataset(
-            'mnist',
-            [RI('train', to=k, unit='%') + RI('train', from_=k+10, unit='%')
-             for k in range(0, 100, 10)])
-    ```
+      # The following lines are equivalent:
+      ds = datasets.load_dataset('mnist', split='test[:33%](pct1_dropremainder)')
+      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction.from_spec(
+          'test[:33%](pct1_dropremainder)'))
+      ds = datasets.load_dataset('mnist', split=datasets.ReadInstruction(
+          'test', from_=0, to=33, unit='%', rounding="pct1_dropremainder"))
+
+      # 10-fold validation:
+      tests = datasets.load_dataset(
+          'mnist',
+          [datasets.ReadInstruction('train', from_=k, to=k+10, unit='%')
+          for k in range(0, 100, 10)])
+      trains = datasets.load_dataset(
+          'mnist',
+          [datasets.ReadInstruction('train', to=k, unit='%') + datasets.ReadInstruction('train', from_=k+10, unit='%')
+          for k in range(0, 100, 10)])
 
     """
 
@@ -471,12 +504,12 @@ class ReadInstruction(object):
         result._init(relative_instructions)  # pylint: disable=protected-access
         return result
 
-    def __init__(self, split_name, rounding="closest", from_=None, to=None, unit=None):
+    def __init__(self, split_name, rounding=None, from_=None, to=None, unit=None):
         """Initialize ReadInstruction.
 
         Args:
             split_name (str): name of the split to read. Eg: 'train'.
-            rounding (str): The rounding behaviour to use when percent slicing is
+            rounding (str, optional): The rounding behaviour to use when percent slicing is
                 used. Ignored when slicing with absolute indices.
                 Possible values:
                  - 'closest' (default): The specified percentages are rounded to the
@@ -505,14 +538,17 @@ class ReadInstruction(object):
         """Creates a ReadInstruction instance out of a string spec.
 
         Args:
-            spec (str): split(s) + optional slice(s) to read. A slice can be
-                        specified, using absolute numbers (int) or percentages (int). E.g.
+            spec (str): split(s) + optional slice(s) to read + optional rounding
+                        if percents are used as the slicing unit. A slice can be specified,
+                        using absolute numbers (int) or percentages (int). E.g.
                             `test`: test split.
                             `test + validation`: test split + validation split.
                             `test[10:]`: test split, minus its first 10 records.
                             `test[:10%]`: first 10% records of test split.
+                            `test[:20%](pct1_dropremainder)`: first 10% records, rounded with
+                                                              the `pct1_dropremainder` rounding.
                             `test[:-5%]+train[40%:60%]`: first 95% of test + middle 20% of
-                                                                                     train.
+                                                         train.
 
         Returns:
             ReadInstruction instance.
@@ -520,22 +556,50 @@ class ReadInstruction(object):
         spec = str(spec)  # Need to convert to str in case of NamedSplit instance.
         subs = _ADDITION_SEP_RE.split(spec)
         if not subs:
-            raise AssertionError("No instructions could be built out of %s" % spec)
-        instruction = _str_to_relative_instruction(subs[0])
-        return sum([_str_to_relative_instruction(sub) for sub in subs[1:]], instruction)
+            raise AssertionError(f"No instructions could be built out of {spec}")
+        instruction = _str_to_read_instruction(subs[0])
+        return sum((_str_to_read_instruction(sub) for sub in subs[1:]), instruction)
+
+    def to_spec(self):
+        rel_instr_specs = []
+        for rel_instr in self._relative_instructions:
+            rel_instr_spec = rel_instr.splitname
+            if rel_instr.from_ is not None or rel_instr.to is not None:
+                from_ = rel_instr.from_
+                to = rel_instr.to
+                unit = rel_instr.unit
+                rounding = rel_instr.rounding
+                unit = unit if unit == "%" else ""
+                from_ = str(from_) + unit if from_ is not None else ""
+                to = str(to) + unit if to is not None else ""
+                slice_str = f"[{from_}:{to}]"
+                rounding_str = (
+                    f"({rounding})" if unit == "%" and rounding is not None and rounding != "closest" else ""
+                )
+                rel_instr_spec += slice_str + rounding_str
+            rel_instr_specs.append(rel_instr_spec)
+        return "+".join(rel_instr_specs)
 
     def __add__(self, other):
         """Returns a new ReadInstruction obj, result of appending other to self."""
         if not isinstance(other, ReadInstruction):
             msg = "ReadInstruction can only be added to another ReadInstruction obj."
             raise AssertionError(msg)
+        self_ris = self._relative_instructions
         other_ris = other._relative_instructions  # pylint: disable=protected-access
-        if self._relative_instructions[0].rounding != other_ris[0].rounding:
-            raise AssertionError("It is forbidden to sum ReadInstruction instances " "with different rounding values.")
-        return self._read_instruction_from_relative_instructions(self._relative_instructions + other_ris)
+        if (
+            self_ris[0].unit != "abs"
+            and other_ris[0].unit != "abs"
+            and self._relative_instructions[0].rounding != other_ris[0].rounding
+        ):
+            raise AssertionError("It is forbidden to sum ReadInstruction instances with different rounding values.")
+        return self._read_instruction_from_relative_instructions(self_ris + other_ris)
 
     def __str__(self):
-        return "ReadInstruction(%s)" % self._relative_instructions
+        return self.to_spec()
+
+    def __repr__(self):
+        return f"ReadInstruction({self._relative_instructions})"
 
     def to_absolute(self, name2len):
         """Translate instruction into a list of absolute instructions.

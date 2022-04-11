@@ -1,4 +1,5 @@
 ---
+pretty_name: "PAWS: Paraphrase Adversaries from Word Scrambling"
 annotations_creators:
   labeled_final:
   - expert-generated
@@ -30,14 +31,15 @@ task_ids:
 - semantic-similarity-classification
 - semantic-similarity-scoring
 - text-scoring-other-paraphrase-identification
+paperswithcode_id: paws
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for PAWS: Paraphrase Adversaries from Word Scrambling
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -56,6 +58,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -194,3 +197,6 @@ The dataset may be freely used for any purpose, although acknowledgement of Goog
   year = {2019}
 }
 ```
+### Contributions
+
+Thanks to [@bhavitvyamalik](https://github.com/bhavitvyamalik) for adding this dataset.

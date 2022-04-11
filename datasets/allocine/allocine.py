@@ -1,11 +1,11 @@
 """Allocine Dataset: A Large-Scale French Movie Reviews Dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -66,6 +66,7 @@ class AllocineDataset(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/TheophileBlard/french-sentiment-analysis-with-bert",
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="review", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):

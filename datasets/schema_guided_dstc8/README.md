@@ -22,6 +22,8 @@ task_ids:
 - dialogue-modeling
 - multi-class-classification
 - parsing
+paperswithcode_id: sgd
+pretty_name: Schema-Guided Dialogue
 ---
 
 # Dataset Card for The Schema-Guided Dialogue Dataset
@@ -29,12 +31,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -48,6 +50,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -111,10 +114,10 @@ Each dialog instance has the following fields:
 
 The dataset is split into a `train`, `validation`, and `test` split with the following sizes:
 
-|                            | Tain   | Valid | Test  |
-| -----                      | ------ | ----- | ----- |
-| Number of dialogues        | 16142  | 2482  | 4201  |
-| Number of turns            | 48426  | 7446  | 12603 |
+|                     | train | validation |  test |
+|---------------------|------:|-----------:|------:|
+| Number of dialogues | 16142 |       2482 |  4201 |
+| Number of turns     | 48426 |       7446 | 12603 |
 
 
 ## Dataset Creation
@@ -217,3 +220,7 @@ For the initial release paper please cite:
   url       = {https://aaai.org/ojs/index.php/AAAI/article/view/6394}
 }
 ```
+
+### Contributions
+
+Thanks to [@yjernite](https://github.com/yjernite) for adding this dataset.

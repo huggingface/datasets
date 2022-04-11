@@ -1,32 +1,39 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+- copy-paste the tags obtained with the online tagging app: https://huggingface.co/spaces/huggingface/datasets-tagging
 ---
 
 # Dataset Card Creation Guide
 
 ## Table of Contents
-- [Dataset Description](#dataset-description)
-  - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
-  - [Languages](#languages)
-- [Dataset Structure](#dataset-structure)
-  - [Data Instances](#data-instances)
-  - [Data Fields](#data-fields)
-  - [Data Splits](#data-splits)
-- [Dataset Creation](#dataset-creation)
-  - [Curation Rationale](#curation-rationale)
-  - [Source Data](#source-data)
-  - [Annotations](#annotations)
-  - [Personal and Sensitive Information](#personal-and-sensitive-information)
-- [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Impact of Dataset](#social-impact-of-dataset)
-  - [Discussion of Biases](#discussion-of-biases)
-  - [Other Known Limitations](#other-known-limitations)
-- [Additional Information](#additional-information)
-  - [Dataset Curators](#dataset-curators)
-  - [Licensing Information](#licensing-information)
-  - [Citation Information](#citation-information)
+- [Dataset Card Creation Guide](#dataset-card-creation-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Dataset Description](#dataset-description)
+    - [Dataset Summary](#dataset-summary)
+    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+    - [Languages](#languages)
+  - [Dataset Structure](#dataset-structure)
+    - [Data Instances](#data-instances)
+    - [Data Fields](#data-fields)
+    - [Data Splits](#data-splits)
+  - [Dataset Creation](#dataset-creation)
+    - [Curation Rationale](#curation-rationale)
+    - [Source Data](#source-data)
+      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
+      - [Who are the source language producers?](#who-are-the-source-language-producers)
+    - [Annotations](#annotations)
+      - [Annotation process](#annotation-process)
+      - [Who are the annotators?](#who-are-the-annotators)
+    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Considerations for Using the Data](#considerations-for-using-the-data)
+    - [Social Impact of Dataset](#social-impact-of-dataset)
+    - [Discussion of Biases](#discussion-of-biases)
+    - [Other Known Limitations](#other-known-limitations)
+  - [Additional Information](#additional-information)
+    - [Dataset Curators](#dataset-curators)
+    - [Licensing Information](#licensing-information)
+    - [Citation Information](#citation-information)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -73,20 +80,20 @@ List and describe the fields present in the dataset. Mention their data type, an
 
 - `example_field`: description of `example_field`
 
-Note that the descriptions can be initialized with the **Show Markdown Data Fields** output of the [tagging app](https://github.com/huggingface/datasets-tagging), you will then only need to refine the generated descriptions.
+Note that the descriptions can be initialized with the **Show Markdown Data Fields** output of the [Datasets Tagging app](https://huggingface.co/spaces/huggingface/datasets-tagging), you will then only need to refine the generated descriptions.
 
 ### Data Splits
 
 Describe and name the splits in the dataset if there are more than one.
 
-Describe any criteria for splitting the data, if used. If their are differences between the splits (e.g. if the training annotations are machine-generated and the dev and test ones are created by humans, or if different numbers of annotators contributed to each example), describe them here.
+Describe any criteria for splitting the data, if used. If there are differences between the splits (e.g. if the training annotations are machine-generated and the dev and test ones are created by humans, or if different numbers of annotators contributed to each example), describe them here.
 
 Provide the sizes of each split. As appropriate, provide any descriptive statistics for the features, such as average length.  For example:
 
-|                            | Tain   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| Input Sentences            |        |       |      |
-| Average Sentence Length    |        |       |      |
+|                         | train | validation | test |
+|-------------------------|------:|-----------:|-----:|
+| Input Sentences         |       |            |      |
+| Average Sentence Length |       |            |      |
 
 ## Dataset Creation
 
@@ -150,7 +157,7 @@ Please discuss some of the ways you believe the use of this dataset will impact 
 
 The statement should include both positive outlooks, such as outlining how technologies developed through its use may improve people's lives, and discuss the accompanying risks. These risks may range from making important decisions more opaque to people who are affected by the technology, to reinforcing existing harmful biases (whose specifics should be discussed in the next section), among other considerations.
 
-Please also mention in this section if the proposed dataset contains a *low-resource* or under-represented language.
+Also describe in this section if the proposed dataset contains a low-resource or under-represented language. If this is the case or if this task has any impact on underserved communities, please elaborate here.
 
 ### Discussion of Biases
 
@@ -187,3 +194,7 @@ Provide the [BibTex](http://www.bibtex.org/)-formatted reference for the dataset
 ```
 
 If the dataset has a [DOI](https://www.doi.org/), please provide it here.
+
+### Contributions
+
+Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.

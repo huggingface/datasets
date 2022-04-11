@@ -19,6 +19,8 @@ task_categories:
 task_ids:
 - dialogue-modeling
 - machine-translation
+paperswithcode_id: hong-kong-cantonese-corpus
+pretty_name: The Hong Kong Cantonese Corpus (HKCanCor)
 ---
 
 # Dataset Card for The Hong Kong Cantonese Corpus (HKCanCor)
@@ -26,12 +28,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -45,14 +47,15 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** http://compling.hss.ntu.edu.sg/hkcancor/
+- **Repository:** https://github.com/fcbond/hkcancor
+- **Paper:** [Luke and Wang, 2015](https://github.com/fcbond/hkcancor/blob/master/data/LukeWong_Hong-Kong-Cantonese-Corpus.pdf)
+- **Leaderboard:** N/A
+- **Point of Contact:** Luke Kang Kwong
 
 ### Dataset Summary
 The Hong Kong Cantonese Corpus (HKCanCor) comprise transcribed conversations recorded 
@@ -98,12 +101,16 @@ For example:
  ```
 
 ### Data Fields
-
-[More Information Needed]
+- conversation_id: unique dialogue-level id
+- pos_tags_prf: POS tag using the PRF format at token-level
+- pos_tag_ud: POS tag using the UD2.0 format at token-level
+- speaker: unique speaker id within dialogue
+- transcriptions: token-level romanisation in the LSHK format
+- turn_number: turn number in dialogue
+- tokens: Chinese word or punctuation at token-level
 
 ### Data Splits
-
-[More Information Needed]
+There are no specified splits in this dataset.
 
 ## Dataset Creation
 
@@ -183,3 +190,6 @@ The POS tagset to Universal Dependency tagset mapping is provided by Jackson Lee
   commit = {1d58f44e1cb097faa69de6b617e1d28903b84b98}
 }
 ```
+### Contributions
+
+Thanks to [@j-chim](https://github.com/j-chim) for adding this dataset.

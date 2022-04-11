@@ -12,14 +12,16 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 1k<n<10k
+- 1K<n<10K
 source_datasets:
 - extended|other-tirasaroj-aroonmanakun
 task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
-- parsing
+- part-of-speech-tagging
+paperswithcode_id: null
+pretty_name: thainer
 ---
 
 # Dataset Card for `thainer`
@@ -27,12 +29,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -46,6 +48,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -159,3 +162,7 @@ CC-BY 3.0
 
 Work extended from:
 [Tirasaroj, N.  and Aroonmanakun, W. 2012. Thai NER using CRF model based on surface features. In Proceedings of SNLP-AOS 2011, 9-10 February, 2012, Bangkok, pages 176-180.](http://pioneer.chula.ac.th/~awirote/publications/)
+
+### Contributions
+
+Thanks to [@cstorm125](https://github.com/cstorm125) for adding this dataset.

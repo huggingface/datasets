@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 licenses:
-- gpl-3.0+
+- gpl-3.0
 multilinguality:
 - monolingual
 size_categories:
@@ -26,38 +26,35 @@ task_ids:
   offmychest:
   - dialogue-modeling
   - utterance-retrieval
+paperswithcode_id: pec
+pretty_name: Persona-Based Empathetic Conversational
 ---
 
 # Dataset Card for PEC
 
 ## Table of Contents
-- [Dataset Card for PEC](#dataset-card-for-pec)
-  - [Table of Contents](#table-of-contents)
-  - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
-      - [Who are the source language producers?](#who-are-the-source-language-producers)
-    - [Annotations](#annotations)
-      - [Annotation process](#annotation-process)
-      - [Who are the annotators?](#who-are-the-annotators)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -110,11 +107,11 @@ An example from PEC looks as follows:
 ### Data Splits
 The data is split into a training, validation and test set for each of the three domains. Note that the *all* domain is the concatenation of the *happy* and *offmychest* domains.
 
-| domain     | Tain   | Valid | Test |
-| -----      | ------ | ----- | ---- |
-| happy      | 157195 | 19829 | 22730|
-| offmychest | 123968 | 16004 | 15324|
-| all        | 281163 | 35833 | 38054|
+| domain     |  train | validation |  test |
+|------------|-------:|-----------:|------:|
+| happy      | 157195 |      19829 | 22730 |
+| offmychest | 123968 |      16004 | 15324 |
+| all        | 281163 |      35833 | 38054 |
 
 ## Dataset Creation
 
@@ -186,3 +183,6 @@ The licensing status of the dataset hinges on the legal status of the [Pushshift
     pages = "6556--6566"
 }
 ```
+### Contributions
+
+Thanks to [@zhongpeixiang](https://github.com/zhongpeixiang) for adding this dataset.

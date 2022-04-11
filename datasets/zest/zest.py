@@ -16,7 +16,6 @@
 # Lint as: python3
 """ZEST: ZEroShot learning from Task descriptions"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
@@ -50,7 +49,7 @@ _CITATION = """\
 }
 """
 
-_DOWNLOAD_URL = "https://ai2-datasets.s3-us-west-2.amazonaws.com/zest/zest.zip"
+_DOWNLOAD_URL = "https://ai2-public-datasets.s3.amazonaws.com/zest/zest.zip"
 _WEBPAGE = "https://allenai.org/data/zest"
 
 

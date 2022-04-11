@@ -22,6 +22,8 @@ task_ids:
 - dialogue-modeling
 - multi-class-classification
 - parsing
+paperswithcode_id: multiwoz
+pretty_name: Multi-domain Wizard-of-Oz
 ---
 
 # Dataset Card for MultiWOZ
@@ -29,12 +31,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -48,6 +50,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -169,10 +172,10 @@ There are also some non-categorical slots whose values are carried over from ano
 
 The dataset is split into a `train`, `validation`, and `test` split with the following sizes:
 
-|                            | Tain   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| Number of dialogues        | 8438   | 1000  | 1000 |
-| Number of turns            | 42190  | 5000  | 5000 |
+|                     | train | validation | test |
+|---------------------|------:|-----------:|-----:|
+| Number of dialogues |  8438 |       1000 | 1000 |
+| Number of turns     | 42190 |       5000 | 5000 |
 
 ## Dataset Creation
 
@@ -274,3 +277,7 @@ Version 2.2
   year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@yjernite](https://github.com/yjernite) for adding this dataset.

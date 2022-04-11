@@ -6,17 +6,19 @@ language_creators:
 languages:
 - tr
 licenses:
-- found
+- cc-by-2.0
 multilinguality:
 - monolingual
 size_categories:
-- 10k<n<100k
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
-- text_classification
+- text-classification
 task_ids:
 - text-classification-other-offensive-language-classification
+paperswithcode_id: null
+pretty_name: OffensEval-TR 2020
 ---
 
 # Dataset Card for OffensEval-TR 2020
@@ -24,24 +26,26 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
   - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Discussion of Social Impact and Biases](#discussion-of-social-impact-and-biases)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
   - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -98,9 +102,9 @@ In our annotation, we label a post as offensive (OFF) if it contains any form of
 
 ### Data Splits
 
-| Tain  | Test  | 
-|-------| ----- | 
-| 31756 | 3528  | 
+| train | test |
+|------:|-----:|
+| 31756 | 3528 |
 
 ## Dataset Creation
 
@@ -152,7 +156,11 @@ We describe the labels above in a “flat” manner. However, the annotation pro
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
 
 [More Information Needed]
 
@@ -183,3 +191,7 @@ The annotations are distributed under the terms of [Creative Commons Attribution
  url  = {https://www.aclweb.org/anthology/2020.lrec-1.758},
 }
 ```
+
+### Contributions
+
+Thanks to [@yavuzKomecoglu](https://github.com/yavuzKomecoglu) for adding this dataset.

@@ -10,13 +10,15 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 1K<n<10K
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
 - sequence-modeling
 task_ids:
 - dialogue-modeling
+paperswithcode_id: null
+pretty_name: taskmaster3
 ---
 
 # Dataset Card Creation Guide
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -256,3 +259,6 @@ author	= {Bill Byrne and Karthik Krishnamoorthi and Chinnadhurai Sankar and Arvi
 year	= {2019}
 }
 ```
+### Contributions
+
+Thanks to [@patil-suraj](https://github.com/patil-suraj) for adding this dataset.

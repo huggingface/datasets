@@ -10,26 +10,28 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n<1K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+paperswithcode_id: gutenberg-poem-dataset
+pretty_name: Gutenberg Poem Dataset
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Gutenberg Poem Dataset
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -87,9 +90,9 @@ Example of one instance in the dataset.
 
 The dataset is split into a `train`, `validation`, and `test` split with the following sizes:
 
-|                            | Tain   | Valid | Test  |
-| -----                      | ------ | ----- | ----- |
-| Number of examples         | 892    | 105   | 104   |
+|                    | train | validation | test |
+|--------------------|------:|-----------:|-----:|
+| Number of examples |   892 |        105 |  104 |
 
 
 
@@ -164,3 +167,7 @@ This work is licensed under a Creative Commons Attribution 4.0 International Lic
       primaryClass={cs.CL}
 }
 ```
+
+### Contributions
+
+Thanks to [@patil-suraj](https://github.com/patil-suraj) for adding this dataset.

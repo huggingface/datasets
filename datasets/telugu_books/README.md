@@ -17,6 +17,8 @@ task_categories:
 - sequence-modeling
 task_ids:
 - language-modeling
+paperswithcode_id: null
+pretty_name: TeluguBooks
 ---
 
  # Dataset Card for [telugu_books]
@@ -138,3 +140,7 @@ TE - Telugu
  ### Citation Information
 
  [More Information Needed]
+
+### Contributions
+
+Thanks to [@vinaykudari](https://github.com/vinaykudari) for adding this dataset.

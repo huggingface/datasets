@@ -18,6 +18,7 @@ import csv
 import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -58,6 +59,7 @@ class FakeNewsFilipino(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="article", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):
@@ -76,7 +78,7 @@ class FakeNewsFilipino(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(
                 csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True

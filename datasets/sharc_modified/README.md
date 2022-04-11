@@ -19,19 +19,21 @@ task_categories:
 task_ids:
 - extractive-qa
 - question-answering-other-conversational-qa
+paperswithcode_id: null
+pretty_name: SharcModified
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for SharcModified
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -45,6 +47,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -56,7 +59,14 @@ task_ids:
 
 ### Dataset Summary
 
-[More Information Needed]
+ShARC, a conversational QA task, requires a system to answer user questions based on rules expressed in natural language text.
+However, it is found that in the ShARC dataset there are multiple spurious patterns that could be exploited by neural models.
+SharcModified is a new dataset which reduces the patterns identified in the original dataset.
+To reduce the sensitivity of neural models, for each occurence of an instance conforming to any of the patterns,
+we automatically construct alternatives where we choose to either replace the current instance with an alternative
+instance which does not exhibit the pattern; or retain the original instance.
+The modified ShARC has two versions sharc-mod and history-shuffled.
+
 
 ### Supported Tasks and Leaderboards
 
@@ -151,9 +161,10 @@ Example of one instance:
 ### Data Splits
 
 The dataset is split into training and validation splits.
-|                            | Tain   | Valid |
-| -----                      | ------ | ----- |
-| N. Instances               | 7638   | 1355  |
+
+|              | train | validation |
+|--------------|------:|-----------:|
+| N. Instances |  7638 |       1355 |
 
 ## Dataset Creation
 
@@ -211,7 +222,7 @@ The dataset is split into training and validation splits.
 
 ### Licensing Information
 
-[More Information Needed]
+Unknown.
 
 ### Citation Information
 
@@ -225,3 +236,6 @@ The dataset is split into training and validation splits.
     primaryClass={cs.CL}
 }
 ```
+### Contributions
+
+Thanks to [@patil-suraj](https://github.com/patil-suraj) for adding this dataset.

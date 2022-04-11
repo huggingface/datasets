@@ -16,13 +16,14 @@
 # Lint as: python3
 """Arabic Jordanian General Tweets."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
+import openpyxl  # noqa: requires this pandas optional dependency for reading xlsx files
 import pandas as pd
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -83,6 +84,7 @@ class AjgtTwitterAr(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/komari6/Arabic-twitter-corpus-AJGT",
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="text", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):
@@ -96,8 +98,8 @@ class AjgtTwitterAr(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Generate examples."""
-        # For labeled examples, extract the label from the path.
-        df = pd.read_excel(filepath)
-        for id_, record in df.iterrows():
-            tweet, sentiment = record["Feed"], record["Sentiment"]
-            yield str(id_), {"text": tweet, "label": sentiment}
+        with open(filepath, "rb") as f:
+            df = pd.read_excel(f, engine="openpyxl")
+            for id_, record in df.iterrows():
+                tweet, sentiment = record["Feed"], record["Sentiment"]
+                yield str(id_), {"text": tweet, "label": sentiment}

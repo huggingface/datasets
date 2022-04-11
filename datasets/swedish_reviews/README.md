@@ -10,13 +10,15 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n<1K
+- 100K<n<1M
 source_datasets:
 - original
 task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+paperswithcode_id: null
+pretty_name: Swedish Reviews
 ---
 
 # Dataset Card for Swedish Reviews
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -91,33 +94,66 @@ The data is split into a training, validation and test set. The final split size
 
 ### Curation Rationale
 
+[More Information Needed]
+
 ### Source Data
+
 Various Swedish websites with product reviews.
+
 #### Initial Data Collection and Normalization
 
 #### Who are the source language producers?
+
 Swedish
+
 ### Annotations
 
+[More Information Needed]
+
 #### Annotation process
+
 Automatically annotated based on user reviews on a scale 1-5, where 1-2 is considered `negative` and 4-5 is `positive`, 3 is skipped as it tends to be more neutral. 
+
 #### Who are the annotators?
+
 The users who have been using the products.
+
 ### Personal and Sensitive Information
+
 [More Information Needed]
+
 ## Considerations for Using the Data
+
 [More Information Needed]
+
 ### Social Impact of Dataset
+
 [More Information Needed]
+
 ### Discussion of Biases
+
 [More Information Needed]
+
 ### Other Known Limitations
+
 [More Information Needed]
+
 ## Additional Information
+
 [More Information Needed]
+
 ### Dataset Curators
+
 The corpus was scraped by @timpal0l
+
 ### Licensing Information
+
 Research only.
+
 ### Citation Information
+
 No paper exists currently.
+
+### Contributions
+
+Thanks to [@timpal0l](https://github.com/timpal0l) for adding this dataset.

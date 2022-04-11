@@ -14,10 +14,8 @@
 # limitations under the License.
 """PAWS-X, a multilingual version of PAWS for six languages."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
-import os
 
 import datasets
 
@@ -119,15 +117,15 @@ class PAWSX(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        data_dir = dl_manager.download_and_extract(_DATA_URL)
+        archive = dl_manager.download(_DATA_URL)
 
-        _TEST_FILE_NAME = os.path.join(data_dir, f"x-final/{self.config.name}/test_2k.tsv")
-        _VAL_FILE_NAME = os.path.join(data_dir, f"x-final/{self.config.name}/dev_2k.tsv")
+        _TEST_FILE_NAME = f"x-final/{self.config.name}/test_2k.tsv"
+        _VAL_FILE_NAME = f"x-final/{self.config.name}/dev_2k.tsv"
 
         if self.config.name == "en":
-            _TRAIN_FILE_NAME = os.path.join(data_dir, f"x-final/{self.config.name}/train.tsv")
+            _TRAIN_FILE_NAME = f"x-final/{self.config.name}/train.tsv"
         else:
-            _TRAIN_FILE_NAME = os.path.join(data_dir, f"x-final/{self.config.name}/translated_train.tsv")
+            _TRAIN_FILE_NAME = f"x-final/{self.config.name}/translated_train.tsv"
 
         return [
             datasets.SplitGenerator(
@@ -135,7 +133,7 @@ class PAWSX(datasets.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": _TRAIN_FILE_NAME,
-                    "split": datasets.Split.TRAIN,
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
@@ -143,7 +141,7 @@ class PAWSX(datasets.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": _TEST_FILE_NAME,
-                    "split": datasets.Split.TEST,
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
@@ -151,22 +149,23 @@ class PAWSX(datasets.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": _VAL_FILE_NAME,
-                    "split": datasets.Split.VALIDATION,
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+    def _generate_examples(self, filepath, files):
+        """Yields examples."""
 
-        with open(filepath, encoding="utf-8") as f:
-            data = csv.DictReader(f, delimiter="\t")
-            for id_, row in enumerate(data):
-                if row["label"] not in ["0", "1"]:
-                    row["label"] = -1
-                yield id_, {
-                    "id": row["id"],
-                    "sentence1": row["sentence1"],
-                    "sentence2": row["sentence2"],
-                    "label": row["label"],
-                }
+        for path, f in files:
+            if path == filepath:
+                lines = (line.decode("utf-8") for line in f)
+                data = csv.DictReader(lines, delimiter="\t", quoting=csv.QUOTE_NONE)
+                for id_, row in enumerate(data):
+                    yield id_, {
+                        "id": row["id"],
+                        "sentence1": row["sentence1"],
+                        "sentence2": row["sentence2"],
+                        "label": row["label"],
+                    }
+                break

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,14 +14,14 @@
 """ BLEURT metric. """
 
 import os
-from logging import getLogger
 
 from bleurt import score  # From: git+https://github.com/google-research/bleurt.git
 
 import datasets
 
 
-logger = getLogger(__name__)
+logger = datasets.logging.get_logger(__name__)
+
 
 _CITATION = """\
 @inproceedings{bleurt,
@@ -39,20 +38,27 @@ BLEURT a learnt evaluation metric for Natural Language Generation. It is built u
 and then employing another pre-training phrase using synthetic data. Finally it is trained on WMT human annotations. You may run BLEURT out-of-the-box or fine-tune
 it for your specific application (the latter is expected to perform better).
 
-See the [README.md] file at https://github.com/google-research/bleurt for more information.
+See the project's README at https://github.com/google-research/bleurt#readme for more information.
 """
 
 _KWARGS_DESCRIPTION = """
 BLEURT score.
 
 Args:
-
-predictions` (list of str): prediction/candidate sentences
-`references` (list of str): reference sentences
- checkpoint: BLEURT checkpoint. Will default to BLEURT-tiny if None.
+    `predictions` (list of str): prediction/candidate sentences
+    `references` (list of str): reference sentences
+    `checkpoint` BLEURT checkpoint. Will default to BLEURT-tiny if None.
 
 Returns:
     'scores': List of scores.
+Examples:
+
+    >>> predictions = ["hello there", "general kenobi"]
+    >>> references = ["hello there", "general kenobi"]
+    >>> bleurt = datasets.load_metric("bleurt")
+    >>> results = bleurt.compute(predictions=predictions, references=references)
+    >>> print([round(v, 2) for v in results["scores"]])
+    [1.03, 1.04]
 """
 
 CHECKPOINT_URLS = {
@@ -62,9 +68,14 @@ CHECKPOINT_URLS = {
     "bleurt-base-512": "https://storage.googleapis.com/bleurt-oss/bleurt-base-512.zip",
     "bleurt-large-128": "https://storage.googleapis.com/bleurt-oss/bleurt-large-128.zip",
     "bleurt-large-512": "https://storage.googleapis.com/bleurt-oss/bleurt-large-512.zip",
+    "BLEURT-20-D3": "https://storage.googleapis.com/bleurt-oss-21/BLEURT-20-D3.zip",
+    "BLEURT-20-D6": "https://storage.googleapis.com/bleurt-oss-21/BLEURT-20-D6.zip",
+    "BLEURT-20-D12": "https://storage.googleapis.com/bleurt-oss-21/BLEURT-20-D12.zip",
+    "BLEURT-20": "https://storage.googleapis.com/bleurt-oss-21/BLEURT-20.zip",
 }
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class BLEURT(datasets.Metric):
     def _info(self):
 
@@ -92,14 +103,21 @@ class BLEURT(datasets.Metric):
                 "You can use a bigger model for better results with e.g.: datasets.load_metric('bleurt', 'bleurt-large-512')."
             )
             self.config_name = "bleurt-base-128"
-        if self.config_name not in CHECKPOINT_URLS.keys():
+
+        if self.config_name.lower() in CHECKPOINT_URLS:
+            checkpoint_name = self.config_name.lower()
+
+        elif self.config_name.upper() in CHECKPOINT_URLS:
+            checkpoint_name = self.config_name.upper()
+
+        else:
             raise KeyError(
                 f"{self.config_name} model not found. You should supply the name of a model checkpoint for bleurt in {CHECKPOINT_URLS.keys()}"
             )
 
         # download the model checkpoint specified by self.config_name and set up the scorer
-        model_path = dl_manager.download_and_extract(CHECKPOINT_URLS[self.config_name])
-        self.scorer = score.BleurtScorer(os.path.join(model_path, self.config_name))
+        model_path = dl_manager.download_and_extract(CHECKPOINT_URLS[checkpoint_name])
+        self.scorer = score.BleurtScorer(os.path.join(model_path, checkpoint_name))
 
     def _compute(self, predictions, references):
         scores = self.scorer.score(references=references, candidates=predictions)

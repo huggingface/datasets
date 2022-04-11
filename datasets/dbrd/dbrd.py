@@ -16,18 +16,16 @@
 # Lint as: python3
 """Dutch Book Review Dataset"""
 
-from __future__ import absolute_import, division, print_function
-
-import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
-Dutch Book Review Dataset
-The DBRD (pronounced dee-bird) dataset contains over 110k book reviews along \
-with associated binary sentiment polarity labels and is intended as a \
-benchmark for sentiment classification in Dutch.
+The Dutch Book Review Dataset (DBRD) contains over 110k book reviews of which \
+22k have associated binary sentiment polarity labels. It is intended as a \
+benchmark for sentiment classification in Dutch and created due to a lack of \
+annotated datasets in Dutch that are suitable for this task.
 """
 
 _CITATION = """\
@@ -48,7 +46,7 @@ _CITATION = """\
 }
 """
 
-_DOWNLOAD_URL = "https://drive.google.com/uc?export=download&id=1k5UMoqoB3RT4kK9FI5Xyl7RmWWyBSwux"
+_DOWNLOAD_URL = "https://github.com/benjaminvdb/DBRD/releases/download/v3.0/DBRD_v3.tgz"
 
 
 class DBRDConfig(datasets.BuilderConfig):
@@ -82,44 +80,33 @@ class DBRD(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/benjaminvdb/DBRD",
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="text", label_column="label")],
         )
 
-    def _vocab_text_gen(self, archive):
-        for _, ex in self._generate_examples(archive, os.path.join("DBRD", "train")):
-            yield ex["text"]
-
     def _split_generators(self, dl_manager):
-        arch_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
-        data_dir = os.path.join(arch_path, "DBRD")
+        archive = dl_manager.download(_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"directory": os.path.join(data_dir, "train")}
+                name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_archive(archive), "split": "train"}
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"directory": os.path.join(data_dir, "test")}
+                name=datasets.Split.TEST, gen_kwargs={"files": dl_manager.iter_archive(archive), "split": "test"}
             ),
             datasets.SplitGenerator(
                 name=datasets.Split("unsupervised"),
-                gen_kwargs={"directory": os.path.join(data_dir, "unsup"), "labeled": False},
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "split": "unsup", "labeled": False},
             ),
         ]
 
-    def _generate_examples(self, directory, labeled=True):
+    def _generate_examples(self, files, split, labeled=True):
         """Generate DBRD examples."""
         # For labeled examples, extract the label from the path.
         if labeled:
-            files = {
-                "pos": sorted(os.listdir(os.path.join(directory, "pos"))),
-                "neg": sorted(os.listdir(os.path.join(directory, "neg"))),
-            }
-            for key in files:
-                for id_, file in enumerate(files[key]):
-                    filepath = os.path.join(directory, key, file)
-                    with open(filepath, encoding="UTF-8") as f:
-                        yield key + "_" + str(id_), {"text": f.read(), "label": key}
+            for path, f in files:
+                if path.startswith(f"DBRD/{split}"):
+                    label = {"pos": 1, "neg": 0}[path.split("/")[2]]
+                    yield path, {"text": f.read().decode("utf-8"), "label": label}
         else:
-            unsup_files = sorted(os.listdir(directory))
-            for id_, file in enumerate(unsup_files):
-                filepath = os.path.join(directory, file)
-                with open(filepath, encoding="UTF-8") as f:
-                    yield id_, {"text": f.read(), "label": -1}
+            for path, f in files:
+                if path.startswith(f"DBRD/{split}"):
+                    yield path, {"text": f.read().decode("utf-8"), "label": -1}

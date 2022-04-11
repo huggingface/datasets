@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +25,8 @@ F1 = 2 * (precision * recall) / (precision + recall)
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions: Ground truth labels.
-    references: Predicted labels, as returned by a model.
+    predictions: Predicted labels, as returned by a model.
+    references: Ground truth labels.
     labels: The set of labels to include when average != 'binary', and
         their order if average is None. Labels present in the data can
         be excluded, for example to calculate a multiclass average ignoring
@@ -53,6 +52,27 @@ Args:
     sample_weight: Sample weights.
 Returns:
     f1: F1 score.
+Examples:
+
+    >>> f1_metric = datasets.load_metric("f1")
+    >>> results = f1_metric.compute(predictions=[0, 1], references=[0, 1])
+    >>> print(results)
+    {'f1': 1.0}
+
+    >>> predictions = [0, 2, 1, 0, 0, 1]
+    >>> references = [0, 1, 2, 0, 1, 2]
+    >>> results = f1_metric.compute(predictions=predictions, references=references, average="macro")
+    >>> print(results)
+    {'f1': 0.26666666666666666}
+    >>> results = f1_metric.compute(predictions=predictions, references=references, average="micro")
+    >>> print(results)
+    {'f1': 0.3333333333333333}
+    >>> results = f1_metric.compute(predictions=predictions, references=references, average="weighted")
+    >>> print(results)
+    {'f1': 0.26666666666666666}
+    >>> results = f1_metric.compute(predictions=predictions, references=references, average=None)
+    >>> print(results)
+    {'f1': array([0.8, 0. , 0. ])}
 """
 
 _CITATION = """\
@@ -70,6 +90,7 @@ _CITATION = """\
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class F1(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
@@ -78,6 +99,11 @@ class F1(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
+                    "predictions": datasets.Sequence(datasets.Value("int32")),
+                    "references": datasets.Sequence(datasets.Value("int32")),
+                }
+                if self.config_name == "multilabel"
+                else {
                     "predictions": datasets.Value("int32"),
                     "references": datasets.Value("int32"),
                 }
@@ -86,13 +112,7 @@ class F1(datasets.Metric):
         )
 
     def _compute(self, predictions, references, labels=None, pos_label=1, average="binary", sample_weight=None):
-        return {
-            "f1": f1_score(
-                references,
-                predictions,
-                labels=labels,
-                pos_label=pos_label,
-                average=average,
-                sample_weight=sample_weight,
-            ),
-        }
+        score = f1_score(
+            references, predictions, labels=labels, pos_label=pos_label, average=average, sample_weight=sample_weight
+        )
+        return {"f1": float(score) if score.size == 1 else score}

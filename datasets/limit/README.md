@@ -20,19 +20,21 @@ task_categories:
 task_ids:
 - multi-class-classification
 - named-entity-recognition
+paperswithcode_id: limit
+pretty_name: LiMiT
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for LiMiT
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -46,6 +48,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -106,9 +109,9 @@ Example of one instance in the dataset
 
 The dataset is split into a `train`, and `test` split with the following sizes:
 
-|                            | Tain   | Valid |
-| -----                      | ------ | ----- |
-| Number of examples         | 23559  | 1000  |
+|                            | train | validation |
+| -----                      |------:|-----------:|
+| Number of examples         | 23559 |       1000 |
 
 ## Dataset Creation
 
@@ -187,3 +190,7 @@ The dataset is split into a `train`, and `test` split with the following sizes:
     abstract = "Motion recognition is one of the basic cognitive capabilities of many life forms, yet identifying motion of physical entities in natural language have not been explored extensively and empirically. We present the Literal-Motion-in-Text (LiMiT) dataset, a large human-annotated collection of English text sentences describing physical occurrence of motion, with annotated physical entities in motion. We describe the annotation process for the dataset, analyze its scale and diversity, and report results of several baseline models. We also present future research directions and applications of the LiMiT dataset and share it publicly as a new resource for the research community.",
 }
 ```
+
+### Contributions
+
+Thanks to [@patil-suraj](https://github.com/patil-suraj) for adding this dataset.

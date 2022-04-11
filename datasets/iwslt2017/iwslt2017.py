@@ -14,7 +14,6 @@
 # limitations under the License.
 """IWSLT 2017 dataset """
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
@@ -45,7 +44,7 @@ MULTI_URL = "https://wit3.fbk.eu/archive/2017-01-trnmted//texts/DeEnItNlRo/DeEnI
 
 
 class IWSLT2017Config(datasets.BuilderConfig):
-    """ BuilderConfig for NewDataset"""
+    """BuilderConfig for NewDataset"""
 
     def __init__(self, pair, is_multilingual, **kwargs):
         """
@@ -131,13 +130,13 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
                     "source_files": [
                         os.path.join(
                             data_dir,
-                            "train.tags.{}.{}".format(self.config.pair, source),
+                            f"train.tags.{self.config.pair}.{source}",
                         )
                     ],
                     "target_files": [
                         os.path.join(
                             data_dir,
-                            "train.tags.{}.{}".format(self.config.pair, target),
+                            f"train.tags.{self.config.pair}.{target}",
                         )
                     ],
                     "split": "train",
@@ -150,14 +149,14 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
                     "source_files": [
                         os.path.join(
                             data_dir,
-                            "IWSLT17.TED.tst{}.{}.{}.xml".format(year, self.config.pair, source),
+                            f"IWSLT17.TED.tst{year}.{self.config.pair}.{source}.xml",
                         )
                         for year in years
                     ],
                     "target_files": [
                         os.path.join(
                             data_dir,
-                            "IWSLT17.TED.tst{}.{}.{}.xml".format(year, self.config.pair, target),
+                            f"IWSLT17.TED.tst{year}.{self.config.pair}.{target}.xml",
                         )
                         for year in years
                     ],
@@ -171,13 +170,13 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
                     "source_files": [
                         os.path.join(
                             data_dir,
-                            "IWSLT17.TED.dev2010.{}.{}.xml".format(self.config.pair, source),
+                            f"IWSLT17.TED.dev2010.{self.config.pair}.{source}.xml",
                         )
                     ],
                     "target_files": [
                         os.path.join(
                             data_dir,
-                            "IWSLT17.TED.dev2010.{}.{}.xml".format(self.config.pair, target),
+                            f"IWSLT17.TED.dev2010.{self.config.pair}.{target}.xml",
                         )
                     ],
                     "split": "dev",
@@ -186,7 +185,7 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, source_files, target_files, split):
-        """ Yields examples. """
+        """Yields examples."""
         id_ = 0
         source, target = self.config.pair.split("-")
         for source_file, target_file in zip(source_files, target_files):

@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 import datasets
 
 
@@ -70,7 +68,7 @@ class CrimeAndPunish(datasets.GeneratorBasedBuilder):
                 ),
             ]
         else:
-            raise ValueError("{} does not exist".format(self.config.name))
+            raise ValueError(f"{self.config.name} does not exist")
 
     def _generate_examples(self, data_file, split):
 

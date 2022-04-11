@@ -14,11 +14,11 @@
 # limitations under the License.
 """ SemEval-2019 Task 3: EmoContext Contextual Emotion Detection in Text """
 
-from __future__ import absolute_import, division, print_function
 
 import json
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -57,7 +57,7 @@ _TRAIN_URL = "https://drive.google.com/file/d/12Uz59TYg_NtxOy7SXraYeXPMRT7oaO7X/
 
 
 class Emo(datasets.GeneratorBasedBuilder):
-    """ SemEval-2019 Task 3: EmoContext Contextual Emotion Detection in Text. Version 1.0.0 """
+    """SemEval-2019 Task 3: EmoContext Contextual Emotion Detection in Text. Version 1.0.0"""
 
     VERSION = datasets.Version("1.0.0")
 
@@ -81,6 +81,7 @@ class Emo(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://www.aclweb.org/anthology/S19-2005/",
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="text", label_column="label")],
         )
 
     def _get_drive_url(self, url):
@@ -107,7 +108,7 @@ class Emo(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, "rb") as f:
             data = json.load(f)
             for id_, text, label in zip(data["text"].keys(), data["text"].values(), data["Label"].values()):

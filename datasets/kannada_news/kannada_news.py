@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
@@ -80,9 +79,7 @@ class KannadaNews(datasets.GeneratorBasedBuilder):
 
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('kannada_news', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
-                    path_to_manual_file, _TRAIN_FILENAME, self.manual_download_instructions
-                )
+                f"{path_to_manual_file} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('kannada_news', data_dir=...)` that includes a file name {_TRAIN_FILENAME}. Manual download instructions: {self.manual_download_instructions})"
             )
         return [
             datasets.SplitGenerator(

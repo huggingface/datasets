@@ -17,6 +17,8 @@ task_categories:
 - structure-prediction
 task_ids:
 - coreference-resolution
+paperswithcode_id: wsc
+pretty_name: Winograd Schema Challenge
 ---
 
 # Dataset Card for The Winograd Schema Challenge
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -204,3 +207,6 @@ The Winograd Schema Challenge including many of the examples here was proposed b
   organization={Citeseer}
 }
 ```
+### Contributions
+
+Thanks to [@joeddav](https://github.com/joeddav) for adding this dataset.

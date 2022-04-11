@@ -16,7 +16,6 @@
 # Lint as: python3
 """Hyperpartisan News Detection"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 import textwrap
@@ -146,7 +145,7 @@ class HyperpartisanNewsDetection(datasets.GeneratorBasedBuilder):
                 example["hyperpartisan"] = example["hyperpartisan"] == "true"
 
                 example["text"] = ""
-                for child in article.getchildren():
+                for child in article:
                     example["text"] += ET.tostring(child).decode() + "\n"
                 example["text"] = example["text"].strip()
                 del example["id"]

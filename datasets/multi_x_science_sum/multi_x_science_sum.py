@@ -16,7 +16,6 @@
 # Lint as: python3
 """Multi-XScience Dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 
@@ -42,7 +41,7 @@ _URL_VAL = "https://raw.githubusercontent.com/yaolu/Multi-XScience/master/data/v
 
 
 class MultiXScienceSum(datasets.GeneratorBasedBuilder):
-    """"Multi-XScience Dataset."""
+    """ "Multi-XScience Dataset."""
 
     VERSION = datasets.Version("1.1.0")
 

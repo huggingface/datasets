@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +14,7 @@
 """ SACREBLEU metric. """
 
 import sacrebleu as scb
+from packaging import version
 
 import datasets
 
@@ -46,13 +46,15 @@ Produces BLEU scores along with its sufficient statistics
 from a source against one or more references.
 
 Args:
-    predictions: The system stream (a sequence of segments)
-    references: A list of one or more reference streams (each a sequence of segments)
-    smooth: The smoothing method to use
-    smooth_value: For 'floor' smoothing, the floor to use
-    force: Ignore data that looks already tokenized
-    lowercase: Lowercase the data
-    tokenize: The tokenizer to use
+    predictions: The system stream (a sequence of segments).
+    references: A list of one or more reference streams (each a sequence of segments).
+    smooth_method: The smoothing method to use. (Default: 'exp').
+    smooth_value: The smoothing value. Only valid for 'floor' and 'add-k'. (Defaults: floor: 0.1, add-k: 1).
+    tokenize: Tokenization method to use for BLEU. If not provided, defaults to 'zh' for Chinese, 'ja-mecab' for
+        Japanese and '13a' (mteval) otherwise.
+    lowercase: Lowercase the data. If True, enables case-insensitivity. (Default: False).
+    force: Insist that your tokenized input is actually detokenized.
+
 Returns:
     'score': BLEU score,
     'counts': Counts,
@@ -61,11 +63,28 @@ Returns:
     'bp': Brevity penalty,
     'sys_len': predictions length,
     'ref_len': reference length,
+
+Examples:
+
+    >>> predictions = ["hello there general kenobi", "foo bar foobar"]
+    >>> references = [["hello there general kenobi", "hello there !"], ["foo bar foobar", "foo bar foobar"]]
+    >>> sacrebleu = datasets.load_metric("sacrebleu")
+    >>> results = sacrebleu.compute(predictions=predictions, references=references)
+    >>> print(list(results.keys()))
+    ['score', 'counts', 'totals', 'precisions', 'bp', 'sys_len', 'ref_len']
+    >>> print(round(results["score"], 1))
+    100.0
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Sacrebleu(datasets.Metric):
     def _info(self):
+        if version.parse(scb.__version__) < version.parse("1.4.12"):
+            raise ImportWarning(
+                "To use `sacrebleu`, the module `sacrebleu>=1.4.12` is required, and the current version of `sacrebleu` doesn't match this condition.\n"
+                'You can install it with `pip install "sacrebleu>=1.4.12"`.'
+            )
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
@@ -93,7 +112,7 @@ class Sacrebleu(datasets.Metric):
         smooth_value=None,
         force=False,
         lowercase=False,
-        tokenize=scb.DEFAULT_TOKENIZER,
+        tokenize=None,
         use_effective_order=False,
     ):
         references_per_prediction = len(references[0])
@@ -101,14 +120,14 @@ class Sacrebleu(datasets.Metric):
             raise ValueError("Sacrebleu requires the same number of references for each prediction")
         transformed_references = [[refs[i] for refs in references] for i in range(references_per_prediction)]
         output = scb.corpus_bleu(
-            sys_stream=predictions,
-            ref_streams=transformed_references,
+            predictions,
+            transformed_references,
             smooth_method=smooth_method,
             smooth_value=smooth_value,
             force=force,
             lowercase=lowercase,
-            tokenize=tokenize,
             use_effective_order=use_effective_order,
+            **(dict(tokenize=tokenize) if tokenize else {}),
         )
         output_dict = {
             "score": output.score,

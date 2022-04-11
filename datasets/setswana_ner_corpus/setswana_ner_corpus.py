@@ -14,12 +14,13 @@
 # limitations under the License.
 """ Named entity annotated data from the NCHLT Text Resource Development: Phase II Project for Setswana"""
 
-from __future__ import absolute_import, division, print_function
 
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -55,7 +56,7 @@ class SetswanaNerCorpusConfig(datasets.BuilderConfig):
 
 
 class SetswanaNerCorpus(datasets.GeneratorBasedBuilder):
-    """ Setswana Ner dataset"""
+    """Setswana Ner dataset"""
 
     BUILDER_CONFIGS = [
         SetswanaNerCorpusConfig(
@@ -104,7 +105,7 @@ class SetswanaNerCorpus(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        logging.info("⏳ Generating examples from = %s", filepath)
+        logger.info("⏳ Generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             guid = 0
             tokens = []

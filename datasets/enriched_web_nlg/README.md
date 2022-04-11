@@ -19,34 +19,36 @@ source_datasets:
 task_categories:
 - conditional-text-generation
 task_ids:
-- other-stuctured-to-text
+- other-structured-to-text
+paperswithcode_id: null
+pretty_name: Enriched WebNLG
 ---
 
 # Dataset Card for WebNLG
 
 ## Table of Contents
-
 - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-instances)
-    - [Data Splits](#data-instances)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-    - [Annotations](#annotations)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -212,3 +214,6 @@ licenses.
   doi       = {10.18653/v1/P17-1017}
 }
 ```
+### Contributions
+
+Thanks to [@TevenLeScao](https://github.com/TevenLeScao) for adding this dataset.

@@ -18,6 +18,8 @@ task_categories:
 task_ids:
 - explanation-generation
 - table-to-text
+paperswithcode_id: wikibio
+pretty_name: WikiBio
 ---
 
 # Dataset Card for [Dataset Name]
@@ -25,12 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -44,12 +46,13 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
 - **Repository:** https://github.com/DavidGrangier/wikipedia-biography-dataset
 - **Paper:** https://arxiv.org/pdf/1603.07771.pdf
-- **GoogleDrive:** https://drive.google.com/uc?export=download&id=1L7aoUXzHPzyzQ0ns4ApBbYepsjFOtXil
+- **GitHub:** https://github.com/DavidGrangier/wikipedia-biography-dataset
 
 ### Dataset Summary
 
@@ -66,7 +69,7 @@ English.
 
 ### Data Instances
 
-[More Information Needed]
+More Information Needed
 
 ### Data Fields
 
@@ -129,7 +132,7 @@ where, in the `"table"` field, all the information of the Wikpedia infobox is st
 [More Information Needed]
 
 ### Source Data
-This dataset was announced in the paper <em>Neural Text Generation from Structured Data with Application to the Biography Domain</em> [(arxiv link)](https://arxiv.org/pdf/1603.07771.pdf) and is stored both in [this](https://github.com/DavidGrangier/wikipedia-biography-dataset) repo (owned by DavidGrangier) and in [Google Drive](https://drive.google.com/uc?export=download&id=1L7aoUXzHPzyzQ0ns4ApBbYepsjFOtXil) (zipped and mantained by the TensorFlow team).
+This dataset was announced in the paper <em>Neural Text Generation from Structured Data with Application to the Biography Domain</em> [(arxiv link)](https://arxiv.org/pdf/1603.07771.pdf) and is stored in [this](https://github.com/DavidGrangier/wikipedia-biography-dataset) repo (owned by DavidGrangier).
 #### Initial Data Collection and Normalization
 
 [More Information Needed]
@@ -197,3 +200,7 @@ For refering the original paper in BibTex format:
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 ```
+
+### Contributions
+
+Thanks to [@alejandrocros](https://github.com/alejandrocros) for adding this dataset.

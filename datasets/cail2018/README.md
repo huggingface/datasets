@@ -10,25 +10,28 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
 - other
 task_ids:
-- other-other-judgement-prediction---
+- other-other-judgement-prediction
+paperswithcode_id: chinese-ai-and-law-cail-2018
+pretty_name: CAIL 2018
+---
 ---
 # Dataset Card for CAIL 2018
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -42,12 +45,13 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://github.com/thunlp/CAIL/blob/master/README_en.md)
+- **Repository:** [Github](https://github.com/thunlp/CAIL)
+- **Paper:** [Arxiv](https://arxiv.org/abs/1807.02478)
 - **Leaderboard:**
 - **Point of Contact:**
 
@@ -134,3 +138,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@JetRunner](https://github.com/JetRunner) for adding this dataset.

@@ -14,12 +14,13 @@
 # limitations under the License.
 """CovidQA, a question answering dataset specifically designed for COVID-19."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -92,12 +93,12 @@ class CovidQaCastorini(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
-        logging.info("generating examples from = %s", filepath)
+        logger.info("generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             covid_qa = json.load(f)
-            for article in covid_qa["categories"]:
+            for article_idx, article in enumerate(covid_qa["categories"]):
                 category_name = article["name"]
-                for idx, paragraph in enumerate(article["sub_categories"]):
+                for paragraph_idx, paragraph in enumerate(article["sub_categories"]):
                     question_query = paragraph["nq_name"]
                     keyword_query = paragraph["kq_name"]
 
@@ -105,7 +106,7 @@ class CovidQaCastorini(datasets.GeneratorBasedBuilder):
                     titles = [answer["title"] for answer in paragraph["answers"]]
                     exact_answers = [answer["exact_answer"] for answer in paragraph["answers"]]
 
-                    yield idx, {
+                    yield f"{article_idx}_{paragraph_idx}", {
                         "category_name": category_name,
                         "question_query": question_query,
                         "keyword_query": keyword_query,

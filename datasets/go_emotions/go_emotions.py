@@ -16,7 +16,6 @@
 # Lint as: python3
 """GoEmotions dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
@@ -143,17 +142,17 @@ class GoEmotions(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepaths, raw=False):
         """Generate AG News examples."""
-        for filepath in filepaths:
+        for file_idx, filepath in enumerate(filepaths):
             with open(filepath, "r", encoding="utf-8") as f:
                 if raw:
                     reader = csv.DictReader(f)
                 else:
                     reader = csv.DictReader(f, delimiter="\t", fieldnames=list(self.config.features.keys()))
 
-                for irow, row in enumerate(reader):
+                for row_idx, row in enumerate(reader):
                     if raw:
                         row["example_very_unclear"] = row["example_very_unclear"] == "TRUE"
                     else:
                         row["labels"] = [int(ind) for ind in row["labels"].split(",")]
 
-                    yield irow, row
+                    yield f"{file_idx}_{row_idx}", row

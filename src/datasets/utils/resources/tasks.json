@@ -1,0 +1,213 @@
+{
+    "audio-classification": {
+        "type": "audio",
+        "subtasks": [
+            "keyword-spotting",
+            "speaker-identification",
+            "audio-intent-classification",
+            "audio-emotion-recognition",
+            "audio-language-identification"
+        ]
+    },
+    "audio-to-audio": {
+        "type": "audio"
+    },
+    "automatic-speech-recognition": {
+        "type": "multimodal"
+    },
+    "conversational": {
+        "type": "text",
+        "subtasks": [
+            "dialogue-generation"
+        ]
+    },
+    "feature-extraction": {
+        "type": "multimodal"
+    },
+    "fill-mask": {
+        "type": "text",
+        "subtasks": [
+            "slot-filling",
+            "masked-language-modeling"
+        ]
+    },
+    "image-classification": {
+        "type": "image",
+        "subtasks": [
+            "multi-label-image-classification",
+            "multi-class-image-classification"
+        ]
+    },
+    "image-segmentation": {
+        "type": "image",
+        "subtasks": [
+            "instance-segmentation",
+            "semantic-segmentation",
+            "panoptic-segmentation"
+        ]
+    },
+    "image-to-text": {
+        "type": "multimodal",
+        "subtasks": [
+            "image-captioning"
+        ]
+    },
+    "multiple-choice": {
+        "type": "text",
+        "subtasks": [
+            "multiple-choice-qa",
+            "multiple-choice-coreference-resolution"
+        ]
+    },
+    "object-detection": {
+        "type": "image",
+        "subtasks": [
+            "face-detection",
+            "vehicle-detection"
+        ]
+    },
+    "question-answering": {
+        "type": "text",
+        "aliases": [
+            "extractive-question-answering"
+        ],
+        "subtasks": [
+            "extractive-qa",
+            "open-domain-qa",
+            "closed-domain-qa"
+        ]
+    },
+    "sentence-similarity": {
+        "type": "text"
+    },
+    "tabular-classification": {
+        "type": "text",
+        "subtasks": [
+            "tabular-multi-class-classification",
+            "tabular-multi-label-classification",
+            "tabular-single-column-regression"
+        ]
+    },
+    "tabular-to-text": {
+        "type": "text",
+        "subtasks": [
+            "rdf-to-text"
+        ]
+    },
+    "summarization": {
+        "type": "text",
+        "subtasks": [
+            "news-articles-summarization",
+            "news-articles-headline-generation"
+        ]
+    },
+    "table-to-text": {
+        "type": "text"
+    },
+    "table-question-answering": {
+        "type": "text"
+    },
+    "text-classification": {
+        "type": "text",
+        "subtasks": [
+            "acceptability-classification",
+            "entity-linking-classification",
+            "fact-checking",
+            "intent-classification",
+            "multi-class-classification",
+            "multi-label-classification",
+            "natural-language-inference",
+            "semantic-similarity-classification",
+            "sentiment-classification",
+            "topic-classification",
+            "semantic-similarity-scoring",
+            "sentiment-scoring",
+            "sentiment-analysis",
+            "hate-speech-detection",
+            "text-scoring"
+        ]
+    },
+    "text-generation": {
+        "type": "text",
+        "subtasks": [
+            "dialogue-modeling",
+            "language-modeling"
+        ]
+    },
+    "text-retrieval": {
+        "type": "text",
+        "subtasks": [
+            "document-retrieval",
+            "utterance-retrieval",
+            "entity-linking-retrieval",
+            "fact-checking-retrieval"
+        ]
+    },
+    "text-to-image": {
+        "type": "multimodal"
+    },
+    "text-to-tabular": {
+        "type": "text",
+        "subtasks": [
+            "relation-extraction",
+            "semantic-role-labeling"
+        ]
+    },
+    "text-to-speech": {
+        "type": "multimodal"
+    },
+    "text2text-generation": {
+        "type": "text",
+        "subtasks": [
+            "text-simplification",
+            "explanation-generation",
+            "abstractive-qa",
+            "open-domain-abstractive-qa",
+            "closed-domain-qa",
+            "open-book-qa",
+            "closed-book-qa"
+        ]
+    },
+    "time-series-forecasting": {
+        "type": "time series",
+        "subtasks": [
+            "univariate-time-series-forecasting",
+            "multivariate-time-series-forecasting"
+        ]
+    },
+    "token-classification": {
+        "type": "text",
+        "aliases": [
+            "structure-prediction"
+        ],
+        "subtasks": [
+            "named-entity-recognition",
+            "part-of-speech-tagging",
+            "parsing",
+            "lemmatization",
+            "word-sense-disambiguation",
+            "coreference-resolution"
+        ]
+    },
+    "translation": {
+        "type": "text"
+    },
+    "visual-question-answering": {
+        "type": "multimodal"
+    },
+    "voice-activity-detection": {
+        "type": "audio"
+    },
+    "zero-shot-classification": {
+        "type": "text"
+    },
+    "zero-shot-image-classification": {
+        "type": "multimodal"
+    },
+    "reinforcement-learning": {
+        "type": "other"
+    },
+    "other": {
+        "type": "other"
+    }
+}

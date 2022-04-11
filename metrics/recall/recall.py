@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,15 +20,15 @@ import datasets
 
 _DESCRIPTION = """
 Recall is the fraction of the total amount of relevant examples that were actually retrieved. It can be computed with:
-Precision = TP / (TP + FN)
+Recall = TP / (TP + FN)
 TP: True positive
 FN: False negative
 """
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions: Ground truth labels.
-    references: Predicted labels, as returned by a model.
+    predictions: Predicted labels, as returned by a model.
+    references: Ground truth labels.
     labels: The set of labels to include when average != 'binary', and
         their order if average is None. Labels present in the data can
         be excluded, for example to calculate a multiclass average ignoring
@@ -53,8 +52,33 @@ Args:
             samples: Calculate metrics for each instance, and find their average
                 (only meaningful for multilabel classification).
     sample_weight: Sample weights.
+    zero_division ("warn", 0 or 1, default="warn"): Sets the value to return when there is a zero division.
+        If set to "warn", this acts as 0, but warnings are also raised.
+
 Returns:
     recall: Recall score.
+
+Examples:
+
+    >>> recall_metric = datasets.load_metric("recall")
+    >>> results = recall_metric.compute(references=[0, 1], predictions=[0, 1])
+    >>> print(results)
+    {'recall': 1.0}
+
+    >>> predictions = [0, 2, 1, 0, 0, 1]
+    >>> references = [0, 1, 2, 0, 1, 2]
+    >>> results = recall_metric.compute(predictions=predictions, references=references, average='macro')
+    >>> print(results)
+    {'recall': 0.3333333333333333}
+    >>> results = recall_metric.compute(predictions=predictions, references=references, average='micro')
+    >>> print(results)
+    {'recall': 0.3333333333333333}
+    >>> results = recall_metric.compute(predictions=predictions, references=references, average='weighted')
+    >>> print(results)
+    {'recall': 0.3333333333333333}
+    >>> results = recall_metric.compute(predictions=predictions, references=references, average=None)
+    >>> print(results)
+    {'recall': array([1., 0., 0.])}
 """
 
 _CITATION = """\
@@ -72,6 +96,7 @@ _CITATION = """\
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Recall(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
@@ -80,6 +105,11 @@ class Recall(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
+                    "predictions": datasets.Sequence(datasets.Value("int32")),
+                    "references": datasets.Sequence(datasets.Value("int32")),
+                }
+                if self.config_name == "multilabel"
+                else {
                     "predictions": datasets.Value("int32"),
                     "references": datasets.Value("int32"),
                 }
@@ -87,14 +117,23 @@ class Recall(datasets.Metric):
             reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html"],
         )
 
-    def _compute(self, predictions, references, labels=None, pos_label=1, average="binary", sample_weight=None):
-        return {
-            "recall": recall_score(
-                references,
-                predictions,
-                labels=labels,
-                pos_label=pos_label,
-                average=average,
-                sample_weight=sample_weight,
-            ),
-        }
+    def _compute(
+        self,
+        predictions,
+        references,
+        labels=None,
+        pos_label=1,
+        average="binary",
+        sample_weight=None,
+        zero_division="warn",
+    ):
+        score = recall_score(
+            references,
+            predictions,
+            labels=labels,
+            pos_label=pos_label,
+            average=average,
+            sample_weight=sample_weight,
+            zero_division=zero_division,
+        )
+        return {"recall": float(score) if score.size == 1 else score}

@@ -16,11 +16,11 @@
 # Lint as: python3
 """SMS Spam Collection Data Set"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -63,6 +63,7 @@ class SmsSpam(datasets.GeneratorBasedBuilder):
             supervised_keys=("sms", "label"),
             homepage="http://archive.ics.uci.edu/ml/datasets/SMS+Spam+Collection",
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="sms", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):

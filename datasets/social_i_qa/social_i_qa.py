@@ -1,6 +1,5 @@
 """TODO(social_i_qa): Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
@@ -81,7 +80,7 @@ class SocialIQa(datasets.GeneratorBasedBuilder):
         """Yields examples."""
         # TODO(social_i_qa): Yields (key, example) tuples from the dataset
         with open(labelpath, encoding="utf-8") as f:
-            labels = [label for label in f]
+            labels = [label.strip() for label in f]
         with open(filepath, encoding="utf-8") as f1:
             for id_, row in enumerate(f1):
                 data = json.loads(row)

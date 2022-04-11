@@ -17,6 +17,8 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - conditional-text-generation-other-meaning-representtion-to-text
+paperswithcode_id: null
+pretty_name: the Cleaned Version of the E2E Dataset
 ---
 
 # Dataset Card for the Cleaned Version of the E2E Dataset
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -98,9 +101,9 @@ Each MR consists of 3–8 attributes (slots), such as name, food or area, and th
 
 The dataset is split into training, validation and testing sets (in a 76.5-8.5-15 ratio), keeping a similar distribution of MR and reference text lengths and ensuring that MRs in different sets are distinct.
 
-|                            | Tain   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| N. Instances               | 33525  | 4299  | 4693 |
+|              | train | validation | test |
+|--------------|------:|-----------:|-----:|
+| N. Instances | 33525 |       4299 | 4693 |
 
 ## Dataset Creation
 
@@ -176,3 +179,7 @@ Following Novikova et al. (2016), the E2E data was collected using pictures as s
   eprinttype = {arxiv},
   journal = {Computer Speech \& Language}
 ```
+
+### Contributions
+
+Thanks to [@yjernite](https://github.com/yjernite) for adding this dataset.

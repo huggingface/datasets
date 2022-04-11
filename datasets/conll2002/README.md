@@ -20,20 +20,22 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
-- parsing
+- part-of-speech-tagging
+paperswithcode_id: conll-2002
+pretty_name: CoNLL-2002
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for CoNLL-2002
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -47,13 +49,14 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
 - **Homepage:** [homepage](https://www.clips.uantwerpen.be/conll2002/ner/)
 - **Repository:** [github](https://github.com/teropa/nlp/tree/master/resources/corpora/conll2002)
 - **Paper:** [paper](https://www.aclweb.org/anthology/W02-2024/)
-- **Point of Contact:** erikt@uia.ua.ac.be
+- **Point of Contact:** [Erik Tjong Kim Sang](erikt@uia.ua.ac.be)
 
 ### Dataset Summary
 
@@ -89,6 +92,10 @@ The examples look like this :
  'tokens': ['La', 'Coruña', ',', '23', 'may', '(', 'EFECOM', ')', '.']
 }
 ```
+
+The original data files within the Dutch sub-dataset have `-DOCSTART-` lines used to separate documents, but these lines are removed here.
+Indeed `-DOCSTART-` is a special line that acts as a boundary between two different documents, and it is filtered out in this implementation.
+
 
 ### Data Fields
 
@@ -127,10 +134,10 @@ The original splits were named `train`, `testa` and `testb` and they correspond 
 
 The splits have the following sizes :
 
-|                            | Tain   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| N. Examples (Spanish)      | 8324   | 1916  | 1518 |
-| N. Examples (Dutch)        | 15807  | 2896  | 5196 |
+|                            |  train |  validation |  test |
+| -----                      |-------:|------------:|------:|
+| N. Examples (Spanish)      |   8324 |        1916 |  1518 |
+| N. Examples (Dutch)        |  15807 |        2896 |  5196 |
 
 ## Dataset Creation
 
@@ -206,3 +213,7 @@ Provide the [BibTex](http://www.bibtex.org/)-formatted reference for the dataset
     url = "https://www.aclweb.org/anthology/W02-2024",
 }
 ```
+
+### Contributions
+
+Thanks to [@lhoestq](https://github.com/lhoestq) for adding this dataset.

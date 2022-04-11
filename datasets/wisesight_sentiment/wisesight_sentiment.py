@@ -1,11 +1,11 @@
 """Wisesight Sentiment Corpus: Social media messages in Thai language with sentiment category (positive, neutral, negative, question)"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -88,6 +88,7 @@ class WisesightSentiment(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/PyThaiNLP/wisesight-sentiment",
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="texts", label_column="category")],
         )
 
     def _split_generators(self, dl_manager):

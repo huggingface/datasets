@@ -24,7 +24,7 @@ _DESCRIPTION = """\
 ToTTo is an open-domain English table-to-text dataset with over 120,000 training examples that proposes a controlled generation task: given a Wikipedia table and a set of highlighted table cells, produce a one-sentence description.
 """
 _HOMEPAGE_URL = ""
-_URL = "https://storage.googleapis.com/totto/totto_data.zip"
+_URL = "https://storage.googleapis.com/totto-public/totto_data.zip"
 _CITATION = """\
 @inproceedings{parikh2020totto,
   title={{ToTTo}: A Controlled Table-To-Text Generation Dataset},

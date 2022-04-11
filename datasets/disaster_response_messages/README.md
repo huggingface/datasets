@@ -24,6 +24,8 @@ task_ids:
 - intent-classification
 - sentiment-classification
 - text-simplification
+paperswithcode_id: null
+pretty_name: Disaster Response Messages
 ---
 
 # Dataset Card for Disaster Response Messages 
@@ -31,12 +33,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -50,6 +52,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -125,9 +128,9 @@ Example of a Disaster Response : { 'split': 'train', 'message': 'Weather update 
 
 ### Data Splits
 
-The data is split into train, test :
-
-Train Count : 21046 Test Count : 2629
+|train|test |validation|
+|:----:|:-----------:|:----:|
+|21046|2629|2573|
 
 ## Dataset Creation
 
@@ -187,3 +190,7 @@ The dataset was initially created by [Appen](https://appen.com/)
 
 [Multilingual Disaster Response Messages](https://appen.com/datasets/combined-disaster-response-data/)
 
+
+### Contributions
+
+Thanks to [@darshan-gandhi](https://github.com/darshan-gandhi) for adding this dataset.

@@ -1,6 +1,5 @@
 """TODO(discofuse): Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
@@ -8,7 +7,7 @@ import os
 import datasets
 
 
-_URL_ = "https://storage.googleapis.com/discofuse.appspot.com/"
+_URL_ = "https://storage.googleapis.com/gresearch/discofuse/"
 _CITATION = """\
 @InProceedings{GevaEtAl2019,
   title = {DiscoFuse: A Large-Scale Dataset for Discourse-Based Sentence Fusion},
@@ -28,7 +27,7 @@ _DESCRIPTION = """\
 
 class DiscofuseConfig(datasets.BuilderConfig):
 
-    """ BuilderConfig for Discofuse"""
+    """BuilderConfig for Discofuse"""
 
     def __init__(self, data_url, balanced=False, **kwargs):
         """

@@ -15,6 +15,8 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+paperswithcode_id: null
+pretty_name: WongnaiReviews
 ---
 
 # Dataset Card for Wongnai_Reviews
@@ -46,8 +48,6 @@ Thai
 
 Designated train (40,000 reviews) and test (6,204) sets.
 
-Test splits do not have a star rating disclosed, so -1 will be returned.
-
 ### Source Data
 
 #### Initial Data Collection and Normalization
@@ -75,3 +75,7 @@ LGPL-3.0
 ### Citation Information
 
 See https://github.com/wongnai/wongnai-corpus
+
+### Contributions
+
+Thanks to [@mapmeld](https://github.com/mapmeld), [@cstorm125](https://github.com/cstorm125) for adding this dataset.

@@ -1,36 +1,37 @@
 ---
 annotations_creators:
-  - crowdsourced
+- crowdsourced
 language_creators:
-  - found
+- found
 languages:
-  - ko
+- ko
 licenses:
-  - cc-by-1.0
+- cc-by-1.0
 multilinguality:
-  - monolingual
+- monolingual
 size_categories:
-  - 100K<n<1M
+- 100K<n<1M
 source_datasets:
-  - original
+- original
 task_categories:
-  - text-classification
+- text-classification
 task_ids:
-  - sentiment-classification
+- sentiment-classification
+paperswithcode_id: nsmc
+pretty_name: Naver Sentiment Movie Corpus
 ---
 
 # Dataset Card for Naver sentiment movie corpus
 
 ## Table of Contents
-
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -44,11 +45,12 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage:** [Github](https://github.com/e9t/nsmc/)
+- **Repository:** [Github](https://github.com/e9t/nsmc/)
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**
@@ -147,3 +149,7 @@ Each instance is a movie review written by Korean internet users on Naver, the m
   howpublished = {\\url{https://github.com/e9t/nsmc}}
 }
 ```
+
+### Contributions
+
+Thanks to [@jaketae](https://github.com/jaketae) for adding this dataset.

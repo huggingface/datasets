@@ -16,12 +16,10 @@
 # Lint as: python3
 """Mathematics database."""
 
-from __future__ import absolute_import, division, print_function
-
-import logging
-import os
-
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """
@@ -222,33 +220,24 @@ class MathDataset(datasets.GeneratorBasedBuilder):
             citation=_CITATION,
         )
 
-    def _read_data_from_all_categories(self, directory, config, categories):
-        lines = []
+    def _get_filepaths_from_categories(self, config, categories):
+        filepaths = []
         for category in categories:
-            data_file = os.path.join(directory, _DATASET_VERSION, category, config)
-            if os.path.exists(data_file):
-                with open(data_file, encoding="utf-8") as f:
-                    ls = f.read().split("\n")
-
-                    for l in ls[::-1]:
-                        if not l:
-                            ls.remove(l)
-
-                    lines.extend(ls)
-
-        return lines
+            data_file = "/".join([_DATASET_VERSION, category, config])
+            filepaths.append(data_file)
+        return set(filepaths)
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        directory = dl_manager.download_and_extract(_DATA_URL)
+        archive = dl_manager.download(_DATA_URL)
         config = self.config.name + ".txt"
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "directory": directory,
+                    "files": dl_manager.iter_archive(archive),
                     "config": config,
                     "categories": _TRAIN_CATEGORY,
                 },
@@ -256,27 +245,31 @@ class MathDataset(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "directory": directory,
+                    "files": dl_manager.iter_archive(archive),
                     "config": config,
                     "categories": _INTERPOLATE_CATEGORY,
                 },
             ),
         ]
 
-    def _generate_examples(self, directory, config, categories):
+    def _generate_examples(self, files, config, categories):
         """Yields examples based on directory, module file.."""
 
-        lines = self._read_data_from_all_categories(directory, config, categories)
-        logging.info("%s: %s contains total: %d", categories, config, len(lines))
-        questions = lines[::2]
-        answers = lines[1::2]
-
-        assert len(answers) == len(questions), "answers: %d do not match questions: %d" % (
-            len(answers),
-            len(questions),
-        )
-
-        for idx, (q, a) in enumerate(zip(questions, answers)):
-            result = {_QUESTION: q, _ANSWER: a}
-            if all(result.values()):
-                yield idx, result
+        idx = 0
+        filepaths = self._get_filepaths_from_categories(config, categories)
+        for path, f in files:
+            if not filepaths:
+                break
+            elif path in filepaths:
+                for question in f:
+                    if not question:
+                        continue
+                    else:
+                        for answer in f:
+                            if not answer:
+                                continue
+                            else:
+                                yield idx, {_QUESTION: question, _ANSWER: answer}
+                                idx += 1
+                                break
+                filepaths.remove(path)

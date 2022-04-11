@@ -1,6 +1,5 @@
 """DocRED: A Large-Scale Document-Level Relation Extraction Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
@@ -29,8 +28,8 @@ from Wikipedia and Wikidata with three features:
 """
 
 _URLS = {
-    "dev": "https://drive.google.com/uc?export=download&id=1fDmfUUo5G7gfaoqWWvK81u08m71TK2g7",
-    "train_distant": "https://drive.google.com/uc?export=download&id=1fDmfUUo5G7gfaoqWWvK81u08m71TK2g7",
+    "dev": "https://drive.google.com/uc?export=download&id=1AHUm1-_V9GCtGuDcc8XrMUCJE8B-HHoL",
+    "train_distant": "https://drive.google.com/uc?export=download&id=1Qr4Jct2IJ9BVI86_mCk_Pz0J32ww9dYw",
     "train_annotated": "https://drive.google.com/uc?export=download&id=1NN33RzyETbanw4Dg2sRrhckhWpzuBQS9",
     "test": "https://drive.google.com/uc?export=download&id=1lAVDcD94Sigx7gR3jTfStI66o86cflum",
     "rel_info": "https://drive.google.com/uc?id=1y9A0zKrvETc1ddUFuFhBg3Xfr7FEL4dW&export=download",
@@ -101,8 +100,11 @@ class DocRed(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, rel_info):
         """Generate DocRED examples."""
-        relation_name_map = json.load(open(rel_info))
-        data = json.load(open(filepath))
+
+        with open(rel_info, encoding="utf-8") as f:
+            relation_name_map = json.load(f)
+        with open(filepath, encoding="utf-8") as f:
+            data = json.load(f)
 
         for idx, example in enumerate(data):
 

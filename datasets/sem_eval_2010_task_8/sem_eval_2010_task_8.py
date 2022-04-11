@@ -14,11 +14,11 @@
 # limitations under the License.
 """The SemEval-2010 Task 8 on Multi-way classification of semantic relations between pairs of nominals"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -99,6 +99,7 @@ class SemEval2010Task8(datasets.GeneratorBasedBuilder):
             # Homepage of the dataset for documentation
             homepage="https://semeval2.fbk.eu/semeval2.php?location=tasks&taskid=11",
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="sentence", label_column="relation")],
         )
 
     def _split_generators(self, dl_manager):
@@ -124,7 +125,7 @@ class SemEval2010Task8(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, "r", encoding="us-ascii") as file:
             lines = file.readlines()
             num_lines_per_sample = 4

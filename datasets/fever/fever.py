@@ -16,7 +16,6 @@
 # Lint as: python3
 """FEVER dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
@@ -213,8 +212,8 @@ class Fever(datasets.GeneratorBasedBuilder):
                             "evidence_sentence_id": -1,
                         }
         elif self.config.name == "wiki_pages":
-            for file in filepath:
+            for file_id, file in enumerate(filepath):
                 with open(file, encoding="utf-8") as f:
-                    for id_, row in enumerate(f):
+                    for row_id, row in enumerate(f):
                         data = json.loads(row)
-                        yield id_, data
+                        yield f"{file_id}_{row_id}", data

@@ -17,6 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-analysis
+paperswithcode_id: null
+pretty_name: Hate Speech in Filipino
 ---
 
 # Dataset Card for Hate Speech in Filipino
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -152,3 +155,7 @@ Data preprocessing was performed to prepare the tweets for feature extraction an
   month={August},
   year={2019}
 }
+
+### Contributions
+
+Thanks to [@anaerobeth](https://github.com/anaerobeth) for adding this dataset.

@@ -17,6 +17,8 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
+paperswithcode_id: null
+pretty_name: TurkishNer
 ---
 
 
@@ -25,12 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -44,6 +46,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -153,3 +156,7 @@ Creative Commons Attribution 4.0 International
   biburl    = {https://dblp.org/rec/journals/corr/SahinTYES17.bib},
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
+
+### Contributions
+
+Thanks to [@merveenoyan](https://github.com/merveenoyan) for adding this dataset.

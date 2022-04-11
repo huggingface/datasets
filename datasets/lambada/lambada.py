@@ -14,7 +14,6 @@
 # limitations under the License.
 """The LAMBADA dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import glob
 import os
@@ -121,7 +120,7 @@ class Lambada(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         if split == "train":
             recursion_pattern = f"{filepath}/*/*.txt"
             for idx, novel_path in enumerate(glob.iglob(recursion_pattern, recursive=True)):

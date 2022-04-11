@@ -18,6 +18,8 @@ task_categories:
 - text-scoring
 task_ids:
 - semantic-similarity-scoring
+paperswithcode_id: null
+pretty_name: Swedish Machine Translated STS-B
 ---
 
 # Dataset Card for Swedish Machine Translated STS-B 
@@ -25,12 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -44,6 +46,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -95,27 +98,45 @@ The data is split into a training, validation and test set. The final split size
 
 ### Curation Rationale
 
+[Needs More Information]
+
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
+[Needs More Information]
+
 #### Who are the source language producers?
+
+[Needs More Information]
 
 ### Annotations
 
 #### Annotation process
 
+[Needs More Information]
+
 #### Who are the annotators?
 
+[Needs More Information]
+
 ### Personal and Sensitive Information
+
+[Needs More Information]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
+[Needs More Information]
+
 ### Discussion of Biases
 
+[Needs More Information]
+
 ### Other Known Limitations
+
+[Needs More Information]
 
 ## Additional Information
 
@@ -124,6 +145,8 @@ The data is split into a training, validation and test set. The final split size
 The machine translated version were put together by @timpal0l
 
 ### Licensing Information
+
+[Needs More Information]
 
 ### Citation Information
 
@@ -135,3 +158,7 @@ The machine translated version were put together by @timpal0l
   year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@timpal0l](https://github.com/timpal0l) for adding this dataset.

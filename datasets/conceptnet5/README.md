@@ -20,13 +20,20 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+  conceptnet5:
+  - 10M<n<100M
+  omcs_sentences_free:
+  - 100K<n<1M
+  omcs_sentences_more:
+  - 1M<n<10M
 source_datasets:
 - original
 task_categories:
 - text-classification
 task_ids:
 - multi-class-classification
+paperswithcode_id: conceptnet
+pretty_name: Conceptnet5
 ---
 
 # Dataset Card for Conceptnet5
@@ -34,12 +41,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -53,6 +60,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -309,3 +317,7 @@ Open Multilingual WordNet was compiled by Francis Bond, Kyonghee Paik, and Ryan 
 ### Citation Information
 
 Robyn Speer, Joshua Chin, and Catherine Havasi. 2017. "ConceptNet 5.5: An Open Multilingual Graph of General Knowledge." In proceedings of AAAI 31.
+
+### Contributions
+
+Thanks to [@ontocord](https://github.com/ontocord) for adding this dataset.

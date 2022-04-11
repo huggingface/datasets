@@ -10,17 +10,19 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 100k<n<1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
-- parsing
+- part-of-speech-tagging
 - structure-prediction-other-clause-segmentation
 - structure-prediction-other-sentence-segmentation
 - structure-prediction-other-word-segmentation
+paperswithcode_id: null
+pretty_name: LST20
 ---
 
 # Dataset Card for LST20
@@ -28,12 +30,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -47,6 +49,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -54,7 +57,7 @@ task_ids:
 - **Repository:**
 - **Paper:** 
 - **Leaderboard:**
-- **Point of Contact:** thepchai@nectec.or.th
+- **Point of Contact:** [email](thepchai@nectec.or.th)
 
 ### Dataset Summary
 
@@ -208,3 +211,7 @@ In both options, please contact Dr. Thepchai Supnithi via thepchai@nectec.or.th 
   year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@cstorm125](https://github.com/cstorm125) for adding this dataset.

@@ -1,14 +1,14 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+TODO: Add YAML tags here. Copy-paste the tags obtained with the online tagging app: https://huggingface.co/spaces/huggingface/datasets-tagging
 ---
 
 # Dataset Card for [Dataset Name]
 
 ## Table of Contents
+- [Table of Contents](#table-of-contents)
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -27,6 +27,7 @@ YAML tags:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -119,3 +120,7 @@ YAML tags:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.

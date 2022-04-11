@@ -16,11 +16,11 @@
 # Lint as: python3
 """AG News topic classification dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -67,6 +67,7 @@ class AGNews(datasets.GeneratorBasedBuilder):
             ),
             homepage="http://groups.di.unipi.it/~gulli/AG_corpus_of_news_articles.html",
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="text", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):

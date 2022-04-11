@@ -1,0 +1,1315 @@
+{
+    "wino_bias": {
+        "description": "WinoBias, a Winograd-schema dataset for coreference resolution focused on gender bias.\nThe corpus contains Winograd-schema style sentences with entities corresponding to people\nreferred by their occupation (e.g. the nurse, the doctor, the carpenter).\n",
+        "citation": "@article{DBLP:journals/corr/abs-1804-06876,\n  author    = {Jieyu Zhao and\n               Tianlu Wang and\n               Mark Yatskar and\n               Vicente Ordonez and\n               Kai{-}Wei Chang},\n  title     = {Gender Bias in Coreference Resolution: Evaluation and Debiasing Methods},\n  journal   = {CoRR},\n  volume    = {abs/1804.06876},\n  year      = {2018},\n  url       = {http://arxiv.org/abs/1804.06876},\n  archivePrefix = {arXiv},\n  eprint    = {1804.06876},\n  timestamp = {Mon, 13 Aug 2018 16:47:01 +0200},\n  biburl    = {https://dblp.org/rec/journals/corr/abs-1804-06876.bib},\n  bibsource = {dblp computer science bibliography, https://dblp.org}\n}\n",
+        "homepage": "https://uclanlp.github.io/corefBias/overview",
+        "license": "MIT License (https://github.com/uclanlp/corefBias/blob/master/LICENSE)",
+        "features": {
+            "document_id": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "part_number": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "word_number": {
+                "feature": {
+                    "dtype": "int32",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "tokens": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "pos_tags": {
+                "feature": {
+                    "num_classes": 54,
+                    "names": [
+                        "\"",
+                        "''",
+                        "#",
+                        "$",
+                        "(",
+                        ")",
+                        ",",
+                        ".",
+                        ":",
+                        "``",
+                        "CC",
+                        "CD",
+                        "DT",
+                        "EX",
+                        "FW",
+                        "IN",
+                        "JJ",
+                        "JJR",
+                        "JJS",
+                        "LS",
+                        "MD",
+                        "NN",
+                        "NNP",
+                        "NNPS",
+                        "NNS",
+                        "NN|SYM",
+                        "PDT",
+                        "POS",
+                        "PRP",
+                        "PRP$",
+                        "RB",
+                        "RBR",
+                        "RBS",
+                        "RP",
+                        "SYM",
+                        "TO",
+                        "UH",
+                        "VB",
+                        "VBD",
+                        "VBG",
+                        "VBN",
+                        "VBP",
+                        "VBZ",
+                        "WDT",
+                        "WP",
+                        "WP$",
+                        "WRB",
+                        "HYPH",
+                        "XX",
+                        "NFP",
+                        "AFX",
+                        "ADD",
+                        "-LRB-",
+                        "-RRB-"
+                    ],
+                    "names_file": null,
+                    "id": null,
+                    "_type": "ClassLabel"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "parse_bit": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "predicate_lemma": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "predicate_framenet_id": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "word_sense": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "speaker": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "ner_tags": {
+                "feature": {
+                    "num_classes": 38,
+                    "names": [
+                        "B-PERSON",
+                        "I-PERSON",
+                        "B-NORP",
+                        "I-NORP",
+                        "B-FAC",
+                        "I-FAC",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-GPE",
+                        "I-GPE",
+                        "B-LOC",
+                        "I-LOC",
+                        "B-PRODUCT",
+                        "I-PRODUCT",
+                        "B-EVENT",
+                        "I-EVENT",
+                        "B-WORK_OF_ART",
+                        "I-WORK_OF_ART",
+                        "B-LAW",
+                        "I-LAW",
+                        "B-LANGUAGE",
+                        "I-LANGUAGE",
+                        "B-DATE",
+                        "I-DATE",
+                        "B-TIME",
+                        "I-TIME",
+                        "B-PERCENT",
+                        "I-PERCENT",
+                        "B-MONEY",
+                        "I-MONEY",
+                        "B-QUANTITY",
+                        "I-QUANTITY",
+                        "B-ORDINAL",
+                        "I-ORDINAL",
+                        "B-CARDINAL",
+                        "I-CARDINAL",
+                        "*",
+                        "0"
+                    ],
+                    "names_file": null,
+                    "id": null,
+                    "_type": "ClassLabel"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "verbal_predicates": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "wino_bias",
+        "config_name": "wino_bias",
+        "version": {
+            "version_str": "4.0.0",
+            "description": null,
+            "major": 4,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 173899234,
+                "num_examples": 150335,
+                "dataset_name": "wino_bias"
+            }
+        },
+        "download_checksums": {
+            "https://drive.google.com/uc?export=download&id=14Im3BnNl-d2fYETYmiH5yq6eFGLVC3g0": {
+                "num_bytes": 268725744,
+                "checksum": "139a6511bcb9761f6306bba7d151bde6ec7ec82cc9c593127b848df8af5f68a1"
+            }
+        },
+        "download_size": 268725744,
+        "post_processing_size": null,
+        "dataset_size": 173899234,
+        "size_in_bytes": 442624978
+    },
+    "type1_pro": {
+        "description": "WinoBias, a Winograd-schema dataset for coreference resolution focused on gender bias.\nThe corpus contains Winograd-schema style sentences with entities corresponding to people\nreferred by their occupation (e.g. the nurse, the doctor, the carpenter).\n",
+        "citation": "@article{DBLP:journals/corr/abs-1804-06876,\n  author    = {Jieyu Zhao and\n               Tianlu Wang and\n               Mark Yatskar and\n               Vicente Ordonez and\n               Kai{-}Wei Chang},\n  title     = {Gender Bias in Coreference Resolution: Evaluation and Debiasing Methods},\n  journal   = {CoRR},\n  volume    = {abs/1804.06876},\n  year      = {2018},\n  url       = {http://arxiv.org/abs/1804.06876},\n  archivePrefix = {arXiv},\n  eprint    = {1804.06876},\n  timestamp = {Mon, 13 Aug 2018 16:47:01 +0200},\n  biburl    = {https://dblp.org/rec/journals/corr/abs-1804-06876.bib},\n  bibsource = {dblp computer science bibliography, https://dblp.org}\n}\n",
+        "homepage": "https://uclanlp.github.io/corefBias/overview",
+        "license": "MIT License (https://github.com/uclanlp/corefBias/blob/master/LICENSE)",
+        "features": {
+            "document_id": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "part_number": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "word_number": {
+                "feature": {
+                    "dtype": "int32",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "tokens": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "pos_tags": {
+                "feature": {
+                    "num_classes": 55,
+                    "names": [
+                        "\"",
+                        "''",
+                        "#",
+                        "$",
+                        "(",
+                        ")",
+                        ",",
+                        ".",
+                        ":",
+                        "``",
+                        "CC",
+                        "CD",
+                        "DT",
+                        "EX",
+                        "FW",
+                        "IN",
+                        "JJ",
+                        "JJR",
+                        "JJS",
+                        "LS",
+                        "MD",
+                        "NN",
+                        "NNP",
+                        "NNPS",
+                        "NNS",
+                        "NN|SYM",
+                        "PDT",
+                        "POS",
+                        "PRP",
+                        "PRP$",
+                        "RB",
+                        "RBR",
+                        "RBS",
+                        "RP",
+                        "SYM",
+                        "TO",
+                        "UH",
+                        "VB",
+                        "VBD",
+                        "VBG",
+                        "VBN",
+                        "VBP",
+                        "VBZ",
+                        "WDT",
+                        "WP",
+                        "WP$",
+                        "WRB",
+                        "HYPH",
+                        "XX",
+                        "NFP",
+                        "AFX",
+                        "ADD",
+                        "-LRB-",
+                        "-RRB-",
+                        "-"
+                    ],
+                    "names_file": null,
+                    "id": null,
+                    "_type": "ClassLabel"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "parse_bit": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "predicate_lemma": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "predicate_framenet_id": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "word_sense": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "speaker": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "ner_tags": {
+                "feature": {
+                    "num_classes": 39,
+                    "names": [
+                        "B-PERSON",
+                        "I-PERSON",
+                        "B-NORP",
+                        "I-NORP",
+                        "B-FAC",
+                        "I-FAC",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-GPE",
+                        "I-GPE",
+                        "B-LOC",
+                        "I-LOC",
+                        "B-PRODUCT",
+                        "I-PRODUCT",
+                        "B-EVENT",
+                        "I-EVENT",
+                        "B-WORK_OF_ART",
+                        "I-WORK_OF_ART",
+                        "B-LAW",
+                        "I-LAW",
+                        "B-LANGUAGE",
+                        "I-LANGUAGE",
+                        "B-DATE",
+                        "I-DATE",
+                        "B-TIME",
+                        "I-TIME",
+                        "B-PERCENT",
+                        "I-PERCENT",
+                        "B-MONEY",
+                        "I-MONEY",
+                        "B-QUANTITY",
+                        "I-QUANTITY",
+                        "B-ORDINAL",
+                        "I-ORDINAL",
+                        "B-CARDINAL",
+                        "I-CARDINAL",
+                        "*",
+                        "0",
+                        "-"
+                    ],
+                    "names_file": null,
+                    "id": null,
+                    "_type": "ClassLabel"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "verbal_predicates": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "coreference_clusters": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "wino_bias",
+        "config_name": "type1_pro",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "validation": {
+                "name": "validation",
+                "num_bytes": 379380,
+                "num_examples": 396,
+                "dataset_name": "wino_bias"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 402041,
+                "num_examples": 396,
+                "dataset_name": "wino_bias"
+            }
+        },
+        "download_checksums": {
+            "https://raw.githubusercontent.com/uclanlp/corefBias/master/WinoBias/wino/data/conll_format/dev_type1_pro_stereotype.v4_auto_conll": {
+                "num_bytes": 407542,
+                "checksum": "21b5ca0cfb6acbb138ff37ea5deefd03783f8b7e65e296ead081d70cec9900c1"
+            },
+            "https://raw.githubusercontent.com/uclanlp/corefBias/master/WinoBias/wino/data/conll_format/test_type1_pro_stereotype.v4_auto_conll": {
+                "num_bytes": 438656,
+                "checksum": "419c0f4ecff4c6b1d81f0ce646e8ce1ebff9bde4729295064049ed9f97ad25d1"
+            }
+        },
+        "download_size": 846198,
+        "post_processing_size": null,
+        "dataset_size": 781421,
+        "size_in_bytes": 1627619
+    },
+    "type1_anti": {
+        "description": "WinoBias, a Winograd-schema dataset for coreference resolution focused on gender bias.\nThe corpus contains Winograd-schema style sentences with entities corresponding to people\nreferred by their occupation (e.g. the nurse, the doctor, the carpenter).\n",
+        "citation": "@article{DBLP:journals/corr/abs-1804-06876,\n  author    = {Jieyu Zhao and\n               Tianlu Wang and\n               Mark Yatskar and\n               Vicente Ordonez and\n               Kai{-}Wei Chang},\n  title     = {Gender Bias in Coreference Resolution: Evaluation and Debiasing Methods},\n  journal   = {CoRR},\n  volume    = {abs/1804.06876},\n  year      = {2018},\n  url       = {http://arxiv.org/abs/1804.06876},\n  archivePrefix = {arXiv},\n  eprint    = {1804.06876},\n  timestamp = {Mon, 13 Aug 2018 16:47:01 +0200},\n  biburl    = {https://dblp.org/rec/journals/corr/abs-1804-06876.bib},\n  bibsource = {dblp computer science bibliography, https://dblp.org}\n}\n",
+        "homepage": "https://uclanlp.github.io/corefBias/overview",
+        "license": "MIT License (https://github.com/uclanlp/corefBias/blob/master/LICENSE)",
+        "features": {
+            "document_id": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "part_number": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "word_number": {
+                "feature": {
+                    "dtype": "int32",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "tokens": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "pos_tags": {
+                "feature": {
+                    "num_classes": 55,
+                    "names": [
+                        "\"",
+                        "''",
+                        "#",
+                        "$",
+                        "(",
+                        ")",
+                        ",",
+                        ".",
+                        ":",
+                        "``",
+                        "CC",
+                        "CD",
+                        "DT",
+                        "EX",
+                        "FW",
+                        "IN",
+                        "JJ",
+                        "JJR",
+                        "JJS",
+                        "LS",
+                        "MD",
+                        "NN",
+                        "NNP",
+                        "NNPS",
+                        "NNS",
+                        "NN|SYM",
+                        "PDT",
+                        "POS",
+                        "PRP",
+                        "PRP$",
+                        "RB",
+                        "RBR",
+                        "RBS",
+                        "RP",
+                        "SYM",
+                        "TO",
+                        "UH",
+                        "VB",
+                        "VBD",
+                        "VBG",
+                        "VBN",
+                        "VBP",
+                        "VBZ",
+                        "WDT",
+                        "WP",
+                        "WP$",
+                        "WRB",
+                        "HYPH",
+                        "XX",
+                        "NFP",
+                        "AFX",
+                        "ADD",
+                        "-LRB-",
+                        "-RRB-",
+                        "-"
+                    ],
+                    "names_file": null,
+                    "id": null,
+                    "_type": "ClassLabel"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "parse_bit": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "predicate_lemma": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "predicate_framenet_id": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "word_sense": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "speaker": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "ner_tags": {
+                "feature": {
+                    "num_classes": 39,
+                    "names": [
+                        "B-PERSON",
+                        "I-PERSON",
+                        "B-NORP",
+                        "I-NORP",
+                        "B-FAC",
+                        "I-FAC",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-GPE",
+                        "I-GPE",
+                        "B-LOC",
+                        "I-LOC",
+                        "B-PRODUCT",
+                        "I-PRODUCT",
+                        "B-EVENT",
+                        "I-EVENT",
+                        "B-WORK_OF_ART",
+                        "I-WORK_OF_ART",
+                        "B-LAW",
+                        "I-LAW",
+                        "B-LANGUAGE",
+                        "I-LANGUAGE",
+                        "B-DATE",
+                        "I-DATE",
+                        "B-TIME",
+                        "I-TIME",
+                        "B-PERCENT",
+                        "I-PERCENT",
+                        "B-MONEY",
+                        "I-MONEY",
+                        "B-QUANTITY",
+                        "I-QUANTITY",
+                        "B-ORDINAL",
+                        "I-ORDINAL",
+                        "B-CARDINAL",
+                        "I-CARDINAL",
+                        "*",
+                        "0",
+                        "-"
+                    ],
+                    "names_file": null,
+                    "id": null,
+                    "_type": "ClassLabel"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "verbal_predicates": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "coreference_clusters": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "wino_bias",
+        "config_name": "type1_anti",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "validation": {
+                "name": "validation",
+                "num_bytes": 380846,
+                "num_examples": 396,
+                "dataset_name": "wino_bias"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 403229,
+                "num_examples": 396,
+                "dataset_name": "wino_bias"
+            }
+        },
+        "download_checksums": {
+            "https://raw.githubusercontent.com/uclanlp/corefBias/master/WinoBias/wino/data/conll_format/dev_type1_anti_stereotype.v4_auto_conll": {
+                "num_bytes": 431039,
+                "checksum": "5c9565b41c546d04172190b92009a7a02375183c9232522fdaf195b27bee45a4"
+            },
+            "https://raw.githubusercontent.com/uclanlp/corefBias/master/WinoBias/wino/data/conll_format/test_type1_anti_stereotype.v4_auto_conll": {
+                "num_bytes": 463272,
+                "checksum": "68a7f4f0f055f5cddeed3b0a07a572fded2b2077c1afd2bb596c02e5fe0c9476"
+            }
+        },
+        "download_size": 894311,
+        "post_processing_size": null,
+        "dataset_size": 784075,
+        "size_in_bytes": 1678386
+    },
+    "type2_pro": {
+        "description": "WinoBias, a Winograd-schema dataset for coreference resolution focused on gender bias.\nThe corpus contains Winograd-schema style sentences with entities corresponding to people\nreferred by their occupation (e.g. the nurse, the doctor, the carpenter).\n",
+        "citation": "@article{DBLP:journals/corr/abs-1804-06876,\n  author    = {Jieyu Zhao and\n               Tianlu Wang and\n               Mark Yatskar and\n               Vicente Ordonez and\n               Kai{-}Wei Chang},\n  title     = {Gender Bias in Coreference Resolution: Evaluation and Debiasing Methods},\n  journal   = {CoRR},\n  volume    = {abs/1804.06876},\n  year      = {2018},\n  url       = {http://arxiv.org/abs/1804.06876},\n  archivePrefix = {arXiv},\n  eprint    = {1804.06876},\n  timestamp = {Mon, 13 Aug 2018 16:47:01 +0200},\n  biburl    = {https://dblp.org/rec/journals/corr/abs-1804-06876.bib},\n  bibsource = {dblp computer science bibliography, https://dblp.org}\n}\n",
+        "homepage": "https://uclanlp.github.io/corefBias/overview",
+        "license": "MIT License (https://github.com/uclanlp/corefBias/blob/master/LICENSE)",
+        "features": {
+            "document_id": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "part_number": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "word_number": {
+                "feature": {
+                    "dtype": "int32",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "tokens": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "pos_tags": {
+                "feature": {
+                    "num_classes": 55,
+                    "names": [
+                        "\"",
+                        "''",
+                        "#",
+                        "$",
+                        "(",
+                        ")",
+                        ",",
+                        ".",
+                        ":",
+                        "``",
+                        "CC",
+                        "CD",
+                        "DT",
+                        "EX",
+                        "FW",
+                        "IN",
+                        "JJ",
+                        "JJR",
+                        "JJS",
+                        "LS",
+                        "MD",
+                        "NN",
+                        "NNP",
+                        "NNPS",
+                        "NNS",
+                        "NN|SYM",
+                        "PDT",
+                        "POS",
+                        "PRP",
+                        "PRP$",
+                        "RB",
+                        "RBR",
+                        "RBS",
+                        "RP",
+                        "SYM",
+                        "TO",
+                        "UH",
+                        "VB",
+                        "VBD",
+                        "VBG",
+                        "VBN",
+                        "VBP",
+                        "VBZ",
+                        "WDT",
+                        "WP",
+                        "WP$",
+                        "WRB",
+                        "HYPH",
+                        "XX",
+                        "NFP",
+                        "AFX",
+                        "ADD",
+                        "-LRB-",
+                        "-RRB-",
+                        "-"
+                    ],
+                    "names_file": null,
+                    "id": null,
+                    "_type": "ClassLabel"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "parse_bit": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "predicate_lemma": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "predicate_framenet_id": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "word_sense": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "speaker": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "ner_tags": {
+                "feature": {
+                    "num_classes": 39,
+                    "names": [
+                        "B-PERSON",
+                        "I-PERSON",
+                        "B-NORP",
+                        "I-NORP",
+                        "B-FAC",
+                        "I-FAC",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-GPE",
+                        "I-GPE",
+                        "B-LOC",
+                        "I-LOC",
+                        "B-PRODUCT",
+                        "I-PRODUCT",
+                        "B-EVENT",
+                        "I-EVENT",
+                        "B-WORK_OF_ART",
+                        "I-WORK_OF_ART",
+                        "B-LAW",
+                        "I-LAW",
+                        "B-LANGUAGE",
+                        "I-LANGUAGE",
+                        "B-DATE",
+                        "I-DATE",
+                        "B-TIME",
+                        "I-TIME",
+                        "B-PERCENT",
+                        "I-PERCENT",
+                        "B-MONEY",
+                        "I-MONEY",
+                        "B-QUANTITY",
+                        "I-QUANTITY",
+                        "B-ORDINAL",
+                        "I-ORDINAL",
+                        "B-CARDINAL",
+                        "I-CARDINAL",
+                        "*",
+                        "0",
+                        "-"
+                    ],
+                    "names_file": null,
+                    "id": null,
+                    "_type": "ClassLabel"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "verbal_predicates": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "coreference_clusters": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "wino_bias",
+        "config_name": "type2_pro",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "validation": {
+                "name": "validation",
+                "num_bytes": 367293,
+                "num_examples": 396,
+                "dataset_name": "wino_bias"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 375480,
+                "num_examples": 396,
+                "dataset_name": "wino_bias"
+            }
+        },
+        "download_checksums": {
+            "https://raw.githubusercontent.com/uclanlp/corefBias/master/WinoBias/wino/data/conll_format/dev_type2_pro_stereotype.v4_auto_conll": {
+                "num_bytes": 393889,
+                "checksum": "8f96017dee3a1cfeda74da3b2e8b7c794f48680f21d83ae4118d0f1e22692ea0"
+            },
+            "https://raw.githubusercontent.com/uclanlp/corefBias/master/WinoBias/wino/data/conll_format/test_type2_pro_stereotype.v4_auto_conll": {
+                "num_bytes": 408536,
+                "checksum": "7720dee1432dc6a3d6077c442ddea37c63773e80f4f75c79b27e00087f88d574"
+            }
+        },
+        "download_size": 802425,
+        "post_processing_size": null,
+        "dataset_size": 742773,
+        "size_in_bytes": 1545198
+    },
+    "type2_anti": {
+        "description": "WinoBias, a Winograd-schema dataset for coreference resolution focused on gender bias.\nThe corpus contains Winograd-schema style sentences with entities corresponding to people\nreferred by their occupation (e.g. the nurse, the doctor, the carpenter).\n",
+        "citation": "@article{DBLP:journals/corr/abs-1804-06876,\n  author    = {Jieyu Zhao and\n               Tianlu Wang and\n               Mark Yatskar and\n               Vicente Ordonez and\n               Kai{-}Wei Chang},\n  title     = {Gender Bias in Coreference Resolution: Evaluation and Debiasing Methods},\n  journal   = {CoRR},\n  volume    = {abs/1804.06876},\n  year      = {2018},\n  url       = {http://arxiv.org/abs/1804.06876},\n  archivePrefix = {arXiv},\n  eprint    = {1804.06876},\n  timestamp = {Mon, 13 Aug 2018 16:47:01 +0200},\n  biburl    = {https://dblp.org/rec/journals/corr/abs-1804-06876.bib},\n  bibsource = {dblp computer science bibliography, https://dblp.org}\n}\n",
+        "homepage": "https://uclanlp.github.io/corefBias/overview",
+        "license": "MIT License (https://github.com/uclanlp/corefBias/blob/master/LICENSE)",
+        "features": {
+            "document_id": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "part_number": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "word_number": {
+                "feature": {
+                    "dtype": "int32",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "tokens": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "pos_tags": {
+                "feature": {
+                    "num_classes": 55,
+                    "names": [
+                        "\"",
+                        "''",
+                        "#",
+                        "$",
+                        "(",
+                        ")",
+                        ",",
+                        ".",
+                        ":",
+                        "``",
+                        "CC",
+                        "CD",
+                        "DT",
+                        "EX",
+                        "FW",
+                        "IN",
+                        "JJ",
+                        "JJR",
+                        "JJS",
+                        "LS",
+                        "MD",
+                        "NN",
+                        "NNP",
+                        "NNPS",
+                        "NNS",
+                        "NN|SYM",
+                        "PDT",
+                        "POS",
+                        "PRP",
+                        "PRP$",
+                        "RB",
+                        "RBR",
+                        "RBS",
+                        "RP",
+                        "SYM",
+                        "TO",
+                        "UH",
+                        "VB",
+                        "VBD",
+                        "VBG",
+                        "VBN",
+                        "VBP",
+                        "VBZ",
+                        "WDT",
+                        "WP",
+                        "WP$",
+                        "WRB",
+                        "HYPH",
+                        "XX",
+                        "NFP",
+                        "AFX",
+                        "ADD",
+                        "-LRB-",
+                        "-RRB-",
+                        "-"
+                    ],
+                    "names_file": null,
+                    "id": null,
+                    "_type": "ClassLabel"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "parse_bit": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "predicate_lemma": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "predicate_framenet_id": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "word_sense": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "speaker": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "ner_tags": {
+                "feature": {
+                    "num_classes": 39,
+                    "names": [
+                        "B-PERSON",
+                        "I-PERSON",
+                        "B-NORP",
+                        "I-NORP",
+                        "B-FAC",
+                        "I-FAC",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-GPE",
+                        "I-GPE",
+                        "B-LOC",
+                        "I-LOC",
+                        "B-PRODUCT",
+                        "I-PRODUCT",
+                        "B-EVENT",
+                        "I-EVENT",
+                        "B-WORK_OF_ART",
+                        "I-WORK_OF_ART",
+                        "B-LAW",
+                        "I-LAW",
+                        "B-LANGUAGE",
+                        "I-LANGUAGE",
+                        "B-DATE",
+                        "I-DATE",
+                        "B-TIME",
+                        "I-TIME",
+                        "B-PERCENT",
+                        "I-PERCENT",
+                        "B-MONEY",
+                        "I-MONEY",
+                        "B-QUANTITY",
+                        "I-QUANTITY",
+                        "B-ORDINAL",
+                        "I-ORDINAL",
+                        "B-CARDINAL",
+                        "I-CARDINAL",
+                        "*",
+                        "0",
+                        "-"
+                    ],
+                    "names_file": null,
+                    "id": null,
+                    "_type": "ClassLabel"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "verbal_predicates": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            },
+            "coreference_clusters": {
+                "feature": {
+                    "dtype": "string",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "wino_bias",
+        "config_name": "type2_anti",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "validation": {
+                "name": "validation",
+                "num_bytes": 368757,
+                "num_examples": 396,
+                "dataset_name": "wino_bias"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 377262,
+                "num_examples": 396,
+                "dataset_name": "wino_bias"
+            }
+        },
+        "download_checksums": {
+            "https://raw.githubusercontent.com/uclanlp/corefBias/master/WinoBias/wino/data/conll_format/dev_type2_anti_stereotype.v4_auto_conll": {
+                "num_bytes": 416645,
+                "checksum": "022c18ce9fa07161b24daa6d79465190f127fde5c15e796778b12d950966fb03"
+            },
+            "https://raw.githubusercontent.com/uclanlp/corefBias/master/WinoBias/wino/data/conll_format/test_type2_anti_stereotype.v4_auto_conll": {
+                "num_bytes": 432159,
+                "checksum": "c9a6b66d60ce6a008f0d8cb619786042454abc6e9502d134cf88352aed7da57b"
+            }
+        },
+        "download_size": 848804,
+        "post_processing_size": null,
+        "dataset_size": 746019,
+        "size_in_bytes": 1594823
+    }
+}

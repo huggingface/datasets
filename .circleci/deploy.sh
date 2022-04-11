@@ -34,6 +34,39 @@ deploy_doc "master" master
 
 # Example of how to deploy a doc on a certain commit (the commit doesn't have to be on the master branch).
 # The following commit would live on huggingface.co/docs/datasets/v1.0.0
+deploy_doc "faf3d79" v1.18.4
+deploy_doc "c6bc52a" v1.18.3
+deploy_doc "ba00b25" v1.18.2
+deploy_doc "218e496" v1.18.1
+deploy_doc "c0aea8d" v1.18.0
+deploy_doc "dff6c92" v1.17.0
+deploy_doc "acca8f4" v1.16.1
+deploy_doc "d50f5f9" v1.16.0
+deploy_doc "0181006" v1.15.1
+deploy_doc "dcaa3c0" v1.15.0
+deploy_doc "ec82422" v1.14.0
+deploy_doc "10dc68c" v1.13.3
+deploy_doc "e82164f" v1.13.2
+deploy_doc "2ed762b" v1.13.1
+deploy_doc "38ec259" v1.13.0
+deploy_doc "2c1fc9c" v1.12.1
+deploy_doc "c65dccc" v1.12.0
+deploy_doc "ea7f0b8" v1.11.0
+deploy_doc "cea1a29" v1.10.2
+deploy_doc "6b7b227" v1.10.1
+deploy_doc "3aabafb" v1.10.0
+deploy_doc "5bc064d" v1.9.0
+deploy_doc "bcf0543" v1.8.0
+deploy_doc "448c177" v1.7.0
+deploy_doc "b0d7ae1" v1.6.2
+deploy_doc "e8fc41f" v1.6.1
+deploy_doc "40bb9e6" v1.6.0
+deploy_doc "f256b77" v1.5.0
+deploy_doc "ca41320" v1.4.1
+deploy_doc "f42658e" v1.4.0
+deploy_doc "ef633da" v1.3.0
+deploy_doc "a59580b" v1.2.1
+deploy_doc "dae6880" v1.2.0
 deploy_doc "000b584" v1.1.3
 deploy_doc "2256521" v1.1.2
 deploy_doc "8029965" v1.1.1

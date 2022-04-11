@@ -14,7 +14,6 @@
 # Lint as: python3
 """Authorship Analysis: Style Change Detection"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
@@ -96,9 +95,7 @@ class StyleChangeDetection(datasets.GeneratorBasedBuilder):
 
         if not os.path.exists(train_dir):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('style_change_detection', data_dir=...)` that includes {}. Manual download instructions: {}".format(
-                    train_dir, train_dir, self.manual_download_instructions
-                )
+                f"{train_dir} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('style_change_detection', data_dir=...)` that includes {train_dir}. Manual download instructions: {self.manual_download_instructions}"
             )
 
         return [

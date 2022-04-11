@@ -10,13 +10,15 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 10k<n<100k
+- 100K<n<1M
 source_datasets:
 - original
 task_categories:
 - text-classification
 task_ids:
 - multi-class-classification
+paperswithcode_id: hard
+pretty_name: Hotel Arabic-Reviews Dataset
 ---
 
 # Dataset Card for Hard
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -132,3 +135,7 @@ The dataset is not split.
 [More Information Needed]
 
 ### Citation Information
+
+### Contributions
+
+Thanks to [@zaidalyafeai](https://github.com/zaidalyafeai) for adding this dataset.

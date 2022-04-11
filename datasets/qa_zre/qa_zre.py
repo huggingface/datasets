@@ -1,5 +1,4 @@
 """A dataset reducing relation extraction to simple reading comprehension questions"""
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
@@ -87,11 +86,11 @@ class QaZre(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepaths):
         """Yields examples."""
 
-        for filepath in filepaths:
+        for file_idx, filepath in enumerate(filepaths):
             with open(filepath, encoding="utf-8") as f:
                 data = csv.reader(f, delimiter="\t")
                 for idx, row in enumerate(data):
-                    yield idx, {
+                    yield f"{file_idx}_{idx}", {
                         "relation": row[0],
                         "question": row[1],
                         "subject": row[2],

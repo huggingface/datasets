@@ -14,7 +14,6 @@
 # limitations under the License.
 """Annotated dataset of dialogues where users recommend movies to each other."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
@@ -120,7 +119,7 @@ class ReDial(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         with open(filepath, encoding="utf-8") as f:
             examples = f.readlines()

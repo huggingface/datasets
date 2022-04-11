@@ -14,7 +14,6 @@
 # limitations under the License.
 """QUAC (Question Answering in Context)."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 
@@ -123,7 +122,7 @@ class Quac(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, encoding="utf-8") as f:
             squad = json.load(f)
             for section in squad["data"]:

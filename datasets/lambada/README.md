@@ -17,6 +17,8 @@ size_categories:
 - 10K<n<100K
 licenses:
 - cc-by-4.0
+paperswithcode_id: lambada
+pretty_name: LAMBADA
 ---
 
 # Dataset Card for LAMBADA
@@ -24,12 +26,12 @@ licenses:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,6 +45,7 @@ licenses:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -179,3 +182,7 @@ Computational Linguistics (Volume 1: Long Papers)},
   url       = {http://www.aclweb.org/anthology/P16-1144}
 }
 ```
+
+### Contributions
+
+Thanks to [@VictorSanh](https://github.com/VictorSanh) for adding this dataset.

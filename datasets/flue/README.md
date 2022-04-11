@@ -1,4 +1,5 @@
 ---
+pretty_name: FLUE
 annotations_creators:
 - crowdsourced
 - machine-generated
@@ -25,6 +26,7 @@ task_ids:
   - sentiment-classification
   WSD-V:
   - text-classification-other-Word Sense Disambiguation for Verbs
+paperswithcode_id: null
 ---
 
 # Dataset Card for FLUE
@@ -32,25 +34,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
-  - [Text Classification (CLS)](#text-classification-(cls))
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-instances)
-    - [Data Splits](#data-instances)
-  - [Paraphrasing (PAWS-X)](#paraphrasing-(paws-x))
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-instances)
-    - [Data Splits](#data-instances)
-  - [Natural Language Inference (XNLI)](#natural-language-inference-(xnli))
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-instances)
-    - [Data Splits](#data-instances)
-  - [Word Sense Disambiguation for Verbs (WSD-V)](#word-sense-disambiguation-for-verbs-(wsd-v))
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-instances)
-    - [Data Splits](#data-instances)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -64,6 +53,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -231,3 +221,6 @@ The licenses are:
     primaryClass={cs.CL}
 }
 ```
+### Contributions
+
+Thanks to [@jplu](https://github.com/jplu) for adding this dataset.

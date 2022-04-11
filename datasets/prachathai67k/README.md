@@ -17,6 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - topic-classification
+paperswithcode_id: prachathai-67k
+pretty_name: prachathai67k
 ---
 
 # Dataset Card for `prachathai67k`
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -167,7 +170,7 @@ Prachathai.com is a left-leaning, human-right-focused news site, and thus unusua
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 
@@ -189,3 +192,7 @@ CC-BY-NC
   journal = {GitHub repository},
   howpublished={\\url{https://github.com/PyThaiNLP/prachathai-67k}},
 }
+
+### Contributions
+
+Thanks to [@cstorm125](https://github.com/cstorm125) for adding this dataset.

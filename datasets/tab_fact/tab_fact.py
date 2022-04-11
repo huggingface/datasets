@@ -14,7 +14,6 @@
 # limitations under the License.
 """TabFact: A Large-scale Dataset for Table-based Fact Verification"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
@@ -139,8 +138,8 @@ class TabFact(datasets.GeneratorBasedBuilder):
 
                 statements, labels, caption = example
 
-                for statement, label in zip(statements, labels):
-                    yield i, {
+                for statement_idx, (statement, label) in enumerate(zip(statements, labels)):
+                    yield f"{i}_{statement_idx}", {
                         "id": i,
                         "table_id": table_id,
                         "table_text": tabel_text,

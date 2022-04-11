@@ -19,6 +19,8 @@ task_categories:
 task_ids:
 - multi-class-classification
 - text-simplification
+paperswithcode_id: onestopenglish
+pretty_name: OneStopEnglish corpus
 ---
 
 # Dataset Card for OneStopEnglish corpus
@@ -26,12 +28,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -45,6 +47,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -137,3 +140,7 @@ Creative Commons Attribution-ShareAlike 4.0 International License
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@purvimisal](https://github.com/purvimisal) for adding this dataset.

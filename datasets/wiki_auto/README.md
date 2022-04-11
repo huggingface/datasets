@@ -4,6 +4,10 @@ annotations_creators:
   - machine-generated
   auto_acl:
   - machine-generated
+  auto_full_no_split:
+  - machine-generated
+  auto_full_with_split:
+  - machine-generated
   manual:
   - crowdsourced
 language_creators:
@@ -22,6 +26,8 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - text-simplification
+paperswithcode_id: null
+pretty_name: WikiAuto
 ---
 
 # Dataset Card for WikiAuto
@@ -29,12 +35,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -48,6 +54,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -61,7 +68,7 @@ WikiAuto provides a set of aligned sentences from English Wikipedia and Simple E
 
 The authors first crowd-sourced a set of manual alignments between sentences in a subset of the Simple English Wikipedia and their corresponding versions in English Wikipedia (this corresponds to the `manual` config in this version of dataset), then trained a neural CRF system to predict these alignments.
 
-The trained alignment prediction model was then applied to the other articles in Simple English Wikipedia with an English counterpart to create a larger corpus of aligned sentences (corresponding to the `auto` and `auto_acl` configs here).
+The trained alignment prediction model was then applied to the other articles in Simple English Wikipedia with an English counterpart to create a larger corpus of aligned sentences (corresponding to the `auto`, `auto_acl`, `auto_full_no_split`, and `auto_full_with_split` configs here).
 
 ### Supported Tasks and Leaderboards
 
@@ -80,18 +87,17 @@ The data in all of the configurations looks a little different.
 A `manual` config instance consists of a sentence from the Simple English Wikipedia article, one from the linked English Wikipedia article, IDs for each of them, and a label indicating whether they are  aligned. Sentences on either side can be repeated so that the aligned sentences are in the same instances. For example:
 ```
 {'alignment_label': 1,
- 'normal_sentence': 'The Local Government Act 1985 is an Act of Parliament in the United Kingdom.',
  'normal_sentence_id': '0_66252-1-0-0',
- 'simple_sentence': 'The Local Government Act 1985 was an Act of Parliament in the United Kingdom.',
- 'simple_sentence_id': '0_66252-0-0-0'}
+ 'simple_sentence_id': '0_66252-0-0-0',
+ 'normal_sentence': 'The Local Government Act 1985 is an Act of Parliament in the United Kingdom.', 'simple_sentence': 'The Local Government Act 1985 was an Act of Parliament in the United Kingdom', 'gleu_score': 0.800000011920929}
 ```
 Is followed by
 ```
 {'alignment_label': 0,
- 'normal_sentence': 'Its main effect was to abolish the six county councils of the metropolitan counties that had been set up in 1974, 11 years earlier, by the Local Government Act 1972, along with the Greater London Council that had been established in 1965.',
  'normal_sentence_id': '0_66252-1-0-1',
- 'simple_sentence': 'The Local Government Act 1985 was an Act of Parliament in the United Kingdom.',
- 'simple_sentence_id': '0_66252-0-0-0'}
+ 'simple_sentence_id': '0_66252-0-0-0',
+ 'normal_sentence': 'Its main effect was to abolish the six county councils of the metropolitan counties that had been set up in 1974, 11 years earlier, by the Local Government Act 1972, along with the Greater London Council that had been established in 1965.',
+ 'simple_sentence': 'The Local Government Act 1985 was an Act of Parliament in the United Kingdom', 'gleu_score': 0.08641975373029709}
 ```
 
 The `auto` config shows a pair of an English and corresponding Simple English Wikipedia as an instance, with an alignment at the paragraph and sentence level:
@@ -127,7 +133,7 @@ The `auto` config shows a pair of an English and corresponding Simple English Wi
   'simple_article_url': 'https://simple.wikipedia.org/wiki?curid=702227'}}
 ```
 
-Finally, the `auto_acl` config was obtained by selecting the aligned pairs of sentences from `auto` to provide a ready-to-go aligned dataset to train a sequence-to-sequence system, so an instance is a single pair of sentences:
+Finally, the `auto_acl`, the `auto_full_no_split`, and the `auto_full_with_split` configs were obtained by selecting the aligned pairs of sentences from `auto` to provide a ready-to-go aligned dataset to train a sequence-to-sequence system. While `auto_acl` corresponds to the filtered version of the data used to train the systems in the paper, `auto_full_no_split` and `auto_full_with_split` correspond to the unfiltered versions with and without sentence splits respectively. In the `auto_full_with_split` config, we join the sentences in the simple article mapped to the same sentence in the complex article to capture sentence splitting. Split sentences are separated by a `<SEP>` token.  In the `auto_full_no_split` config, we do not join the splits and treat them as separate pairs. An instance is a single pair of sentences:
 ```
 {'normal_sentence': 'In early work , Rutherford discovered the concept of radioactive half-life , the radioactive element radon , and differentiated and named alpha and beta radiation .\n',
  'simple_sentence': 'Rutherford discovered the radioactive half-life , and the three parts of radiation which he named Alpha , Beta , and Gamma .\n'}
@@ -140,19 +146,21 @@ The data has the following field:
 - `normal_sentence_id`: a unique ID for each English Wikipedia sentence. The last two dash-separated numbers correspond to the paragraph number in the article and the sentence number in the paragraph.
 - `simple_sentence`: a sentence from Simple English Wikipedia.
 - `simple_sentence_id`: a unique ID for each Simple English Wikipedia sentence. The last two dash-separated numbers correspond to the paragraph number in the article and the sentence number in the paragraph.
-- `alignment_label`: signifies whether a pair of sentences is aligned: labels are `1:aligned` and `0:notAligned`
+- `alignment_label`: signifies whether a pair of sentences is aligned: labels are `2:partialAligned`, `1:aligned` and `0:notAligned`
 - `paragraph_alignment`: a first step of alignment mapping English and Simple English paragraphs from linked articles
 - `sentence_alignment`: the full alignment mapping English and Simple English sentences from linked articles
+- `gleu_score`: the sentence level GLEU (Google-BLEU) score for each pair.
 
 ### Data Splits
 
 In `auto`, the `part_2` split corresponds to the articles used in `manual`, and `part_1` has the rest of Wikipedia.
 
 The `manual` config is provided with a `train`/`dev`/`test` split with the following amounts of data:
-|                            | Tain   | Dev   | Test   |
-| -----                      | ------ | ----- | ----   |
-| Total sentence pairs       | 373801 | 73249 | 118074 |
-| Aligned sentence pairs     |  1889  |  346  | 677    |
+
+|                        |   train | validation |    test |
+|------------------------|--------:|-----------:|--------:|
+| Total sentence pairs   |  373801 |      73249 |  118074 |
+| Aligned sentence pairs |    1889 |        346 |     677 |
 
 ## Dataset Creation
 
@@ -232,3 +240,7 @@ You can cite the paper presenting the dataset as:
   url       = {https://www.aclweb.org/anthology/2020.acl-main.709/}
 }
 ```
+
+### Contributions
+
+Thanks to [@yjernite](https://github.com/yjernite), [@mounicam](https://github.com/mounicam) for adding this dataset.

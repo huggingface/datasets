@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +18,7 @@
 import dataclasses
 import re
 from dataclasses import dataclass
+from typing import Optional, Union
 
 
 _VERSION_TMPL = r"^(?P<major>{v})" r"\.(?P<minor>{v})" r"\.(?P<patch>{v})$"
@@ -26,25 +26,33 @@ _VERSION_WILDCARD_REG = re.compile(_VERSION_TMPL.format(v=r"\d+|\*"))
 _VERSION_RESOLVED_REG = re.compile(_VERSION_TMPL.format(v=r"\d+"))
 
 
-@dataclass()
+@dataclass
 class Version:
     """Dataset version MAJOR.MINOR.PATCH.
+
     Args:
-        version_str: string. Eg: "1.2.3".
-        description: string, a description of what is new in this version.
+        version_str (:obj:`str`): Eg: "1.2.3".
+        description (:obj:`str`): A description of what is new in this version.
+
+    Attributes:
+        version_str (:obj:`str`): Eg: "1.2.3".
+        description (:obj:`str`): A description of what is new in this version.
+        major (:obj:`str`):
+        minor (:obj:`str`):
+        patch (:obj:`str`):
     """
 
     version_str: str
-    description: str = None
-    major: str = None
-    minor: str = None
-    patch: str = None
+    description: Optional[str] = None
+    major: Optional[Union[str, int]] = None
+    minor: Optional[Union[str, int]] = None
+    patch: Optional[Union[str, int]] = None
 
     def __post_init__(self):
         self.major, self.minor, self.patch = _str_to_version(self.version_str)
 
     def __repr__(self):
-        return "{}.{}.{}".format(*self.tuple)
+        return f"{self.tuple[0]}.{self.tuple[1]}.{self.tuple[2]}"
 
     @property
     def tuple(self):
@@ -55,7 +63,7 @@ class Version:
             return Version(other)
         elif isinstance(other, Version):
             return other
-        raise AssertionError("{} (type {}) cannot be compared to version.".format(other, type(other)))
+        raise AssertionError(f"{other} (type {type(other)}) cannot be compared to version.")
 
     def __eq__(self, other):
         other = self._validate_operand(other)
@@ -93,7 +101,7 @@ class Version:
 
     @classmethod
     def from_dict(cls, dic):
-        field_names = set(f.name for f in dataclasses.fields(cls))
+        field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in dic.items() if k in field_names})
 
 
@@ -102,7 +110,7 @@ def _str_to_version(version_str, allow_wildcard=False):
     reg = _VERSION_WILDCARD_REG if allow_wildcard else _VERSION_RESOLVED_REG
     res = reg.match(version_str)
     if not res:
-        msg = "Invalid version '{}'. Format should be x.y.z".format(version_str)
+        msg = f"Invalid version '{version_str}'. Format should be x.y.z"
         if allow_wildcard:
             msg += " with {x,y,z} being digits or wildcard."
         else:

@@ -16,12 +16,13 @@
 # Lint as: python3
 """BioMRC Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -59,7 +60,7 @@ class BiomrcConfig(datasets.BuilderConfig):
             self.biomrc_setting = "B"
         else:
             if biomrc_setting.lower() != "a":
-                logging.warning("Wrong Setting for BioMRC, using Setting A instead.")
+                logger.warning("Wrong Setting for BioMRC, using Setting A instead.")
             self.biomrc_setting = "A"
 
         if biomrc_version.lower() == "small":
@@ -68,7 +69,7 @@ class BiomrcConfig(datasets.BuilderConfig):
             self.biomrc_version = "tiny"
         else:
             if biomrc_version.lower() != "large":
-                logging.warning("Wrong version for BioMRC, using BioMRC Large instead.")
+                logger.warning("Wrong version for BioMRC, using BioMRC Large instead.")
             self.biomrc_version = "large"
 
         super(BiomrcConfig, self).__init__(**kwargs)
@@ -144,33 +145,19 @@ class Biomrc(datasets.GeneratorBasedBuilder):
         setting = "" if self.config.biomrc_setting == "A" else "_B"
         if self.config.biomrc_version == "large":
             urls_to_download = {
-                "train": "https://archive.org/download/biomrc_dataset/biomrc_large/dataset_train{}.json.gz".format(
-                    setting
-                ),
-                "val": "https://archive.org/download/biomrc_dataset/biomrc_large/dataset_val{}.json.gz".format(
-                    setting
-                ),
-                "test": "https://archive.org/download/biomrc_dataset/biomrc_large/dataset_test{}.json.gz".format(
-                    setting
-                ),
+                "train": f"https://archive.org/download/biomrc_dataset/biomrc_large/dataset_train{setting}.json.gz",
+                "val": f"https://archive.org/download/biomrc_dataset/biomrc_large/dataset_val{setting}.json.gz",
+                "test": f"https://archive.org/download/biomrc_dataset/biomrc_large/dataset_test{setting}.json.gz",
             }
         elif self.config.biomrc_version == "small":
             urls_to_download = {
-                "train": "https://archive.org/download/biomrc_dataset/biomrc_small/dataset_train_small{}.json.gz".format(
-                    setting
-                ),
-                "val": "https://archive.org/download/biomrc_dataset/biomrc_small/dataset_val_small{}.json.gz".format(
-                    setting
-                ),
-                "test": "https://archive.org/download/biomrc_dataset/biomrc_small/dataset_test_small{}.json.gz".format(
-                    setting
-                ),
+                "train": f"https://archive.org/download/biomrc_dataset/biomrc_small/dataset_train_small{setting}.json.gz",
+                "val": f"https://archive.org/download/biomrc_dataset/biomrc_small/dataset_val_small{setting}.json.gz",
+                "test": f"https://archive.org/download/biomrc_dataset/biomrc_small/dataset_test_small{setting}.json.gz",
             }
         else:
             urls_to_download = {
-                "test": "https://archive.org/download/biomrc_dataset/biomrc_tiny/dataset_tiny{}.json.gz".format(
-                    setting
-                )
+                "test": f"https://archive.org/download/biomrc_dataset/biomrc_tiny/dataset_tiny{setting}.json.gz"
             }
 
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
@@ -190,7 +177,7 @@ class Biomrc(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
-        logging.info("generating examples from = %s", filepath)
+        logger.info("generating examples from = %s", filepath)
         # Id for the biomrc dataset
         with open(filepath, encoding="utf-8") as fp:
             biomrc = json.load(fp)

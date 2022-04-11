@@ -19,6 +19,8 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - machine-translation
+paperswithcode_id: null
+pretty_name: MsrZhenTranslationParity
 ---
 
 # Dataset Card for msr_zhen_translation_parity
@@ -26,12 +28,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -45,6 +47,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -176,3 +179,7 @@ All data fields of a record are translations for the same Chinese source sentenc
 ### Citation Information
 
 Citation information is available at this link [Achieving Human Parity on Automatic Chinese to English News Translation](https://www.microsoft.com/en-us/research/publication/achieving-human-parity-on-automatic-chinese-to-english-news-translation/)
+
+### Contributions
+
+Thanks to [@leoxzhao](https://github.com/leoxzhao) for adding this dataset.

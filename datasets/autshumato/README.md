@@ -25,13 +25,26 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-- 10K<n<100K
+  autshumato-en-tn:
+  - 100K<n<1M
+  autshumato-en-ts:
+  - 100K<n<1M
+  autshumato-en-ts-manual:
+  - 10K<n<100K
+  autshumato-en-zu:
+  - 10K<n<100K
+  autshumato-tn:
+  - 10K<n<100K
+  autshumato-ts:
+  - 10K<n<100K
 source_datasets:
 - original
 task_categories:
 - conditional-text-generation
 task_ids:
 - machine-translation
+paperswithcode_id: null
+pretty_name: autshumato
 ---
 
 # Dataset Card Creation Guide
@@ -39,12 +52,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -58,6 +71,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -167,3 +181,7 @@ project is to develop machine translation systems for three South African langua
   year={2010}
 }
 ```
+
+### Contributions
+
+Thanks to [@Narsil](https://github.com/Narsil) for adding this dataset.

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,21 +16,32 @@
 """Download manager interface."""
 
 import enum
+import io
 import os
+import tarfile
 from datetime import datetime
 from functools import partial
-from typing import Dict, Union
+from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
-from .file_utils import HF_DATASETS_CACHE, DownloadConfig, cached_path, get_from_cache, hash_url_to_filename
+from .. import config
+from .deprecation_utils import DeprecatedEnum
+from .file_utils import (
+    DownloadConfig,
+    cached_path,
+    get_from_cache,
+    hash_url_to_filename,
+    is_relative_path,
+    url_or_path_join,
+)
 from .info_utils import get_size_checksum_dict
-from .logging import get_logger
-from .py_utils import flatten_nested, map_nested, size_str
+from .logging import get_logger, is_progress_bar_enabled
+from .py_utils import NestedDataStructure, map_nested, size_str
 
 
 logger = get_logger(__name__)
 
 
-class GenerateMode(enum.Enum):
+class DownloadMode(enum.Enum):
     """`Enum` for how to treat pre-existing downloads and data.
 
     The default mode is `REUSE_DATASET_IF_EXISTS`, which will reuse both
@@ -39,11 +49,12 @@ class GenerateMode(enum.Enum):
 
     The generations modes:
 
-    |                                    | Downloads | Dataset |
-    | -----------------------------------|-----------|---------|
-    | `REUSE_DATASET_IF_EXISTS` (default)| Reuse     | Reuse   |
-    | `REUSE_CACHE_IF_EXISTS`            | Reuse     | Fresh   |
-    | `FORCE_REDOWNLOAD`                 | Fresh     | Fresh   |
+    |                                     | Downloads | Dataset |
+    |-------------------------------------|-----------|---------|
+    | `REUSE_DATASET_IF_EXISTS` (default) | Reuse     | Reuse   |
+    | `REUSE_CACHE_IF_EXISTS`             | Reuse     | Fresh   |
+    | `FORCE_REDOWNLOAD`                  | Fresh     | Fresh   |
+
     """
 
     REUSE_DATASET_IF_EXISTS = "reuse_dataset_if_exists"
@@ -51,12 +62,92 @@ class GenerateMode(enum.Enum):
     FORCE_REDOWNLOAD = "force_redownload"
 
 
-class DownloadManager(object):
+class GenerateMode(DeprecatedEnum):
+    REUSE_DATASET_IF_EXISTS = "reuse_dataset_if_exists"
+    REUSE_CACHE_IF_EXISTS = "reuse_cache_if_exists"
+    FORCE_REDOWNLOAD = "force_redownload"
+
+    @property
+    def help_message(self):
+        return "Use 'DownloadMode' instead."
+
+
+class _IterableFromGenerator(Iterable):
+    """Utility class to create an iterable from a generator function, in order to reset the generator when needed."""
+
+    def __init__(self, generator: Callable, *args, **kwargs):
+        self.generator = generator
+        self.args = args
+        self.kwargs = kwargs
+
+    def __iter__(self):
+        yield from self.generator(*self.args, **self.kwargs)
+
+
+class ArchiveIterable(_IterableFromGenerator):
+    """An iterable of (path, fileobj) from a TAR archive, used by `iter_archive`"""
+
+    @classmethod
+    def _iter_from_fileobj(cls, f) -> Generator[Tuple, None, None]:
+        stream = tarfile.open(fileobj=f, mode="r|*")
+        for tarinfo in stream:
+            file_path = tarinfo.name
+            if not tarinfo.isreg():
+                continue
+            if file_path is None:
+                continue
+            if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
+                # skipping hidden files
+                continue
+            file_obj = stream.extractfile(tarinfo)
+            yield file_path, file_obj
+            stream.members = []
+        del stream
+
+    @classmethod
+    def _iter_from_path(cls, urlpath: str) -> Generator[Tuple, None, None]:
+        with open(urlpath, "rb") as f:
+            yield from cls._iter_from_fileobj(f)
+
+    @classmethod
+    def from_buf(cls, fileobj) -> "ArchiveIterable":
+        return cls(cls._iter_from_fileobj, fileobj)
+
+    @classmethod
+    def from_path(cls, urlpath_or_buf) -> "ArchiveIterable":
+        return cls(cls._iter_from_path, urlpath_or_buf)
+
+
+class FilesIterable(_IterableFromGenerator):
+    """An iterable of paths from a list of directories or files"""
+
+    @classmethod
+    def _iter_from_paths(cls, urlpaths: Union[str, List[str]]) -> Generator[str, None, None]:
+        if not isinstance(urlpaths, list):
+            urlpaths = [urlpaths]
+        for urlpath in urlpaths:
+            if os.path.isfile(urlpath):
+                yield urlpath
+            else:
+                for dirpath, _, filenames in os.walk(urlpath):
+                    for filename in filenames:
+                        yield os.path.join(dirpath, filename)
+
+    @classmethod
+    def from_paths(cls, urlpaths) -> "FilesIterable":
+        return cls(cls._iter_from_paths, urlpaths)
+
+
+class DownloadManager:
+    is_streaming = False
+
     def __init__(
         self,
-        dataset_name=None,
-        data_dir=None,
-        download_config=None,
+        dataset_name: Optional[str] = None,
+        data_dir: Optional[str] = None,
+        download_config: Optional[DownloadConfig] = None,
+        base_path: Optional[str] = None,
+        record_checksums: bool = True,
     ):
         """Download manager constructor.
 
@@ -66,12 +157,19 @@ class DownloadManager(object):
                 provided, downloads will contain which datasets they were used for.
             download_config: `DownloadConfig` to specify the cache directory and other
                 download options
+            base_path: `str`, base path that is used when relative paths are used to
+                download files. This can be a remote url.
+            record_checksums: `bool`, whether to record checksums of downloaded files.
         """
         self._dataset_name = dataset_name
         self._data_dir = data_dir
-        self._download_config = download_config or DownloadConfig()
+        self._base_path = base_path or os.path.abspath(".")
+        self._record_checksums = record_checksums
         # To record what is being used: {url: {num_bytes: int, checksum: str}}
-        self._recorded_sizes_checksums: Dict[str, Dict[str, Union[int, str]]] = {}
+        self._recorded_sizes_checksums: Dict[str, Dict[str, Optional[Union[int, str]]]] = {}
+        self.download_config = download_config or DownloadConfig()
+        self.downloaded_paths = {}
+        self.extracted_paths = {}
 
     @property
     def manual_dir(self):
@@ -86,18 +184,18 @@ class DownloadManager(object):
         """
         Ship the files using Beam FileSystems to the pipeline temp dir.
         """
-        from datasets.utils.beam_utils import upload_local_to_remote
+        from .beam_utils import upload_local_to_remote
 
         remote_dir = pipeline._options.get_all_options().get("temp_location")
         if remote_dir is None:
             raise ValueError("You need to specify 'temp_location' in PipelineOptions to upload files")
 
         def upload(local_file_path):
-            remote_file_path = os.path.join(remote_dir, "downloads", os.path.basename(local_file_path))
+            remote_file_path = os.path.join(
+                remote_dir, config.DOWNLOADED_DATASETS_DIR, os.path.basename(local_file_path)
+            )
             logger.info(
-                "Uploading {} ({}) to {}.".format(
-                    local_file_path, size_str(os.path.getsize(local_file_path)), remote_file_path
-                )
+                f"Uploading {local_file_path} ({size_str(os.path.getsize(local_file_path))}) to {remote_file_path}."
             )
             upload_local_to_remote(local_file_path, remote_file_path)
             return remote_file_path
@@ -105,16 +203,17 @@ class DownloadManager(object):
         uploaded_path_or_paths = map_nested(
             lambda local_file_path: upload(local_file_path),
             downloaded_path_or_paths,
+            disable_tqdm=not is_progress_bar_enabled(),
         )
         return uploaded_path_or_paths
 
-    def _record_sizes_checksums(self, url_or_urls, downloaded_path_or_paths):
+    def _record_sizes_checksums(self, url_or_urls: NestedDataStructure, downloaded_path_or_paths: NestedDataStructure):
         """Record size/checksum of downloaded files."""
-        flattened_urls_or_urls = flatten_nested(url_or_urls)
-        flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
-        for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
+        for url, path in zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()):
             # call str to support PathLike objects
-            self._recorded_sizes_checksums[str(url)] = get_size_checksum_dict(path)
+            self._recorded_sizes_checksums[str(url)] = get_size_checksum_dict(
+                path, record_checksum=self._record_checksums
+            )
 
     def download_custom(self, url_or_urls, custom_download):
         """
@@ -130,25 +229,32 @@ class DownloadManager(object):
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
-        cache_dir = self._download_config.cache_dir or os.path.join(HF_DATASETS_CACHE, "downloads")
+        cache_dir = self.download_config.cache_dir or config.DOWNLOADED_DATASETS_PATH
+        max_retries = self.download_config.max_retries
 
         def url_to_downloaded_path(url):
             return os.path.join(cache_dir, hash_url_to_filename(url))
 
-        downloaded_path_or_paths = map_nested(url_to_downloaded_path, url_or_urls)
-        flattened_urls_or_urls = flatten_nested(url_or_urls)
-        flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
-        for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
+        downloaded_path_or_paths = map_nested(
+            url_to_downloaded_path, url_or_urls, disable_tqdm=not is_progress_bar_enabled()
+        )
+        url_or_urls = NestedDataStructure(url_or_urls)
+        downloaded_path_or_paths = NestedDataStructure(downloaded_path_or_paths)
+        for url, path in zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()):
             try:
-                get_from_cache(url, cache_dir=cache_dir, local_files_only=True, use_etag=False)
+                get_from_cache(
+                    url, cache_dir=cache_dir, local_files_only=True, use_etag=False, max_retries=max_retries
+                )
                 cached = True
             except FileNotFoundError:
                 cached = False
-            if not cached or self._download_config.force_download:
+            if not cached or self.download_config.force_download:
                 custom_download(url, path)
-                get_from_cache(url, cache_dir=cache_dir, local_files_only=True, use_etag=False)
+                get_from_cache(
+                    url, cache_dir=cache_dir, local_files_only=True, use_etag=False, max_retries=max_retries
+                )
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
-        return downloaded_path_or_paths
+        return downloaded_path_or_paths.data
 
     def download(self, url_or_urls):
         """Download given url(s).
@@ -161,14 +267,16 @@ class DownloadManager(object):
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
-        download_config = self._download_config.copy()
+        download_config = self.download_config.copy()
         download_config.extract_compressed_file = False
         # Default to using 16 parallel thread for downloading
         # Note that if we have less than 16 files, multi-processing is not activated
         if download_config.num_proc is None:
             download_config.num_proc = 16
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading data"
 
-        download_func = partial(cached_path, download_config=download_config)
+        download_func = partial(self._download, download_config=download_config)
 
         start_time = datetime.now()
         downloaded_path_or_paths = map_nested(
@@ -176,41 +284,55 @@ class DownloadManager(object):
             url_or_urls,
             map_tuple=True,
             num_proc=download_config.num_proc,
+            disable_tqdm=not is_progress_bar_enabled(),
+            desc="Downloading data files",
         )
         duration = datetime.now() - start_time
-        logger.info("Downloading took {} min".format(duration.total_seconds() // 60))
+        logger.info(f"Downloading took {duration.total_seconds() // 60} min")
+        url_or_urls = NestedDataStructure(url_or_urls)
+        downloaded_path_or_paths = NestedDataStructure(downloaded_path_or_paths)
+        self.downloaded_paths.update(dict(zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten())))
 
         start_time = datetime.now()
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         duration = datetime.now() - start_time
-        logger.info("Checksum Computation took {} min".format(duration.total_seconds() // 60))
+        logger.info(f"Checksum Computation took {duration.total_seconds() // 60} min")
 
-        return downloaded_path_or_paths
+        return downloaded_path_or_paths.data
 
-    def iter_archive(self, path):
-        """Returns iterator over files within archive.
+    def _download(self, url_or_filename: str, download_config: DownloadConfig) -> str:
+        url_or_filename = str(url_or_filename)
+        if is_relative_path(url_or_filename):
+            # append the relative path to the base_path
+            url_or_filename = url_or_path_join(self._base_path, url_or_filename)
+        return cached_path(url_or_filename, download_config=download_config)
+
+    def iter_archive(self, path_or_buf: Union[str, io.BufferedReader]):
+        """Iterate over files within an archive.
 
         Args:
-            path: path to archive.
+            path_or_buf (:obj:`str` or :obj:`io.BufferedReader`): Archive path or archive binary file object.
 
-        Returns:
-            Generator yielding tuple (path_within_archive, file_obj).
-            File-Obj are opened in byte mode (io.BufferedReader)
+        Yields:
+            :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
+                File object is opened in binary mode.
         """
-        logger.info("Extracting archive at %s", str(path))
-        extracted_path = self.extract(path)
-        if os.path.isfile(extracted_path):
-            with open(extracted_path, "rb") as file_obj:
-                yield (extracted_path, file_obj)
 
-        # We do this complex absolute/relative scheme to reproduce the API of iter_tar of tfds
-        for root, dirs, files in os.walk(extracted_path, topdown=False):
-            relative_dir_path = root.replace(os.path.abspath(extracted_path) + os.sep, "")
-            for name in files:
-                relative_file_path = os.path.join(relative_dir_path, name)
-                absolute_file_path = os.path.join(root, name)
-                with open(absolute_file_path, "rb") as file_obj:
-                    yield (relative_file_path, file_obj)
+        if hasattr(path_or_buf, "read"):
+            return ArchiveIterable.from_buf(path_or_buf)
+        else:
+            return ArchiveIterable.from_path(path_or_buf)
+
+    def iter_files(self, paths: Union[str, List[str]]):
+        """Iterate over file paths.
+
+        Args:
+            paths (:obj:`str` or :obj:`list` of :obj:`str`): Root paths.
+
+        Yields:
+            str: File path.
+        """
+        return FilesIterable.from_paths(paths)
 
     def extract(self, path_or_paths, num_proc=None):
         """Extract given path(s).
@@ -225,14 +347,22 @@ class DownloadManager(object):
             extracted_path(s): `str`, The extracted paths matching the given input
                 path_or_paths.
         """
-        download_config = self._download_config.copy()
+        download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
-        download_config.force_extract = False
-        return map_nested(
+        # Extract downloads the file first if it is not already downloaded
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading data"
+        extracted_paths = map_nested(
             partial(cached_path, download_config=download_config),
             path_or_paths,
             num_proc=num_proc,
+            disable_tqdm=not is_progress_bar_enabled(),
+            desc="Extracting data files",
         )
+        path_or_paths = NestedDataStructure(path_or_paths)
+        extracted_paths = NestedDataStructure(extracted_paths)
+        self.extracted_paths.update(dict(zip(path_or_paths.flatten(), extracted_paths.flatten())))
+        return extracted_paths.data
 
     def download_and_extract(self, url_or_urls):
         """Download and extract given url_or_urls.
@@ -254,3 +384,14 @@ class DownloadManager(object):
 
     def get_recorded_sizes_checksums(self):
         return self._recorded_sizes_checksums.copy()
+
+    def delete_extracted_files(self):
+        paths_to_delete = set(self.extracted_paths.values()) - set(self.downloaded_paths.values())
+        for key, path in list(self.extracted_paths.items()):
+            if path in paths_to_delete and os.path.isfile(path):
+                os.remove(path)
+                del self.extracted_paths[key]
+
+    def manage_extracted_files(self):
+        if self.download_config.delete_extracted:
+            self.delete_extracted_files()

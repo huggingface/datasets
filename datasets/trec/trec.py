@@ -14,7 +14,6 @@
 # limitations under the License.
 """ The Text REtrieval Conference (TREC) Question Classification dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 
@@ -156,7 +155,7 @@ class Trec(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         # TODO: Yields (key, example) tuples from the dataset
         with open(filepath, "rb") as f:
             for id_, row in enumerate(f):

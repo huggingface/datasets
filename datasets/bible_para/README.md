@@ -69,7 +69,7 @@ languages:
 - ne
 - nhg
 - nl
-- no
+- 'no'
 - ojb
 - pck
 - pes
@@ -118,6 +118,8 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - machine-translation
+paperswithcode_id: null
+pretty_name: BiblePara
 ---
 
 # Dataset Card Creation Guide
@@ -125,12 +127,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -144,6 +146,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -246,3 +249,7 @@ Here are some examples of questions and facts:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@abhishekkrthakur](https://github.com/abhishekkrthakur) for adding this dataset.

@@ -1,4 +1,5 @@
 ---
+pretty_name: Neural Code Search
 annotations_creators:
 - expert-generated
 language_creators:
@@ -13,7 +14,7 @@ size_categories:
   evaluation_dataset:
   - n<1K
   search_corpus:
-  - n>1M
+  - 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -23,6 +24,7 @@ task_ids:
   - extractive-qa
   search_corpus:
   - extractive-qa
+paperswithcode_id: neural-code-search-evaluation-dataset
 ---
 
 # Dataset Card for Neural Code Search
@@ -30,12 +32,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -49,6 +51,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -145,7 +148,7 @@ The most popular Android repositories on GitHub (ranked by the number of stars) 
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 
@@ -160,3 +163,6 @@ CC-BY-NC 4.0 (Attr Non-Commercial Inter.)
 ### Citation Information
 
 arXiv:1908.09804 [cs.SE]
+### Contributions
+
+Thanks to [@vinaykudari](https://github.com/vinaykudari) for adding this dataset.

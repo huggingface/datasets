@@ -18,6 +18,8 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - machine-translation
+paperswithcode_id: business-scene-dialogue
+pretty_name: Business Scene Dialogue
 ---
 
 # Dataset Card for Business Scene Dialogue 
@@ -25,12 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -44,14 +46,15 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** [Github](https://raw.githubusercontent.com/tsuruoka-lab/BSD/)
+- **Repository:** [Github](https://raw.githubusercontent.com/tsuruoka-lab/BSD/)
+- **Paper:** [Rikters et al., 2019](https://www.aclweb.org/anthology/D19-5204)
 - **Leaderboard:**
-- **Point of Contact:**
+- **Point of Contact:** Matīss Rikters
 
 ### Dataset Summary
 This is the Business Scene Dialogue (BSD) dataset, 
@@ -154,7 +157,7 @@ and title of the scenario (title).
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 
@@ -183,3 +186,6 @@ This dataset was released under the Creative Commons Attribution-NonCommercial-S
     pages = "54--61"
 }
 ```
+### Contributions
+
+Thanks to [@j-chim](https://github.com/j-chim) for adding this dataset.

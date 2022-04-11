@@ -14,7 +14,6 @@
 # limitations under the License.
 """Google Sentence Compression dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import gzip
 import json
@@ -131,7 +130,7 @@ class SentComp(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepaths):
-        """ Yields examples. """
+        """Yields examples."""
         id_ = -1
         for ix, filepath in enumerate(filepaths):
             with gzip.open(filepath, mode="rt", encoding="utf-8") as f:

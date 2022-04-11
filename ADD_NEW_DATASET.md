@@ -23,7 +23,9 @@ This creates a copy of the code under your GitHub user account.
 	pip install -e ".[dev]"
 	```
 
-5. Prepare your tagging setup. You will need to clone the [tagging application repository](https://github.com/huggingface/datasets-tagging) and run the app with [Streamlit](https://www.streamlit.io/). You should also open the online form that will allow you to [create dataset cards](https://huggingface.co/datasets/card-creator/) in a browser window (courtesy of [Evrard t'Serstevens](https://huggingface.co/evrardts).)
+5. Open the [online Datasets Tagging application](https://huggingface.co/spaces/huggingface/datasets-tagging).
+
+6. You should also open the online form that will allow you to [create dataset cards](https://huggingface.co/datasets/card-creator/) in a browser window (courtesy of [Evrard t'Serstevens](https://huggingface.co/evrardts).)
 
 Now you are ready, each time you want to add a new dataset, follow the steps in the following section:
 
@@ -40,8 +42,8 @@ You are now ready to start the process of adding the dataset. We will create the
 
 - a **dataset script** which contains the code to download and pre-process the dataset: e.g. `squad.py`,
 - a **dataset card** with tags and information on the dataset in a `README.md`.
-- a **metadata file** (automatically created) which contains checksums and informations about the dataset to guarantee that the loading went fine: `dataset_infos.json`
-- a **dummy-data file** (automatically created) which contains small examples from the original files to test and garantee that the script is working well in the future: `dummy_data.zip`
+- a **metadata file** (automatically created) which contains checksums and information about the dataset to guarantee that the loading went fine: `dataset_infos.json`
+- a **dummy-data file** (automatically created) which contains small examples from the original files to test and guarantee that the script is working well in the future: `dummy_data.zip`
 
 2. Let's start by creating a new branch to hold your development changes with the name of your dataset:
 
@@ -71,9 +73,9 @@ You are now ready to start the process of adding the dataset. We will create the
 	- Read the relevant part of the paper/description presenting the dataset
 	- Find the location of the data for your dataset
 	- Download/open the data to see how it looks like
-	- While you explore and read about the dataset, you can complete some sections of the dataset card (the online form or the one you have just created at `./datasets/<your_dataset_name>/README.md`). You can just copy the information you meet in you readings in the relevant sections of the dataset card (typically in `Dataset Description`, `Dataset Structure` and `Dataset Creation`).
+	- While you explore and read about the dataset, you can complete some sections of the dataset card (the online form or the one you have just created at `./datasets/<your_dataset_name>/README.md`). You can just copy the information you meet in your readings in the relevant sections of the dataset card (typically in `Dataset Description`, `Dataset Structure` and `Dataset Creation`).
 
-		If you need more informations on a section of the dataset card, a detailed guide is in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
+		If you need more information on a section of the dataset card, a detailed guide is in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
 
 		There is a also a (very detailed) example here: https://github.com/huggingface/datasets/tree/master/datasets/eli5.
 
@@ -86,7 +88,7 @@ Now let's get coding :-)
 
 The dataset script is the main entry point to load and process the data. It is a python script under `datasets/<your_dataset_name>/<your_dataset_name>.py`.
 
-There is a detailed explanation on how the library and scripts are organized [here](https://huggingface.co/docs/datasets/add_dataset.html).
+There is a detailed explanation on how the library and scripts are organized [here](https://huggingface.co/docs/datasets/master/about_dataset_load.html).
 
 Note on naming: the dataset class should be camel case, while the dataset short_name is its snake case equivalent (ex: `class BookCorpus` for the dataset `book_corpus`).
 
@@ -96,7 +98,7 @@ To add a new dataset, you can start from the empty template which is [in the `te
 cp ./templates/new_dataset_script.py ./datasets/<your_dataset_name>/<your_dataset_name>.py
 ```
 
-And then go progressively through all the `TODO` in the template 🙂. If it's your first dataset addition and you are a bit lost among the information to fill in, you can take some time to read the [detailed explanation here](https://huggingface.co/docs/datasets/add_dataset.html).
+And then go progressively through all the `TODO` in the template 🙂. If it's your first dataset addition and you are a bit lost among the information to fill in, you can take some time to read the [detailed explanation here](https://huggingface.co/docs/datasets/master/dataset_script.html).
 
 You can also start (or copy any part) from one of the datasets of reference listed below. The main criteria for choosing among these reference dataset is the format of the data files (JSON/JSONL/CSV/TSV/text) and whether you need or don't need several configurations (see above explanations on configurations). Feel free to reuse any parts of the following examples and adapt them to your case:
 
@@ -109,9 +111,10 @@ You can also start (or copy any part) from one of the datasets of reference list
 - summarization: [billsum](https://github.com/huggingface/datasets/blob/master/datasets/billsum/billsum.py) (original data are in json files)
 - benchmark: [glue](https://github.com/huggingface/datasets/blob/master/datasets/glue/glue.py) (original data are various formats)
 - multilingual: [xquad](https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py) (original data are in json)
-- multitask: [matinf](https://github.com/huggingface/datasets/blob/master/datasets/matinf/matinf.py) (original data need to be downloaded by the user because it requires authentificaition)
+- multitask: [matinf](https://github.com/huggingface/datasets/blob/master/datasets/matinf/matinf.py) (original data need to be downloaded by the user because it requires authentication)
+- speech recognition: [librispeech_asr](https://github.com/huggingface/datasets/blob/master/datasets/librispeech_asr/librispeech_asr.py) (original data is in .flac format)
 
-While you are developping the dataset script you can list test it by opening a python interpreter and running the script (the script is dynamically updated each time you modify it):
+While you are developing the dataset script you can list test it by opening a python interpreter and running the script (the script is dynamically updated each time you modify it):
 
 ```python
 from datasets import load_dataset
@@ -127,8 +130,8 @@ Sometimes you need to use several *configurations* and/or *splits* (usually at l
 
 * Using several **configurations** allow to have like sub-datasets inside a dataset and are needed in two main cases:
 
-	- The dataset covers or group several sub-datasets or domains that the users may want to access independantly and/or
-	- The dataset comprise several sub-part with different features/organizations of the data (e.g. two types of CSV files with different types of columns). Inside a configuration of a dataset, all the data should have the same format (columns) but the columns can change accross configurations.
+	- The dataset covers or group several sub-datasets or domains that the users may want to access independently and/or
+	- The dataset comprise several sub-part with different features/organizations of the data (e.g. two types of CSV files with different types of columns). Inside a configuration of a dataset, all the data should have the same format (columns) but the columns can change across configurations.
 
 * **Splits** are a more fine grained division than configurations. They allow you, inside a configuration of the dataset, to split the data in typically train/validation/test splits. All the splits inside a configuration should have the same columns/features and splits are thus defined for each specific configurations of there are several.
 
@@ -136,15 +139,21 @@ Sometimes you need to use several *configurations* and/or *splits* (usually at l
 **Some rules to follow when adding the dataset**:
 
 - try to give access to all the data, columns, features and information in the dataset. If the dataset contains various sub-parts with differing formats, create several configurations to give access to all of them.
-- datasets in the `datasets` library are typed. Take some time to carefully think about the `features` (see an introduction [here](https://huggingface.co/docs/datasets/exploring.html#features-and-columns) and the full list of possible features [here](https://huggingface.co/docs/datasets/features.html))
+- datasets in the `datasets` library are typed. Take some time to carefully think about the `features` (see an introduction [here](https://huggingface.co/docs/datasets/about_dataset_features.html) and the full list of possible features [here](https://huggingface.co/docs/datasets/package_reference/main_classes.html#features)
 - if some of you dataset features are in a fixed set of classes (e.g. labels), you should use a `ClassLabel` feature.
 
 
 **Last step:** To check that your dataset works correctly and to create its `dataset_infos.json` file run the command:
 
 ```bash
-python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
+datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 ```
+
+**Note:** If your dataset requires manually downloading the data and having the user provide the path to the dataset you can run the following command:
+```bash
+datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs --data_dir your/manual/dir
+```
+To have the configs use the path from `--data_dir` when generating them.
 
 ### Automatically add code metadata
 
@@ -153,22 +162,28 @@ Now that your dataset script runs and create a dataset with the format you expec
 **Make sure you run all of the following commands from the root of your `datasets` git clone.**
 
 1. To create the dummy data for continuous testing, there is a tool that automatically generates dummy data for you. At the moment it supports data files in the following format: txt, csv, tsv, jsonl, json, xml.
-If the extensions of the raw data files of your dataset are in this list, then you can automatically generate your dummy data with:
+
+   If the extensions of the raw data files of your dataset are in this list, then you can automatically generate your dummy data with:
 
 	```bash
- 	python datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
+	datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
 	```
 
 	Example:
 
 	```bash
- 	python datasets-cli dummy_data ./datasets/snli --auto_generate
+	datasets-cli dummy_data ./datasets/snli --auto_generate
 	```
 
-	If this doesn't work more information on how to add dummy data can be found in the documentation [here](https://huggingface.co/docs/datasets/share_dataset.html#adding-dummy-data).
+    If your data files are not in the supported format, you can run the same command without the `--auto_generate` flag. It should give you instructions on the files to manually create (basically, the same ones as for the real dataset but with only five items).
+	
+	```bash
+	datasets-cli dummy_data datasets/<your-dataset-folder>
+	```
 
-If you've been fighting with dummy data creation without success for some time and can't seems to make it work:
-Go to the next step (open a Pull Request) and we'll help you cross the finish line 🙂
+   If this doesn't work more information on how to add dummy data can be found in the documentation [here](https://huggingface.co/docs/datasets/dataset_script.html#dummy-data).
+
+   If you've been fighting with dummy data creation without success for some time and can't seems to make it work: Go to the next step (open a Pull Request) and we'll help you cross the finish line 🙂.
 
 2. Now test that both the real data and the dummy data work correctly using the following commands:
 
@@ -194,13 +209,18 @@ Go to the next step (open a Pull Request) and we'll help you cross the finish li
 3. If all tests pass, your dataset works correctly. You can finally create the metadata JSON by running the command:
 
 	```bash
-	python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
+	datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 	```
 
 	This first command should create a `dataset_infos.json` file in your dataset folder.
 
 
 You have now finished the coding part, congratulation! 🎉 You are Awesome! 😎
+
+Note: You can use the CLI tool from the root of the repository with the following command:
+```bash
+python src/datasets/commands/datasets_cli.py <command>
+```
 
 ### Open a Pull Request on the main HuggingFace repo and share your work!!
 
@@ -220,7 +240,7 @@ Here are the step to open the Pull-Request on the main repo.
 	pip install isort
 	pip install flake8
 
-	black --line-length 119 --target-version py36 datasets/your_dataset
+	black --line-length 119 --target-version py36 datasets/your_dataset/your_dataset.py
 	
 	isort datasets/your_dataset/your_dataset.py
 
@@ -229,8 +249,11 @@ Here are the step to open the Pull-Request on the main repo.
 
 2. Make sure that you have a dataset card (more information in the [next section](#tag-the-dataset-and-write-the-dataset-card)) with:
 
-	1. **Required:** The YAML tags obtained with the [tagging app](https://github.com/huggingface/datasets-tagging) and a description of the various fields in your dataset.
-	2. Any relevant information you would like to share with users of your dataset in the appropriate paragraphs.
+    1. **Required:**
+       - The YAML tags obtained with the [online Datasets Tagging app](https://huggingface.co/spaces/huggingface/datasets-tagging).
+       - A description of the various fields in your dataset.
+    2. Any relevant information you would like to share with users of your dataset in the appropriate paragraphs.
+       - You can use the online [dataset card creator](https://huggingface.co/datasets/card-creator/)
 
 3. Once you're happy with your dataset script file, add your changes and make a commit to record your changes locally:
 
@@ -241,11 +264,20 @@ Here are the step to open the Pull-Request on the main repo.
 
 	It is a good idea to sync your copy of the code with the original
 	repository regularly. This way you can quickly account for changes:
+	
+	- If you haven't pushed your branch yet, you can rebase on upstream/master:
 
-	```bash
-	git fetch upstream
-	git rebase upstream/master
-    ```
+	  ```bash
+	  git fetch upstream
+	  git rebase upstream/master
+	  ```
+	  
+	- If you have already pushed your branch, do not rebase but merge instead:
+	
+	  ```bash
+	  git fetch upstream
+	  git merge upstream/master
+	  ```
 
    Push the changes to your account using:
 
@@ -267,30 +299,30 @@ The dataset card and in particular the tags which are on it are **really importa
 
 Creating the dataset card goes in two steps:
 
-1. **Tagging the dataset using the tagging streamlit app**
+1. **Tagging the dataset using the Datasets Tagging app**
 
-	Clone locally the dataset-tagging app which is here: https://github.com/huggingface/datasets-tagging
+   - Use the [online Datasets Tagging application](https://huggingface.co/spaces/huggingface/datasets-tagging).
 
-	Run the app with the command detailed in the readme: https://github.com/huggingface/datasets-tagging/blob/main/README.md
-
-	Enter the full path to your dataset folder on the left, and tag the different configs :-) (And don't forget to save to file after you're done with a config!)
+   Enter the full path to your dataset folder on the left, and tag the different configs :-) (And don't forget to save to file after you're done with a config!)
 
 2. **Copy the tags in the dataset card and complete the dataset card**
 
-	- **Essential:** Once you have saved the tags for all configs, you can expand the **Show YAML output aggregating the tags** section on the right, which will show you a YAML formatted block to put in the relevant section of the [online form](https://huggingface.co/datasets/card-creator/) (or manually  paste into your README.md).
+   - You can use the online [dataset card creator](https://huggingface.co/datasets/card-creator/)
 
-	- **Very important as well:** On the right side of the tagging app, you will also find an expandable section called **Show Markdown Data Fields**. This gives you a starting point for the description of the fields in your dataset: you should paste it into the **Data Fields** section of the [online form](https://huggingface.co/datasets/card-creator/) (or your local README.md), then modify the description as needed. Briefly describe each of the fields and indicate if they have a default value (e.g. when there is no label). If the data has span indices, describe their attributes (character level or word level, contiguous or not, etc). If the datasets contains example IDs, state whether they have an inherent meaning, such as a mapping to other datasets or pointing to relationships between data points.
+   - **Essential:** Once you have saved the tags for all configs, you can expand the **Show YAML output aggregating the tags** section on the right, which will show you a YAML formatted block to put in the relevant section of the [online form](https://huggingface.co/datasets/card-creator/) (or manually  paste into your README.md).
 
-		Example from the [ELI5 card](https://github.com/huggingface/datasets/tree/master/datasets/eli5#data-fields):
+   - **Very important as well:** On the right side of the tagging app, you will also find an expandable section called **Show Markdown Data Fields**. This gives you a starting point for the description of the fields in your dataset: you should paste it into the **Data Fields** section of the [online form](https://huggingface.co/datasets/card-creator/) (or your local README.md), then modify the description as needed. Briefly describe each of the fields and indicate if they have a default value (e.g. when there is no label). If the data has span indices, describe their attributes (character level or word level, contiguous or not, etc). If the datasets contains example IDs, state whether they have an inherent meaning, such as a mapping to other datasets or pointing to relationships between data points.
 
-			Data Fields:
-				- q_id: a string question identifier for each example, corresponding to its ID in the Pushshift.io Reddit submission dumps.
-				- subreddit: One of explainlikeimfive, askscience, or AskHistorians, indicating which subreddit the question came from
-				- title: title of the question, with URLs extracted and replaced by URL_n tokens
-				- title_urls: list of the extracted URLs, the nth element of the list was replaced by URL_n
+        Example from the [ELI5 card](https://github.com/huggingface/datasets/tree/master/datasets/eli5#data-fields):
+
+            Data Fields:
+                - q_id: a string question identifier for each example, corresponding to its ID in the Pushshift.io Reddit submission dumps.
+                - subreddit: One of explainlikeimfive, askscience, or AskHistorians, indicating which subreddit the question came from
+                - title: title of the question, with URLs extracted and replaced by URL_n tokens
+                - title_urls: list of the extracted URLs, the nth element of the list was replaced by URL_n
 
 
-	- **Very nice to have but optional for now:** Complete all you can find in the dataset card using the detailed instructions for completed it which are in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
+   - **Very nice to have but optional for now:** Complete all you can find in the dataset card using the detailed instructions for completed it which are in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
 
 		Here is a completed example: https://github.com/huggingface/datasets/tree/master/datasets/eli5 for inspiration
 

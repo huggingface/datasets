@@ -15,11 +15,11 @@
 
 """Wiki40B: A clean Wikipedia dataset for 40+ languages."""
 
-from __future__ import absolute_import, division, print_function
-
-import logging
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """
@@ -101,7 +101,7 @@ class Wiki40bConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(Wiki40bConfig, self).__init__(
-            name=str(language), description="Wiki40B dataset for {0}.".format(language), **kwargs
+            name=str(language), description=f"Wiki40B dataset for {language}.", **kwargs
         )
         self.language = language
 
@@ -160,7 +160,7 @@ class Wiki40b(datasets.BeamBasedBuilder):
         import apache_beam as beam
         import tensorflow as tf
 
-        logging.info("generating examples from = %s", filepaths)
+        logger.info("generating examples from = %s", filepaths)
 
         def _extract_content(example):
             """Extracts content from a TFExample."""

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,13 +29,19 @@ FN: False negative
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions: Ground truth labels.
-    references: Predicted labels, as returned by a model.
+    predictions: Predicted labels, as returned by a model.
+    references: Ground truth labels.
     normalize: If False, return the number of correctly classified samples.
         Otherwise, return the fraction of correctly classified samples.
     sample_weight: Sample weights.
 Returns:
     accuracy: Accuracy score.
+Examples:
+
+    >>> accuracy_metric = datasets.load_metric("accuracy")
+    >>> results = accuracy_metric.compute(references=[0, 1], predictions=[0, 1])
+    >>> print(results)
+    {'accuracy': 1.0}
 """
 
 _CITATION = """\
@@ -54,6 +59,7 @@ _CITATION = """\
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Accuracy(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
@@ -62,6 +68,11 @@ class Accuracy(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
+                    "predictions": datasets.Sequence(datasets.Value("int32")),
+                    "references": datasets.Sequence(datasets.Value("int32")),
+                }
+                if self.config_name == "multilabel"
+                else {
                     "predictions": datasets.Value("int32"),
                     "references": datasets.Value("int32"),
                 }
@@ -71,5 +82,7 @@ class Accuracy(datasets.Metric):
 
     def _compute(self, predictions, references, normalize=True, sample_weight=None):
         return {
-            "accuracy": accuracy_score(references, predictions, normalize=normalize, sample_weight=sample_weight),
+            "accuracy": float(
+                accuracy_score(references, predictions, normalize=normalize, sample_weight=sample_weight)
+            )
         }

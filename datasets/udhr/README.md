@@ -420,6 +420,8 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - machine-translation
+paperswithcode_id: null
+pretty_name: The Universal Declaration of Human Rights (UDHR)
 ---
 
 # Dataset Card for The Universal Declaration of Human Rights (UDHR)
@@ -427,12 +429,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -446,6 +448,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -560,3 +563,7 @@ The txt/xml data files used here were compiled by The Unicode Consortium, which 
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@joeddav](https://github.com/joeddav) for adding this dataset.

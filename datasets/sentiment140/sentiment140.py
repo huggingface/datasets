@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 import csv
 import os
 
@@ -99,7 +97,7 @@ class Sentiment140(datasets.GeneratorBasedBuilder):
                 ),
             ]
         else:
-            raise NotImplementedError("{} does not exist".format(self.config.name))
+            raise NotImplementedError(f"{self.config.name} does not exist")
 
     def _generate_examples(self, file_path):
         """Yields examples."""
@@ -108,7 +106,7 @@ class Sentiment140(datasets.GeneratorBasedBuilder):
             data = csv.reader(f, delimiter=",", quotechar='"')
             for row_id, row in enumerate(data):
                 sentiment, tweet_id, date, query, user_name, message = row
-                yield "{}_{}".format(row_id, tweet_id), {
+                yield f"{row_id}_{tweet_id}", {
                     "text": message,
                     "date": date,
                     "user": user_name,

@@ -11,13 +11,15 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
 - sequence-modeling
 task_ids:
 - language-modeling
+paperswithcode_id: newsph-nli
+pretty_name: NewsPH-NLI
 ---
 
 # Dataset Card for NewsPH
@@ -25,12 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -44,6 +46,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -51,7 +54,7 @@ task_ids:
 - **Repository: **
 - **Paper:** [Investigating the True Performance of Transformers in Low-Resource Languages: A Case Study in Automatic Corpus Creation](https://arxiv.org/abs/2010.11574)
 - **Leaderboard:**
-- **Point of Contact:** Jan Christian Blaise Cruz (jan_christian_cruz@dlsu.edu.ph)
+- **Point of Contact:** [Jan Christian Blaise Cruz](jan_christian_cruz@dlsu.edu.ph)
 
 ### Dataset Summary
 
@@ -138,3 +141,7 @@ The dataset is in plaintext and only has one field ("text"). It can be used for 
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@jcblaisecruz02](https://github.com/jcblaisecruz02) for adding this dataset.

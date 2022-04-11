@@ -16,10 +16,12 @@
 # Lint as: python3
 """LINNAEUS: A species name identification system for biomedical literature"""
 
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -40,7 +42,7 @@ A novel corpus of full-text documents manually annotated for species mentions.
 """
 
 _HOMEPAGE = "http://linnaeus.sourceforge.net/"
-_URL = "https://drive.google.com/u/0/uc?id=1OletxmPYNkz2ltOr9pyT0b0iBtUWxslh&export=download/"
+_URL = "https://drive.google.com/u/0/uc?id=1OletxmPYNkz2ltOr9pyT0b0iBtUWxslh&export=download"
 _BIOBERT_NER_DATASET_DIRECTORY = "linnaeus"
 _TRAINING_FILE = "train.tsv"
 _DEV_FILE = "devel.tsv"
@@ -108,13 +110,13 @@ class Linnaeus(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        logging.info("⏳ Generating examples from = %s", filepath)
+        logger.info("⏳ Generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             guid = 0
             tokens = []
             ner_tags = []
             for line in f:
-                if line.startswith("-DOCSTART-") or line == "" or line == "\n":
+                if line == "" or line == "\n":
                     if tokens:
                         yield guid, {
                             "id": str(guid),

@@ -16,12 +16,13 @@
 # Lint as: python3
 """SQUAD: The Stanford Question Answering Dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 _CITATION = """\
@@ -139,11 +140,11 @@ class SquadShifts(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["amazon"]}),
             ]
         else:
-            raise ValueError("SQuADShifts dataset name {} not found!".format(self.config.name))
+            raise ValueError(f"SQuADShifts dataset name {self.config.name} not found!")
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
-        logging.info("generating examples from = %s", filepath)
+        logger.info("generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             squad = json.load(f)
             for article in squad["data"]:

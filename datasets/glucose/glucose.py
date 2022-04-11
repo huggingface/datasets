@@ -14,7 +14,6 @@
 # limitations under the License.
 """GLUCOSE: GeneraLized and COntextualized Story Explanations, is a novel conceptual framework and dataset for commonsense reasoning. Given a short story and a sentence X in the story, GLUCOSE captures ten dimensions of causal explanation related to X. These dimensions, inspired by human cognitive psychology, cover often-implicit causes and effects of X, including events, location, possession, and other attributes."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
@@ -51,7 +50,7 @@ _URLs = {
 
 
 class Glucose(datasets.GeneratorBasedBuilder):
-    """GLUCOSE: GeneraLized and COntextualized Story Explanations, is a novel conceptual framework and dataset for commonsense reasoning. """
+    """GLUCOSE: GeneraLized and COntextualized Story Explanations, is a novel conceptual framework and dataset for commonsense reasoning."""
 
     VERSION = datasets.Version("1.1.0")
     BUILDER_CONFIGS = [

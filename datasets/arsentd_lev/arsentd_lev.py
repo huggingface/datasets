@@ -16,7 +16,6 @@
 # Lint as: python3
 """ArSenTD-Lev :  Arabic Sentiment Twitter Dataset for LEVantine dialect"""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
@@ -41,7 +40,7 @@ _FEATURES = ["Tweet", "Country", "Topic", "Sentiment", "Sentiment_Expression", "
 
 
 class ArsentdLev(datasets.GeneratorBasedBuilder):
-    """"ArSenTD-Lev Dataset"""
+    """ "ArSenTD-Lev Dataset"""
 
     VERSION = datasets.Version("1.1.0")
 

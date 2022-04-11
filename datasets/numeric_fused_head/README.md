@@ -24,6 +24,8 @@ task_categories:
 - structure-prediction
 task_ids:
 - structure-prediction-other-fused-head-identification
+paperswithcode_id: numeric-fused-head
+pretty_name: Numeric Fused Heads
 ---
 
 # Dataset Card for Numeric Fused Heads
@@ -31,12 +33,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -50,6 +52,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -189,3 +192,7 @@ MIT License
     doi = {10.1162/tacl\_a\_00280},
 }
 ```
+
+### Contributions
+
+Thanks to [@ghomasHudson](https://github.com/ghomasHudson) for adding this dataset.

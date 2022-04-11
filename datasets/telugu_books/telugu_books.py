@@ -14,7 +14,6 @@
 # limitations under the License.
 """Telugu Books Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 import os
@@ -78,11 +77,7 @@ class TeluguBooks(datasets.GeneratorBasedBuilder):
         path_to_manual_file = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('telugu_books', data_dir=...)` that includes file name {}. Manual download instructions: {}".format(
-                    path_to_manual_file,
-                    _FILENAME,
-                    self.manual_download_instructions,
-                )
+                f"{path_to_manual_file} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('telugu_books', data_dir=...)` that includes file name {_FILENAME}. Manual download instructions: {self.manual_download_instructions}"
             )
         return [
             datasets.SplitGenerator(
@@ -96,7 +91,7 @@ class TeluguBooks(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(csv_file)
             for id_, row in enumerate(csv_reader):

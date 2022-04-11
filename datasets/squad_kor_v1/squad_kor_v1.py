@@ -15,11 +15,11 @@
 
 """KorQuAD v1.0:The Korean Question Answering Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 
 import datasets
+from datasets.tasks import QuestionAnsweringExtractive
 
 
 _CITATION = """\
@@ -77,6 +77,11 @@ class SquadKorV1(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
+            task_templates=[
+                QuestionAnsweringExtractive(
+                    question_column="question", context_column="context", answers_column="answers"
+                )
+            ],
         )
 
     def _split_generators(self, dl_manager):

@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 """Thai Literature Corpora (TLC): Corpora of machine-ingestible Thai classical literature texts."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
-import os
 
 import datasets
 
@@ -41,9 +39,14 @@ tnhc v.1.0 (6/25/19 : a total of 47 documents, 756,478 lines, 13,361,142 charact
 """
 
 _URLs = {
-    "tlcv1.0": "https://drive.google.com/uc?export=download&id=15E64fwMeAff0bAsFGaSsv9NYeVHn1drE",
-    "tlcv2.0": "https://drive.google.com/uc?export=download&id=1S2T72b3Kkcvy4XZcxwIipoRn6ELa4hhV",
-    "tnhcv1.0": "https://drive.google.com/uc?export=download&id=1T_ib-NOwQV6O6lEjCjvZReUA3pQ4h-gD",
+    "tlcv1.0": "https://github.com/jitkapat/thailitcorpus/releases/download/v.1.0/tlc_v.1.0.tar.gz",
+    "tlcv2.0": "https://github.com/jitkapat/thailitcorpus/releases/download/v.2.0/tlc_v.2.0.tar.gz",
+    "tnhcv1.0": "https://github.com/jitkapat/thailitcorpus/releases/download/v.1.0/tnhc_v.1.0.tar.gz",
+}
+_FILENAMES = {
+    "tlcv1.0": "นิราศอิเหนา.json",
+    "tlcv2.0": "นิราศอิเหนา.json",
+    "tnhcv1.0": "กาพย์เห่เรือ.json",
 }
 
 
@@ -103,26 +106,24 @@ class Tlc(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        data_path = dl_manager.download_and_extract(_URLs[self.config.name])
+        archive = dl_manager.download(_URLs[self.config.name])
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"directory": data_path},
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "filepath": _FILENAMES[self.config.name]},
             )
         ]
 
-    def _generate_examples(self, directory):
-        if self.config.name.startswith("tlc"):
-            files = [os.path.join(directory, "นิราศอิเหนา.json")]
-        else:
-            files = [os.path.join(directory, "กาพย์เห่เรือ.json")]
-
+    def _generate_examples(self, files, filepath):
         _id = 0
-        for txt_file in files:
-            data = json.load(open(txt_file, encoding="utf-8"))
-            for d in data:
-                if self.config.name.startswith("tlc"):
-                    yield _id, d
-                else:
-                    yield _id, {"text": d}
-                _id += 1
+        for path, f in files:
+            if path == filepath:
+                data = json.loads(f.read().decode("utf-8"))
+                for d in data:
+                    if self.config.name.startswith("tlc"):
+                        yield _id, d
+                    else:
+                        yield _id, {"text": d}
+                    _id += 1
+                break

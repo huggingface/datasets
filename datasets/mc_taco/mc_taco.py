@@ -14,7 +14,6 @@
 # limitations under the License.
 """MC-TACO Dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import csv
 
@@ -100,7 +99,7 @@ class McTaco(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(
                 csv_file,

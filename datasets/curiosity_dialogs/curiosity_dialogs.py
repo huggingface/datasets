@@ -14,7 +14,6 @@
 # limitations under the License.
 """Information Seeking in the Spirit of Learning: a Dataset for Conversational Curiosity"""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import os
@@ -157,7 +156,7 @@ class CuriosityDialogs(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         # Bool entries are converted to string entries because of PyArrow error
         with open(filepath, encoding="utf-8") as f:

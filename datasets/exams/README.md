@@ -1,4 +1,5 @@
 ---
+pretty_name: EXAMS
 annotations_creators:
 - found
 language_creators:
@@ -251,6 +252,7 @@ task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
+paperswithcode_id: exams
 ---
 
 # Dataset Card for [Dataset Name]
@@ -258,12 +260,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -277,6 +279,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -409,3 +412,7 @@ The dataset, which contains paragraphs from Wikipedia, is licensed under CC-BY-S
   year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@yjernite](https://github.com/yjernite) for adding this dataset.

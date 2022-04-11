@@ -15,6 +15,8 @@ task_categories:
 - text-classification
 task_ids:
 - topic-classification
+paperswithcode_id: null
+pretty_name: MyanmarNews
 ---
 
 # Dataset Card for Myanmar_News
@@ -68,3 +70,7 @@ GPL-3.0
 ### Citation Information
 
 See https://github.com/ayehninnkhine/MyanmarNewsClassificationSystem
+
+### Contributions
+
+Thanks to [@mapmeld](https://github.com/mapmeld) for adding this dataset.

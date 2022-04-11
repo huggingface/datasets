@@ -10,46 +10,61 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n>1M
+  a:
+  - 100K<n<1M
+  all:
+  - 1M<n<10M
+  b:
+  - 100K<n<1M
+  c:
+  - 100K<n<1M
+  d:
+  - 10K<n<100K
+  e:
+  - 10K<n<100K
+  f:
+  - 10K<n<100K
+  g:
+  - 100K<n<1M
+  h:
+  - 100K<n<1M
+  y:
+  - 100K<n<1M
 source_datasets:
 - original
 task_categories:
 - conditional-text-generation
 task_ids:
 - summarization
+paperswithcode_id: bigpatent
+pretty_name: Big Patent
 ---
 
 # Dataset Card for Big Patent
 
 ## Table of Contents
-
-- [Dataset Card for Big Patent](#dataset-card-for-big-patent)
-  - [Table of Contents](#table-of-contents)
-  - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
-      - [Who are the source language producers?](#who-are-the-source-language-producers)
-    - [Annotations](#annotations)
-      - [Annotation process](#annotation-process)
-      - [Who are the annotators?](#who-are-the-annotators)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -94,7 +109,18 @@ Each instance contains a pair of `description` and `abstract`. `description` is 
 
 ### Data Splits
 
-[More Information Needed]
+|     |             train |   validation |   test |
+|:----|------------------:|-------------:|-------:|
+| all | 1207222           |        67068 |  67072 |
+| a   |  174134           |         9674 |   9675 |
+| b   |  161520           |         8973 |   8974 |
+| c   |  101042           |         5613 |   5614 |
+| d   |   10164           |          565 |    565 |
+| e   |   34443           |         1914 |   1914 |
+| f   |   85568           |         4754 |   4754 |
+| g   |  258935           |        14385 |  14386 |
+| h   |  257019           |        14279 |  14279 |
+| y   |  124397           |         6911 |   6911 |
 
 ## Dataset Creation
 
@@ -152,4 +178,25 @@ Each instance contains a pair of `description` and `abstract`. `description` is 
 
 ### Citation Information
 
-[More Information Needed]
+```bibtex
+@article{DBLP:journals/corr/abs-1906-03741,
+  author    = {Eva Sharma and
+               Chen Li and
+               Lu Wang},
+  title     = {{BIGPATENT:} {A} Large-Scale Dataset for Abstractive and Coherent
+               Summarization},
+  journal   = {CoRR},
+  volume    = {abs/1906.03741},
+  year      = {2019},
+  url       = {http://arxiv.org/abs/1906.03741},
+  eprinttype = {arXiv},
+  eprint    = {1906.03741},
+  timestamp = {Wed, 26 Jun 2019 07:14:58 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1906-03741.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+```
+
+### Contributions
+
+Thanks to [@mattbui](https://github.com/mattbui) for adding this dataset.

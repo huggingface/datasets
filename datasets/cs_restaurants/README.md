@@ -20,20 +20,22 @@ task_categories:
 task_ids:
 - dialogue-modeling
 - language-modeling
-- other-stuctured-to-text
+- other-structured-to-text
+paperswithcode_id: czech-restaurant-information
+pretty_name: Czech Restaurant
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Czech Restaurant
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -47,6 +49,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -59,7 +62,7 @@ This is a dataset for NLG in task-oriented spoken dialogue systems with Czech as
 
 ### Supported Tasks and Leaderboards
 
-- `other-stuctured-to-text`: The dataset can be used to train a model for data-to-text generation: from a desired dialogue act, the model must produce textual output that conveys this intention.
+- `other-structured-to-text`: The dataset can be used to train a model for data-to-text generation: from a desired dialogue act, the model must produce textual output that conveys this intention.
 
 ### Languages
 
@@ -111,7 +114,13 @@ The original data was produced in interactions between Amazon Mechanical Turk wo
 
 ### Annotations
 
-No annotations.
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
+
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
@@ -159,3 +168,7 @@ Ondřej Dušek, Filip Jurčíček, Josef Dvořák, Petra Grycová, Matěj Hejda,
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 ```
+
+### Contributions
+
+Thanks to [@TevenLeScao](https://github.com/TevenLeScao) for adding this dataset.

@@ -22,19 +22,21 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - conditional-text-generation-other-rdf-to-text
+paperswithcode_id: dart
+pretty_name: DART
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for DART
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -48,6 +50,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -106,9 +109,9 @@ The different fields are:
 
 There are three splits, train, validation and test:
 
-|                  | Tain    | Valid | Test |
-| -----            | ------- | ----- | ---- |
-| N. Examples      | 30526   | 2768  | 6959 |
+|                  | train | validation | test |
+| -----            |------:|-----------:|-----:|
+| N. Examples      | 30526 |       2768 | 6959 |
 
 ## Dataset Creation
 
@@ -181,3 +184,7 @@ Under MIT license (see [here](https://github.com/Yale-LILY/dart/blob/master/LICE
   journal={arXiv preprint arXiv:2007.02871},
   year={2020}
 ```
+
+### Contributions
+
+Thanks to [@lhoestq](https://github.com/lhoestq) for adding this dataset.

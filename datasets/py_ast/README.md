@@ -1,4 +1,5 @@
 ---
+pretty_name: PyAst
 annotations_creators:
 - machine-generated
 language_creators:
@@ -17,19 +18,20 @@ source_datasets:
 task_categories:
 - sequence-modeling
 task_ids:
-- sequence-modeling-code-modeling
+- sequence-modeling-other-code-modeling
+paperswithcode_id: null
 ---
 # Dataset Card for [py_ast]
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -87,11 +90,12 @@ The main key is `ast` wherein every program's AST is stored.
 ### Data Splits
 
 The data is split into a training and test set.   
-The final split sizes are as follow:
+The final split sizes are as follows:
 
-|                             | Tain   | Valid |
-| -----                       | ------ | ----- |
-| py_ast examples| 100000 |  50000 |
+|                  |   train |  validation |
+|------------------|--------:|------------:|
+| py_ast examples  |  100000 |       50000 |
+
 ## Dataset Creation
 [More Information Needed]
 ### Curation Rationale
@@ -148,3 +152,7 @@ title = {Probabilistic Model for Code with Decision Trees.},
 authors={Raychev, V., Bielik, P., and Vechev, M.},
 year={2016}
 }
+
+### Contributions
+
+Thanks to [@reshinthadithyan](https://github.com/reshinthadithyan) for adding this dataset.

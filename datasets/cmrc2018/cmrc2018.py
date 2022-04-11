@@ -1,10 +1,10 @@
 """TODO(cmrc2018): Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 
 import datasets
+from datasets.tasks import QuestionAnsweringExtractive
 
 
 # TODO(cmrc2018): BibTeX citation
@@ -76,6 +76,11 @@ class Cmrc2018(datasets.GeneratorBasedBuilder):
             # Homepage of the dataset for documentation
             homepage=_URL,
             citation=_CITATION,
+            task_templates=[
+                QuestionAnsweringExtractive(
+                    question_column="question", context_column="context", answers_column="answers"
+                )
+            ],
         )
 
     def _split_generators(self, dl_manager):

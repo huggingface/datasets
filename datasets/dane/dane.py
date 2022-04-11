@@ -15,7 +15,6 @@
 """DaNE: named entity annotation for the Danish Universal Dependencies
 treebank using the CoNLL-2003 annotation scheme."""
 
-from __future__ import absolute_import, division, print_function
 
 import os
 
@@ -60,7 +59,7 @@ _LICENSE = "CC BY-SA 4.0"
 
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = "https://danlp.alexandra.dk/304bd159d5de/datasets/ddt.zip"
+_URL = "http://danlp-downloads.alexandra.dk/datasets/ddt.zip"
 
 
 class Dane(datasets.GeneratorBasedBuilder):
@@ -210,7 +209,7 @@ class Dane(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
 
         with open(filepath, encoding="utf-8") as f:
             guid = 0
@@ -269,15 +268,16 @@ class Dane(datasets.GeneratorBasedBuilder):
                     dep_labels.append(splits[7])
                     ner_tags.append(splits[9].rstrip().replace("name=", "").split("|")[0])
             # last example
-            yield guid, {
-                "sent_id": sent_id,
-                "text": text,
-                "tok_ids": tok_ids,
-                "tokens": tokens,
-                "lemmas": lemmas,
-                "pos_tags": pos_tags,
-                "morph_tags": morph_tags,
-                "dep_ids": dephead_ids,
-                "dep_labels": dep_labels,
-                "ner_tags": ner_tags,
-            }
+            if tok_ids:
+                yield guid, {
+                    "sent_id": sent_id,
+                    "text": text,
+                    "tok_ids": tok_ids,
+                    "tokens": tokens,
+                    "lemmas": lemmas,
+                    "pos_tags": pos_tags,
+                    "morph_tags": morph_tags,
+                    "dep_ids": dephead_ids,
+                    "dep_labels": dep_labels,
+                    "ner_tags": ner_tags,
+                }

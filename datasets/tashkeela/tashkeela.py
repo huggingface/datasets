@@ -16,7 +16,6 @@
 # Lint as: python3
 """Arabic Vocalized Words Dataset."""
 
-from __future__ import absolute_import, division, print_function
 
 import glob
 import os
@@ -41,6 +40,10 @@ _CITATION = """\
   publisher={Elsevier}
 }
 """
+
+_HOMEPAGE = "https://sourceforge.net/projects/tashkeela/"
+
+_LICENSE = "GPLv2"
 
 _DOWNLOAD_URL = "https://sourceforge.net/projects/tashkeela/files/latest/download"
 
@@ -77,7 +80,8 @@ class Tashkeela(datasets.GeneratorBasedBuilder):
                 }
             ),
             supervised_keys=None,
-            homepage="https://sourceforge.net/projects/tashkeela/",
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
             citation=_CITATION,
         )
 
@@ -87,7 +91,7 @@ class Tashkeela(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "directory": os.path.join(arch_path, "Tashkeela-arabic-diacritized-text-utf8-0.3/texts.txt")
+                    "directory": os.path.join(arch_path, "Tashkeela-arabic-diacritized-text-utf8-0.3", "texts.txt")
                 },
             ),
         ]
@@ -97,4 +101,4 @@ class Tashkeela(datasets.GeneratorBasedBuilder):
 
         for id_, file_name in enumerate(sorted(glob.glob(os.path.join(directory, "**.txt")))):
             with open(file_name, encoding="UTF-8") as f:
-                yield str(id_), {"book": file_name, "text": f.read()}
+                yield str(id_), {"book": file_name, "text": f.read().strip()}

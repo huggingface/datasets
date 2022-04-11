@@ -14,7 +14,6 @@
 # limitations under the License.
 """Dataset for ProtoQA ("family feud") data. The dataset is gathered from an existing set of questions played in a long-running international game show – FAMILY-FEUD."""
 
-from __future__ import absolute_import, division, print_function
 
 import json
 
@@ -47,11 +46,11 @@ _LICENSE = "cc-by-4.0"
 
 _URLs = {
     "proto_qa": {
-        "dev": "https://raw.githubusercontent.com/iesl/protoqa-data/master/data/dev/protoqa_scraped_dev.jsonl",
-        "train": "https://raw.githubusercontent.com/iesl/protoqa-data/master/data/train/protoqa_train.jsonl",
+        "dev": "https://raw.githubusercontent.com/iesl/protoqa-data/9fb72b4e7d41a7d3a9766c33ef66c78d7a100b41/data/dev/protoqa_scraped_dev.jsonl",
+        "train": "https://raw.githubusercontent.com/iesl/protoqa-data/9fb72b4e7d41a7d3a9766c33ef66c78d7a100b41/data/train/protoqa_train.jsonl",
     },
-    "proto_qa_cs": "https://raw.githubusercontent.com/iesl/protoqa-data/master/data/dev/crowdsource_dev.jsonl",
-    "proto_qa_cs_assessments": "https://raw.githubusercontent.com/iesl/protoqa-data/master/data/dev/crowdsource_dev.assessments.jsonl",
+    "proto_qa_cs": "https://raw.githubusercontent.com/iesl/protoqa-data/9fb72b4e7d41a7d3a9766c33ef66c78d7a100b41/data/dev/crowdsource_dev.jsonl",
+    "proto_qa_cs_assessments": "https://raw.githubusercontent.com/iesl/protoqa-data/9fb72b4e7d41a7d3a9766c33ef66c78d7a100b41/data/dev/crowdsource_dev.assessments.jsonl",
 }
 
 
@@ -161,7 +160,7 @@ class ProtoQA(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
 
         if self.config.name == "proto_qa_cs_assessments":
             with open(filepath, encoding="utf-8") as f:

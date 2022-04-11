@@ -17,6 +17,8 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
+paperswithcode_id: null
+pretty_name: MSRA NER
 ---
 
 # Dataset Card for MSRA NER
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,11 +45,12 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage:** [Github](https://github.com/OYE93/Chinese-NLP-Corpus/tree/master/NER/MSRA)
+- **Repository:** [Github](https://github.com/OYE93/Chinese-NLP-Corpus)
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**
@@ -135,3 +138,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@JetRunner](https://github.com/JetRunner) for adding this dataset.

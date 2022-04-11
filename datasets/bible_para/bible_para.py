@@ -51,7 +51,6 @@ class BibleParaConfig(datasets.BuilderConfig):
         super().__init__(
             *args,
             name=f"{lang1}-{lang2}",
-            version=datasets.Version(_VERSION, ""),
             **kwargs,
         )
         self.lang1 = lang1
@@ -64,6 +63,7 @@ class BiblePara(datasets.GeneratorBasedBuilder):
             lang1=lang1,
             lang2=lang2,
             description=f"Translating {lang1} to {lang2} or vice versa",
+            version=datasets.Version(_VERSION),
         )
         for lang1, lang2 in _LANGUAGE_PAIRS
     ]

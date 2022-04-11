@@ -52,4 +52,10 @@ task_categories:
 - text-classification
 task_ids:
 - multi-class-classification
+paperswithcode_id: null
+pretty_name: pragmeval
 ---
+
+### Contributions
+
+Thanks to [@sileod](https://github.com/sileod) for adding this dataset.

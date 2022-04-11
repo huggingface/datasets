@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +15,6 @@
 # Lint as: python3
 """Splits related API."""
 
-from __future__ import absolute_import, division, print_function
 
 import abc
 import collections
@@ -34,7 +32,7 @@ class SplitInfo:
     name: str = ""
     num_bytes: int = 0
     num_examples: int = 0
-    dataset_name: str = None
+    dataset_name: Optional[str] = None
 
     @property
     def file_instructions(self):
@@ -76,7 +74,7 @@ class SplitBase(metaclass=abc.ABCMeta):
     """Abstract base class for Split compositionality.
 
     See the
-    [guide on splits](https://github.com/huggingface/datasets/tree/master/docs/splits.md)
+    [guide on splits](/docs/datasets/loading#slice-splits)
     for more information.
 
     There are three parts to the composition:
@@ -139,7 +137,7 @@ class SplitBase(metaclass=abc.ABCMeta):
         dataset with `datasets.percent`), and `weighted` (get subsplits with proportions
         specified by `weighted`).
 
-        Examples:
+        Example::
 
         ```
         # 50% train, 50% test
@@ -194,8 +192,8 @@ class SplitBase(metaclass=abc.ABCMeta):
 
         if not (k or percent or weighted):
             raise ValueError(
-                "Invalid split argument {}. Only list, slice and int supported. "
-                "One of k, weighted or percent should be set to a non empty value.".format(arg)
+                f"Invalid split argument {arg}. Only list, slice and int supported. "
+                "One of k, weighted or percent should be set to a non empty value."
             )
 
         def assert_slices_coverage(slices):
@@ -204,7 +202,7 @@ class SplitBase(metaclass=abc.ABCMeta):
 
         if k:
             if not 0 < k <= 100:
-                raise ValueError("Subsplit k should be between 0 and 100, got {}".format(k))
+                raise ValueError(f"Subsplit k should be between 0 and 100, got {k}")
             shift = 100 // k
             slices = [slice(i * shift, (i + 1) * shift) for i in range(k)]
             # Round up last element to ensure all elements are taken
@@ -245,7 +243,7 @@ class SplitBase(metaclass=abc.ABCMeta):
 class PercentSliceMeta(type):
     def __getitem__(cls, slice_value):
         if not isinstance(slice_value, slice):
-            raise ValueError("datasets.percent should only be called with slice, not {}".format(slice_value))
+            raise ValueError(f"datasets.percent should only be called with slice, not {slice_value}")
         return slice_value
 
 
@@ -254,7 +252,7 @@ class PercentSlice(metaclass=PercentSliceMeta):
     """Syntactic sugar for defining slice subsplits: `datasets.percent[75:-5]`.
 
     See the
-    [guide on splits](https://github.com/huggingface/datasets/tree/master/docs/splits.md)
+    [guide on splits](/docs/datasets/loading#slice-splits)
     for more information.
     """
     # pylint: enable=line-too-long
@@ -277,7 +275,7 @@ class _SplitMerged(SplitBase):
         return read_instruction1 + read_instruction2
 
     def __repr__(self):
-        return "({!r} + {!r})".format(self._split1, self._split2)
+        return f"({repr(self._split1)} + {repr(self._split2)})"
 
 
 class _SubSplit(SplitBase):
@@ -299,52 +297,45 @@ class _SubSplit(SplitBase):
             stop="" if self._slice_value.stop is None else self._slice_value.stop,
             step=self._slice_value.step,
         )
-        return "{!r}(datasets.percent[{}])".format(self._split, slice_str)
+        return f"{repr(self._split)}(datasets.percent[{slice_str}])"
 
 
 class NamedSplit(SplitBase):
     """Descriptor corresponding to a named split (train, test, ...).
 
-    Each descriptor can be composed with other using addition or slice. Ex:
+    Example::
+        Each descriptor can be composed with other using addition or slice. Ex::
 
-    ```
-    split = datasets.Split.TRAIN.subsplit(datasets.percent[0:25]) + datasets.Split.TEST
-    ```
+            split = datasets.Split.TRAIN.subsplit(datasets.percent[0:25]) + datasets.Split.TEST
 
-    The resulting split will correspond to 25% of the train split merged with
-    100% of the test split.
-
-    Warning:
-        A split cannot be added twice, so the following will fail:
-
-    ```
-    split = (
-            datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
-            datasets.Split.TRAIN.subsplit(datasets.percent[75:])
-    )  # Error
-    split = datasets.Split.TEST + datasets.Split.ALL  # Error
-    ```
+        The resulting split will correspond to 25% of the train split merged with
+        100% of the test split.
 
     Warning:
-        The slices can be applied only one time. So the following are valid:
+        A split cannot be added twice, so the following will fail::
 
-    ```
-    split = (
-            datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
-            datasets.Split.TEST.subsplit(datasets.percent[:50])
-    )
-    split = (datasets.Split.TRAIN + datasets.Split.TEST).subsplit(datasets.percent[:50])
-    ```
+            split = (
+                    datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
+                    datasets.Split.TRAIN.subsplit(datasets.percent[75:])
+            )  # Error
+            split = datasets.Split.TEST + datasets.Split.ALL  # Error
 
-        But not:
+    Warning:
+        The slices can be applied only one time. So the following are valid::
 
-    ```
-    train = datasets.Split.TRAIN
-    test = datasets.Split.TEST
-    split = train.subsplit(datasets.percent[:25]).subsplit(datasets.percent[:25])
-    split = (train.subsplit(datasets.percent[:25]) + test).subsplit(datasets.percent[:50])
-    ```
+            split = (
+                    datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
+                    datasets.Split.TEST.subsplit(datasets.percent[:50])
+            )
+            split = (datasets.Split.TRAIN + datasets.Split.TEST).subsplit(datasets.percent[:50])
 
+
+        But not::
+
+            train = datasets.Split.TRAIN
+            test = datasets.Split.TEST
+            split = train.subsplit(datasets.percent[:25]).subsplit(datasets.percent[:25])
+            split = (train.subsplit(datasets.percent[:25]) + test).subsplit(datasets.percent[:50])
     """
 
     def __init__(self, name):
@@ -352,13 +343,13 @@ class NamedSplit(SplitBase):
         split_names_from_instruction = [split_instruction.split("[")[0] for split_instruction in name.split("+")]
         for split_name in split_names_from_instruction:
             if not re.match(_split_re, split_name):
-                raise ValueError(f"Split name should match '{_split_re}'' but got '{split_name}'.")
+                raise ValueError(f"Split name should match '{_split_re}' but got '{split_name}'.")
 
     def __str__(self):
         return self._name
 
     def __repr__(self):
-        return "NamedSplit('{name}')".format(name=self._name)
+        return f"NamedSplit({self._name!r})"
 
     def __eq__(self, other):
         """Equality: datasets.Split.TRAIN == 'train'."""
@@ -369,7 +360,7 @@ class NamedSplit(SplitBase):
         elif isinstance(other, str):  # Other should be string
             return self._name == other
         else:
-            raise ValueError("Equality not supported between split {} and {}".format(self, other))
+            raise ValueError(f"Equality not supported between split {self} and {other}")
 
     def __hash__(self):
         return hash(self._name)
@@ -382,10 +373,10 @@ class NamedSplitAll(NamedSplit):
     """Split corresponding to the union of all defined dataset splits."""
 
     def __init__(self):
-        super(NamedSplitAll, self).__init__("all")
+        super().__init__("all")
 
     def __repr__(self):
-        return f"NamedSplitAll({self._name}"
+        return "NamedSplitAll()"
 
     def get_read_instruction(self, split_dict):
         # Merge all dataset split together
@@ -393,34 +384,34 @@ class NamedSplitAll(NamedSplit):
         return sum(read_instructions, SplitReadInstruction())
 
 
-class Split(object):
+class Split:
     # pylint: disable=line-too-long
     """`Enum` for dataset splits.
 
     Datasets are typically split into different subsets to be used at various
     stages of training and evaluation.
 
-    * `TRAIN`: the training data.
-    * `VALIDATION`: the validation data. If present, this is typically used as
-        evaluation data while iterating on a model (e.g. changing hyperparameters,
-        model architecture, etc.).
-    * `TEST`: the testing data. This is the data to report metrics on. Typically
-        you do not want to use this during model iteration as you may overfit to it.
+    - `TRAIN`: the training data.
+    - `VALIDATION`: the validation data. If present, this is typically used as
+      evaluation data while iterating on a model (e.g. changing hyperparameters,
+      model architecture, etc.).
+    - `TEST`: the testing data. This is the data to report metrics on. Typically
+      you do not want to use this during model iteration as you may overfit to it.
+    - `ALL`: the union of all defined dataset splits.
 
     Note: All splits, including compositions inherit from `datasets.SplitBase`
 
-    See the
-    [guide on splits](https://github.com/huggingface/datasets/tree/master/docs/splits.md)
-    for more information.
+    See the :doc:`guide on splits </loading>` for more information.
     """
     # pylint: enable=line-too-long
     TRAIN = NamedSplit("train")
     TEST = NamedSplit("test")
     VALIDATION = NamedSplit("validation")
+    ALL = NamedSplitAll()
 
     def __new__(cls, name):
         """Create a custom split with datasets.Split('custom_name')."""
-        return NamedSplit(name)
+        return NamedSplitAll() if name == "all" else NamedSplit(name)
 
 
 # Similar to SplitInfo, but contain an additional slice info
@@ -433,7 +424,7 @@ SlicedSplitInfo = collections.namedtuple(
 )  # noqa: E231
 
 
-class SplitReadInstruction(object):
+class SplitReadInstruction:
     """Object containing the reading instruction for the dataset.
 
     Similarly to `SplitDescriptor` nodes, this object can be composed with itself,
@@ -478,7 +469,7 @@ class SplitReadInstruction(object):
         split_instruction = SplitReadInstruction()
         for v in self._splits.values():
             if v.slice_value is not None:
-                raise ValueError("Trying to slice Split {} which has already been sliced".format(v.split_info.name))
+                raise ValueError(f"Trying to slice Split {v.split_info.name} which has already been sliced")
             v = v._asdict()
             v["slice_value"] = slice_value
             split_instruction.add(SlicedSplitInfo(**v))
@@ -492,13 +483,13 @@ class SplitDict(dict):
     """Split info object."""
 
     def __init__(self, *args, dataset_name=None, **kwargs):
-        super(SplitDict, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.dataset_name = dataset_name
 
     def __getitem__(self, key: Union[SplitBase, str]):
         # 1st case: The key exists: `info.splits['train']`
         if str(key) in self:
-            return super(SplitDict, self).__getitem__(str(key))
+            return super().__getitem__(str(key))
         # 2nd case: Uses instructions: `info.splits['train[50%]']`
         else:
             instructions = make_file_instructions(
@@ -510,17 +501,17 @@ class SplitDict(dict):
 
     def __setitem__(self, key: Union[SplitBase, str], value: SplitInfo):
         if key != value.name:
-            raise ValueError("Cannot add elem. (key mismatch: '{}' != '{}')".format(key, value.name))
+            raise ValueError(f"Cannot add elem. (key mismatch: '{key}' != '{value.name}')")
         if key in self:
-            raise ValueError("Split {} already present".format(key))
-        super(SplitDict, self).__setitem__(key, value)
+            raise ValueError(f"Split {key} already present")
+        super().__setitem__(key, value)
 
     def add(self, split_info: SplitInfo):
         """Add the split info."""
         if split_info.name in self:
-            raise ValueError("Split {} already present".format(split_info.name))
+            raise ValueError(f"Split {split_info.name} already present")
         split_info.dataset_name = self.dataset_name
-        super(SplitDict, self).__setitem__(split_info.name, split_info)
+        super().__setitem__(split_info.name, split_info)
 
     @property
     def total_num_examples(self):
@@ -548,7 +539,7 @@ class SplitDict(dict):
     def to_split_dict(self):
         """Returns a list of SplitInfo protos that we have."""
         # Return the SplitInfo, sorted by name
-        return sorted([s for s in self.values()], key=lambda s: s.name)
+        return sorted((s for s in self.values()), key=lambda s: s.name)
 
     def copy(self):
         return SplitDict.from_split_dict(self.to_split_dict(), self.dataset_name)
@@ -559,14 +550,14 @@ class SplitGenerator:
     """Defines the split information for the generator.
 
     This should be used as returned value of
-    `GeneratorBasedBuilder._split_generators`.
-    See `GeneratorBasedBuilder._split_generators` for more info and example
+    :meth:`GeneratorBasedBuilder._split_generators`.
+    See :meth:`GeneratorBasedBuilder._split_generators` for more info and example
     of usage.
 
     Args:
-        name: `str`, name of the Split for which the generator will
+        name (str): Name of the Split for which the generator will
             create the examples.
-        gen_kwargs: `dict`, kwargs to forward to the _generate_examples() method
+        **gen_kwargs: Keyword arguments to forward to the :meth:`DatasetBuilder._generate_examples` method
             of the builder.
     """
 

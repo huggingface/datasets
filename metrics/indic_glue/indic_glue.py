@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,22 +38,47 @@ _DESCRIPTION = """\
 _KWARGS_DESCRIPTION = """
 Compute IndicGLUE evaluation metric associated to each IndicGLUE dataset.
 Args:
-    predictions: list of predictions to score (as int64).
-    references: list of ground truth labels corresponding to the predictions (as int64).
+    predictions: list of predictions to score (as int64),
+        except for 'cvit-mkb-clsr' where each prediction is a vector (of float32).
+    references: list of ground truth labels corresponding to the predictions (as int64),
+        except for 'cvit-mkb-clsr' where each reference is a vector (of float32).
 Returns: depending on the IndicGLUE subset, one or several of:
     "accuracy": Accuracy
     "f1": F1 score
     "precision": Precision@10
+Examples:
+
+    >>> indic_glue_metric = datasets.load_metric('indic_glue', 'wnli')  # 'wnli' or any of ["copa", "sna", "csqa", "wstp", "inltkh", "bbca", "iitp-mr", "iitp-pr", "actsa-sc", "md"]
+    >>> references = [0, 1]
+    >>> predictions = [0, 1]
+    >>> results = indic_glue_metric.compute(predictions=predictions, references=references)
+    >>> print(results)
+    {'accuracy': 1.0}
+
+    >>> indic_glue_metric = datasets.load_metric('indic_glue', 'wiki-ner')
+    >>> references = [0, 1]
+    >>> predictions = [0, 1]
+    >>> results = indic_glue_metric.compute(predictions=predictions, references=references)
+    >>> print(results)
+    {'accuracy': 1.0, 'f1': 1.0}
+
+    >>> indic_glue_metric = datasets.load_metric('indic_glue', 'cvit-mkb-clsr')
+    >>> references = [[0.5, 0.5, 0.5], [0.1, 0.2, 0.3]]
+    >>> predictions = [[0.5, 0.5, 0.5], [0.1, 0.2, 0.3]]
+    >>> results = indic_glue_metric.compute(predictions=predictions, references=references)
+    >>> print(results)
+    {'precision@10': 1.0}
+
 """
 
 
 def simple_accuracy(preds, labels):
-    return (preds == labels).mean()
+    return float((preds == labels).mean())
 
 
 def acc_and_f1(preds, labels):
     acc = simple_accuracy(preds, labels)
-    f1 = f1_score(y_true=labels, y_pred=preds)
+    f1 = float(f1_score(y_true=labels, y_pred=preds))
     return {
         "accuracy": acc,
         "f1": f1,
@@ -74,9 +98,10 @@ def precision_at_10(en_sentvecs, in_sentvecs):
     actual = np.array(range(n))
     preds = sim.argsort(axis=1)[:, :10]
     matches = np.any(preds == actual[:, None], axis=1)
-    return matches.mean()
+    return float(matches.mean())
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class IndicGlue(datasets.Metric):
     def _info(self):
         if self.config_name not in [

@@ -14,12 +14,13 @@
 # limitations under the License.
 """TODO: Add a description here."""
 
-from __future__ import absolute_import, division, print_function
 
-import logging
 import os
 
 import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 
 # TODO: Add BibTeX citation
@@ -151,8 +152,8 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
-        logging.info("⏳ Generating examples from = %s", filepath)
+        """Yields examples."""
+        logger.info("⏳ Generating examples from = %s", filepath)
 
         with open(filepath, encoding="utf-8") as f:
             id_ = -1

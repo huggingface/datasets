@@ -1,22 +1,24 @@
 ---
-annotations_creators: 
+annotations_creators:
 - expert-generated
-language_creators: 
+language_creators:
 - expert-generated
-languages: 
+languages:
 - en
-licenses: 
+licenses:
 - other-my-license
-multilinguality: 
+multilinguality:
 - monolingual
-size_categories: 
+size_categories:
 - 10K<n<100K
-source_datasets: 
+source_datasets:
 - original
-task_categories: 
+task_categories:
 - other
-task_ids: 
+task_ids:
 - other-other-NCI-PID-PubMed Genomics Knowledge Base Completion Dataset
+paperswithcode_id: null
+pretty_name: MsrGenomicsKbcomp
 ---
 
 # Dataset Card for [Dataset Name]
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -186,3 +189,7 @@ The dataset was initially created by Kristina Toutanova, Victoria Lin, Wen-tau Y
     pages = "1434--1444",
 }
 ```
+
+### Contributions
+
+Thanks to [@manandey](https://github.com/manandey) for adding this dataset.

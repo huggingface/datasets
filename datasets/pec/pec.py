@@ -1,5 +1,4 @@
 """TODO: Add a description here."""
-from __future__ import absolute_import, division, print_function
 
 import os
 
@@ -36,7 +35,7 @@ _URL = "https://dl.dropboxusercontent.com/s/u04fzuhsnxd0uvw/hf_pec.zip"
 
 
 class PECConfig(datasets.BuilderConfig):
-    """ BuilderConfig for PEC"""
+    """BuilderConfig for PEC"""
 
     def __init__(self, domain="all", **kwargs):
         """
@@ -57,7 +56,7 @@ class PEC(datasets.GeneratorBasedBuilder):
     # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
     BUILDER_CONFIG_CLASS = PECConfig
     BUILDER_CONFIGS = [
-        PECConfig(name=domain, description="A subset of PEC dataset: {}".format(domain), domain=domain)
+        PECConfig(name=domain, description=f"A subset of PEC dataset: {domain}", domain=domain)
         for domain in ["happy", "offmychest", "all"]
     ]
 
@@ -143,7 +142,7 @@ class PEC(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split, persona):
-        """ Yields examples. """
+        """Yields examples."""
         # TODO: Yields (key, example) tuples from the dataset
         context_speakers = []
         context = []

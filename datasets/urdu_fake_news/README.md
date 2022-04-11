@@ -1,37 +1,38 @@
 ---
 annotations_creators:
-  - expert-generated
+- expert-generated
 language_creators:
-  - expert-generated
+- expert-generated
 languages:
-  - ur
+- ur
 licenses:
-  - unknown
+- unknown
 multilinguality:
-  - monolingual
+- monolingual
 size_categories:
-  - n<1K
+- n<1K
 source_datasets:
-  - original
+- original
 task_categories:
-  - text-classification
+- text-classification
 task_ids:
-  - fact-checking
-  - intent-classification
+- fact-checking
+- intent-classification
+paperswithcode_id: null
+pretty_name: Bend the Truth (Urdu Fake News)
 ---
 
 # Dataset Card for Bend the Truth (Urdu Fake News)
 
 ## Table of Contents
-
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -45,14 +46,15 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:** https://github.com/MaazAmjad/Datasets-for-Urdu-news
+- **Homepage:** [Github](https://github.com/MaazAmjad/Datasets-for-Urdu-news/)
+- **Repository:** [Github](https://github.com/MaazAmjad/Datasets-for-Urdu-news/)
 - **Paper:**
 - **Leaderboard:**
-- **Point of Contact:** <a href="https://github.com/MaazAmjad">Maaz Amjad</a>
+- **Point of Contact:** [Maaz Amjad](https://github.com/MaazAmjad)
 
 ### Dataset Summary
 
@@ -139,3 +141,7 @@ task_ids:
 ### Citation Information
 
 [More Information Needed]
+
+### Contributions
+
+Thanks to [@chaitnayabasava](https://github.com/chaitnayabasava) for adding this dataset.

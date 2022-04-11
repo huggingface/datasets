@@ -18,6 +18,8 @@ task_categories:
 task_ids:
 - closed-domain-qa
 - extractive-qa
+paperswithcode_id: null
+pretty_name: COVID-QA
 ---
 
 
@@ -26,12 +28,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -45,6 +47,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -116,9 +119,9 @@ annotated afterwards.
 
 #### Annotation process
 
-While annotators were volunteers, they were required to have at least a Master’s degree in biomedical sciences. 
-The annotation team was led by a medical doctor (G.A.R.) who vetted the volunteer’s credentials and 
-manually verified each question/answer pair produced. We used an existing, web-based annotation tool that had been 
+While annotators were volunteers, they were required to have at least a Master’s degree in biomedical sciences.
+The annotation team was led by a medical doctor (G.A.R.) who vetted the volunteer’s credentials and
+manually verified each question/answer pair produced. We used an existing, web-based annotation tool that had been
 created by deepset and is available at their Neural Search framework [haystack](https://github.com/deepset-ai/haystack).
 
 #### Who are the annotators?
@@ -144,16 +147,15 @@ These QA systems can help them find answers and patterns in research papers by l
 
 ## Additional Information
 
-The listed authors in the homepage are maintaining/supporting the dataset. 
+The listed authors in the homepage are maintaining/supporting the dataset.
 
 ### Dataset Curators
 
 [More Information Needed]
 
-The Proto_qa dataset is licensed under 
-the [Apache License 2.0](https://github.com/deepset-ai/COVID-QA/blob/master/LICENSE)
+### Licensing Information
 
-[More Information Needed]
+The Proto_qa dataset is licensed under the [Apache License 2.0](https://github.com/deepset-ai/COVID-QA/blob/master/LICENSE)
 
 ### Citation Information
 
@@ -165,3 +167,7 @@ the [Apache License 2.0](https://github.com/deepset-ai/COVID-QA/blob/master/LICE
   year={2020}
 }
 ```
+
+### Contributions
+
+Thanks to [@olinguyen](https://github.com/olinguyen) for adding this dataset.

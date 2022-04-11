@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -73,9 +72,24 @@ Returns:
     'length_ratio': ratio of lengths,
     'translation_length': translation_length,
     'reference_length': reference_length
+Examples:
+
+    >>> predictions = [
+    ...     ["hello", "there", "general", "kenobi"],                             # tokenized prediction of the first sample
+    ...     ["foo", "bar", "foobar"]                                             # tokenized prediction of the second sample
+    ... ]
+    >>> references = [
+    ...     [["hello", "there", "general", "kenobi"], ["hello", "there", "!"]],  # tokenized references for the first sample (2 references)
+    ...     [["foo", "bar", "foobar"]]                                           # tokenized references for the second sample (1 reference)
+    ... ]
+    >>> bleu = datasets.load_metric("bleu")
+    >>> results = bleu.compute(predictions=predictions, references=references)
+    >>> print(results["bleu"])
+    1.0
 """
 
 
+@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class Bleu(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(

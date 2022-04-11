@@ -2,11 +2,10 @@ import json
 import os
 import tempfile
 
-from utils import generate_examples, get_duration
-
 import datasets
 from datasets.arrow_writer import ArrowWriter
 from datasets.features import Array2D
+from utils import generate_examples, get_duration
 
 
 SHAPE_TEST_1 = (30, 487)
@@ -24,11 +23,11 @@ RESULTS_FILE_PATH = os.path.join(RESULTS_BASEPATH, "results", RESULTS_FILENAME.r
 
 @get_duration
 def write(my_features, dummy_data, tmp_dir):
-    writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-    for key, record in dummy_data:
-        example = my_features.encode_example(record)
-        writer.write(example)
-    num_examples, num_bytes = writer.finalize()
+    with ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow")) as writer:
+        for key, record in dummy_data:
+            example = my_features.encode_example(record)
+            writer.write(example)
+        num_examples, num_bytes = writer.finalize()
 
 
 @get_duration

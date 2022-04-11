@@ -17,19 +17,21 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
+paperswithcode_id: null
+pretty_name: NJKP NER
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for NJKP NER
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,6 +45,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -78,7 +81,7 @@ Polish
 
 ### Data Instances
 
-Two tsv files (train, dev) with two columns (sentence, target) and one (test) with just one (sentence). 
+Two tsv files (train, dev) with two columns (sentence, target) and one (test) with just one (sentence).
 
 ### Data Fields
 
@@ -151,3 +154,7 @@ author={Przepi{\'o}rkowski, Adam},
 year={2012},
 publisher={Naukowe PWN}
 }
+
+### Contributions
+
+Thanks to [@abecadel](https://github.com/abecadel) for adding this dataset.

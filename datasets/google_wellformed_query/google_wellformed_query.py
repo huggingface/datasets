@@ -14,7 +14,6 @@
 # limitations under the License.
 """Google Wellformed Query Dataset"""
 
-from __future__ import absolute_import, division, print_function
 
 import datasets
 
@@ -77,7 +76,7 @@ class GoogleWellformedQuery(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, "r", encoding="utf-8") as file:
             reader = file.read().split("\n")
             for idx, row in enumerate(reader):

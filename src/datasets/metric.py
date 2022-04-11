@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,20 +22,21 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 import pyarrow as pa
 
+from . import config
 from .arrow_dataset import Dataset
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
 from .features import Features
 from .info import DatasetInfo, MetricInfo
 from .naming import camelcase_to_snakecase
-from .utils import HF_METRICS_CACHE, copyfunc, temp_seed
 from .utils.download_manager import DownloadManager
 from .utils.file_utils import DownloadConfig
 from .utils.filelock import BaseFileLock, FileLock, Timeout
 from .utils.logging import get_logger
+from .utils.py_utils import copyfunc, temp_seed
 
 
-logger = get_logger(__file__)
+logger = get_logger(__name__)
 
 
 class FileFreeLock(BaseFileLock):
@@ -61,7 +61,19 @@ class FileFreeLock(BaseFileLock):
         self._lock_file_fd = None
 
 
-class MetricInfoMixin(object):
+# lists - summarize long lists similarly to NumPy
+# arrays/tensors - let the frameworks control formatting
+def summarize_if_long_list(obj):
+    if not type(obj) == list or len(obj) <= 6:
+        return f"{obj}"
+
+    def format_chunk(chunk):
+        return ", ".join(repr(x) for x in chunk)
+
+    return f"[{format_chunk(obj[:3])}, ..., {format_chunk(obj[-3:])}]"
+
+
+class MetricInfoMixin:
     """This base class exposes some attributes of MetricInfo
     at the base level of the Metric for easy access.
     """
@@ -71,7 +83,7 @@ class MetricInfoMixin(object):
 
     @property
     def info(self):
-        """ :class:`datasets.MetricInfo` object containing all the metadata in the metric."""
+        """:class:`datasets.MetricInfo` object containing all the metadata in the metric."""
         return self._metric_info
 
     @property
@@ -124,19 +136,19 @@ class MetricInfoMixin(object):
 
 
 class Metric(MetricInfoMixin):
-    """A Metrics is the base class and common API for all metrics.
+    """A Metric is the base class and common API for all metrics.
 
     Args:
         config_name (``str``): This is used to define a hash specific to a metrics computation script and prevents the metric's data
             to be overridden when the metric loading script is modified.
-        keep_in_memory (``bool``): keep all predictions and references in memory. Not possible in distributed settings.
+        keep_in_memory (:obj:`bool`): keep all predictions and references in memory. Not possible in distributed settings.
         cache_dir (``str``): Path to a directory in which temporary prediction/references data will be stored.
             The data directory should be located on a shared file-system in distributed setups.
         num_process (``int``): specify the total number of nodes in a distributed settings.
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
         process_id (``int``): specify the id of the current process in a distributed setup (between 0 and num_process-1)
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
-        seed (Optional ``int``): If specified, this will temporarily set numpy's random seed when :func:`datasets.Metric.compute` is run.
+        seed (:obj:`int`, optional): If specified, this will temporarily set numpy's random seed when :func:`datasets.Metric.compute` is run.
         experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
         max_concurrent_cache_files (``int``): Max number of concurrent metrics cache files (default 10000).
@@ -165,21 +177,25 @@ class Metric(MetricInfoMixin):
         MetricInfoMixin.__init__(self, info)  # For easy access on low level
 
         # Safety checks on num_process and process_id
-        assert isinstance(process_id, int) and process_id >= 0, "'process_id' should be a number greater than 0"
-        assert (
-            isinstance(num_process, int) and num_process > process_id
-        ), "'num_process' should be a number greater than process_id"
-        assert (
-            num_process == 1 or not keep_in_memory
-        ), "Using 'keep_in_memory' is not possible in distributed setting (num_process > 1)."
+        if not isinstance(process_id, int) or process_id < 0:
+            raise ValueError("'process_id' should be a number greater than 0")
+        if not isinstance(num_process, int) or num_process <= process_id:
+            raise ValueError("'num_process' should be a number greater than process_id")
+        if keep_in_memory and num_process != 1:
+            raise ValueError("Using 'keep_in_memory' is not possible in distributed setting (num_process > 1).")
+
         self.num_process = num_process
         self.process_id = process_id
         self.max_concurrent_cache_files = max_concurrent_cache_files
 
         self.keep_in_memory = keep_in_memory
-        self._data_dir_root = os.path.expanduser(cache_dir or HF_METRICS_CACHE)
+        self._data_dir_root = os.path.expanduser(cache_dir or config.HF_METRICS_CACHE)
         self.data_dir = self._build_data_dir()
-        self.seed: int = seed or np.random.get_state()[1][0]
+        if seed is None:
+            _, seed, pos, *_ = np.random.get_state()
+            self.seed: int = seed[pos] if pos < 624 else seed[0]
+        else:
+            self.seed: int = seed
         self.timeout: Union[int, float] = timeout
 
         # Update 'compute' and 'add' docstring
@@ -232,7 +248,7 @@ class Metric(MetricInfoMixin):
         return builder_data_dir
 
     def _create_cache_file(self, timeout=1) -> Tuple[str, FileLock]:
-        """ Create a new cache file. If the default cache file is used, we generated a new hash. """
+        """Create a new cache file. If the default cache file is used, we generated a new hash."""
         file_path = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-{self.process_id}.arrow")
         filelock = None
         for i in range(self.max_concurrent_cache_files):
@@ -245,15 +261,15 @@ class Metric(MetricInfoMixin):
                 if self.num_process != 1:
                     raise ValueError(
                         f"Error in _create_cache_file: another metric instance is already using the local cache file at {file_path}. "
-                        f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid colision "
+                        f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid collision "
                         f"between distributed metric instances."
-                    )
+                    ) from None
                 if i == self.max_concurrent_cache_files - 1:
                     raise ValueError(
                         f"Cannot acquire lock, too many metric instance are operating concurrently on this file system."
                         f"You should set a larger value of max_concurrent_cache_files when creating the metric "
                         f"(current value is {self.max_concurrent_cache_files})."
-                    )
+                    ) from None
                 # In other cases (allow to find new file name + not yet at max num of attempts) we can try to sample a new hashing name.
                 file_uuid = str(uuid.uuid4())
                 file_path = os.path.join(
@@ -284,13 +300,18 @@ class Metric(MetricInfoMixin):
         # Let's acquire a lock on each process files to be sure they are finished writing
         filelocks = []
         for process_id, file_path in enumerate(file_paths):
-            filelock = FileLock(file_path + ".lock")
-            try:
-                filelock.acquire(timeout=self.timeout)
-            except Timeout:
-                raise ValueError(f"Cannot acquire lock on cached file {file_path} for process {process_id}.")
+            if process_id == 0:  # process 0 already has its lock file
+                filelocks.append(self.filelock)
             else:
-                filelocks.append(filelock)
+                filelock = FileLock(file_path + ".lock")
+                try:
+                    filelock.acquire(timeout=self.timeout)
+                except Timeout:
+                    raise ValueError(
+                        f"Cannot acquire lock on cached file {file_path} for process {process_id}."
+                    ) from None
+                else:
+                    filelocks.append(filelock)
 
         return file_paths, filelocks
 
@@ -306,7 +327,7 @@ class Metric(MetricInfoMixin):
             except Timeout:
                 raise ValueError(
                     f"Expected to find locked file {expected_lock_file_name} from process {self.process_id} but it doesn't exist."
-                )
+                ) from None
             else:
                 nofilelock.release()
 
@@ -318,7 +339,7 @@ class Metric(MetricInfoMixin):
         except Timeout:
             raise ValueError(
                 f"Expected to find locked file {expected_lock_file_name} from process {self.process_id} but it doesn't exist."
-            )
+            ) from None
         else:
             nofilelock.release()
         lock_file_name = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-rdv.lock")
@@ -326,7 +347,7 @@ class Metric(MetricInfoMixin):
         try:
             rendez_vous_lock.acquire(timeout=self.timeout)
         except Timeout:
-            raise ValueError(f"Couldn't acquire lock on {lock_file_name} from process {self.process_id}.")
+            raise ValueError(f"Couldn't acquire lock on {lock_file_name} from process {self.process_id}.") from None
         else:
             rendez_vous_lock.release()
 
@@ -337,7 +358,8 @@ class Metric(MetricInfoMixin):
         if self.writer is not None:
             self.writer.finalize()
         self.writer = None
-        if self.filelock is not None:
+        # release the locks of the processes > 0 so that process 0 can lock them to read + delete the data
+        if self.filelock is not None and self.process_id > 0:
             self.filelock.release()
 
         if self.keep_in_memory:
@@ -356,34 +378,45 @@ class Metric(MetricInfoMixin):
             except FileNotFoundError:
                 raise ValueError(
                     "Error in finalize: another metric instance is already using the local cache file. "
-                    "Please specify an experiment_id to avoid colision between distributed metric instances."
-                )
+                    "Please specify an experiment_id to avoid collision between distributed metric instances."
+                ) from None
 
             # Store file paths and locks and we will release/delete them after the computation.
             self.file_paths = file_paths
             self.filelocks = filelocks
 
-    def compute(self, *args, **kwargs) -> Optional[dict]:
+    def compute(self, *, predictions=None, references=None, **kwargs) -> Optional[dict]:
         """Compute the metrics.
 
+        Usage of positional arguments is not allowed to prevent mistakes.
+
         Args:
-            We disallow the usage of positional arguments to prevent mistakes
-            `predictions` (Optional list/array/tensor): predictions
-            `references` (Optional list/array/tensor): references
-            `**kwargs` (Optional other kwargs): will be forwared to the metrics :func:`_compute` method (see details in the docstring)
+            predictions (list/array/tensor, optional): Predictions.
+            references (list/array/tensor, optional): References.
+            **kwargs (optional): Keyword arguments that will be forwarded to the metrics :meth:`_compute`
+                method (see details in the docstring).
 
         Return:
-            Dictionnary with the metrics if this metric is run on the main process (process_id == 0)
-            None if the metric is not run on the main process (process_id != 0)
+            dict or None
+
+            - Dictionary with the metrics if this metric is run on the main process (``process_id == 0``).
+            - None if the metric is not run on the main process (``process_id != 0``).
         """
-        if args:
-            raise ValueError("Please call `compute` using keyword arguments.")
+        all_kwargs = {"predictions": predictions, "references": references, **kwargs}
+        if predictions is None and references is None:
+            missing_kwargs = {k: None for k in self.features if k not in all_kwargs}
+            all_kwargs.update(missing_kwargs)
+        else:
+            missing_inputs = [k for k in self.features if k not in all_kwargs]
+            if missing_inputs:
+                raise ValueError(
+                    f"Metric inputs are missing: {missing_inputs}. All required inputs are {list(self.features)}"
+                )
+        inputs = {input_name: all_kwargs[input_name] for input_name in self.features}
+        compute_kwargs = {k: kwargs[k] for k in kwargs if k not in self.features}
 
-        predictions = kwargs.pop("predictions", None)
-        references = kwargs.pop("references", None)
-
-        if predictions is not None:
-            self.add_batch(predictions=predictions, references=references)
+        if any(v is not None for v in inputs.values()):
+            self.add_batch(**inputs)
         self._finalize()
 
         self.cache_file_name = None
@@ -392,18 +425,17 @@ class Metric(MetricInfoMixin):
         if self.process_id == 0:
             self.data.set_format(type=self.info.format)
 
-            predictions = self.data["predictions"]
-            references = self.data["references"]
+            inputs = {input_name: self.data[input_name] for input_name in self.features}
             with temp_seed(self.seed):
-                output = self._compute(predictions=predictions, references=references, **kwargs)
+                output = self._compute(**inputs, **compute_kwargs)
 
             if self.buf_writer is not None:
                 self.buf_writer = None
                 del self.data
                 self.data = None
             else:
-                # Release locks and delete all the cache files
-                for filelock, file_path in zip(self.filelocks, self.file_paths):
+                # Release locks and delete all the cache files. Process 0 is released last.
+                for filelock, file_path in reversed(list(zip(self.filelocks, self.file_paths))):
                     logger.info(f"Removing {file_path}")
                     del self.data
                     self.data = None
@@ -416,39 +448,69 @@ class Metric(MetricInfoMixin):
         else:
             return None
 
-    def add_batch(self, *, predictions=None, references=None):
+    def add_batch(self, *, predictions=None, references=None, **kwargs):
+        """Add a batch of predictions and references for the metric's stack.
+
+        Args:
+            predictions (list/array/tensor, optional): Predictions.
+            references (list/array/tensor, optional): References.
         """
-        Add a batch of predictions and references for the metric's stack.
-        """
-        batch = {"predictions": predictions, "references": references}
+        bad_inputs = [input_name for input_name in kwargs if input_name not in self.features]
+        if bad_inputs:
+            raise ValueError(f"Bad inputs for metric: {bad_inputs}. All required inputs are {list(self.features)}")
+        batch = {"predictions": predictions, "references": references, **kwargs}
+        batch = {intput_name: batch[intput_name] for intput_name in self.features}
         batch = self.info.features.encode_batch(batch)
         if self.writer is None:
             self._init_writer()
         try:
             self.writer.write_batch(batch)
         except pa.ArrowInvalid:
-            raise ValueError(
-                f"Predictions and/or references don't match the expected format.\n"
-                f"Expected format: {self.features},\n"
-                f"Input predictions: {predictions},\n"
-                f"Input references: {references}"
-            )
+            if any(len(batch[c]) != len(next(iter(batch.values()))) for c in batch):
+                col0 = next(iter(batch))
+                bad_col = [c for c in batch if len(batch[c]) != len(batch[col0])][0]
+                error_msg = (
+                    f"Mismatch in the number of {col0} ({len(batch[col0])}) and {bad_col} ({len(batch[bad_col])})"
+                )
+            elif sorted(self.features) != ["references", "predictions"]:
+                error_msg = f"Metric inputs don't match the expected format.\n" f"Expected format: {self.features},\n"
+                error_msg_inputs = ",\n".join(
+                    f"Input {input_name}: {summarize_if_long_list(batch[input_name])}" for input_name in self.features
+                )
+                error_msg += error_msg_inputs
+            else:
+                error_msg = (
+                    f"Predictions and/or references don't match the expected format.\n"
+                    f"Expected format: {self.features},\n"
+                    f"Input predictions: {summarize_if_long_list(predictions)},\n"
+                    f"Input references: {summarize_if_long_list(references)}"
+                )
+            raise ValueError(error_msg) from None
 
-    def add(self, *, prediction=None, reference=None):
-        """Add one prediction and reference for the metric's stack."""
-        example = {"predictions": prediction, "references": reference}
+    def add(self, *, prediction=None, reference=None, **kwargs):
+        """Add one prediction and reference for the metric's stack.
+
+        Args:
+            prediction (list/array/tensor, optional): Predictions.
+            reference (list/array/tensor, optional): References.
+        """
+        bad_inputs = [input_name for input_name in kwargs if input_name not in self.features]
+        if bad_inputs:
+            raise ValueError(f"Bad inputs for metric: {bad_inputs}. All required inputs are {list(self.features)}")
+        example = {"predictions": prediction, "references": reference, **kwargs}
+        example = {intput_name: example[intput_name] for intput_name in self.features}
         example = self.info.features.encode_example(example)
         if self.writer is None:
             self._init_writer()
         try:
             self.writer.write(example)
         except pa.ArrowInvalid:
-            raise ValueError(
-                f"Prediction and/or reference don't match the expected format.\n"
-                f"Expected format: {self.features},\n"
-                f"Input predictions: {prediction},\n"
-                f"Input references: {reference}"
+            error_msg = f"Metric inputs don't match the expected format.\n" f"Expected format: {self.features},\n"
+            error_msg_inputs = ",\n".join(
+                f"Input {input_name}: {summarize_if_long_list(example[input_name])}" for input_name in self.features
             )
+            error_msg += error_msg_inputs
+            raise ValueError(error_msg) from None
 
     def _init_writer(self, timeout=1):
         if self.num_process > 1:
@@ -460,9 +522,9 @@ class Metric(MetricInfoMixin):
                 except TimeoutError:
                     raise ValueError(
                         f"Error in _init_writer: another metric instance is already using the local cache file at {file_path}. "
-                        f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid colision "
+                        f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid collision "
                         f"between distributed metric instances."
-                    )
+                    ) from None
 
         if self.keep_in_memory:
             self.buf_writer = pa.BufferOutputStream()
@@ -504,13 +566,12 @@ class Metric(MetricInfoMixin):
         self,
         download_config: Optional[DownloadConfig] = None,
         dl_manager: Optional[DownloadManager] = None,
-        **download_and_prepare_kwargs,
     ):
         """Downloads and prepares dataset for reading.
 
         Args:
-            download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
-            dl_manager (Optional ``datasets.DownloadManager``): specific Download Manger to use
+            download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
+            dl_manager (:class:`DownloadManager`, optional): Specific download manager to use.
         """
         if dl_manager is None:
             if download_config is None:
@@ -531,19 +592,18 @@ class Metric(MetricInfoMixin):
         `download_and_prepare`. It should download all required resources for the metric.
 
         Args:
-            dl_manager: (DownloadManager) `DownloadManager` used to download and cache
-                data..
+            dl_manager (:class:`DownloadManager`): `DownloadManager` used to download and cache data.
         """
         return None
 
     def _compute(self, *, predictions=None, references=None, **kwargs) -> Dict[str, Any]:
-        """ This method defines the common API for all the metrics in the library """
+        """This method defines the common API for all the metrics in the library"""
         raise NotImplementedError
 
     def __del__(self):
-        if self.filelock is not None:
+        if hasattr(self, "filelock") and self.filelock is not None:
             self.filelock.release()
-        if self.rendez_vous_lock is not None:
+        if hasattr(self, "rendez_vous_lock") and self.rendez_vous_lock is not None:
             self.rendez_vous_lock.release()
         if hasattr(self, "writer"):  # in case it was already deleted
             del self.writer

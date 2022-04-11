@@ -4,10 +4,11 @@ from pathlib import Path
 from shutil import copyfile
 from typing import List
 
-from datasets.builder import FORCE_REDOWNLOAD, HF_DATASETS_CACHE, REUSE_CACHE_IF_EXISTS, DatasetBuilder, DownloadConfig
-from datasets.commands import BaseTransformersCLICommand
-from datasets.info import DATASET_INFOS_DICT_FILE_NAME
-from datasets.load import import_main_class, prepare_module
+from datasets import config
+from datasets.builder import DatasetBuilder
+from datasets.commands import BaseDatasetsCLICommand
+from datasets.load import dataset_module_factory, import_main_class
+from datasets.utils.download_manager import DownloadConfig, DownloadMode
 
 
 def run_beam_command_factory(args):
@@ -24,10 +25,10 @@ def run_beam_command_factory(args):
     )
 
 
-class RunBeamCommand(BaseTransformersCLICommand):
+class RunBeamCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
-        run_beam_parser = parser.add_parser("run_beam")
+        run_beam_parser = parser.add_parser("run_beam", help="Run a Beam dataset processing pipeline.")
         run_beam_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
         run_beam_parser.add_argument(
             "--cache_dir",
@@ -39,7 +40,7 @@ class RunBeamCommand(BaseTransformersCLICommand):
             "--beam_pipeline_options",
             type=str,
             default="",
-            help="Beam pipeline options, separated by commas. Example: `--beam_pipeline_options=job_name=my-job,project=my-project`",
+            help="Beam pipeline options, separated by commas. Example:: `--beam_pipeline_options=job_name=my-job,project=my-project`",
         )
         run_beam_parser.add_argument(
             "--data_dir",
@@ -85,35 +86,46 @@ class RunBeamCommand(BaseTransformersCLICommand):
             print("Both parameters `name` and `all_configs` can't be used at once.")
             exit(1)
         path, name = self._dataset, self._name
-        module_path, hash = prepare_module(path)
-        builder_cls = import_main_class(module_path)
+        dataset_module = dataset_module_factory(path)
+        builder_cls = import_main_class(dataset_module.module_path)
         builders: List[DatasetBuilder] = []
         if self._beam_pipeline_options:
             beam_options = beam.options.pipeline_options.PipelineOptions(
-                flags=["--%s" % opt.strip() for opt in self._beam_pipeline_options.split(",") if opt]
+                flags=[f"--{opt.strip()}" for opt in self._beam_pipeline_options.split(",") if opt]
             )
         else:
             beam_options = None
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
-            for config in builder_cls.BUILDER_CONFIGS:
+            for builder_config in builder_cls.BUILDER_CONFIGS:
                 builders.append(
                     builder_cls(
-                        name=config.name,
+                        name=builder_config.name,
                         data_dir=self._data_dir,
-                        hash=hash,
+                        hash=dataset_module.hash,
                         beam_options=beam_options,
                         cache_dir=self._cache_dir,
+                        base_path=dataset_module.builder_kwargs.get("base_path"),
+                        namespace=dataset_module.builder_kwargs.get("namespace"),
                     )
                 )
         else:
             builders.append(
-                builder_cls(name=name, data_dir=self._data_dir, beam_options=beam_options, cache_dir=self._cache_dir)
+                builder_cls(
+                    name=name,
+                    data_dir=self._data_dir,
+                    beam_options=beam_options,
+                    cache_dir=self._cache_dir,
+                    base_path=dataset_module.builder_kwargs.get("base_path"),
+                    namespace=dataset_module.builder_kwargs.get("namespace"),
+                )
             )
 
         for builder in builders:
             builder.download_and_prepare(
-                download_mode=REUSE_CACHE_IF_EXISTS if not self._force_redownload else FORCE_REDOWNLOAD,
-                download_config=DownloadConfig(cache_dir=os.path.join(HF_DATASETS_CACHE, "downloads")),
+                download_mode=DownloadMode.REUSE_CACHE_IF_EXISTS
+                if not self._force_redownload
+                else DownloadMode.FORCE_REDOWNLOAD,
+                download_config=DownloadConfig(cache_dir=config.DOWNLOADED_DATASETS_PATH),
                 save_infos=self._save_infos,
                 ignore_verifications=self._ignore_verifications,
                 try_from_hf_gcs=False,
@@ -125,7 +137,7 @@ class RunBeamCommand(BaseTransformersCLICommand):
         # Let's move it to the original directory of the dataset script, to allow the user to
         # upload them on S3 at the same time afterwards.
         if self._save_infos:
-            dataset_infos_path = os.path.join(builder_cls.get_imported_module_dir(), DATASET_INFOS_DICT_FILE_NAME)
+            dataset_infos_path = os.path.join(builder_cls.get_imported_module_dir(), config.DATASETDICT_INFOS_FILENAME)
 
             name = Path(path).name + ".py"
 
@@ -135,10 +147,10 @@ class RunBeamCommand(BaseTransformersCLICommand):
             elif os.path.isfile(combined_path):
                 dataset_dir = path
             else:  # in case of a remote dataset
-                print("Dataset Infos file saved at {}".format(dataset_infos_path))
+                print(f"Dataset Infos file saved at {dataset_infos_path}")
                 exit(1)
 
             # Move datasetinfo back to the user
-            user_dataset_infos_path = os.path.join(dataset_dir, DATASET_INFOS_DICT_FILE_NAME)
+            user_dataset_infos_path = os.path.join(dataset_dir, config.DATASETDICT_INFOS_FILENAME)
             copyfile(dataset_infos_path, user_dataset_infos_path)
-            print("Dataset Infos file saved at {}".format(user_dataset_infos_path))
+            print(f"Dataset Infos file saved at {user_dataset_infos_path}")
