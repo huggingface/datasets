@@ -19,15 +19,14 @@ For the programatic tasks, please use the BIG-Bench API on github.com/google/BIG
 
 from typing import Optional
 
-import datasets
-
-
-logger = datasets.logging.get_logger(__name__)
-
 import bigbench.api.util as bb_utils  # From: git+https://github.com/google/BIG-bench.git
 import bigbench.bbseqio.bigbench_bridge as bbb
 from bigbench.bbseqio import bigbench_json_paths as bb_json_paths
 
+import datasets
+
+
+logger = datasets.logging.get_logger(__name__)
 
 _CITATION = """\
 @InProceedings{bigbench,
