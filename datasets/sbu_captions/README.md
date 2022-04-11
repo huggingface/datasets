@@ -51,19 +51,15 @@ pretty_name: SBU Captioned Photo Dataset
 
 ## Dataset Description
 
-- **Homepage:** http://www.cs.virginia.edu/~vicente/sbucaptions/
+- **Homepage:** [SBU Captioned Photo Dataset homepage](http://www.cs.virginia.edu/~vicente/sbucaptions/)
 - **Repository:**
-- **Paper:** [Im2Text: Describing Images Using 1 Million Captioned Photographs]https://papers.nips.cc/paper/2011/hash/5dd9db5e033da9c6fb5ba83c7a7ebea9-Abstract.html
+- **Paper:** [Im2Text: Describing Images Using 1 Million Captioned Photographs](https://papers.nips.cc/paper/2011/hash/5dd9db5e033da9c6fb5ba83c7a7ebea9-Abstract.html)
 - **Leaderboard:**
 - **Point of Contact:** [Vicente Ordóñez Román](mailto:vicente@virginia.edu)
 
 ### Dataset Summary
 
-SBU Captioned Photo Dataset is a collection of associated captions and images.
-
-From the paper:
-> One contribution is our technique for the automatic collection of this new dataset – performing a huge number of Flickr queries and then filtering the noisy results down to 1 million images with associated visually
-relevant captions. Such a collection allows us to approach the extremely challenging problem of description generation using relatively simple non-parametric methods and produces surprisingly effective results
+SBU Captioned Photo Dataset is a collection of associated captions and images from Flickr.
 
 ### Dataset Preprocessing
 
@@ -145,17 +141,37 @@ All the data is contained in training split. The training set has 1M instances.
 
 ### Curation Rationale
 
+From the paper:
+> One contribution is our technique for the automatic collection of this new dataset – performing a huge number of Flickr queries and then filtering the noisy results down to 1 million images with associated visually
+relevant captions. Such a collection allows us to approach the extremely challenging problem of description generation using relatively simple non-parametric methods and produces surprisingly effective results.
+
 ### Source Data
+
+The source images come from Flickr.
 
 #### Initial Data Collection and Normalization
 
+One key contribution of our paper is a novel web-scale database of photographs with associated
+descriptive text. To enable effective captioning of novel images, this database must be good in two
+ways: 1) It must be large so that image based matches to a query are reasonably similar, 2) The
+captions associated with the data base photographs must be visually relevant so that transferring
+captions between pictures is useful. To achieve the first requirement we query Flickr using a huge
+number of pairs of query terms (objects, attributes, actions, stuff, and scenes). This produces a very
+large, but noisy initial set of photographs with associated text.
+
 #### Who are the source language producers?
+
+The Flickr users.
 
 ### Annotations
 
 #### Annotation process
 
+Text descriptions associated with the images are inherited as annotations/captions.
+
 #### Who are the annotators?
+
+The Flickr users.
 
 ### Personal and Sensitive Information
 
@@ -171,7 +187,11 @@ All the data is contained in training split. The training set has 1M instances.
 
 ### Dataset Curators
 
+Vicente Ordonez, Girish Kulkarni and Tamara L. Berg.
+
 ### Licensing Information
+
+Not specified.
 
 ### Citation Information
 
