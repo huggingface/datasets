@@ -321,7 +321,7 @@ class DatasetMetadata:
     def validate_task_ids(task_ids: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
-        known_set = [tid for _cat, d in known_task_ids.items() for tid in d["options"]]
+        known_set = [tid for _cat, d in known_task_ids.items() for tid in d.get("subtasks", [])]
         validated, error = tagset_validator(
             task_ids, known_set, "task_ids", known_task_ids_url, lambda e: "-other-" in e or e.startswith("other-")
         )
