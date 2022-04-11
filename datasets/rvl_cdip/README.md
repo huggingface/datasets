@@ -12,7 +12,7 @@ multilinguality:
 size_categories:
 - 100K<n<1M
 source_datasets:
-- IIT-CDIP
+- extended|iit_cdip
 task_categories:
 - image-classification
 task_ids:
