@@ -143,6 +143,7 @@ TESTS_REQUIRE = [
     "py7zr",
     "tldextract",
     "zstandard",
+    "git+https://github.com/google/BIG-bench.git",
     # metrics dependencies
     "bert_score>=0.3.6",
     "rouge_score",
