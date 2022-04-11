@@ -84,7 +84,7 @@ The Beyond the Imitation Game Benchmark (BIG-bench) is a collaborative benchmark
 
 BIG-Bench consists of both json and programmatic tasks.
 This implementation in HuggingFace datasets implements
-	- 24 BIG-bench Lite tasks
+    - 24 BIG-bench Lite tasks
     - 167 BIG-bench json tasks (includes BIG-bench Lite)
     
 To study the remaining programmatic tasks, please see the BIG-bench GitHub [repo](https://github.com/google/BIG-bench)
