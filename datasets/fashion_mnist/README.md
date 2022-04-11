@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - image-classification
 task_ids:
-- single-label-image-classification
+- image-classification-other-clothing-classification
 paperswithcode_id: fashion-mnist
 pretty_name: FashionMNIST
 ---
