@@ -471,32 +471,12 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             )
         if self.config.name.startswith("PAWS-X"):
             features = PawsxParser.features
-        if self.config.name == "XNLI":
+        elif self.config.name == "XNLI":
             features["gold_label"] = datasets.Value("string")
-
-        if self.config.name.startswith("udpos"):
+        elif self.config.name.startswith("udpos"):
             features = UdposParser.features
-
-        if self.config.name.startswith("PAN-X"):
-            features = datasets.Features(
-                {
-                    "tokens": datasets.Sequence(datasets.Value("string")),
-                    "ner_tags": datasets.Sequence(
-                        datasets.features.ClassLabel(
-                            names=[
-                                "O",
-                                "B-PER",
-                                "I-PER",
-                                "B-ORG",
-                                "I-ORG",
-                                "B-LOC",
-                                "I-LOC",
-                            ]
-                        )
-                    ),
-                    "langs": datasets.Sequence(datasets.Value("string")),
-                }
-            )
+        elif self.config.name.startswith("PAN-X"):
+            features = PanxParser.features
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=self.config.description + "\n" + _DESCRIPTION,
@@ -642,27 +622,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             ]
 
         if self.config.name.startswith("PAN-X"):
-            panx_dl_dir = dl_manager.download_and_extract(self.config.data_url)
-            lang = self.config.name.split(".")[1]
-            lang_folder = dl_manager.extract(os.path.join(panx_dl_dir, lang + ".tar.gz"))
-
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": os.path.join(lang_folder, "dev")},
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": os.path.join(lang_folder, "test")},
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": os.path.join(lang_folder, "train")},
-                ),
-            ]
+            return PanxParser.split_generators(dl_manager=dl_manager, config=self.config)
 
     def _generate_examples(self, filepath=None, **kwargs):
         """Yields examples."""
@@ -784,20 +744,70 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("udpos"):
             yield from UdposParser.generate_examples(config=self.config, filepath=filepath, **kwargs)
         if self.config.name.startswith("PAN-X"):
-            guid_index = 1
-            with open(filepath, encoding="utf-8") as f:
+            yield from PanxParser.generate_examples(filepath=filepath, **kwargs)
+
+
+class PanxParser:
+
+    features = datasets.Features(
+        {
+            "tokens": datasets.Sequence(datasets.Value("string")),
+            "ner_tags": datasets.Sequence(
+                datasets.features.ClassLabel(
+                    names=[
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC",
+                    ]
+                )
+            ),
+            "langs": datasets.Sequence(datasets.Value("string")),
+        }
+    )
+
+    @staticmethod
+    def split_generators(dl_manager=None, config=None):
+        data_dir = dl_manager.download_and_extract(config.data_url)
+        lang = config.name.split(".")[1]
+        archive = os.path.join(data_dir, lang + ".tar.gz")
+        split_filenames = {
+            datasets.Split.TRAIN: "train",
+            datasets.Split.VALIDATION: "dev",
+            datasets.Split.TEST: "test",
+        }
+        return [
+            datasets.SplitGenerator(
+                name=split,
+                gen_kwargs={
+                    "filepath": dl_manager.iter_archive(archive),
+                    "filename": split_filenames[split],
+                },
+            )
+            for split in split_filenames
+        ]
+
+    @staticmethod
+    def generate_examples(filepath=None, filename=None):
+        idx = 1
+        for path, file in filepath:
+            if path.endswith(filename):
                 tokens = []
                 ner_tags = []
                 langs = []
-                for line in f:
+                for line in file:
+                    line = line.decode("utf-8")
                     if line == "" or line == "\n":
                         if tokens:
-                            yield guid_index, {
+                            yield idx, {
                                 "tokens": tokens,
                                 "ner_tags": ner_tags,
                                 "langs": langs,
                             }
-                            guid_index += 1
+                            idx += 1
                             tokens = []
                             ner_tags = []
                             langs = []
@@ -813,7 +823,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                             # examples have no label in test set
                             ner_tags.append("O")
                 if tokens:
-                    yield guid_index, {
+                    yield idx, {
                         "tokens": tokens,
                         "ner_tags": ner_tags,
                         "langs": langs,
