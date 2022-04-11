@@ -21,7 +21,7 @@ paperswithcode_id: sbu-captions-dataset
 pretty_name: SBU Captioned Photo Dataset
 ---
 
-# Dataset Card for RedCaps
+# Dataset Card for SBU Captioned Photo Dataset
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -53,57 +53,65 @@ pretty_name: SBU Captioned Photo Dataset
 
 - **Homepage:** http://www.cs.virginia.edu/~vicente/sbucaptions/
 - **Repository:**
-- **Paper:** http://tamaraberg.com/papers/generation_nips2011.pdf
+- **Paper:** [Im2Text: Describing Images Using 1 Million Captioned Photographs]https://papers.nips.cc/paper/2011/hash/5dd9db5e033da9c6fb5ba83c7a7ebea9-Abstract.html
 - **Leaderboard:**
-- **Point of Contact:** vicente@virginia.edu
+- **Point of Contact:** [Vicente Ordóñez Román](mailto:vicente@virginia.edu)
 
 ### Dataset Summary
 
-SBU Captioned Photo Dataset is a collection of associated captions and images. From the paper:
-> performing a huge number of Flickr queries and
-then filtering the noisy results down to 1 million images with associated visually
-relevant captions
+SBU Captioned Photo Dataset is a collection of associated captions and images.
+
+From the paper:
+> One contribution is our technique for the automatic collection of this new dataset – performing a huge number of Flickr queries and then filtering the noisy results down to 1 million images with associated visually
+relevant captions. Such a collection allows us to approach the extremely challenging problem of description generation using relatively simple non-parametric methods and produces surprisingly effective results
 
 ### Dataset Preprocessing
 
 This dataset doesn't download the images locally by default. Instead, it exposes URLs to the images. To fetch the images, use the following code:
 
 ```python
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
+import io
+import urllib
+
+import PIL
+
 from datasets import load_dataset
 from datasets.utils.file_utils import get_datasets_user_agent
-import PIL.Image
-import requests
 
-def get_image(url, timeout):
-  response = requests.get(
-      url,
-      stream=True,
-      headers={"user-agent": get_datasets_user_agent()},
-      timeout=timeout,
-  )
-  if response.ok:
-    return PIL.Image.open(
-        response.raw
-    )
-  else:
-    return None
 
-def fetch_images(batch, timeout):
-    images = [
-      get_image(image_url, timeout)
-      for image_url in batch["image_url"]
-    ]
-      
-    batch["image"] = list(images)
+def fetch_single_image(image_url, timeout=None, retries=0):
+    for _ in range(retries + 1):
+        try:
+            request = urllib.request.Request(
+                image_url,
+                data=None,
+                headers={"user-agent": get_datasets_user_agent()},
+            )
+            with urllib.request.urlopen(request, timeout=timeout) as req:
+                image = PIL.Image.open(io.BytesIO(req.read()))
+            break
+        except Exception:
+            image = None
+    return image
+
+
+def fetch_images(batch, num_threads, timeout=None, retries=0):
+    fetch_single_image_with_args = partial(fetch_single_image, timeout=timeout, retries=retries)
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        batch["image"] = list(executor.map(fetch_single_image_with_args, batch["image_url"]))
     return batch
 
-timeout = None
-num_proc = 4
+
+num_threads = 20
 dset = load_dataset("sbu_captions")
-dseet = dset.map(fetch_images, batched=True, batch_size=100, fn_kwargs={"timeout": timeout}, num_proc=num_proc)
+dset = dset.map(fetch_images, batched=True, batch_size=100, fn_kwargs={"num_threads": num_threads})
 ```
 
 ### Supported Tasks and Leaderboards
+
+- `image-to-text`: This dataset can be used to train a model for Image Captioning where the goal is to predict a caption given the image.
 
 ### Languages
 
@@ -167,7 +175,7 @@ All the data is contained in training split. The training set has 1M instances.
 
 ### Citation Information
 
-```
+```bibtex
 @inproceedings{NIPS2011_5dd9db5e,
  author = {Ordonez, Vicente and Kulkarni, Girish and Berg, Tamara},
  booktitle = {Advances in Neural Information Processing Systems},

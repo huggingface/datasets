@@ -76,24 +76,26 @@ class SBUCaptionedPhotoDataset(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager: datasets.DownloadManager):
-        # Download and extract `sbu-captions-all.tar.gz` file
-        annotations_file = dl_manager.download_and_extract(_URL)
+        archive = dl_manager.download(_URL)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "annotations_file": f"{annotations_file}/sbu-captions-all.json",
+                    "files": dl_manager.iter_archive(archive),
                 },
             )
         ]
 
-    def _generate_examples(self, annotations_file):
-        # Download all images
-        with open(annotations_file, "r", encoding="utf-8") as fi:
-            annotations = json.load(fi)
+    def _generate_examples(self, files):
+        annotations = None
+        for path, f in files:
+            if path.endswith("sbu-captions-all.json"):
+                annotations = json.loads(f.read().decode("utf-8"))
+                break
 
-        # Sanity check
+        # Sanity checks
+        assert annotations is not None
         nb_samples = len(annotations[next(iter(annotations.keys()))])
         assert all(len(values) == nb_samples for values in annotations.values())
         keys = tuple(annotations.keys())
