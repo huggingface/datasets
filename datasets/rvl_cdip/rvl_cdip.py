@@ -155,9 +155,7 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
                 if file_path in image_to_class_id:
                     class_id = image_to_class_id[file_path]
                     label = _CLASSES[class_id]
-                    path = os.path.join(local_extracted_archive, file_path) if local_extracted_archive else None
-                    yield file_path, {
-                        "path": path,
-                        "image": {"path": file_path, "bytes": file_obj.read()},
-                        "label": label,
-                    }
+                    if local_extracted_archive is not None:
+                        yield {"image": os.path.join(local_extracted_archive, file_path), "label": label}
+                    else:
+                        yield {"image": {"path": file_path, "bytes": file_obj.read()}, "label": label}
