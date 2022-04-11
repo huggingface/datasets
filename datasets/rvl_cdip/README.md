@@ -16,9 +16,7 @@ source_datasets:
 task_categories:
 - image-classification
 task_ids:
-- single-label-image-classification
-- other-other-document-classification
-- other-other-document-retrieval
+- multi-class-image-classification
 paperswithcode_id: rvl-cdip
 pretty_name: RVL-CDIP
 ---
