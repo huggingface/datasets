@@ -51,7 +51,7 @@ _MAP_SBU_FEATURES_TO_DATASETS_FEATURES = {"image_urls": "image_url", "user_ids":
 
 
 class SBUCaptionedPhotoDatasetConfig(datasets.BuilderConfig):
-    """BuilderConfig for COCO."""
+    """BuilderConfig for SBU Captioned Photo dataset."""
 
     VERSION = datasets.Version("0.0.0")
 
