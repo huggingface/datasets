@@ -84,7 +84,6 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "path": datasets.Value("string"),
                     "image": datasets.Image(),
                     "label": datasets.ClassLabel(names=_CLASSES),
                 }
@@ -156,6 +155,6 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
                     class_id = image_to_class_id[file_path]
                     label = _CLASSES[class_id]
                     if local_extracted_archive is not None:
-                        yield {"image": os.path.join(local_extracted_archive, file_path), "label": label}
+                        yield file_path, {"image": os.path.join(local_extracted_archive, file_path), "label": label}
                     else:
-                        yield {"image": {"path": file_path, "bytes": file_obj.read()}, "label": label}
+                        yield file_path, {"image": {"path": file_path, "bytes": file_obj.read()}, "label": label}
