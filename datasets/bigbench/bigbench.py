@@ -24,18 +24,9 @@ import datasets
 
 logger = datasets.logging.get_logger(__name__)
 
-try:
-    import bigbench.api.util as bb_utils
-    import bigbench.bbseqio.bigbench_bridge as bbb
-    from bigbench.bbseqio import bigbench_json_paths as bb_json_paths
-
-except ModuleNotFoundError as error:
-    logger.info(
-        "Failed to import bigbench. Please see https://github.com/google/BIG-bench or install"
-        "using 'pip install git+https://github.com/google/BIG-bench.git'"
-    )
-    logger.error(error)
-    raise
+import bigbench.api.util as bb_utils  # From: git+https://github.com/google/BIG-bench.git
+import bigbench.bbseqio.bigbench_bridge as bbb
+from bigbench.bbseqio import bigbench_json_paths as bb_json_paths
 
 _CITATION = """\
 @InProceedings{bigbench,
