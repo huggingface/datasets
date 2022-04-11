@@ -13,10 +13,10 @@
 # limitations under the License.
 """Perplexity Metric."""
 
+import numpy as np
 import torch
 from torch.nn import CrossEntropyLoss
 from transformers import AutoModelForCausalLM, AutoTokenizer
-import numpy as np
 
 import datasets
 from datasets import logging
@@ -59,25 +59,25 @@ Examples:
         ...                              input_texts=input_texts)
         >>> print(list(results.keys()))
         ['perplexities', 'mean_perplexity']
-        >>> print(results["mean_perplexity"])
-        78.21837488810222
-        >>> print(results["perplexities"][:2])
-        [11.108943939208984, 159.01434326171875]
+        >>> print(round(results["mean_perplexity"], 2))
+        78.22
+        >>> print([round(res, 2) for res in results["perplexities"][:2]])
+        [11.11, 159.01]
 
     Example 2:
         >>> perplexity = datasets.load_metric("perplexity")
         >>> input_texts = datasets.load_dataset("wikitext",
         ...                                     "wikitext-2-raw-v1",
         ...                                     split="test")["text"][:50] # doctest:+ELLIPSIS
-        >>> input_texts = [s in input_texts if s! = '']
+        >>> input_texts = [s for s in input_texts if s!='']
         >>> results = perplexity.compute(model_id='gpt2',
         ...                              input_texts=input_texts)
         >>> print(list(results.keys()))
         ['perplexities', 'mean_perplexity']
-        >>> print(results["mean_perplexity"])
-        1977.5437285811813
-        >>> print(results["perplexities"][:2])
-        [1349.57080078125, 736.4402465820312]
+        >>> print(round(results["mean_perplexity"], 2))
+        1977.54
+        >>> print([round(res, 2) for res in results["perplexities"][:2]])
+        [1349.57, 736.44]
 """
 
 
@@ -96,13 +96,7 @@ class Perplexity(datasets.Metric):
             reference_urls=["https://huggingface.co/docs/transformers/perplexity"],
         )
 
-    def _compute(self,
-                input_texts,
-                model_id,
-                batch_size: int = 16,
-                add_start_token: bool = True,
-                device=None
-    ):
+    def _compute(self, input_texts, model_id, batch_size: int = 16, add_start_token: bool = True, device=None):
 
         if device is not None:
             assert device in ["gpu", "cpu", "cuda"], "device should be either gpu or cpu."
@@ -110,7 +104,6 @@ class Perplexity(datasets.Metric):
                 device = "cuda"
         else:
             device = "cuda" if torch.cuda.is_available() else "cpu"
-
 
         model = AutoModelForCausalLM.from_pretrained(model_id)
         model = model.to(device)
@@ -123,13 +116,17 @@ class Perplexity(datasets.Metric):
         if tokenizer.pad_token is None and batch_size > 1:
             existing_special_tokens = list(tokenizer.special_tokens_map_extended.values())
             # check that the model already has at least one special token defined
-            assert len(existing_special_tokens) > 0, "If batch_size > 1, model must have at least one special token to use for padding. Please use a different model or set batch_size=1."
+            assert (
+                len(existing_special_tokens) > 0
+            ), "If batch_size > 1, model must have at least one special token to use for padding. Please use a different model or set batch_size=1."
             # assign one of the special tokens to also be the pad token
-            tokenizer.add_special_tokens({'pad_token':existing_special_tokens[0]})
+            tokenizer.add_special_tokens({"pad_token": existing_special_tokens[0]})
 
         if add_start_token:
             # leave room for <BOS> token to be added:
-            assert tokenizer.bos_token is not None, "Input model must already have a BOS token if using add_start_token=True. Please use a different model, or set add_start_token=False"
+            assert (
+                tokenizer.bos_token is not None
+            ), "Input model must already have a BOS token if using add_start_token=True. Please use a different model, or set add_start_token=False"
             max_tokenized_len = model.config.max_length - 1
         else:
             max_tokenized_len = model.config.max_length
@@ -160,8 +157,8 @@ class Perplexity(datasets.Metric):
 
         for start_index in logging.tqdm(range(0, len(encoded_texts), batch_size)):
             end_index = min(start_index + batch_size, len(encoded_texts))
-            encoded_batch = encoded_texts[start_index : end_index]
-            attn_mask = attn_masks[start_index : end_index]
+            encoded_batch = encoded_texts[start_index:end_index]
+            attn_mask = attn_masks[start_index:end_index]
 
             if add_start_token:
                 bos_tokens_tensor = torch.tensor([[tokenizer.bos_token_id]] * encoded_batch.size(dim=0)).to(device)
