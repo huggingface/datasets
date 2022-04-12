@@ -143,7 +143,9 @@ doi = {10.1177/0272989X8900900307},
 URL = {https://doi.org/10.1177/0272989X8900900307},
 eprint = {https://doi.org/10.1177/0272989X8900900307}
 }
+```
 
+```bibtex
 @article{10.1023/A:1010920819831,
 author = {Hand, David J. and Till, Robert J.},
 title = {A Simple Generalisation of the Area Under the ROC Curve for Multiple Class Classification Problems},
@@ -162,7 +164,9 @@ pages = {171–186},
 numpages = {16},
 keywords = {Gini index, AUC, error rate, ROC curve, receiver operating characteristic}
 }
+```
 
+```bibtex
 @article{scikit-learn,
 title={Scikit-learn: Machine Learning in {P}ython},
 author={Pedregosa, F. and Varoquaux, G. and Gramfort, A. and Michel, V. and Thirion, B. and Grisel, O. and Blondel, M. and Prettenhofer, P. and Weiss, R. and Dubourg, V. and Vanderplas, J. and Passos, A. and Cournapeau, D. and Brucher, M. and Perrot, M. and Duchesnay, E.},
