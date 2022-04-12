@@ -797,11 +797,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             if self.data_files is not None
             else get_patterns_locally(str(Path().resolve()))
         )
-        data_files = DataFilesDict.from_local_or_remote(
-            patterns,
-            use_auth_token=self.downnload_config.use_auth_token,
-            base_path=self.data_files.rstrip("*") if self.data_files else None
-        )
+        data_files = DataFilesDict.from_local_or_remote(patterns, use_auth_token=self.downnload_config.use_auth_token)
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
         builder_kwargs = {"hash": hash, "data_files": data_files}
         return DatasetModule(module_path, hash, builder_kwargs)

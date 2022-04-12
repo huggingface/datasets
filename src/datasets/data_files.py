@@ -68,8 +68,7 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
     if isinstance(patterns, dict):
         return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}
     elif isinstance(patterns, str):
-        patterns = get_patterns_locally(patterns)
-        return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}
+        return {DEFAULT_SPLIT: [patterns]}
     elif isinstance(patterns, list):
         return {DEFAULT_SPLIT: patterns}
     else:
@@ -116,7 +115,6 @@ def _resolve_single_pattern_locally(
     It also supports absolute paths in patterns.
     If an URL is passed, it is returned as is.
     """
-    base_path = base_path.rstrip("*")
     pattern = os.path.join(base_path, pattern)
     data_files_ignore = FILES_TO_IGNORE
     fs = LocalFileSystem()
