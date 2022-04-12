@@ -62,8 +62,8 @@ _URLS = {
 _DESCRIPTIONS = {
     "unlabeled": textwrap.dedent(
         """\
-        The basis version of the dataset split into Training, Validation, and Test splits.
-        The Training split consists of 3,318,333 image-URL/caption pairs, swith a total number of 51,201 total token types in the captions (i.e., total vocabulary).
+        The basic version of the dataset split into Training, Validation, and Test splits.
+        The Training split consists of 3,318,333 image-URL/caption pairs, with a total number of 51,201 total token types in the captions (i.e., total vocabulary).
         The average number of tokens per captions is 10.3 (standard deviation of 4.5), while the median is 9.0 tokens per caption.
         The Validation split consists of 15,840 image-URL/caption pairs, with similar statistics.
         """
