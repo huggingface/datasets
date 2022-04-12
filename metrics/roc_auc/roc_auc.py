@@ -168,7 +168,24 @@ class ROCAUC(datasets.Metric):
             reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html"],
         )
 
-    def _compute(self, references, prediction_scores, average='macro', sample_weight=None, max_fpr=None, multi_class='raise', labels=None):
+    def _compute(
+        self,
+        references,
+        prediction_scores,
+        average="macro",
+        sample_weight=None,
+        max_fpr=None,
+        multi_class="raise",
+        labels=None,
+    ):
         return {
-            "roc_auc": roc_auc_score(references, prediction_scores, average=average, sample_weight=sample_weight, max_fpr=max_fpr, multi_class=multi_class, labels=labels)
+            "roc_auc": roc_auc_score(
+                references,
+                prediction_scores,
+                average=average,
+                sample_weight=sample_weight,
+                max_fpr=max_fpr,
+                multi_class=multi_class,
+                labels=labels,
+            )
         }
