@@ -195,7 +195,7 @@ class VisualGenomeConfig(datasets.BuilderConfig):
     def __init__(
         self,
         name: str,
-        version: Optional[datasets.Version],
+        version: Optional[datasets.Version] = None,
         with_image: bool = True,
         **kwargs
     ):
