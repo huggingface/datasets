@@ -112,19 +112,24 @@
         "subtasks": [
             "acceptability-classification",
             "entity-linking-classification",
-            "fact-checking",
             "intent-classification",
             "multi-class-classification",
             "multi-label-classification",
-            "natural-language-inference",
-            "semantic-similarity-classification",
             "sentiment-classification",
             "topic-classification",
-            "semantic-similarity-scoring",
             "sentiment-scoring",
             "sentiment-analysis",
             "hate-speech-detection",
             "text-scoring"
+        ]
+    },
+    "multi-input-text-classification": {
+        "type": "text",
+        "subtasks": [
+            "fact-checking",
+            "natural-language-inference",
+            "semantic-similarity-classification",
+            "semantic-similarity-scoring"
         ]
     },
     "text-generation": {
