@@ -50,9 +50,11 @@ _BASE_IMAGE_METADATA_URL = "https://visualgenome.org/static/data/dataset/image_d
 
 _LATEST_VERSIONS = {
     "region_descriptions": "1.2.0",
-    "objects": "1.4.0",
+    # TODO: integrate v1.4
+    "objects": "1.2.0",
     "attributes": "1.2.0",
-    "relationships": "1.4.0",
+    # TODO: integrate v1.4
+    "relationships": "1.2.0",
     "question_answers": "1.2.0"
 }
 
@@ -193,11 +195,15 @@ class VisualGenomeConfig(datasets.BuilderConfig):
     def __init__(
         self,
         name: str,
-        version: datasets.Version,
+        version: Optional[datasets.Version],
         with_image: bool = True,
         **kwargs
     ):
-        super(VisualGenomeConfig, self).__init__(version=version, name=name, **kwargs)
+        super(VisualGenomeConfig, self).__init__(
+            version=_LATEST_VERSIONS[name] if version is None else version,
+            name=name,
+            **kwargs
+        )
         self.annotations_features = _NAME_TO_ANNOTATION_FEATURES[self.name]
         self.with_image = with_image
         
@@ -225,25 +231,18 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         VisualGenomeConfig(
             name="region_descriptions",
-            version=datasets.Version("1.2.0")
         ),
         VisualGenomeConfig(
             name="question_answers",
-            version=datasets.Version("1.2.0")
         ),
         VisualGenomeConfig(
             name="objects",
-            # TODO: integrate v1.4
-            version=datasets.Version("1.2.0")
         ),
         VisualGenomeConfig(
             name="attributes",
-            version=datasets.Version("1.2.0")
         ),
         VisualGenomeConfig(
-            name="relationships",
-            # TODO: integrate v1.4
-            version=datasets.Version("1.2.0")
+            name="relationships"
         ),
     ]
 
