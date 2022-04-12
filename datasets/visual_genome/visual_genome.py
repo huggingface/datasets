@@ -20,7 +20,6 @@ import re
 from collections import defaultdict
 from typing import Dict, Any, Callable, Optional
 from urllib.parse import urlparse
-from pathlib import Path
 
 import datasets
 
@@ -45,7 +44,7 @@ _LICENSE = "Creative Commons Attribution 4.0 International License"
 
 _BASE_IMAGE_URLS = {
     "https://cs.stanford.edu/people/rak248/VG_100K_2/images.zip": "VG_100K",
-    "https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip": "VG_100K2",
+    "https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip": "VG_100K_2",
 }
 _BASE_IMAGE_METADATA_URL = "https://visualgenome.org/static/data/dataset/image_data.json.zip"
 
@@ -98,7 +97,7 @@ def _get_local_image_path(img_url: str, folder_local_paths: Dict[str, str]) -> s
     For example:
       Given `https://cs.stanford.edu/people/rak248/VG_100K_2/1.jpg` as an image url, this method returns the local path for that image.
     """
-    matches = re.match(r"https://cs.stanford.edu/people/rak248/(VG_100K(:?_2)?)/([0-9]+.jpg)$", img_url)
+    matches = re.match(r"https://cs.stanford.edu/people/rak248/(VG_100K(:?(:?_2)?))/([0-9]+.jpg)$", img_url)
     assert matches is not None, matches
 
     folder, filename = matches.group(1), matches.group(2)
@@ -158,7 +157,7 @@ class VisualGenomeConfig(datasets.BuilderConfig):
     @property
     def features(self):
         return datasets.Features({
-            **({"img": datasets.Image() if self.with_image else {}}),
+            **({"image": datasets.Image() if self.with_image else {}}),
             **_BASE_FEATURES,
             **self.annotations_features
         })
@@ -167,6 +166,7 @@ class VisualGenomeConfig(datasets.BuilderConfig):
 class VisualGenome(datasets.GeneratorBasedBuilder):
     """Visual Genome dataset."""
 
+    BUILDER_CONFIG_CLASS = VisualGenomeConfig
     BUILDER_CONFIGS = [
         VisualGenomeConfig(
             name=f"region-descriptions",
@@ -289,8 +289,8 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
     def _generate_examples(
         self,
         image_folder_local_paths: Optional[Dict[str, str]],
-        image_metadatas_file,
-        annotations_file,
+        image_metadatas_file: str,
+        annotations_file: str,
         annotation_normalizer_: Callable[[Dict[str,Any]], Dict[str,Any]]
     ):
         with open(annotations_file, "r", encoding="utf-8") as fi:
