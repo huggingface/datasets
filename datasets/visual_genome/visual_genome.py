@@ -196,6 +196,7 @@ class VisualGenomeConfig(datasets.BuilderConfig):
         self,
         name: str,
         version: Optional[datasets.Version] = None,
+        annotations_url: Optional[str] = None,
         with_image: bool = True,
         **kwargs
     ):
@@ -205,10 +206,14 @@ class VisualGenomeConfig(datasets.BuilderConfig):
             **kwargs
         )
         self.annotations_features = _NAME_TO_ANNOTATION_FEATURES[self.name]
+        self._annotations_url = annotations_url
         self.with_image = with_image
         
     @property
     def annotations_url(self):
+        if self._annotations_url:
+            return self._annotations_url
+
         if self.version == _LATEST_VERSIONS[self.name]:
             return f"{_BASE_ANNOTATION_URL}/{self.name}.json.zip"
 
@@ -237,12 +242,16 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
         ),
         VisualGenomeConfig(
             name="objects",
+            version=datasets.Version("1.2.0"),
+            annotations_url="https://visualgenome.org/static/data/dataset/objects_v1_2.json.zip"
         ),
         VisualGenomeConfig(
             name="attributes",
         ),
         VisualGenomeConfig(
-            name="relationships"
+            name="relationships",
+            version=datasets.Version("1.2.0"),
+            annotations_url="https://visualgenome.org/static/data/dataset/relationships_v1_2.json.zip"
         ),
     ]
 
