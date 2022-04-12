@@ -126,7 +126,7 @@ The questions and answers are available in English.
 - `opb` : Option B
 - `opc` : Option C
 - `opd` : Option D
-- `cop` : Correct option (Answer of the question)
+- `cop` : Correct option, i.e., 1,2,3,4
 - `choice_type` : Question is `single-choice` or `multi-choice`
 - `exp` : Expert's explanation of the answer
 - `subject_name` : Medical Subject name of the particular question
