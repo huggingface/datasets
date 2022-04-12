@@ -142,7 +142,7 @@ class VisualGenomeConfig(datasets.BuilderConfig):
         self,
         name: str,
         version: datasets.Version,
-        annotation_features: datasets.Features,
+        annotation_features: Dict,
         annotations_url: str,
         with_image: bool = True,
         **kwargs
@@ -168,79 +168,63 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         VisualGenomeConfig(
             name=f"region-descriptions",
-            annotation_features=datasets.Features({
-                "regions": datasets.Sequence(
-                    feature={
-                        "region_id": datasets.Value("int32"),
-                        "image_id": datasets.Value("int32"),
-                        "phrase": datasets.Value("string"),
-                        "x": datasets.Value("int32"),
-                        "y": datasets.Value("int32"),
-                        "width": datasets.Value("int32"),
-                        "height": datasets.Value("int32"),
-                    }
-                )
-            }),
+            annotation_features={
+                "regions": [{
+                    "region_id": datasets.Value("int32"),
+                    "image_id": datasets.Value("int32"),
+                    "phrase": datasets.Value("string"),
+                    "x": datasets.Value("int32"),
+                    "y": datasets.Value("int32"),
+                    "width": datasets.Value("int32"),
+                    "height": datasets.Value("int32"),
+                }]
+            },
             annotations_url="https://visualgenome.org/static/data/dataset/region_descriptions.json.zip",
             version=datasets.Version("1.2.0")
         ),
         VisualGenomeConfig(
             name="question-answering",
-            annotation_features=datasets.Features({
-                "qas": datasets.Sequence(
-                    feature={
-                        "qa_id": datasets.Value("int32"),
-                        "image_id": datasets.Value("int32"),
-                        "question": datasets.Value("string"),
-                        "answer": datasets.Value("string"),
-                        "a_objects": datasets.Sequence(
-                            feature=_OBJECT_FEATURES
-                        ),
-                        "q_objects": datasets.Sequence(
-                            feature=_OBJECT_FEATURES
-                        )
-                    }
-                )
-            }),
+            annotation_features={
+                "qas": [{
+                    "qa_id": datasets.Value("int32"),
+                    "image_id": datasets.Value("int32"),
+                    "question": datasets.Value("string"),
+                    "answer": datasets.Value("string"),
+                    "a_objects": [_OBJECT_FEATURES],
+                    "q_objects": [_OBJECT_FEATURES],
+                }]
+            },
             annotations_url="https://visualgenome.org/static/data/dataset/question_answers.json.zip",
             version=datasets.Version("1.2.0")
         ),
         VisualGenomeConfig(
             name="objects",
-            annotation_features=datasets.Features({
-                "objects": datasets.Sequence(
-                    feature=_OBJECT_FEATURES
-                )
-            }),
+            annotation_features={"objects": [_OBJECT_FEATURES]},
             annotations_url="https://visualgenome.org/static/data/dataset/objects_v1_2.json.zip",
             version=datasets.Version("1.2.0")
         ),
         VisualGenomeConfig(
             name="objects-attributes",
-            annotation_features=datasets.Features({
-                "attributes": datasets.Sequence(
-                    feature={
-                        **_OBJECT_FEATURES,
-                        "attributes": datasets.Sequence(feature=datasets.Value("string")),
-                    }
-                )
-            }),
+            annotation_features={
+                "attributes": [{
+                    **_OBJECT_FEATURES,
+                    "attributes": datasets.Sequence(feature=datasets.Value("string")),
+                }]
+            },
             annotations_url="https://visualgenome.org/static/data/dataset/attributes.json.zip",
             version=datasets.Version("1.2.0")
         ),
         VisualGenomeConfig(
             name="relationships",
-            annotation_features=datasets.Features({
-                "relationships": datasets.Sequence(
-                    feature={
-                        "relationship_id": datasets.Value("int32"),
-                        "predicate": datasets.Value("string"),
-                        "synsets": datasets.Value("string"),
-                        "subject": _OBJECT_FEATURES,
-                        "object": _OBJECT_FEATURES
-                    }
-                )
-            }),
+            annotation_features={
+                "relationships": [{
+                    "relationship_id": datasets.Value("int32"),
+                    "predicate": datasets.Value("string"),
+                    "synsets": datasets.Value("string"),
+                    "subject": _OBJECT_FEATURES,
+                    "object": _OBJECT_FEATURES
+                }]
+            },
             annotations_url="https://visualgenome.org/static/data/dataset/relationships_v1_2.json.zip",
             version=datasets.Version("1.2.0")
         ),

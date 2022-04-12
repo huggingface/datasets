@@ -119,6 +119,29 @@ All of annotations use English as primary language.
 
 An example of looks as follows.
 
+```
+{
+  "image": <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=800x600 at 0x7F2F60698610>,
+  "image_id": 1,
+  "url": "https://cs.stanford.edu/people/rak248/VG_100K_2/1.jpg",
+  "width": 800,
+  "height": 600,
+  "coco_id": null,
+  "flickr_id": null,
+  "regions": [
+    {
+      "region_id": 1382,
+      "image_id": 1,
+      "phrase": "the clock is green in colour",
+      "x": 421,
+      "y": 57,
+      "width": 82,
+      "height": 139
+    },
+    ...
+  ]
+}
+```
 
 #### objects
 
@@ -139,25 +162,24 @@ An example of looks as follows.
 
 An example of looks as follows.
 
-
-Each instance in VisualGenome represents a single Reddit image post:
-
-```
-{
-  'image_id': 'bpzj7r',
-  'author': 'djasz1',
-  'image_url': 'https://i.redd.it/ho0wntksivy21.jpg',
-  'raw_caption': 'Found on a friend’s property in the Keys FL. She is now happily living in my house.',
-  'caption': 'found on a friend's property in the keys fl. she is now happily living in my house.', 'subreddit': 3,
-  'score': 72,
-  'created_utc': datetime.datetime(2019, 5, 18, 1, 36, 41),
-  'permalink': '/r/airplants/comments/bpzj7r/found_on_a_friends_property_in_the_keys_fl_she_is/', 'crosspost_parents': None
-}
-```
-
 ### Data Fields
 
 #### region-descriptions
+
+- `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
+- `image_id`: Unique numeric ID of the image.
+- `url`:  URL of source image.
+- `width`: Image width.
+- `height`: Image height.
+- `coco_id`: Id mapping to MSCOCO indexing.
+- `flickr_id`: Id mapping to Flicker indexing.
+- `regions`: Holds a list of Region dataclasses:
+  - `region_id`: Unique numeric ID of the region.
+  - `image_id`: Unique numeric ID of the image.
+  - `x`: x coordinate of bounding box's top left corner.
+  - `y`: y coordinate of bounding box's top left corner.
+  - `width`: Bounding box width.
+  - `heigh`: Bounding box height.
 
 #### objects
 
@@ -252,3 +274,14 @@ Visual Genome by Ranjay Krishna is licensed under a Creative Commons Attribution
 ### Contributions
 
 Thanks to [@thomasw21](https://github.com/thomasw21) for adding this dataset.
+
+from datasets import load_dataset
+import json
+
+def get_first(config):
+  dset = load_dataset("datasets/visual_genome", config, split="train")
+  elt = dset[0]
+  del elt["image"]
+  print(json.dumps(elt, indent=2))
+
+get_first("region-descriptions")
