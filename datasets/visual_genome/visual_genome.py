@@ -141,13 +141,13 @@ class VisualGenomeConfig(datasets.BuilderConfig):
     """BuilderConfig for Visual Genome."""
 
     def __init__(
-            self,
-            name: str,
-            annotation_features: datasets.Features,
-            annotations_url: str,
-            version: datasets.Version,
-            with_image: bool = True,
-            **kwargs
+        self,
+        name: str,
+        version: datasets.Version,
+        annotation_features: datasets.Features,
+        annotations_url: str,
+        with_image: bool = True,
+        **kwargs
     ):
         super(VisualGenomeConfig, self).__init__(version=version, name=name, **kwargs)
         self.annotations_features = annotation_features
@@ -265,7 +265,7 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
         annotations_file = f"{annotations_dir}/{_get_decompressed_filename_from_url(self.config.annotations_url)}"
         print(annotations_file)
         if self.config.with_image:
-            image_folder_keys = list(_BASE_IMAGE_URLS.keys())
+            image_folder_keys = sorted(_BASE_IMAGE_URLS.keys())
             image_dirs = dl_manager.download_and_extract(image_folder_keys)
             image_folder_local_paths = {
                 _BASE_IMAGE_URLS[key]: os.path.join(dir_, _BASE_IMAGE_URLS[key])
@@ -316,7 +316,7 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
 
             # optionally add image to the annotation
             # TODO (@thomasw21): actually self.config.with_image should prevent the download of images
-            if self.config.with_image:
+            if image_folder_local_paths:
                 filepath = _get_local_image_path(image_metadata["url"], image_folder_local_paths)
                 image_dict = {"image": filepath}
             else:
