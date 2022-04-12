@@ -197,12 +197,21 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
             annotations_url="https://visualgenome.org/static/data/dataset/question_answers.json.zip",
             version=datasets.Version("1.2.0")
         ),
-        VisualGenomeConfig(
-            name="objects",
-            annotation_features={"objects": [_OBJECT_FEATURES]},
-            annotations_url="https://visualgenome.org/static/data/dataset/objects_v1_2.json.zip",
-            version=datasets.Version("1.2.0")
-        ),
+        *[
+            VisualGenomeConfig(
+                name="objects",
+                annotation_features={"objects": [_OBJECT_FEATURES]},
+                annotations_url=annotations_url,
+                version=datasets.Version(version)
+            )
+            for version, annotations_url in zip(
+                ["1.2.0", "1.4.0"],
+                [
+                    "https://visualgenome.org/static/data/dataset/objects_v1_2.json.zip",
+                    "https://visualgenome.org/static/data/dataset/objects.json.zip"
+                ]
+            )
+        ],
         VisualGenomeConfig(
             name="objects-attributes",
             annotation_features={
@@ -214,20 +223,29 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
             annotations_url="https://visualgenome.org/static/data/dataset/attributes.json.zip",
             version=datasets.Version("1.2.0")
         ),
-        VisualGenomeConfig(
-            name="relationships",
-            annotation_features={
-                "relationships": [{
-                    "relationship_id": datasets.Value("int32"),
-                    "predicate": datasets.Value("string"),
-                    "synsets": datasets.Value("string"),
-                    "subject": _OBJECT_FEATURES,
-                    "object": _OBJECT_FEATURES
-                }]
-            },
-            annotations_url="https://visualgenome.org/static/data/dataset/relationships_v1_2.json.zip",
-            version=datasets.Version("1.2.0")
-        ),
+        *[
+            VisualGenomeConfig(
+                name="relationships",
+                annotation_features={
+                    "relationships": [{
+                        "relationship_id": datasets.Value("int32"),
+                        "predicate": datasets.Value("string"),
+                        "synsets": datasets.Value("string"),
+                        "subject": _OBJECT_FEATURES,
+                        "object": _OBJECT_FEATURES
+                    }]
+                },
+                annotations_url=annotations_url,
+                version=datasets.Version(version)
+            )
+            for version, annotations_url in zip(
+                ["1.2.0", "1.4.0"],
+                [
+                    "https://visualgenome.org/static/data/dataset/relationships_v1_2.json.zip",
+                    "https://visualgenome.org/static/data/dataset/relationships.json.zip"
+                ]
+            )
+        ],
     ]
 
     def _info(self):

@@ -147,20 +147,145 @@ An example of looks as follows.
 
 An example of looks as follows.
 
+```
+{
+  "image": <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=800x600 at 0x7F2F60698610>,
+  "image_id": 1,
+  "url": "https://cs.stanford.edu/people/rak248/VG_100K_2/1.jpg",
+  "width": 800,
+  "height": 600,
+  "coco_id": null,
+  "flickr_id": null,
+  "objects": [
+    {
+      "object_id": 1058498,
+      "x": 421,
+      "y": 91,
+      "w": 79,
+      "h": 339,
+      "names": [
+        "clock"
+      ],
+      "synsets": [
+        "clock.n.01"
+      ]
+    },
+    ...
+  ]
+}
+```
 
 #### objects-attributes
 
 An example of looks as follows.
 
+```
+{
+  "image": <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=800x600 at 0x7F2F60698610>,
+  "image_id": 1,
+  "url": "https://cs.stanford.edu/people/rak248/VG_100K_2/1.jpg",
+  "width": 800,
+  "height": 600,
+  "coco_id": null,
+  "flickr_id": null,
+  "attributes": [
+    {
+      "object_id": 1058498,
+      "x": 421,
+      "y": 91,
+      "w": 79,
+      "h": 339,
+      "names": [
+        "clock"
+      ],
+      "synsets": [
+        "clock.n.01"
+      ],
+      "attributes": [
+        "green",
+        "tall"
+      ]
+    },
+    ...
+  }
+]
+```
 
 #### relationships
 
 An example of looks as follows.
 
-
+```
+{
+  "image": <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=800x600 at 0x7F2F60698610>,
+  "image_id": 1,
+  "url": "https://cs.stanford.edu/people/rak248/VG_100K_2/1.jpg",
+  "width": 800,
+  "height": 600,
+  "coco_id": null,
+  "flickr_id": null,
+  "relationships": [
+    {
+      "relationship_id": 15927,
+      "predicate": "ON",
+      "synsets": "['along.r.01']",
+      "subject": {
+        "object_id": 5045,
+        "x": 119,
+        "y": 338,
+        "w": 274,
+        "h": 192,
+        "names": [
+          "shade"
+        ],
+        "synsets": [
+          "shade.n.01"
+        ]
+      },
+      "object": {
+        "object_id": 5046,
+        "x": 77,
+        "y": 328,
+        "w": 714,
+        "h": 262,
+        "names": [
+          "street"
+        ],
+        "synsets": [
+          "street.n.01"
+        ]
+      }
+    }
+    ...
+  }
+]
+```
 #### question-answering
 
 An example of looks as follows.
+
+```
+{
+  "image": <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=800x600 at 0x7F2F60698610>,
+  "image_id": 1,
+  "url": "https://cs.stanford.edu/people/rak248/VG_100K_2/1.jpg",
+  "width": 800,
+  "height": 600,
+  "coco_id": null,
+  "flickr_id": null,
+  "qas": [
+    {
+      "qa_id": 986768,
+      "image_id": 1,
+      "question": "What color is the clock?",
+      "answer": "Green.",
+      "a_objects": [],
+      "q_objects": []
+    },
+    ...
+  }
+]
+```
 
 ### Data Fields
 
@@ -173,34 +298,83 @@ An example of looks as follows.
 - `height`: Image height.
 - `coco_id`: Id mapping to MSCOCO indexing.
 - `flickr_id`: Id mapping to Flicker indexing.
-- `regions`: Holds a list of Region dataclasses:
+- `regions`: Holds a list of `Region` dataclasses:
   - `region_id`: Unique numeric ID of the region.
   - `image_id`: Unique numeric ID of the image.
   - `x`: x coordinate of bounding box's top left corner.
   - `y`: y coordinate of bounding box's top left corner.
   - `width`: Bounding box width.
-  - `heigh`: Bounding box height.
+  - `height`: Bounding box height.
 
 #### objects
 
+- `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
+- `image_id`: Unique numeric ID of the image.
+- `url`:  URL of source image.
+- `width`: Image width.
+- `height`: Image height.
+- `coco_id`: Id mapping to MSCOCO indexing.
+- `flickr_id`: Id mapping to Flicker indexing.
+- `objects`: Holds a list of `Object` dataclasses:
+  - `object_id`: Unique numeric ID of the object.
+  - `x`: x coordinate of bounding box's top left corner.
+  - `y`: y coordinate of bounding box's top left corner.
+  - `w`: Bounding box width.
+  - `h`: Bounding box height.
+  - `names`: List of names associated with the object. This field can hold multiple values in the sense the multiple names are considered as acceptable. For example: ['monitor', 'computer'] at https://cs.stanford.edu/people/rak248/VG_100K/3.jpg
+  - `synsets`: List of `WordNet synsets`.
+
 #### objects-attributes
+
+- `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
+- `image_id`: Unique numeric ID of the image.
+- `url`:  URL of source image.
+- `width`: Image width.
+- `height`: Image height.
+- `coco_id`: Id mapping to MSCOCO indexing.
+- `flickr_id`: Id mapping to Flicker indexing.
+- `attributes`: Holds a list of `Object` dataclasses:
+  - `object_id`: Unique numeric ID of the region.
+  - `x`: x coordinate of bounding box's top left corner.
+  - `y`: y coordinate of bounding box's top left corner.
+  - `w`: Bounding box width.
+  - `h`: Bounding box height.
+  - `names`: List of names associated with the object. This field can hold multiple values in the sense the multiple names are considered as acceptable. For example: ['monitor', 'computer'] at https://cs.stanford.edu/people/rak248/VG_100K/3.jpg
+  - `synsets`: List of `WordNet synsets`.
+  - `attributes`: List of attributes associated with the object.
 
 #### relationships
 
+- `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
+- `image_id`: Unique numeric ID of the image.
+- `url`:  URL of source image.
+- `width`: Image width.
+- `height`: Image height.
+- `coco_id`: Id mapping to MSCOCO indexing.
+- `flickr_id`: Id mapping to Flicker indexing.
+- `relationships`: Holds a list of `Relationship` dataclasses:
+  - `relationship_id`: Unique numeric ID of the object.
+  - `predicate`: Predicate defining relationship between a subject and an object.
+  - `synsets`: List of `WordNet synsets`.
+  - `subject`: Object dataclass. See subsection on `objects`.
+  - `object`: Object dataclass. See subsection on `objects`.
+
 #### question-answering
 
-// TODO @thomas21
-- `image_id`: Unique alphanumeric ID of the image post (assigned by Reddit).
-- `author`: Reddit username of the image post author.
-- `image_url`: Static URL for downloading the image associated with the post.
-- `raw_caption`: Textual description of the image, written by the post author.
-- `caption`: Cleaned version of "raw_caption" by us (see Q35).
-- `subreddit`: Name of subreddit where the post was submitted.
-- `score`: Net upvotes (discounting downvotes) received by the image post. This field is equal to `None` if the image post is a crosspost.
-- `created_utc`: Integer time epoch (in UTC) when the post was submitted to Reddit.
-- `permalink`: Partial URL of the Reddit post (https://reddit.com/<permalink>).
-- `crosspost_parents`: List of parent posts. This field is optional.
-
+- `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
+- `image_id`: Unique numeric ID of the image.
+- `url`:  URL of source image.
+- `width`: Image width.
+- `height`: Image height.
+- `coco_id`: Id mapping to MSCOCO indexing.
+- `flickr_id`: Id mapping to Flicker indexing.
+- `qas`: Holds a list of `Question-Answering` dataclasses:
+  - `qa_id`: Unique numeric ID of the question-answer pair.
+  - `image_id`: Unique numeric ID of the image.
+  - `question`: Question.
+  - `answer`: Answer.
+  - `q_objects`: List of object dataclass associated with `question` field. See subsection on `objects`.
+  - `a_objects`: List of object dataclass associated with `answer` field. See subsection on `objects`.
 
 ### Data Splits
 
@@ -262,7 +436,7 @@ Visual Genome by Ranjay Krishna is licensed under a Creative Commons Attribution
 
 ### Citation Information
 
-```
+```bibtex
 @inproceedings{krishnavisualgenome,
   title={Visual Genome: Connecting Language and Vision Using Crowdsourced Dense Image Annotations},
   author={Krishna, Ranjay and Zhu, Yuke and Groth, Oliver and Johnson, Justin and Hata, Kenji and Kravitz, Joshua and Chen, Stephanie and Kalantidis, Yannis and Li, Li-Jia and Shamma, David A and Bernstein, Michael and Fei-Fei, Li},
@@ -274,14 +448,3 @@ Visual Genome by Ranjay Krishna is licensed under a Creative Commons Attribution
 ### Contributions
 
 Thanks to [@thomasw21](https://github.com/thomasw21) for adding this dataset.
-
-from datasets import load_dataset
-import json
-
-def get_first(config):
-  dset = load_dataset("datasets/visual_genome", config, split="train")
-  elt = dset[0]
-  del elt["image"]
-  print(json.dumps(elt, indent=2))
-
-get_first("region-descriptions")
