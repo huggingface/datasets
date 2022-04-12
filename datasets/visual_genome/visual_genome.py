@@ -14,15 +14,15 @@
 # limitations under the License.
 """Visual Genome dataset."""
 
-
 import json
 import os
 import re
+from collections import defaultdict
+from typing import Dict, Any, Callable, Optional
 from urllib.parse import urlparse
 from pathlib import Path
 
 import datasets
-
 
 _CITATION = """\
 @inproceedings{krishnavisualgenome,
@@ -43,10 +43,10 @@ _HOMEPAGE = "https://visualgenome.org/"
 
 _LICENSE = "Creative Commons Attribution 4.0 International License"
 
-_BASE_IMAGE_URLS = [
-    "https://cs.stanford.edu/people/rak248/VG_100K_2/images.zip",
-    "https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip"
-]
+_BASE_IMAGE_URLS = {
+    "https://cs.stanford.edu/people/rak248/VG_100K_2/images.zip": "VG_100K",
+    "https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip": "VG_100K2",
+}
 _BASE_IMAGE_METADATA_URL = "https://visualgenome.org/static/data/dataset/image_data.json.zip"
 
 _BASE_FEATURES = {
@@ -75,6 +75,8 @@ _OBJECT_FEATURES = {
     "synsets": datasets.Sequence(feature=datasets.Value("string"))
 }
 
+# ----- Helpers -----
+
 def _get_decompressed_filename_from_url(url: str) -> str:
     parsed_url = urlparse(url)
     compressed_filename = os.path.basename(parsed_url.path)
@@ -88,36 +90,86 @@ def _get_decompressed_filename_from_url(url: str) -> str:
 
     return unversioned_uncompressed_filename
 
+
+def _get_local_image_path(img_url: str, folder_local_paths: Dict[str, str]) -> str:
+    """
+    Obtain image folder given an image url.
+
+    For example:
+      Given `https://cs.stanford.edu/people/rak248/VG_100K_2/1.jpg` as an image url, this method returns the local path for that image.
+    """
+    matches = re.match(r"https://cs.stanford.edu/people/rak248/(VG_100K(:?_2)?)/([0-9]+.jpg)$", img_url)
+    assert matches is not None, matches
+
+    folder, filename = matches.group(1), matches.group(2)
+
+    return os.path.join(folder_local_paths[folder], filename)
+
+
+# ----- Annotation normalizers ----
+
+def _normalize_relationship_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalizes relationship annotation in-place"""
+    # For some reason relationships objects have a single name instead of a list of names.
+    for relationship in annotation["relationships"]:
+        subject = relationship["subject"]
+        object_ = relationship["object"]
+
+        subject["names"] = [subject["name"]]
+        del subject["name"]
+
+        object_["names"] = [object_["name"]]
+        del object_["name"]
+    return annotation
+
+def _normalize_attribute_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalizes attributes annotation in-place"""
+    # Some attributes annotations don't have an attribute field
+    for attribute in annotation["attributes"]:
+        if "attributes" not in attribute:
+            attribute["attributes"] = None
+    return annotation
+
+_ANNOTATION_NORMALIZER = defaultdict(lambda: lambda x: x)
+_ANNOTATION_NORMALIZER.update({
+    "https://visualgenome.org/static/data/dataset/relationships_v1_2.json.zip": _normalize_relationship_annotation_,
+    "https://visualgenome.org/static/data/dataset/attributes.json.zip": _normalize_attribute_annotation_
+})
+
+# ---- Visual Genome loading script ----
+
 class VisualGenomeConfig(datasets.BuilderConfig):
     """BuilderConfig for Visual Genome."""
 
     def __init__(
-        self, 
-        name: str, 
-        annotation_features: datasets.Features,
-        annotations_url: str,
-        version: datasets.Version, 
-        merge_with_image_metadata: bool = True,
-        **kwargs
+            self,
+            name: str,
+            annotation_features: datasets.Features,
+            annotations_url: str,
+            version: datasets.Version,
+            with_image: bool = True,
+            **kwargs
     ):
         super(VisualGenomeConfig, self).__init__(version=version, name=name, **kwargs)
         self.annotations_features = annotation_features
         self.annotations_url = annotations_url
-        self.merge_with_image_metadata = merge_with_image_metadata
+        self.with_image = with_image
 
     @property
     def features(self):
         return datasets.Features({
+            **({"img": datasets.Image() if self.with_image else {}}),
             **_BASE_FEATURES,
             **self.annotations_features
         })
+
 
 class VisualGenome(datasets.GeneratorBasedBuilder):
     """Visual Genome dataset."""
 
     BUILDER_CONFIGS = [
         VisualGenomeConfig(
-            name="region-descriptions",
+            name=f"region-descriptions",
             annotation_features=datasets.Features({
                 "regions": datasets.Sequence(
                     feature={
@@ -128,9 +180,6 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
                         "y": datasets.Value("int32"),
                         "width": datasets.Value("int32"),
                         "height": datasets.Value("int32"),
-                        # "synsets": datasets.Sequence(
-                        #     feature=_SYNTET_FEATURES
-                        # )
                     }
                 )
             }),
@@ -197,16 +246,6 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
             annotations_url="https://visualgenome.org/static/data/dataset/relationships_v1_2.json.zip",
             version=datasets.Version("1.2.0")
         ),
-        # VisualGenomeConfig(
-        #     name="synsets",
-        #     annotation_features=datasets.Features({
-        #         "synset_name": datasets.Value("string"),
-        #         "synset_definition":datasets.Value("string"),
-        #     }),
-        #     merge_with_image_metadata=False,
-        #     annotations_url="https://visualgenome.org/static/data/dataset/synsets.json.zip",
-        #     version=datasets.Version("1.2.0")
-        # ),
     ]
 
     def _info(self):
@@ -225,20 +264,35 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
         annotations_dir = dl_manager.download_and_extract(self.config.annotations_url)
         annotations_file = f"{annotations_dir}/{_get_decompressed_filename_from_url(self.config.annotations_url)}"
         print(annotations_file)
-        image_dirs = dl_manager.download_and_extract(_BASE_IMAGE_URLS)
-        print(image_dirs)
+        if self.config.with_image:
+            image_folder_keys = list(_BASE_IMAGE_URLS.keys())
+            image_dirs = dl_manager.download_and_extract(image_folder_keys)
+            image_folder_local_paths = {
+                _BASE_IMAGE_URLS[key]: os.path.join(dir_, _BASE_IMAGE_URLS[key])
+                for key, dir_ in zip(image_folder_keys, image_dirs)
+            }
+        else:
+            image_folder_local_paths = None
+        print(image_folder_local_paths)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "image_dirs": image_dirs,
+                    "image_folder_local_paths": image_folder_local_paths,
                     "image_metadatas_file": image_metadatas_file,
                     "annotations_file": annotations_file,
+                    "annotation_normalizer_": _ANNOTATION_NORMALIZER[self.config.annotations_url],
                 },
             ),
         ]
 
-    def _generate_examples(self, image_dirs, image_metadatas_file, annotations_file):
+    def _generate_examples(
+        self,
+        image_folder_local_paths: Optional[Dict[str, str]],
+        image_metadatas_file,
+        annotations_file,
+        annotation_normalizer_: Callable[[Dict[str,Any]], Dict[str,Any]]
+    ):
         with open(annotations_file, "r", encoding="utf-8") as fi:
             annotations = json.load(fi)
 
@@ -257,25 +311,19 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
                 assert image_metadata["image_id"] == annotation[
                     "image_id"], f"Annotations doesn't match with image metadataset. Got image_metadata['image_id']: {image_metadata['image_id']} and annotations['image_id']: {annotation['image_id']}"
 
-            # For some reason relationships objects have a single name instead of a list of names.
-            if "relationships" in annotation:
-                for relationship in annotation["relationships"]:
-                    subject = relationship["subject"]
-                    object_ = relationship["object"]
+            # in-place operation
+            annotation_normalizer_(annotation)
 
-                    subject["names"] = [subject["name"]]
-                    del subject["name"]
-
-                    object_["names"] = [object_["name"]]
-                    del object_["name"]
-
-            # TODO: @thomasw21 sometimes attributes isn't here when annotation is attributes ...
-            if "attributes" in annotation:
-                for attribute in annotation["attributes"]:
-                    if "attributes" not in attribute:
-                        attribute["attributes"] = None
+            # optionally add image to the annotation
+            # TODO (@thomasw21): actually self.config.with_image should prevent the download of images
+            if self.config.with_image:
+                filepath = _get_local_image_path(image_metadata["url"], image_folder_local_paths)
+                image_dict = {"image": filepath}
+            else:
+                image_dict = {}
 
             yield idx, {
+                **image_dict,
                 **image_metadata,
                 **annotation
             }
