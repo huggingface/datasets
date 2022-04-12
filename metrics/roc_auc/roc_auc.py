@@ -67,15 +67,46 @@ Args:
         `prediction_scores` is used. Defaults to `None`.
         
 Returns:
-    roc_auc (`float` or array-like of shape (n_classes,)): Returns array if `average='None'`
+    roc_auc (`float` or array-like of shape (n_classes,)): Returns array if in multilabel use case and `average='None'`. Otherwise, returns `float`.
 Examples:
     Example 1:
         >>> roc_auc_score = datasets.load_metric("roc_auc")
         >>> refs = [1, 0, 1, 1, 0, 0]
         >>> pred_scores = [0.5, 0.2, 0.99, 0.3, 0.1, 0.7]
         >>> results = roc_auc_score.compute(references=refs, prediction_scores=pred_scores)
-        >>> print(round(results['roc_auc']))
+        >>> print(round(results['roc_auc'], 2))
         0.78
+
+    Example 2:
+        >>> roc_auc_score = datasets.load_metric("roc_auc", "multiclass")
+        >>> refs = [1, 0, 1, 2, 2, 0]
+        >>> pred_scores = [[0.3, 0.5, 0.2],
+        ...                 [0.7, 0.2, 0.1],
+        ...                 [0.005, 0.99, 0.005],
+        ...                 [0.2, 0.3, 0.5],
+        ...                 [0.1, 0.1, 0.8],
+        ...                 [0.1, 0.7, 0.2]]
+        >>> results = roc_auc_score.compute(references=refs, prediction_scores=pred_scores, multi_class='ovr')
+        >>> print(round(results['roc_auc'], 2))
+        0.85
+
+    Example 3:
+        >>> roc_auc_score = datasets.load_metric("roc_auc", "multilabel")
+        >>> refs = [[1, 1, 0],
+        ...         [1, 1, 0],
+        ...         [0, 1, 0],
+        ...         [0, 0, 1],
+        ...         [0, 1, 1],
+        ...         [1, 0, 1]]
+        >>> pred_scores = [[0.3, 0.5, 0.2],
+        ...                 [0.7, 0.2, 0.1],
+        ...                 [0.005, 0.99, 0.005],
+        ...                 [0.2, 0.3, 0.5],
+        ...                 [0.1, 0.1, 0.8],
+        ...                 [0.1, 0.7, 0.2]]
+        >>> results = roc_auc_score.compute(references=refs, prediction_scores=pred_scores, average=None)
+        >>> print([round(res, 2) for res in results['roc_auc'])
+        [0.83, 0.38     , 0.94]
 """
 
 _CITATION = """\
@@ -90,18 +121,17 @@ class ROCAUC(datasets.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=datasets.Features( #if self.config_name == "multilabel" {
+            features=datasets.Features(
                 {
                     "prediction_scores": datasets.Sequence(datasets.Value("float")),
                     "references": datasets.Value("int32"),
                 }
-                if self.config_name == "multilabel"
-                # elif self.config_name == "multiclass" {
+                if self.config_name == "multiclass"
                 else {
                     "references": datasets.Sequence(datasets.Value("int32")),
                     "prediction_scores": datasets.Sequence(datasets.Value("float")),
                 }
-                if self.config_name == "multiclass"
+                if self.config_name == "multilabel"
                 else {
                     "references": datasets.Value("int32"),
                     "prediction_scores": datasets.Value("float"),
