@@ -56,7 +56,7 @@ Examples:
         >>> input_texts = ["lorem ipsum", "Happy Birthday!", "Bienvenue"]
         >>> results = perplexity.compute(model_id='gpt2',
         ...                              add_start_token=False,
-        ...                              input_texts=input_texts)
+        ...                              input_texts=input_texts) # doctest:+ELLIPSIS
         >>> print(list(results.keys()))
         ['perplexities', 'mean_perplexity']
         >>> print(round(results["mean_perplexity"], 2))
@@ -71,7 +71,7 @@ Examples:
         ...                                     split="test")["text"][:50] # doctest:+SKIP
         >>> input_texts = [s for s in input_texts if s!='']
         >>> results = perplexity.compute(model_id='gpt2',
-        ...                              input_texts=input_texts)
+        ...                              input_texts=input_texts) # doctest:+ELLIPSIS
         >>> print(list(results.keys()))
         ['perplexities', 'mean_perplexity']
         >>> print(round(results["mean_perplexity"], 2))
