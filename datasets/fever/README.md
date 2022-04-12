@@ -17,7 +17,7 @@ size_categories:
 source_datasets:
 - extended|wikipedia
 task_categories:
-- text-classification
+- multi-input-text-classification
 task_ids:
 - text-classification-other-knowledge-verification
 ---

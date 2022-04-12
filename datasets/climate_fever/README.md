@@ -16,7 +16,7 @@ source_datasets:
 - extended|wikipedia
 - original
 task_categories:
-- text-classification
+- multi-input-text-classification
 - text-retrieval
 - text-scoring
 task_ids:

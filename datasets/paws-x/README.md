@@ -23,7 +23,7 @@ size_categories:
 source_datasets:
 - extended|other-paws
 task_categories:
-- text-classification
+- multi-input-text-classification
 - text-scoring
 task_ids:
 - semantic-similarity-classification
