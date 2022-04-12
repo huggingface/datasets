@@ -99,14 +99,10 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
         archive_path = dl_manager.download(_URLS["rvl-cdip"])
         labels_path = dl_manager.download(_METADATA_URLS)
 
-        # (Optional) In non-streaming mode, we can extract the archive locally to have actual local image files:
-        local_extracted_archive = dl_manager.extract(archive_path) if not dl_manager.is_streaming else None
-
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "local_extracted_archive": local_extracted_archive,
                     "archive_iterator": dl_manager.iter_archive(archive_path),
                     "labels_filepath": labels_path["train"],
                     "split": "train",
@@ -115,7 +111,6 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "local_extracted_archive": local_extracted_archive,
                     "archive_iterator": dl_manager.iter_archive(archive_path),
                     "labels_filepath": labels_path["test"],
                     "split": "test",
@@ -124,7 +119,6 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "local_extracted_archive": local_extracted_archive,
                     "archive_iterator": dl_manager.iter_archive(archive_path),
                     "labels_filepath": labels_path["val"],
                     "split": "dev",
@@ -142,7 +136,7 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
 
         return image_to_class_id
 
-    def _generate_examples(self, local_extracted_archive, archive_iterator, labels_filepath, split):
+    def _generate_examples(self, archive_iterator, labels_filepath, split):
 
         with open(labels_filepath, encoding="utf-8") as f:
             data = f.read().splitlines()
@@ -154,7 +148,4 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
                 if file_path in image_to_class_id:
                     class_id = image_to_class_id[file_path]
                     label = _CLASSES[class_id]
-                    if local_extracted_archive is not None:
-                        yield file_path, {"image": os.path.join(local_extracted_archive, file_path), "label": label}
-                    else:
-                        yield file_path, {"image": {"path": file_path, "bytes": file_obj.read()}, "label": label}
+                    yield file_path, {"image": {"path": file_path, "bytes": file_obj.read()}, "label": label}
