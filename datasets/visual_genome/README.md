@@ -448,3 +448,59 @@ Visual Genome by Ranjay Krishna is licensed under a Creative Commons Attribution
 ### Contributions
 
 Thanks to [@thomasw21](https://github.com/thomasw21) for adding this dataset.
+
+
+from datasets import load_dataset
+import json
+
+def get_first(config):
+  dset = load_dataset("datasets/visual_genome", config, split="train")
+  elt = dset[0]
+  del elt["image"]
+  print(json.dumps(elt, indent=2))
+
+get_first("region-descriptions")
+
+# Test how many objects have multiple names ...
+
+dset = load_dataset("datasets/visual_genome", "objects", split="train", )
+print(len(dset))
+
+def filter_(objectss):
+  return [any([len(object_["names"]) > 1 for object_ in objects]) for objects in objectss]
+
+filtered = dset.filter(
+  filter_,
+  input_columns=["objects"],
+  batched=True
+)
+
+# Test how many question-answering have actual objects.
+dset = load_dataset("datasets/visual_genome", "question-answering", split="train")
+
+print(len(dset))
+
+def filter_(qass):
+  return [any([len(qa["q_objects"]) > 0 for qa in qas]) for qas in qass]
+
+filtered = dset.filter(
+  filter_,
+  input_columns=["qas"],
+  batched=True,
+  num_proc=16
+)
+
+for i, elt in enumerate(dset):
+    try:
+      if any([len(object["q_objects"]) > 1 for object in elt["qas"]]):
+        print(elt)
+        break
+    except Exception as e:
+      print("Got an exception")
+      print(e)
+      print(elt)
+      print(i+3)
+
+for annotation in annotations:
+  if any([len(qa["q_objects"]) > 0 or len(qa["a_objects"]) > 0 for qa in annotation["qas"]]):
+    print(annotation)

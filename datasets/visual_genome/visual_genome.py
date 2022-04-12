@@ -48,6 +48,16 @@ _BASE_IMAGE_URLS = {
 }
 _BASE_IMAGE_METADATA_URL = "https://visualgenome.org/static/data/dataset/image_data.json.zip"
 
+_LATEST_VERSIONS = {
+    "region_descriptions": "1.2.0",
+    "objects": "1.4.0",
+    "attributes": "1.2.0",
+    "relationships": "1.4.0",
+    "question_answers": "1.2.0"
+}
+
+# ---- Features ----
+
 _BASE_FEATURES = {
     "image_id": datasets.Value("int32"),
     "url": datasets.Value("string"),
@@ -72,6 +82,46 @@ _OBJECT_FEATURES = {
     "h": datasets.Value("int32"),
     "names": datasets.Sequence(feature=datasets.Value("string")),
     "synsets": datasets.Sequence(feature=datasets.Value("string"))
+}
+
+_NAME_TO_ANNOTATION_FEATURES = {
+    "region_descriptions": {
+        "regions": [{
+            "region_id": datasets.Value("int32"),
+            "image_id": datasets.Value("int32"),
+            "phrase": datasets.Value("string"),
+            "x": datasets.Value("int32"),
+            "y": datasets.Value("int32"),
+            "width": datasets.Value("int32"),
+            "height": datasets.Value("int32"),
+        }]
+    },
+    "objects": {"objects": [_OBJECT_FEATURES]},
+    "attributes": {
+                "attributes": [{
+                    **_OBJECT_FEATURES,
+                    "attributes": datasets.Sequence(feature=datasets.Value("string")),
+                }]
+            },
+    "relationships": {
+                    "relationships": [{
+                        "relationship_id": datasets.Value("int32"),
+                        "predicate": datasets.Value("string"),
+                        "synsets": datasets.Value("string"),
+                        "subject": _OBJECT_FEATURES,
+                        "object": _OBJECT_FEATURES
+                    }]
+                },
+    "question_answers": {
+        "qas": [{
+            "qa_id": datasets.Value("int32"),
+            "image_id": datasets.Value("int32"),
+            "question": datasets.Value("string"),
+            "answer": datasets.Value("string"),
+            "a_objects": [_OBJECT_FEATURES],
+            "q_objects": [_OBJECT_FEATURES],
+        }]
+    }
 }
 
 # ----- Helpers -----
@@ -105,6 +155,8 @@ def _get_local_image_path(img_url: str, folder_local_paths: Dict[str, str]) -> s
 
 # ----- Annotation normalizers ----
 
+_BASE_ANNOTATION_URL = "https://visualgenome.org/static/data/dataset"
+
 def _normalize_relationship_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
     """Normalizes relationship annotation in-place"""
     # For some reason relationships objects have a single name instead of a list of names.
@@ -129,8 +181,8 @@ def _normalize_attribute_annotation_(annotation: Dict[str, Any]) -> Dict[str, An
 
 _ANNOTATION_NORMALIZER = defaultdict(lambda: lambda x: x)
 _ANNOTATION_NORMALIZER.update({
-    "https://visualgenome.org/static/data/dataset/relationships_v1_2.json.zip": _normalize_relationship_annotation_,
-    "https://visualgenome.org/static/data/dataset/attributes.json.zip": _normalize_attribute_annotation_
+    "relationships": _normalize_relationship_annotation_,
+    "attributes": _normalize_attribute_annotation_
 })
 
 # ---- Visual Genome loading script ----
@@ -142,15 +194,20 @@ class VisualGenomeConfig(datasets.BuilderConfig):
         self,
         name: str,
         version: datasets.Version,
-        annotation_features: Dict,
-        annotations_url: str,
         with_image: bool = True,
         **kwargs
     ):
         super(VisualGenomeConfig, self).__init__(version=version, name=name, **kwargs)
-        self.annotations_features = annotation_features
-        self.annotations_url = annotations_url
+        self.annotations_features = _NAME_TO_ANNOTATION_FEATURES[self.name]
         self.with_image = with_image
+        
+    @property
+    def annotations_url(self):
+        if self.version == _LATEST_VERSIONS[self.name]:
+            return f"{_BASE_ANNOTATION_URL}/{self.name}.json.zip"
+
+        major, minor = self.version.major, self.version.minor
+        return f"{_BASE_ANNOTATION_URL}/{self.name}_v{major}_{minor}.json.zip"
 
     @property
     def features(self):
@@ -167,85 +224,25 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = VisualGenomeConfig
     BUILDER_CONFIGS = [
         VisualGenomeConfig(
-            name=f"region-descriptions",
-            annotation_features={
-                "regions": [{
-                    "region_id": datasets.Value("int32"),
-                    "image_id": datasets.Value("int32"),
-                    "phrase": datasets.Value("string"),
-                    "x": datasets.Value("int32"),
-                    "y": datasets.Value("int32"),
-                    "width": datasets.Value("int32"),
-                    "height": datasets.Value("int32"),
-                }]
-            },
-            annotations_url="https://visualgenome.org/static/data/dataset/region_descriptions.json.zip",
+            name="region_descriptions",
             version=datasets.Version("1.2.0")
         ),
         VisualGenomeConfig(
-            name="question-answering",
-            annotation_features={
-                "qas": [{
-                    "qa_id": datasets.Value("int32"),
-                    "image_id": datasets.Value("int32"),
-                    "question": datasets.Value("string"),
-                    "answer": datasets.Value("string"),
-                    "a_objects": [_OBJECT_FEATURES],
-                    "q_objects": [_OBJECT_FEATURES],
-                }]
-            },
-            annotations_url="https://visualgenome.org/static/data/dataset/question_answers.json.zip",
+            name="question_answers",
             version=datasets.Version("1.2.0")
         ),
-        *[
-            VisualGenomeConfig(
-                name="objects",
-                annotation_features={"objects": [_OBJECT_FEATURES]},
-                annotations_url=annotations_url,
-                version=datasets.Version(version)
-            )
-            for version, annotations_url in zip(
-                ["1.2.0", "1.4.0"],
-                [
-                    "https://visualgenome.org/static/data/dataset/objects_v1_2.json.zip",
-                    "https://visualgenome.org/static/data/dataset/objects.json.zip"
-                ]
-            )
-        ],
         VisualGenomeConfig(
-            name="objects-attributes",
-            annotation_features={
-                "attributes": [{
-                    **_OBJECT_FEATURES,
-                    "attributes": datasets.Sequence(feature=datasets.Value("string")),
-                }]
-            },
-            annotations_url="https://visualgenome.org/static/data/dataset/attributes.json.zip",
+            name="objects",
+            version=datasets.Version("1.4.0")
+        ),
+        VisualGenomeConfig(
+            name="attributes",
             version=datasets.Version("1.2.0")
         ),
-        *[
-            VisualGenomeConfig(
-                name="relationships",
-                annotation_features={
-                    "relationships": [{
-                        "relationship_id": datasets.Value("int32"),
-                        "predicate": datasets.Value("string"),
-                        "synsets": datasets.Value("string"),
-                        "subject": _OBJECT_FEATURES,
-                        "object": _OBJECT_FEATURES
-                    }]
-                },
-                annotations_url=annotations_url,
-                version=datasets.Version(version)
-            )
-            for version, annotations_url in zip(
-                ["1.2.0", "1.4.0"],
-                [
-                    "https://visualgenome.org/static/data/dataset/relationships_v1_2.json.zip",
-                    "https://visualgenome.org/static/data/dataset/relationships.json.zip"
-                ]
-            )
-        ],
+        VisualGenomeConfig(
+            name="relationships",
+            version=datasets.Version("1.4.0")
+        ),
     ]
 
     def _info(self):
@@ -290,7 +287,7 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
                     "image_folder_local_paths": image_folder_local_paths,
                     "image_metadatas_file": image_metadatas_file,
                     "annotations_file": annotations_file,
-                    "annotation_normalizer_": _ANNOTATION_NORMALIZER[self.config.annotations_url],
+                    "annotation_normalizer_": _ANNOTATION_NORMALIZER[self.config.name],
                 },
             ),
         ]
