@@ -14,95 +14,146 @@
 # limitations under the License.
 
 # Lint as: python3
-import os
+"""Conceptual Captions dataset."""
+
+import csv
+import textwrap
 
 import datasets
 
 
 _DESCRIPTION = """\
-Image captioning dataset
-The resulting dataset (version 1.1) has been split into Training, Validation, and Test splits. The Training split consists of 3,318,333 image-URL/caption pairs, with a total number of 51,201 total token types in the captions (i.e., total vocabulary). The average number of tokens per captions is 10.3 (standard deviation of 4.5), while the median is 9.0 tokens per caption. The Validation split consists of 15,840 image-URL/caption pairs, with similar statistics.
+Google's Conceptual Captions dataset has more than 3 million images, paired with natural-language captions.
+In contrast with the curated style of the MS-COCO images, Conceptual Captions images and their raw descriptions are harvested from the web,
+and therefore represent a wider variety of styles. The raw descriptions are harvested from the Alt-text HTML attribute associated with web images.
+The authors developed an automatic pipeline that extracts, filters, and transforms candidate image/caption pairs, with the goal of achieving a balance of cleanliness,
+informativeness, fluency, and learnability of the resulting captions.
 """
-_HOMEPAGE_URL = "http://data.statmt.org/cc-100/"
+
+_HOMEPAGE = "http://data.statmt.org/cc-100/"
+
+_LICENSE = """\
+The dataset may be freely used for any purpose, although acknowledgement of
+Google LLC ("Google") as the data source would be appreciated. The dataset is
+provided "AS IS" without any warranty, express or implied. Google disclaims all
+liability for any damages, direct or indirect, resulting from the use of the
+dataset.
+"""
+
 _CITATION = """\
-@inproceedings{sharma-etal-2018-conceptual,
-    title = "Conceptual Captions: A Cleaned, Hypernymed, Image Alt-text Dataset For Automatic Image Captioning",
-    author = "Sharma, Piyush  and
-      Ding, Nan  and
-      Goodman, Sebastian  and
-      Soricut, Radu",
-    booktitle = "Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
-    month = jul,
-    year = "2018",
-    address = "Melbourne, Australia",
-    publisher = "Association for Computational Linguistics",
-    url = "https://www.aclweb.org/anthology/P18-1238",
-    doi = "10.18653/v1/P18-1238",
-    pages = "2556--2565",
-    abstract = "We present a new dataset of image caption annotations, Conceptual Captions, which contains an order of magnitude more images than the MS-COCO dataset (Lin et al., 2014) and represents a wider variety of both images and image caption styles. We achieve this by extracting and filtering image caption annotations from billions of webpages. We also present quantitative evaluations of a number of image captioning models and show that a model architecture based on Inception-ResNetv2 (Szegedy et al., 2016) for image-feature extraction and Transformer (Vaswani et al., 2017) for sequence modeling achieves the best performance when trained on the Conceptual Captions dataset.",
+@inproceedings{sharma2018conceptual,
+  title = {Conceptual Captions: A Cleaned, Hypernymed, Image Alt-text Dataset For Automatic Image Captioning},
+  author = {Sharma, Piyush and Ding, Nan and Goodman, Sebastian and Soricut, Radu},
+  booktitle = {Proceedings of ACL},
+  year = {2018},
 }
 """
 
-_VERSION = "1.1.0"
-_TRAIN_FILENAME = "Train_GCC-training.tsv"
-_VALID_FILENAME = "Validation_GCC-1.1.0-Validation.tsv"
+_URLS = {
+    "unlabeled": {
+        "train": "https://storage.googleapis.com/gcc-data/Train/GCC-training.tsv?_ga=2.191230122.-1896153081.1529438250",
+        "validation": "https://storage.googleapis.com/gcc-data/Validation/GCC-1.1.0-Validation.tsv?_ga=2.141047602.-1896153081.1529438250",
+    },
+    "labeled": {
+        "train": "https://storage.googleapis.com/conceptual-captions-v1-1-labels/Image_Labels_Subset_Train_GCC-Labels-training.tsv?_ga=2.234395421.-20118413.1607637118",
+    },
+}
+
+_DESCRIPTIONS = {
+    "unlabeled": textwrap.dedent(
+        """\
+        The basis version of the dataset split into Training, Validation, and Test splits.
+        The Training split consists of 3,318,333 image-URL/caption pairs, swith a total number of 51,201 total token types in the captions (i.e., total vocabulary).
+        The average number of tokens per captions is 10.3 (standard deviation of 4.5), while the median is 9.0 tokens per caption.
+        The Validation split consists of 15,840 image-URL/caption pairs, with similar statistics.
+        """
+    ),
+    "labeled": textwrap.dedent(
+        """\
+        A subset of 2,007,090 image-URL/caption pairs from the training set with machine-generated image labels.
+        The image labels are obtained using the Google Cloud Vision API.
+        Each image label has a machine-generated identifier (MID) corresponding to the label's Google Knowledge Graph entry and a confidence score for its presence in the image.
+
+        Note: 2,007,528 is the number of image-URL/caption pairs specified by the authors, but some rows are missing labels, so they are not included.
+        """
+    ),
+}
 
 
 class ConceptualCaptions(datasets.GeneratorBasedBuilder):
-    VERSION = datasets.Version(_VERSION)
+    """Builder for Conceptual Captions dataset."""
 
-    @property
-    def manual_download_instructions(self):
-        return """\
-    You need to go to https://ai.google.com/research/ConceptualCaptions/download,
-    and manually download the dataset. Once it is completed,
-    two files named Train_GCC-training.tsv and Validation_GCC-1.1.0-Validation.tsv
-    will appear in your Downloads folder or whichever folder your browser chooses to save files to.
-    You then have to move these files under <path/to/folder>.
-    The <path/to/folder> can e.g. be "~/manual_data".
-    conceptual_captions can then be loaded using the following command
-    `datasets.load_dataset("conceptual_captions", data_dir="<path/to/folder>")`.
-    """
+    VERSION = datasets.Version("1.0.0")
+
+    BUILDER_CONFIGS = [
+        datasets.BuilderConfig("unlabeled", version=VERSION, description=_DESCRIPTIONS["unlabeled"]),
+        datasets.BuilderConfig("labeled", version=VERSION, description=_DESCRIPTIONS["labeled"]),
+    ]
+
+    DEFAULT_CONFIG_NAME = "unlabeled"
 
     def _info(self):
+        features = datasets.Features(
+            {
+                "image_url": datasets.Value("string"),
+                "caption": datasets.Value("string"),
+            },
+        )
+        if self.config.name == "labeled":
+            features.update(
+                {
+                    "labels": datasets.Sequence(datasets.Value("string")),
+                    "MIDs": datasets.Sequence(datasets.Value("string")),
+                    "confidence_scores": datasets.Sequence(datasets.Value("float64")),
+                }
+            )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "id": datasets.Value("string"),
-                    "caption": datasets.Value("string"),
-                    "url": datasets.Value("string"),
-                },
-            ),
+            features=features,
             supervised_keys=None,
-            homepage=_HOMEPAGE_URL,
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
-        path_to_manual_file = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-        return [
+        downloaded_data = dl_manager.download(_URLS[self.config.name])
+        splits = [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"datapath": os.path.join(path_to_manual_file, _TRAIN_FILENAME)},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"datapath": os.path.join(path_to_manual_file, _VALID_FILENAME)},
+                gen_kwargs={"annotations_file": downloaded_data["train"]},
             ),
         ]
+        if self.config.name == "unlabeled":
+            splits += [
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={"annotations_file": downloaded_data["validation"]},
+                ),
+            ]
+        return splits
 
-    def _generate_examples(self, datapath):
-        sentence_counter = 0
-        with open(datapath, encoding="utf-8") as f:
-            for row in f:
-                caption, url = row.split("\t")
-                result = (
-                    sentence_counter,
-                    {
-                        "id": str(sentence_counter),
+    def _generate_examples(self, annotations_file):
+        if self.config.name == "unlabeled":
+            with open(annotations_file, encoding="utf-8") as f:
+                for i, row in enumerate(csv.reader(f, delimiter="\t")):
+                    # Sanity check
+                    assert len(row) == 2
+                    caption, image_url = row
+                    yield i, {
+                        "image_url": image_url,
                         "caption": caption,
-                        "url": url,
                     },
-                )
-                yield result
+        else:
+            with open(annotations_file, encoding="utf-8") as f:
+                for i, row in enumerate(csv.reader(f, delimiter="\t")):
+                    caption, image_url, labels, MIDs, confidence_scores = row
+                    if not labels:
+                        continue
+                    yield i, {
+                        "image_url": image_url,
+                        "caption": caption,
+                        "labels": labels.split(","),
+                        "MIDs": MIDs.split(","),
+                        "confidence_scores": [float(x) for x in confidence_scores.split(",")],
+                    },
