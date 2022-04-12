@@ -14,7 +14,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n<1K
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -25,7 +25,7 @@ paperswithcode_id: null
 pretty_name: MedDialog
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for MedDialog
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -53,11 +53,11 @@ pretty_name: MedDialog
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/UCSD-AI4H/Medical-Dialogue-System
-- **Repository:** Hosted on [this link](https://drive.google.com/drive/folders/1r09_i8nJ9c1nliXVGXwSqRYqklcHd9e2) for Chinese and [this link](https://drive.google.com/drive/folders/1g29ssimdZ6JzTST6Y8g6h-ogUNReBtJD) for English.
-- **Paper:** Details about the dataset can be found in [this arxiv papaer](https://arxiv.org/abs/2004.03329) 
-- **Leaderboard:** 
-- **Point of Contact:** 
+[//]: # (- **Homepage:** )
+- **Repository:** https://github.com/UCSD-AI4H/Medical-Dialogue-System
+- **Paper:** [MedDialog: Two Large-scale Medical Dialogue Datasets](https://arxiv.org/abs/2004.03329)
+[//]: # (- **Leaderboard:** )
+[//]: # (- **Point of Contact:** )
 
 ### Dataset Summary
 
@@ -79,7 +79,16 @@ Monolingual. The datasets are in English (EN) and Chinese (ZH)
 ## Dataset Structure
 
 ### Data Instances
-#### For English:
+
+There are 4 configurations:
+- Raw data:
+  - en
+  - zh
+- Processed data:
+  - processed.en
+  - processed.zh
+
+#### en
 
 Each consultation consists of the below:
 - ID
@@ -89,7 +98,7 @@ Each consultation consists of the below:
 
 The dataset is built from [icliniq.com](https://www.icliniq.com/), [healthcaremagic.com](https://www.healthcaremagic.com/), [healthtap.com](https://www.healthtap.com/) and all copyrights of the data belong to these websites.
 
-#### For Chinese:
+#### zh
 
 Each consultation consists of the below:
 - ID
@@ -113,6 +122,26 @@ One example for chinese is
 }
 ```
 
+#### processed.en
+```
+{
+  'description': 'throat a bit sore and want to get a good imune booster, especially in light of the virus. please advise. have not been in contact with nyone with the virus.',
+  'utterances': [
+    'patient: throat a bit sore and want to get a good imune booster, especially in light of the virus. please advise. have not been in contact with nyone with the virus.',
+    "doctor: during this pandemic. throat pain can be from a strep throat infection (antibiotics needed), a cold or influenza or other virus, or from some other cause such as allergies or irritants. usually, a person sees the doctor (call first) if the sore throat is bothersome, recurrent, or doesn't go away quickly. covid-19 infections tend to have cough, whereas strep throat usually lacks cough but has more throat pain. (3/21/20)"
+  ]
+}
+```
+
+#### processed.zh
+```
+{
+  'utterances': [
+    '病人：强制性脊柱炎，晚上睡觉翻身时腰骶骨区域疼痛，其他身体任何部位均不疼痛。', 
+    '医生：应该没有问题，但最好把图像上传看看。'
+  ]
+}
+```
 
 ### Data Fields
 
@@ -128,12 +157,25 @@ These are arranged as below in the prepared dataset. Each item will be represent
 - "dialogue_url": string - url of the conversation
 - "dialogue_turns": datasets.Sequence - sequence of dialogues between patient and the doctor.Consists ClassLabel(names=["病人", "医生"]), and "utterance"(string) for each turn. (ClassLable(names=["Patient", "Doctor"]) for english)
 
+#### processed.en
+- `description` (str): Description of the dialog.
+- `utterances` (list of str): Dialog utterances between patient and doctor.
+
+#### processed.zh
+- `utterances` (list of str): Dialog utterances between patient and doctor.
 
 ### Data Splits
 
-There are no data splits on the original data. The "train" split for each language contains:
+There are no data splits on the original raw data. The "train" split for each language contains:
 - en: 229674 examples
 - zh: 1921127 examples
+
+For processed configurations, data is split into train, validation and test, with the following number of examples:
+
+|              |   train | validation |   test |
+|--------------|--------:|-----------:|-------:|
+| processed.en |     482 |         60 |     61 |
+| processed.zh | 2725989 |     340748 | 340754 |
 
 ## Dataset Creation
 
@@ -187,15 +229,17 @@ Medical dialogue systems are promising in assisting in telemedicine to increase 
 
 ### Licensing Information
 
-[More Information Needed]
+Unknow.
 
 ### Citation Information
+```
 @article{chen2020meddiag,
   title={MedDialog: a large-scale medical dialogue dataset},
   author={Chen, Shu and Ju, Zeqian and Dong, Xiangyu and Fang, Hongchao and Wang, Sicheng and Yang, Yue and Zeng, Jiaqi and Zhang, Ruisi and Zhang, Ruoyu and Zhou, Meng and Zhu, Penghui and Xie, Pengtao},
   journal={arXiv preprint arXiv:2004.03329}, 
   year={2020}
 }
+```
 
 ### Contributions
 

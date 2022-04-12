@@ -34,7 +34,7 @@ If you are using a benchmark dataset, you need to select a metric that is associ
 
 ## Metrics object
 
-Before you begin using a [`Metric`] object, you should get to know it a little better. As with a dataset, you can return some basic information about a metric. For example, use `Metric.inputs_descriptions` to get more information about a metrics expected input format and some usage examples:
+Before you begin using a [`Metric`] object, you should get to know it a little better. As with a dataset, you can return some basic information about a metric. For example, access the `inputs_description` parameter in [`datasets.MetricInfo`] to get more information about a metrics expected input format and some usage examples:
 
 ```py
 >>> print(metric.inputs_description)
@@ -71,7 +71,7 @@ Notice for the MRPC configuration, the metric expects the input format to be zer
 
 ## Compute metric
 
-Once you have loaded a metric, you are ready to use it to evaluate a models predictions. Provide the model predictions and references to `Metric.compute`:
+Once you have loaded a metric, you are ready to use it to evaluate a models predictions. Provide the model predictions and references to [`~datasets.Metric.compute`]:
 
 ```py
 >>> model_predictions = model(model_inputs)

@@ -22,12 +22,12 @@ For example, loading the full English Wikipedia dataset only takes a few MB of R
 >>> from datasets import load_dataset
 
 # Process.memory_info is expressed in bytes, so convert to megabytes 
->>> mem_before = psutil.Process(os.getpid()).memory_info().rss  / (1024 * 1024)
->>> wiki = load_dataset("wikipedia", "20200501.en", split='train')
->>> mem_after = psutil.Process(os.getpid()).memory_info().rss >> 20
+>>> mem_before = psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024)
+>>> wiki = load_dataset("wikipedia", "20220301.en", split="train")
+>>> mem_after = psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024)
 
 >>> print(f"RAM memory used: {(mem_after - mem_before)} MB")
-'RAM memory used: 9 MB'
+RAM memory used: 50 MB
 ```
 
 This is possible because the Arrow data is actually memory-mapped from disk, and not loaded in memory.
@@ -46,7 +46,7 @@ Iterating over a memory-mapped dataset using Arrow is fast. Iterating over Wikip
 >>> time = timeit.timeit(stmt=s, number=1, globals=globals())
 >>> print(f"Time to iterate over the {wiki.dataset_size >> 30} GB dataset: {time:.1f} sec, "
 ...       f"ie. {float(wiki.dataset_size >> 27)/time:.1f} Gb/s")
-'Time to iterate over the 17 GB dataset: 85 sec, ie. 1.7 Gb/s'
+Time to iterate over the 18 GB dataset: 70.5 sec, ie. 2.1 Gb/s
 ```
 
 You can obtain the best performance by accessing slices of data (or "batches"), in order to reduce the amount of lookups on disk.
