@@ -782,12 +782,11 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[DownloadMode] = None,
     ):
-        if data_files is None and data_dir is not None:
-            data_files = os.path.join(data_dir, "**")
 
         self.name = name
         self.data_files = data_files
-        self.downnload_config = download_config
+        self.data_dir = str(Path(data_dir).resolve()) if data_dir else None
+        self.download_config = download_config
         self.download_mode = download_mode
         increase_load_count(name, resource_type="dataset")
 
@@ -795,9 +794,11 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
+            else get_patterns_locally(self.data_dir)
+            if self.data_dir is not None
             else get_patterns_locally(str(Path().resolve()))
         )
-        data_files = DataFilesDict.from_local_or_remote(patterns, use_auth_token=self.downnload_config.use_auth_token)
+        data_files = DataFilesDict.from_local_or_remote(patterns, use_auth_token=self.download_config.use_auth_token)
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
         builder_kwargs = {"hash": hash, "data_files": data_files}
         return DatasetModule(module_path, hash, builder_kwargs)
