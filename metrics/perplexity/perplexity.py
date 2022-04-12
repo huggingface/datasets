@@ -61,8 +61,8 @@ Examples:
         ['perplexities', 'mean_perplexity']
         >>> print(round(results["mean_perplexity"], 2))
         78.22
-        >>> print([round(res, 2) for res in results["perplexities"][:2]])
-        [11.11, 159.01]
+        >>> print(round(results["perplexities"][0], 2))
+        11.11
 
     Example 2:
         >>> perplexity = datasets.load_metric("perplexity")
@@ -76,8 +76,8 @@ Examples:
         ['perplexities', 'mean_perplexity']
         >>> print(round(results["mean_perplexity"], 2))
         1977.54
-        >>> print([round(res, 2) for res in results["perplexities"][:2]])
-        [1349.57, 736.44]
+        >>> print(round(results["perplexities"][0], 2))
+        1349.57
 """
 
 
