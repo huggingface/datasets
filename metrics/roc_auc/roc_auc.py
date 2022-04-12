@@ -48,10 +48,9 @@ Args:
 - multi_class (`str`): Only used for multiclass targets, where it is required. Determines the type of configuration to use. Options are:
     - `'ovr'`: Stands for One-vs-rest. Computes the AUC of each class against the rest. This treats the multiclass case in the same way as the multilabel case. Sensitive to class imbalance even when `average == 'macro'`, because class imbalance affects the composition of each of the 'rest' groupings.
     - `'ovo'`: Stands for One-vs-one. Computes the average AUC of all possible pairwise combinations of classes. Insensitive to class imbalance when `average == 'macro'`.
-- labels (array-like of shape (n_classes,)): Only used for multiclass targets. List of labels that index the classes in 
-    `prediction_scores`. If `None`, the numerical or lexicographical order of the labels in 
+- labels (array-like of shape (n_classes,)): Only used for multiclass targets. List of labels that index the classes in
+    `prediction_scores`. If `None`, the numerical or lexicographical order of the labels in
     `prediction_scores` is used. Defaults to `None`.
-        
 Returns:
     roc_auc (`float` or array-like of shape (n_classes,)): Returns array if in multilabel use case and `average='None'`. Otherwise, returns `float`.
 Examples:
