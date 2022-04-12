@@ -76,7 +76,7 @@ Examples:
         >>> print(list(results.keys()))
         ['perplexities', 'mean_perplexity']
         >>> print(round(results["mean_perplexity"], 2))
-        1977.54
+        1977.55
         >>> print(round(results["perplexities"][0], 2))
         1349.57
 """
