@@ -233,7 +233,8 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
         ),
         VisualGenomeConfig(
             name="objects",
-            version=datasets.Version("1.4.0")
+            # TODO: integrate v1.4
+            version=datasets.Version("1.2.0")
         ),
         VisualGenomeConfig(
             name="attributes",
@@ -241,7 +242,8 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
         ),
         VisualGenomeConfig(
             name="relationships",
-            version=datasets.Version("1.4.0")
+            # TODO: integrate v1.4
+            version=datasets.Version("1.2.0")
         ),
     ]
 
@@ -333,4 +335,3 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
                 **image_metadata,
                 **annotation
             }
-        # return
