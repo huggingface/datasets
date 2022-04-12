@@ -208,6 +208,8 @@ The dataset does not contain any additional annotations.
 
 ### Citation Information
 
+If you find this useful in your research, please consider citing the dataset paper 
+
 ```
 @InProceedings{pmlr-v174-pal22a,
   title = 	 {MedMCQA: A Large-scale Multi-Subject Multi-Choice Dataset for Medical domain Question Answering},
