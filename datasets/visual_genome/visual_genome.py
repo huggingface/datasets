@@ -97,11 +97,9 @@ def _get_local_image_path(img_url: str, folder_local_paths: Dict[str, str]) -> s
     For example:
       Given `https://cs.stanford.edu/people/rak248/VG_100K_2/1.jpg` as an image url, this method returns the local path for that image.
     """
-    matches = re.match(r"https://cs.stanford.edu/people/rak248/(VG_100K(:?(:?_2)?))/([0-9]+.jpg)$", img_url)
+    matches = re.fullmatch(r"^https://cs.stanford.edu/people/rak248/(VG_100K(?:_2)?)/([0-9]+\.jpg)$", img_url)
     assert matches is not None, matches
-
     folder, filename = matches.group(1), matches.group(2)
-
     return os.path.join(folder_local_paths[folder], filename)
 
 
@@ -258,14 +256,23 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
+        # Download image meta datas.
         image_metadatas_dir = dl_manager.download_and_extract(_BASE_IMAGE_METADATA_URL)
-        image_metadatas_file = f"{image_metadatas_dir}/{_get_decompressed_filename_from_url(_BASE_IMAGE_METADATA_URL)}"
-        print(image_metadatas_file)
+        image_metadatas_file = os.path.join(
+            image_metadatas_dir,
+            _get_decompressed_filename_from_url(_BASE_IMAGE_METADATA_URL)
+        )
+
+        # Download annotations
         annotations_dir = dl_manager.download_and_extract(self.config.annotations_url)
-        annotations_file = f"{annotations_dir}/{_get_decompressed_filename_from_url(self.config.annotations_url)}"
-        print(annotations_file)
+        annotations_file = os.path.join(
+            annotations_dir,
+            _get_decompressed_filename_from_url(self.config.annotations_url)
+        )
+
+        # Optionally download images
         if self.config.with_image:
-            image_folder_keys = sorted(_BASE_IMAGE_URLS.keys())
+            image_folder_keys = list(_BASE_IMAGE_URLS.keys())
             image_dirs = dl_manager.download_and_extract(image_folder_keys)
             image_folder_local_paths = {
                 _BASE_IMAGE_URLS[key]: os.path.join(dir_, _BASE_IMAGE_URLS[key])
@@ -273,7 +280,7 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
             }
         else:
             image_folder_local_paths = None
-        print(image_folder_local_paths)
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
@@ -302,6 +309,7 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
         assert len(image_metadatas) == len(annotations)
         for idx, (image_metadata, annotation) in enumerate(zip(image_metadatas, annotations)):
 
+            # Normalize image_id across all annotations
             if "id" in annotation:
                 # annotation["id"] corresponds to `image_id`
                 assert image_metadata["image_id"] == annotation[
@@ -311,12 +319,11 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
                 assert image_metadata["image_id"] == annotation[
                     "image_id"], f"Annotations doesn't match with image metadataset. Got image_metadata['image_id']: {image_metadata['image_id']} and annotations['image_id']: {annotation['image_id']}"
 
-            # in-place operation
+            # in-place operation to normalize annotations
             annotation_normalizer_(annotation)
 
             # optionally add image to the annotation
-            # TODO (@thomasw21): actually self.config.with_image should prevent the download of images
-            if image_folder_local_paths:
+            if image_folder_local_paths is not None:
                 filepath = _get_local_image_path(image_metadata["url"], image_folder_local_paths)
                 image_dict = {"image": filepath}
             else:
