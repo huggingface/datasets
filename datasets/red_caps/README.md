@@ -15,10 +15,8 @@ source_datasets:
 - original
 task_categories:
 - image-to-text
-- image-classification
 task_ids:
 - image-captioning
-- single-label-image-classification
 paperswithcode_id: redcaps
 pretty_name: RedCaps
 ---

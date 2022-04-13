@@ -15,9 +15,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- summarization-other-reddit-posts-summarization
 paperswithcode_id: reddit-tifu
 ---
 
@@ -60,7 +60,7 @@ paperswithcode_id: reddit-tifu
 ### Dataset Summary
 
 Reddit dataset, where TIFU denotes the name of subbreddit /r/tifu.
-As defined in the publication, styel "short" uses title as summary and
+As defined in the publication, style "short" uses title as summary and
 "long" uses tldr as summary.
 
 Features includes:

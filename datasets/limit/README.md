@@ -15,7 +15,7 @@ source_datasets:
 - extended|net-activities-captions
 - original
 task_categories:
-- structure-prediction
+- token-classification
 - text-classification
 task_ids:
 - multi-class-classification

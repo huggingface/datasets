@@ -237,19 +237,19 @@ task_categories:
   nc:
   - text-classification
   ner:
-  - structure-prediction
+  - token-classification
   ntg:
-  - conditional-text-generation
+  - summarization
   paws-x:
   - text-classification
   pos:
-  - structure-prediction
+  - token-classification
   qadsm:
   - text-classification
   qam:
   - text-classification
   qg:
-  - conditional-text-generation
+  - text2text-generation
   wpr:
   - text-classification
   xnli:
@@ -262,8 +262,7 @@ task_ids:
   - topic-classification
   ner:
   - named-entity-recognition
-  ntg:
-  - summarization
+  ntg: []
   paws-x:
   - text-classification-other-paraphrase-identification
   pos:
@@ -273,7 +272,7 @@ task_ids:
   qam:
   - acceptability-classification
   qg:
-  - conditional-text-generation-other-question-answering
+  - text2text-generation-other-question-answering
   wpr:
   - acceptability-classification
   xnli:

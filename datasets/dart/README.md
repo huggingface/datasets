@@ -19,9 +19,9 @@ source_datasets:
 - extended|web_nlg
 - extended|cleaned_e2e
 task_categories:
-- conditional-text-generation
+- tabular-to-text
 task_ids:
-- conditional-text-generation-other-rdf-to-text
+- rdf-to-text
 paperswithcode_id: dart
 pretty_name: DART
 ---
@@ -67,7 +67,7 @@ DART is a large dataset for open-domain structured data record to text generatio
 
 The task associated to DART is text generation from data records that are RDF triplets:
 
-- `conditional-text-generation-other-rdf-to-text`: The dataset can be used to train a model for text generation from RDF triplets, which consists in generating textual description of structured data. Success on this task is typically measured by achieving a *high* [BLEU](https://huggingface.co/metrics/bleu), [METEOR](https://huggingface.co/metrics/meteor), [BLEURT](https://huggingface.co/metrics/bleurt), [TER](https://huggingface.co/metrics/ter), [MoverScore](https://huggingface.co/metrics/mover_score), and [BERTScore](https://huggingface.co/metrics/bert_score). The ([BART-large model](https://huggingface.co/facebook/bart-large) from [BART](https://huggingface.co/transformers/model_doc/bart.html)) model currently achieves the following scores:
+- `rdf-to-text`: The dataset can be used to train a model for text generation from RDF triplets, which consists in generating textual description of structured data. Success on this task is typically measured by achieving a *high* [BLEU](https://huggingface.co/metrics/bleu), [METEOR](https://huggingface.co/metrics/meteor), [BLEURT](https://huggingface.co/metrics/bleurt), [TER](https://huggingface.co/metrics/ter), [MoverScore](https://huggingface.co/metrics/mover_score), and [BERTScore](https://huggingface.co/metrics/bert_score). The ([BART-large model](https://huggingface.co/facebook/bart-large) from [BART](https://huggingface.co/transformers/model_doc/bart.html)) model currently achieves the following scores:
 
 |            | BLEU  | METEOR | TER  | MoverScore  | BERTScore  | BLEURT |
 | -----      | ----- | ------ | ---- | ----------- | ---------- | ------ |

@@ -282,9 +282,8 @@ pretty_name: turkic_xwmt
 size_categories:
 - n<1K
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 source_datasets:
 - extended|WMT 2020 News Translation Task
 ---

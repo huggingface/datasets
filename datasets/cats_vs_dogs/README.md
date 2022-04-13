@@ -16,8 +16,7 @@ source_datasets:
 - original
 task_categories:
 - image-classification
-task_ids:
-- single-label-image-classification
+task_ids: []
 ---
 
 # Dataset Card for Cats Vs. Dogs
