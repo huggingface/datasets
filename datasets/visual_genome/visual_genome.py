@@ -326,17 +326,9 @@ class VisualGenomeConfig(datasets.BuilderConfig):
 
     @property
     def image_metadata_url(self):
-        if self.version > datasets.Version(_LATEST_VERSIONS["image_metadata"]):
-            if not self.version.match(_LATEST_VERSIONS["image_metadata"]):
-                logger.warning(f"Latest image metadata version is {_LATEST_VERSIONS['image_metadata']}. Trying to generate a dataset of version: {self.version}. Please double check that image data are unchanged between the two versions.")
-            return f"{_BASE_ANNOTATION_URL}/image_data.json.zip"
-
-        major, minor = self.version.major, self.version.minor
-        if minor == 0:
-            return f"{_BASE_ANNOTATION_URL}/image_data_v{major}.json.zip"
-        else:
-            return f"{_BASE_ANNOTATION_URL}/image_data_v{major}_{minor}.json.zip"
-
+        if not self.version.match(_LATEST_VERSIONS["image_metadata"]):
+            logger.warning(f"Latest image metadata version is {_LATEST_VERSIONS['image_metadata']}. Trying to generate a dataset of version: {self.version}. Please double check that image data are unchanged between the two versions.")
+        return f"{_BASE_ANNOTATION_URL}/image_data.json.zip"
 
     @property
     def features(self):
