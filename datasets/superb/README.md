@@ -19,7 +19,7 @@ source_datasets:
 - extended|other-speech_commands
 task_categories:
 - automatic-speech-recognition
-task_ids: []
+task_ids:
 - keyword-spotting
 - query-by-example-spoken-term-detection
 - speaker-identification
