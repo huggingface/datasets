@@ -44,6 +44,7 @@ dataset.
 
 _URL = "https://storage.googleapis.com/conceptual_12m/cc12m.tsv"
 
+
 class Conceptual12MConfig(datasets.BuilderConfig):
     """BuilderConfig for Conceptual 12M."""
 
@@ -58,12 +59,7 @@ class Conceptual12M(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [Conceptual12MConfig()]
 
     def _info(self):
-        features = datasets.Features(
-            {
-                "image_url": datasets.Value("string"),
-                "caption": datasets.Value("string")
-            }
-        )
+        features = datasets.Features({"image_url": datasets.Value("string"), "caption": datasets.Value("string")})
 
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -88,7 +84,4 @@ class Conceptual12M(datasets.GeneratorBasedBuilder):
         with open(file, "r", encoding="utf-8") as fi:
             for idx, line in enumerate(fi):
                 image_url, caption = line.split("\t", maxsplit=1)
-                yield idx, {
-                    "image_url": image_url,
-                    "caption": caption
-                }
+                yield idx, {"image_url": image_url, "caption": caption}
