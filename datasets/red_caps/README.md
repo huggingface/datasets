@@ -77,7 +77,10 @@ This dataset doesn't download the images locally by default. Instead, it exposes
 ```python
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+import io
 import urllib
+
+import PIL
 
 from datasets import load_dataset
 from datasets.utils.file_utils import get_datasets_user_agent
@@ -116,7 +119,10 @@ Some image links point to more than one image. You can process and downloaded th
 ```python
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+import io
 import urllib
+
+import PIL
 
 import datasets
 from datasets import load_dataset
