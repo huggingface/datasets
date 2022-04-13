@@ -27,7 +27,7 @@ task_ids:
 - audio-classification-other-automatic-speaker-verification
 - audio-classification-other-speaker-diarization
 - audio-intent-classification
-- audio-slot-filling
+- other-audio-slot-filling
 - audio-emotion-recognition
 ---
 
