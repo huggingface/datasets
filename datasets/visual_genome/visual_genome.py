@@ -265,25 +265,44 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIG_CLASS = VisualGenomeConfig
     BUILDER_CONFIGS = [
-        VisualGenomeConfig(
-            name="region_descriptions",
-        ),
-        VisualGenomeConfig(
-            name="question_answers",
-        ),
-        VisualGenomeConfig(
-            name="objects",
-            # version=datasets.Version("1.2.0"),
-            # annotations_url="https://visualgenome.org/static/data/dataset/objects_v1_2.json.zip"
-        ),
-        VisualGenomeConfig(
-            name="attributes",
-        ),
-        VisualGenomeConfig(
-            name="relationships",
-            # version=datasets.Version("1.2.0"),
-            # annotations_url="https://visualgenome.org/static/data/dataset/relationships_v1_2.json.zip"
-        ),
+        *[
+            VisualGenomeConfig(
+                name="region_descriptions",
+                version=datasets.Version(version)
+            )
+            for version in ["1.0.0", "1.2.0"]
+        ],
+        *[
+            VisualGenomeConfig(
+                name="question_answers",
+                version=datasets.Version(version)
+            )
+            for version in ["1.0.0", "1.2.0"]
+        ],
+        *[
+            VisualGenomeConfig(
+                name="objects",
+                version=datasets.Version(version)
+            )
+            # TODO: add support for 1.4.0
+            for version in ["1.0.0", "1.2.0"]
+        ],
+        *[
+            VisualGenomeConfig(
+                name="attributes",
+                version=datasets.Version(version)
+            )
+            for version in ["1.0.0", "1.2.0"]
+        ],
+        *[
+
+            VisualGenomeConfig(
+                name="relationships",
+                version=datasets.Version(version)
+            )
+            # TODO: add support for 1.4.0
+            for version in ["1.0.0", "1.2.0"]
+        ],
     ]
 
     def _info(self):
