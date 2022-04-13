@@ -232,6 +232,11 @@ class FaissIndex(BaseIndex):
         """
         if string_factory is not None and custom_index is not None:
             raise ValueError("Please specify either `string_factory` or `custom_index` but not both.")
+        if device is not None and custom_index is not None:
+            raise ValueError(
+                "Cannot pass both 'custom_index' and 'device'. "
+                "Pass 'custom_index' already transferred to the target device instead."
+            )
         self.device = device
         self.string_factory = string_factory
         self.metric_type = metric_type
@@ -690,7 +695,8 @@ class IndexableMixin:
         """
         self._check_index_is_initialized(index_name)
         scores, indices = self.search(index_name, query, k)
-        return NearestExamplesResults(scores, self[[i for i in indices if i >= 0]])
+        top_indices = [i for i in indices if i >= 0]
+        return NearestExamplesResults(scores[: len(top_indices)], self[top_indices])
 
     def get_nearest_examples_batch(
         self, index_name: str, queries: Union[List[str], np.array], k: int = 10
@@ -708,6 +714,9 @@ class IndexableMixin:
         """
         self._check_index_is_initialized(index_name)
         total_scores, total_indices = self.search_batch(index_name, queries, k)
-        return BatchedNearestExamplesResults(
-            total_scores, [self[[i for i in indices if i >= 0]] for indices in total_indices]
-        )
+        total_scores = [
+            scores_i[: len([i for i in indices_i if i >= 0])]
+            for scores_i, indices_i in zip(total_scores, total_indices)
+        ]
+        total_samples = [self[[i for i in indices if i >= 0]] for indices in total_indices]
+        return BatchedNearestExamplesResults(total_scores, total_samples)

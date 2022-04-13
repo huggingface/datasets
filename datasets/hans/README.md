@@ -1,6 +1,22 @@
 ---
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
 languages:
 - en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- natural-language-inference
 paperswithcode_id: hans
 pretty_name: Heuristic Analysis for NLI Systems
 ---

@@ -165,6 +165,7 @@ class TypedSequence:
         optimized_int_pa_type = (
             get_nested_type(self.optimized_int_type) if self.optimized_int_type is not None else None
         )
+        trying_cast_to_python_objects = False
         try:
             # custom pyarrow types
             if isinstance(pa_type, _ArrayXDExtensionType):
@@ -182,6 +183,7 @@ class TypedSequence:
             elif isinstance(data, list) and data and isinstance(first_non_null_value(data)[1], np.ndarray):
                 out = list_of_np_array_to_pyarrow_listarray(data)
             else:
+                trying_cast_to_python_objects = True
                 out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
             # use smaller integer precisions if possible
             if self.trying_int_optimization:
@@ -194,7 +196,7 @@ class TypedSequence:
                         out = array_cast(out, pa.list_(pa.list_(optimized_int_pa_type)))
             # otherwise we can finally use the user's type
             elif type is not None:
-                # We use array_cast_to_feature to support casting to custom types like Audio and Image
+                # We use cast_array_to_feature to support casting to custom types like Audio and Image
                 # Also, when trying type "string", we don't want to convert integers or floats to "string".
                 # We only do it if trying_type is False - since this is what the user asks for.
                 out = cast_array_to_feature(out, type, allow_number_to_str=not self.trying_type)
@@ -207,6 +209,7 @@ class TypedSequence:
                     elif isinstance(data, list) and data and any(isinstance(value, np.ndarray) for value in data):
                         return list_of_np_array_to_pyarrow_listarray(data)
                     else:
+                        trying_cast_to_python_objects = True
                         return pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
                 except pa.lib.ArrowInvalid as e:
                     if "overflow" in str(e):
@@ -219,6 +222,13 @@ class TypedSequence:
                             f"Failed to cast a sequence to {optimized_int_pa_type_str}. Falling back to int64."
                         )
                         return out
+                    elif trying_cast_to_python_objects and "Could not convert" in str(e):
+                        out = pa.array(
+                            cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False)
+                        )
+                        if type is not None:
+                            out = cast_array_to_feature(out, type, allow_number_to_str=True)
+                        return out
                     else:
                         raise
             elif "overflow" in str(e):
@@ -228,6 +238,11 @@ class TypedSequence:
             elif self.trying_int_optimization and "not in range" in str(e):
                 optimized_int_pa_type_str = np.dtype(optimized_int_pa_type.to_pandas_dtype()).name
                 logger.info(f"Failed to cast a sequence to {optimized_int_pa_type_str}. Falling back to int64.")
+                return out
+            elif trying_cast_to_python_objects and "Could not convert" in str(e):
+                out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False))
+                if type is not None:
+                    out = cast_array_to_feature(out, type, allow_number_to_str=True)
                 return out
             else:
                 raise
@@ -577,14 +592,12 @@ class BeamWriter:
         _ = pcoll_examples | "Count N. Examples" >> beam.Map(inc_num_examples)
 
         # save dataset
-        simplified_schema = pa.schema({field.name: pa.string() for field in self._schema})
         return (
             pcoll_examples
             | "Get values" >> beam.Values()
-            | "simplify" >> beam.Map(lambda ex: {k: json.dumps(v) for k, v in ex.items()})
             | "Save to parquet"
             >> beam.io.parquetio.WriteToParquet(
-                self._parquet_path, simplified_schema, shard_name_template="-SSSSS-of-NNNNN.parquet"
+                self._parquet_path, self._schema, shard_name_template="-SSSSS-of-NNNNN.parquet"
             )
         )
 
@@ -640,11 +653,8 @@ def parquet_to_arrow(sources, destination):
     disable = not logging.is_progress_bar_enabled()
     with ArrowWriter(path=destination, stream=stream) as writer:
         for source in logging.tqdm(sources, unit="sources", disable=disable):
-            pf = pa.parquet.ParquetFile(source)
-            for i in logging.tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=disable):
-                df = pf.read_row_group(i).to_pandas()
-                for col in df.columns:
-                    df[col] = df[col].apply(json.loads)
-                reconstructed_table = pa.Table.from_pandas(df)
-                writer.write_table(reconstructed_table)
+            parquet_file = pa.parquet.ParquetFile(source)
+            for record_batch in parquet_file.iter_batches():
+                pa_table = pa.Table.from_batches([record_batch])
+                writer.write_table(pa_table)
     return destination

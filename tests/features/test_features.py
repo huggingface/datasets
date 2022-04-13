@@ -313,8 +313,9 @@ def test_class_label_to_and_from_dict(class_label_arg, tmp_path_factory):
     assert generated_class_label == class_label
 
 
-def test_encode_nested_example_sequence_with_none():
-    schema = Sequence(Value("int32"))
+@pytest.mark.parametrize("inner_type", [Value("int32"), {"subcolumn": Value("int32")}])
+def test_encode_nested_example_sequence_with_none(inner_type):
+    schema = Sequence(inner_type)
     obj = None
     result = encode_nested_example(schema, obj)
     assert result is None
