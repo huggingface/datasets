@@ -133,7 +133,7 @@ class BiwiKinectHeadPose(datasets.GeneratorBasedBuilder):
 
     @staticmethod
     def _get_calibration_information(cal_file_path):
-        with open(cal_file_path, "r") as f:
+        with open(cal_file_path, "r", encoding="utf-8") as f:
             cal_info = f.read().splitlines()
 
         intrisic_mat = []
