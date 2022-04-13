@@ -1,3 +1,4 @@
+import base64
 import distutils.dir_util
 import logging
 import os
@@ -29,7 +30,9 @@ else:
 HUB_CANONICAL_WHOAMI = HUB_ENDPOINT + "/api/whoami-v2"
 HUB_CANONICAL_CREATE_URL = HUB_ENDPOINT + "/api/repos/create"
 HUB_CANONICAL_INFO_URL = HUB_ENDPOINT + "/api/datasets/{dataset_name}"
-HUB_CANONICAL_DATASET_GIT_URL = HUB_ENDPOINT.replace("https://", "https://user:{token}@") + "/datasets/{dataset_name}.git"
+HUB_CANONICAL_DATASET_GIT_URL = (
+    HUB_ENDPOINT.replace("https://", "https://user:{token}@") + "/datasets/{dataset_name}.git"
+)
 HUB_API_GH_TO_HF = HUB_ENDPOINT + "/api/gh-to-hf/{github_username}"
 DATASETS_LIB_CATALOG_DIR_NAME = "datasets"
 DATASETS_LIB_COMMIT_URL = "https://github.com/huggingface/datasets/commit/{hexsha}"
@@ -129,14 +132,18 @@ class update_main:
         self.tag_name = tag_name
 
     def __call__(self, dataset_name: str) -> bool:
+        auth_base64 = base64.b64encode(f"user:{self.token}".encode("ascii")).decode()
         try:
             create_remote_repo(dataset_name, self.token)
         except requests.exceptions.HTTPError as e:
             if "409 Client Error: Conflict for url:" not in repr(e):  # don't log if repo already exists
                 logger.warning(f"[{dataset_name}] " + repr(e))
         if not canonical_dataset_path(dataset_name).is_dir():
+            # use http.extraHeader to avoid rate limit
             repo = Repo.clone_from(
-                canonical_dataset_git_url(dataset_name, self.token), to_path=canonical_dataset_path(dataset_name)
+                canonical_dataset_git_url(dataset_name, self.token),
+                to_path=canonical_dataset_path(dataset_name),
+                multi_options=[f'-c http.extraHeader="authorization: Basic {auth_base64}"'],
             )
         else:
             repo = Repo(canonical_dataset_path(dataset_name))
@@ -210,31 +217,29 @@ if __name__ == "__main__":
         path
         for diff in datasets_lib_repo.index.diff(prev_commit)
         for path in [diff.a_path, diff.b_path]
-        if path.startswith(DATASETS_LIB_CATALOG_DIR_NAME)
-        and path.count("/") >= 2
+        if path.startswith(DATASETS_LIB_CATALOG_DIR_NAME) and path.count("/") >= 2
     ]
 
     changed_datasets_names_since_last_commit = {path.split("/")[1] for path in changed_files_since_last_commit}
     # ignore json, csv etc.
     changed_datasets_names_since_last_commit = {
-        dataset_name for dataset_name in changed_datasets_names_since_last_commit
+        dataset_name
+        for dataset_name in changed_datasets_names_since_last_commit
         if (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME / dataset_name / (dataset_name + ".py")).is_file()
     }
 
     deleted_files = {dataset_name: set() for dataset_name in changed_datasets_names_since_last_commit}
     for path in changed_files_since_last_commit:
         _, dataset_name, rel_path = path.split("/", 2)
-        if (
-            dataset_name in changed_datasets_names_since_last_commit
-            and not (datasets_lib_path / path).is_file()
-        ):
+        if dataset_name in changed_datasets_names_since_last_commit and not (datasets_lib_path / path).is_file():
             deleted_files[dataset_name].add(rel_path)
 
     dataset_names = sys.argv[1:]
     if dataset_names:
         if dataset_names[0] == "--all":
             dataset_names = sorted(
-                d.name for d in (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME).glob("*")
+                d.name
+                for d in (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME).glob("*")
                 if d.is_dir() and (d / (d.name + ".py")).is_file()  # ignore json, csv etc.
             )
         if dataset_names[0] == "--auto":
@@ -245,7 +250,8 @@ if __name__ == "__main__":
                 )
                 dataset_names = sorted(d.name for d in (ROOT / HUB_DIR_NAME).glob("*") if d.is_dir())
                 dataset_names = sorted(
-                    d.name for d in (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME).glob("*")
+                    d.name
+                    for d in (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME).glob("*")
                     if d.is_dir() and (d / (d.name + ".py")).is_file()  # ignore json, csv etc.
                 )
             else:
@@ -268,7 +274,9 @@ if __name__ == "__main__":
                 ),
                 dataset_names,
             )
-            datasets_with_errors = [dataset_name for success, dataset_name in zip(successes, dataset_names) if not success]
+            datasets_with_errors = [
+                dataset_name for success, dataset_name in zip(successes, dataset_names) if not success
+            ]
             if datasets_with_errors:
                 raise UpdateFailed(
                     f"Those datasets couldn't be updated: {' '.join(datasets_with_errors)}\n"
