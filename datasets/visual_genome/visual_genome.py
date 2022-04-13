@@ -165,7 +165,7 @@ def _get_decompressed_filename_from_url(url: str) -> str:
     uncompressed_filename = compressed_filename[:-4]
 
     # Remove version.
-    unversioned_uncompressed_filename = re.sub(r"_v[0-9]+_[0-9]+\.json$", ".json", uncompressed_filename)
+    unversioned_uncompressed_filename = re.sub(r"_v[0-9]+(?:_[0-9]+)?\.json$", ".json", uncompressed_filename)
 
     return unversioned_uncompressed_filename
 
