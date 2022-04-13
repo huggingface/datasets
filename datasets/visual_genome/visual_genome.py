@@ -133,10 +133,10 @@ _NAME_VERSION_TO_ANNOTATION_FEATURES = {
     },
     "attributes": {
         "1.2.0": {
-            "objects": [{**_BASE_OBJECT_FEATURES, "attributes": [datasets.Value("string")]}]
+            "attributes": [{**_BASE_OBJECT_FEATURES, "attributes": [datasets.Value("string")]}]
         },
         "1.0.0": {
-            "objects": [{**_BASE_OBJECT_FEATURES, "attributes": [datasets.Value("string")]}]
+            "attributes": [{**_BASE_OBJECT_FEATURES, "attributes": [datasets.Value("string")]}]
         }
     },
     "relationships": {
@@ -218,7 +218,7 @@ def _normalize_region_description_annotation_(annotation: Dict[str, Any]) -> Dic
     return annotation
 
 def _normalize_object_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
-    """Normalizes region descriptions annotation in-place"""
+    """Normalizes object annotation in-place"""
     # Some attributes annotations don't have an attribute field
     for object_ in annotation["objects"]:
         # `id` should be converted to `object_id`:
@@ -226,14 +226,35 @@ def _normalize_object_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
             object_["object_id"] = object_["id"]
             del object_["id"]
 
+        # Some versions of `object` annotations don't have `synsets` field.
+        if "synsets" not in object_:
+            object_["synsets"] = None
+
     return annotation
+
 
 def _normalize_attribute_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
     """Normalizes attributes annotation in-place"""
     # Some attributes annotations don't have an attribute field
     for attribute in annotation["attributes"]:
+        # `id` should be converted to `object_id`:
+        if "id" in attribute:
+            attribute["object_id"] = attribute["id"]
+            del attribute["id"]
+
+        # `objects_names` should be convered to `names:
+        if "object_names" in attribute:
+            attribute["names"] = attribute["object_names"]
+            del attribute["object_names"]
+
+        # Some versions of `attribute` annotations don't have `synsets` field.
+        if "synsets" not in attribute:
+            attribute["synsets"] = None
+
+        # Some versions of `attribute` annotations don't have `attributes` field.
         if "attributes" not in attribute:
             attribute["attributes"] = None
+
     return annotation
 
 _ANNOTATION_NORMALIZER = defaultdict(lambda: lambda x: x)
