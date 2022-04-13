@@ -145,33 +145,11 @@ For standard evaluation on BIG-bench, we recommend using the `default` split, an
 
 ## Dataset Creation
 
-### Curation Rationale
+BIG-bench tasks were collaboratively submitted through GitHub pull requests. 
 
-[More Information Needed]
+Each task went through a review and meta-review process with criteria outlined in the [BIG-bench repository documentation](https://github.com/google/BIG-bench/blob/main/docs/doc.md#submission-review-process).
+Each task was required to describe the data source and curation methods on the task README page. 
 
-### Source Data
-
-#### Initial Data Collection and Normalization
-
-Tasks were contributed by the research community through [https://github.com/google/BIG-bench](https://github.com/google/BIG-bench), and [reviewed](https://github.com/google/BIG-bench/blob/main/docs/doc.md#submission-review-process) by members of the collaboration.
-
-#### Who are the source language producers?
-
-[More Information Needed]
-
-### Annotations
-
-#### Annotation process
-
-[More Information Needed]
-
-#### Who are the annotators?
-
-[More Information Needed]
-
-### Personal and Sensitive Information
-
-[More Information Needed]
 
 ## Considerations for Using the Data
 
