@@ -17,8 +17,7 @@ source_datasets:
 task_categories:
 - image-classification
 - object-detection
-task_ids:
-- object-detection-other-digit-detection
+task_ids: []
 paperswithcode_id: svhn
 pretty_name: Street View House Numbers
 ---

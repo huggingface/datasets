@@ -17,7 +17,7 @@ source_datasets:
 task_categories:
 - image-classification
 task_ids:
-- image-classification-other-food-classification
+- multi-class-image-classification
 paperswithcode_id: food-101
 ---
 

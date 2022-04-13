@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - image-classification
 task_ids:
-- image-classification-other-digits-classification
+- multi-class-image-classification
 paperswithcode_id: mnist
 pretty_name: MNIST
 ---
