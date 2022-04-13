@@ -192,7 +192,7 @@ class BiwiKinectHeadPose(datasets.GeneratorBasedBuilder):
         folders = os.listdir(dataset_path)
         for item in folders:
             sequence_number = item
-            sequence_base_path = os.path.join(dataset_path, sequence_number, "")
+            sequence_base_path = os.path.join(dataset_path, sequence_number)
             if os.path.isdir(sequence_base_path):
                 rgb_files = sorted(glob.glob(sequence_base_path + "*.png"))
                 depth_files = sorted(glob.glob(sequence_base_path + "*.bin"))
