@@ -30,15 +30,19 @@ def main():
                 # Find where locally the images should be
                 vg_version = matches.group(1)
                 if vg_version is None:
-                    local_path = re.sub("https://cs.stanford.edu/people/rak248/VG_100K", "dummy_data/images.zip/VG_100K", url)
+                    local_path = re.sub(
+                        "https://cs.stanford.edu/people/rak248/VG_100K", "dummy_data/images.zip/VG_100K", url
+                    )
                 else:
-                    local_path = re.sub(f"https://cs.stanford.edu/people/rak248/VG_100K_{vg_version}", f"dummy_data/images{vg_version}.zip/VG_100K_{vg_version}", url)
+                    local_path = re.sub(
+                        f"https://cs.stanford.edu/people/rak248/VG_100K_{vg_version}",
+                        f"dummy_data/images{vg_version}.zip/VG_100K_{vg_version}",
+                        url,
+                    )
 
                 # Write those images.
-                zip_dir.write(
-                    filename=default_jpg_path,
-                    arcname=local_path
-                )
+                zip_dir.write(filename=default_jpg_path, arcname=local_path)
+
 
 if __name__ == "__main__":
     main()
