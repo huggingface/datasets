@@ -84,14 +84,30 @@ The Beyond the Imitation Game Benchmark (BIG-bench) is a collaborative benchmark
 
 BIG-Bench consists of both json and programmatic tasks.
 This implementation in HuggingFace datasets implements
-    - 24 BIG-bench Lite tasks
-    - 167 BIG-bench json tasks (includes BIG-bench Lite)
+
+  - 24 BIG-bench Lite tasks
+
+  - 167 BIG-bench json tasks (includes BIG-bench Lite)
     
-To study the remaining programmatic tasks, please see the BIG-bench GitHub [repo](https://github.com/google/BIG-bench)
+To study the remaining programmatic tasks, please see the [BIG-bench GitHub repo](https://github.com/google/BIG-bench)
 
 ### Languages
 
-[More Information Needed]
+Althoug predomenantly English, BIG-bench contains a tasks in over 1000 written languages, as well as some synthetic and programming languages. 
+See [BIG-bench organized by keywords](https://github.com/google/BIG-bench/blob/main/bigbench/benchmark_tasks/keywords_to_tasks.md). Relevant keywords include `multilingual`, `non-english`, `low-resource-language`, `translation`.
+
+For tasks specifically targeting low-resource languages, see the table below:
+
+Task Name  | Languages |
+--|--|
+Conlang Translation Problems | English, German, Finnish, Abma, Apinayé, Inapuri, Ndebele, Palauan|
+Kannada Riddles | Kannada|
+Language Identification | 1000 languages |
+Swahili English Proverbs | Swahili |
+Which Wiki Edit | English, Russian, Spanish, German, French, Turkish, Japanese, Vietnamese, Chinese, Arabic, Norwegian, Tagalog|
+
+
+
 
 ## Dataset Structure
 
