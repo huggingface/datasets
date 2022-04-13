@@ -23,6 +23,8 @@ from urllib.parse import urlparse
 
 import datasets
 
+logger = datasets.logging.get_logger(__name__)
+
 _CITATION = """\
 @inproceedings{krishnavisualgenome,
   title={Visual Genome: Connecting Language and Vision Using Crowdsourced Dense Image Annotations},
@@ -46,19 +48,19 @@ _BASE_IMAGE_URLS = {
     "https://cs.stanford.edu/people/rak248/VG_100K_2/images.zip": "VG_100K",
     "https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip": "VG_100K_2",
 }
-_BASE_IMAGE_METADATA_URL = "https://visualgenome.org/static/data/dataset/image_data.json.zip"
 
 _LATEST_VERSIONS = {
     "region_descriptions": "1.2.0",
     "objects": "1.4.0",
     "attributes": "1.2.0",
     "relationships": "1.4.0",
-    "question_answers": "1.2.0"
+    "question_answers": "1.2.0",
+    "image_metadata": "1.2.0"
 }
 
 # ---- Features ----
 
-_BASE_FEATURES = {
+_BASE_IMAGE_METADATA_FEATURES = {
     "image_id": datasets.Value("int32"),
     "url": datasets.Value("string"),
     "width": datasets.Value("int32"),
@@ -273,6 +275,13 @@ def _normalize_relationship_annotation_(annotation: Dict[str, Any]) -> Dict[str,
 
     return annotation
 
+def _normalize_image_metadata_(image_metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalizes image metadata in-place"""
+    if "id" in image_metadata:
+        image_metadata["image_id"] = image_metadata["id"]
+        del image_metadata["id"]
+    return image_metadata
+
 _ANNOTATION_NORMALIZER = defaultdict(lambda: lambda x: x)
 _ANNOTATION_NORMALIZER.update({
     "region_descriptions": _normalize_region_description_annotation_,
@@ -290,7 +299,6 @@ class VisualGenomeConfig(datasets.BuilderConfig):
         self,
         name: str,
         version: Optional[str] = None,
-        annotations_url: Optional[str] = None,
         with_image: bool = True,
         **kwargs
     ):
@@ -303,14 +311,10 @@ class VisualGenomeConfig(datasets.BuilderConfig):
         )
         self._name_without_version = name
         self.annotations_features = _NAME_VERSION_TO_ANNOTATION_FEATURES[self._name_without_version][self.version.version_str]
-        self._annotations_url = annotations_url
         self.with_image = with_image
         
     @property
     def annotations_url(self):
-        if self._annotations_url:
-            return self._annotations_url
-
         if self.version.match(_LATEST_VERSIONS[self._name_without_version]):
             return f"{_BASE_ANNOTATION_URL}/{self._name_without_version}.json.zip"
 
@@ -321,10 +325,24 @@ class VisualGenomeConfig(datasets.BuilderConfig):
             return f"{_BASE_ANNOTATION_URL}/{self._name_without_version}_v{major}_{minor}.json.zip"
 
     @property
+    def image_metadata_url(self):
+        if self.version > datasets.Version(_LATEST_VERSIONS["image_metadata"]):
+            if not self.version.match(_LATEST_VERSIONS["image_metadata"]):
+                logger.warning(f"Latest image metadata version is {_LATEST_VERSIONS['image_metadata']}. Trying to generate a dataset of version: {self.version}. Please double check that image data are unchanged between the two versions.")
+            return f"{_BASE_ANNOTATION_URL}/image_data.json.zip"
+
+        major, minor = self.version.major, self.version.minor
+        if minor == 0:
+            return f"{_BASE_ANNOTATION_URL}/image_data_v{major}.json.zip"
+        else:
+            return f"{_BASE_ANNOTATION_URL}/image_data_v{major}_{minor}.json.zip"
+
+
+    @property
     def features(self):
         return datasets.Features({
             **({"image": datasets.Image()} if self.with_image else {}),
-            **_BASE_FEATURES,
+            **_BASE_IMAGE_METADATA_FEATURES,
             **self.annotations_features
         })
 
@@ -370,10 +388,10 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         # Download image meta datas.
-        image_metadatas_dir = dl_manager.download_and_extract(_BASE_IMAGE_METADATA_URL)
+        image_metadatas_dir = dl_manager.download_and_extract(self.config.image_metadata_url)
         image_metadatas_file = os.path.join(
             image_metadatas_dir,
-            _get_decompressed_filename_from_url(_BASE_IMAGE_METADATA_URL)
+            _get_decompressed_filename_from_url(self.config.image_metadata_url)
         )
 
         # Download annotations
@@ -421,6 +439,8 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
 
         assert len(image_metadatas) == len(annotations)
         for idx, (image_metadata, annotation) in enumerate(zip(image_metadatas, annotations)):
+            # in-place operation to normalize image_metadata
+            _normalize_image_metadata_(image_metadata)
 
             # Normalize image_id across all annotations
             if "id" in annotation:
@@ -428,9 +448,21 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
                 assert image_metadata["image_id"] == annotation[
                     "id"], f"Annotations doesn't match with image metadataset. Got image_metadata['image_id']: {image_metadata['image_id']} and annotations['id']: {annotation['id']}"
                 del annotation["id"]
-            elif "image_id" in annotation:
+            else:
+                assert "image_id" in annotation
                 assert image_metadata["image_id"] == annotation[
                     "image_id"], f"Annotations doesn't match with image metadataset. Got image_metadata['image_id']: {image_metadata['image_id']} and annotations['image_id']: {annotation['image_id']}"
+
+            # Normalize image_id across all annotations
+            if "image_url" in annotation:
+                # annotation["id"] corresponds to `image_id`
+                assert image_metadata["url"] == annotation["image_url"], \
+                    f"Annotations doesn't match with image metadataset. Got image_metadata['url']: {image_metadata['url']} and annotations['image_url']: {annotation['image_url']}"
+                del annotation["image_url"]
+            elif "url" in annotation:
+                # annotation["id"] corresponds to `image_id`
+                assert image_metadata["url"] == annotation["url"], \
+                    f"Annotations doesn't match with image metadataset. Got image_metadata['url']: {image_metadata['url']} and annotations['url']: {annotation['url']}"
 
             # in-place operation to normalize annotations
             annotation_normalizer_(annotation)
