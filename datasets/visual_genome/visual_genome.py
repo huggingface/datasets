@@ -80,8 +80,8 @@ _BASE_OBJECT_FEATURES = {
     "y": datasets.Value("int32"),
     "w": datasets.Value("int32"),
     "h": datasets.Value("int32"),
-    "names": datasets.Sequence(feature=datasets.Value("string")),
-    "synsets": datasets.Sequence(feature=datasets.Value("string"))
+    "names": [datasets.Value("string")],
+    "synsets": [datasets.Value("string")]
 }
 
 _BASE_QA_OBJECT_FEATURES = {
@@ -91,7 +91,16 @@ _BASE_QA_OBJECT_FEATURES = {
     "w": datasets.Value("int32"),
     "h": datasets.Value("int32"),
     "name": datasets.Value("string"),
-    "synsets": datasets.Sequence(feature=datasets.Value("string"))
+    "synsets": [datasets.Value("string")]
+}
+
+_BASE_QA_OBJECT = {
+    "qa_id": datasets.Value("int32"),
+    "image_id": datasets.Value("int32"),
+    "question": datasets.Value("string"),
+    "answer": datasets.Value("string"),
+    "a_objects": [_BASE_QA_OBJECT_FEATURES],
+    "q_objects": [_BASE_QA_OBJECT_FEATURES],
 }
 
 _BASE_REGION_FEATURES = {
@@ -140,8 +149,8 @@ _NAME_VERSION_TO_ANNOTATION_FEATURES = {
         "1.0.0": {"relationships": [_BASE_RELATIONSHIP_FEATURES]}
     },
     "question_answers": {
-        "1.2.0": {"qas": [_BASE_QA_OBJECT_FEATURES]},
-        "1.0.0": {"qas": [_BASE_QA_OBJECT_FEATURES]}
+        "1.2.0": {"qas": [_BASE_QA_OBJECT]},
+        "1.0.0": {"qas": [_BASE_QA_OBJECT]}
     }
 }
 
