@@ -252,10 +252,18 @@ def _normalize_relationship_annotation_(annotation: Dict[str, Any]) -> Dict[str,
             relationship["relationship_id"] = relationship["id"]
             del relationship["id"]
 
+        if "synsets" not in relationship:
+            relationship["synsets"] = None
+
         subject = relationship["subject"]
         object_ = relationship["object"]
 
         for obj in [subject, object_]:
+            # `id` should be converted to `object_id`:
+            if "id" in obj:
+                obj["object_id"] = obj["id"]
+                del obj["id"]
+
             if "name" in obj:
                 obj["names"] = [obj["name"]]
                 del obj["name"]
