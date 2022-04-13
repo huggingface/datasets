@@ -69,6 +69,9 @@ The head pose range covers about +-75 degrees yaw and +-60 degrees pitch. The gr
 
 Example code for reading a compressed binary depth image file provided by the authors.
 
+<details>
+  <summary> View C++ Code </summary>
+
 ```cpp
 /*
  * Gabriele Fanelli
@@ -161,6 +164,10 @@ float* read_gt(const char* fname){
 
 }
 ```
+
+</details>
+
+
 ### Supported Tasks and Leaderboards
 
 Biwi Kinect Head Pose Database supports the following tasks :
