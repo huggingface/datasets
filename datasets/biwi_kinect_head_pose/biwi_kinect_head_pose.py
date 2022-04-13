@@ -159,7 +159,7 @@ class BiwiKinectHeadPose(datasets.GeneratorBasedBuilder):
 
     @staticmethod
     def _parse_head_pose_info(head_pose_file):
-        with open(head_pose_file, "r") as f:
+        with open(head_pose_file, "r", encoding="utf-8") as f:
             head_pose_info = f.read().splitlines()
 
         rotation = []
