@@ -14,18 +14,18 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-  region-descriptions:
+  region_descriptions:
   - image-to-text
   objects:
   - object-detection
-  objects-attributes:
+  attributes:
   - object-attribute-detection
   relationships:
   - relationship-detection
-  question-anwering:
+  question_answers:
   - visual-question-answering
 task_ids:
-  region-descriptions:
+  region_descriptions:
   - image-captioning
 paperswithcode_id: visual-genome
 pretty_name: VisualGenome
@@ -458,5 +458,7 @@ Visual Genome by Ranjay Krishna is licensed under a Creative Commons Attribution
 ```
 
 ### Contributions
+
+Due to limitation of the dummy_data creation, we provide a `fix_generated_dummy_data.py` script that fix the dataset in-place.
 
 Thanks to [@thomasw21](https://github.com/thomasw21) for adding this dataset.
