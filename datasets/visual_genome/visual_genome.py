@@ -211,9 +211,20 @@ def _normalize_region_description_annotation_(annotation: Dict[str, Any]) -> Dic
             del region["id"]
 
         # `image` should be converted to `image_id`
-        if "image" not in region:
+        if "image" in region:
             region["image_id"] = region["image"]
             del region["image"]
+
+    return annotation
+
+def _normalize_object_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalizes region descriptions annotation in-place"""
+    # Some attributes annotations don't have an attribute field
+    for object_ in annotation["objects"]:
+        # `id` should be converted to `object_id`:
+        if "id" in object_:
+            object_["object_id"] = object_["id"]
+            del object_["id"]
 
     return annotation
 
@@ -228,7 +239,8 @@ def _normalize_attribute_annotation_(annotation: Dict[str, Any]) -> Dict[str, An
 _ANNOTATION_NORMALIZER = defaultdict(lambda: lambda x: x)
 _ANNOTATION_NORMALIZER.update({
     # "relationships": _normalize_relationship_annotation_,
-    "regions_descriptions": _normalize_region_description_annotation_,
+    "region_descriptions": _normalize_region_description_annotation_,
+    "objects": _normalize_object_annotation_,
     "attributes": _normalize_attribute_annotation_
 })
 
