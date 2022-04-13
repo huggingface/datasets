@@ -444,7 +444,7 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
 
             # Normalize image_id across all annotations
             if "id" in annotation:
-                # annotation["id"] corresponds to `image_id`
+                # annotation["id"] corresponds to image_metadata["image_id"]
                 assert image_metadata["image_id"] == annotation[
                     "id"], f"Annotations doesn't match with image metadataset. Got image_metadata['image_id']: {image_metadata['image_id']} and annotations['id']: {annotation['id']}"
                 del annotation["id"]
@@ -455,12 +455,12 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
 
             # Normalize image_id across all annotations
             if "image_url" in annotation:
-                # annotation["id"] corresponds to `image_id`
+                # annotation["image_url"] corresponds to image_metadata["url"]
                 assert image_metadata["url"] == annotation["image_url"], \
                     f"Annotations doesn't match with image metadataset. Got image_metadata['url']: {image_metadata['url']} and annotations['image_url']: {annotation['image_url']}"
                 del annotation["image_url"]
             elif "url" in annotation:
-                # annotation["id"] corresponds to `image_id`
+                # annotation["url"] corresponds to image_metadata["url"]
                 assert image_metadata["url"] == annotation["url"], \
                     f"Annotations doesn't match with image metadataset. Got image_metadata['url']: {image_metadata['url']} and annotations['url']: {annotation['url']}"
 
