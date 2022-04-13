@@ -4,16 +4,16 @@
         "subtasks": [
             "keyword-spotting",
             "speaker-identification",
-            "speaker-intent-classification",
-            "emotion-recognition",
-            "speaker-language-identification"
+            "audio-intent-classification",
+            "audio-emotion-recognition",
+            "audio-language-identification"
         ]
     },
     "audio-to-audio": {
         "type": "audio"
     },
     "automatic-speech-recognition": {
-        "type": "multimodal"
+        "type": "audio"
     },
     "conversational": {
         "type": "nlp",
@@ -103,7 +103,7 @@
         ]
     },
     "tabular-classification": {
-        "type": "nlp",
+        "type": "structured",
         "subtasks": [
             "tabular-multi-class-classification",
             "tabular-multi-label-classification",
@@ -111,7 +111,7 @@
         ]
     },
     "tabular-to-text": {
-        "type": "nlp",
+        "type": "structured",
         "subtasks": [
             "rdf-to-text"
         ]
@@ -156,7 +156,7 @@
         "type": "multimodal"
     },
     "text-to-speech": {
-        "type": "multimodal"
+        "type": "audio"
     },
     "text2text-generation": {
         "type": "nlp",
@@ -171,7 +171,7 @@
         ]
     },
     "time-series-forecasting": {
-        "type": "time_series",
+        "type": "structured",
         "subtasks": [
             "univariate-time-series-forecasting",
             "multivariate-time-series-forecasting"
@@ -207,6 +207,6 @@
         "type": "nlp"
     },
     "zero-shot-image-classification": {
-        "type": "multimodal"
+        "type": "cv"
     }
 }
