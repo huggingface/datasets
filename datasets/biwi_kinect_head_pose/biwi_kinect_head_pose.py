@@ -194,11 +194,11 @@ class BiwiKinectHeadPose(datasets.GeneratorBasedBuilder):
             sequence_number = item
             sequence_base_path = os.path.join(dataset_path, sequence_number)
             if os.path.isdir(sequence_base_path):
-                rgb_files = sorted(glob.glob(sequence_base_path + "*.png"))
-                depth_files = sorted(glob.glob(sequence_base_path + "*.bin"))
+                rgb_files = sorted(glob.glob(os.path.join(sequence_base_path, "*.png")))
+                depth_files = sorted(glob.glob(os.path.join(sequence_base_path, "*.bin")))
                 head_template_path = os.path.join(dataset_path, sequence_number + ".obj")
-                rgb_cal = self._get_calibration_information(sequence_base_path + "rgb.cal")
-                depth_cal = self._get_calibration_information(sequence_base_path + "depth.cal")
+                rgb_cal = self._get_calibration_information(os.path.join(sequence_base_path, "rgb.cal"))
+                depth_cal = self._get_calibration_information(os.path.join(sequence_base_path, "depth.cal"))
                 head_pose_gt = self._get_head_pose_information(sequence_base_path)
 
                 yield idx, {
