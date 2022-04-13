@@ -90,7 +90,7 @@ _BASE_QA_OBJECT_FEATURES = {
     "y": datasets.Value("int32"),
     "w": datasets.Value("int32"),
     "h": datasets.Value("int32"),
-    "name": datasets.Value("string"),
+    "names": [datasets.Value("string")],
     "synsets": [datasets.Value("string")]
 }
 
@@ -187,20 +187,6 @@ def _get_local_image_path(img_url: str, folder_local_paths: Dict[str, str]) -> s
 
 _BASE_ANNOTATION_URL = "https://visualgenome.org/static/data/dataset"
 
-# def _normalize_relationship_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
-#     """Normalizes relationship annotation in-place"""
-#     # For some reason relationships objects have a single name instead of a list of names.
-#     for relationship in annotation["relationships"]:
-#         subject = relationship["subject"]
-#         object_ = relationship["object"]
-#
-#         subject["names"] = [subject["name"]]
-#         del subject["name"]
-#
-#         object_["names"] = [object_["name"]]
-#         del object_["name"]
-#     return annotation
-
 def _normalize_region_description_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
     """Normalizes region descriptions annotation in-place"""
     # Some attributes annotations don't have an attribute field
@@ -257,12 +243,35 @@ def _normalize_attribute_annotation_(annotation: Dict[str, Any]) -> Dict[str, An
 
     return annotation
 
+def _normalize_relationship_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalizes relationship annotation in-place"""
+    # For some reason relationships objects have a single name instead of a list of names.
+    for relationship in annotation["relationships"]:
+        # `id` should be converted to `object_id`:
+        if "id" in relationship:
+            relationship["relationship_id"] = relationship["id"]
+            del relationship["id"]
+
+        subject = relationship["subject"]
+        object_ = relationship["object"]
+
+        if "name" in subject:
+            subject["names"] = [subject["name"]]
+            del subject["name"]
+
+        if "name" in object_:
+            object_["names"] = [object_["name"]]
+            del object_["name"]
+
+
+    return annotation
+
 _ANNOTATION_NORMALIZER = defaultdict(lambda: lambda x: x)
 _ANNOTATION_NORMALIZER.update({
-    # "relationships": _normalize_relationship_annotation_,
     "region_descriptions": _normalize_region_description_annotation_,
     "objects": _normalize_object_annotation_,
-    "attributes": _normalize_attribute_annotation_
+    "attributes": _normalize_attribute_annotation_,
+    "relationships": _normalize_relationship_annotation_,
 })
 
 # ---- Visual Genome loading script ----
