@@ -255,14 +255,13 @@ def _normalize_relationship_annotation_(annotation: Dict[str, Any]) -> Dict[str,
         subject = relationship["subject"]
         object_ = relationship["object"]
 
-        if "name" in subject:
-            subject["names"] = [subject["name"]]
-            del subject["name"]
+        for obj in [subject, object_]:
+            if "name" in obj:
+                obj["names"] = [obj["name"]]
+                del obj["name"]
 
-        if "name" in object_:
-            object_["names"] = [object_["name"]]
-            del object_["name"]
-
+            if "synsets" not in obj:
+                obj["synsets"] = None
 
     return annotation
 
