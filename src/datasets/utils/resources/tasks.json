@@ -80,9 +80,6 @@
             "closed-domain-qa"
         ]
     },
-    "reinforcement-learning": {
-        "type": "rl"
-    },
     "sentence-similarity": {
         "type": "nlp"
     },
