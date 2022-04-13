@@ -18,10 +18,11 @@ import json
 import os
 import re
 from collections import defaultdict
-from typing import Dict, Any, Callable, Optional
+from typing import Any, Callable, Dict, Optional
 from urllib.parse import urlparse
 
 import datasets
+
 
 logger = datasets.logging.get_logger(__name__)
 
@@ -55,7 +56,7 @@ _LATEST_VERSIONS = {
     "attributes": "1.2.0",
     "relationships": "1.4.0",
     "question_answers": "1.2.0",
-    "image_metadata": "1.2.0"
+    "image_metadata": "1.2.0",
 }
 
 # ---- Features ----
@@ -73,7 +74,7 @@ _BASE_SYNTET_FEATURES = {
     "synset_name": datasets.Value("string"),
     "entity_name": datasets.Value("string"),
     "entity_idx_start": datasets.Value("int32"),
-    "entity_idx_end": datasets.Value("int32")
+    "entity_idx_end": datasets.Value("int32"),
 }
 
 _BASE_OBJECT_FEATURES = {
@@ -83,7 +84,7 @@ _BASE_OBJECT_FEATURES = {
     "w": datasets.Value("int32"),
     "h": datasets.Value("int32"),
     "names": [datasets.Value("string")],
-    "synsets": [datasets.Value("string")]
+    "synsets": [datasets.Value("string")],
 }
 
 _BASE_QA_OBJECT_FEATURES = {
@@ -93,7 +94,7 @@ _BASE_QA_OBJECT_FEATURES = {
     "w": datasets.Value("int32"),
     "h": datasets.Value("int32"),
     "names": [datasets.Value("string")],
-    "synsets": [datasets.Value("string")]
+    "synsets": [datasets.Value("string")],
 }
 
 _BASE_QA_OBJECT = {
@@ -120,43 +121,41 @@ _BASE_RELATIONSHIP_FEATURES = {
     "predicate": datasets.Value("string"),
     "synsets": datasets.Value("string"),
     "subject": _BASE_OBJECT_FEATURES,
-    "object": _BASE_OBJECT_FEATURES
+    "object": _BASE_OBJECT_FEATURES,
 }
 
 _NAME_VERSION_TO_ANNOTATION_FEATURES = {
     "region_descriptions": {
         "1.2.0": {"regions": [_BASE_REGION_FEATURES]},
-        "1.0.0": {"regions": [_BASE_REGION_FEATURES]}
+        "1.0.0": {"regions": [_BASE_REGION_FEATURES]},
     },
     "objects": {
         "1.4.0": {"objects": [{**_BASE_OBJECT_FEATURES, "merged_object_ids": [datasets.Value("int32")]}]},
         "1.2.0": {"objects": [_BASE_OBJECT_FEATURES]},
-        "1.0.0": {"objects": [_BASE_OBJECT_FEATURES]}
+        "1.0.0": {"objects": [_BASE_OBJECT_FEATURES]},
     },
     "attributes": {
-        "1.2.0": {
-            "attributes": [{**_BASE_OBJECT_FEATURES, "attributes": [datasets.Value("string")]}]
-        },
-        "1.0.0": {
-            "attributes": [{**_BASE_OBJECT_FEATURES, "attributes": [datasets.Value("string")]}]
-        }
+        "1.2.0": {"attributes": [{**_BASE_OBJECT_FEATURES, "attributes": [datasets.Value("string")]}]},
+        "1.0.0": {"attributes": [{**_BASE_OBJECT_FEATURES, "attributes": [datasets.Value("string")]}]},
     },
     "relationships": {
-        "1.4.0": {"relationships": [{
-            **_BASE_RELATIONSHIP_FEATURES,
-            "subject": {**_BASE_OBJECT_FEATURES, "merged_object_ids": [datasets.Value("int32")]},
-            "object": {**_BASE_OBJECT_FEATURES, "merged_object_ids": [datasets.Value("int32")]}
-        }]},
+        "1.4.0": {
+            "relationships": [
+                {
+                    **_BASE_RELATIONSHIP_FEATURES,
+                    "subject": {**_BASE_OBJECT_FEATURES, "merged_object_ids": [datasets.Value("int32")]},
+                    "object": {**_BASE_OBJECT_FEATURES, "merged_object_ids": [datasets.Value("int32")]},
+                }
+            ]
+        },
         "1.2.0": {"relationships": [_BASE_RELATIONSHIP_FEATURES]},
-        "1.0.0": {"relationships": [_BASE_RELATIONSHIP_FEATURES]}
+        "1.0.0": {"relationships": [_BASE_RELATIONSHIP_FEATURES]},
     },
-    "question_answers": {
-        "1.2.0": {"qas": [_BASE_QA_OBJECT]},
-        "1.0.0": {"qas": [_BASE_QA_OBJECT]}
-    }
+    "question_answers": {"1.2.0": {"qas": [_BASE_QA_OBJECT]}, "1.0.0": {"qas": [_BASE_QA_OBJECT]}},
 }
 
 # ----- Helpers -----
+
 
 def _get_decompressed_filename_from_url(url: str) -> str:
     parsed_url = urlparse(url)
@@ -189,6 +188,7 @@ def _get_local_image_path(img_url: str, folder_local_paths: Dict[str, str]) -> s
 
 _BASE_ANNOTATION_URL = "https://visualgenome.org/static/data/dataset"
 
+
 def _normalize_region_description_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
     """Normalizes region descriptions annotation in-place"""
     # Some attributes annotations don't have an attribute field
@@ -204,6 +204,7 @@ def _normalize_region_description_annotation_(annotation: Dict[str, Any]) -> Dic
             del region["image"]
 
     return annotation
+
 
 def _normalize_object_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
     """Normalizes object annotation in-place"""
@@ -245,6 +246,7 @@ def _normalize_attribute_annotation_(annotation: Dict[str, Any]) -> Dict[str, An
 
     return annotation
 
+
 def _normalize_relationship_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
     """Normalizes relationship annotation in-place"""
     # For some reason relationships objects have a single name instead of a list of names.
@@ -275,6 +277,7 @@ def _normalize_relationship_annotation_(annotation: Dict[str, Any]) -> Dict[str,
 
     return annotation
 
+
 def _normalize_image_metadata_(image_metadata: Dict[str, Any]) -> Dict[str, Any]:
     """Normalizes image metadata in-place"""
     if "id" in image_metadata:
@@ -282,37 +285,33 @@ def _normalize_image_metadata_(image_metadata: Dict[str, Any]) -> Dict[str, Any]
         del image_metadata["id"]
     return image_metadata
 
+
 _ANNOTATION_NORMALIZER = defaultdict(lambda: lambda x: x)
-_ANNOTATION_NORMALIZER.update({
-    "region_descriptions": _normalize_region_description_annotation_,
-    "objects": _normalize_object_annotation_,
-    "attributes": _normalize_attribute_annotation_,
-    "relationships": _normalize_relationship_annotation_,
-})
+_ANNOTATION_NORMALIZER.update(
+    {
+        "region_descriptions": _normalize_region_description_annotation_,
+        "objects": _normalize_object_annotation_,
+        "attributes": _normalize_attribute_annotation_,
+        "relationships": _normalize_relationship_annotation_,
+    }
+)
 
 # ---- Visual Genome loading script ----
+
 
 class VisualGenomeConfig(datasets.BuilderConfig):
     """BuilderConfig for Visual Genome."""
 
-    def __init__(
-        self,
-        name: str,
-        version: Optional[str] = None,
-        with_image: bool = True,
-        **kwargs
-    ):
+    def __init__(self, name: str, version: Optional[str] = None, with_image: bool = True, **kwargs):
         _version = _LATEST_VERSIONS[name] if version is None else version
         _name = f"{name}_v{_version}"
-        super(VisualGenomeConfig, self).__init__(
-            version=datasets.Version(_version),
-            name=_name,
-            **kwargs
-        )
+        super(VisualGenomeConfig, self).__init__(version=datasets.Version(_version), name=_name, **kwargs)
         self._name_without_version = name
-        self.annotations_features = _NAME_VERSION_TO_ANNOTATION_FEATURES[self._name_without_version][self.version.version_str]
+        self.annotations_features = _NAME_VERSION_TO_ANNOTATION_FEATURES[self._name_without_version][
+            self.version.version_str
+        ]
         self.with_image = with_image
-        
+
     @property
     def annotations_url(self):
         if self.version.match(_LATEST_VERSIONS[self._name_without_version]):
@@ -327,16 +326,20 @@ class VisualGenomeConfig(datasets.BuilderConfig):
     @property
     def image_metadata_url(self):
         if not self.version.match(_LATEST_VERSIONS["image_metadata"]):
-            logger.warning(f"Latest image metadata version is {_LATEST_VERSIONS['image_metadata']}. Trying to generate a dataset of version: {self.version}. Please double check that image data are unchanged between the two versions.")
+            logger.warning(
+                f"Latest image metadata version is {_LATEST_VERSIONS['image_metadata']}. Trying to generate a dataset of version: {self.version}. Please double check that image data are unchanged between the two versions."
+            )
         return f"{_BASE_ANNOTATION_URL}/image_data.json.zip"
 
     @property
     def features(self):
-        return datasets.Features({
-            **({"image": datasets.Image()} if self.with_image else {}),
-            **_BASE_IMAGE_METADATA_FEATURES,
-            **self.annotations_features
-        })
+        return datasets.Features(
+            {
+                **({"image": datasets.Image()} if self.with_image else {}),
+                **_BASE_IMAGE_METADATA_FEATURES,
+                **self.annotations_features,
+            }
+        )
 
 
 class VisualGenome(datasets.GeneratorBasedBuilder):
@@ -344,23 +347,14 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIG_CLASS = VisualGenomeConfig
     BUILDER_CONFIGS = [
-        *[
-            VisualGenomeConfig(name="region_descriptions", version=version)
-            for version in ["1.0.0", "1.2.0"]
-        ],
-        *[
-            VisualGenomeConfig(name="question_answers", version=version)
-            for version in ["1.0.0", "1.2.0"]
-        ],
+        *[VisualGenomeConfig(name="region_descriptions", version=version) for version in ["1.0.0", "1.2.0"]],
+        *[VisualGenomeConfig(name="question_answers", version=version) for version in ["1.0.0", "1.2.0"]],
         *[
             VisualGenomeConfig(name="objects", version=version)
             # TODO: add support for 1.4.0
             for version in ["1.0.0", "1.2.0"]
         ],
-        *[
-            VisualGenomeConfig(name="attributes", version=version)
-            for version in ["1.0.0", "1.2.0"]
-        ],
+        *[VisualGenomeConfig(name="attributes", version=version) for version in ["1.0.0", "1.2.0"]],
         *[
             VisualGenomeConfig(name="relationships", version=version)
             # TODO: add support for 1.4.0
@@ -375,22 +369,20 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-            version=self.config.version
+            version=self.config.version,
         )
 
     def _split_generators(self, dl_manager):
         # Download image meta datas.
         image_metadatas_dir = dl_manager.download_and_extract(self.config.image_metadata_url)
         image_metadatas_file = os.path.join(
-            image_metadatas_dir,
-            _get_decompressed_filename_from_url(self.config.image_metadata_url)
+            image_metadatas_dir, _get_decompressed_filename_from_url(self.config.image_metadata_url)
         )
 
         # Download annotations
         annotations_dir = dl_manager.download_and_extract(self.config.annotations_url)
         annotations_file = os.path.join(
-            annotations_dir,
-            _get_decompressed_filename_from_url(self.config.annotations_url)
+            annotations_dir, _get_decompressed_filename_from_url(self.config.annotations_url)
         )
 
         # Optionally download images
@@ -421,7 +413,7 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
         image_folder_local_paths: Optional[Dict[str, str]],
         image_metadatas_file: str,
         annotations_file: str,
-        annotation_normalizer_: Callable[[Dict[str,Any]], Dict[str,Any]]
+        annotation_normalizer_: Callable[[Dict[str, Any]], Dict[str, Any]],
     ):
         with open(annotations_file, "r", encoding="utf-8") as fi:
             annotations = json.load(fi)
@@ -437,24 +429,28 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
             # Normalize image_id across all annotations
             if "id" in annotation:
                 # annotation["id"] corresponds to image_metadata["image_id"]
-                assert image_metadata["image_id"] == annotation[
-                    "id"], f"Annotations doesn't match with image metadataset. Got image_metadata['image_id']: {image_metadata['image_id']} and annotations['id']: {annotation['id']}"
+                assert (
+                    image_metadata["image_id"] == annotation["id"]
+                ), f"Annotations doesn't match with image metadataset. Got image_metadata['image_id']: {image_metadata['image_id']} and annotations['id']: {annotation['id']}"
                 del annotation["id"]
             else:
                 assert "image_id" in annotation
-                assert image_metadata["image_id"] == annotation[
-                    "image_id"], f"Annotations doesn't match with image metadataset. Got image_metadata['image_id']: {image_metadata['image_id']} and annotations['image_id']: {annotation['image_id']}"
+                assert (
+                    image_metadata["image_id"] == annotation["image_id"]
+                ), f"Annotations doesn't match with image metadataset. Got image_metadata['image_id']: {image_metadata['image_id']} and annotations['image_id']: {annotation['image_id']}"
 
             # Normalize image_id across all annotations
             if "image_url" in annotation:
                 # annotation["image_url"] corresponds to image_metadata["url"]
-                assert image_metadata["url"] == annotation["image_url"], \
-                    f"Annotations doesn't match with image metadataset. Got image_metadata['url']: {image_metadata['url']} and annotations['image_url']: {annotation['image_url']}"
+                assert (
+                    image_metadata["url"] == annotation["image_url"]
+                ), f"Annotations doesn't match with image metadataset. Got image_metadata['url']: {image_metadata['url']} and annotations['image_url']: {annotation['image_url']}"
                 del annotation["image_url"]
             elif "url" in annotation:
                 # annotation["url"] corresponds to image_metadata["url"]
-                assert image_metadata["url"] == annotation["url"], \
-                    f"Annotations doesn't match with image metadataset. Got image_metadata['url']: {image_metadata['url']} and annotations['url']: {annotation['url']}"
+                assert (
+                    image_metadata["url"] == annotation["url"]
+                ), f"Annotations doesn't match with image metadataset. Got image_metadata['url']: {image_metadata['url']} and annotations['url']: {annotation['url']}"
 
             # in-place operation to normalize annotations
             annotation_normalizer_(annotation)
@@ -466,8 +462,4 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
             else:
                 image_dict = {}
 
-            yield idx, {
-                **image_dict,
-                **image_metadata,
-                **annotation
-            }
+            yield idx, {**image_dict, **image_metadata, **annotation}
