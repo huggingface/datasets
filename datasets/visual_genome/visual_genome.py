@@ -249,7 +249,10 @@ class VisualGenomeConfig(datasets.BuilderConfig):
             return f"{_BASE_ANNOTATION_URL}/{self._name_without_version}.json.zip"
 
         major, minor = self.version.major, self.version.minor
-        return f"{_BASE_ANNOTATION_URL}/{self._name_without_version}_v{major}_{minor}.json.zip"
+        if minor == 0:
+            return f"{_BASE_ANNOTATION_URL}/{self._name_without_version}_v{major}.json.zip"
+        else:
+            return f"{_BASE_ANNOTATION_URL}/{self._name_without_version}_v{major}_{minor}.json.zip"
 
     @property
     def features(self):
