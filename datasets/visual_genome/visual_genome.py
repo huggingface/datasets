@@ -180,7 +180,7 @@ def _get_local_image_path(img_url: str, folder_local_paths: Dict[str, str]) -> s
       Given `https://cs.stanford.edu/people/rak248/VG_100K_2/1.jpg` as an image url, this method returns the local path for that image.
     """
     matches = re.fullmatch(r"^https://cs.stanford.edu/people/rak248/(VG_100K(?:_2)?)/([0-9]+\.jpg)$", img_url)
-    assert matches is not None, matches
+    assert matches is not None, f"Got img_url: {img_url}, matched: {matches}"
     folder, filename = matches.group(1), matches.group(2)
     return os.path.join(folder_local_paths[folder], filename)
 
