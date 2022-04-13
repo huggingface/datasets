@@ -1181,7 +1181,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @property
     def data(self) -> Table:
         """The Apache Arrow table backing the dataset.
-        
+
         Example:
 
         ```py
@@ -1199,7 +1199,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @property
     def cache_files(self) -> List[dict]:
         """The cache files containing the Apache Arrow table backing the dataset.
-        
+
         Example:
 
         ```py
@@ -1215,7 +1215,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @property
     def num_columns(self) -> int:
         """Number of columns in the dataset.
-        
+
         Example:
 
         ```py
@@ -1228,7 +1228,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @property
     def num_rows(self) -> int:
         """Number of rows in the dataset (same as :meth:`Dataset.__len__`).
-        
+
         Example:
 
         ```py
@@ -1243,7 +1243,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @property
     def column_names(self) -> List[str]:
         """Names of the columns in the dataset.
-        
+
         Example:
 
         ```py
@@ -1256,7 +1256,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @property
     def shape(self) -> Tuple[int, int]:
         """Shape of the dataset (number of columns, number of rows).
-        
+
         Example:
 
         ```py
@@ -1688,7 +1688,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     def __len__(self):
         """Number of rows in the dataset.
-        
+
         Example:
 
         ```py
