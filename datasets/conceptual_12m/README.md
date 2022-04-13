@@ -125,6 +125,8 @@ Each instance represents a single image with a caption:
 
 ### Data Splits
 
+There is only training data, with a total of 12423374 rows
+
 ## Dataset Creation
 
 ### Curation Rationale
