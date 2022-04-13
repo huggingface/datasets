@@ -48,25 +48,17 @@ task_ids:
 - [Table of Contents](#table-of-contents)
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Supported Tasks](#supported-tasks)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
   - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
-  - [Curation Rationale](#curation-rationale)
-  - [Source Data](#source-data)
-  - [Annotations](#annotations)
-  - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Impact of Dataset](#social-impact-of-dataset)
-  - [Discussion of Biases](#discussion-of-biases)
-  - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
-  - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
-  - [Citation Inform ation](#citation-information)
+  - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
 ## Dataset Description
@@ -80,7 +72,7 @@ task_ids:
 
 The Beyond the Imitation Game Benchmark (BIG-bench) is a collaborative benchmark intended to probe large language models and extrapolate their future capabilities. Tasks included in BIG-bench are summarized by keyword [here](https://github.com/google/BIG-bench/blob/main/bigbench/benchmark_tasks/keywords_to_tasks.md), and by task name [here](https://github.com/google/BIG-bench/blob/main/bigbench/benchmark_tasks/README.md). A paper introducing the benchmark, including evaluation results on large language models, is currently in preparation.
 
-### Supported Tasks and Leaderboards
+### Supported Tasks
 
 BIG-Bench consists of both json and programmatic tasks.
 This implementation in HuggingFace datasets implements
