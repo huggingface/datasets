@@ -50,11 +50,9 @@ _BASE_IMAGE_METADATA_URL = "https://visualgenome.org/static/data/dataset/image_d
 
 _LATEST_VERSIONS = {
     "region_descriptions": "1.2.0",
-    # TODO: integrate v1.4
-    "objects": "1.2.0",
+    "objects": "1.4.0",
     "attributes": "1.2.0",
-    # TODO: integrate v1.4
-    "relationships": "1.2.0",
+    "relationships": "1.4.0",
     "question_answers": "1.2.0"
 }
 
@@ -69,14 +67,14 @@ _BASE_FEATURES = {
     "flickr_id": datasets.Value("int64"),
 }
 
-_SYNTET_FEATURES = {
+_BASE_SYNTET_FEATURES = {
     "synset_name": datasets.Value("string"),
     "entity_name": datasets.Value("string"),
     "entity_idx_start": datasets.Value("int32"),
     "entity_idx_end": datasets.Value("int32")
 }
 
-_OBJECT_FEATURES = {
+_BASE_OBJECT_FEATURES = {
     "object_id": datasets.Value("int32"),
     "x": datasets.Value("int32"),
     "y": datasets.Value("int32"),
@@ -86,43 +84,64 @@ _OBJECT_FEATURES = {
     "synsets": datasets.Sequence(feature=datasets.Value("string"))
 }
 
-_NAME_TO_ANNOTATION_FEATURES = {
+_BASE_QA_OBJECT_FEATURES = {
+    "object_id": datasets.Value("int32"),
+    "x": datasets.Value("int32"),
+    "y": datasets.Value("int32"),
+    "w": datasets.Value("int32"),
+    "h": datasets.Value("int32"),
+    "name": datasets.Value("string"),
+    "synsets": datasets.Sequence(feature=datasets.Value("string"))
+}
+
+_BASE_REGION_FEATURES = {
+    "region_id": datasets.Value("int32"),
+    "image_id": datasets.Value("int32"),
+    "phrase": datasets.Value("string"),
+    "x": datasets.Value("int32"),
+    "y": datasets.Value("int32"),
+    "width": datasets.Value("int32"),
+    "height": datasets.Value("int32"),
+}
+
+_BASE_RELATIONSHIP_FEATURES = {
+    "relationship_id": datasets.Value("int32"),
+    "predicate": datasets.Value("string"),
+    "synsets": datasets.Value("string"),
+    "subject": _BASE_OBJECT_FEATURES,
+    "object": _BASE_OBJECT_FEATURES
+}
+
+_NAME_VERSION_TO_ANNOTATION_FEATURES = {
     "region_descriptions": {
-        "regions": [{
-            "region_id": datasets.Value("int32"),
-            "image_id": datasets.Value("int32"),
-            "phrase": datasets.Value("string"),
-            "x": datasets.Value("int32"),
-            "y": datasets.Value("int32"),
-            "width": datasets.Value("int32"),
-            "height": datasets.Value("int32"),
-        }]
+        "1.2.0": {"regions": [_BASE_REGION_FEATURES]},
+        "1.0.0": {"regions": [_BASE_REGION_FEATURES]}
     },
-    "objects": {"objects": [_OBJECT_FEATURES]},
+    "objects": {
+        "1.4.0": {"objects": [{**_BASE_OBJECT_FEATURES, "merged_objects_id": [datasets.Value("int32")]}]},
+        "1.2.0": {"objects": [_BASE_OBJECT_FEATURES]},
+        "1.0.0": {"objects": [_BASE_OBJECT_FEATURES]}
+    },
     "attributes": {
-                "attributes": [{
-                    **_OBJECT_FEATURES,
-                    "attributes": datasets.Sequence(feature=datasets.Value("string")),
-                }]
-            },
+        "1.2.0": {
+            "objects": [{**_BASE_OBJECT_FEATURES, "attributes": [datasets.Value("string")]}]
+        },
+        "1.0.0": {
+            "objects": [{**_BASE_OBJECT_FEATURES, "attributes": [datasets.Value("string")]}]
+        }
+    },
     "relationships": {
-                    "relationships": [{
-                        "relationship_id": datasets.Value("int32"),
-                        "predicate": datasets.Value("string"),
-                        "synsets": datasets.Value("string"),
-                        "subject": _OBJECT_FEATURES,
-                        "object": _OBJECT_FEATURES
-                    }]
-                },
+        "1.4.0": {"relationships": [{
+            **_BASE_RELATIONSHIP_FEATURES,
+            "subject": {**_BASE_OBJECT_FEATURES, "merged_objects_id": [datasets.Value("int32")]},
+            "object": {**_BASE_OBJECT_FEATURES, "merged_objects_id": [datasets.Value("int32")]}
+        }]},
+        "1.2.0": {"relationships": [_BASE_RELATIONSHIP_FEATURES]},
+        "1.0.0": {"relationships": [_BASE_RELATIONSHIP_FEATURES]}
+    },
     "question_answers": {
-        "qas": [{
-            "qa_id": datasets.Value("int32"),
-            "image_id": datasets.Value("int32"),
-            "question": datasets.Value("string"),
-            "answer": datasets.Value("string"),
-            "a_objects": [_OBJECT_FEATURES],
-            "q_objects": [_OBJECT_FEATURES],
-        }]
+        "1.2.0": {"qas": [_BASE_QA_OBJECT_FEATURES]},
+        "1.0.0": {"qas": [_BASE_QA_OBJECT_FEATURES]}
     }
 }
 
@@ -159,19 +178,19 @@ def _get_local_image_path(img_url: str, folder_local_paths: Dict[str, str]) -> s
 
 _BASE_ANNOTATION_URL = "https://visualgenome.org/static/data/dataset"
 
-def _normalize_relationship_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
-    """Normalizes relationship annotation in-place"""
-    # For some reason relationships objects have a single name instead of a list of names.
-    for relationship in annotation["relationships"]:
-        subject = relationship["subject"]
-        object_ = relationship["object"]
-
-        subject["names"] = [subject["name"]]
-        del subject["name"]
-
-        object_["names"] = [object_["name"]]
-        del object_["name"]
-    return annotation
+# def _normalize_relationship_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
+#     """Normalizes relationship annotation in-place"""
+#     # For some reason relationships objects have a single name instead of a list of names.
+#     for relationship in annotation["relationships"]:
+#         subject = relationship["subject"]
+#         object_ = relationship["object"]
+#
+#         subject["names"] = [subject["name"]]
+#         del subject["name"]
+#
+#         object_["names"] = [object_["name"]]
+#         del object_["name"]
+#     return annotation
 
 def _normalize_attribute_annotation_(annotation: Dict[str, Any]) -> Dict[str, Any]:
     """Normalizes attributes annotation in-place"""
@@ -183,7 +202,7 @@ def _normalize_attribute_annotation_(annotation: Dict[str, Any]) -> Dict[str, An
 
 _ANNOTATION_NORMALIZER = defaultdict(lambda: lambda x: x)
 _ANNOTATION_NORMALIZER.update({
-    "relationships": _normalize_relationship_annotation_,
+    # "relationships": _normalize_relationship_annotation_,
     "attributes": _normalize_attribute_annotation_
 })
 
@@ -200,12 +219,14 @@ class VisualGenomeConfig(datasets.BuilderConfig):
         with_image: bool = True,
         **kwargs
     ):
+        _version = _LATEST_VERSIONS[name] if version is None else version
+        _name = f"{name}_v{_version}"
         super(VisualGenomeConfig, self).__init__(
-            version=_LATEST_VERSIONS[name] if version is None else version,
-            name=name,
+            version=_version,
+            name=_name,
             **kwargs
         )
-        self.annotations_features = _NAME_TO_ANNOTATION_FEATURES[self.name]
+        self.annotations_features = _NAME_VERSION_TO_ANNOTATION_FEATURES[self.name][self.version]
         self._annotations_url = annotations_url
         self.with_image = with_image
         
@@ -262,6 +283,7 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
+            version=self.config.version
         )
 
     def _split_generators(self, dl_manager):
