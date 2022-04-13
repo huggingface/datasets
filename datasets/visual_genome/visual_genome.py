@@ -223,7 +223,7 @@ class VisualGenomeConfig(datasets.BuilderConfig):
     def __init__(
         self,
         name: str,
-        version: Optional[datasets.Version] = None,
+        version: Optional[str] = None,
         annotations_url: Optional[str] = None,
         with_image: bool = True,
         **kwargs
@@ -236,7 +236,7 @@ class VisualGenomeConfig(datasets.BuilderConfig):
             **kwargs
         )
         self._name_without_version = name
-        self.annotations_features = _NAME_VERSION_TO_ANNOTATION_FEATURES[self._name_without_version][self.version]
+        self.annotations_features = _NAME_VERSION_TO_ANNOTATION_FEATURES[self._name_without_version][_version]
         self._annotations_url = annotations_url
         self.with_image = with_image
         
@@ -245,7 +245,7 @@ class VisualGenomeConfig(datasets.BuilderConfig):
         if self._annotations_url:
             return self._annotations_url
 
-        if self.version == _LATEST_VERSIONS[self._name_without_version]:
+        if self.version.match(_LATEST_VERSIONS[self._name_without_version]):
             return f"{_BASE_ANNOTATION_URL}/{self._name_without_version}.json.zip"
 
         major, minor = self.version.major, self.version.minor
@@ -266,40 +266,25 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = VisualGenomeConfig
     BUILDER_CONFIGS = [
         *[
-            VisualGenomeConfig(
-                name="region_descriptions",
-                version=datasets.Version(version)
-            )
+            VisualGenomeConfig(name="region_descriptions", version=version)
             for version in ["1.0.0", "1.2.0"]
         ],
         *[
-            VisualGenomeConfig(
-                name="question_answers",
-                version=datasets.Version(version)
-            )
+            VisualGenomeConfig(name="question_answers", version=version)
             for version in ["1.0.0", "1.2.0"]
         ],
         *[
-            VisualGenomeConfig(
-                name="objects",
-                version=datasets.Version(version)
-            )
+            VisualGenomeConfig(name="objects", version=version)
             # TODO: add support for 1.4.0
             for version in ["1.0.0", "1.2.0"]
         ],
         *[
-            VisualGenomeConfig(
-                name="attributes",
-                version=datasets.Version(version)
-            )
+            VisualGenomeConfig(name="attributes", version=version)
             for version in ["1.0.0", "1.2.0"]
         ],
         *[
 
-            VisualGenomeConfig(
-                name="relationships",
-                version=datasets.Version(version)
-            )
+            VisualGenomeConfig(name="relationships", version=version)
             # TODO: add support for 1.4.0
             for version in ["1.0.0", "1.2.0"]
         ],
