@@ -8,7 +8,7 @@ import pyarrow as pa
 import pytest
 
 from datasets.arrow_dataset import Dataset
-from datasets.features import ClassLabel, Features, Sequence, Value
+from datasets.features import ClassLabel, Features, Image, Sequence, Value
 from datasets.features.features import (
     _arrow_to_datasets_dtype,
     _cast_to_python_objects,
@@ -242,7 +242,7 @@ class FeaturesTest(TestCase):
 
         features = Features({"foo": Sequence({"bar": {"my_value": Value("int32")}})})
         assert_features_dicts_are_synced(features)
-        features["barfoo"] = Value("binary")
+        features["barfoo"] = Image()
         assert_features_dicts_are_synced(features)
         del features["barfoo"]
         assert_features_dicts_are_synced(features)
