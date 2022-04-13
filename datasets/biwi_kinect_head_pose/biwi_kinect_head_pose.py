@@ -176,7 +176,7 @@ class BiwiKinectHeadPose(datasets.GeneratorBasedBuilder):
 
     @staticmethod
     def _get_head_pose_information(path):
-        head_pose_files = sorted(glob.glob(os.path.join(path, *_pose.txt")))
+        head_pose_files = sorted(glob.glob(os.path.join(path, "*_pose.txt")))
 
         head_poses_info = []
 
