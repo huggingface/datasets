@@ -153,32 +153,26 @@ Each task was required to describe the data source and curation methods on the t
 
 ## Considerations for Using the Data
 
-### Social Impact of Dataset
+BIG-bench contains a wide range of tasks, some of which are sensitive and should be used with care.
 
-[More Information Needed]
+Some tasks are specifically designed to test biases and failures common to large language models, and so may elicit inappropriate or harmful responses.
+For a more thourough discussion see the [BIG-bench paper](in progress). 
 
-### Discussion of Biases
+To view tasks designed to probe pro-social behavior, including alignment, social, racial, gender, religious or political bias; toxicity; inclusion; and other issues please see tasks under the [pro-social behavior keywords](https://github.com/google/BIG-bench/blob/main/bigbench/benchmark_tasks/keywords_to_tasks.md#pro-social-behavior) on the BIG-bench repository.
 
-[More Information Needed]
-
-### Other Known Limitations
-
-[More Information Needed]
 
 ## Additional Information
 
-### Dataset Curators
-
-[More Information Needed]
+For a more thorough discussion of all aspects of BIG-bench including dataset creation and evaluations see the BIG-bench repository [https://github.com/google/BIG-bench](https://github.com/google/BIG-bench) and paper []
 
 ### Licensing Information
 
 [Apache License 2.0](https://github.com/google/BIG-bench/blob/main/LICENSE)
 
 ### Citation Information
-
-A paper is in progress. Until then, please cite the BIG-bench collaboration and the GitHub [https://github.com/google/BIG-bench](https://github.com/google/BIG-bench).
+TODO(andersjohanandreassen): Add bibtex citation block. 
 
 ### Contributions
+For a full list of contributors to the BIG-bench dataset, see the paper [].
 
-Thanks to [@andersjohanandreassen](https://github.com/andersjohanandreassen) for adding this dataset.
+Thanks to [@andersjohanandreassen](https://github.com/andersjohanandreassen) and [@ethansdyer](https://github.com/ethansdyer) for adding this dataset to HuggingFace.
