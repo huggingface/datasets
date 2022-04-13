@@ -226,7 +226,8 @@ class VisualGenomeConfig(datasets.BuilderConfig):
             name=_name,
             **kwargs
         )
-        self.annotations_features = _NAME_VERSION_TO_ANNOTATION_FEATURES[self.name][self.version]
+        self._name_without_version = name
+        self.annotations_features = _NAME_VERSION_TO_ANNOTATION_FEATURES[self._name_without_version][self.version]
         self._annotations_url = annotations_url
         self.with_image = with_image
         
@@ -235,11 +236,11 @@ class VisualGenomeConfig(datasets.BuilderConfig):
         if self._annotations_url:
             return self._annotations_url
 
-        if self.version == _LATEST_VERSIONS[self.name]:
-            return f"{_BASE_ANNOTATION_URL}/{self.name}.json.zip"
+        if self.version == _LATEST_VERSIONS[self._name_without_version]:
+            return f"{_BASE_ANNOTATION_URL}/{self._name_without_version}.json.zip"
 
         major, minor = self.version.major, self.version.minor
-        return f"{_BASE_ANNOTATION_URL}/{self.name}_v{major}_{minor}.json.zip"
+        return f"{_BASE_ANNOTATION_URL}/{self._name_without_version}_v{major}_{minor}.json.zip"
 
     @property
     def features(self):
@@ -263,16 +264,16 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
         ),
         VisualGenomeConfig(
             name="objects",
-            version=datasets.Version("1.2.0"),
-            annotations_url="https://visualgenome.org/static/data/dataset/objects_v1_2.json.zip"
+            # version=datasets.Version("1.2.0"),
+            # annotations_url="https://visualgenome.org/static/data/dataset/objects_v1_2.json.zip"
         ),
         VisualGenomeConfig(
             name="attributes",
         ),
         VisualGenomeConfig(
             name="relationships",
-            version=datasets.Version("1.2.0"),
-            annotations_url="https://visualgenome.org/static/data/dataset/relationships_v1_2.json.zip"
+            # version=datasets.Version("1.2.0"),
+            # annotations_url="https://visualgenome.org/static/data/dataset/relationships_v1_2.json.zip"
         ),
     ]
 
@@ -319,7 +320,7 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
                     "image_folder_local_paths": image_folder_local_paths,
                     "image_metadatas_file": image_metadatas_file,
                     "annotations_file": annotations_file,
-                    "annotation_normalizer_": _ANNOTATION_NORMALIZER[self.config.name],
+                    "annotation_normalizer_": _ANNOTATION_NORMALIZER[self.config._name_without_version],
                 },
             ),
         ]
