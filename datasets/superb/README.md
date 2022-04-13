@@ -19,15 +19,16 @@ source_datasets:
 - extended|other-speech_commands
 task_categories:
 - automatic-speech-recognition
+- audio-classification
 task_ids:
 - keyword-spotting
-- query-by-example-spoken-term-detection
+- audio-classification-other-query-by-example-spoken-term-detection
 - speaker-identification
-- automatic-speaker-verification
-- speaker-diarization
-- speaker-intent-classification
+- audio-classification-other-automatic-speaker-verification
+- audio-classification-other-speaker-diarization
+- audio-intent-classification
 - audio-slot-filling
-- speaker-emotion-recognition
+- audio-emotion-recognition
 ---
 
 # Dataset Card for SUPERB
