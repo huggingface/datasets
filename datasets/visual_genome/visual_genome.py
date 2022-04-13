@@ -127,7 +127,7 @@ _NAME_VERSION_TO_ANNOTATION_FEATURES = {
         "1.0.0": {"regions": [_BASE_REGION_FEATURES]}
     },
     "objects": {
-        "1.4.0": {"objects": [{**_BASE_OBJECT_FEATURES, "merged_objects_id": [datasets.Value("int32")]}]},
+        "1.4.0": {"objects": [{**_BASE_OBJECT_FEATURES, "merged_object_ids": [datasets.Value("int32")]}]},
         "1.2.0": {"objects": [_BASE_OBJECT_FEATURES]},
         "1.0.0": {"objects": [_BASE_OBJECT_FEATURES]}
     },
@@ -142,8 +142,8 @@ _NAME_VERSION_TO_ANNOTATION_FEATURES = {
     "relationships": {
         "1.4.0": {"relationships": [{
             **_BASE_RELATIONSHIP_FEATURES,
-            "subject": {**_BASE_OBJECT_FEATURES, "merged_objects_id": [datasets.Value("int32")]},
-            "object": {**_BASE_OBJECT_FEATURES, "merged_objects_id": [datasets.Value("int32")]}
+            "subject": {**_BASE_OBJECT_FEATURES, "merged_object_ids": [datasets.Value("int32")]},
+            "object": {**_BASE_OBJECT_FEATURES, "merged_object_ids": [datasets.Value("int32")]}
         }]},
         "1.2.0": {"relationships": [_BASE_RELATIONSHIP_FEATURES]},
         "1.0.0": {"relationships": [_BASE_RELATIONSHIP_FEATURES]}
