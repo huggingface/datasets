@@ -115,7 +115,13 @@ All of annotations use English as primary language.
 
 ### Data Instances
 
-#### region-descriptions
+When loading a specific configuration, users has to append a version dependent suffix:
+```python
+from datasets import load_dataset
+load_dataset("visual_genome", "region_description_v1.2.0")
+```
+
+#### region_descriptions
 
 An example of looks as follows.
 
@@ -175,7 +181,7 @@ An example of looks as follows.
 }
 ```
 
-#### objects-attributes
+#### attributes
 
 An example of looks as follows.
 
@@ -260,7 +266,7 @@ An example of looks as follows.
   }
 ]
 ```
-#### question-answering
+#### question_answers
 
 An example of looks as follows.
 
@@ -289,7 +295,13 @@ An example of looks as follows.
 
 ### Data Fields
 
-#### region-descriptions
+When loading a specific configuration, users has to append a version dependent suffix:
+```python
+from datasets import load_dataset
+load_dataset("visual_genome", "region_description_v1.2.0")
+```
+
+#### region_descriptions
 
 - `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
 - `image_id`: Unique numeric ID of the image.
@@ -324,7 +336,7 @@ An example of looks as follows.
   - `names`: List of names associated with the object. This field can hold multiple values in the sense the multiple names are considered as acceptable. For example: ['monitor', 'computer'] at https://cs.stanford.edu/people/rak248/VG_100K/3.jpg
   - `synsets`: List of `WordNet synsets`.
 
-#### objects-attributes
+#### attributes
 
 - `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
 - `image_id`: Unique numeric ID of the image.
@@ -359,7 +371,7 @@ An example of looks as follows.
   - `subject`: Object dataclass. See subsection on `objects`.
   - `object`: Object dataclass. See subsection on `objects`.
 
-#### question-answering
+#### question_answers
 
 - `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
 - `image_id`: Unique numeric ID of the image.

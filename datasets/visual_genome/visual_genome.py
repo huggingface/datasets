@@ -33,7 +33,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Visual Genome enable to model objects and relationshipt between objects.
+Visual Genome enable to model objects and relationships between objects.
 They collect dense annotations of objects, attributes, and relationships within each image.
 Specifically, the dataset contains over 108K images where each image has an average of 35 objects, 26 attributes, and 21 pairwise relationships between objects.
 """
@@ -323,7 +323,7 @@ class VisualGenomeConfig(datasets.BuilderConfig):
     @property
     def features(self):
         return datasets.Features({
-            **({"image": datasets.Image() if self.with_image else {}}),
+            **({"image": datasets.Image()} if self.with_image else {}),
             **_BASE_FEATURES,
             **self.annotations_features
         })
@@ -352,7 +352,6 @@ class VisualGenome(datasets.GeneratorBasedBuilder):
             for version in ["1.0.0", "1.2.0"]
         ],
         *[
-
             VisualGenomeConfig(name="relationships", version=version)
             # TODO: add support for 1.4.0
             for version in ["1.0.0", "1.2.0"]
