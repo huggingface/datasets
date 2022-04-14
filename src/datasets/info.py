@@ -179,20 +179,22 @@ class DatasetInfo:
     def _license_path(self, dataset_info_dir):
         return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)
 
-    def write_to_directory(self, dataset_info_dir):
-        """Write `DatasetInfo` as JSON to `dataset_info_dir`.
+    def write_to_directory(self, dataset_info_dir, pretty_print=False):
+        """Write `DatasetInfo` and license (if present) as JSON files to `dataset_info_dir`.
 
-        Also save the license separately in LICENCE.
+        Args:
+            dataset_info_dir (str): Destination directory.
+            pretty_print (bool, default ``False``): If True, the JSON will be pretty-printed with the indent level of 4.
         """
         with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
-            self._dump_info(f)
+            self._dump_info(f, pretty_print=pretty_print)
+        if self.license:
+            with open(os.path.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
+                self._dump_license(f)
 
-        with open(os.path.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
-            self._dump_license(f)
-
-    def _dump_info(self, file):
+    def _dump_info(self, file, pretty_print=False):
         """Dump info in `file` file-like object open in bytes mode (to support remote files)"""
-        file.write(json.dumps(asdict(self)).encode("utf-8"))
+        file.write(json.dumps(asdict(self), indent=4 if pretty_print else None).encode("utf-8"))
 
     def _dump_license(self, file):
         """Dump license in `file` file-like object open in bytes mode (to support remote files)"""
@@ -269,7 +271,7 @@ class DatasetInfo:
 
 
 class DatasetInfosDict(Dict[str, DatasetInfo]):
-    def write_to_directory(self, dataset_infos_dir, overwrite=False):
+    def write_to_directory(self, dataset_infos_dir, overwrite=False, pretty_print=False):
         total_dataset_infos = {}
         dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)
         if os.path.exists(dataset_infos_path) and not overwrite:
@@ -279,7 +281,11 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
             logger.info(f"Writing new Dataset Infos in {dataset_infos_dir}")
         total_dataset_infos.update(self)
         with open(dataset_infos_path, "w", encoding="utf-8") as f:
-            json.dump({config_name: asdict(dset_info) for config_name, dset_info in total_dataset_infos.items()}, f)
+            json.dump(
+                {config_name: asdict(dset_info) for config_name, dset_info in total_dataset_infos.items()},
+                f,
+                indent=4 if pretty_print else None,
+            )
 
     @classmethod
     def from_directory(cls, dataset_infos_dir):
@@ -328,15 +334,17 @@ class MetricInfo:
                         f"Here {key} is an instance of {value.__class__.__name__}"
                     )
 
-    def write_to_directory(self, metric_info_dir):
+    def write_to_directory(self, metric_info_dir, pretty_print=False):
         """Write `MetricInfo` as JSON to `metric_info_dir`.
         Also save the license separately in LICENCE.
+        If `pretty_print` is True, the JSON will be pretty-printed with the indent level of 4.
         """
         with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "w", encoding="utf-8") as f:
-            json.dump(asdict(self), f)
+            json.dump(asdict(self), f, indent=4 if pretty_print else None)
 
-        with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
-            f.write(self.license)
+        if self.license:
+            with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
+                f.write(self.license)
 
     @classmethod
     def from_directory(cls, metric_info_dir) -> "MetricInfo":

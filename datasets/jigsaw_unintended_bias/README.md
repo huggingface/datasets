@@ -15,9 +15,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
-- text-scoring-other-toxicity-prediction
+- text-scoring
+- text-classification-other-toxicity-prediction
 ---
 
 # Dataset Card for Jigsaw Unintended Bias in Toxicity Classification

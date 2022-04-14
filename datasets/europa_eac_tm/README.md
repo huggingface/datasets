@@ -39,9 +39,8 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
 pretty_name: Europa Education and Culture Translation Memory (EAC-TM)
 ---
@@ -88,7 +87,7 @@ To load a language pair that is not part of the config, just specify the languag
 
 ### Supported Tasks and Leaderboards
 
-- `conditional-text-generation`: the dataset can be used to train a model for `machine-translation`. Machine translation models are usually evaluated using metrics such as [BLEU](https://huggingface.co/metrics/bleu), [ROUGE](https://huggingface.co/metrics/rouge) or [SacreBLEU](https://huggingface.co/metrics/sacrebleu). You can use the [mBART](https://huggingface.co/facebook/mbart-large-cc25) model for this task. This task has active leaderboards which can be found at [https://paperswithcode.com/task/machine-translation](https://paperswithcode.com/task/machine-translation), which usually rank models based on [BLEU score](https://huggingface.co/metrics/bleu).
+- `text2text-generation`: the dataset can be used to train a model for `machine-translation`. Machine translation models are usually evaluated using metrics such as [BLEU](https://huggingface.co/metrics/bleu), [ROUGE](https://huggingface.co/metrics/rouge) or [SacreBLEU](https://huggingface.co/metrics/sacrebleu). You can use the [mBART](https://huggingface.co/facebook/mbart-large-cc25) model for this task. This task has active leaderboards which can be found at [https://paperswithcode.com/task/machine-translation](https://paperswithcode.com/task/machine-translation), which usually rank models based on [BLEU score](https://huggingface.co/metrics/bleu).
 
 ### Languages
 

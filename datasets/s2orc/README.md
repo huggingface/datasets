@@ -15,10 +15,12 @@ source_datasets:
 - original
 task_categories:
 - other
-- sequence-modeling
+- text-generation
+- fill-mask
 - text-classification
 task_ids:
 - language-modeling
+- masked-language-modeling
 - multi-class-classification
 - multi-label-classification
 - other-other-citation-recommendation

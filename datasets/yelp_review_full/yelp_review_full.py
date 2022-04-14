@@ -16,7 +16,6 @@
 
 
 import csv
-import os
 
 import datasets
 from datasets.tasks import TextClassification
@@ -44,7 +43,7 @@ _HOMEPAGE = "https://www.yelp.com/dataset"
 _LICENSE = "https://s3-media3.fl.yelpcdn.com/assets/srv0/engineering_pages/bea5c1e92bf3/assets/vendor/yelp-dataset-agreement.pdf"
 
 _URLs = {
-    "yelp_review_full": "https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbZlU4dXhHTFhZQU0",
+    "yelp_review_full": "https://s3.amazonaws.com/fast-ai-nlp/yelp_review_full_csv.tgz",
 }
 
 
@@ -99,28 +98,27 @@ class YelpReviewFull(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         my_urls = _URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        archive = dl_manager.download(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "yelp_review_full_csv", "train.csv"),
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": "yelp_review_full_csv/train.csv", "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(data_dir, "yelp_review_full_csv", "test.csv"), "split": "test"},
+                gen_kwargs={"filepath": "yelp_review_full_csv/test.csv", "files": dl_manager.iter_archive(archive)},
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath, files):
         """Yields examples."""
-
-        with open(filepath, encoding="utf-8") as f:
-            data = csv.reader(f, delimiter=",", quoting=csv.QUOTE_NONNUMERIC)
-            for id_, row in enumerate(data):
-                yield id_, {
-                    "text": row[1],
-                    "label": int(row[0]) - 1,
-                }
+        for path, f in files:
+            if path == filepath:
+                csvfile = (line.decode("utf-8") for line in f)
+                data = csv.reader(csvfile, delimiter=",", quoting=csv.QUOTE_NONNUMERIC)
+                for id_, row in enumerate(data):
+                    yield id_, {
+                        "text": row[1],
+                        "label": int(row[0]) - 1,
+                    }
+                break

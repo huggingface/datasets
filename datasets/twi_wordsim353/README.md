@@ -14,8 +14,9 @@ size_categories:
 - n<1K
 source_datasets: []
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
+- text-scoring
 - semantic-similarity-scoring
 paperswithcode_id: null
 pretty_name: Yorùbá Wordsim-353

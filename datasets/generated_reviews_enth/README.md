@@ -16,10 +16,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- transkation
 - text-classification
 task_ids:
-- machine-translation
 - multi-class-classification
 - semantic-similarity-classification
 paperswithcode_id: null

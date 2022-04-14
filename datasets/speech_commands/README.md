@@ -18,9 +18,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- speech-processing
+- audio-classification
 task_ids:
-- other-other-keyword-spotting
+- keyword-spotting
 ---
 
 # Dataset Card for SpeechCommands

@@ -15,8 +15,8 @@ source_datasets:
 - original
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
+- text-scoring
 - semantic-similarity-scoring
 - topic-classification
 paperswithcode_id: counter

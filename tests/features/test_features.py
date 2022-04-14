@@ -8,7 +8,7 @@ import pyarrow as pa
 import pytest
 
 from datasets.arrow_dataset import Dataset
-from datasets.features import ClassLabel, Features, Sequence, Value
+from datasets.features import ClassLabel, Features, Image, Sequence, Value
 from datasets.features.features import (
     _arrow_to_datasets_dtype,
     _cast_to_python_objects,
@@ -233,6 +233,30 @@ class FeaturesTest(TestCase):
         assert flattened_features == {"foo.bar": [{"my_value": Value("int32")}]}
         assert features == _features, "calling flatten shouldn't alter the current features"
 
+    def test_features_dicts_are_synced(self):
+        def assert_features_dicts_are_synced(features: Features):
+            assert (
+                hasattr(features, "_column_requires_decoding")
+                and features.keys() == features._column_requires_decoding.keys()
+            )
+
+        features = Features({"foo": Sequence({"bar": {"my_value": Value("int32")}})})
+        assert_features_dicts_are_synced(features)
+        features["barfoo"] = Image()
+        assert_features_dicts_are_synced(features)
+        del features["barfoo"]
+        assert_features_dicts_are_synced(features)
+        features.update({"foobar": Value("string")})
+        assert_features_dicts_are_synced(features)
+        features.pop("foobar")
+        assert_features_dicts_are_synced(features)
+        features.popitem()
+        assert_features_dicts_are_synced(features)
+        features.setdefault("xyz", Value("bool"))
+        assert_features_dicts_are_synced(features)
+        features.clear()
+        assert_features_dicts_are_synced(features)
+
 
 def test_classlabel_init(tmp_path_factory):
     names = ["negative", "positive"]
@@ -289,8 +313,9 @@ def test_class_label_to_and_from_dict(class_label_arg, tmp_path_factory):
     assert generated_class_label == class_label
 
 
-def test_encode_nested_example_sequence_with_none():
-    schema = Sequence(Value("int32"))
+@pytest.mark.parametrize("inner_type", [Value("int32"), {"subcolumn": Value("int32")}])
+def test_encode_nested_example_sequence_with_none(inner_type):
+    schema = Sequence(inner_type)
     obj = None
     result = encode_nested_example(schema, obj)
     assert result is None

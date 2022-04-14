@@ -20,9 +20,8 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: scb-mt-en-th-2020
 pretty_name: ScbMtEnth2020
 ---

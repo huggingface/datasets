@@ -15,7 +15,8 @@ source_datasets:
 - original
 task_categories:
 - other
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - other-other-relation-extraction
 - dialogue-modeling

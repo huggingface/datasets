@@ -11,7 +11,7 @@ A [`Dataset`] object is returned when you load an instance of a dataset. This ob
 
 ## Metadata
 
-The [`Dataset`] object contains a lot of useful information about your dataset. For example, call [`dataset.info`] to return a short description of the dataset, the authors, and even the dataset size. This will give you a quick snapshot of the datasets most important attributes.
+The [`Dataset`] object contains a lot of useful information about your dataset. For example, access [`DatasetInfo`] to return a short description of the dataset, the authors, and even the dataset size. This will give you a quick snapshot of the datasets most important attributes.
 
 ```py
 >>> dataset.info
@@ -28,7 +28,7 @@ DatasetInfo(
 )
 ```
 
-You can request specific attributes of the dataset, like `description`, `citation`, and `homepage`, by calling them directly. Take a look at [`datasets.DatasetInfo`] for a complete list of attributes you can return.
+You can request specific attributes of the dataset, like `description`, `citation`, and `homepage`, by calling them directly. Take a look at [`DatasetInfo`] for a complete list of attributes you can return.
 
 ```py
 >>> dataset.split
@@ -66,14 +66,14 @@ Return the number of rows and columns with the following standard attributes:
 3668
 ```
 
-List the columns names with [`datasets.Dataset.column_names`]:
+List the columns names with [`Dataset.column_names`]:
 
 ```py
 >>> dataset.column_names
 ['idx', 'label', 'sentence1', 'sentence2']
 ```
 
-Get detailed information about the columns with [`datasets.Dataset.features`]:
+Get detailed information about the columns with [`~datasets.Features`]:
 
 ```py
 >>> dataset.features
@@ -84,7 +84,7 @@ Get detailed information about the columns with [`datasets.Dataset.features`]:
 }
 ```
 
-Return even more specific information about a feature like [`datasets.ClassLabel`], by calling its parameters `num_classes` and `names`:
+Return even more specific information about a feature like [`ClassLabel`], by calling its parameters `num_classes` and `names`:
 
 ```py
 >>> dataset.features['label'].num_classes

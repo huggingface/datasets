@@ -14,9 +14,9 @@
 # limitations under the License.
 """CoNLL2012 shared task data based on OntoNotes 5.0"""
 
+import glob
 import os
 from collections import defaultdict
-from glob import glob
 from typing import DefaultDict, Iterator, List, Optional, Tuple
 
 import datasets
@@ -63,7 +63,7 @@ See also summaries from paperwithcode, [OntoNotes 5.0](https://paperswithcode.co
 For more detailed info of the dataset like annotation, tag set, etc., you can refer to the documents in the Mendeley repo mentioned above.
 """
 
-_URL = "https://md-datasets-cache-zipfiles-prod.s3.eu-west-1.amazonaws.com/zmycy7t9h9-1.zip"
+_URL = "https://data.mendeley.com/public-files/datasets/zmycy7t9h9/files/b078e1c4-f7a4-4427-be7f-9389967831ef/file_downloaded"
 
 
 class Conll2012Ontonotesv5Config(datasets.BuilderConfig):
@@ -153,9 +153,7 @@ class Conll2012Ontonotesv5(datasets.GeneratorBasedBuilder):
         lang = self.config.language
         conll_version = self.config.conll_version
         dl_dir = dl_manager.download_and_extract(_URL)
-        data_zip = glob(os.path.join(dl_dir, "**/conll-2012*"), recursive=True)[0]
-        ext_dir = dl_manager.extract(data_zip)
-        data_dir = os.path.join(ext_dir, f"conll-2012/{conll_version}/data")
+        data_dir = os.path.join(dl_dir, f"conll-2012/{conll_version}/data")
 
         return [
             datasets.SplitGenerator(
@@ -173,8 +171,7 @@ class Conll2012Ontonotesv5(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, conll_files_directory):
-        """Yields examples."""
-        conll_files = sorted(glob(os.path.join(conll_files_directory, "**/*gold_conll"), recursive=True))
+        conll_files = sorted(glob.glob(os.path.join(conll_files_directory, "**/*gold_conll"), recursive=True))
         for idx, conll_file in enumerate(conll_files):
             sentences = []
             for sent in Ontonotes().sentence_iterator(conll_file):

@@ -18,8 +18,7 @@
 
 
 import os
-
-import pandas as pd
+from pathlib import Path
 
 import datasets
 from datasets.tasks import AutomaticSpeechRecognition
@@ -47,7 +46,6 @@ More info on TIMIT dataset can be understood from the "README" which can be foun
 https://catalog.ldc.upenn.edu/docs/LDC93S1/readme.txt
 """
 
-_URL = "https://data.deepai.org/timit.zip"
 _HOMEPAGE = "https://catalog.ldc.upenn.edu/LDC93S1"
 
 
@@ -70,6 +68,15 @@ class TimitASR(datasets.GeneratorBasedBuilder):
     """TimitASR dataset."""
 
     BUILDER_CONFIGS = [TimitASRConfig(name="clean", description="'Clean' speech.")]
+
+    @property
+    def manual_download_instructions(self):
+        return (
+            "To use TIMIT you have to download it manually. "
+            "Please create an account and download the dataset from https://catalog.ldc.upenn.edu/LDC93S1 \n"
+            "Then extract all files in one folder and load the dataset with: "
+            "`datasets.load_dataset('timit_asr', data_dir='path/to/folder/folder_name')`"
+        )
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -102,46 +109,34 @@ class TimitASR(datasets.GeneratorBasedBuilder):
             supervised_keys=("file", "text"),
             homepage=_HOMEPAGE,
             citation=_CITATION,
-            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="text")],
         )
 
     def _split_generators(self, dl_manager):
-        archive_path = dl_manager.download_and_extract(_URL)
 
-        train_csv_path = os.path.join(archive_path, "train_data.csv")
-        test_csv_path = os.path.join(archive_path, "test_data.csv")
+        data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
+
+        if not os.path.exists(data_dir):
+            raise FileNotFoundError(
+                f"{data_dir} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('timit_asr', data_dir=...)` that includes files unzipped from the TIMIT zip. Manual download instructions: {self.manual_download_instructions}"
+            )
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_info_csv": train_csv_path}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"data_info_csv": test_csv_path}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"split": "train", "data_dir": data_dir}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"split": "test", "data_dir": data_dir}),
         ]
 
-    def _generate_examples(self, data_info_csv):
+    def _generate_examples(self, split, data_dir):
         """Generate examples from TIMIT archive_path based on the test/train csv information."""
-        # Extract the archive path
-        data_path = os.path.join(os.path.dirname(data_info_csv).strip(), "data")
-
-        # Read the data info to extract rows mentioning about non-converted audio only
-        data_info = pd.read_csv(open(data_info_csv, encoding="utf8"))
-        # making sure that the columns having no information about the file paths are removed
-        data_info.dropna(subset=["path_from_data_dir"], inplace=True)
-
-        # filter out only the required information for data preparation
-        data_info = data_info.loc[(data_info["is_audio"]) & (~data_info["is_converted_audio"])]
-
         # Iterating the contents of the data to extract the relevant information
-        for audio_idx in range(data_info.shape[0]):
-            audio_data = data_info.iloc[audio_idx]
-
-            # extract the path to audio
-            wav_path = os.path.join(data_path, *(audio_data["path_from_data_dir"].split("/")))
+        for wav_path in sorted(Path(data_dir).glob(f"**/{split.upper()}/**/*.WAV")):
 
             # extract transcript
-            with open(wav_path.replace(".WAV", ".TXT"), encoding="utf-8") as op:
+            with open(wav_path.with_suffix(".TXT"), encoding="utf-8") as op:
                 transcript = " ".join(op.readlines()[0].split()[2:])  # first two items are sample number
 
             # extract phonemes
-            with open(wav_path.replace(".WAV", ".PHN"), encoding="utf-8") as op:
+            with open(wav_path.with_suffix(".PHN"), encoding="utf-8") as op:
                 phonemes = [
                     {
                         "start": i.split(" ")[0],
@@ -152,7 +147,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
                 ]
 
             # extract words
-            with open(wav_path.replace(".WAV", ".WRD"), encoding="utf-8") as op:
+            with open(wav_path.with_suffix(".WRD"), encoding="utf-8") as op:
                 words = [
                     {
                         "start": i.split(" ")[0],
@@ -162,16 +157,21 @@ class TimitASR(datasets.GeneratorBasedBuilder):
                     for i in op.readlines()
                 ]
 
+            dialect_region = wav_path.parents[1].name
+            sentence_type = wav_path.name[0:2]
+            speaker_id = wav_path.parents[0].name[1:]
+            id_ = wav_path.stem
+
             example = {
-                "file": wav_path,
-                "audio": wav_path,
+                "file": str(wav_path),
+                "audio": str(wav_path),
                 "text": transcript,
                 "phonetic_detail": phonemes,
                 "word_detail": words,
-                "dialect_region": audio_data["dialect_region"],
-                "sentence_type": audio_data["filename"][0:2],
-                "speaker_id": audio_data["speaker_id"],
-                "id": audio_data["filename"].replace(".WAV", ""),
+                "dialect_region": dialect_region,
+                "sentence_type": sentence_type,
+                "speaker_id": speaker_id,
+                "id": id_,
             }
 
-            yield audio_idx, example
+            yield id_, example

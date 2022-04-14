@@ -33,9 +33,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- summarization-other-patent-summarization
 paperswithcode_id: bigpatent
 pretty_name: Big Patent
 ---

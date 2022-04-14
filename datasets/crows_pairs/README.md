@@ -14,9 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
-- text-scoring-other-bias-evaluation
+- text-scoring
+- text-classification-other-bias-evaluation
 paperswithcode_id: crows-pairs
 pretty_name: CrowS-Pairs
 ---

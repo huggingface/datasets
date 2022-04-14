@@ -18,8 +18,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
+- text-scoring
 - semantic-similarity-scoring
 paperswithcode_id: multinli
 pretty_name: Multi-Genre Natural Language Inference
