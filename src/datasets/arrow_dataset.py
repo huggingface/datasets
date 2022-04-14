@@ -330,8 +330,6 @@ class TensorflowDatasetMixin:
         the Dataset, and is suitable for passing to methods like model.fit() or model.predict().
 
         Args:
-            model (:obj:`tf.keras.Model`, optional): A Keras model object. Used to autodetect which columns to return.
-                Does nothing if `columns` is also passed.
             columns (:obj:`List[str]` or :obj:`str`, optional): Dataset column(s) to load in the tf.data.Dataset. It is acceptable
                 to include column names that are created by the `collate_fn` and that do not exist in the original
                 dataset.
