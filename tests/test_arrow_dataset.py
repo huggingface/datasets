@@ -2346,14 +2346,14 @@ class BaseDatasetTest(TestCase):
         tmp_dir = tempfile.TemporaryDirectory()
         with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
             tf_dataset = dset.to_tf_dataset(
-                columns="col_3", batch_size=4, shuffle=False, dummy_labels=False, collate_fn=tf_default_data_collator
+                columns="col_3", batch_size=4, shuffle=False, collate_fn=tf_default_data_collator
             )
             batch = next(iter(tf_dataset))
             self.assertEqual(batch.shape.as_list(), [4, 4])
             self.assertEqual(batch.dtype.name, "int64")
         with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
             tf_dataset = dset.to_tf_dataset(
-                columns="col_1", batch_size=4, shuffle=False, dummy_labels=False, collate_fn=tf_default_data_collator
+                columns="col_1", batch_size=4, shuffle=False, collate_fn=tf_default_data_collator
             )
             batch = next(iter(tf_dataset))
             self.assertEqual(batch.shape.as_list(), [4])
