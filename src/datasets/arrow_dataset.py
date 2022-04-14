@@ -28,7 +28,6 @@ from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import asdict
 from functools import partial, wraps
-from inspect import signature
 from io import BytesIO
 from math import ceil, floor
 from pathlib import Path
