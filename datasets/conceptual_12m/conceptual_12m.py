@@ -45,18 +45,8 @@ dataset.
 _URL = "https://storage.googleapis.com/conceptual_12m/cc12m.tsv"
 
 
-class Conceptual12MConfig(datasets.BuilderConfig):
-    """BuilderConfig for Conceptual 12M."""
-
-    def __init__(self):
-        super(Conceptual12MConfig, self).__init__()
-
-
 class Conceptual12M(datasets.GeneratorBasedBuilder):
     """Conceptual 12M dataset."""
-
-    BUILDER_CONFIG_CLASS = Conceptual12MConfig
-    BUILDER_CONFIGS = [Conceptual12MConfig()]
 
     def _info(self):
         features = datasets.Features({"image_url": datasets.Value("string"), "caption": datasets.Value("string")})
