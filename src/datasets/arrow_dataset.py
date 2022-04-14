@@ -904,6 +904,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> ds = Dataset.from_json('path/to/dataset.json')
+        ```
         """
         # Dynamic import to avoid circular dependency
         from .io.json import JsonDatasetReader
@@ -1185,6 +1186,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.data
         MemoryMappedTable
         text: string
@@ -1203,6 +1206,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.cache_files
         [{'filename': '/root/.cache/huggingface/datasets/rotten_tomatoes_movie_review/default/1.0.0/40d411e45a6ce3484deed7cc15b82a53dad9a72aafd9f86f8f227134bec5ca46/rotten_tomatoes_movie_review-validation.arrow'}]
         ```
@@ -1219,6 +1224,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.num_columns
         2
         ```
@@ -1232,6 +1239,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.num_rows
         1066
         ```
@@ -1247,6 +1256,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.column_names
         ['text', 'label']
         ```
@@ -1260,6 +1271,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.shape
         (1066, 2)
         ```
@@ -1282,6 +1295,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.unique('label')
         [1, 0]
         ```
@@ -1310,26 +1325,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("winograd_wsc", "wsc285", split="test")
+        >>> ds = load_dataset("boolq", split="validation")
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['0', '1'], id=None),
-        'options': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None),
-        'pronoun': Value(dtype='string', id=None),
-        'pronoun_loc': Value(dtype='int32', id=None),
-        'quote': Value(dtype='string', id=None),
-        'quote_loc': Value(dtype='int32', id=None),
-        'source': Value(dtype='string', id=None),
-        'text': Value(dtype='string', id=None)}
-        >>> ds = ds.class_encode_column('pronoun')
+        {'answer': Value(dtype='bool', id=None),
+         'passage': Value(dtype='string', id=None),
+         'question': Value(dtype='string', id=None)}
+        >>> ds = ds.class_encode_column('answer')
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['0', '1'], id=None),
-        'options': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None),
-        'pronoun': ClassLabel(num_classes=12, names=['He', 'It', 'She', 'They', 'he', 'her', 'him', 'his', 'it', 'she', 'them', 'they'], id=None),
-        'pronoun_loc': Value(dtype='int32', id=None),
-        'quote': Value(dtype='string', id=None),
-        'quote_loc': Value(dtype='int32', id=None),
-        'source': Value(dtype='string', id=None),
-        'text': Value(dtype='string', id=None)}
+        {'answer': ClassLabel(num_classes=2, names=['False', 'True'], id=None),
+         'passage': Value(dtype='string', id=None),
+         'question': Value(dtype='string', id=None)}
         ```
         """
         # Sanity checks
@@ -1456,12 +1461,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset, ClassLabel, Value
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.features
+        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+         'text': Value(dtype='large_string', id=None)}
         >>> new_features = ds.features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
         >>> ds = ds.cast(new_features)
+        >>> ds.features
         {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
-        'text': Value(dtype='large_string', id=None)}
+         'text': Value(dtype='large_string', id=None)}
         ```
         """
         if sorted(features) != sorted(self._data.column_names):
@@ -1503,7 +1514,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.features
+        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+         'text': Value(dtype='string', id=None)}
         >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
+        >>> ds.features
+        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+         'text': Value(dtype='string', id=None)}
         ```
         """
         if hasattr(feature, "cast_storage"):
@@ -1538,6 +1557,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.remove_columns('label')
         Dataset({
             features: ['text'],
@@ -1583,6 +1604,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.rename_column('label', 'label_new')
         Dataset({
             features: ['text', 'label_new'],
@@ -1640,6 +1663,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.rename_columns({'text': 'text_new', 'label': 'label_new'})
         Dataset({
             features: ['text_new', 'label_new'],
@@ -1692,6 +1717,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.__len__
         <bound method Dataset.__len__ of Dataset({
             features: ['text', 'label'],
@@ -1790,7 +1817,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> from transformers import AutoTokenizer
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+        >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
         >>> ds.set_format(type='numpy', columns=['text', 'label'])
+        >>> ds.format
+        {'columns': ['input_ids', 'token_type_ids', 'attention_mask', 'label'],
+         'format_kwargs': {},
+         'output_all_columns': False,
+         'type': 'numpy'}
         ```
         """
         format_kwargs.update(format_kwargs.pop("format_kwargs", {}))  # allow to use self.set_format(self.format)
@@ -1831,11 +1868,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> from transformers import AutoTokenizer
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+        >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
+        >>> ds.set_format(type='numpy', columns=['text', 'label'])
         >>> ds.format
-        {'columns': ['text', 'label', 'input_ids', 'token_type_ids', 'attention_mask'],
+        {'columns': ['text', 'label'],
          'format_kwargs': {},
          'output_all_columns': False,
-         'type': 'tensorflow'}
+         'type': 'numpy'}
         >>> ds.reset_format()
         >>> ds.format
         {'columns': ['text', 'label', 'input_ids', 'token_type_ids', 'attention_mask'],
@@ -1867,14 +1910,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
-        >>> from transformers import BertTokenizer
-        >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        >>> from datasets import load_dataset
+        >>> from transformers import AutoTokenizer
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
         >>> def encode(batch):
         ...     return tokenizer(batch['text'], padding=True, truncation=True, return_tensors='pt')
         >>> ds.set_transform(encode)
         >>> ds[0]
         {'attention_mask': tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                 1, 1]),
+         1, 1]),
          'input_ids': tensor([  101, 29353,  2135, 15102,  1996,  9428, 20868,  2890,  8663,  6895,
                  20470,  2571,  3663,  2090,  4603,  3017,  3008,  1998,  2037, 24211,
                  5637,  1998, 11690,  2336,  1012,   102]),
@@ -1910,6 +1955,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> from transformers import AutoTokenizer
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+        >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
+        >>> ds.set_format(type='numpy', columns=['text', 'label'])
+        >>> ds.format
+        {'columns': ['text', 'label'],
+         'format_kwargs': {},
+         'output_all_columns': False,
+         'type': 'numpy'}
         >>> ds = ds.with_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
         >>> ds.format
         {'columns': ['input_ids', 'token_type_ids', 'attention_mask', 'label'],
@@ -1946,11 +2002,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
-        >>> def transform(example):
-        ...     inputs = feature_extractor([x for x in example_batch['image']], return_tensors='pt')
-        ...     inputs['labels'] = example['labels]
-        ...     return inputs
-        >>> ds = ds.with_transform(transform)
+        >>> from datasets import load_dataset
+        >>> from transformers import AutoTokenizer
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+        >>> def encode(example):
+        ...     return tokenizer(example["text"], padding=True, truncation=True, return_tensors='pt')
+        >>> ds = ds.with_transform(encode)
+        >>> ds[0]
+        {'attention_mask': tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+         1, 1, 1, 1, 1]),
+         'input_ids': tensor([  101, 18027, 16310, 16001,  1103,  9321,   178, 11604,  7235,  6617,
+                 1742,  2165,  2820,  1206,  6588, 22572, 12937,  1811,  2153,  1105,
+                 1147, 12890, 19587,  6463,  1105, 15026,  1482,   119,   102]),
+         'token_type_ids': tensor([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                 0, 0, 0, 0, 0])}
+        ```
         """
         dataset = copy.deepcopy(self)
         dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
@@ -2048,8 +2115,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.cleanup_cache_files()
-        2
+        10
         ```
         """
         current_cache_files = [os.path.abspath(cache_file["filename"]) for cache_file in self.cache_files]
@@ -2164,14 +2233,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> def add_prefix(example):
-        ...     example["text"] = "Hello " + example["text"]
+        ...     example["text"] = "Review: " + example["text"]
         ...     return example
         >>> ds = ds.map(add_prefix)
         >>> ds[0:3]["text"]
-        ['Hello compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .',
-         'Hello the soundtrack alone is worth the price of admission .',
-         'Hello rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .']
+        ['Review: compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .',
+         'Review: the soundtrack alone is worth the price of admission .',
+         'Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .']
         ```
         """
         if keep_in_memory and cache_file_name is not None:
@@ -2739,6 +2810,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.filter(lambda x: x["label"] == 1)
         Dataset({
             features: ['text', 'label'],
@@ -2874,6 +2947,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.select(range(4))
         Dataset({
             features: ['text', 'label'],
@@ -2991,9 +3066,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation)
         >>> ds['label'][:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        >>> sorted_ds = ds.sort('label', reverse=True)
+        >>> sorted_ds = ds.sort('label')
         >>> sorted_ds['label'][:10]
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ```
@@ -3079,11 +3156,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation)
         >>> ds['label'][:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         >>> shuffled_ds = ds.shuffle(seed=42)
         >>> shuffled_ds['label'][:10]
         [1, 0, 1, 1, 0, 0, 0, 0, 0, 0]
+        ```
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -3188,7 +3268,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds = ds.train_test_split(test_size=0.2, shuffle=True)
+        DatasetDict({
+            train: Dataset({
+                features: ['text', 'label'],
+                num_rows: 852
+            })
+            test: Dataset({
+                features: ['text', 'label'],
+                num_rows: 214
+            })
+        })
         ```
         """
         from .dataset_dict import DatasetDict  # import here because of circular dependency
@@ -3373,12 +3465,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds
         Dataset({
             features: ['text', 'label'],
             num_rows: 1066
         })
-        >>> ds = ds.shard(num_shards=2, index=0)
+        >>> ds.shard(num_shards=2, index=0)
         Dataset({
             features: ['text', 'label'],
             num_rows: 533
@@ -3965,9 +4059,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
-        >>> ds.add_column(name="more_text", column=new_column_data)
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes), split="validation")
+        >>> more_text = ds["text"]
+        >>> ds.add_column(name="text_2", column=more_text)
         Dataset({
-            features: ['text', 'label', 'more_text'],
+            features: ['text', 'label', 'text_2'],
             num_rows: 1066
         })
         ```
@@ -4194,8 +4291,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> new_review = {'label': 0, 'text': 'this movie is the absolute worst thing I have ever seen'}
-        >>> ds.add_item(new_review)
+        >>> ds = ds.add_item(new_review)
+        >>> ds[-1]
+        {'label': 0, 'text': 'this movie is the absolute worst thing I have ever seen'}
         ```
         """
         item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
