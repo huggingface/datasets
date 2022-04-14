@@ -43,6 +43,7 @@ from typing import (
     Iterator,
     List,
     Optional,
+    Sequence,
     Tuple,
     Union,
     overload,
@@ -349,20 +350,17 @@ class TensorflowDatasetMixin:
 
         return tf_columns_to_signatures, np_columns_to_dtypes
 
-    def tf_autodetect_drop_columns(self):
-        pass  # TODO Automatically find non-numerical columns - Quentin said he'd look into it!
-
     def to_tf_dataset(
         self,
         model: Optional[Any] = None,  # Should be a Keras model but the type isn't imported
-        columns: Optional[Union[str, List[str]]] = None,
+        columns: Optional[Union[str, Sequence[str]]] = None,
         batch_size: int = 8,
         shuffle: bool = True,
         collate_fn: Callable = numpy_default_data_collator,
         drop_remainder: Optional[bool] = None,
-        drop_columns: Optional[Union[str, List[str]]] = None,
+        drop_columns: Optional[Union[str, Sequence[str]]] = None,
         collate_fn_args: Optional[Dict[str, Any]] = None,
-        label_cols: Optional[Union[str, List[str]]] = None,
+        label_cols: Optional[Union[str, Sequence[str]]] = None,
         prefetch: bool = True,
     ):
         """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
@@ -387,8 +385,7 @@ class TensorflowDatasetMixin:
                 labels. Note that many models compute loss internally rather than letting Keras do it, in which case it is
                 not necessary to actually pass the labels here, as long as they're in the input `columns`.
             drop_columns (:obj:`List[str]` or :obj:`str` or :obj:`bool`, optional): Dataset column(s) to drop before
-                passing to the `collate_fn`. By default, non-numeric columns will be dropped. This can be set to `False`
-                 to keep all columns.
+                passing to the `collate_fn`. By default, no columns are dropped.
             prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
@@ -457,8 +454,10 @@ class TensorflowDatasetMixin:
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
-        if drop_columns is None:
-            drop_columns = self.tf_autodetect_drop_columns()
+        if not drop_columns:
+            drop_columns = []
+        elif isinstance(drop_columns, str):
+            drop_columns = [drop_columns]
         if drop_columns:
             pre_collate_cols_to_retain = set(self.features.keys()) - set(drop_columns)
         else:
