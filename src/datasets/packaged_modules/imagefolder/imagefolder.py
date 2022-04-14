@@ -138,7 +138,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
             for downloaded_metadata_file, metadata_features in features_per_metadata_file:
                 if metadata_features != features_per_metadata_file[0][1]:
                     raise ValueError(
-                        f"Metadata files {downloaded_metadata_file} and {features_per_metadata_file[0][0]} have different features: {metadata_features_all[0]} != {metadata_features}"
+                        f"Metadata files {downloaded_metadata_file} and {features_per_metadata_file[0][0]} have different features: {features_per_metadata_file[0]} != {metadata_features}"
                     )
             metadata_features = features_per_metadata_file[0][1]
             if "file_name" not in metadata_features:
