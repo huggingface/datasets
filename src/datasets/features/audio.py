@@ -81,7 +81,7 @@ class Audio:
                 f"An audio sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
             )
 
-    def decode_example(self, value: dict) -> dict:
+    def decode_example(self, value: dict, token_per_repo_id=None) -> dict:
         """Decode example audio file into audio data.
 
         Args:
@@ -105,12 +105,14 @@ class Audio:
             if file:
                 array, sampling_rate = self._decode_non_mp3_file_like(file, "opus")
             else:
-                array, sampling_rate = self._decode_non_mp3_path_like(path, "opus")
+                array, sampling_rate = self._decode_non_mp3_path_like(
+                    path, "opus", token_per_repo_id=token_per_repo_id
+                )
         else:
             if file:
                 array, sampling_rate = self._decode_non_mp3_file_like(file)
             else:
-                array, sampling_rate = self._decode_non_mp3_path_like(path)
+                array, sampling_rate = self._decode_non_mp3_path_like(path, token_per_repo_id=token_per_repo_id)
         return {"path": path, "array": array, "sampling_rate": sampling_rate}
 
     def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
@@ -186,12 +188,13 @@ class Audio:
         storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
         return array_cast(storage, self.pa_type)
 
-    def _decode_non_mp3_path_like(self, path, format=None):
+    def _decode_non_mp3_path_like(self, path, format=None, token_per_repo_id=None):
         try:
             import librosa
         except ImportError as err:
             raise ImportError("To support decoding audio files, please install 'librosa'.") from err
 
+        token_per_repo_id = token_per_repo_id or {}
         if format == "opus":
             import soundfile
 
@@ -200,8 +203,14 @@ class Audio:
                     "Decoding .opus files requires 'libsndfile'>=1.0.30, "
                     + "it can be installed via conda: `conda install -c conda-forge libsndfile>=1.0.30`"
                 )
+        source_url = path.split("::")[-1]
+        try:
+            repo_id = string_to_dict(source_url, config.HUB_DATASETS_URL)["repo_id"]
+            use_auth_token = token_per_repo_id[repo_id]
+        except (ValueError, KeyError):
+            use_auth_token = None
 
-        with xopen(path, "rb") as f:
+        with xopen(path, "rb", use_auth_token=use_auth_token) as f:
             array, sampling_rate = librosa.load(f, sr=self.sampling_rate, mono=self.mono)
         return array, sampling_rate
 

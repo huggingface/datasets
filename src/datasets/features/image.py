@@ -8,7 +8,7 @@ import pyarrow as pa
 from .. import config
 from ..table import array_cast
 from ..utils.file_utils import is_local_path
-from ..utils.py_utils import first_non_null_value, no_op_if_value_is_null
+from ..utils.py_utils import first_non_null_value, no_op_if_value_is_null, string_to_dict
 from ..utils.streaming_download_manager import xopen
 
 
@@ -80,7 +80,7 @@ class Image:
                 f"An image sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
             )
 
-    def decode_example(self, value: dict) -> "PIL.Image.Image":
+    def decode_example(self, value: dict, token_per_repo_id=None) -> "PIL.Image.Image":
         """Decode example image file into image data.
 
         Args:
@@ -109,7 +109,13 @@ class Image:
                 if is_local_path(path):
                     image = PIL.Image.open(path)
                 else:
-                    with xopen(path, "rb") as f:
+                    source_url = path.split("::")[-1]
+                    try:
+                        repo_id = string_to_dict(source_url, config.HUB_DATASETS_URL)["repo_id"]
+                        use_auth_token = token_per_repo_id[repo_id]
+                    except (ValueError, KeyError):
+                        use_auth_token = None
+                    with xopen(path, "rb", use_auth_token=use_auth_token) as f:
                         bytes_ = BytesIO(f.read())
                     image = PIL.Image.open(bytes_)
         else:
