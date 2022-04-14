@@ -104,43 +104,6 @@ if TYPE_CHECKING:
 logger = logging.get_logger(__name__)
 
 
-def numpy_default_data_collator(features: List) -> Dict[str, Any]:
-    # Copied from Transformers
-    # Putting this here for now because I don't want to add a dependency
-    import numpy as np
-
-    if not hasattr(features[0], "keys"):  # Check for dict-like
-        features = [vars(f) for f in features]
-    first = features[0]
-    batch = {}
-
-    # Special handling for labels.
-    # Ensure that tensor is created with the correct type
-    # (it should be automatically the case, but let's make sure of it.)
-    if "label" in first and first["label"] is not None:
-        label = first["label"].item() if isinstance(first["label"], np.ndarray) else first["label"]
-        dtype = np.int64 if isinstance(label, int) else np.float32
-        batch["labels"] = np.array([f["label"] for f in features], dtype=dtype)
-    elif "label_ids" in first and first["label_ids"] is not None:
-        if isinstance(first["label_ids"], np.ndarray):
-            batch["labels"] = np.stack([f["label_ids"] for f in features])
-        else:
-            dtype = np.int64 if type(first["label_ids"][0]) is int else np.float32
-            batch["labels"] = np.array([f["label_ids"] for f in features], dtype=dtype)
-
-    # Handling of all other possible keys.
-    # Again, we will use the first element to figure out which key/values are not None for this model.
-
-    for k, v in first.items():
-        if k not in ("label", "label_ids") and v is not None and not isinstance(v, str):
-            if isinstance(v, np.ndarray):
-                batch[k] = np.stack([f[k] for f in features])
-            else:
-                batch[k] = np.array([f[k] for f in features])
-
-    return batch
-
-
 class LazyDict(UserDict):
     def __init__(self, data, features=None):
         self.data = data
@@ -281,6 +244,7 @@ class TensorflowDatasetMixin:
             :obj:`dict`: Dict mapping column names to np.dtype objects
         """
         # TODO Double-check that this function still works even if the collate fn is returning TF objects, NP objects or Python objects
+        # TODO Try an Image dataset and see if we can do the conversion
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
@@ -352,16 +316,16 @@ class TensorflowDatasetMixin:
 
     def to_tf_dataset(
         self,
-        model: Optional[Any] = None,  # Should be a Keras model but the type isn't imported
         columns: Optional[Union[str, Sequence[str]]] = None,
         batch_size: int = 8,
         shuffle: bool = True,
-        collate_fn: Callable = numpy_default_data_collator,
+        collate_fn: Callable = None,
         drop_remainder: Optional[bool] = None,
         drop_columns: Optional[Union[str, Sequence[str]]] = None,
         collate_fn_args: Optional[Dict[str, Any]] = None,
         label_cols: Optional[Union[str, Sequence[str]]] = None,
         prefetch: bool = True,
+        error_on_missing: bool = True,
     ):
         """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
         the Dataset, and is suitable for passing to methods like model.fit() or model.predict().
@@ -389,6 +353,8 @@ class TensorflowDatasetMixin:
             prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
+            error_on_missing (:obj:`bool`, default ``True``): Whether to return an error if one of the requested columns
+                is missing. Should be set to `False` if columns or label_cols are autodetected from a model.
 
         Returns:
             :class:`tf.data.Dataset`
@@ -420,8 +386,18 @@ class TensorflowDatasetMixin:
         # endregion
 
         # region Argument and default value handling
-
-        # Our assumption at the end of argument processing is that either
+        if collate_fn is None:
+            # Set a very simple default collator that just stacks things together
+            def default_collate_fn(features):
+                first = features[0]
+                batch = {}
+                for k, v in first.items():
+                    if isinstance(v, np.ndarray):
+                        batch[k] = np.stack([f[k] for f in features])
+                    else:
+                        batch[k] = np.array([f[k] for f in features])
+                return batch
+            collate_fn = default_collate_fn
         if collate_fn_args is None:
             collate_fn_args = {}
         if label_cols is None:
@@ -430,27 +406,17 @@ class TensorflowDatasetMixin:
             label_cols = [label_cols]
         elif len(set(label_cols)) < len(label_cols):
             raise ValueError("List of label_cols contains duplicates.")
-        autodetected_columns = False
-        if not columns:
-            if not model:
-                raise ValueError("Either columns or model must be specified.")
-            autodetected_columns = True
-            columns = list(signature(model.call).parameters.keys())
-            model_name = type(model).__name__
-            # This is the same code as Sylvain's find_labels function in Transformers, but I didn't want the dependency
+        if columns:
+            if isinstance(columns, str):
+                columns = [columns]
+            elif len(set(columns)) < len(columns):
+                raise ValueError("List of columns contains duplicates.")
             if not label_cols:
-                if "QuestionAnswering" in model_name:
-                    label_cols = [p for p in columns if "label" in p or p in ("start_positions", "end_positions")]
-                else:
-                    label_cols = [p for p in columns if "label" in p]
-        elif isinstance(columns, str):
-            columns = [columns]
-        elif len(set(columns)) < len(columns):
-            raise ValueError("List of columns contains duplicates.")
-        if not label_cols:
-            post_collate_cols_to_retain = columns
+                post_collate_cols_to_retain = columns
+            else:
+                post_collate_cols_to_retain = list(set(columns + label_cols))
         else:
-            post_collate_cols_to_retain = list(set(columns + label_cols))
+            post_collate_cols_to_retain = None
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
@@ -480,9 +446,8 @@ class TensorflowDatasetMixin:
             collate_fn_args=collate_fn_args,
             batch_size=batch_size if drop_remainder else None,
         )
-        if not autodetected_columns:
+        if error_on_missing:
             # Assert all columns the user asked for are here
-            # If columns were autodetected from the model then we expect several of them will be missing
             missing_cols = set(post_collate_cols_to_retain) - set(output_signature.keys())
             if missing_cols:
                 raise ValueError(f"Some columns were not present in the dataset after collation: {missing_cols}")
