@@ -28,9 +28,11 @@ from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import asdict
 from functools import partial, wraps
+from inspect import signature
 from io import BytesIO
 from math import ceil, floor
 from pathlib import Path
+from random import sample
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -59,8 +61,8 @@ from tqdm.auto import tqdm
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import Audio, ClassLabel, Features, Image, Sequence, Value
-from .features.features import FeatureType, _ArrayXD, decode_nested_example, pandas_types_mapper, require_decoding
+from .features import Audio, ClassLabel, Features, Image, Value
+from .features.features import FeatureType, decode_nested_example, pandas_types_mapper, require_decoding
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -99,6 +101,43 @@ if TYPE_CHECKING:
     from .dataset_dict import DatasetDict
 
 logger = logging.get_logger(__name__)
+
+
+def numpy_default_data_collator(features: List) -> Dict[str, Any]:
+    # Copied from Transformers
+    # Putting this here for now because I don't want to add a dependency
+    import numpy as np
+
+    if not hasattr(features[0], "keys"):  # Check for dict-like
+        features = [vars(f) for f in features]
+    first = features[0]
+    batch = {}
+
+    # Special handling for labels.
+    # Ensure that tensor is created with the correct type
+    # (it should be automatically the case, but let's make sure of it.)
+    if "label" in first and first["label"] is not None:
+        label = first["label"].item() if isinstance(first["label"], np.ndarray) else first["label"]
+        dtype = np.int64 if isinstance(label, int) else np.float32
+        batch["labels"] = np.array([f["label"] for f in features], dtype=dtype)
+    elif "label_ids" in first and first["label_ids"] is not None:
+        if isinstance(first["label_ids"], np.ndarray):
+            batch["labels"] = np.stack([f["label_ids"] for f in features])
+        else:
+            dtype = np.int64 if type(first["label_ids"][0]) is int else np.float32
+            batch["labels"] = np.array([f["label_ids"] for f in features], dtype=dtype)
+
+    # Handling of all other possible keys.
+    # Again, we will use the first element to figure out which key/values are not None for this model.
+
+    for k, v in first.items():
+        if k not in ("label", "label_ids") and v is not None and not isinstance(v, str):
+            if isinstance(v, np.ndarray):
+                batch[k] = np.stack([f[k] for f in features])
+            else:
+                batch[k] = np.array([f[k] for f in features])
+
+    return batch
 
 
 class LazyDict(UserDict):
@@ -213,9 +252,18 @@ class TensorflowDatasetMixin:
     _TF_DATASET_REFS = set()
 
     @staticmethod
-    def _get_output_signature(dataset: "Dataset", collate_fn: Callable, collate_fn_args: dict, batch_size: int):
+    def _get_output_signature(
+        dataset: "Dataset",
+        cols_to_retain: List,
+        collate_fn: Callable,
+        collate_fn_args: dict,
+        batch_size: int,
+        num_test_batches: int = 10,
+    ):
         """Private method used by `to_tf_dataset()` to find the shapes and dtypes of samples from this dataset
-           after being passed through the collate_fn.
+           after being passed through the collate_fn. Tensorflow needs an exact signature for tf.numpy_function, so
+           the only way to do this is to run test batches - the collator may add or rename columns, so we can't figure
+           it out just by inspecting the dataset.
 
         Args:
             dataset (:obj:`Dataset`): Dataset to load samples from.
@@ -228,99 +276,104 @@ class TensorflowDatasetMixin:
             batch_size (:obj:`int`): The size of batches loaded from the dataset. Used for shape inference.
 
         Returns:
-            :obj:`dict`: Dict mapping column names to tf dtypes
-            :obj:`dict`: Dict mapping column names to tf.TensorSpec objects
+            :obj:`dict`: Dict mapping column names to tf.Tensorspec objects
+            :obj:`dict`: Dict mapping column names to np.dtype objects
         """
+        # TODO Double-check that this function still works even if the collate fn is returning TF objects, NP objects or Python objects
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
             raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
-        # Tensorflow needs an exact signature for tf.numpy_function, so
-        # we need to figure out what's coming back in advance. The only way to do this is to run a test batch -
-        # the collator may add columns, so we can't figure it out just by inspecting the dataset.
+        # region Argument handling
         if len(dataset) == 0:
             raise ValueError("Unable to get the output signature because the dataset is empty.")
-        test_batch_size = min(len(dataset), 4)
-        test_batch = dataset[:test_batch_size]
-        test_batch = [{key: value[i] for key, value in test_batch.items()} for i in range(test_batch_size)]
-        test_batch = collate_fn(test_batch, **collate_fn_args)
-        columns_to_dtypes = {}
-        for key, array in test_batch.items():
+        if batch_size is None:
+            test_batch_size = min(len(dataset), 8)
+        else:
+            batch_size = min(len(dataset), batch_size)
+            test_batch_size = batch_size
+        # endregion
+
+        # region Generate test batches
+        test_batches = []
+        for _ in range(num_test_batches):
+            indices = sample(range(len(dataset)), test_batch_size)
+            test_batch = dataset[indices]
+            test_batch = [{key: value[i] for key, value in test_batch.items()} for i in range(test_batch_size)]
+            test_batch = collate_fn(test_batch, **collate_fn_args)
+            test_batch = {key: val for key, val in test_batch.items() if key in cols_to_retain}
+            test_batches.append(test_batch)
+        # endregion
+
+        # region Identify static shapes and dtypes from batches
+        tf_columns_to_signatures = {}
+        np_columns_to_dtypes = {}
+        for column in test_batches[0].keys():
+            raw_arrays = [batch[column] for batch in test_batches]
             # In case the collate_fn returns something strange
-            array = np.array(test_batch[key])
-            if np.issubdtype(array.dtype, np.integer) or array.dtype == np.bool:
-                cast_dtype = np.int64
-            elif np.issubdtype(array.dtype, np.number):
-                cast_dtype = np.float32
-            else:
-                continue  # Probably a string, but whatever it is will cause Tensorflow to shit the bed, so drop it
-            columns_to_dtypes[key] = cast_dtype
-
-        signatures = {}
-        for column, col_feature in dataset.features.items():
-            if column not in columns_to_dtypes:
-                continue
-            shape = []
-            shape_feature = col_feature
-            while not isinstance(shape_feature, (Value, ClassLabel)):
-                if isinstance(shape_feature, _ArrayXD):
-                    shape.extend(list(shape_feature.shape))
-                    break
-                elif isinstance(shape_feature, Sequence):
-                    shape.insert(0, shape_feature.length)
-                    shape_feature = shape_feature.feature
+            np_arrays = []
+            for array in raw_arrays:
+                if isinstance(array, np.ndarray):
+                    np_arrays.append(array)
+                elif isinstance(array, tf.Tensor):
+                    np_arrays.append(array.numpy())
                 else:
-                    raise ValueError(
-                        f"Couldn't parse feature {column} with type {type(col_feature)}! "
-                        "This may indicate a column was included with an unusual datatype "
-                        "that we were unable to process correctly. "
-                        "If you're getting this error with one of our datasets, and you're "
-                        "sure the column should be convertable to tf.Tensor, please "
-                        "file an issue at github.com/huggingface/datasets and tag "
-                        "@rocketknight1."
-                    )
-            shape = [batch_size] + shape
-            shape = [dim if dim != -1 else None for dim in shape]
+                    np_arrays.append(np.array(array))
 
-            signatures[column] = tf.TensorSpec(shape=shape, dtype=tf.dtypes.as_dtype(columns_to_dtypes[column]))
-
-        # Catching columns added by the collate_fn, such as MLM labels
-        for column, tensor in test_batch.items():
-            if column in signatures:
-                continue
-            if column.startswith("label"):
-                if "input_ids" in signatures and test_batch[column].shape == test_batch["input_ids"].shape:
-                    shape = signatures["input_ids"].shape
-                else:
-                    # If this doesn't look like LM labels that got added by the collate_fn, let's not say anything
-                    # about the dimensions we're unsure of
-                    shape = [batch_size] + [None for dim in tensor.shape.as_list()[1:]]
+            if np.issubdtype(np_arrays[0].dtype, np.integer) or np_arrays[0].dtype == np.bool:
+                tf_dtype = tf.int64
+                np_dtype = np.int64
+            elif np.issubdtype(np_arrays[0].dtype, np.number):
+                tf_dtype = tf.float32
+                np_dtype = np.float32
+            elif np_arrays[0].dtype.kind == "U":  # Unicode strings
+                np_dtype = np.unicode_
+                tf_dtype = tf.string
             else:
-                # If this doesn't look like LM labels that got added by the collate_fn, let's not say anything
-                # about the dimensions we're unsure of
-                shape = [batch_size] + [None for dim in tensor.shape.as_list()[1:]]
-            signatures[column] = tf.TensorSpec(shape=shape, dtype=tensor.dtype)
-        return columns_to_dtypes, signatures
+                raise RuntimeError(f"Unrecognized array dtype {np_arrays[0].dtype}!")
+            shapes = [array.shape for array in np_arrays]
+            static_shape = []
+            for dim in range(len(shapes[0])):
+                sizes = set([shape[dim] for shape in shapes])
+                if dim == 0:
+                    static_shape.append(batch_size)
+                    continue
+                if len(sizes) == 1:  # This dimension looks constant
+                    static_shape.append(sizes.pop())
+                else:  # Use None for variable dimensions
+                    static_shape.append(None)
+            tf_columns_to_signatures[column] = tf.TensorSpec(shape=static_shape, dtype=tf_dtype)
+            np_columns_to_dtypes[column] = np_dtype
+        # endregion
+
+        return tf_columns_to_signatures, np_columns_to_dtypes
+
+    def tf_autodetect_drop_columns(self):
+        pass  # TODO Automatically find non-numerical columns - Quentin said he'd look into it!
 
     def to_tf_dataset(
         self,
-        columns: Union[str, List[str]],
-        batch_size: int,
-        shuffle: bool,
-        collate_fn: Callable,
-        drop_remainder: bool = None,
-        collate_fn_args: Dict[str, Any] = None,
-        label_cols: Union[str, List[str]] = None,
-        dummy_labels: bool = False,
+        model: Optional[Any] = None,  # Should be a Keras model but the type isn't imported
+        columns: Optional[Union[str, List[str]]] = None,
+        batch_size: int = 8,
+        shuffle: bool = True,
+        collate_fn: Callable = numpy_default_data_collator,
+        drop_remainder: Optional[bool] = None,
+        drop_columns: Optional[Union[str, List[str]]] = None,
+        collate_fn_args: Optional[Dict[str, Any]] = None,
+        label_cols: Optional[Union[str, List[str]]] = None,
         prefetch: bool = True,
     ):
         """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
         the Dataset, and is suitable for passing to methods like model.fit() or model.predict().
 
         Args:
-            columns (:obj:`List[str]` or :obj:`str`): Dataset column(s) to load in the tf.data.Dataset. In general,
-                only columns that the model can use as input should be included here (numeric data only).
+            model (:obj:`tf.keras.Model`, optional): A Keras model object. Used to autodetect which columns to return.
+                Does nothing if `columns` is also passed.
+            columns (:obj:`List[str]` or :obj:`str`, optional): Dataset column(s) to load in the tf.data.Dataset. It is acceptable
+                to include column names that are created by the `collate_fn` and that do not exist in the original
+                dataset.
             batch_size (:obj:`int`): Size of batches to load from the dataset.
             shuffle(:obj:`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
                 validation/evaluation.
@@ -333,9 +386,9 @@ class TensorflowDatasetMixin:
             label_cols (:obj:`List[str]` or :obj:`str`, default ``None``): Dataset column(s) to load as
                 labels. Note that many models compute loss internally rather than letting Keras do it, in which case it is
                 not necessary to actually pass the labels here, as long as they're in the input `columns`.
-            dummy_labels (:obj:`bool`, default ``False``): If no `label_cols` are set, output an array of "dummy" labels
-                with each batch. This can avoid problems with `fit()` or `train_on_batch()` that expect labels to be
-                a Tensor or np.ndarray, but should (hopefully) not be necessary with our standard train_step().
+            drop_columns (:obj:`List[str]` or :obj:`str` or :obj:`bool`, optional): Dataset column(s) to drop before
+                passing to the `collate_fn`. By default, non-numeric columns will be dropped. This can be set to `False`
+                 to keep all columns.
             prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
@@ -354,48 +407,89 @@ class TensorflowDatasetMixin:
         ... )
         ```
         """
-
+        # region Pre-checks and warnings
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
             raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
+        if isinstance(tf.distribute.get_strategy(), tf.distribute.TPUStrategy):
+            logger.warning(
+                "Note that to_tf_dataset() loads the data with a generator rather than a full tf.data "
+                "pipeline and is not compatible with remote TPU connections. If you encounter errors, please "
+                "try using a TPU VM or, if your data can fit in memory, loading it into memory as a dict of "
+                "Tensors instead of streaming with to_tf_dataset()."
+            )
+        # endregion
+
+        # region Argument and default value handling
+
+        # Our assumption at the end of argument processing is that either
         if collate_fn_args is None:
             collate_fn_args = {}
-
         if label_cols is None:
             label_cols = []
         elif isinstance(label_cols, str):
             label_cols = [label_cols]
         elif len(set(label_cols)) < len(label_cols):
             raise ValueError("List of label_cols contains duplicates.")
+        autodetected_columns = False
         if not columns:
-            raise ValueError("Need to specify at least one column.")
+            if not model:
+                raise ValueError("Either columns or model must be specified.")
+            autodetected_columns = True
+            columns = list(signature(model.call).parameters.keys())
+            model_name = type(model).__name__
+            # This is the same code as Sylvain's find_labels function in Transformers, but I didn't want the dependency
+            if not label_cols:
+                if "QuestionAnswering" in model_name:
+                    label_cols = [p for p in columns if "label" in p or p in ("start_positions", "end_positions")]
+                else:
+                    label_cols = [p for p in columns if "label" in p]
         elif isinstance(columns, str):
             columns = [columns]
         elif len(set(columns)) < len(columns):
             raise ValueError("List of columns contains duplicates.")
-        if label_cols is not None:
-            cols_to_retain = columns + label_cols
+        if not label_cols:
+            post_collate_cols_to_retain = columns
         else:
-            cols_to_retain = columns
-        if "label" in cols_to_retain or "labels" in cols_to_retain or "label_ids" in cols_to_retain:
-            cols_to_retain += ["labels", "label", "label_ids"]  # Don't accidentally drop any labels with other names!
-        cols_to_retain = list(set(cols_to_retain))  # Remove any duplicates
-
+            post_collate_cols_to_retain = list(set(columns + label_cols))
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
+        if drop_columns is None:
+            drop_columns = self.tf_autodetect_drop_columns()
+        if drop_columns:
+            pre_collate_cols_to_retain = set(self.features.keys()) - set(drop_columns)
+        else:
+            pre_collate_cols_to_retain = None  # Will keep all
+        # endregion
 
-        retained_columns = [key for key in self.features.keys() if key in cols_to_retain]
-        dataset = self.with_format("numpy", columns=retained_columns)
+        # region Set dataset format and drop unnecessary columns
+        if self.format["type"] != "custom":
+            dataset = self.with_format("numpy", columns=pre_collate_cols_to_retain)
+        else:
+            existing_transform = self.format["format_kwargs"]["transform"]
+            dataset = self.with_transform(existing_transform, columns=pre_collate_cols_to_retain)
+        # endregion
 
-        columns_to_dtypes, output_signature = self._get_output_signature(
-            dataset, collate_fn, collate_fn_args, batch_size=batch_size if drop_remainder else None
+        # region Compute dataset signature and verify columns
+        output_signature, columns_to_np_types = self._get_output_signature(
+            dataset,
+            cols_to_retain=post_collate_cols_to_retain,
+            collate_fn=collate_fn,
+            collate_fn_args=collate_fn_args,
+            batch_size=batch_size if drop_remainder else None,
         )
-        all_columns = list(columns_to_dtypes.keys())
-        all_dtypes = list(columns_to_dtypes.values())
+        if not autodetected_columns:
+            # Assert all columns the user asked for are here
+            # If columns were autodetected from the model then we expect several of them will be missing
+            missing_cols = set(post_collate_cols_to_retain) - set(output_signature.keys())
+            if missing_cols:
+                raise ValueError(f"Some columns were not present in the dataset after collation: {missing_cols}")
+        # endregion
 
+        # region Initial dataset creation
         def np_get_batch(indices):
             batch = dataset[indices]
             actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
@@ -403,7 +497,7 @@ class TensorflowDatasetMixin:
             batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
             batch = collate_fn(batch, **collate_fn_args)
             out_batch = []
-            for col, cast_dtype in columns_to_dtypes.items():
+            for col, cast_dtype in columns_to_np_types.items():
                 # In case the collate_fn returns something strange
                 array = np.array(batch[col])
                 array = array.astype(cast_dtype)
@@ -413,36 +507,35 @@ class TensorflowDatasetMixin:
         @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
         def fetch_function(indices):
             output = tf.numpy_function(
-                # This works because dictionaries always output in insertion order
                 np_get_batch,
                 inp=[indices],
-                Tout=[tf.dtypes.as_dtype(dtype) for dtype in all_dtypes],
+                # This works because dictionaries always output in the same order
+                Tout=[tf.dtypes.as_dtype(dtype) for dtype in columns_to_np_types.values()],
             )
-            return {key: output[i] for i, key in enumerate(all_columns)}
+            return {key: output[i] for i, key in enumerate(columns_to_np_types.keys())}
 
         tf_dataset = tf.data.Dataset.from_tensor_slices(np.arange(len(dataset), dtype=np.int64))
 
         if shuffle:
             tf_dataset = tf_dataset.shuffle(len(dataset))
 
+        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder).map(fetch_function)
+        # endregion
+
+        # region Add shape information
         def ensure_shapes(input_dict):
             return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
 
-        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder).map(fetch_function).map(ensure_shapes)
+        tf_dataset = tf_dataset.map(ensure_shapes)
+        # endregion
 
+        # region Split features and labels
         if label_cols:
 
             def split_features_and_labels(input_batch):
-                if "labels" in columns or "label_ids" in columns or "label" in columns:
-                    columns.append("labels")
-                if "labels" in label_cols or "label_ids" in label_cols or "label" in label_cols:
-                    label_cols.append("labels")
-                # Some data collators add columns, so our logic is that newly added columns should go
-                # into the input dict unless the user asked for them in labels instead
-                features = {
-                    key: tensor for key, tensor in input_batch.items() if key in columns or key not in label_cols
-                }
+                features = {key: tensor for key, tensor in input_batch.items() if key in columns}
                 labels = {key: tensor for key, tensor in input_batch.items() if key in label_cols}
+                assert set(features.keys()).union(labels.keys()) == set(input_batch.keys())
                 if len(features) == 1:
                     features = list(features.values())[0]
                 if len(labels) == 1:
@@ -453,23 +546,22 @@ class TensorflowDatasetMixin:
 
         elif len(columns) == 1:
             tf_dataset = tf_dataset.map(lambda x: list(x.values())[0])
+        # endregion
 
-        if dummy_labels and not label_cols:
-
-            def add_dummy_labels(input_batch):
-                return input_batch, tf.zeros(tf.shape(input_batch[columns[0]])[0])
-
-            tf_dataset = tf_dataset.map(add_dummy_labels)
-
+        # region Add prefetch
         if prefetch:
             tf_dataset = tf_dataset.prefetch(tf.data.experimental.AUTOTUNE)
+        # endregion
 
+        # region Cleanup on close
         # Remove a reference to the open Arrow file on delete
         def cleanup_callback(ref):
             dataset.__del__()
             self._TF_DATASET_REFS.remove(ref)
 
         self._TF_DATASET_REFS.add(weakref.ref(tf_dataset, cleanup_callback))
+        # endregion
+
         return tf_dataset
 
 
