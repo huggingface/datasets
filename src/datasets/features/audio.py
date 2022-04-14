@@ -5,8 +5,9 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
 import pyarrow as pa
 from packaging import version
 
+from .. import config
 from ..table import array_cast
-from ..utils.py_utils import no_op_if_value_is_null
+from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
 from ..utils.streaming_download_manager import xopen
 
 
