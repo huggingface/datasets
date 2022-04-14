@@ -318,7 +318,7 @@ class TensorflowDatasetMixin:
         columns: Optional[Union[str, Sequence[str]]] = None,
         batch_size: int = 8,
         shuffle: bool = True,
-        collate_fn: Callable = None,
+        collate_fn: Optional[Callable] = None,
         drop_remainder: Optional[bool] = None,
         drop_columns: Optional[Union[str, Sequence[str]]] = None,
         collate_fn_args: Optional[Dict[str, Any]] = None,
