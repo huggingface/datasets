@@ -396,6 +396,7 @@ class TensorflowDatasetMixin:
                     else:
                         batch[k] = np.array([f[k] for f in features])
                 return batch
+
             collate_fn = default_collate_fn
         if collate_fn_args is None:
             collate_fn_args = {}
