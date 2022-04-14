@@ -55,11 +55,6 @@ def text_file(tmp_path):
     return str(filename)
 
 
-@pytest.fixture
-def image_file():
-    return os.path.join(os.path.dirname(__file__), "features", "data", "test_image_rgb.jpg")
-
-
 def test_csv_generate_tables_raises_error_with_malformed_csv(csv_file, malformed_csv_file, caplog):
     csv = Csv()
     generator = csv._generate_tables([csv_file, malformed_csv_file])
@@ -85,9 +80,9 @@ def test_text_linebreaks(text_file, keep_linebreaks):
 
 
 @pytest.mark.parametrize("drop_labels", [True, False])
-def test_imagefolder_drop_labels(image_file, drop_labels):
+def test_imagefolder_drop_labels(image_path, drop_labels):
     imagefolder = ImageFolder(drop_labels=drop_labels)
-    generator = imagefolder._generate_examples([(image_file, image_file)])
+    generator = imagefolder._generate_examples([(image_path, image_path)])
     if not drop_labels:
         assert all(example.keys() == {"image", "label"} for _, example in generator)
     else:

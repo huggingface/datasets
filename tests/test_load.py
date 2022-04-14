@@ -40,6 +40,7 @@ from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
     offline,
+    require_pil,
     set_current_working_directory_to_temp_dir,
 )
 
@@ -599,6 +600,17 @@ def test_load_dataset_streaming_csv(path_extension, streaming, csv_path, bz2_csv
     assert isinstance(ds, IterableDataset if streaming else Dataset)
     ds_item = next(iter(ds))
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+
+
+@require_pil
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_private_zipped_images(hf_private_dataset_repo_zipped_img_data, hf_token, streaming):
+    ds = load_dataset(
+        hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, use_auth_token=hf_token
+    )
+    assert isinstance(ds, IterableDataset if streaming else Dataset)
+    ds_items = list(ds)
+    assert len(ds_items) == 2
 
 
 @pytest.mark.parametrize("streaming", [False, True])
