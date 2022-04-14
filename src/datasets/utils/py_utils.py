@@ -103,10 +103,11 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
         Dict[str, str]: dictionary of variable -> value, retrieved from the input using the pattern
     """
     regex = re.sub(r"{(.+?)}", r"(?P<_\1>.+)", pattern)
-    values = list(re.search(regex, string).groups())
+    result = re.search(regex, string)
+    if result is None:
+        raise ValueError(f"Pattern {pattern} doesn't match {string}")
+    values = list(result.groups())
     keys = re.findall(r"{(.+?)}", pattern)
-    if len(values) != len(keys):
-        return ValueError(f"Pattern {pattern} doesn't match {string}")
     _dict = dict(zip(keys, values))
     return _dict
 
