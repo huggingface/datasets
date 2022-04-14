@@ -94,7 +94,7 @@ from .utils.file_utils import _retry, estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import convert_file_size_to_int, temporary_assignment, unique_values
 from .utils.streaming_download_manager import xgetsize
-from .utils.tf_utils import default_tf_collate_fn
+from .utils.tf_utils import minimal_tf_collate_fn
 from .utils.typing import PathLike
 
 
@@ -338,7 +338,7 @@ class TensorflowDatasetMixin:
                 validation/evaluation.
             drop_remainder(:obj:`bool`, default ``None``): Drop the last incomplete batch when loading. If not provided,
                 defaults to the same setting as shuffle.
-            collate_fn(:obj:`Callable`): A function or callable object (such as a `DataCollator`) that will collate
+            collate_fn(:obj:`Callable`, optional): A function or callable object (such as a `DataCollator`) that will collate
                 lists of samples into a batch.
             collate_fn_args (:obj:`Dict`, optional): An optional `dict` of keyword arguments to be passed to the
                 `collate_fn`.
@@ -385,7 +385,7 @@ class TensorflowDatasetMixin:
         # region Argument and default value handling
         if collate_fn is None:
             # Set a very simple default collator that just stacks things together
-            collate_fn = default_tf_collate_fn
+            collate_fn = minimal_tf_collate_fn
         if collate_fn_args is None:
             collate_fn_args = {}
         if label_cols is None:

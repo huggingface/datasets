@@ -22,7 +22,7 @@ from .. import config
 if config.TF_AVAILABLE:
     import tensorflow as tf
 
-    def default_tf_collate_fn(features):
+    def minimal_tf_collate_fn(features):
         first = features[0]
         batch = {}
         for k, v in first.items():
@@ -35,4 +35,4 @@ if config.TF_AVAILABLE:
         return batch
 
 else:
-    default_tf_collate_fn = None
+    minimal_tf_collate_fn = None
