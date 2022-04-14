@@ -94,6 +94,7 @@ from .utils.file_utils import _retry, estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import convert_file_size_to_int, temporary_assignment, unique_values
 from .utils.streaming_download_manager import xgetsize
+from .utils.tf_utils import default_tf_collate_fn
 from .utils.typing import PathLike
 
 
@@ -242,7 +243,6 @@ class TensorflowDatasetMixin:
             :obj:`dict`: Dict mapping column names to tf.Tensorspec objects
             :obj:`dict`: Dict mapping column names to np.dtype objects
         """
-        # TODO Double-check that this function still works even if the collate fn is returning TF objects, NP objects or Python objects
         # TODO Try an Image dataset and see if we can do the conversion
         if config.TF_AVAILABLE:
             import tensorflow as tf
@@ -387,17 +387,7 @@ class TensorflowDatasetMixin:
         # region Argument and default value handling
         if collate_fn is None:
             # Set a very simple default collator that just stacks things together
-            def default_collate_fn(features):
-                first = features[0]
-                batch = {}
-                for k, v in first.items():
-                    if isinstance(v, np.ndarray):
-                        batch[k] = np.stack([f[k] for f in features])
-                    else:
-                        batch[k] = np.array([f[k] for f in features])
-                return batch
-
-            collate_fn = default_collate_fn
+            collate_fn = default_tf_collate_fn
         if collate_fn_args is None:
             collate_fn_args = {}
         if label_cols is None:
