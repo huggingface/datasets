@@ -1,3 +1,4 @@
+---
 annotations_creators:
 - crowdsourced
 language_creators:
@@ -17,6 +18,7 @@ task_categories:
 - text-retrieval
 task_ids:
 - document-retrieval
+---
 
 # Dataset Card for tne
 
