@@ -90,6 +90,9 @@ class Audio:
 
                 - path: String with relative audio file path.
                 - bytes: Bytes of the audio file.
+            token_per_repo_id (:obj:`dict`, optional): To access and decode
+                audio files from private repositories on the Hub, you can pass
+                a dictionary repo_id (str) -> token (bool or str)
 
         Returns:
             dict

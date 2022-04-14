@@ -1379,6 +1379,9 @@ class Features(dict):
 
         Args:
             example (:obj:`dict[str, Any]`): Dataset row data.
+            token_per_repo_id (:obj:`dict`, optional): To access and decode
+                audio or image files from private repositories on the Hub, you can pass
+                a dictionary repo_id (str) -> token (bool or str)
 
         Returns:
             :obj:`dict[str, Any]`

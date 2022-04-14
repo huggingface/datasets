@@ -89,6 +89,9 @@ class Image:
 
                 - path: String with absolute or relative image file path.
                 - bytes: The bytes of the image file.
+            token_per_repo_id (:obj:`dict`, optional): To access and decode
+                image files from private repositories on the Hub, you can pass
+                a dictionary repo_id (str) -> token (bool or str)
 
         Returns:
             :obj:`PIL.Image.Image`

@@ -929,6 +929,7 @@ class DatasetBuilder:
         splits_generator,
     ) -> IterableDataset:
         ex_iterable = self._get_examples_iterable_for_split(splits_generator)
+        # add auth to be able to access and decode audio/image files from private repositories.
         token_per_repo_id = {self.repo_id: self.use_auth_token} if self.repo_id else {}
         return IterableDataset(
             ex_iterable, info=self.info, split=splits_generator.name, token_per_repo_id=token_per_repo_id
