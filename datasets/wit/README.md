@@ -81,7 +81,7 @@ task_ids:
 - image-captioning
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for WIT
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
