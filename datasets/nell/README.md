@@ -21,12 +21,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text-to-tabular
 - text-retrieval
+- text-to-structured
 task_ids:
 - entity-linking-retrieval
 - fact-checking-retrieval
-- other-structured-to-text
+- relation-extraction
 paperswithcode_id: nell
 pretty_name: Never Ending Language Learning (NELL)
 ---

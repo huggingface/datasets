@@ -38,7 +38,7 @@ source_datasets:
 - original
 task_categories:
   bapos:
-  - structure-prediction
+  - token-classification
   casa:
   - text-classification
   emot:
@@ -48,17 +48,17 @@ task_categories:
   hoasa:
   - text-classification
   keps:
-  - structure-prediction
+  - token-classification
   nergrit:
-  - structure-prediction
+  - token-classification
   nerp:
-  - structure-prediction
+  - token-classification
   posp:
-  - structure-prediction
+  - token-classification
   smsa:
   - text-classification
   terma:
-  - structure-prediction
+  - token-classification
   wrete:
   - text-classification
 task_ids:
@@ -73,7 +73,7 @@ task_ids:
   hoasa:
   - text-classification-other-aspect-based-sentiment-analysis
   keps:
-  - structure-prediction-other-keyphrase-extraction
+  - token-classification-other-keyphrase-extraction
   nergrit:
   - named-entity-recognition
   nerp:
@@ -83,7 +83,7 @@ task_ids:
   smsa:
   - sentiment-classification
   terma:
-  - structure-prediction-other-span-extraction
+  - token-classification-other-span-extraction
   wrete:
   - semantic-similarity-classification
 paperswithcode_id: indonlu-benchmark

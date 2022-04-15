@@ -310,11 +310,52 @@ The data fields are the same among all splits.
 
 |      name      | train  |
 |----------------|-------:|
-|Apparel_v1_00   | 5906333|
-|Automotive_v1_00| 3514942|
-|Baby_v1_00      | 1752932|
-|Beauty_v1_00    | 5115666|
-|Books_v1_00     |10319090|
+|Apparel_v1_00 | 5906333|
+|Automotive_v1_00 | 3514942|
+|Baby_v1_00 | 1752932|
+|Beauty_v1_00 | 5115666|
+|Books_v1_00 | 10319090|
+|Books_v1_01 | 6106719|
+|Books_v1_02 | 3105520|
+|Camera_v1_00 | 1801974|
+|Digital_Ebook_Purchase_v1_00 | 12520722|
+|Digital_Ebook_Purchase_v1_01 | 5101693|
+|Digital_Music_Purchase_v1_00 | 1688884|
+|Digital_Software_v1_00 | 102084|
+|Digital_Video_Download_v1_00 | 4057147|
+|Digital_Video_Games_v1_00 | 145431|
+|Electronics_v1_00 | 3093869|
+|Furniture_v1_00 | 792113|
+|Gift_Card_v1_00 | 149086|
+|Grocery_v1_00 | 2402458|
+|Health_Personal_Care_v1_00 | 5331449|
+|Home_Entertainment_v1_00 | 705889|
+|Home_Improvement_v1_00 | 2634781|
+|Home_v1_00 | 6221559|
+|Jewelry_v1_00 | 1767753|
+|Kitchen_v1_00 | 4880466|
+|Lawn_and_Garden_v1_00 | 2557288|
+|Luggage_v1_00 | 348657|
+|Major_Appliances_v1_00 | 96901|
+|Mobile_Apps_v1_00 | 5033376|
+|Mobile_Electronics_v1_00 | 104975|
+|Music_v1_00 | 4751577|
+|Musical_Instruments_v1_00 | 904765|
+|Office_Products_v1_00 | 2642434|
+|Outdoors_v1_00 | 2302401|
+|PC_v1_00 | 6908554|
+|Personal_Care_Appliances_v1_00 | 85981|
+|Pet_Products_v1_00 | 2643619|
+|Shoes_v1_00 | 4366916|
+|Software_v1_00 | 341931|
+|Sports_v1_00 | 4850360|
+|Tools_v1_00 | 1741100|
+|Toys_v1_00 | 4864249|
+|Video_DVD_v1_00 | 5069140|
+|Video_Games_v1_00 | 1785997|
+|Video_v1_00 | 380604|
+|Watches_v1_00 | 960872|
+|Wireless_v1_00 | 9002021|
 
 ## Dataset Creation
 

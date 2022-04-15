@@ -14,11 +14,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- sequence-modeling
+- summarization
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
-- summarization
+- masked-language-modeling
 paperswithcode_id: null
 pretty_name: ThaiSum
 ---

@@ -4,9 +4,9 @@ languages:
 - en
 paperswithcode_id: xsum
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- news-articles-summarization
 ---
 
 # Dataset Card for "xsum"

@@ -28,10 +28,9 @@ source_datasets:
 - extended|cnn_dailymail
 - original
 task_categories:
-- conditional-text-generation
+- translation
 - text-classification
 task_ids:
-- machine-translation
 - multi-class-classification
 - multi-label-classification
 - summarization

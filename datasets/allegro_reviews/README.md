@@ -14,9 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
 - sentiment-scoring
+- text-scoring
 paperswithcode_id: allegro-reviews
 pretty_name: Allegro Reviews
 ---

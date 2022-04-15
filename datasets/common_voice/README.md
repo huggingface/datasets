@@ -193,9 +193,8 @@ size_categories:
 source_datasets:
 - extended|common_voice
 task_categories:
-- speech-processing
-task_ids:
 - automatic-speech-recognition
+task_ids: []
 paperswithcode_id: common-voice
 ---
 
