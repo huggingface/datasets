@@ -110,11 +110,12 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/google-research-datasets/wit
-- **Repository:** https://github.com/google-research-datasets/wit
-- **Paper:** https://arxiv.org/abs/2103.01913
-- **Leaderboard:** https://www.kaggle.com/c/wikipedia-image-caption
-- **Point of Contact:** krishnaps@google.com
+- **Homepage:** [WIT homepage](https://github.com/google-research-datasets/wit)
+- **Repository:** [WIT repository](https://github.com/google-research-datasets/wit)
+- **Paper:** [WIT: Wikipedia-based Image Text Dataset for Multimodal Multilingual Machine Learning
+](https://arxiv.org/abs/2103.01913)
+- **Leaderboard:** [WIT leaderboard](https://www.kaggle.com/c/wikipedia-image-caption)
+- **Point of Contact:** [WIT e-mail](mailto:wit-dataset@google.com)
 
 ### Dataset Summary
 
