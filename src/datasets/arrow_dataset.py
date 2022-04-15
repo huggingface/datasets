@@ -2234,7 +2234,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
             if remove_columns is not None:
                 for column in remove_columns:
-                    inputs.pop(column)
+                    # `function` can modify input in-place causing column to be already removed.
+                    if column in inputs:
+                        inputs.pop(column)
             if check_same_num_examples:
                 input_num_examples = len(inputs[next(iter(inputs.keys()))])
                 processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
