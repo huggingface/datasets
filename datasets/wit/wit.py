@@ -13,9 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Wikipedia-based Image Text (WIT) Dataset is a large multimodal multilingual dataset"""
-
-
-import pandas as pd
+import csv
+from itertools import chain, repeat
 
 import datasets
 
@@ -43,32 +42,29 @@ _LICENSE = "Data is available under the Creative Commons Attribution-ShareAlike 
 
 _URLs = [f"https://storage.googleapis.com/gresearch/wit/wit_v1.train.all-{i:05}-of-00010.tsv.gz" for i in range(0, 10)]
 
-_FEATURES_LIST = [
-    ("language", datasets.Value("string")),
-    ("page_url", datasets.Value("string")),
-    ("image_url", datasets.Value("string")),
-    ("page_title", datasets.Value("string")),
-    ("section_title", datasets.Value("string")),
-    ("hierarchical_section_title", datasets.Value("string")),
-    ("caption_reference_description", datasets.Value("string")),
-    ("caption_attribution_description", datasets.Value("string")),
-    ("caption_alt_text_description", datasets.Value("string")),
-    ("mime_type", datasets.Value("string")),
-    ("original_height", datasets.Value("int32")),
-    ("original_width", datasets.Value("int32")),
-    ("is_main_image", datasets.Value("bool")),
-    ("attribution_passes_lang_id", datasets.Value("bool")),
-    ("page_changed_recently", datasets.Value("bool")),
-    ("context_page_description", datasets.Value("string")),
-    ("context_section_description", datasets.Value("string")),
-]
-_FEATURES = datasets.Features(dict(_FEATURES_LIST))
+_FEATURES = datasets.Features({
+    "language": datasets.Value("string"),
+    "page_url": datasets.Value("string"),
+    "image_url": datasets.Value("string"),
+    "page_title": datasets.Value("string"),
+    "section_title": datasets.Value("string"),
+    "hierarchical_section_title": datasets.Value("string"),
+    "caption_reference_description": datasets.Value("string"),
+    "caption_attribution_description": datasets.Value("string"),
+    "caption_alt_text_description": datasets.Value("string"),
+    "mime_type": datasets.Value("string"),
+    "original_height": datasets.Value("int32"),
+    "original_width": datasets.Value("int32"),
+    "is_main_image": datasets.Value("bool"),
+    "attribution_passes_lang_id": datasets.Value("bool"),
+    "page_changed_recently": datasets.Value("bool"),
+    "context_page_description": datasets.Value("string"),
+    "context_section_description": datasets.Value("string"),
+})
 
 
 class WIT(datasets.GeneratorBasedBuilder):
     """WIT is a large multimodal multilingual dataset."""
-
-    VERSION = datasets.Version("0.0.1")
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -94,8 +90,11 @@ class WIT(datasets.GeneratorBasedBuilder):
         idx = 0
         for file in files:
             with open(file, "r", encoding="utf-8") as fi:
-                for line in fi:
+                lines = csv.reader(fi, delimiter="\t")
+                feature_names = next(lines)
+                for values in lines:
                     yield idx, {
                         feature_name: value if value != "" else None
-                        for feature_name, value in zip([feature[0] for feature in _FEATURES_LIST], line.split("\t"))
+                        for feature_name, value in zip(feature_names, values)
                     }
+                    idx +=1

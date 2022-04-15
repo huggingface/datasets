@@ -63,11 +63,11 @@ languages:
 - ' vo'
 - ' zh'
 licenses:
-- cc-by-sa-4.0
+- cc-by-sa-3.0
 multilinguality:
 - multilingual
 paperswithcode_id: wit
-pretty_name: wikipedia_image_text
+pretty_name: Wikipedia-based Image Text
 size_categories:
 - 10M<n<100M
 source_datasets:
@@ -75,9 +75,10 @@ source_datasets:
 - extended|wikipedia
 task_categories:
 - text-retrieval
-- other
+- image-to-text
 task_ids:
 - text-retrieval-other-text-image-retrieval
+- image-captioning
 ---
 
 # Dataset Card for [Dataset Name]
@@ -139,30 +140,32 @@ total > 14K  | 38     | images > 13K  | 38
 
 ### Data Instances
 
-Each instance is an image, its representation in bytes, a pre-computed embedding, and the set of captions attached to the image in Wikipedia.
+```
 
+```
 ### Data Fields
 
-- `b64_bytes`
-- `embedding`
+- `language`
+- `page_url`
 - `image_url`
-- `metadata_url`
+- `page_title`
+- `section_title`
+- `hierarchical_section_title`
+- `caption_reference_description`
+- `caption_attribution_description`
+- `caption_alt_text_description`
+- `mime_type`
 - `original_height`
 - `original_width`
-- `mime_type`
-- `caption_attribution_description`
-- `wit_features`: sequence of captions with language, page URL, information about the page, caption text, etc.
+- `is_main_image`
+- `attribution_passes_lang_id`
+- `page_changed_recently`
+- `context_page_description`
+- `context_section_description`
+
+Details on the field content can be found directly in the [paper, figure 5 and table 12.](https://arxiv.org/abs/2103.01913)
 
 ### Data Splits
-
-Type          | Train  | Val    | Test   | Total / Unique
-------------- | ------ | ------ | ------ | --------------
-Rows / Tuples | 37.13M | 261.8K | 210.7K | 37.6M
-Unique Images | 11.4M  | 58K    | 57K    | 11.5M
-Ref. Text     | 16.9M  | 150K   | 104K   | 17.2M / 16.7M
-Attr. Text    | 34.8M  | 193K   | 200K   | 35.2M / 10.9M
-Alt Text      | 5.3M   | 29K    | 29K    | 5.4M / 5.3M
-Context Texts | -      | -      | -      | 119.8M
 
 ## Dataset Creation
 
