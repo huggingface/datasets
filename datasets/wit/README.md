@@ -250,7 +250,8 @@ All data is held in `train` split, with a total of 37046386 rows.
   author={Srinivasan, Krishna and Raman, Karthik and Chen, Jiecao and Bendersky, Michael and Najork, Marc},
   journal={arXiv preprint arXiv:2103.01913},
   year={2021}
-}```
+}
+```
 
 ### Contributions
 
