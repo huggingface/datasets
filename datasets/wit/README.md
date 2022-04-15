@@ -46,7 +46,7 @@ languages:
 - ms
 - nl
 - nn
-- no
+- 'no'
 - pl
 - pt
 - ro
