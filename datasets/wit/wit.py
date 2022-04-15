@@ -65,7 +65,7 @@ _FEATURES = datasets.Features(
 
 
 class WIT(datasets.GeneratorBasedBuilder):
-    """WIT is a large multimodal multilingual dataset."""
+    """Builder for WIT."""
 
     def _info(self):
         return datasets.DatasetInfo(
