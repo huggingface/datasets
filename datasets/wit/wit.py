@@ -14,7 +14,6 @@
 # limitations under the License.
 """Wikipedia-based Image Text (WIT) Dataset is a large multimodal multilingual dataset"""
 import csv
-from itertools import chain, repeat
 
 import datasets
 
