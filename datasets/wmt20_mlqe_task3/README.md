@@ -17,9 +17,8 @@ size_categories:
 source_datasets:
 - extended|amazon_us_reviews
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
 ---
 

@@ -33,49 +33,69 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 - text-classification
-- text-scoring
 task_ids:
   dyda_da:
+  - text-scoring
   - dialogue-modeling
   - language-modeling
+  - masked-language-modeling
   - text-classification-other-dialogue-act-classification
   dyda_e:
+  - text-scoring
   - dialogue-modeling
   - language-modeling
+  - masked-language-modeling
   - text-classification-other-emotion-classification
   iemocap:
+  - text-scoring
   - dialogue-modeling
   - language-modeling
+  - masked-language-modeling
   - text-classification-other-emotion-classification
   maptask:
+  - text-scoring
   - dialogue-modeling
   - language-modeling
+  - masked-language-modeling
   - text-classification-other-dialogue-act-classification
   meld_e:
+  - text-scoring
   - dialogue-modeling
   - language-modeling
+  - masked-language-modeling
   - text-classification-other-emotion-classification
   meld_s:
+  - text-scoring
   - dialogue-modeling
   - language-modeling
+  - masked-language-modeling
   - sentiment-classification
   mrda:
+  - text-scoring
   - dialogue-modeling
   - language-modeling
+  - masked-language-modeling
   - text-classification-other-dialogue-act-classification
   oasis:
+  - text-scoring
   - dialogue-modeling
   - language-modeling
+  - masked-language-modeling
   - text-classification-other-dialogue-act-classification
   sem:
+  - text-scoring
   - dialogue-modeling
   - language-modeling
+  - masked-language-modeling
   - sentiment-classification
   swda:
+  - text-scoring
   - dialogue-modeling
   - language-modeling
+  - masked-language-modeling
   - text-classification-other-dialogue-act-classification
 paperswithcode_id: null
 pretty_name: SILICONE Benchmark

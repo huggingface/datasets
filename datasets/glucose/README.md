@@ -14,9 +14,11 @@ size_categories:
 source_datasets:
 - extended|other-ROC-stories
 task_categories:
-- sequence-modeling
-task_ids:
-- sequence-modeling-other-common-sense-inference
+- text-generation
+- fill-mask
+- text-generation
+- fill-mask
+- text-generation-other-common-sense-inference
 paperswithcode_id: glucose
 pretty_name: GLUCOSE
 ---

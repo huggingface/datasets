@@ -15,9 +15,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
-- other-structured-to-text
+- text2text-generation-other-text-to-sql
 paperswithcode_id: spider-1
 pretty_name: Spider
 ---

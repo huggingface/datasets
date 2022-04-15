@@ -28,9 +28,8 @@ source_datasets:
 - extended|other-global-voices
 - extended|other-common-crawl
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: flores
 ---
 

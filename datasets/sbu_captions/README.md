@@ -71,7 +71,7 @@ from functools import partial
 import io
 import urllib
 
-import PIL
+import PIL.Image
 
 from datasets import load_dataset
 from datasets.utils.file_utils import get_datasets_user_agent

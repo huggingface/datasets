@@ -23,7 +23,7 @@ size_categories:
 source_datasets:
 - extended|other-wikipedia
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
 - text-simplification
 paperswithcode_id: null

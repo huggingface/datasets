@@ -9,9 +9,11 @@ licenses:
 - cc-by-sa-3.0
 - gfdl-1.3-or-later
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 source_datasets:
 - original
 multilinguality:

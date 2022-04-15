@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
-- conditional-text-generation-other-debugging
+- text2text-generation-other-debugging
 pretty_name: CodeXGlueCcCodeRefinement
 ---
 
@@ -58,7 +58,7 @@ We use the dataset released by this paper(https://arxiv.org/pdf/1812.08693.pdf).
 
 ### Supported Tasks and Leaderboards
 
-- `conditional-text-generation-other-debugging`: The dataset can be used to train a model for automatically fixing buggy code.
+- `text2text-generation-other-debugging`: The dataset can be used to train a model for automatically fixing buggy code.
 
 ### Languages
 

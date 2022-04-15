@@ -1,10 +1,11 @@
 ---
 task_categories:
-- conditional-text-generation
-- sequence-modeling
+- translation
+- text-generation
+- fill-mask
 task_ids:
-- machine-translation
 - language-modeling
+- masked-language-modeling
 multilinguality:
 - translation
 languages:

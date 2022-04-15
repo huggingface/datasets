@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- summarization-other-bills-summarization
 paperswithcode_id: billsum
 pretty_name: BillSum
 ---
