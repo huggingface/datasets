@@ -80,7 +80,7 @@ This implementation in HuggingFace datasets implements
   - 24 BIG-bench Lite tasks
 
   - 167 BIG-bench json tasks (includes BIG-bench Lite)
-    
+   
 To study the remaining programmatic tasks, please see the [BIG-bench GitHub repo](https://github.com/google/BIG-bench)
 
 ### Languages
