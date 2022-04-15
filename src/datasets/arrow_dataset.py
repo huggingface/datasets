@@ -1464,8 +1464,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset, ClassLabel, Value
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds.features
-        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
-         'text': Value(dtype='large_string', id=None)}
+        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+         'text': Value(dtype='string', id=None)}
         >>> new_features = ds.features.copy()
         >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
         >>> new_features['text'] = Value('large_string')
@@ -1873,9 +1873,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
         >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
-        >>> ds.set_format(type='numpy', columns=['text', 'label'])
+        >>> ds.set_format(type='numpy', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
         >>> ds.format
-        {'columns': ['text', 'label'],
+        {'columns': ['input_ids', 'token_type_ids', 'attention_mask', 'label'],
          'format_kwargs': {},
          'output_all_columns': False,
          'type': 'numpy'}
@@ -1960,12 +1960,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
         >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
-        >>> ds.set_format(type='numpy', columns=['text', 'label'])
         >>> ds.format
-        {'columns': ['text', 'label'],
+        {'columns': ['text', 'label', 'input_ids', 'token_type_ids', 'attention_mask'],
          'format_kwargs': {},
          'output_all_columns': False,
-         'type': 'numpy'}
+         'type': None}
         >>> ds = ds.with_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
         >>> ds.format
         {'columns': ['input_ids', 'token_type_ids', 'attention_mask', 'label'],
@@ -2243,6 +2242,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ['Review: compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .',
          'Review: the soundtrack alone is worth the price of admission .',
          'Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .']
+
+        # process a batch of examples
+        >>> ds = ds.map(lambda example: tokenizer(example["text"]), batched=True)
+        # set number of processors
+        >>> ds = ds.map(add_prefix, num_proc=4)
         ```
         """
         if keep_in_memory and cache_file_name is not None:
@@ -3067,7 +3071,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation)
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds['label'][:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         >>> sorted_ds = ds.sort('label')
@@ -3157,9 +3161,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation)
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds['label'][:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+        # set a seed
         >>> shuffled_ds = ds.shuffle(seed=42)
         >>> shuffled_ds['label'][:10]
         [1, 0, 1, 1, 0, 0, 0, 0, 0, 0]
@@ -3281,6 +3287,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 num_rows: 214
             })
         })
+
+        # set a seed
+        >>> ds = ds.train_test_split(test_size=0.2, seed=42)
         ```
         """
         from .dataset_dict import DatasetDict  # import here because of circular dependency
@@ -4060,7 +4069,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes), split="validation")
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> more_text = ds["text"]
         >>> ds.add_column(name="text_2", column=more_text)
         Dataset({
