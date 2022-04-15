@@ -18,10 +18,6 @@ task_categories:
   - image-to-text
   objects:
   - object-detection
-  attributes:
-  - object-attribute-detection
-  relationships:
-  - relationship-detection
   question_answers:
   - visual-question-answering
 task_ids:
