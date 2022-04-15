@@ -42,25 +42,27 @@ _LICENSE = "Data is available under the Creative Commons Attribution-ShareAlike 
 
 _URLs = [f"https://storage.googleapis.com/gresearch/wit/wit_v1.train.all-{i:05}-of-00010.tsv.gz" for i in range(0, 10)]
 
-_FEATURES = datasets.Features({
-    "language": datasets.Value("string"),
-    "page_url": datasets.Value("string"),
-    "image_url": datasets.Value("string"),
-    "page_title": datasets.Value("string"),
-    "section_title": datasets.Value("string"),
-    "hierarchical_section_title": datasets.Value("string"),
-    "caption_reference_description": datasets.Value("string"),
-    "caption_attribution_description": datasets.Value("string"),
-    "caption_alt_text_description": datasets.Value("string"),
-    "mime_type": datasets.Value("string"),
-    "original_height": datasets.Value("int32"),
-    "original_width": datasets.Value("int32"),
-    "is_main_image": datasets.Value("bool"),
-    "attribution_passes_lang_id": datasets.Value("bool"),
-    "page_changed_recently": datasets.Value("bool"),
-    "context_page_description": datasets.Value("string"),
-    "context_section_description": datasets.Value("string"),
-})
+_FEATURES = datasets.Features(
+    {
+        "language": datasets.Value("string"),
+        "page_url": datasets.Value("string"),
+        "image_url": datasets.Value("string"),
+        "page_title": datasets.Value("string"),
+        "section_title": datasets.Value("string"),
+        "hierarchical_section_title": datasets.Value("string"),
+        "caption_reference_description": datasets.Value("string"),
+        "caption_attribution_description": datasets.Value("string"),
+        "caption_alt_text_description": datasets.Value("string"),
+        "mime_type": datasets.Value("string"),
+        "original_height": datasets.Value("int32"),
+        "original_width": datasets.Value("int32"),
+        "is_main_image": datasets.Value("bool"),
+        "attribution_passes_lang_id": datasets.Value("bool"),
+        "page_changed_recently": datasets.Value("bool"),
+        "context_page_description": datasets.Value("string"),
+        "context_section_description": datasets.Value("string"),
+    }
+)
 
 
 class WIT(datasets.GeneratorBasedBuilder):
@@ -97,4 +99,4 @@ class WIT(datasets.GeneratorBasedBuilder):
                         feature_name: value if value != "" else None
                         for feature_name, value in zip(feature_names, values)
                     }
-                    idx +=1
+                    idx += 1
