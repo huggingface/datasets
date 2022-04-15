@@ -5,63 +5,63 @@ language_creators:
 - found
 languages:
 - af
-- ' ar'
-- ' ast'
-- ' azb'
-- ' be'
-- ' bg'
-- ' bn'
-- ' br'
-- ' ca'
-- ' cs'
-- ' cy'
-- ' da'
-- ' de'
-- ' el'
-- ' en'
-- ' eo'
-- ' es'
-- ' et'
-- ' eu'
-- ' fa'
-- ' fi'
-- ' fr'
-- ' fy'
-- ' ga'
-- ' gl'
-- ' hr'
-- ' hu'
-- ' hy'
-- ' id'
-- ' it'
-- ' iw'
-- ' ja'
-- ' ka'
-- ' ko'
-- ' la'
-- ' lt'
-- ' lv'
-- ' mk'
-- ' ml'
-- ' ms'
-- ' nl'
-- ' nn'
-- ' no'
-- ' pl'
-- ' pt'
-- ' ro'
-- ' ru'
-- ' sk'
-- ' sl'
-- ' sr'
-- ' sv'
-- ' th'
-- ' tr'
-- ' uk'
-- ' ur'
-- ' vi'
-- ' vo'
-- ' zh'
+- ar
+- ast
+- azb
+- be
+- bg
+- bn
+- br
+- ca
+- cs
+- cy
+- da
+- de
+- el
+- en
+- eo
+- es
+- et
+- eu
+- fa
+- fi
+- fr
+- fy
+- ga
+- gl
+- hr
+- hu
+- hy
+- id
+- it
+- iw
+- ja
+- ka
+- ko
+- la
+- lt
+- lv
+- mk
+- ml
+- ms
+- nl
+- nn
+- no
+- pl
+- pt
+- ro
+- ru
+- sk
+- sl
+- sr
+- sv
+- th
+- tr
+- uk
+- ur
+- vi
+- vo
+- zh
 licenses:
 - cc-by-sa-3.0
 multilinguality:
