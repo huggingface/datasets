@@ -15,9 +15,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
-- other-structured-to-text
+- text2text-generation-other-common-sense-if-then-reasoning
 paperswithcode_id: atomic
 ---
 

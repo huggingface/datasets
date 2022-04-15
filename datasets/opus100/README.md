@@ -1,11 +1,13 @@
 ---
 pretty_name: Opus100
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 multilinguality:
 - translation
 task_ids:
 - language-modeling
+- masked-language-modeling
 languages:
   af-en:
   - af

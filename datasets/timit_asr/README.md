@@ -15,9 +15,8 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- speech-processing
-task_ids:
 - automatic-speech-recognition
+task_ids: []
 paperswithcode_id: timit
 ---
 
@@ -59,13 +58,22 @@ paperswithcode_id: timit
 
 The TIMIT corpus of read speech is designed to provide speech data for acoustic-phonetic studies and for the development and evaluation of automatic speech recognition systems. TIMIT contains broadband recordings of 630 speakers of eight major dialects of American English, each reading ten phonetically rich sentences. The TIMIT corpus includes time-aligned orthographic, phonetic and word transcriptions as well as a 16-bit, 16kHz speech waveform file for each utterance. Corpus design was a joint effort among the Massachusetts Institute of Technology (MIT), SRI International (SRI) and Texas Instruments, Inc. (TI). The speech was recorded at TI, transcribed at MIT and verified and prepared for CD-ROM production by the National Institute of Standards and Technology (NIST).
 
+The dataset needs to be downloaded manually from https://catalog.ldc.upenn.edu/LDC93S1:
+
+```
+To use TIMIT you have to download it manually.
+Please create an account and download the dataset from https://catalog.ldc.upenn.edu/LDC93S1
+Then extract all files in one folder and load the dataset with:
+`datasets.load_dataset('timit_asr', data_dir='path/to/folder/folder_name')`
+```
+
 ### Supported Tasks and Leaderboards
 
 - `automatic-speech-recognition`, `speaker-identification`: The dataset can be used to train a model for Automatic Speech Recognition (ASR). The model is presented with an audio file and asked to transcribe the audio file to written text. The most common evaluation metric is the word error rate (WER). The task has an active leaderboard which can be found at https://paperswithcode.com/sota/speech-recognition-on-timit and ranks models based on their WER.
 
 ### Languages
 
-The audio is in English. 
+The audio is in English.
 The TIMIT corpus transcriptions have been hand verified. Test and training subsets, balanced for phonetic and dialectal coverage, are specified. Tabular computer-searchable information is included as well as written documentation.
 
 ## Dataset Structure

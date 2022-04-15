@@ -14,14 +14,16 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- sequence-modeling
+- text2text-generation
+- text-generation
+- fill-mask
 - text-retrieval
 task_ids:
 - document-retrieval
 - entity-linking-retrieval
 - explanation-generation
 - language-modeling
+- masked-language-modeling
 - summarization
 paperswithcode_id: recipenlg
 pretty_name: RecipeNLG

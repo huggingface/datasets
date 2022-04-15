@@ -452,12 +452,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 - text-classification
 task_ids:
 - multi-class-classification
 - multi-label-classification
-- structure-prediction-other-morphology
+- token-classification-other-morphology
 paperswithcode_id: null
 pretty_name: UniversalMorphologies
 ---

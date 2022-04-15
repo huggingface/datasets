@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
-- conditional-text-generation-other-grammatical-error-correction
+- text2text-generation-other-grammatical-error-correction
 paperswithcode_id: null
 pretty_name: TMU-GFM-Dataset
 ---

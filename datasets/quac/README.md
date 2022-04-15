@@ -16,7 +16,8 @@ source_datasets:
 - extended|wikipedia
 task_categories:
 - question-answering
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - dialogue-modeling
 - extractive-qa
