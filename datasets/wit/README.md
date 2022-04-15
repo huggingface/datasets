@@ -141,7 +141,25 @@ total > 14K  | 38     | images > 13K  | 38
 ### Data Instances
 
 ```
-
+{
+  'language': 'en', '
+  'page_url': 'https://en.wikipedia.org/wiki/Oxydactylus',
+  'image_url': 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Oxydactylus_longipes_fm.jpg',
+  'page_title': 'Oxydactylus',
+  'section_title': None,
+  'hierarchical_section_title': 'Oxydactylus',
+  'caption_reference_description': None,
+  'caption_attribution_description': 'English: Mounted skeleton of Oxydactylus longipes in the Field Museum of Natural History.',
+  'caption_alt_text_description': None,
+  'mime_type': 'image/jpeg',
+  'original_height': 3564,
+  'original_width': 2748,
+  'is_main_image': True,
+  'attribution_passes_lang_id': True,
+  'page_changed_recently': True,
+  'context_page_description': 'Oxydactylus is an extinct genus of camelid endemic to North America. It lived from the Late Oligocene to the Middle Miocene, existing for approximately 14 million years. The name is from the Ancient Greek οξύς and δάκτυλος.\nThey had very long legs and necks, and were probably adapted to eating high vegetation, much like modern giraffes. Unlike modern camelids, they had hooves, rather than tough sole-pads, and splayed toes.',
+  'context_section_description': 'Oxydactylus is an extinct genus of camelid endemic to North America. It lived from the Late Oligocene to the Middle Miocene (28.4–13.7 mya), existing for approximately 14 million years. The name is from the Ancient Greek οξύς (oxys, "sharp")and δάκτυλος (daktylos, "finger").\n \nThey had very long legs and necks, and were probably adapted to eating high vegetation, much like modern giraffes. Unlike modern camelids, they had hooves, rather than tough sole-pads, and splayed toes.'
+}
 ```
 ### Data Fields
 
@@ -166,6 +184,8 @@ total > 14K  | 38     | images > 13K  | 38
 Details on the field content can be found directly in the [paper, figure 5 and table 12.](https://arxiv.org/abs/2103.01913)
 
 ### Data Splits
+
+All data is held in `train` split, with a total of 37046386 rows.
 
 ## Dataset Creation
 
