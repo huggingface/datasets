@@ -90,12 +90,10 @@ class WIT(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, files):
         idx = 0
         for file in files:
-            with open(file, "r", encoding="utf-8") as fi:
-                lines = csv.reader(fi, delimiter="\t")
-                feature_names = next(lines)
-                for values in lines:
+            with open(file, "r", encoding="utf-8") as f:
+                examples = csv.DictReader(f, delimiter="\t")
+                for example in example:
                     yield idx, {
-                        feature_name: value if value != "" else None
-                        for feature_name, value in zip(feature_names, values)
+                        k: v if v != "" else None for k, v in example.items()
                     }
                     idx += 1
