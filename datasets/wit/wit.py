@@ -19,7 +19,7 @@ import datasets
 
 
 # Find for instance the citation on arxiv or on the dataset repo/website
-_CITATION = """
+_CITATION = """\
 @article{srinivasan2021wit,
   title={WIT: Wikipedia-based Image Text Dataset for Multimodal Multilingual Machine Learning},
   author={Srinivasan, Krishna and Raman, Karthik and Chen, Jiecao and Bendersky, Michael and Najork, Marc},
@@ -29,7 +29,7 @@ _CITATION = """
 """
 
 # You can copy an official description
-_DESCRIPTION = """
+_DESCRIPTION = """\
 Wikipedia-based Image Text (WIT) Dataset is a large multimodal multilingual dataset.
 WIT is composed of a curated set of 37.6 million entity rich image-text examples with 11.5 million unique images across 108 Wikipedia languages.
 Its size enables WIT to be used as a pretraining dataset for multimodal machine learning models.

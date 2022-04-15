@@ -119,8 +119,17 @@ task_ids:
 
 ### Dataset Summary
 
-Wikipedia-based Image Text (WIT) Dataset is a large multimodal multilingual dataset. WIT is composed of a curated set of 37.6 million entity rich image-text examples with 11.5 million unique images across 108 Wikipedia languages. Its size enables WIT to be used as a pretraining dataset for multimodal machine learning models.
-
+From [Paper With Code](https://paperswithcode.com/dataset/wit):
+> Wikipedia-based Image Text (WIT) Dataset is a large multimodal multilingual dataset. WIT is composed of a curated set of 37.6 million entity rich image-text examples with 11.5 million unique images across 108 Wikipedia languages. Its size enables WIT to be used as a pretraining dataset for multimodal machine learning models.
+>
+> Key Advantages
+>
+> A few unique advantages of WIT:
+>
+> The largest multimodal dataset (time of this writing) by the number of image-text examples.
+A massively multilingual (first of its kind) with coverage for over 100+ languages.
+A collection of diverse set of concepts and real world entities.
+Brings forth challenging real-world test sets.
 ### Supported Tasks and Leaderboards
 
 [More Information Needed]
@@ -182,6 +191,11 @@ total > 14K  | 38     | images > 13K  | 38
 - `context_page_description`
 - `context_section_description`
 
+<p align='center'>
+  <img width='75%' src='https://production-media.paperswithcode.com/datasets/Screenshot_2021-03-04_at_14.26.02.png' alt="Half Dome" /> </br>
+<b>Figure: WIT annotation example. </b>
+</p>
+
 Details on the field content can be found directly in the [paper, figure 5 and table 12.](https://arxiv.org/abs/2103.01913)
 
 ### Data Splits
@@ -192,23 +206,43 @@ All data is held in `train` split, with a total of 37046386 rows.
 
 ### Curation Rationale
 
-[More Information Needed]
+From the [repository](https://github.com/google-research-datasets/wit#motivation):
+
+> Multimodal visio-linguistic models rely on a rich dataset to help them learn to model the relationship between images and texts. Having large image-text datasets can significantly improve performance, as shown by recent works. Furthermore the lack of language coverage in existing datasets (which are mostly only in English) also impedes research in the multilingual multimodal space – we consider this a lost opportunity given the potential shown in leveraging images (as a language-agnostic medium) to help improve our multilingual textual understanding.
+>
+> To address these challenges and advance research on multilingual, multimodal learning we created the Wikipedia-based Image Text (WIT) Dataset. WIT is created by extracting multiple different texts associated with an image (e.g., as shown in the above image) from Wikipedia articles and Wikimedia image links. This was accompanied by rigorous filtering to only retain high quality image-text sets.
+>
+> The resulting dataset contains over 37.6 million image-text sets – making WIT the largest multimodal dataset (publicly available at the time of this writing) with unparalleled multilingual coverage – with 12K+ examples in each of 108 languages (53 languages have 100K+ image-text pairs).
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+From the [paper, section 3.1](https://arxiv.org/abs/2103.01913):
+
+> We started with all Wikipedia content pages (i.e., ignoring other
+pages that have discussions, comments and such). These number about ∼124M pages across 279 languages.
 
 #### Who are the source language producers?
 
-[More Information Needed]
+Text was extracted from Wikipedia.
 
 ### Annotations
 
 #### Annotation process
 
-[More Information Needed]
+WIT was constructed using an automatic process. However it was human-validated.
+
+From the [paper, section 3.7](https://arxiv.org/abs/2103.01913):
+
+> To further verify the quality of the WIT dataset we performed a
+study using (crowd-sourced) human annotators. As seen in Fig. 3,
+we asked raters to answer 3 questions. Given an image and the page
+title, raters first evaluate the quality of the attribution description
+and reference description in the first two questions (order randomized). The third question understands the contextual quality of these
+text descriptions given the page description and caption. Each response is on a 3-point scale: "Yes" if the text perfectly describes
+the image, "Maybe" if it is sufficiently explanatory and "No" if it is
+irrelevant or the image is inappropriate.
 
 #### Who are the annotators?
 
@@ -226,7 +260,13 @@ All data is held in `train` split, with a total of 37046386 rows.
 
 ### Discussion of Biases
 
-[More Information Needed]
+From the [paper, section 3.4](https://arxiv.org/abs/2103.01913):
+
+> Lastly we found that certain image-text pairs occurred very
+frequently. These were often generic images that did not have
+much to do with the main article page. Common examples
+included flags, logos, maps, insignia and such. To prevent
+biasing the data, we heavily under-sampled all such images
 
 ### Other Known Limitations
 
