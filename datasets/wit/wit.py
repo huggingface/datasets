@@ -93,7 +93,5 @@ class WIT(datasets.GeneratorBasedBuilder):
             with open(file, "r", encoding="utf-8") as f:
                 examples = csv.DictReader(f, delimiter="\t")
                 for example in examples:
-                    yield idx, {
-                        k: v if v != "" else None for k, v in example.items()
-                    }
+                    yield idx, {k: v if v != "" else None for k, v in example.items()}
                     idx += 1
