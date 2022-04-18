@@ -34,9 +34,8 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
 pretty_name: europarl-bilingual
 ---

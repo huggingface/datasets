@@ -14,10 +14,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 - text-classification
 task_ids:
 - language-modeling
+- masked-language-modeling
 - multi-class-classification
 - topic-classification
 paperswithcode_id: null

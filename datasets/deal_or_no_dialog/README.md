@@ -14,9 +14,8 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- conditional-text-generation-other-dialogue-generation
+- conversational
+task_ids: []
 paperswithcode_id: negotiation-dialogues-dataset
 pretty_name: Deal or No Deal Negotiator
 ---

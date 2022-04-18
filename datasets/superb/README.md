@@ -18,18 +18,17 @@ source_datasets:
 - extended|other-librimix
 - extended|other-speech_commands
 task_categories:
-- speech-processing
-task_ids:
 - automatic-speech-recognition
-- phoneme-recognition
+- audio-classification
+task_ids:
 - keyword-spotting
-- query-by-example-spoken-term-detection
+- audio-classification-other-query-by-example-spoken-term-detection
 - speaker-identification
-- automatic-speaker-verification
-- speaker-diarization
-- intent-classification
-- slot-filling
-- emotion-recognition
+- audio-classification-other-automatic-speaker-verification
+- audio-classification-other-speaker-diarization
+- audio-intent-classification
+- other-audio-slot-filling
+- audio-emotion-recognition
 ---
 
 # Dataset Card for SUPERB

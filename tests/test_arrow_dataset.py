@@ -1139,6 +1139,25 @@ class BaseDatasetTest(TestCase):
                     )
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test_with_indices_batched)
 
+        # check remove columns for even if the function modifies input in-place
+        def map_batched_modifying_inputs_inplace(example):
+            result = {"filename_new": [x + "_extension" for x in example["filename"]]}
+            del example["filename"]
+            return result
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(
+                    map_batched_modifying_inputs_inplace, batched=True, remove_columns="filename"
+                ) as dset_test_modifying_inputs_inplace:
+                    self.assertEqual(len(dset_test_modifying_inputs_inplace), 30)
+                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                    self.assertDictEqual(
+                        dset_test_modifying_inputs_inplace.features,
+                        Features({"filename_new": Value("string")}),
+                    )
+                    assert_arrow_metadata_are_synced_with_dataset_features(dset_test_modifying_inputs_inplace)
+
     def test_map_nested(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict({"field": ["a", "b"]}) as dset:

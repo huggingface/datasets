@@ -16,12 +16,13 @@ source_datasets:
 - original
 task_categories:
   subtask-1:
-  - text-scoring
+  - text-classification
   subtask-2:
   - text-classification
 task_ids:
   subtask-1:
-  - text-scoring-other-funniness-score-prediction
+  - text-scoring
+  - text-classification-other-funniness-score-prediction
   subtask-2:
   - text-classification-other-funnier-headline-identification
 paperswithcode_id: humicroedit

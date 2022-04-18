@@ -452,6 +452,7 @@ source_datasets:
 task_categories:
 - multiple-choice
 - question-answering
+- token-classification
 - text-classification
 - text-retrieval
 - token-classification

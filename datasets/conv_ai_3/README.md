@@ -14,9 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- text-scoring
+- conversational
+- text-classification
 task_ids:
+- text-scoring
 - text-scoring-other-evaluating-dialogue-systems
 paperswithcode_id: null
 pretty_name: More Information Needed
