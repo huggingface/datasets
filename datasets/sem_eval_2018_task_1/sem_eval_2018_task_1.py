@@ -30,8 +30,8 @@ _CITATION = """\
 _DESCRIPTION = """\
  SemEval-2018 Task 1: Affect in Tweets
 
- SubTask 2: Emotion Intensity Ordinal Classiﬁcation (EIoc). 
- These are 4 emotion-specific datasets (anger, fear, joy, sadness) for emotional intensity regression. 
+ SubTask 2: Emotion Intensity Ordinal Classiﬁcation (EIoc).
+ These are 4 emotion-specific datasets (anger, fear, joy, sadness) for emotional intensity regression.
  'Given a tweet and an emotion E, classify the tweet into one of four ordinal classes of intensity of E that best represents the mental state of the tweeter.'
 
  SubTask 5: Emotion Classification.
