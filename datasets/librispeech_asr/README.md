@@ -72,6 +72,16 @@ The speakers in the corpus were ranked according to the WER of the transcripts o
 a different dataset, and were divided roughly in the middle,
 with the lower-WER speakers designated as "clean" and the higher WER speakers designated as "other".
 
+You can load the `clean` configuration or `other`:
+
+```python
+from datasets import load_dataset
+
+ds = load_dataset("librispeech_asr", "clean")
+# or
+ds = load_dataset("librispeech_asr", "other")
+```
+
 ## Dataset Structure
 
 ### Data Instances
