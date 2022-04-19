@@ -4,14 +4,14 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-- en-US
+- en
 licenses:
 - cc-by-4.0
 multilinguality:
 - monolingual
 pretty_name: TextVQA
 size_categories:
-- unknown
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -20,7 +20,7 @@ task_ids:
 - visual-question-answering
 ---
 
-# Dataset Card for [Needs More Information]
+# Dataset Card for TextVQA
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -193,7 +193,7 @@ CC by 4.0
 
 ### Citation Information
 
-```
+```bibtex
 @inproceedings{singh2019towards,
     title={Towards VQA Models That Can Read},
     author={Singh, Amanpreet and Natarjan, Vivek and Shah, Meet and Jiang, Yu and Chen, Xinlei and Parikh, Devi and Rohrbach, Marcus},
