@@ -174,12 +174,14 @@ The data is released under the MIT license.
 
 ### Citation Information
 
+```bibtex
 @article{tne,
     author = {Elazar, Yanai and Basmov, Victoria and Goldberg, Yoav and Tsarfaty, Reut},
     title = "{Text-based NP Enrichment}",
     journal = {Transactions of the Association for Computational Linguistics},
     year = {2022},
 }
+```
 
 ### Contributions
 
