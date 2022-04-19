@@ -186,3 +186,7 @@ RVL-CDIP is a subset of IIT-CDIP, which came from the [Legacy Tobacco Document L
     year = {2015}
 }
 ```
+
+### Contributions
+
+Thanks to [@dnaveenr](https://github.com/dnaveenr) for adding this dataset.
