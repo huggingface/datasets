@@ -105,7 +105,6 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "archive_iterator": dl_manager.iter_archive(archive_path),
                     "labels_filepath": labels_path["train"],
-                    "split": "train",
                 },
             ),
             datasets.SplitGenerator(
@@ -113,7 +112,6 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "archive_iterator": dl_manager.iter_archive(archive_path),
                     "labels_filepath": labels_path["test"],
-                    "split": "test",
                 },
             ),
             datasets.SplitGenerator(
@@ -121,7 +119,6 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "archive_iterator": dl_manager.iter_archive(archive_path),
                     "labels_filepath": labels_path["val"],
-                    "split": "dev",
                 },
             ),
         ]
@@ -136,7 +133,7 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
 
         return image_to_class_id
 
-    def _generate_examples(self, archive_iterator, labels_filepath, split):
+    def _generate_examples(self, archive_iterator, labels_filepath):
 
         with open(labels_filepath, encoding="utf-8") as f:
             data = f.read().splitlines()
