@@ -59,7 +59,8 @@ _DL_URL = "http://www.openslr.org/resources/12/"
 
 
 def retrieve_subset(name):
-    return "-".join(name.split(".")[0].split("-"))
+    # "train-other-500.tar.gz" -> "other-500"
+    return "-".join(name.split(".")[0].split("-")[1:])
 
 
 _DL_URLS = {
