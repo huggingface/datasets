@@ -368,6 +368,9 @@ def resolve_patterns_in_dataset_repository(
         dataset_info (huggingface_hub.hf_api.DatasetInfo): dataset info obtained using the hugginggace_hub.HfApi
         patterns (List[str]): Unix patterns or paths of the files in the dataset repository.
             The paths should be relative to the root of the repository.
+        base_path (Optional[str], optional): Path inside a repo to use when resolving relative paths.
+            Defaults to None (search from a repository's root). Used if files only from a specific
+            directory should be resolved.
         allowed_extensions (Optional[list], optional): White-list of file extensions to use. Defaults to None (all extensions).
             For example: allowed_extensions=["csv", "json", "txt", "parquet"]
 
