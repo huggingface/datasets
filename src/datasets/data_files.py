@@ -376,7 +376,9 @@ def resolve_patterns_in_dataset_repository(
     """
     data_files_urls: List[Url] = []
     for pattern in patterns:
-        for rel_path in _resolve_single_pattern_in_dataset_repository(dataset_info, pattern, base_path, allowed_extensions):
+        for rel_path in _resolve_single_pattern_in_dataset_repository(
+            dataset_info, pattern, base_path, allowed_extensions
+        ):
             data_files_urls.append(Url(hf_hub_url(dataset_info.id, rel_path.as_posix(), revision=dataset_info.sha)))
     if not data_files_urls:
         error_msg = f"Unable to resolve any data file that matches {patterns} in dataset repository {dataset_info.id}"
@@ -386,7 +388,9 @@ def resolve_patterns_in_dataset_repository(
     return data_files_urls
 
 
-def get_patterns_in_dataset_repository(dataset_info: huggingface_hub.hf_api.DatasetInfo, base_path: str) -> Dict[str, List[str]]:
+def get_patterns_in_dataset_repository(
+    dataset_info: huggingface_hub.hf_api.DatasetInfo, base_path: str
+) -> Dict[str, List[str]]:
     """
     Get the default pattern from a repository by testing all the supported patterns.
     The first patterns to return a non-empty list of data files is returned.
@@ -604,7 +608,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
                     patterns_for_key,
                     dataset_info=dataset_info,
                     base_path=base_path,
-                    allowed_extensions=allowed_extensions
+                    allowed_extensions=allowed_extensions,
                 )
                 if not isinstance(patterns_for_key, DataFilesList)
                 else patterns_for_key

@@ -751,7 +751,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
             base_path=self.data_dir if self.data_dir else self.path,
-            allowed_extensions=ALL_ALLOWED_EXTENSIONS
+            allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         infered_module_names = {
             key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
@@ -797,9 +797,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
 
     def get_module(self) -> DatasetModule:
         patterns = (
-            sanitize_patterns(self.data_files)
-            if self.data_files is not None
-            else get_patterns_locally(self.data_dir)
+            sanitize_patterns(self.data_files) if self.data_files is not None else get_patterns_locally(self.data_dir)
         )
         data_files = DataFilesDict.from_local_or_remote(
             patterns, use_auth_token=self.download_config.use_auth_token, base_path=self.data_dir
