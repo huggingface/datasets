@@ -60,9 +60,7 @@ The RVL-CDIP (Ryerson Vision Lab Complex Document Information Processing) datase
 
 ### Supported Tasks and Leaderboards
 
-RVL-CDIP supports the following tasks:
-- document image classification
-- document image retrieval
+- `image-classification`: The goal of this task is to classify a given document into one of 16 classes representing document types (letter, form, etc.). The leaderboard for this task is available [here](https://paperswithcode.com/sota/document-image-classification-on-rvl-cdip).
 
 ### Languages
 
