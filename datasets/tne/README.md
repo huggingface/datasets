@@ -72,7 +72,7 @@ The text in the dataset is in English, as spoken in the different domains we inc
 
 ### Data Instances
 
-Each file is in a jsonl format, containing a dictionary of a single document, in each line.
+The original files are in a jsonl format, containing a dictionary of a single document, in each line.
 Each document contain a different amount of labels, due to the different amount of NPs.
 The test and ood splits come without the annotated labels.
 
