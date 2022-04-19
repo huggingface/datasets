@@ -20,7 +20,7 @@ task_ids:
 - document-retrieval
 ---
 
-# Dataset Card for tne
+# Dataset Card for Text-based NP Enrichment
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
