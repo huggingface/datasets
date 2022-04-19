@@ -87,6 +87,7 @@ task_ids:
 - [Table of Contents](#table-of-contents)
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
+  - [Dataset Preprocessing](#dataset-preprocessing)
   - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
@@ -119,20 +120,66 @@ task_ids:
 
 ### Dataset Summary
 
-From [Paper With Code](https://paperswithcode.com/dataset/wit):
-> Wikipedia-based Image Text (WIT) Dataset is a large multimodal multilingual dataset. WIT is composed of a curated set of 37.6 million entity rich image-text examples with 11.5 million unique images across 108 Wikipedia languages. Its size enables WIT to be used as a pretraining dataset for multimodal machine learning models.
->
-> Key Advantages
->
-> A few unique advantages of WIT:
->
-> The largest multimodal dataset (time of this writing) by the number of image-text examples.
-A massively multilingual (first of its kind) with coverage for over 100+ languages.
-A collection of diverse set of concepts and real world entities.
-Brings forth challenging real-world test sets.
+Wikipedia-based Image Text (WIT) Dataset is a large multimodal multilingual dataset. WIT is composed of a curated set of 37.6 million entity rich image-text examples with 11.5 million unique images across 108 Wikipedia languages. Its size enables WIT to be used as a pretraining dataset for multimodal machine learning models.
+
+A few unique advantages of WIT:
+
+* The largest multimodal dataset (time of this writing) by the number of image-text examples.
+* A massively multilingual (first of its kind) with coverage for over 100+ languages.
+* A collection of diverse set of concepts and real world entities.
+* Brings forth challenging real-world test sets.
+
+### Dataset Preprocessing
+
+This dataset doesn't download the images locally by default. Instead, it exposes URLs to the images. To fetch the images, use the following code:
+
+```python
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
+import io
+import urllib
+
+import PIL.Image
+
+from datasets import load_dataset
+from datasets.utils.file_utils import get_datasets_user_agent
+
+
+def fetch_single_image(image_url, timeout=None, retries=0):
+    for _ in range(retries + 1):
+        try:
+            request = urllib.request.Request(
+                image_url,
+                data=None,
+                headers={"user-agent": get_datasets_user_agent()},
+            )
+            with urllib.request.urlopen(request, timeout=timeout) as req:
+                image = PIL.Image.open(io.BytesIO(req.read()))
+            break
+        except Exception:
+            image = None
+    return image
+
+
+def fetch_images(batch, num_threads, timeout=None, retries=0):
+    fetch_single_image_with_args = partial(fetch_single_image, timeout=timeout, retries=retries)
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        batch["image"] = list(executor.map(fetch_single_image_with_args, batch["image_url"]))
+    return batch
+
+
+num_threads = 20
+dset = load_dataset("wit")
+dset = dset.map(fetch_images, batched=True, batch_size=100, fn_kwargs={"num_threads": num_threads})
+```
+
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `image-captioning`: This dataset can be used to train a model for image captioning where the goal is to predict a caption given the image.
+
+- `text-retrieval`: The goal in this task is to build a model that retrieves the text closest to an image.
+
+In these tasks, any combination of the `caption_reference_description`, `caption_attribution_description` and `caption_alt_text_description` fields can be used as the input text/caption. 
 
 ### Languages
 
@@ -171,6 +218,7 @@ total > 14K  | 38     | images > 13K  | 38
   'context_section_description': 'Oxydactylus is an extinct genus of camelid endemic to North America. It lived from the Late Oligocene to the Middle Miocene (28.4–13.7 mya), existing for approximately 14 million years. The name is from the Ancient Greek οξύς (oxys, "sharp")and δάκτυλος (daktylos, "finger").\n \nThey had very long legs and necks, and were probably adapted to eating high vegetation, much like modern giraffes. Unlike modern camelids, they had hooves, rather than tough sole-pads, and splayed toes.'
 }
 ```
+
 ### Data Fields
 
 - `language`
