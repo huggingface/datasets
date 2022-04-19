@@ -56,7 +56,7 @@ task_ids:
 
 ### Dataset Summary
 
-TNE is an NLU task, which focus on relations between noun phrases (NPs) that can be mediated via prepositions. The dataset contains 5,497 documents, annotated exhaustively with all possible links between the NPs in each document.
+Text-based NP Enrichment (TNE) is a natural language understanding (NLU) task, which focus on relations between noun phrases (NPs) that can be mediated via prepositions. The dataset contains 5,497 documents, annotated exhaustively with all possible links between the NPs in each document.
 
 The main data comes from WikiNews, which is used for train/dev/test. We also collected an additional set of 509 documents to serve as OOD, from the Book Corpus, IMDB reviews and Reddit.
 
