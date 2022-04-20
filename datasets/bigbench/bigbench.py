@@ -115,8 +115,9 @@ class Bigbench(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIG_CLASS = BigBenchConfig
 
-    BUILDER_CONFIGS = [BigBenchConfig(name=name, version=datasets.Version("1.0.0"))
-                       for name in bb_utils.get_all_json_task_names()]
+    BUILDER_CONFIGS = [
+        BigBenchConfig(name=name, version=datasets.Version("1.0.0")) for name in bb_utils.get_all_json_task_names()
+    ]
 
     def _info(self):
         features = datasets.Features(
