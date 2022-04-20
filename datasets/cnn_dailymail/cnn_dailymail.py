@@ -67,11 +67,9 @@ _CITATION = """\
 _DL_URLS = {
     "cnn_stories": "https://drive.google.com/uc?export=download&id=0BwmD_VLjROrfTHk4NFg2SndKcjQ",
     "dm_stories": "https://drive.google.com/uc?export=download&id=0BwmD_VLjROrfM1BxdkxVaTY2bWs",
-    "urls": {
-        "train": "https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_train.txt",
-        "validation": "https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_val.txt",
-        "test": "https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_test.txt",
-    },
+    "train": "https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_train.txt",
+    "validation": "https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_val.txt",
+    "test": "https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_test.txt",
 }
 
 _HIGHLIGHTS = "highlights"
@@ -224,7 +222,7 @@ class CnnDailymail(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=split,
                 gen_kwargs={
-                    "urls_file": dl_paths["urls"][split],
+                    "urls_file": dl_paths[split],
                     "cnn_stories_archive": dl_manager.iter_archive(dl_paths["cnn_stories"]),
                     "dm_stories_archive": dl_manager.iter_archive(dl_paths["dm_stories"]),
                 },
