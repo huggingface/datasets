@@ -851,7 +851,8 @@ class DatasetDict(dict):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         branch: Optional[None] = None,
-        shard_size: Optional[int] = 500 << 20,
+        max_shard_size: Union[int, str] = "500MB",
+        shard_size: Optional[int] = "deprecated",
         embed_external_files: bool = True,
     ):
         """Pushes the ``DatasetDict`` to the hub.
@@ -873,7 +874,7 @@ class DatasetDict(dict):
                 if no token is passed and the user is not logged-in.
             branch (Optional :obj:`str`):
                 The git branch on which to push the dataset.
-            max_shard_size (`int` or `str`, *optional*, defaults to `"10GB"`):
+            max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"5MB"`).
             shard_size (Optional :obj:`int`):

@@ -3317,7 +3317,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             branch (Optional :obj:`str`):
                 The git branch on which to push the dataset. This defaults to the default branch as specified
                 in your repository, which defaults to `"main"`.
-            max_shard_size (`int` or `str`, *optional*, defaults to `"10GB"`):
+            max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"5MB"`).
             embed_external_files (:obj:`bool`, default ``True``):
@@ -3502,7 +3502,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         branch: Optional[str] = None,
-        max_shard_size: Optional[int] = "500MB",
+        max_shard_size: Union[int, str] = "500MB",
         shard_size: Optional[int] = "deprecated",
         embed_external_files: bool = True,
     ):
@@ -3526,7 +3526,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             branch (Optional :obj:`str`):
                 The git branch on which to push the dataset. This defaults to the default branch as specified
                 in your repository, which defaults to `"main"`.
-            max_shard_size (`int` or `str`, *optional*, defaults to `"10GB"`):
+            max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"5MB"`).
             shard_size (Optional :obj:`int`):
