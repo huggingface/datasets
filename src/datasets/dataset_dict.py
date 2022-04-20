@@ -3,6 +3,7 @@ import copy
 import json
 import os
 import re
+import warnings
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
@@ -872,9 +873,12 @@ class DatasetDict(dict):
                 if no token is passed and the user is not logged-in.
             branch (Optional :obj:`str`):
                 The git branch on which to push the dataset.
+            max_shard_size (`int` or `str`, *optional*, defaults to `"10GB"`):
+                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
+                (like `"5MB"`).
             shard_size (Optional :obj:`int`):
-                The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
-                of the size specified here, in bytes.
+                .. deprecated:: 2.1.1
+                    'shard_size' was renamed to 'max_shard_size' in version 2.1.1 and will be removed in 2.4.0.
             embed_external_files (:obj:`bool`, default ``True``):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -887,6 +891,13 @@ class DatasetDict(dict):
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>")
         ```
         """
+        if shard_size != "deprecated":
+            warnings.warn(
+                "'shard_size' was renamed to 'max_shard_size' in version 2.1.1 and will be removed in 2.4.0.",
+                FutureWarning,
+            )
+            max_shard_size = shard_size
+
         self._check_values_type()
         total_uploaded_size = 0
         total_dataset_nbytes = 0
@@ -902,7 +913,7 @@ class DatasetDict(dict):
                 private=private,
                 token=token,
                 branch=branch,
-                shard_size=shard_size,
+                max_shard_size=max_shard_size,
                 embed_external_files=embed_external_files,
             )
             total_uploaded_size += uploaded_size

@@ -82,6 +82,36 @@ def size_str(size_in_bytes):
     return f"{int(size_in_bytes)} bytes"
 
 
+def convert_file_size_to_int(size: Union[int, str]) -> int:
+    """
+    Converts a size expressed as a string with digits an unit (like `"5MB"`) to an integer (in bytes).
+
+    Args:
+        size (`int` or `str`): The size to convert. Will be directly returned if an `int`.
+
+    Example:
+    ```py
+    >>> convert_file_size_to_int("1MIB")
+    1048576
+    ```
+    """
+    if isinstance(size, int):
+        return size
+    if size.upper().endswith("GIB"):
+        return int(size[:-3]) * (2**30)
+    if size.upper().endswith("MIB"):
+        return int(size[:-3]) * (2**20)
+    if size.upper().endswith("KIB"):
+        return int(size[:-3]) * (2**10)
+    if size.upper().endswith("GB"):
+        return int(size[:-2]) * (10**9)
+    if size.upper().endswith("MB"):
+        return int(size[:-2]) * (10**6)
+    if size.upper().endswith("KB"):
+        return int(size[:-2]) * (10**3)
+    raise ValueError("`size` is not in a valid format. Use an integer followed by the unit, e.g., '5GB'.")
+
+
 def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
     """Un-format a string using a python f-string pattern.
     From https://stackoverflow.com/a/36838374
