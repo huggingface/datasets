@@ -265,8 +265,9 @@ class TensorflowDatasetMixin:
             test_batch = dataset[indices]
             test_batch = [{key: value[i] for key, value in test_batch.items()} for i in range(test_batch_size)]
             test_batch = collate_fn(test_batch, **collate_fn_args)
-            test_batch = {key: val for key, val in test_batch.items()
-                          if cols_to_retain is None or key in cols_to_retain}
+            test_batch = {
+                key: val for key, val in test_batch.items() if cols_to_retain is None or key in cols_to_retain
+            }
             test_batches.append(test_batch)
         # endregion
 

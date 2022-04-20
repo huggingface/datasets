@@ -23,6 +23,7 @@ if config.TF_AVAILABLE:
 
     def minimal_tf_collate_fn(features):
         import tensorflow as tf
+
         first = features[0]
         batch = {}
         for k, v in first.items():
