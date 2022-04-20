@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass, field
 from io import BytesIO
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Union
@@ -69,10 +70,15 @@ class Image:
         if isinstance(value, str):
             return {"path": value, "bytes": None}
         elif isinstance(value, np.ndarray):
+            # convert the image array to png bytes
             image = PIL.Image.fromarray(value.astype(np.uint8))
             return {"path": None, "bytes": image_to_bytes(image)}
         elif isinstance(value, PIL.Image.Image):
+            # convert the PIL image to bytes (default format is png)
             return encode_pil_image(value)
+        elif value.get("path") is not None and os.path.isfile(value["path"]):
+            # we set "bytes": None to not duplicate the data if they're already available locally
+            return {"bytes": None, "path": value.get("path")}
         elif value.get("bytes") is not None or value.get("path") is not None:
             return {"bytes": value.get("bytes"), "path": value.get("path")}
         else:
