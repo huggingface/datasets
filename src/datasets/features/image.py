@@ -80,6 +80,7 @@ class Image:
             # we set "bytes": None to not duplicate the data if they're already available locally
             return {"bytes": None, "path": value.get("path")}
         elif value.get("bytes") is not None or value.get("path") is not None:
+            # store the image bytes, and path is used to infer the image format using the file extension
             return {"bytes": value.get("bytes"), "path": value.get("path")}
         else:
             raise ValueError(
