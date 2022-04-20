@@ -20,9 +20,9 @@ from .. import config
 
 
 if config.TF_AVAILABLE:
-    import tensorflow as tf
 
     def minimal_tf_collate_fn(features):
+        import tensorflow as tf
         first = features[0]
         batch = {}
         for k, v in first.items():

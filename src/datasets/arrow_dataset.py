@@ -218,7 +218,7 @@ class TensorflowDatasetMixin:
     @staticmethod
     def _get_output_signature(
         dataset: "Dataset",
-        cols_to_retain: List,
+        cols_to_retain: Optional[List],
         collate_fn: Callable,
         collate_fn_args: dict,
         batch_size: int,
@@ -243,7 +243,6 @@ class TensorflowDatasetMixin:
             :obj:`dict`: Dict mapping column names to tf.Tensorspec objects
             :obj:`dict`: Dict mapping column names to np.dtype objects
         """
-        # TODO Try an Image dataset and see if we can do the conversion
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
@@ -266,7 +265,8 @@ class TensorflowDatasetMixin:
             test_batch = dataset[indices]
             test_batch = [{key: value[i] for key, value in test_batch.items()} for i in range(test_batch_size)]
             test_batch = collate_fn(test_batch, **collate_fn_args)
-            test_batch = {key: val for key, val in test_batch.items() if key in cols_to_retain}
+            test_batch = {key: val for key, val in test_batch.items()
+                          if cols_to_retain is None or key in cols_to_retain}
             test_batches.append(test_batch)
         # endregion
 
@@ -404,7 +404,7 @@ class TensorflowDatasetMixin:
             else:
                 post_collate_cols_to_retain = list(set(columns + label_cols))
         else:
-            post_collate_cols_to_retain = None
+            post_collate_cols_to_retain = None  # Indicates keeping all columns
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
