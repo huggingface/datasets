@@ -95,7 +95,7 @@ are separated by a single new line.
 dictionary contains:
   * `anchor`: the id of the anchor np
   * `complement`: the id of the complement np
-  * `preposition`: the preposition that links between the anchor and the complement
+  * `preposition`: the preposition that links between the anchor and the complement. This can take one out of 24 pre-defined preposition (23 + member(s)-of)
   * `complement_coref_cluster_id`: the coreference id, which the complement is part of.
 * `coref`: the coreference labels. It contains a list of dictionaries, where each dictionary contains:
   * `id`: the id of the coreference cluster

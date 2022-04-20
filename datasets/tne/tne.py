@@ -56,115 +56,82 @@ class TNEDataset(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.1.0")
 
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset('tne', 'labeled')
-    # data = datasets.load_dataset('tne', 'unlabaled')
-    BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="labeled",
-            version=VERSION,
-            description="This part of the dataset covers the labeled splits" " from the train and dev sets",
-        ),
-        datasets.BuilderConfig(
-            name="unlabeled",
-            version=VERSION,
-            description="This part of the dataset covers the unlabeled splits" " from the test and ood sets",
-        ),
-    ]
-
-    DEFAULT_CONFIG_NAME = "labeled"
-
     def _info(self):
-        if self.config.name == "labeled":  # This is the name of the configuration selected in BUILDER_CONFIGS above
-            features = datasets.Features(
-                {
-                    "id": datasets.Value("string"),
-                    "text": datasets.Value("string"),
-                    "tokens": datasets.Sequence(datasets.Value("string")),
-                    "nps": [
-                        {
-                            "text": datasets.Value("string"),
-                            "first_char": datasets.Value("int32"),
-                            "last_char": datasets.Value("int32"),
-                            "first_token": datasets.Value("int32"),
-                            "last_token": datasets.Value("int32"),
-                            "id": datasets.Value("string"),
-                        }
-                    ],
-                    "np_relations": [
-                        {
-                            "anchor": datasets.Value("string"),
-                            "complement": datasets.Value("string"),
-                            "preposition": datasets.Value("string"),
-                            "complement_coref_cluster_id": datasets.Value("string"),
-                        }
-                    ],
-                    "coref": [
-                        {
-                            "id": datasets.Value("string"),
-                            "members": datasets.Sequence(datasets.Value("string")),
-                            "np_type": datasets.features.ClassLabel(
-                                names=[
-                                    "standard",
-                                    "time/date/measurement",
-                                    "idiomatic",
-                                ]
-                            ),
-                        }
-                    ],
-                    "metadata": {
-                        "annotators": {
-                            "coref_worker": datasets.Value("int32"),
-                            "consolidator_worker": datasets.Value("int32"),
-                            "np-relations_worker": datasets.Sequence(datasets.Value("int32")),
-                        },
-                        "url": datasets.Value("string"),
-                        "source": datasets.Value("string"),
+        features = datasets.Features(
+            {
+                "id": datasets.Value("string"),
+                "text": datasets.Value("string"),
+                "tokens": datasets.Sequence(datasets.Value("string")),
+                "nps": [
+                    {
+                        "text": datasets.Value("string"),
+                        "first_char": datasets.Value("int32"),
+                        "last_char": datasets.Value("int32"),
+                        "first_token": datasets.Value("int32"),
+                        "last_token": datasets.Value("int32"),
+                        "id": datasets.Value("string"),
+                    }
+                ],
+                "np_relations": [
+                    {
+                        "anchor": datasets.Value("string"),
+                        "complement": datasets.Value("string"),
+                        "preposition": datasets.features.ClassLabel(
+                            names=[
+                                "about",
+                                "for",
+                                "with",
+                                "from",
+                                "among",
+                                "by",
+                                "on",
+                                "at",
+                                "during",
+                                "of",
+                                "member(s) of",
+                                "in",
+                                "after",
+                                "under",
+                                "to",
+                                "into",
+                                "before",
+                                "near",
+                                "outside",
+                                "around",
+                                "between",
+                                "against",
+                                "over",
+                                "inside",
+                            ]
+                        ),
+                        "complement_coref_cluster_id": datasets.Value("string"),
+                    }
+                ],
+                "coref": [
+                    {
+                        "id": datasets.Value("string"),
+                        "members": datasets.Sequence(datasets.Value("string")),
+                        "np_type": datasets.features.ClassLabel(
+                            names=[
+                                "standard",
+                                "time/date/measurement",
+                                "idiomatic",
+                            ]
+                        ),
+                    }
+                ],
+                "metadata": {
+                    "annotators": {
+                        "coref_worker": datasets.Value("int32"),
+                        "consolidator_worker": datasets.Value("int32"),
+                        "np-relations_worker": datasets.Sequence(datasets.Value("int32")),
                     },
-                }
-            )
-        # These are the features of the test splits (test and ood), that are identical, besides not containing
-        # the np_relations information.
-        else:
-            features = datasets.Features(
-                {
-                    "id": datasets.Value("string"),
-                    "text": datasets.Value("string"),
-                    "tokens": datasets.Sequence(datasets.Value("string")),
-                    "nps": [
-                        {
-                            "text": datasets.Value("string"),
-                            "first_char": datasets.Value("int32"),
-                            "last_char": datasets.Value("int32"),
-                            "first_token": datasets.Value("int32"),
-                            "last_token": datasets.Value("int32"),
-                            "id": datasets.Value("string"),
-                        }
-                    ],
-                    "coref": [
-                        {
-                            "id": datasets.Value("string"),
-                            "members": datasets.Sequence(datasets.Value("string")),
-                            "np_type": datasets.features.ClassLabel(
-                                names=[
-                                    "standard",
-                                    "time/date/measurement",
-                                    "idiomatic",
-                                ]
-                            ),
-                        }
-                    ],
-                    "metadata": {
-                        "annotators": {
-                            "coref_worker": datasets.Value("int32"),
-                            "consolidator_worker": datasets.Value("int32"),
-                            "np-relations_worker": datasets.Sequence(datasets.Value("int32")),
-                        },
-                        "url": datasets.Value("string"),
-                        "source": datasets.Value("string"),
-                    },
-                }
-            )
+                    "url": datasets.Value("string"),
+                    "source": datasets.Value("string"),
+                },
+            }
+        )
+
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -185,38 +152,34 @@ class TNEDataset(datasets.GeneratorBasedBuilder):
         urls = _URLS
         data_dir = dl_manager.download_and_extract(urls)
 
-        if self.config.name == "labeled":
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": data_dir["train"],
-                        "split": "train",
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": data_dir["dev"],
-                        "split": "dev",
-                    },
-                ),
-            ]
-        else:
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": data_dir["test_unlabeled"], "split": "test_unlabeled"},
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split("test_ood"),
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": data_dir["ood_unlabeled"], "split": "ood_unlabeled"},
-                ),
-            ]
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={
+                    "filepath": data_dir["train"],
+                    "split": "train",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={
+                    "filepath": data_dir["dev"],
+                    "split": "dev",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"filepath": data_dir["test_unlabeled"], "split": "test_unlabeled"},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split("test_ood"),
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"filepath": data_dir["ood_unlabeled"], "split": "ood_unlabeled"},
+            ),
+        ]
 
     # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     def _generate_examples(self, filepath, split):
@@ -224,4 +187,24 @@ class TNEDataset(datasets.GeneratorBasedBuilder):
         with open(filepath, "r", encoding="utf-8") as f:
             for key, row in enumerate(f):
                 data = json.loads(row)
-                yield key, data
+
+                ex_id = data["id"]
+                text = data["text"]
+                tokens = data["tokens"]
+                nps = data["nps"]
+                if split in ["test_unlabeled", "ood_unlabeled"]:
+                    np_relations = []
+                else:
+                    np_relations = data["np_relations"]
+                coref = data["coref"]
+                metadata = data["metadata"]
+
+                yield key, {
+                    "id": ex_id,
+                    "text": text,
+                    "tokens": tokens,
+                    "nps": nps,
+                    "np_relations": np_relations,
+                    "coref": coref,
+                    "metadata": metadata,
+                }
