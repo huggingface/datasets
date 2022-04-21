@@ -15,9 +15,9 @@
 """TF-specific utils import."""
 
 import numpy as np
+import pyarrow as pa
 
 from .. import config
-
 
 def minimal_tf_collate_fn(features):
     if config.TF_AVAILABLE:
@@ -35,3 +35,24 @@ def minimal_tf_collate_fn(features):
         else:
             batch[k] = np.array([f[k] for f in features])
     return batch
+
+
+def is_numeric_pa_type(pa_type):
+    if pa.types.is_list(pa_type):
+        return is_numeric_pa_type(pa_type.value_type)
+    return pa.types.is_integer(pa_type) or pa.types.is_floating(pa_type) or pa.types.is_decimal(pa_type)
+
+
+def is_numeric_feature(feature):
+    from .. import Sequence, Value
+    from ..features.features import _ArrayXD
+    if isinstance(feature, Sequence):
+        return is_numeric_feature(feature.feature)
+    elif isinstance(feature, list):
+        return is_numeric_feature(feature[0])
+    elif isinstance(feature, _ArrayXD):
+        return is_numeric_pa_type(feature().storage_dtype)
+    elif isinstance(feature, Value):
+        return is_numeric_pa_type(feature())
+    else:
+        return False

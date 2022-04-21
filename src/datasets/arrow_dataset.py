@@ -94,7 +94,7 @@ from .utils.file_utils import _retry, estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import convert_file_size_to_int, temporary_assignment, unique_values
 from .utils.streaming_download_manager import xgetsize
-from .utils.tf_utils import minimal_tf_collate_fn
+from .utils.tf_utils import minimal_tf_collate_fn, is_numeric_feature
 from .utils.typing import PathLike
 
 
@@ -347,7 +347,7 @@ class TensorflowDatasetMixin:
                 labels. Note that many models compute loss internally rather than letting Keras do it, in which case it is
                 not necessary to actually pass the labels here, as long as they're in the input `columns`.
             drop_columns (:obj:`List[str]` or :obj:`str` or :obj:`bool`, optional): Dataset column(s) to drop before
-                passing to the `collate_fn`. By default, no columns are dropped.
+                passing to the `collate_fn`. By default, we drop non-numerical columns.
             prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
@@ -410,7 +410,8 @@ class TensorflowDatasetMixin:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
         if not drop_columns:
-            drop_columns = []
+            drop_columns = [feature_name for feature_name, feature in self.features.items()
+                            if not is_numeric_feature(feature)]
         elif isinstance(drop_columns, str):
             drop_columns = [drop_columns]
         if drop_columns:
@@ -497,7 +498,7 @@ class TensorflowDatasetMixin:
 
             tf_dataset = tf_dataset.map(split_features_and_labels)
 
-        elif len(columns) == 1:
+        elif isinstance(tf_dataset.element_spec, dict) and len(tf_dataset.element_spec) == 1:
             tf_dataset = tf_dataset.map(lambda x: list(x.values())[0])
         # endregion
 
