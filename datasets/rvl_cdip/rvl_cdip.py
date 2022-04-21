@@ -43,13 +43,13 @@ _LICENSE = "https://www.industrydocuments.ucsf.edu/help/copyright/"
 
 
 _URLS = {
-    "rvl-cdip": "https://huggingface.co/datasets/mariosasko/rvl_cdip/resolve/main/rvl-cdip.tar.gz",
+    "rvl-cdip": "https://huggingface.co/datasets/rvl_cdip/resolve/main/data/rvl-cdip.tar.gz",
 }
 
 _METADATA_URLS = {
-    "train": "https://huggingface.co/datasets/mariosasko/rvl_cdip/resolve/main/train.txt",
-    "test": "https://huggingface.co/datasets/mariosasko/rvl_cdip/resolve/main/test.txt",
-    "val": "https://huggingface.co/datasets/mariosasko/rvl_cdip/resolve/main/val.txt",
+    "train": "https://huggingface.co/datasets/rvl_cdip/resolve/main/data/train.txt",
+    "test": "https://huggingface.co/datasets/rvl_cdip/resolve/main/data/test.txt",
+    "val": "https://huggingface.co/datasets/rvl_cdip/resolve/main/data/val.txt",
 }
 
 _CLASSES = [
