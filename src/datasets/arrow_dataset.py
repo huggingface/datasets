@@ -976,6 +976,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Saves a dataset to a dataset directory, or in a filesystem using either :class:`~filesystems.S3FileSystem` or
         any implementation of ``fsspec.spec.AbstractFileSystem``.
 
+        For :class:`Image` and :class:`Audio` data:
+
+        If your images and audio files are local files, then the resulting arrow file will store paths to these files.
+        If you want to include the bytes or your images or audio files instead, you must `read()` those files first.
+        This can be done by storing the "bytes" instead of the "path" of the images or audio files:
+
+        ```python
+        >>> def read_image_file(example):
+        ...     with open(example["image"].filename, "rb") as f:
+        ...         return {"image": {"bytes": f.read()}}
+        >>> ds = ds.map(read_image_file)
+        >>> ds.save_to_disk("path/to/dataset/dir")
+        ```
+
+        ```python
+        >>> def read_audio_file(example):
+        ...     with open(example["audio"]["path"], "rb") as f:
+        ...         return {"audio": {"bytes": f.read()}}
+        >>> ds = ds.map(read_audio_file)
+        >>> ds.save_to_disk("path/to/dataset/dir")
+        ```
+
         Args:
             dataset_path (:obj:`str`): Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset directory where the dataset will be saved to.
@@ -3502,8 +3524,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         shard_size: Optional[int] = 500 << 20,
         embed_external_files: bool = True,
     ):
-        """Pushes the dataset to the hub.
+        """Pushes the dataset to the hub as a Parquet dataset.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
+
+        The resulting Parquet files are self-contained: if your dataset contains :class:`Image` or :class:`Audio`
+        data, the Parquet files will store the bytes of your images or audio files.
 
         Args:
             repo_id (:obj:`str`):
