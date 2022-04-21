@@ -199,7 +199,7 @@ total > 14K  | 38     | images > 13K  | 38
 
 ```
 {
-  'language': 'en', '
+  'language': 'en',
   'page_url': 'https://en.wikipedia.org/wiki/Oxydactylus',
   'image_url': 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Oxydactylus_longipes_fm.jpg',
   'page_title': 'Oxydactylus',
@@ -221,23 +221,23 @@ total > 14K  | 38     | images > 13K  | 38
 
 ### Data Fields
 
-- `language`
-- `page_url`
-- `image_url`
-- `page_title`
-- `section_title`
-- `hierarchical_section_title`
-- `caption_reference_description`
-- `caption_attribution_description`
-- `caption_alt_text_description`
-- `mime_type`
-- `original_height`
-- `original_width`
-- `is_main_image`
-- `attribution_passes_lang_id`
-- `page_changed_recently`
-- `context_page_description`
-- `context_section_description`
+- `language`: Language code depicting wikipedia language of the page
+- `page_url`: URL to wikipedia page
+- `image_url`: URL to wikipedia image
+- `page_title`: Wikipedia page's title
+- `section_title`: Section's title
+- `hierarchical_section_title`: Hierarchical section's title
+- `caption_reference_description`: This is the caption that is visible on the wiki page directly below the image.
+- `caption_attribution_description`: This is the text found on the Wikimedia page of the image. This text is common to all occurrences of that image across all Wikipedias and thus can be in a language different to the original page article.
+- `caption_alt_text_description`: This is the “alt” text associated with the image. While not visible in general, it is commonly used for accessibility / screen readers
+- `mime_type`: Mime type associated to the image.
+- `original_height`: Image height
+- `original_width`: Image width
+- `is_main_image`: [More Information Needed]
+- `attribution_passes_lang_id`: [More Information Needed]
+- `page_changed_recently`: [More Information Needed] 
+- `context_page_description`: Page description corresponds to the short description of the page. It provides a concise explanation of the scope of the page.
+- `context_section_description`: Text within the image's section.
 
 <p align='center'>
   <img width='75%' src='https://production-media.paperswithcode.com/datasets/Screenshot_2021-03-04_at_14.26.02.png' alt="Half Dome" /> </br>
