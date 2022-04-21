@@ -49,10 +49,10 @@ pretty_name: RVL-CDIP
 ## Dataset Description
 
 - **Homepage:** [The RVL-CDIP Dataset](https://www.cs.cmu.edu/~aharley/rvl-cdip/)
-- **Repository:** [Needs More Information]
-- **Paper:** [RVL-CDIP Paper](https://arxiv.org/abs/1502.07058)
-- **Leaderboard:** [Document Image Classification leaderboard](https://paperswithcode.com/dataset/rvl-cdip)
-- **Point of Contact:** [Adam W. Harley](http://cs.cmu.edu/~aharley/)
+- **Repository:**
+- **Paper:** [Evaluation of Deep Convolutional Nets for Document Image Classification and Retrieval](https://arxiv.org/abs/1502.07058)
+- **Leaderboard:** [RVL-CDIP leaderboard](https://paperswithcode.com/dataset/rvl-cdip)
+- **Point of Contact:** [Adam W. Harley](mailto:aharley@cmu.edu)
 
 ### Dataset Summary
 
