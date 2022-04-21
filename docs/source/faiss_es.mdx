@@ -50,7 +50,7 @@ FAISS retrieves documents based on the similarity of their vector representation
 
 ```py
 >>> faiss_index = ds_with_embeddings.get_index('embeddings').faiss_index
->>> limits, distances, indices = faiss_index.range_search(x=question_embedding, thresh=0.95)
+>>> limits, distances, indices = faiss_index.range_search(x=question_embedding.reshape(1, -1), thresh=0.95)
 ```
 
 6. When you are done querying, save the index on disk with [`Dataset.save_faiss_index`]:
