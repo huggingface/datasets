@@ -19,21 +19,19 @@ import numpy as np
 from .. import config
 
 
-if config.TF_AVAILABLE:
-
-    def minimal_tf_collate_fn(features):
+def minimal_tf_collate_fn(features):
+    if config.TF_AVAILABLE:
         import tensorflow as tf
+    else:
+        raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
-        first = features[0]
-        batch = {}
-        for k, v in first.items():
-            if isinstance(v, np.ndarray):
-                batch[k] = np.stack([f[k] for f in features])
-            elif isinstance(v, tf.Tensor):
-                batch[k] = np.stack([f[k].numpy() for f in features])
-            else:
-                batch[k] = np.array([f[k] for f in features])
-        return batch
-
-else:
-    minimal_tf_collate_fn = None
+    first = features[0]
+    batch = {}
+    for k, v in first.items():
+        if isinstance(v, np.ndarray):
+            batch[k] = np.stack([f[k] for f in features])
+        elif isinstance(v, tf.Tensor):
+            batch[k] = np.stack([f[k].numpy() for f in features])
+        else:
+            batch[k] = np.array([f[k] for f in features])
+    return batch
