@@ -157,10 +157,22 @@ Each task was required to describe the data source and curation methods on the t
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed]
+
+#### Who are the source language producers?
+
 [More Information Needed]
 
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
 
 [More Information Needed]
 
