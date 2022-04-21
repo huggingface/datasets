@@ -1812,7 +1812,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[Union[str, List[str]]] = None,
+        remove_columns: Optional[Union[bool, str, List[str]]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
@@ -1859,9 +1859,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`.
             drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
-            remove_columns (`Optional[Union[str, List[str]]]`, default `None`): Remove a selection of columns while doing the mapping.
+            remove_columns (`Optional[Union[bool,List[str]]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
+                Argument behaviour according to typing:
+                    - None: No column is removed.
+                    - bool: Flag determining whether all columns are removed or not. Columns from the output of `function` are preserved.
+                    - str: Single column removed. Columns from the output of `function` are preserved.
+                    - List[str]: List of columns removed. Columns from the output of `function` are preserved.
             keep_in_memory (:obj:`bool`, default `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (:obj:`bool`, default `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
@@ -1892,6 +1897,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # If the array is empty we do nothing (but we make sure to remove the requested columns anyway)
         if len(self) == 0:
             if remove_columns:
+                if remove_columns is True:
+                    return self.remove_columns(self.column_names)
                 return self.remove_columns(remove_columns)
             else:
                 return self
@@ -1933,7 +1940,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if isinstance(remove_columns, str):
             remove_columns = [remove_columns]
 
-        if remove_columns is not None and any(col not in self._data.column_names for col in remove_columns):
+        if isinstance(remove_columns, Iterable) and any(col not in self._data.column_names for col in remove_columns):
             raise ValueError(
                 f"Column to remove {list(filter(lambda col: col not in self._data.column_names, remove_columns))} not in the dataset. Current columns in the dataset: {self._data.column_names}"
             )
@@ -2091,7 +2098,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[List[str]] = None,
+        remove_columns: Optional[Union[bool, List[str]]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
@@ -2125,9 +2132,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
             drop_last_batch (:obj:`bool`, default: `False`): Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
-            remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
+            remove_columns (`Optional[Union[bool,List[str]]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
+                Argument behaviour according to typing:
+                    - None: No column is removed.
+                    - bool: Flag determining whether all columns are removed or not. Columns from the output of `function` are preserved.
+                    - List[str]: List of columns removed. Columns from the output of `function` are preserved.
             keep_in_memory (:obj:`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (:obj:`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
@@ -2232,7 +2243,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     format_kwargs=None,
                     decoded=False,
                 )
-            if remove_columns is not None:
+            if isinstance(remove_columns, Iterable):
                 for column in remove_columns:
                     # `function` can modify input in-place causing column to be already removed.
                     if column in inputs:
@@ -2243,6 +2254,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if input_num_examples != processed_inputs_num_examples:
                     raise NumExamplesMismatchError()
             if isinstance(inputs, dict) and isinstance(processed_inputs, Mapping):
+                if remove_columns is True:
+                    return processed_inputs
                 inputs.update(processed_inputs)
                 return inputs
             else:
@@ -2292,7 +2305,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     input_dataset = self.with_format(
                         self._format_type, columns=input_columns, output_all_columns=False, **self._format_kwargs
                     )
-                    if remove_columns:
+                    if isinstance(remove_columns, Iterable):
                         remove_columns = list(set(remove_columns) & set(input_columns))
                 else:
                     input_dataset = self

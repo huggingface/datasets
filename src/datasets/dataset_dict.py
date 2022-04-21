@@ -380,7 +380,7 @@ class DatasetDict(dict):
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[Union[str, List[str]]] = None,
+        remove_columns: Optional[Union[bool, str, List[str]]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         cache_file_names: Optional[Dict[str, Optional[str]]] = None,
@@ -411,9 +411,14 @@ class DatasetDict(dict):
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
             drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
-            remove_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
+            remove_columns (`Optional[Union[bool,List[str]]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
+                Argument behaviour according to typing:
+                    - None: No column is removed.
+                    - bool: Flag determining whether all columns are removed or not. Columns from the output of `function` are preserved.
+                    - str: Single column removed. Columns from the output of `function` are preserved.
+                    - List[str]: List of columns removed. Columns from the output of `function` are preserved.
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
@@ -951,7 +956,7 @@ class IterableDatasetDict(dict):
         self,
         function: Optional[Callable] = None,
         with_indices: bool = False,
-        input_columns: Optional[Union[str, List[str]]] = None,
+        input_columns: Optional[Union[bool, str, List[str]]] = None,
         batched: bool = False,
         batch_size: int = 1000,
         remove_columns: Optional[Union[str, List[str]]] = None,
@@ -987,9 +992,15 @@ class IterableDatasetDict(dict):
                 as positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (:obj:`bool`, default `False`): Provide batch of examples to `function`.
             batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
-            remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
+            remove_columns (`Optional[Union[bool,List[str]]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
+                Argument behaviour according to typing:
+                    - None: No column is removed.
+                    - bool: Flag determining whether all columns are removed or not. Columns from the output of `function` are preserved.
+                    - str: Single column removed. Columns from the output of `function` are preserved.
+                    - List[str]: List of columns removed. Columns from the output of `function` are preserved.
+
         """
         return IterableDatasetDict(
             {

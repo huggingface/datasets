@@ -180,7 +180,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         input_columns: Optional[List[str]] = None,
         batched: bool = False,
         batch_size: int = 1000,
-        remove_columns: Optional[List[str]] = None,
+        remove_columns: Optional[Union[bool, List[str]]] = None,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
@@ -206,12 +206,18 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
                 if self.with_indices:
                     function_args.append([current_idx + i for i in range(len(key_examples_list))])
+
                 transformed_batch = dict(batch)  # this will be updated with the function output
-                transformed_batch.update(self.function(*function_args))
+
+                processed_batch = self.function(*function_args)
                 # then remove the unwanted columns
-                if self.remove_columns:
+                if isinstance(self.remove_columns, Iterable):
                     for c in self.remove_columns:
-                        del transformed_batch[c]
+                        if c in transformed_batch:
+                            del transformed_batch[c]
+
+                transformed_batch.update(processed_batch)
+
                 if transformed_batch:
                     first_col = next(iter(transformed_batch))
                     bad_cols = [
@@ -240,11 +246,16 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self.with_indices:
                     function_args.append(current_idx)
                 transformed_example = dict(example)  # this will be updated with the function output
-                transformed_example.update(self.function(*function_args))
-                # then we remove the unwanted columns
-                if self.remove_columns:
+
+                processed_example = self.function(*function_args)
+                # then remove the unwanted columns
+                if isinstance(self.remove_columns, Iterable):
                     for c in self.remove_columns:
-                        del transformed_example[c]
+                        if c in transformed_example:
+                            del transformed_example[c]
+
+                transformed_example.update(processed_example)
+
                 yield key, transformed_example
                 current_idx += 1
 
@@ -536,7 +547,7 @@ class IterableDataset(DatasetInfoMixin):
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: int = 1000,
-        remove_columns: Optional[Union[str, List[str]]] = None,
+        remove_columns: Optional[Union[bool, str, List[str]]] = None,
     ) -> "IterableDataset":
         """
         Apply a function to all the examples in the iterable dataset (individually or in batches) and update them.
@@ -568,9 +579,14 @@ class IterableDataset(DatasetInfoMixin):
                 as positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (:obj:`bool`, default `False`): Provide batch of examples to `function`.
             batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
-            remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
+            remove_columns (`Optional[Union[bool,List[str]]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
+                Argument behaviour according to typing:
+                    - None: No column is removed.
+                    - bool: Flag determining whether all columns are removed or not. Columns from the output of `function` are preserved.
+                    - str: Single column removed. Columns from the output of `function` are preserved.
+                    - List[str]: List of columns removed. Columns from the output of `function` are preserved.
         """
         if isinstance(input_columns, str):
             input_columns = [input_columns]
