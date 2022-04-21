@@ -32,6 +32,7 @@ from .features.features import (
     get_nested_type,
     list_of_np_array_to_pyarrow_listarray,
     numpy_to_pyarrow_listarray,
+    to_pyarrow_listarray,
 )
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
@@ -169,12 +170,7 @@ class TypedSequence:
         try:
             # custom pyarrow types
             if isinstance(pa_type, _ArrayXDExtensionType):
-                if isinstance(data, np.ndarray):
-                    storage = numpy_to_pyarrow_listarray(data, type=pa_type.value_type)
-                elif isinstance(data, list) and data and isinstance(first_non_null_value(data)[1], np.ndarray):
-                    storage = list_of_np_array_to_pyarrow_listarray(data, type=pa_type.value_type)
-                else:
-                    storage = pa.array(data, pa_type.storage_dtype)
+                storage = to_pyarrow_listarray(data, pa_type)
                 return pa.ExtensionArray.from_storage(pa_type, storage)
 
             # efficient np array to pyarrow array
