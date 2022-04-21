@@ -527,7 +527,7 @@ def test_iterable_dataset_map_persist_with_remove_column(dataset: IterableDatase
     dataset = dataset.map(func, batched=True, batch_size=batch_size, remove_columns=True)
     assert isinstance(dataset._ex_iterable, MappedExamplesIterable)
     assert dataset._ex_iterable.function is func
-    assert dataset._ex_iterable.batch_size is False
+    assert dataset._ex_iterable.batch_size == batch_size
     assert next(iter(dataset)) == {"id": 1}
 
 
