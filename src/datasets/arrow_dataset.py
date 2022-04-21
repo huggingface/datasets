@@ -1904,7 +1904,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 return self
 
         if function is None:
-            function = lambda x: None  # noqa: E731
+            function = lambda x: {}  # noqa: E731
 
         def decorate(f):
             """

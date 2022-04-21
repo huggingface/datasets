@@ -599,7 +599,7 @@ class IterableDataset(DatasetInfoMixin):
         if isinstance(remove_columns, str):
             remove_columns = [remove_columns]
         if function is None:
-            function = lambda x: None  # noqa: E731
+            function = lambda x: {}  # noqa: E731
         info = self._info.copy()
         info.features = None
         ex_iterable = MappedExamplesIterable(
