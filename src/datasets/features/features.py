@@ -35,7 +35,7 @@ from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from .. import config
 from ..utils import logging
-from ..utils.py_utils import first_non_null_value, zip_dict
+from ..utils.py_utils import zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
 from .translation import Translation, TranslationVariableLanguages
