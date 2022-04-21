@@ -496,6 +496,13 @@ def test_iterable_dataset_map(dataset: IterableDataset, generate_examples_fn):
     assert mapped_dataset._ex_iterable.batched is False
     assert next(iter(mapped_dataset)) == {**next(iter(dataset)), **func(next(iter(generate_examples_fn()))[1])}
 
+    # Test that remove_column=True removes original column
+    mapped_dataset = dataset.map(func, remove_columns=True)
+    assert isinstance(mapped_dataset._ex_iterable, MappedExamplesIterable)
+    assert mapped_dataset._ex_iterable.function is func
+    assert mapped_dataset._ex_iterable.batched is False
+    assert next(iter(mapped_dataset)) == func(next(iter(generate_examples_fn()))[1])
+
 
 def test_iterable_dataset_map_batched(dataset: IterableDataset, generate_examples_fn):
     func = lambda x: {"id+1": [i + 1 for i in x["id"]]}  # noqa: E731
@@ -505,6 +512,22 @@ def test_iterable_dataset_map_batched(dataset: IterableDataset, generate_example
     assert dataset._ex_iterable.function is func
     assert dataset._ex_iterable.batch_size == batch_size
     assert next(iter(dataset)) == {"id": 0, "id+1": 1}
+
+    # Test that remove_column=True removes original column
+    dataset = dataset.map(func, batched=True, batch_size=batch_size, remove_columns=True)
+    assert isinstance(dataset._ex_iterable, MappedExamplesIterable)
+    assert dataset._ex_iterable.function is func
+    assert dataset._ex_iterable.batch_size == batch_size
+    assert next(iter(dataset)) == {"id+1": 1}
+
+
+def test_iterable_dataset_map_persist_with_remove_column(dataset: IterableDataset, generate_examples_fn):
+    func = lambda x: {"id": [i + 1 for i in x["id"]]}  # noqa: E731
+    dataset = dataset.map(func, remove_columns=True)
+    assert isinstance(dataset._ex_iterable, MappedExamplesIterable)
+    assert dataset._ex_iterable.function is func
+    assert dataset._ex_iterable.batch_size is False
+    assert next(iter(dataset)) == {"id": 1}
 
 
 def test_iterable_dataset_map_complex_features(dataset: IterableDataset, generate_examples_fn):

@@ -1352,6 +1352,18 @@ class BaseDatasetTest(TestCase):
                         with empty_dset.map(lambda x: {}, remove_columns=columns_names[0]) as mapped_dset:
                             self.assertListEqual(columns_names[1:], mapped_dset.column_names)
                             assert_arrow_metadata_are_synced_with_dataset_features(mapped_dset)
+                    # remove all input columns
+                    with dset.map(
+                        lambda x: {
+                            "filename": x["filename"],
+                            "id+1": x["id"] + 1,
+                        },  # `filename` is an old column, `id+1` is a new column
+                        remove_columns=True,
+                    ) as mapped_dset:
+                        self.assertDictEqual(
+                            mapped_dset.features, Features({"filename": Value("string"), "id+1": Value("int64")})
+                        )
+                        assert_arrow_metadata_are_synced_with_dataset_features(mapped_dset)
 
     def test_map_stateful_callable(self, in_memory):
         # be sure that the state of the map callable is unaffected

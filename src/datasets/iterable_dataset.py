@@ -216,7 +216,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                         if c in transformed_batch:
                             del transformed_batch[c]
 
-                transformed_batch.update(processed_batch)
+                if self.remove_columns is False or self.remove_columns is None:
+                    transformed_batch = processed_batch
+                else:
+                    transformed_batch.update(processed_batch)
 
                 if transformed_batch:
                     first_col = next(iter(transformed_batch))
@@ -254,7 +257,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                         if c in transformed_example:
                             del transformed_example[c]
 
-                transformed_example.update(processed_example)
+                if self.remove_columns is False or self.remove_columns is None:
+                    transformed_example = processed_example
+                else:
+                    transformed_example.update(processed_example)
 
                 yield key, transformed_example
                 current_idx += 1
