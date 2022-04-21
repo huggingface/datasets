@@ -257,7 +257,9 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
                         audio_file = f"{id_}.flac"
                         speaker_id, chapter_id = [int(el) for el in id_.split("-")[:2]]
                         audio_file = (
-                            os.path.join(local_extracted_archive, audio_file) if local_extracted_archive else None
+                            os.path.join(local_extracted_archive, audio_file)
+                            if local_extracted_archive
+                            else audio_file
                         )
                         transcripts.append(
                             {
