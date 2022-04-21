@@ -523,7 +523,8 @@ def test_iterable_dataset_map_batched(dataset: IterableDataset, generate_example
 
 def test_iterable_dataset_map_persist_with_remove_column(dataset: IterableDataset, generate_examples_fn):
     func = lambda x: {"id": [i + 1 for i in x["id"]]}  # noqa: E731
-    dataset = dataset.map(func, remove_columns=True)
+    batch_size = 3
+    dataset = dataset.map(func, batched=True, batch_size=batch_size, remove_columns=True)
     assert isinstance(dataset._ex_iterable, MappedExamplesIterable)
     assert dataset._ex_iterable.function is func
     assert dataset._ex_iterable.batch_size is False

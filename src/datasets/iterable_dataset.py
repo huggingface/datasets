@@ -216,7 +216,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                         if c in transformed_batch:
                             del transformed_batch[c]
 
-                if self.remove_columns is False or self.remove_columns is None:
+                if self.remove_columns is True:
                     transformed_batch = processed_batch
                 else:
                     transformed_batch.update(processed_batch)
@@ -257,7 +257,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                         if c in transformed_example:
                             del transformed_example[c]
 
-                if self.remove_columns is False or self.remove_columns is None:
+                if self.remove_columns is True:
                     transformed_example = processed_example
                 else:
                     transformed_example.update(processed_example)
