@@ -435,7 +435,7 @@ class TensorflowDatasetMixin:
             collate_fn_args=collate_fn_args,
             batch_size=batch_size if drop_remainder else None,
         )
-        if error_on_missing:
+        if error_on_missing and post_collate_cols_to_retain is not None:
             # Assert all columns the user asked for are here
             missing_cols = set(post_collate_cols_to_retain) - set(output_signature.keys())
             if missing_cols:
