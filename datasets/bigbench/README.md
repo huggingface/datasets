@@ -48,15 +48,23 @@ task_ids:
 - [Table of Contents](#table-of-contents)
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
   - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
@@ -68,11 +76,12 @@ task_ids:
 - **Leaderboard:**
 - **Point of Contact:** [bigbench@googlegroups.com](mailto:bigbench@googlegroups.com)
 
+
 ### Dataset Summary
 
 The Beyond the Imitation Game Benchmark (BIG-bench) is a collaborative benchmark intended to probe large language models and extrapolate their future capabilities. Tasks included in BIG-bench are summarized by keyword [here](https://github.com/google/BIG-bench/blob/main/bigbench/benchmark_tasks/keywords_to_tasks.md), and by task name [here](https://github.com/google/BIG-bench/blob/main/bigbench/benchmark_tasks/README.md). A paper introducing the benchmark, including evaluation results on large language models, is currently in preparation.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 BIG-Bench consists of both json and programmatic tasks.
 This implementation in HuggingFace datasets implements
@@ -142,6 +151,24 @@ BIG-bench tasks were collaboratively submitted through GitHub pull requests.
 Each task went through a review and meta-review process with criteria outlined in the [BIG-bench repository documentation](https://github.com/google/BIG-bench/blob/main/docs/doc.md#submission-review-process).
 Each task was required to describe the data source and curation methods on the task README page. 
 
+### Curation Rationale
+
+[More Information Needed]
+
+### Source Data
+
+[More Information Needed]
+
+
+### Annotations
+
+[More Information Needed]
+
+
+### Personal and Sensitive Information
+
+[More Information Needed]
+
 
 ## Considerations for Using the Data
 
@@ -153,9 +180,29 @@ For a more thourough discussion see the [BIG-bench paper](in progress).
 To view tasks designed to probe pro-social behavior, including alignment, social, racial, gender, religious or political bias; toxicity; inclusion; and other issues please see tasks under the [pro-social behavior keywords](https://github.com/google/BIG-bench/blob/main/bigbench/benchmark_tasks/keywords_to_tasks.md#pro-social-behavior) on the BIG-bench repository.
 
 
+### Social Impact of Dataset
+
+[More Information Needed]
+
+
+### Discussion of Biases
+
+[More Information Needed]
+
+
+### Other Known Limitations
+
+[More Information Needed]
+
+
 ## Additional Information
 
 For a more thorough discussion of all aspects of BIG-bench including dataset creation and evaluations see the BIG-bench repository [https://github.com/google/BIG-bench](https://github.com/google/BIG-bench) and paper []
+
+### Dataset Curators
+
+[More Information Needed]
+
 
 ### Licensing Information
 
