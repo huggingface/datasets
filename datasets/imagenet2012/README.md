@@ -52,25 +52,36 @@ task_ids:
 - **Homepage:** https://image-net.org/index.php
 - **Repository:**
 - **Paper:** https://arxiv.org/abs/1409.0575
-- **Leaderboard:** https://paperswithcode.com/sota/image-classification-on-imagenet
+- **Leaderboard:** https://paperswithcode.com/sota/image-classification-on-imagenet?tag_filter=171
 - **Point of Contact:** mailto: imagenet.help.desk@gmail.com  
 
 ### Dataset Summary
 
-ILSVRC 2012, commonly known as 'ImageNet' is an image dataset organized according to the WordNet hierarchy. Each meaningful concept in WordNet, possibly described by multiple words or word phrases, is called a "synonym set" or "synset". There are more than 100,000 synsets in WordNet, majority of them are nouns (80,000+). In ImageNet, we aim to provide on average 1000 images to illustrate each synset. Images of each concept are quality-controlled and human-annotated. In its completion, we hope ImageNet will offer tens of millions of cleanly sorted images for most of the concepts in the WordNet hierarchy.
+ILSVRC 2012, commonly known as 'ImageNet' is an image dataset organized according to the WordNet hierarchy. Each meaningful concept in WordNet, possibly described by multiple words or word phrases, is called a "synonym set" or "synset". There are more than 100,000 synsets in WordNet, majority of them are nouns (80,000+). ImageNet aims to provide on average 1000 images to illustrate each synset. Images of each concept are quality-controlled and human-annotated.
 
-This dataset requires manual download of the ImageNet data tar file [imagenet_object_localization_patched2019.tar.gz](https://www.kaggle.com/competitions/imagenet-object-localization-challenge/data?select=imagenet_object_localization_patched2019.tar.gz) and point datasets library to it by:
+🛑 This dataset requires **manual download** of the ImageNet data tar file (which is about **155GB** in size) [imagenet_object_localization_patched2019.tar.gz](https://www.kaggle.com/competitions/imagenet-object-localization-challenge/data?select=imagenet_object_localization_patched2019.tar.gz) and point datasets library to it by:
 
 ```python
 from datasets import load_dataset
-dataset = load_dataset("imagenet", data_dir="/path/to/imagenet_object_localization_patched2019.tar.gz")
+dataset = load_dataset("imagenet2012", data_dir="/path/to/imagenet_object_localization_patched2019.tar.gz")
 ```
 
-    
+💡 This dataset provides access to ImageNet (ILSVRC) 2012 which is the most commonly used **subset** of ImageNet. This dataset spans 1000 object classes and contains 1,281,167 training images, 50,000 validation images and 100,000 test images. The version also has the [patch](https://drive.google.com/file/d/16RYnHpVOW0XKCsn3G3S9GTHUyoV2-4WX/view) which fixes some of the corrupted test set images already applied. For full ImageNet dataset presented in [[2]](https://ieeexplore.ieee.org/abstract/document/5206848), please check the download section of the [main website](https://image-net.org/download-images.php).
 
 ### Supported Tasks and Leaderboards
 
-- `image-classification`: The goal of this task is to classify a given image into one of 1000 ImageNet classes. The leaderboard is available [here](https://paperswithcode.com/sota/image-classification-on-imagenet).
+- `image-classification`: The goal of this task is to classify a given image into one of 1000 ImageNet classes. The leaderboard is available [here](https://paperswithcode.com/sota/image-classification-on-imagenet?tag_filter=171).
+
+To evaluate the `imagenet-classification` accuracy on the test split, one must first create an account at https://image-net.org. This account must be approved by the site administrator. After the account is created, one can submit the results to the test server at https://image-net.org/challenges/LSVRC/eval_server.php The submission consists of several ASCII text files corresponding to multiple tasks. The task of interest is "Classification submission (top-5 cls error)". A sample of an exported text file looks like the following:
+
+```
+670 778 794 387 650
+217 691 564 909 364
+737 369 430 531 124
+755 930 755 512 152
+```
+
+The export format is described in full in "readme.txt" within the 2013 development kit available here: https://image-net.org/data/ILSVRC/2013/ILSVRC2013_devkit.tgz. Please see the section entitled "3.3 CLS-LOC submission format". Briefly, the format of the text file is 100,000 lines corresponding to each image in the test split. Each line of integers correspond to the rank-ordered, top 5 predictions for each test image. The integers are 1-indexed corresponding to the line number in the corresponding labels file. See `imagenet2012_labels.txt`.
 
 ### Languages
 
@@ -1147,30 +1158,32 @@ Images are automatically fetched from an image search engine based on the synset
 
 ### Personal and Sensitive Information
 
-See the papers: [1](https://arxiv.org/abs/1409.0575) [2](https://ieeexplore.ieee.org/abstract/document/5206848).
+The 1,000 categories selected for this subset contain only 3 people categories (scuba diver, bridegroom, and baseball player) while the full ImageNet contains 2,832 people categories under the person subtree (accounting for roughly 8.3% of the total images). This subset does contain the images of people without their consent. Though, the study in [[1]](https://image-net.org/face-obfuscation/) on obfuscating faces of the people in the ImageNet 2012 subset shows that blurring people's faces causes a very minor decrease in accuracy (~0.6%) suggesting that privacy-aware models can be trained on ImageNet. On larger ImageNet, there has been [an attempt](https://arxiv.org/abs/1912.07726) at filtering and balancing the people subtree in the larger ImageNet.
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-ImageNet dataset has been very crucial in advancement of deep learning technology as being the standard benchmark for vision models. The dataset aims to probe models on their understanding of the objects and has successfully shouldered the responsibility of holding through the test of time for that purpose. ImageNet is still one of the major datasets on which models are evaluated for their generalization in computer vision capabilities as the field moves towards self-supervised algorithms. Please see the future section in [1](https://arxiv.org/abs/1409.0575).
+The ImageNet dataset has been very crucial in advancement of deep learning technology as being the standard benchmark for the computer vision models. The dataset aims to probe models on their understanding of the objects and has become the de-facto dataset for this purpose. ImageNet is still one of the major datasets on which models are evaluated for their generalization in computer vision capabilities as the field moves towards self-supervised algorithms. Please see the future section in [1](https://arxiv.org/abs/1409.0575) for a discussion on social impact of the dataset.
 
 ### Discussion of Biases
 
 1. A [study](https://image-net.org/update-sep-17-2019.php) of the history of the multiple layers (taxonomy, object classes and labeling) of ImageNet and WordNet in 2019 described how bias is deeply embedded in most classification approaches for of all sorts of images.
 1. A [study](https://arxiv.org/abs/1811.12231) has also shown that ImageNet trained models are biased towards texture rather than shapes which in contrast with how humans do object classification. Increasing the shape bias improves the accuracy and robustness.
-1. Another [study](https://arxiv.org/abs/2109.13228) more potential issues and biases with the ImageNet dataset and provides an alternative benchmark on top. The data collected contains humans without their consent.
+1. Another [study](https://arxiv.org/abs/2109.13228) more potential issues and biases with the ImageNet dataset and provides an alternative benchmark for image classification task. The data collected contains humans without their consent.
 1. ImageNet data with face obfuscation is also provided at [this link](https://image-net.org/face-obfuscation/)
+1. A study on genealogy of ImageNet is can be found at [this link](https://journals.sagepub.com/doi/full/10.1177/20539517211035955) about the "norms, values, and assumptions" in ImageNet.
+1. See [this study](https://arxiv.org/abs/1912.07726) on filtering and balancing the distribution of people subtree in the larger complete ImageNet.
 
 ### Other Known Limitations
 
-1. Since most of the images were collected from internet, keep in mind that some images in ImageNet might be subject to copyrights. See the following papers for more details: [1](https://arxiv.org/abs/2109.13228) [2](https://arxiv.org/abs/1409.0575) [3](https://ieeexplore.ieee.org/abstract/document/5206848).
+1. Since most of the images were collected from internet, keep in mind that some images in ImageNet might be subject to copyrights. See the following papers for more details: [[1]](https://arxiv.org/abs/2109.13228) [[2]](https://arxiv.org/abs/1409.0575) [[3]](https://ieeexplore.ieee.org/abstract/document/5206848).
 
 ## Additional Information
 
 ### Dataset Curators
 
-Authors of [1](https://arxiv.org/abs/1409.0575) and [2](https://ieeexplore.ieee.org/abstract/document/5206848):
+Authors of [[1]](https://arxiv.org/abs/1409.0575) and [[2]](https://ieeexplore.ieee.org/abstract/document/5206848):
 
 - Olga Russakovsky
 - Jia Deng

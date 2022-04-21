@@ -1,7 +1,25 @@
+# coding=utf-8
+# Copyright 2022 the HuggingFace Datasets Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
 import shutil
 
 import datasets
+from datasets.tasks import ImageClassification
+
+from .classes import IMAGENET2012_CLASSES
 
 
 _CITATION = """\
@@ -20,43 +38,43 @@ _CITATION = """\
 _HOMEPAGE = "https://image-net.org/index.php"
 
 _DESCRIPTION = """\
-ILSVRC 2012, commonly known as 'ImageNet' is an image dataset organized according to the WordNet hierarchy. Each meaningful concept in WordNet, possibly described by multiple words or word phrases, is called a "synonym set" or "synset". There are more than 100,000 synsets in WordNet, majority of them are nouns (80,000+). In ImageNet, we aim to provide on average 1000 images to illustrate each synset. Images of each concept are quality-controlled and human-annotated. In its completion, we hope ImageNet will offer tens of millions of cleanly sorted images for most of the concepts in the WordNet hierarchy.
+ILSVRC 2012, commonly known as 'ImageNet' is an image dataset organized according to the WordNet hierarchy. Each meaningful concept in WordNet, possibly described by multiple words or word phrases, is called a "synonym set" or "synset". There are more than 100,000 synsets in WordNet, majority of them are nouns (80,000+). ImageNet aims to provide on average 1000 images to illustrate each synset. Images of each concept are quality-controlled and human-annotated. In its completion, ImageNet hopes to offer tens of millions of cleanly sorted images for most of the concepts in the WordNet hierarchy. ImageNet 2012 is the most commonly used subset of ImageNet. This dataset spans 1000 object classes and contains 1,281,167 training images, 50,000 validation images and 100,000 test images
 """
 
-_VAL_PREP_SCRIPT_IN1K = "https://raw.githubusercontent.com/soumith/imagenetloader.torch/master/valprep.sh"
-_SYNSET_MAPPING_IN1K = "https://gist.githubusercontent.com/apsdehal/f27ebf7d594b5950c91ecf732c0aaf61/raw/0b4cd44dadf7385e6d656424911cf45a113685bc/imagenet_synsets.txt"  # noqa
-_DEFAULT_CONFIG_NAME = "2012"
+_IN1K_NUM_CLASSES = 1000
+_IN1K_VAL_PREP_SCRIPT = "https://raw.githubusercontent.com/soumith/imagenetloader.torch/master/valprep.sh"
+_DEFAULT_CONFIG_NAME = "default"
 
 
-class ImagenetConfig(datasets.BuilderConfig):
+class Imagenet2012Config(datasets.BuilderConfig):
     def __init__(
         self,
         name=_DEFAULT_CONFIG_NAME,
-        val_prep_script=_VAL_PREP_SCRIPT_IN1K,
-        synset_mapping=_SYNSET_MAPPING_IN1K,
+        val_prep_script=_IN1K_VAL_PREP_SCRIPT,
+        num_classes=_IN1K_NUM_CLASSES,
         **kwargs,
     ):
         """Config for ImageNet dataset.
 
         Args:
             name (string, optional): keyword to identify the config. Defaults to _DEFAULT_CONFIG_NAME.
-            val_prep_script (string, optional): URL or path to script used to prep val set. Defaults to _VAL_PREP_SCRIPT_IN1K.
-            synset_mapping (string, optional): URL or path to synset mapping. Defaults to _SYNSET_MAPPING_IN1K.
+            val_prep_script (string, optional): URL or path to script used to prep val set. Defaults to _IN1K_VAL_PREP_SCRIPT.
+            synset_mapping (string, optional): URL or path to synset mapping. Defaults to _IN1K_SYNSET_MAPPING.
         """
         kwargs.pop("version", None)
-        super(ImagenetConfig, self).__init__(version=datasets.Version("1.0.0"), name=name, **kwargs)
+        super(Imagenet2012Config, self).__init__(version=datasets.Version("1.0.0"), name=name, **kwargs)
         self.val_prep_script = val_prep_script
-        self.synset_mapping = synset_mapping
+        self.num_classes = num_classes
 
 
-class Imagenet(datasets.GeneratorBasedBuilder):
-    BUILDER_CONFIG_CLASS = ImagenetConfig
+class Imagenet2012(datasets.GeneratorBasedBuilder):
+    BUILDER_CONFIG_CLASS = Imagenet2012Config
 
     BUILDER_CONFIGS = [
-        ImagenetConfig(
-            name="2012",
-            val_prep_script=_VAL_PREP_SCRIPT_IN1K,
-            synset_mapping=_SYNSET_MAPPING_IN1K,
+        Imagenet2012Config(
+            name="default",
+            val_prep_script=_IN1K_VAL_PREP_SCRIPT,
+            num_classes=_IN1K_NUM_CLASSES,
         ),
     ]
 
@@ -65,12 +83,13 @@ class Imagenet(datasets.GeneratorBasedBuilder):
     @property
     def manual_download_instructions(self):
         return (
-            "To use ImageNet you have to download it manually. Please download it from ("
+            "To use ImageNet2012 you have to download it manually. Please download it from ("
             "https://www.kaggle.com/competitions/imagenet-object-localization-challenge/"
             "data?select=imagenet_object_localization_patched2019.tar.gz). You will "
             "need to login and download the `imagenet_object_localization_patched2019.tar.gz file. "
+            "This file is about 155GB in size."
             "Don't extract the file and point the `datasets` library to the tar file by running "
-            "`datasets.load_dataset('imagenet', "
+            "`datasets.load_dataset('imagenet2012', "
             "data_dir='path/to/folder/imagenet_object_localization_patched2019.tar.gz')`"
         )
 
@@ -80,17 +99,21 @@ class Imagenet(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "image": datasets.Image(),
+                    "label": datasets.ClassLabel(
+                        num_classes=self.config.num_classes, names=list(IMAGENET2012_CLASSES.values())
+                    ),
                 }
             ),
             homepage=_HOMEPAGE,
             citation=_CITATION,
+            task_templates=[ImageClassification(image_column="image", label_column="label")],
         )
 
     def _prep_validation(self, data_dir, val_prep_script):
         with open(val_prep_script, "r", encoding="utf-8") as f:
             commands = f.readlines()
 
-        for idx, command in enumerate(commands):
+        for command in commands:
             command = command.strip()
             if "mkdir" in command:
                 folder = command.split(" ")[-1]
@@ -109,57 +132,21 @@ class Imagenet(datasets.GeneratorBasedBuilder):
                     continue
                 shutil.move(src_path, dst_path)
 
-    def _build_class_mapping(self, synset_mapping):
-        with open(synset_mapping, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-
-        mapping = {}
-        inverse_mapping = {}
-
-        for line in lines:
-            line = line.strip().split(" ", 1)
-            # Handle cases of same classes occurring twice
-            if line[1] in inverse_mapping:
-                splits = line[1].split("_")
-                key = splits[0]
-                if len(splits) == 2:
-                    count = int(splits[1])
-                else:
-                    count = 0
-
-                mapping[line[0]] = f"{key}_{count + 1}"
-                inverse_mapping[f"{key}_{count + 1}"] = 1
-            else:
-                mapping[line[0]] = line[1]
-                inverse_mapping[line[1]] = 1
-
-        return mapping
-
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         data_dir = os.path.abspath(os.path.expanduser(dl_manager.extract(dl_manager.manual_dir)))
 
         if not os.path.exists(data_dir):
             raise FileNotFoundError(
-                f"{data_dir} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('matinf', data_dir=...)` that includes files unzipped from the MATINF zip. Manual download instructions: {self.manual_download_instructions}"
+                f"{data_dir} does not exist. Make sure you insert a manual dir via "
+                "`datasets.load_dataset('imagenet2012', data_dir=...)` that points to the "
+                "tar file downloaded for ImageNet 2012. Manual download instructions: "
+                f"{self.manual_download_instructions}"
             )
         val_prep_script = dl_manager.download(self.config.val_prep_script)
         images_path = os.path.join(data_dir, "ILSVRC", "Data", "CLS-LOC")
 
         self._prep_validation(images_path, val_prep_script)
-
-        class_mapping = None
-        label_classes = sorted(os.listdir(os.path.join(images_path, "train")))
-
-        if self.config.synset_mapping is not None:
-            synset_mapping = dl_manager.download(self.config.synset_mapping)
-            class_mapping = self._build_class_mapping(synset_mapping)
-            label_classes = [class_mapping[label] for label in label_classes]
-
-        self.class_mapping = class_mapping
-        self.info.features = datasets.Features(
-            {"image": datasets.Image(), "labels": datasets.ClassLabel(names=label_classes)}
-        )
 
         return [
             datasets.SplitGenerator(
@@ -185,11 +172,10 @@ class Imagenet(datasets.GeneratorBasedBuilder):
                 output = {"image": file}
 
                 if not no_labels:
-                    output["labels"] = os.path.basename(os.path.dirname(file))
-                    if self.class_mapping is not None:
-                        output["labels"] = self.class_mapping[output["labels"]]
+                    label = os.path.basename(os.path.dirname(file))
+                    output["label"] = IMAGENET2012_CLASSES[label]
                 else:
-                    output["labels"] = -1
+                    output["label"] = -1
 
                 yield idx, output
                 idx += 1
