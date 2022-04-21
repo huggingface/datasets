@@ -880,8 +880,9 @@ class DatasetDict(dict):
 
         Each dataset split will be pushed independently. The pushed dataset will keep the original split names.
 
-        The resulting Parquet files are self-contained: if your dataset contains :class:`Image` or :class:`Audio`
+        The resulting Parquet files are self-contained by default: if your dataset contains :class:`Image` or :class:`Audio`
         data, the Parquet files will store the bytes of your images or audio files.
+        You can disable this by setting `embed_external_files` to False.
 
         Args:
             repo_id (:obj:`str`):

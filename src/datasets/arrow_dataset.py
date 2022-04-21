@@ -3527,8 +3527,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Pushes the dataset to the hub as a Parquet dataset.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
-        The resulting Parquet files are self-contained: if your dataset contains :class:`Image` or :class:`Audio`
+        The resulting Parquet files are self-contained by default: if your dataset contains :class:`Image` or :class:`Audio`
         data, the Parquet files will store the bytes of your images or audio files.
+        You can disable this by setting `embed_external_files` to False.
 
         Args:
             repo_id (:obj:`str`):
