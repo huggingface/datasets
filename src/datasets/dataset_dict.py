@@ -94,7 +94,7 @@ class DatasetDict(dict):
         self._check_values_type()
         return DatasetDict({k: dataset.flatten(max_depth=max_depth) for k, dataset in self.items()})
 
-    def unique(self, column: str) -> Dict[str, List[Any]]:
+    def unique(self, column: str) -> Dict[str, List]:
         """Return a list of the unique elements in a column for each split.
 
         This is implemented in the low-level backend and as such, very fast.
@@ -397,10 +397,10 @@ class DatasetDict(dict):
 
         Args:
             function (`callable`): with one of the following signature:
-                - `function(example: Dict) -> Union[Dict, Any]` if `batched=False` and `with_indices=False`
-                - `function(example: Dict, indices: int) -> Union[Dict, Any]` if `batched=False` and `with_indices=True`
-                - `function(batch: Dict[List]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False`
-                - `function(batch: Dict[List], indices: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True`
+                - `function(example: Dict[str, Any]) -> Optional[Union[Dict[str, Any], pyarrow.Table]]` if `batched=False` and `with_indices=False`
+                - `function(example: Dict[str, Any], indices: int) -> Optional[Union[Dict[str, Any], pyarrow.Table]]` if `batched=False` and `with_indices=True`
+                - `function(batch: Dict[str, List]) -> Optional[Union[Dict[str, List], pyarrow.Table]]` if `batched=True` and `with_indices=False`
+                - `function(batch: Dict[str, List], indices: List[int]) -> Optional[Union[Dict[str, List]], pyarrow.Table]]` if `batched=True` and `with_indices=True`
             with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
             with_rank (:obj:`bool`, default `False`): Provide process rank to `function`. Note that in this case the
                 signature of `function` should be `def function(example[, idx], rank): ...`.
@@ -480,10 +480,10 @@ class DatasetDict(dict):
 
         Args:
             function (`callable`): with one of the following signature:
-                - ``function(example: Union[Dict, Any]) -> bool`` if ``with_indices=False, batched=False``
-                - ``function(example: Union[Dict, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
-                - ``function(example: Union[Dict, Any]) -> List[bool]`` if ``with_indices=False, batched=True``
-                - ``function(example: Union[Dict, Any], indices: int) -> List[bool]`` if ``with_indices=True, batched=True``
+                - ``function(example: Dict[str, Any]) -> bool`` if ``with_indices=False, batched=False``
+                - ``function(example: Dict[str, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
+                - ``function(example: Dict[str, List]) -> List[bool]`` if ``with_indices=False, batched=True``
+                - ``function(example: Dict[str, List], indices: List[int]) -> List[bool]`` if ``with_indices=True, batched=True``
             with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
@@ -1002,10 +1002,10 @@ class IterableDatasetDict(dict):
             function (:obj:`Callable`, optional, default None): Function applied on-the-fly on the examples when you iterate on the dataset
                 It must have one of the following signatures:
 
-                - `function(example: Union[Dict, Any]) -> dict` if `batched=False` and `with_indices=False`
-                - `function(example: Union[Dict, Any], idx: int) -> dict` if `batched=False` and `with_indices=True`
-                - `function(batch: Union[Dict[List], List[Any]]) -> dict` if `batched=True` and `with_indices=False`
-                - `function(batch: Union[Dict[List], List[Any]], indices: List[int]) -> dict` if `batched=True` and `with_indices=True`
+                - `function(example: Dict[str, Any]) -> Optional[Union[Dict[str, Any], pyarrow.Table]]` if `batched=False` and `with_indices=False`
+                - `function(example: Dict[str, Any], idx: int) -> Optional[Union[Dict[str, Any], pyarrow.Table]]` if `batched=False` and `with_indices=True`
+                - `function(batch: Dict[str, List]) -> Optional[Union[Dict[str, List], pyarrow.Table]]` if `batched=True` and `with_indices=False`
+                - `function(batch: Dict[str, List], indices: List[int]) -> Optional[Union[Dict[str, List], pyarrow.Table]]` if `batched=True` and `with_indices=True`
 
                 If no function is provided, default to identity function: ``lambda x: x``.
             with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
@@ -1046,10 +1046,10 @@ class IterableDatasetDict(dict):
         Args:
             function (:obj:`Callable`): Callable with one of the following signatures:
 
-                - ``function(example: Union[Dict, Any]) -> bool`` if ``with_indices=False, batched=False``
-                - ``function(example: Union[Dict, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
-                - ``function(example: Union[Dict, Any]) -> List[bool]`` if ``with_indices=False, batched=True``
-                - ``function(example: Union[Dict, Any], indices: int) -> List[bool]`` if ``with_indices=True, batched=True``
+                - ``function(example: Dict[str, Any]) -> bool`` if ``with_indices=False, batched=False``
+                - ``function(example: Dict[str, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
+                - ``function(example: Dict[str, List]) -> List[bool]`` if ``with_indices=False, batched=True``
+                - ``function(example: Dict[str, List], indices: List[int]) -> List[bool]`` if ``with_indices=True, batched=True``
 
                 If no function is provided, defaults to an always True function: ``lambda x: True``.
             with_indices (:obj:`bool`, default `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
