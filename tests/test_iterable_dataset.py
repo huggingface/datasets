@@ -521,7 +521,7 @@ def test_iterable_dataset_map_batched(dataset: IterableDataset, generate_example
     assert next(iter(dataset)) == {"id+1": 1}
 
 
-def test_iterable_dataset_map_persist_with_remove_column(dataset: IterableDataset, generate_examples_fn):
+def test_iterable_dataset_map_persist_with_remove_column(dataset: IterableDataset):
     func = lambda x: {"id": [i + 1 for i in x["id"]]}  # noqa: E731
     batch_size = 3
     dataset = dataset.map(func, batched=True, batch_size=batch_size, remove_columns=True)
