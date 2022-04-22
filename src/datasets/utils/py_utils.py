@@ -91,7 +91,7 @@ def convert_file_size_to_int(size: Union[int, str]) -> int:
 
     Example:
     ```py
-    >>> convert_file_size_to_int("1MIB")
+    >>> convert_file_size_to_int("1MiB")
     1048576
     ```
     """
