@@ -3,9 +3,10 @@ import copy
 import json
 import os
 import re
+import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
@@ -94,7 +95,7 @@ class DatasetDict(dict):
         self._check_values_type()
         return DatasetDict({k: dataset.flatten(max_depth=max_depth) for k, dataset in self.items()})
 
-    def unique(self, column: str) -> Dict[str, List[Any]]:
+    def unique(self, column: str) -> Dict[str, List]:
         """Return a list of the unique elements in a column for each split.
 
         This is implemented in the low-level backend and as such, very fast.
@@ -397,10 +398,14 @@ class DatasetDict(dict):
 
         Args:
             function (`callable`): with one of the following signature:
-                - `function(example: Dict) -> Union[Dict, Any]` if `batched=False` and `with_indices=False`
-                - `function(example: Dict, indices: int) -> Union[Dict, Any]` if `batched=False` and `with_indices=True`
-                - `function(batch: Dict[List]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False`
-                - `function(batch: Dict[List], indices: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True`
+                - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False`
+                - `function(example: Dict[str, Any], indices: int) -> Dict[str, Any]` if `batched=False` and `with_indices=True`
+                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False`
+                - `function(batch: Dict[str, List], indices: List[int]) -> Dict[str, List]` if `batched=True` and `with_indices=True`
+
+                For advanced usage, the function can also return a `pyarrow.Table`.
+                Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
+
             with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
             with_rank (:obj:`bool`, default `False`): Provide process rank to `function`. Note that in this case the
                 signature of `function` should be `def function(example[, idx], rank): ...`.
@@ -480,10 +485,10 @@ class DatasetDict(dict):
 
         Args:
             function (`callable`): with one of the following signature:
-                - ``function(example: Union[Dict, Any]) -> bool`` if ``with_indices=False, batched=False``
-                - ``function(example: Union[Dict, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
-                - ``function(example: Union[Dict, Any]) -> List[bool]`` if ``with_indices=False, batched=True``
-                - ``function(example: Union[Dict, Any], indices: int) -> List[bool]`` if ``with_indices=True, batched=True``
+                - ``function(example: Dict[str, Any]) -> bool`` if ``with_indices=False, batched=False``
+                - ``function(example: Dict[str, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
+                - ``function(example: Dict[str, List]) -> List[bool]`` if ``with_indices=False, batched=True``
+                - ``function(example: Dict[str, List], indices: List[int]) -> List[bool]`` if ``with_indices=True, batched=True``
             with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
@@ -649,6 +654,28 @@ class DatasetDict(dict):
         """
         Saves a dataset dict to a filesystem using either :class:`~filesystems.S3FileSystem` or
         ``fsspec.spec.AbstractFileSystem``.
+
+        For :class:`Image` and :class:`Audio` data:
+
+        If your images and audio files are local files, then the resulting arrow file will store paths to these files.
+        If you want to include the bytes or your images or audio files instead, you must `read()` those files first.
+        This can be done by storing the "bytes" instead of the "path" of the images or audio files:
+
+        ```python
+        >>> def read_image_file(example):
+        ...     with open(example["image"].filename, "rb") as f:
+        ...         return {"image": {"bytes": f.read()}}
+        >>> ds = ds.map(read_image_file)
+        >>> ds.save_to_disk("path/to/dataset/dir")
+        ```
+
+        ```python
+        >>> def read_audio_file(example):
+        ...     with open(example["audio"]["path"], "rb") as f:
+        ...         return {"audio": {"bytes": f.read()}}
+        >>> ds = ds.map(read_audio_file)
+        >>> ds.save_to_disk("path/to/dataset/dir")
+        ```
 
         Args:
             dataset_dict_path (``str``): Path (e.g. `dataset/train`) or remote URI
@@ -850,13 +877,18 @@ class DatasetDict(dict):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         branch: Optional[None] = None,
-        shard_size: Optional[int] = 500 << 20,
+        max_shard_size: Union[int, str] = "500MB",
+        shard_size: Optional[int] = "deprecated",
         embed_external_files: bool = True,
     ):
-        """Pushes the ``DatasetDict`` to the hub.
+        """Pushes the ``DatasetDict`` to the hub as a Parquet dataset.
         The ``DatasetDict`` is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
         Each dataset split will be pushed independently. The pushed dataset will keep the original split names.
+
+        The resulting Parquet files are self-contained by default: if your dataset contains :class:`Image` or :class:`Audio`
+        data, the Parquet files will store the bytes of your images or audio files.
+        You can disable this by setting `embed_external_files` to False.
 
         Args:
             repo_id (:obj:`str`):
@@ -872,9 +904,11 @@ class DatasetDict(dict):
                 if no token is passed and the user is not logged-in.
             branch (Optional :obj:`str`):
                 The git branch on which to push the dataset.
+            max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
+                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
+                (like `"500MB"` or `"1GB"`).
             shard_size (Optional :obj:`int`):
-                The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
-                of the size specified here, in bytes.
+                Deprecated: 'shard_size' was renamed to 'max_shard_size' in version 2.1.1 and will be removed in 2.4.0.
             embed_external_files (:obj:`bool`, default ``True``):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -887,6 +921,13 @@ class DatasetDict(dict):
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>")
         ```
         """
+        if shard_size != "deprecated":
+            warnings.warn(
+                "'shard_size' was renamed to 'max_shard_size' in version 2.1.1 and will be removed in 2.4.0.",
+                FutureWarning,
+            )
+            max_shard_size = shard_size
+
         self._check_values_type()
         total_uploaded_size = 0
         total_dataset_nbytes = 0
@@ -902,7 +943,7 @@ class DatasetDict(dict):
                 private=private,
                 token=token,
                 branch=branch,
-                shard_size=shard_size,
+                max_shard_size=max_shard_size,
                 embed_external_files=embed_external_files,
             )
             total_uploaded_size += uploaded_size
@@ -976,11 +1017,13 @@ class IterableDatasetDict(dict):
             function (:obj:`Callable`, optional, default None): Function applied on-the-fly on the examples when you iterate on the dataset
                 It must have one of the following signatures:
 
-                - `function(example: Union[Dict, Any]) -> dict` if `batched=False` and `with_indices=False`
-                - `function(example: Union[Dict, Any], idx: int) -> dict` if `batched=False` and `with_indices=True`
-                - `function(batch: Union[Dict[List], List[Any]]) -> dict` if `batched=True` and `with_indices=False`
-                - `function(batch: Union[Dict[List], List[Any]], indices: List[int]) -> dict` if `batched=True` and `with_indices=True`
+                - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False`
+                - `function(example: Dict[str, Any], idx: int) -> Dict[str, Any]` if `batched=False` and `with_indices=True`
+                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False`
+                - `function(batch: Dict[str, List], indices: List[int]) -> Dict[str, List]` if `batched=True` and `with_indices=True`
 
+                For advanced usage, the function can also return a `pyarrow.Table`.
+                Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
                 If no function is provided, default to identity function: ``lambda x: x``.
             with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, default `None`): The columns to be passed into `function`
@@ -1020,10 +1063,10 @@ class IterableDatasetDict(dict):
         Args:
             function (:obj:`Callable`): Callable with one of the following signatures:
 
-                - ``function(example: Union[Dict, Any]) -> bool`` if ``with_indices=False, batched=False``
-                - ``function(example: Union[Dict, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
-                - ``function(example: Union[Dict, Any]) -> List[bool]`` if ``with_indices=False, batched=True``
-                - ``function(example: Union[Dict, Any], indices: int) -> List[bool]`` if ``with_indices=True, batched=True``
+                - ``function(example: Dict[str, Any]) -> bool`` if ``with_indices=False, batched=False``
+                - ``function(example: Dict[str, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
+                - ``function(example: Dict[str, List]) -> List[bool]`` if ``with_indices=False, batched=True``
+                - ``function(example: Dict[str, List], indices: List[int]) -> List[bool]`` if ``with_indices=True, batched=True``
 
                 If no function is provided, defaults to an always True function: ``lambda x: True``.
             with_indices (:obj:`bool`, default `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.

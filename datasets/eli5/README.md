@@ -14,10 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- question-answering
+- text2text-generation
 task_ids:
 - abstractive-qa
-- open-domain-qa
+- open-domain-abstrative-qa
 paperswithcode_id: eli5
 pretty_name: ELI5
 ---
@@ -61,7 +61,7 @@ The ELI5 dataset is an English-language dataset of questions and answers gathere
 
 ### Supported Tasks and Leaderboards
 
-- `abstractive-qa`, `open-domain-qa`: The dataset can be used to train a model for Open Domain Long Form Question Answering. An LFQA model is presented with a non-factoid and asked to retrieve relevant information from a knowledge source (such as [Wikipedia](https://www.wikipedia.org/)), then use it to generate a multi-sentence answer. The model performance is measured by how high its [ROUGE](https://huggingface.co/metrics/rouge) score to the reference is. A [BART-based model](https://huggingface.co/yjernite/bart_eli5) with a [dense retriever](https://huggingface.co/yjernite/retribert-base-uncased) trained to draw information from [Wikipedia passages](https://huggingface.co/datasets/wiki_snippets) achieves a [ROUGE-L of 0.149](https://yjernite.github.io/lfqa.html#generation).
+- `abstractive-qa`, `open-domain-abstractive-qa`: The dataset can be used to train a model for Open Domain Long Form Question Answering. An LFQA model is presented with a non-factoid and asked to retrieve relevant information from a knowledge source (such as [Wikipedia](https://www.wikipedia.org/)), then use it to generate a multi-sentence answer. The model performance is measured by how high its [ROUGE](https://huggingface.co/metrics/rouge) score to the reference is. A [BART-based model](https://huggingface.co/yjernite/bart_eli5) with a [dense retriever](https://huggingface.co/yjernite/retribert-base-uncased) trained to draw information from [Wikipedia passages](https://huggingface.co/datasets/wiki_snippets) achieves a [ROUGE-L of 0.149](https://yjernite.github.io/lfqa.html#generation).
 
 ### Languages
 

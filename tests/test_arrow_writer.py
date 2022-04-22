@@ -2,15 +2,18 @@ import copy
 import os
 import tempfile
 from unittest import TestCase
+from unittest.mock import patch
 
 import numpy as np
 import pyarrow as pa
 import pytest
 
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, TypedSequence
-from datasets.features import Array2D, ClassLabel, Features, Value
-from datasets.features.features import Array2DExtensionType
+from datasets.features import Array2D, ClassLabel, Features, Image, Value
+from datasets.features.features import Array2DExtensionType, cast_to_python_objects
 from datasets.keyhash import DuplicatedKeysError, InvalidKeyError
+
+from .utils import require_pil
 
 
 class TypedSequenceTest(TestCase):
@@ -57,6 +60,19 @@ class TypedSequenceTest(TestCase):
     def test_try_incompatible_extension_type(self):
         arr = pa.array(TypedSequence(["foo", "bar"], try_type=Array2D((1, 3), "int64")))
         self.assertEqual(arr.type, pa.string())
+
+    @require_pil
+    def test_exhaustive_cast(self):
+        import PIL.Image
+
+        pil_image = PIL.Image.fromarray(np.arange(10, dtype=np.uint8).reshape(2, 5))
+        with patch(
+            "datasets.arrow_writer.cast_to_python_objects", side_effect=cast_to_python_objects
+        ) as mock_cast_to_python_objects:
+            _ = pa.array(TypedSequence([{"path": None, "bytes": b"image_bytes"}, pil_image], type=Image()))
+            args, kwargs = mock_cast_to_python_objects.call_args_list[-1]
+            self.assertIn("optimize_list_casting", kwargs)
+            self.assertFalse(kwargs["optimize_list_casting"])
 
 
 def _check_output(output, expected_num_chunks: int):

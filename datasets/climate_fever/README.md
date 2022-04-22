@@ -18,8 +18,8 @@ source_datasets:
 task_categories:
 - text-classification
 - text-retrieval
-- text-scoring
 task_ids:
+- text-scoring
 - fact-checking
 - fact-checking-retrieval
 - semantic-similarity-scoring

@@ -14,10 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- question-answering
+- text2text-generation
 task_ids:
 - abstractive-qa
-- open-domain-qa
+- open-domain-abstractive-qa
 paperswithcode_id: null
 pretty_name: SO StackSample
 ---

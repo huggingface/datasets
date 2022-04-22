@@ -14,9 +14,8 @@ size_categories:
 source_datasets:
 - extended|other-Open-American-National-Corpus-(OANC1)
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids: []
 pretty_name: MsrTextCompression
 ---
 

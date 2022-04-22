@@ -14,14 +14,14 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- sequence-modeling
+- text-generation
+- fill-mask
 - text-classification
-- text-scoring
 task_ids:
 - language-modeling
-- other-structured-to-text
-- text-scoring-other-citation-estimation
+- masked-language-modeling
+- text-classification-other-citation-estimation
+- text-scoring
 - topic-classification
 paperswithcode_id: pubmed
 pretty_name: PubMed

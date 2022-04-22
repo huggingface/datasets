@@ -17,7 +17,7 @@ source_datasets:
 task_categories:
 - image-classification
 task_ids:
-- single-label-image-classification
+- multi-class-image-classification
 ---
 
 # Dataset Card for Beans

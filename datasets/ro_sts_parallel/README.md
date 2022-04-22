@@ -14,9 +14,8 @@ size_categories:
 source_datasets:
 - extended|other-sts-b
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
 pretty_name: RO-STS-Parallel
 ---

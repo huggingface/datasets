@@ -14,8 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
+- text-scoring
 - semantic-similarity-scoring
 paperswithcode_id: biosses
 pretty_name: BIOSSES

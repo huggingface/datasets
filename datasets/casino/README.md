@@ -14,10 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- sequence-modeling
+- conversational
+- text-generation
+- fill-mask
 task_ids:
-- conditional-text-generation-other-dialogue-generation
 - dialogue-modeling
 pretty_name: Campsite Negotiation Dialogues
 paperswithcode_id: casino
