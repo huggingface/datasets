@@ -1869,9 +1869,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False` and `with_rank=False`
                 - `function(batch: Dict[str, List], *extra_args) -> Dict[str, List]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
                 
-            For advanced usage, the function can also return a `pyarrow.Table`.
-            Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
-
+                For advanced usage, the function can also return a `pyarrow.Table`.
+                Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
                 If no function is provided, default to identity function: ``lambda x: x``.
             with_indices (:obj:`bool`, default `False`): Provide example indices to `function`. Note that in this case the
                 signature of `function` should be `def function(example, idx[, rank]): ...`.
@@ -2136,10 +2135,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             function (:obj:`Callable`): with one of the following signature:
-                - `function(example: Dict[str, Any]) -> Optional[Union[Dict[str, Any], pyarrow.Table]]` if `batched=False` and `with_indices=False` and `with_rank=False`
-                - `function(example: Dict[str, Any], *extra_args) -> Optional[Union[Dict[str, Any], pyarrow.Table]]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
-                - `function(batch: Dict[str, List]) -> Optional[Union[Dict[str, List], pyarrow.Table]]` if `batched=True` and `with_indices=False` and `with_rank=False`
-                - `function(batch: Dict[str, List], *extra_args) -> Optional[Union[Dict[str, List], pyarrow.Table]]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+                - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False` and `with_rank=False`
+                - `function(example: Dict[str, Any], *extra_args) -> Dict[str, Any]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False` and `with_rank=False`
+                - `function(batch: Dict[str, List], *extra_args) -> Dict[str, List]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+
+                For advanced usage, the function can also return a `pyarrow.Table`.
+                Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
                 If no function is provided, default to identity function: lambda x: x
             with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
             with_rank (:obj:`bool`, default `False`): Provide process rank to `function`. Note that in this case the signature of `function` should be `def function(example[, idx], rank): ...`.

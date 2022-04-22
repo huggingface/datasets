@@ -397,10 +397,14 @@ class DatasetDict(dict):
 
         Args:
             function (`callable`): with one of the following signature:
-                - `function(example: Dict[str, Any]) -> Optional[Union[Dict[str, Any], pyarrow.Table]]` if `batched=False` and `with_indices=False`
-                - `function(example: Dict[str, Any], indices: int) -> Optional[Union[Dict[str, Any], pyarrow.Table]]` if `batched=False` and `with_indices=True`
-                - `function(batch: Dict[str, List]) -> Optional[Union[Dict[str, List], pyarrow.Table]]` if `batched=True` and `with_indices=False`
-                - `function(batch: Dict[str, List], indices: List[int]) -> Optional[Union[Dict[str, List]], pyarrow.Table]]` if `batched=True` and `with_indices=True`
+                - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False`
+                - `function(example: Dict[str, Any], indices: int) -> Dict[str, Any]` if `batched=False` and `with_indices=True`
+                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False`
+                - `function(batch: Dict[str, List], indices: List[int]) -> Dict[str, List]` if `batched=True` and `with_indices=True`
+
+                For advanced usage, the function can also return a `pyarrow.Table`.
+                Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
+
             with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
             with_rank (:obj:`bool`, default `False`): Provide process rank to `function`. Note that in this case the
                 signature of `function` should be `def function(example[, idx], rank): ...`.
@@ -1002,11 +1006,13 @@ class IterableDatasetDict(dict):
             function (:obj:`Callable`, optional, default None): Function applied on-the-fly on the examples when you iterate on the dataset
                 It must have one of the following signatures:
 
-                - `function(example: Dict[str, Any]) -> Optional[Union[Dict[str, Any], pyarrow.Table]]` if `batched=False` and `with_indices=False`
-                - `function(example: Dict[str, Any], idx: int) -> Optional[Union[Dict[str, Any], pyarrow.Table]]` if `batched=False` and `with_indices=True`
-                - `function(batch: Dict[str, List]) -> Optional[Union[Dict[str, List], pyarrow.Table]]` if `batched=True` and `with_indices=False`
-                - `function(batch: Dict[str, List], indices: List[int]) -> Optional[Union[Dict[str, List], pyarrow.Table]]` if `batched=True` and `with_indices=True`
+                - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False`
+                - `function(example: Dict[str, Any], idx: int) -> Dict[str, Any]` if `batched=False` and `with_indices=True`
+                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False`
+                - `function(batch: Dict[str, List], indices: List[int]) -> Dict[str, List]` if `batched=True` and `with_indices=True`
 
+                For advanced usage, the function can also return a `pyarrow.Table`.
+                Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
                 If no function is provided, default to identity function: ``lambda x: x``.
             with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, default `None`): The columns to be passed into `function`
