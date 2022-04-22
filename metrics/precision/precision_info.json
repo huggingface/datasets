@@ -171,7 +171,7 @@
     ],
     "limitations_and_bias":null,
     "citations":[
-        "@article{scikit-learn,\n\ttitle={Scikit-learn: Machine Learning in {P}ython},\n\tauthor={Pedregosa, F. and Varoquaux, G. and Gramfort, A. and Michel, V.\n\tand Thirion, B. and Grisel, O. and Blondel, M. and Prettenhofer, P.\n\tand Weiss, R. and Dubourg, V. and Vanderplas, J. and Passos, A. and\n\tCournapeau, D. and Brucher, M. and Perrot, M. and Duchesnay, E.},\n\tjournal={Journal of Machine Learning Research},\n\tvolume={12},\n\tpages={2825--2830},\n\tyear={2011}\n}"
+        "@article{scikit-learn,\n    title={Scikit-learn: Machine Learning in {P}ython},\n    author={Pedregosa, F. and Varoquaux, G. and Gramfort, A. and Michel, V.\n    and Thirion, B. and Grisel, O. and Blondel, M. and Prettenhofer, P.\n    and Weiss, R. and Dubourg, V. and Vanderplas, J. and Passos, A. and\n    Cournapeau, D. and Brucher, M. and Perrot, M. and Duchesnay, E.},\n    journal={Journal of Machine Learning Research},\n    volume={12},\n    pages={2825--2830},\n    year={2011}\n}"
     ],
     "further_references":null
 }
