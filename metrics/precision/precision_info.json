@@ -125,7 +125,7 @@
                 "precision_metric = datasets.load_metric(\"precision\")",
                 "results = precision_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0])",
                 "print(results)",
-                ["{'precision': }"]
+                ["{'precision': 0.5}"]
             ]
         },
         {
@@ -135,17 +135,17 @@
                 "precision_metric = datasets.load_metric(\"precision\")",
                 "results = precision_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0], pos_label=0)",
                 "print(results)",
-                ["{'precision': }"]
+                ["{'precision': 0.6666666666666666}"]
             ]
         },
         {
             "example_name":"Example 3",
-            "example_description":"The same simple binary example as in Example 1, but with `sample_weights` included.",
+            "example_description":"The same simple binary example as in Example 1, but with `sample_weight` included.",
             "example_code":[
                 "precision_metric = datasets.load_metric(\"precision\")",
-                "results = precision_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0], sample_weights=[0.9, 0.5, 3.9, 1.2, 0.3])",
+                "results = precision_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0], sample_weight=[0.9, 0.5, 3.9, 1.2, 0.3])",
                 "print(results)",
-                ["{'precision': }"]
+                ["{'precision': 0.23529411764705882}"]
             ]
         },
         {

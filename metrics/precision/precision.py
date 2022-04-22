@@ -24,6 +24,7 @@ Precision = TP / (TP + FP)
 where TP is the True positives (i.e. the examples correctly labeled as positive) and FP is the False positive examples (i.e. the examples incorrectly labeled as positive).
 """
 
+
 _KWARGS_DESCRIPTION = """
 Args:
 - **predictions** (`list` of `int`): Predicted class labels.
@@ -51,19 +52,19 @@ Examples:
 		>>> precision_metric = datasets.load_metric("precision")
 		>>> results = precision_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0])
 		>>> print(results)
-		{'precision': }
+		{'precision': 0.5}
 
 	Example 2-The same simple binary example as in Example 1, but with `pos_label` set to `0`.
 		>>> precision_metric = datasets.load_metric("precision")
 		>>> results = precision_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0], pos_label=0)
 		>>> print(results)
-		{'precision': }
+		{'precision': 0.6666666666666666}
 
-	Example 3-The same simple binary example as in Example 1, but with `sample_weights` included.
+	Example 3-The same simple binary example as in Example 1, but with `sample_weight` included.
 		>>> precision_metric = datasets.load_metric("precision")
-		>>> results = precision_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0], sample_weights=[0.9, 0.5, 3.9, 1.2, 0.3])
+		>>> results = precision_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0], sample_weight=[0.9, 0.5, 3.9, 1.2, 0.3])
 		>>> print(results)
-		{'precision': }
+		{'precision': 0.23529411764705882}
 
 	Example 4-A multiclass example, with different values for the `average` input.
 		>>> predictions = [0, 2, 1, 0, 0, 1]
