@@ -5,7 +5,7 @@ import os
 import re
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
