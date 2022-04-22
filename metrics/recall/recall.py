@@ -36,7 +36,7 @@ Args:
 	- `'macro'`: Calculate metrics for each label, and find their unweighted mean. This does not take label imbalance into account.
 	- `'weighted'`: Calculate metrics for each label, and find their average weighted by support (the number of true instances for each label). This alters `'macro'` to account for label imbalance. Note that it can result in an F-score that is not between precision and recall.
 	- `'samples'`: Calculate metrics for each instance, and find their average (only meaningful for multilabel classification).
-- **sample_weights** (`list` of `float`): Sample weights Defaults to `None`.
+- **sample_weight** (`list` of `float`): Sample weights Defaults to `None`.
 - **zero_division** (): Sets the value to return when there is a zero division. Defaults to .
 	- `'warn'`: If there is a zero division, the return value is `0`, but warnings are also raised.
 	- `0`: If there is a zero division, the return value is `0`.
@@ -61,8 +61,8 @@ Examples:
 
 	Example 3-The same example as Example 1, but with `sample_weights` included.
 		>>> recall_metric = datasets.load_metric('recall')
-		>>> sample_weights = [0.9, 0.2, 0.9, 0.3, 0.8]
-		>>> results = recall_metric.compute(references=[0, 0, 1, 1, 1], predictions=[0, 1, 0, 1, 1], sample_weights=sample_weights)
+		>>> sample_weight = [0.9, 0.2, 0.9, 0.3, 0.8]
+		>>> results = recall_metric.compute(references=[0, 0, 1, 1, 1], predictions=[0, 1, 0, 1, 1], sample_weight=sample_weight)
 		>>> print(results)
 		{'recall': }
 
@@ -127,7 +127,7 @@ class Recall(datasets.Metric):
         labels=None,
         pos_label=1,
         average="binary",
-        sample_weights=None,
+        sample_weight=None,
         zero_division="warn",
     ):
         score = recall_score(
@@ -136,7 +136,7 @@ class Recall(datasets.Metric):
             labels=labels,
             pos_label=pos_label,
             average=average,
-            sample_weights=sample_weights,
+            sample_weight=sample_weight,
             zero_division=zero_division,
         )
         return {"recall": float(score) if score.size == 1 else score}
