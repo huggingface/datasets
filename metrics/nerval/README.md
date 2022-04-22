@@ -100,6 +100,7 @@ Example:
 In case of division by zero, the result will default to zero.
 
 ## Installation
+To use the plot_confusion_matrix function:
 ```bash
 pip install nerval
 conda install -c conda-forge nerval
