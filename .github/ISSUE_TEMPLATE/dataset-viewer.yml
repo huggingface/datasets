@@ -11,7 +11,6 @@ body:
       label: Link
       description: Link to the dataset viewer page
       placeholder: ex. https://huggingface.co/datasets/glue/viewer/cola/test
-     - type: textarea
   - type: textarea
     id: description
     attributes:
@@ -24,5 +23,5 @@ body:
       label: Owner
       description: Is it you who added this dataset?
       options:
-        - Yes
-        - No
+        - "Yes"
+        - "No"
