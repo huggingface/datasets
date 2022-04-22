@@ -579,7 +579,7 @@ class IterableDataset(DatasetInfoMixin):
                 - `function(batch: Union[Dict[List], List[Any]]) -> dict` if `batched=True` and `with_indices=False`
                 - `function(batch: Union[Dict[List], List[Any]], indices: List[int]) -> dict` if `batched=True` and `with_indices=True`
 
-                If no function is provided, default to identity function: ``lambda x: {}``.
+                If no function is provided, default to no-op function: ``lambda x: {}``, which doesn't add new columns.
             with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, default `None`): The columns to be passed into `function`
                 as positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
