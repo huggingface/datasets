@@ -26,16 +26,16 @@ At minimum, this metric takes as input two `list`s, each containing `int`s: pred
 - **labels** (`list` of `int`): The set of labels to include when `average` is not set to `binary`, and their order when average is `None`. Labels present in the data can be excluded in this input, for example to calculate a multiclass average ignoring a majority negative class, while labels not present in the data will result in 0 components in a macro average. For multilabel targets, labels are column indices. By default, all labels in y_true and y_pred are used in sorted order. Defaults to None.
 - **pos_label** (`int`): The class label to use as the 'positive class' when calculating the recall. Defaults to `1`.
 - **average** (`string`): This parameter is required for multiclass/multilabel targets. If None, the scores for each class are returned. Otherwise, this determines the type of averaging performed on the data. Defaults to `'binary'`.
-	- `'binary'`: Only report results for the class specified by `pos_label`. This is applicable only if the target labels and predictions are binary.
-	- `'micro'`: Calculate metrics globally by counting the total true positives, false negatives, and false positives.
-	- `'macro'`: Calculate metrics for each label, and find their unweighted mean. This does not take label imbalance into account.
-	- `'weighted'`: Calculate metrics for each label, and find their average weighted by support (the number of true instances for each label). This alters `'macro'` to account for label imbalance. Note that it can result in an F-score that is not between precision and recall.
-	- `'samples'`: Calculate metrics for each instance, and find their average (only meaningful for multilabel classification).
+    - `'binary'`: Only report results for the class specified by `pos_label`. This is applicable only if the target labels and predictions are binary.
+    - `'micro'`: Calculate metrics globally by counting the total true positives, false negatives, and false positives.
+    - `'macro'`: Calculate metrics for each label, and find their unweighted mean. This does not take label imbalance into account.
+    - `'weighted'`: Calculate metrics for each label, and find their average weighted by support (the number of true instances for each label). This alters `'macro'` to account for label imbalance. Note that it can result in an F-score that is not between precision and recall.
+    - `'samples'`: Calculate metrics for each instance, and find their average (only meaningful for multilabel classification).
 - **sample_weight** (`list` of `float`): Sample weights Defaults to `None`.
 - **zero_division** (): Sets the value to return when there is a zero division. Defaults to .
-	- `'warn'`: If there is a zero division, the return value is `0`, but warnings are also raised.
-	- `0`: If there is a zero division, the return value is `0`.
-	- `1`: If there is a zero division, the return value is `1`.
+    - `'warn'`: If there is a zero division, the return value is `0`, but warnings are also raised.
+    - `0`: If there is a zero division, the return value is `0`.
+    - `1`: If there is a zero division, the return value is `1`.
 
 
 ### Output Values
