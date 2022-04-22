@@ -650,6 +650,28 @@ class DatasetDict(dict):
         Saves a dataset dict to a filesystem using either :class:`~filesystems.S3FileSystem` or
         ``fsspec.spec.AbstractFileSystem``.
 
+        For :class:`Image` and :class:`Audio` data:
+
+        If your images and audio files are local files, then the resulting arrow file will store paths to these files.
+        If you want to include the bytes or your images or audio files instead, you must `read()` those files first.
+        This can be done by storing the "bytes" instead of the "path" of the images or audio files:
+
+        ```python
+        >>> def read_image_file(example):
+        ...     with open(example["image"].filename, "rb") as f:
+        ...         return {"image": {"bytes": f.read()}}
+        >>> ds = ds.map(read_image_file)
+        >>> ds.save_to_disk("path/to/dataset/dir")
+        ```
+
+        ```python
+        >>> def read_audio_file(example):
+        ...     with open(example["audio"]["path"], "rb") as f:
+        ...         return {"audio": {"bytes": f.read()}}
+        >>> ds = ds.map(read_audio_file)
+        >>> ds.save_to_disk("path/to/dataset/dir")
+        ```
+
         Args:
             dataset_dict_path (``str``): Path (e.g. `dataset/train`) or remote URI
                 (e.g. `s3://my-bucket/dataset/train`) of the dataset dict directory where the dataset dict will be
@@ -853,10 +875,14 @@ class DatasetDict(dict):
         shard_size: Optional[int] = 500 << 20,
         embed_external_files: bool = True,
     ):
-        """Pushes the ``DatasetDict`` to the hub.
+        """Pushes the ``DatasetDict`` to the hub as a Parquet dataset.
         The ``DatasetDict`` is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
         Each dataset split will be pushed independently. The pushed dataset will keep the original split names.
+
+        The resulting Parquet files are self-contained by default: if your dataset contains :class:`Image` or :class:`Audio`
+        data, the Parquet files will store the bytes of your images or audio files.
+        You can disable this by setting `embed_external_files` to False.
 
         Args:
             repo_id (:obj:`str`):
