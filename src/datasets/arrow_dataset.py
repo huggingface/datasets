@@ -1847,7 +1847,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 - `function(batch: Union[Dict[List], List[Any]]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False` and `with_rank=False`
                 - `function(batch: Union[Dict[List], List[Any]], *extra_args) -> Union[Dict, Any]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
 
-                If no function is provided, default to identity function: ``lambda x: {}``.
+                If no function is provided, default to no-op function: ``lambda x: {}``, which doesn't add new columns.
             with_indices (:obj:`bool`, default `False`): Provide example indices to `function`. Note that in this case the
                 signature of `function` should be `def function(example, idx[, rank]): ...`.
             with_rank (:obj:`bool`, default `False`): Provide process rank to `function`. Note that in this case the
