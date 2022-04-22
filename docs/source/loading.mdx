@@ -5,6 +5,7 @@ You have already seen how to load a dataset from the Hugging Face Hub. But datas
 This guide will show you how to load a dataset from:
 
 - The Hub without a dataset loading script
+- Local loading script
 - Local files
 - In-memory data
 - Offline
@@ -67,6 +68,18 @@ Specify a custom split with the `split` parameter:
 ```py
 >>> data_files = {"validation": "en/c4-validation.*.json.gz"}
 >>> c4_validation = load_dataset("allenai/c4", data_files=data_files, split="validation")
+```
+
+## Local loading script
+
+You may have a 🤗 Datasets loading script locally on your computer. You can load this dataset by passing to [`load_dataset`] one of the following paths:
+
+- The local path to the loading script file
+- The local path to the directory containing the loading script file (only if the script file has the same name as the directory)
+
+```py
+>>> dataset = load_dataset("path/to/local/loading_script/loading_script.py", split="train")
+>>> dataset = load_dataset("path/to/local/loading_script", split="train")  # equivalently because the file has the same name as the directory
 ```
 
 ## Local and remote files
