@@ -1,0 +1,179 @@
+{
+    "metric_name":"Recall",
+    "metric_description":"Recall is the fraction of the positive examples that were correctly labeled by the model as positive. It can be computed with the equation:\nRecall = TP / (TP + FN)\nWhere TP is the true positives and FN is the false negatives.",
+    "how_to_use":{
+        "description":"At minimum, this metric takes as input two `list`s, each containing `int`s: predictions and references.",
+        "simple_code_examples":[
+            {
+                "example_name":null,
+                "example_description":null,
+                "example_code":[
+                    "recall_metric = datasets.load_metric('recall')",
+                    "results = recall_metric.compute(references=[0, 1], predictions=[0, 1])",
+                    "print(results)",
+                    ["{'recall': 1.0}"]
+                ]
+            }
+        ]
+    },
+    "input_fields":[
+        {
+            "input_name":"predictions",
+            "input_type":"`list` of `int`",
+            "default_value":null,
+            "explanation":"The predicted labels.",
+            "possible_values":null
+        },
+        {
+            "input_name":"references",
+            "input_type":"`list` of `int`",
+            "default_value":null,
+            "explanation":"The ground truth labels.",
+            "possible_values":null
+        },
+        {
+            "input_name":"labels",
+            "input_type":"`list` of `int`",
+            "default_value":"None",
+            "explanation":"The set of labels to include when `average` is not set to `binary`, and their order when average is `None`. Labels present in the data can be excluded in this input, for example to calculate a multiclass average ignoring a majority negative class, while labels not present in the data will result in 0 components in a macro average. For multilabel targets, labels are column indices. By default, all labels in y_true and y_pred are used in sorted order.",
+            "possible_values":null
+        },
+        {
+            "input_name":"pos_label",
+            "input_type":"`int`",
+            "default_value":"`1`",
+            "explanation":"The class label to use as the 'positive class' when calculating the recall.",
+            "possible_values":null
+        },
+        {
+            "input_name":"average",
+            "input_type":"`string`",
+            "default_value":"`'binary'`",
+            "explanation":"This parameter is required for multiclass/multilabel targets. If None, the scores for each class are returned. Otherwise, this determines the type of averaging performed on the data.",
+            "possible_values":[
+                {
+                    "value":"`'binary'`",
+                    "explanation":"Only report results for the class specified by `pos_label`. This is applicable only if the target labels and predictions are binary."
+                },
+                {
+                    "value":"`'micro'`",
+                    "explanation":"Calculate metrics globally by counting the total true positives, false negatives, and false positives."
+                },
+                {
+                    "value":"`'macro'`",
+                    "explanation":"Calculate metrics for each label, and find their unweighted mean. This does not take label imbalance into account."
+                },
+                {
+                    "value":"`'weighted'`",
+                    "explanation":"Calculate metrics for each label, and find their average weighted by support (the number of true instances for each label). This alters `'macro'` to account for label imbalance. Note that it can result in an F-score that is not between precision and recall."
+                },
+                {
+                    "value":"`'samples'`",
+                    "explanation":"Calculate metrics for each instance, and find their average (only meaningful for multilabel classification)."
+                }
+            ]
+        },
+        {
+            "input_name":"sample_weights",
+            "input_type":"`list` of `float`",
+            "default_value":"`None`",
+            "explanation":"Sample weights",
+            "possible_values":null
+        },
+        {
+            "input_name":"zero_division",
+            "input_type":"",
+            "default_value":"",
+            "explanation":"Sets the value to return when there is a zero division.",
+            "possible_values":[
+                {
+                    "value":"`'warn'`",
+                    "explanation":"If there is a zero division, the return value is `0`, but warnings are also raised."
+                },
+                {
+                    "value":"`0`",
+                    "explanation":"If there is a zero division, the return value is `0`."
+                },
+                {
+                    "value":"`1`",
+                    "explanation":"If there is a zero division, the return value is `1`."
+                }
+            ]
+        }
+    ],
+    "output_explanation":"This metric outputs a dictionary with one entry, `'recall'`.",
+    "output_fields":[
+        {
+            "output_name":"recall",
+            "output_type":"`float`, or `array` of `float`",
+            "explanation":"Either the general recall score, or the recall scores for individual classes, depending on the values input to `labels` and `average`.",
+            "minimum_possible_value":"0",
+            "maximum_possible_value":"1",
+            "explanation_of_values":"A higher recall means that more of the positive examples have been labeled correctly. Therefore, a higher recall is generally considered better."
+        }
+    ],
+    "output_examples":[
+        "{'recall': 1.0}",
+        "{'recall': array([1., 0., 0.])}"
+    ],
+    "values_from_popular_papers":null,
+    "code_examples":[
+        {
+            "example_name":"Example 1",
+            "example_description":"A simple example with some errors",
+            "example_code":[
+                "recall_metric = datasets.load_metric('recall')",
+                "results = recall_metric.compute(references=[0, 0, 1, 1, 1], predictions=[0, 1, 0, 1, 1])",
+                "print(results)",
+                ["{'recall': }"]
+            ]
+        },
+        {
+            "example_name":"Example 2",
+            "example_description":"The same example as Example 1, but with `pos_label=0` instead of the default `pos_label=1`.",
+            "example_code":[
+                "recall_metric = datasets.load_metric('recall')",
+                "results = recall_metric.compute(references=[0, 0, 1, 1, 1], predictions=[0, 1, 0, 1, 1], pos_label=0)",
+                "print(results)",
+                ["{'recall': }"]
+            ]
+        },
+        {
+            "example_name":"Example 3",
+            "example_description":"The same example as Example 1, but with `sample_weights` included.",
+            "example_code":[
+                "recall_metric = datasets.load_metric('recall')",
+                "sample_weights = [0.9, 0.2, 0.9, 0.3, 0.8]",
+                "results = recall_metric.compute(references=[0, 0, 1, 1, 1], predictions=[0, 1, 0, 1, 1], sample_weights=sample_weights)",
+                "print(results)",
+                ["{'recall': }"]
+            ]
+        },
+        {
+            "example_name":"Example 4",
+            "example_description":"A multiclass example, using different averages.",
+            "example_code":[
+                "recall_metric = datasets.load_metric('recall')",
+                "predictions = [0, 2, 1, 0, 0, 1]",
+                "references = [0, 1, 2, 0, 1, 2]",
+                "results = recall_metric.compute(predictions=predictions, references=references, average='macro')",
+                "print(results)",
+                ["{'recall': 0.3333333333333333}"],
+                "results = recall_metric.compute(predictions=predictions, references=references, average='micro')",
+                "print(results)",
+                ["{'recall': 0.3333333333333333}"],
+                "results = recall_metric.compute(predictions=predictions, references=references, average='weighted')",
+                "print(results)",
+                ["{'recall': 0.3333333333333333}"],
+                "results = recall_metric.compute(predictions=predictions, references=references, average=None)",
+                "print(results)",
+                ["{'recall': array([1., 0., 0.])}"]
+            ]
+        }
+    ],
+    "limitations_and_bias":null,
+    "citations":[
+        "@article{scikit-learn, title={Scikit-learn: Machine Learning in {P}ython}, author={Pedregosa, F. and Varoquaux, G. and Gramfort, A. and Michel, V. and Thirion, B. and Grisel, O. and Blondel, M. and Prettenhofer, P. and Weiss, R. and Dubourg, V. and Vanderplas, J. and Passos, A. and Cournapeau, D. and Brucher, M. and Perrot, M. and Duchesnay, E.}, journal={Journal of Machine Learning Research}, volume={12}, pages={2825--2830}, year={2011}"
+    ],
+    "further_references":null
+}
