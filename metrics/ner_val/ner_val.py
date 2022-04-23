@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Nerval classification report and confusion matrix."""
+"""Ner_val classification report and confusion matrix."""
 
 from nerval import crm
 
@@ -29,7 +29,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Nerval is a Python framework to evaluate Named Entity Recognition (NER) models.
+ner_val is a Python framework to evaluate Named Entity Recognition (NER) models.
 It generates entity-level confusion matrix and classification report.
 For more information see the README.md file at https://github.com/mdadda/nerval.
 """
@@ -49,12 +49,12 @@ A dictionary with 3 items:
     - cm_labels: list of labels to plot the confusion matrix.
 Examples:
     from datasets import load_metric
-    nerval = load_metric('nerval')
+    ner_val = load_metric('ner_val')
 
     y_true = [['O', 'B-PER', 'I-PER', 'O', 'O', 'O', 'O', 'B-LOC', 'I-LOC']]
     y_pred = [['O', 'B-PER', 'O', 'O', 'O', 'O', 'O', 'O', 'B-LOC']]
 
-   results = nerval.compute(predictions=y_pred, references=y_true, scheme='BIO')
+   results = ner_val.compute(predictions=y_pred, references=y_true, scheme='BIO')
    True Entities: 2
    Pred Entities: 2
 
