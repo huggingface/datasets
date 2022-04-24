@@ -995,6 +995,7 @@ class IterableDatasetDict(dict):
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: int = 1000,
+        drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, List[str]]] = None,
     ) -> "IterableDatasetDict":
         """
@@ -1030,6 +1031,8 @@ class IterableDatasetDict(dict):
                 as positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (:obj:`bool`, default `False`): Provide batch of examples to `function`.
             batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
+            drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
+                dropped instead of being processed by the function.
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
@@ -1042,6 +1045,7 @@ class IterableDatasetDict(dict):
                     input_columns=input_columns,
                     batched=batched,
                     batch_size=batch_size,
+                    drop_last_batch=drop_last_batch,
                     remove_columns=remove_columns,
                 )
                 for k, dataset in self.items()

@@ -180,12 +180,14 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         input_columns: Optional[List[str]] = None,
         batched: bool = False,
         batch_size: int = 1000,
+        drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
         self.batched = batched
         self.batch_size = batch_size
+        self.drop_last_batch = drop_last_batch
         self.remove_columns = remove_columns
         self.with_indices = with_indices
         self.input_columns = input_columns
@@ -200,6 +202,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     (key, example) for key, example in islice(iterator, self.batch_size - 1)
                 ]
                 keys, examples = zip(*key_examples_list)
+                if self.drop_last_batch and len(examples) < self.batch_size:
+                    return
                 batch = _examples_to_batch(examples)
                 # then apply the transform
                 inputs = batch
@@ -536,6 +540,7 @@ class IterableDataset(DatasetInfoMixin):
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: int = 1000,
+        drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, List[str]]] = None,
     ) -> "IterableDataset":
         """
@@ -570,6 +575,8 @@ class IterableDataset(DatasetInfoMixin):
                 as positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (:obj:`bool`, default `False`): Provide batch of examples to `function`.
             batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
+            drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
+                dropped instead of being processed by the function.
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
@@ -591,6 +598,7 @@ class IterableDataset(DatasetInfoMixin):
             input_columns=input_columns,
             batched=batched,
             batch_size=batch_size,
+            drop_last_batch=drop_last_batch,
             remove_columns=remove_columns,
         )
         return iterable_dataset(
