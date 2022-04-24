@@ -13,11 +13,10 @@
 # limitations under the License.
 
 
-
-
+import glob
 import json
 import os
-import glob
+
 import datasets
 
 
@@ -62,44 +61,45 @@ _URLS = {
     "avi": "http://mocap.cs.cmu.edu/allavi.zip",
 }
 
-_METADATA_URL = 'https://huggingface.co/datasets/dnaveenr/cmu_mocap/raw/main/subject_to_details.json'
+_METADATA_URL = "https://huggingface.co/datasets/dnaveenr/cmu_mocap/raw/main/subject_to_details.json"
 
 _CATEGORIES = {
-    "1" : "Human Interaction",
-    "2" : "Interaction with Environment",
-    "3" : "Locomotion",
-    "4" : "Physical Activities & Sports",
-    "5" : "Situations & Scenarios",
-    "6" : "Test Motions",
-    "" : "",
+    "1": "Human Interaction",
+    "2": "Interaction with Environment",
+    "3": "Locomotion",
+    "4": "Physical Activities & Sports",
+    "5": "Situations & Scenarios",
+    "6": "Test Motions",
+    "": "",
 }
 
 _SUB_CATEGORY_NAMES = {
-    ('1', '1'): 'two subjects', 
-    ('2', '1'): 'playground', 
-    ('2', '2'): 'uneven terrain', 
-    ('2', '3'): 'path with obstacles', 
-    ('3', '1'): 'running', 
-    ('3', '2'): 'walking', 
-    ('3', '3'): 'jumping', 
-    ('3', '4'): 'varied', 
-    ('4', '0'): 'golf', 
-    ('4', '1'): 'frisbee', 
-    ('4', '2'): 'dance', 
-    ('4', '3'): 'gymnastics', 
-    ('4', '4'): 'acrobatics', 
-    ('4', '5'): 'martial arts', 
-    ('4', '6'): 'racquet/paddle sports', 
-    ('4', '7'): 'soccer', 
-    ('4', '8'): 'boxing', 
-    ('4', '9'): 'general exercise and stretching', 
-    ('5', '1'): 'common behaviors and expressions', 
-    ('5', '2'): 'pantomime', 
-    ('5', '3'): 'communication gestures and signals', 
-    ('5', '4'): 'cross-category variety', 
-    ('6', '1'): '', 
-    ('', ''): ''
+    ("1", "1"): "two subjects",
+    ("2", "1"): "playground",
+    ("2", "2"): "uneven terrain",
+    ("2", "3"): "path with obstacles",
+    ("3", "1"): "running",
+    ("3", "2"): "walking",
+    ("3", "3"): "jumping",
+    ("3", "4"): "varied",
+    ("4", "0"): "golf",
+    ("4", "1"): "frisbee",
+    ("4", "2"): "dance",
+    ("4", "3"): "gymnastics",
+    ("4", "4"): "acrobatics",
+    ("4", "5"): "martial arts",
+    ("4", "6"): "racquet/paddle sports",
+    ("4", "7"): "soccer",
+    ("4", "8"): "boxing",
+    ("4", "9"): "general exercise and stretching",
+    ("5", "1"): "common behaviors and expressions",
+    ("5", "2"): "pantomime",
+    ("5", "3"): "communication gestures and signals",
+    ("5", "4"): "cross-category variety",
+    ("6", "1"): "",
+    ("", ""): "",
 }
+
 
 class CmuMocapConfig(datasets.BuilderConfig):
     """BuilderConfig for CMU Mocap."""
@@ -203,53 +203,50 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
         categories = []
         subcategories = []
         descriptions = []
-        
+
         for file_ in files:
-            trial_number = os.path.basename(file_).split('.')[0]
-            if(trial_number not in subject_id_to_details):
+            trial_number = os.path.basename(file_).split(".")[0]
+            if trial_number not in subject_id_to_details:
                 category_name = ""
                 sub_category_name = ""
                 description = ""
             else:
-                category_id = str(subject_id_to_details[trial_number]['main_cat'])
+                category_id = str(subject_id_to_details[trial_number]["main_cat"])
                 category_name = _CATEGORIES[category_id]
-                sub_category_id = str(subject_id_to_details[trial_number]['sub_cat'])
+                sub_category_id = str(subject_id_to_details[trial_number]["sub_cat"])
                 sub_category_name = _SUB_CATEGORY_NAMES[(category_id, sub_category_id)]
-                description = subject_id_to_details[trial_number]['description']
+                description = subject_id_to_details[trial_number]["description"]
             categories.append(category_name)
             subcategories.append(sub_category_name)
             descriptions.append(description)
-        
+
         return [categories, subcategories, descriptions]
-        
-        
 
     def _generate_examples(self, data_path, metadata_path, split):
-        
+
         subject_dirs = os.listdir(data_path)
 
         with open(metadata_path, encoding="utf-8") as f:
             subject_id_to_details = json.load(f)
-        
+
         idx = 0
         for subject in subject_dirs:
             subject_id = int(subject)
             subject_path = os.path.join(data_path, subject, "")
-                       
+
             if self.config.format == "asf/amc":
                 asf_file = os.path.join(subject_path, subject + ".asf")
-                files = glob.glob(subject_path + "*.amc") 
-            
+                files = glob.glob(subject_path + "*.amc")
+
             if self.config.format == "c3d":
                 files = glob.glob(subject_path + "*.c3d")
-            
+
             if self.config.format == "mpg":
                 files = glob.glob(subject_path + "*.mpg")
-            
-            if self.config.format == 'avi':
+
+            if self.config.format == "avi":
                 files = glob.glob(subject_path + "*.avi")
-            
-            
+
             categories, subcategories, descriptions = self._get_category_subcategory_info(files, subject_id_to_details)
 
             features = {
@@ -260,25 +257,33 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
             }
 
             if self.config.format == "asf/amc":
-                features.update({
-                    "amc_files" : files,
-                    "asf_file" : asf_file,
-                })
-            
+                features.update(
+                    {
+                        "amc_files": files,
+                        "asf_file": asf_file,
+                    }
+                )
+
             if self.config.format == "c3d":
-                features.update({
-                    "c3d_files" : files,
-                })
+                features.update(
+                    {
+                        "c3d_files": files,
+                    }
+                )
 
             if self.config.format == "mpg":
-                features.update({
-                    "mpg_files" : files,
-                })
-            
-            if self.config.format == 'avi':
-                features.update({
-                    "avi_files" : files,
-                })
-            
+                features.update(
+                    {
+                        "mpg_files": files,
+                    }
+                )
+
+            if self.config.format == "avi":
+                features.update(
+                    {
+                        "avi_files": files,
+                    }
+                )
+
             yield idx, features
             idx += 1
