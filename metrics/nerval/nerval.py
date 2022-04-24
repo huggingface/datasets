@@ -47,6 +47,7 @@ A dictionary with 3 items:
     - classification_report: this is a pandas dataframe
     - confusion_matrix: this is a numpy 2d-array
     - cm_labels: list of labels to plot the confusion matrix.
+
 Examples:
     from datasets import load_metric
     nerval = load_metric('nerval')
@@ -55,6 +56,7 @@ Examples:
     y_pred = [['O', 'B-PER', 'O', 'O', 'O', 'O', 'O', 'O', 'B-LOC']]
 
    results = nerval.compute(predictions=y_pred, references=y_true, scheme='BIO')
+
    True Entities: 2
    Pred Entities: 2
 
@@ -67,7 +69,7 @@ Examples:
    ToT False positives:  2
    False negatives:  1
 
-   >>> print(results['classification_report'])
+   print(results['classification_report'])
    precision  recall  f1_score  true_entities  pred_entities
    PER                0.00    0.00      0.00           1.00           0.00
    LOC                0.00    0.00      0.00           1.00           1.00
@@ -76,14 +78,15 @@ Examples:
    macro_avg          0.00    0.00      0.00           2.00           2.00
    weighted_avg       0.00    0.00      0.00           2.00           2.00
 
-   >>> print(results['confusion_matrix'])
+   print(results['confusion_matrix'])
    [[0 1 0 0]
     [1 0 0 0]
     [0 0 0 1]
     [0 0 0 0]]
 
-   >>> print(results['cm_labels'])
+   print(results['cm_labels'])
    ['LOC', 'O', 'PER', 'PER__']
+
 
    ### Note 1:
    y_true and y_pred could be:
