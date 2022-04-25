@@ -230,6 +230,7 @@ def test_mapped_examples_iterable_drop_last_batch(generate_examples_fn, n, func,
     all_examples = [x for _, x in generate_examples_fn(n=n)]
     is_empty = False
     if batch_size is None:
+        # `drop_last_batch` has no effect here
         expected = [{**x, **func(x)} for x in all_examples]
     else:
         # For batched map we have to format the examples as a batch (i.e. in one single dictionary) to pass the batch to the function
