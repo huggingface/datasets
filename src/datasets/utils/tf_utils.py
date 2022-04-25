@@ -19,6 +19,7 @@ import pyarrow as pa
 
 from .. import config
 
+
 def minimal_tf_collate_fn(features):
     if config.TF_AVAILABLE:
         import tensorflow as tf
@@ -44,8 +45,9 @@ def is_numeric_pa_type(pa_type):
 
 
 def is_numeric_feature(feature):
-    from .. import Sequence, Value, ClassLabel
+    from .. import ClassLabel, Sequence, Value
     from ..features.features import _ArrayXD
+
     if isinstance(feature, Sequence):
         return is_numeric_feature(feature.feature)
     elif isinstance(feature, list):

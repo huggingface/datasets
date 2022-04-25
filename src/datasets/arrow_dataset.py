@@ -94,7 +94,7 @@ from .utils.file_utils import _retry, estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import convert_file_size_to_int, temporary_assignment, unique_values
 from .utils.streaming_download_manager import xgetsize
-from .utils.tf_utils import minimal_tf_collate_fn, is_numeric_feature
+from .utils.tf_utils import is_numeric_feature, minimal_tf_collate_fn
 from .utils.typing import PathLike
 
 
@@ -410,8 +410,9 @@ class TensorflowDatasetMixin:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
         if not drop_columns:
-            drop_columns = [feature_name for feature_name, feature in self.features.items()
-                            if not is_numeric_feature(feature)]
+            drop_columns = [
+                feature_name for feature_name, feature in self.features.items() if not is_numeric_feature(feature)
+            ]
         elif isinstance(drop_columns, str):
             drop_columns = [drop_columns]
         if drop_columns:
