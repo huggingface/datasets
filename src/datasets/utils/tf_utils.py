@@ -44,7 +44,7 @@ def is_numeric_pa_type(pa_type):
 
 
 def is_numeric_feature(feature):
-    from .. import Sequence, Value
+    from .. import Sequence, Value, ClassLabel
     from ..features.features import _ArrayXD
     if isinstance(feature, Sequence):
         return is_numeric_feature(feature.feature)
@@ -54,5 +54,7 @@ def is_numeric_feature(feature):
         return is_numeric_pa_type(feature().storage_dtype)
     elif isinstance(feature, Value):
         return is_numeric_pa_type(feature())
+    elif isinstance(feature, ClassLabel):
+        return True
     else:
         return False
