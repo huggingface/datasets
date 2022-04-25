@@ -194,6 +194,7 @@ class ETT(datasets.GeneratorBasedBuilder):
 
         if self.config.multivariate:
             if split in ["test", "dev"]:
+                # rolling windows of prediction_length for dev and test
                 for i, index in enumerate(
                     range(
                         train_end_date_index,
@@ -218,6 +219,7 @@ class ETT(datasets.GeneratorBasedBuilder):
                 }
         else:
             if split in ["test", "dev"]:
+                # rolling windows of prediction_length for dev and test
                 for i, index in enumerate(
                     range(
                         train_end_date_index,
