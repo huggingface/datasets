@@ -40,8 +40,8 @@ _CITATION = """\
 
 _DESCRIPTION = """\
 The data of Electricity Transformers from two separated counties
-in China collected for two years at hourly and 15-min frequencies. 
-Each data point consists of the target value "oil temperature" and 
+in China collected for two years at hourly and 15-min frequencies.
+Each data point consists of the target value "oil temperature" and
 6 power load features. The train/val/test is 12/4/4 months.
 """
 
