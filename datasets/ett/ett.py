@@ -105,9 +105,7 @@ class ETT(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "start": datasets.Value("timestamp[s]"),
-                    "target": datasets.Sequence(
-                        datasets.Sequence(datasets.Value("float32"))
-                    ),
+                    "target": datasets.Sequence(datasets.Sequence(datasets.Value("float32"))),
                     "feat_static_cat": datasets.Sequence(datasets.Value("uint64")),
                     "item_id": datasets.Value("string"),
                 }
@@ -118,9 +116,7 @@ class ETT(datasets.GeneratorBasedBuilder):
                     "start": datasets.Value("timestamp[s]"),
                     "target": datasets.Sequence(datasets.Value("float32")),
                     "feat_static_cat": datasets.Sequence(datasets.Value("uint64")),
-                    "feat_dynamic_real": datasets.Sequence(
-                        datasets.Sequence(datasets.Value("float32"))
-                    ),
+                    "feat_dynamic_real": datasets.Sequence(datasets.Sequence(datasets.Value("float32"))),
                     "item_id": datasets.Value("string"),
                 }
             )
@@ -200,9 +196,7 @@ class ETT(datasets.GeneratorBasedBuilder):
                 ):
                     yield i, {
                         "start": start_date,
-                        "target": data[: index + self.config.prediction_length]
-                        .values.astype("float32")
-                        .T,
+                        "target": data[: index + self.config.prediction_length].values.astype("float32").T,
                         "feat_static_cat": [0],
                         "item_id": "0",
                     }
@@ -223,14 +217,10 @@ class ETT(datasets.GeneratorBasedBuilder):
                         self.config.prediction_length,
                     )
                 ):
-                    target = data["OT"][
+                    target = data["OT"][: index + self.config.prediction_length].values.astype("float32")
+                    feat_dynamic_real = data[["HUFL", "HULL", "MUFL", "MULL", "LUFL", "LULL"]][
                         : index + self.config.prediction_length
-                    ].values.astype("float32")
-                    feat_dynamic_real = data[
-                        ["HUFL", "HULL", "MUFL", "MULL", "LUFL", "LULL"]
-                    ][: index + self.config.prediction_length].values.T.astype(
-                        "float32"
-                    )
+                    ].values.T.astype("float32")
                     yield i, {
                         "start": start_date,
                         "target": target,
@@ -240,9 +230,9 @@ class ETT(datasets.GeneratorBasedBuilder):
                     }
             else:
                 target = data["OT"][:train_end_date_index].values.astype("float32")
-                feat_dynamic_real = data[
-                    ["HUFL", "HULL", "MUFL", "MULL", "LUFL", "LULL"]
-                ][:train_end_date_index].values.T.astype("float32")
+                feat_dynamic_real = data[["HUFL", "HULL", "MUFL", "MULL", "LUFL", "LULL"]][
+                    :train_end_date_index
+                ].values.T.astype("float32")
                 yield 0, {
                     "start": start_date,
                     "target": target,
