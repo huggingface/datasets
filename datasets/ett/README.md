@@ -116,6 +116,7 @@ A sample from the training set is provided below:
   'feat_dynamic_real': [[0.3, 0.4], [0.1, 0.6], ...],
   'item_id': 'OT'
 }
+```
 
 ### Data Fields
 
