@@ -211,4 +211,4 @@ Develop time series methods  that can perform a long-term prediction based on su
 
 ### Contributions
 
-Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.
+Thanks to [@kashif](https://github.com/kashif) for adding this dataset.
