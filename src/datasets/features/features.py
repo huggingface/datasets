@@ -18,7 +18,6 @@ import copy
 import json
 import re
 import sys
-from collections import UserDict
 from collections.abc import Iterable, Mapping
 from dataclasses import InitVar, _asdict_inner, dataclass, field, fields
 from functools import reduce, wraps
