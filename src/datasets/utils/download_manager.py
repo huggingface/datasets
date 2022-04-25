@@ -160,7 +160,8 @@ class DownloadManager:
                 download options
             base_path: `str`, base path that is used when relative paths are used to
                 download files. This can be a remote url.
-            record_checksums: `bool`, whether to record checksums of downloaded files.
+            record_checksums:
+                Deprecated: 'record_checksms' was replaced by 'DownloadConfig.record_checksums' in version 2.1.1 and will be removed in 2.4.0.
         """
         self._dataset_name = dataset_name
         self._data_dir = data_dir
@@ -173,7 +174,7 @@ class DownloadManager:
 
         if record_checksums != "deprecated":
             warnings.warn(
-                "'record_checksums' was remov to and is now a parameter of DownloadConfig 'max_shard_size' in version 2.1.1 and will be removed in 2.4.0.",
+                "'record_checksms' was replaced by 'DownloadConfig.record_checksums' in version 2.1.1 and will be removed in 2.4.0.",
                 FutureWarning,
             )
             self.download_config = self.download_config.copy()

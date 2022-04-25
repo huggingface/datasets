@@ -828,15 +828,9 @@ class DatasetBuilder:
             if post_processed is not None:
                 ds = post_processed
                 recorded_checksums = {}
-                if self.info.post_processed is not None and self.info.post_processed.resources_checksums:
-                    record_checksums = (
-                        self.info.post_processed.resources_checksums[
-                            next(iter(self.info.post_processed.resources_checksums))
-                        ]["checksum"]
-                        is not None
-                    )
+                record_checksums = False
                 for resource_name, resource_path in resources_paths.items():
-                    size_checksum = get_size_checksum_dict(resource_path, record_checksum=record_checksums)
+                    size_checksum = get_size_checksum_dict(resource_path)
                     recorded_checksums[resource_name] = size_checksum
                 if verify_infos and record_checksums:
                     if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
