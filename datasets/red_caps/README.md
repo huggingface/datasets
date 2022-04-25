@@ -51,9 +51,9 @@ pretty_name: RedCaps
 
 ## Dataset Description
 
-- **Homepage:** https://redcaps.xyz/
-- **Repository:**
-- **Paper:** https://arxiv.org/abs/2111.11431
+- **Homepage:** [RedCaps homepage](https://redcaps.xyz/)
+- **Repository:** [RedCaps repository](https://github.com/redcaps-dataset/redcaps-downloader)
+- **Paper:** [RedCaps: web-curated image-text data created by the people, for the people](https://arxiv.org/abs/2111.11431)
 - **Leaderboard:**
 - **Point of Contact:** [Karan Desai](mailto:kdexd@umich.edu)
 
