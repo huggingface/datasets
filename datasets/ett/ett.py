@@ -51,7 +51,7 @@ Each data point consists of the target value "oil temperature" and
 
 _HOMEPAGE = "https://github.com/zhouhaoyi/ETDataset"
 
-_LICENSE = "Creative Commons Attribution-NoDerivatives 4.0 International"
+_LICENSE = "The Creative Commons Attribution 4.0 International License. https://creativecommons.org/licenses/by/4.0/"
 
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
@@ -123,6 +123,9 @@ class ETT(datasets.GeneratorBasedBuilder):
                     "start": datasets.Value("timestamp[s]"),
                     "target": datasets.Sequence(datasets.Value("float32")),
                     "feat_static_cat": datasets.Sequence(datasets.Value("uint64")),
+                    "feat_dynamic_real": datasets.Sequence(
+                        datasets.Sequence(datasets.Value("float32"))
+                    ),
                     "item_id": datasets.Value("string"),
                 }
             )
@@ -193,8 +196,12 @@ class ETT(datasets.GeneratorBasedBuilder):
 
         if self.config.multivariate:
             if split in ["test", "dev"]:
-                for i, index in range(
-                    train_end_date_index, end_date_index, self.config.prediction_length
+                for i, index in enumerate(
+                    range(
+                        train_end_date_index,
+                        end_date_index,
+                        self.config.prediction_length,
+                    )
                 ):
                     yield i, {
                         "start": start_date,
@@ -212,30 +219,38 @@ class ETT(datasets.GeneratorBasedBuilder):
                     "item_id": "0",
                 }
         else:
-            for i, col in enumerate(data.columns):
-                if split in ["test", "dev"]:
-                    for j, index in enumerate(
-                        range(
-                            train_end_date_index,
-                            end_date_index,
-                            self.config.prediction_length,
-                        )
-                    ):
-                        target = data[col][
-                            : index + self.config.prediction_length
-                        ].values.astype("float32")
-                        yield j * len(data.columns) + i, {
-                            "start": start_date,
-                            "target": target,
-                            "feat_static_cat": [i],
-                            "item_id": col,
-                        }
-                else:
+            if split in ["test", "dev"]:
+                for i, index in enumerate(
+                    range(
+                        train_end_date_index,
+                        end_date_index,
+                        self.config.prediction_length,
+                    )
+                ):
+                    target = data["OT"][
+                        : index + self.config.prediction_length
+                    ].values.astype("float32")
+                    feat_dynamic_real = data[
+                        ["HUFL", "HULL", "MUFL", "MULL", "LUFL", "LULL"]
+                    ][: index + self.config.prediction_length].values.T.astype(
+                        "float32"
+                    )
                     yield i, {
                         "start": start_date,
-                        "target": data[col][:train_end_date_index].values.astype(
-                            "float32"
-                        ),
-                        "feat_static_cat": [i],
-                        "item_id": col,
+                        "target": target,
+                        "feat_dynamic_real": feat_dynamic_real,
+                        "feat_static_cat": [0],
+                        "item_id": "OT",
                     }
+            else:
+                target = data["OT"][:train_end_date_index].values.astype("float32")
+                feat_dynamic_real = data[
+                    ["HUFL", "HULL", "MUFL", "MULL", "LUFL", "LULL"]
+                ][:train_end_date_index].values.T.astype("float32")
+                yield 0, {
+                    "start": start_date,
+                    "target": target,
+                    "feat_dynamic_real": feat_dynamic_real,
+                    "feat_static_cat": [0],
+                    "item_id": "OT",
+                }
