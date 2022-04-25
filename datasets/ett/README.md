@@ -2,7 +2,7 @@
 TODO: Add YAML tags here. Copy-paste the tags obtained with the online tagging app: https://huggingface.co/spaces/huggingface/datasets-tagging
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for [Electricity Transformer Dataset](https://github.com/zhouhaoyi/ETDataset)
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)

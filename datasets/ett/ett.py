@@ -53,7 +53,6 @@ _HOMEPAGE = "https://github.com/zhouhaoyi/ETDataset"
 
 _LICENSE = "The Creative Commons Attribution 4.0 International License. https://creativecommons.org/licenses/by/4.0/"
 
-# TODO: Add link to the official dataset URLs here
 # The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLS = {
@@ -66,7 +65,7 @@ _URLS = {
 
 @dataclass
 class ETTBuilderConfig(datasets.BuilderConfig):
-    """ETT builder config with some added meta data."""
+    """ETT builder config."""
 
     prediction_length: int = 24
     multivariate: bool = False
@@ -147,12 +146,6 @@ class ETT(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLS
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         urls = _URLS[self.config.name]
         filepath = dl_manager.download_and_extract(urls)
 
@@ -187,12 +180,17 @@ class ETT(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         data = pd.read_csv(filepath, parse_dates=True, index_col=0)
         start_date = data.index.min()
-        train_end_date_index = 12 * 30 * 24  # 1 year
+
+        if self.config.name in ["m1", "m2"]:
+            factor = 4  # 15-min frequency
+        else:
+            factor = 1  # hourly frequency
+        train_end_date_index = 12 * 30 * 24 * factor  # 1 year
 
         if split == "dev":
-            end_date_index = 12 * 30 * 24 + 4 * 30 * 24  # 1 year + 4 months
+            end_date_index = 12 * 30 * 24 + 4 * 30 * 24 * factor  # 1 year + 4 months
         else:
-            end_date_index = 12 * 30 * 24 + 8 * 30 * 24  # 1 year + 8 months
+            end_date_index = 12 * 30 * 24 + 8 * 30 * 24 * factor  # 1 year + 8 months
 
         if self.config.multivariate:
             if split in ["test", "dev"]:
