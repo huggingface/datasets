@@ -1936,6 +1936,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 decorated_item = (
                     Example(item, features=self.features) if not batched else Batch(item, features=self.features)
                 )
+                # Use the LazyDict internally, while mapping the function
                 result = f(decorated_item, *args, **kwargs)
                 # Return a standard dict
                 return result.data if isinstance(result, LazyDict) else result
