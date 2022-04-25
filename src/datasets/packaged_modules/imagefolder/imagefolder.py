@@ -21,6 +21,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = ImageFolderConfig
 
     IMAGE_EXTENSIONS: List[str] = []  # definition at the bottom of the script
+    SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT = True
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)

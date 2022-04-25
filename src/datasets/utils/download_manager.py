@@ -19,6 +19,7 @@ import enum
 import io
 import os
 import tarfile
+import warnings
 from datetime import datetime
 from functools import partial
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
@@ -147,7 +148,7 @@ class DownloadManager:
         data_dir: Optional[str] = None,
         download_config: Optional[DownloadConfig] = None,
         base_path: Optional[str] = None,
-        record_checksums: bool = True,
+        record_checksums="deprecated",
     ):
         """Download manager constructor.
 
@@ -164,12 +165,19 @@ class DownloadManager:
         self._dataset_name = dataset_name
         self._data_dir = data_dir
         self._base_path = base_path or os.path.abspath(".")
-        self._record_checksums = record_checksums
         # To record what is being used: {url: {num_bytes: int, checksum: str}}
         self._recorded_sizes_checksums: Dict[str, Dict[str, Optional[Union[int, str]]]] = {}
         self.download_config = download_config or DownloadConfig()
         self.downloaded_paths = {}
         self.extracted_paths = {}
+
+        if record_checksums != "deprecated":
+            warnings.warn(
+                "'record_checksums' was remov to and is now a parameter of DownloadConfig 'max_shard_size' in version 2.1.1 and will be removed in 2.4.0.",
+                FutureWarning,
+            )
+            self.download_config = self.download_config.copy()
+            self.download_config.record_checksums = record_checksums
 
     @property
     def manual_dir(self):
@@ -212,7 +220,7 @@ class DownloadManager:
         for url, path in zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()):
             # call str to support PathLike objects
             self._recorded_sizes_checksums[str(url)] = get_size_checksum_dict(
-                path, record_checksum=self._record_checksums
+                path, record_checksum=self.download_config.record_checksums
             )
 
     def download_custom(self, url_or_urls, custom_download):

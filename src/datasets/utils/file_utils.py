@@ -173,6 +173,7 @@ class DownloadConfig:
         max_retries (:obj:`int`, default ``1``): The number of times to retry an HTTP request if it fails.
         use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
             for remote files on the Datasets Hub. If True, will get token from ~/.huggingface.
+        record_checksums (:obj:`bool`, optional): Whether to record the checksums of the downloaded files. If None, the value is inferred from the builder.
         ignore_url_params (:obj:`bool`, default ``False``): Whether to strip all query parameters and #fragments from
             the download URL before using it for caching the file.
         download_desc (:obj:`str`, optional): A description to be displayed alongside with the progress bar while downloading the files.
@@ -191,6 +192,7 @@ class DownloadConfig:
     num_proc: Optional[int] = None
     max_retries: int = 1
     use_auth_token: Optional[Union[str, bool]] = None
+    record_checksums: Optional[bool] = None
     ignore_url_params: bool = False
     download_desc: Optional[str] = None
 
