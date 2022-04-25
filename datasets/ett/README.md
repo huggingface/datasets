@@ -114,7 +114,7 @@ A sample from the training set is provided below:
   'target': [14.0, 18.0, 21.0, 20.0, 22.0, 20.0, ...],
   'feat_static_cat': [0], 
   'feat_dynamic_real': [[0.3, 0.4], [0.1, 0.6], ...],
-  'item_id': '0'
+  'item_id': 'OT'
 }
 
 ### Data Fields
