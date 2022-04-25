@@ -339,7 +339,6 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
     elif isinstance(obj, pd.DataFrame):
         return obj.to_dict("list"), True
     elif isinstance(obj, Mapping):
-        obj = obj.data if isinstance(obj, UserDict) else obj
         has_changed = not isinstance(obj, dict)
         output = {}
         for k, v in obj.items():
