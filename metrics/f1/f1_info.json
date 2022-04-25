@@ -1,0 +1,157 @@
+{
+    "metric_name":"F1",
+    "metric_description":"The F1 score is the harmonic mean of the precision and recall. It can be computed with the equation:\nF1 = 2 * (precision * recall) / (precision + recall)",
+    "how_to_use":{
+        "description":"At minimum, this metric requires predictions and references as input",
+        "simple_code_examples":[
+            {
+                "example_name":null,
+                "example_description":null,
+                "example_code":[
+                    "f1_metric = datasets.load_metric(\"f1\")",
+                    "results = f1_metric.compute(predictions=[0, 1], references=[0, 1])",
+                    "print(results)",
+                    ["{'f1': 1.0}"]
+                ]
+            }
+        ]
+    },
+    "input_fields":[
+        {
+            "input_name":"predictions",
+            "input_type":"`list` of `int`",
+            "default_value":null,
+            "explanation":"Predicted labels.",
+            "possible_values":null
+        },
+        {
+            "input_name":"references",
+            "input_type":"`list` of `int`",
+            "default_value":null,
+            "explanation":"Ground truth labels.",
+            "possible_values":null
+        },
+        {
+            "input_name":"labels",
+            "input_type":"`list` of `int`",
+            "default_value":"None",
+            "explanation":"The set of labels to include when `average` is not set to `'binary'`, and the order of the labels if `average` is `None`. Labels present in the data can be excluded, for example to calculate a multiclass average ignoring a majority negative class. Labels not present in the data will result in 0 components in a macro average. For multilabel targets, labels are column indices. By default, all labels in `predictions` and `references` are used in sorted order.",
+            "possible_values":null
+        },
+        {
+            "input_name":"pos_label",
+            "input_type":"`int`",
+            "default_value":"1",
+            "explanation":"The class to be considered the positive class, in the case where `average` is set to `binary`.",
+            "possible_values":null
+        },
+        {
+            "input_name":"average",
+            "input_type":"`string`",
+            "default_value":"`'binary'`",
+            "explanation":"This parameter is required for multiclass/multilabel targets. If set to `None`, the scores for each class are returned. Otherwise, this determines the type of averaging performed on the data.",
+            "possible_values":[
+                {
+                    "value":"'binary'",
+                    "explanation":"Only report results for the class specified by `pos_label`. This is applicable only if the classes found in `predictions` and `references` are binary."
+                },
+                {
+                    "value":"'micro'",
+                    "explanation":"Calculate metrics globally by counting the total true positives, false negatives and false positives."
+                },
+                {
+                    "value":"'macro'",
+                    "explanation":"Calculate metrics for each label, and find their unweighted mean. This does not take label imbalance into account."
+                },
+                {
+                    "value":"'weighted'",
+                    "explanation":"Calculate metrics for each label, and find their average weighted by support (the number of true instances for each label). This alters `'macro'` to account for label imbalance. This option can result in an F-score that is not between precision and recall."
+                },
+                {
+                    "value":"'samples'",
+                    "explanation":"Calculate metrics for each instance, and find their average (only meaningful for multilabel classification)."
+                }
+            ]
+        },
+        {
+            "input_name":"sample_weight",
+            "input_type":"`list` of `float`",
+            "default_value":"None",
+            "explanation":"Sample weights",
+            "possible_values":null
+        }
+    ],
+    "output_explanation":"This metric outputs a dictionary, with either a single f1 score, of type `float`, or an array of f1 scores, with entries of type `float`.",
+    "output_fields":[
+        {
+            "output_name":"f1",
+            "output_type":"`float` or `array` of `float`",
+            "explanation":"F1 score or list of f1 scores, depending on the value passed to `average`.",
+            "minimum_possible_value":"0",
+            "maximum_possible_value":"1",
+            "explanation_of_values":"Higher f1 scores are better."
+        }
+    ],
+    "output_examples":[
+        "{'f1': 0.26666666666666666}",
+        "{'f1': array([0.8, 0.0, 0.0])}"
+    ],
+    "values_from_popular_papers":"",
+    "code_examples":[
+        {
+            "example_name":"Example 1",
+            "example_description":"A simple binary example",
+            "example_code":[
+                "f1_metric = datasets.load_metric(\"f1\")",
+                "results = f1_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0])",
+                "print(results)",
+                ["{'f1': 0.5}"]
+            ]
+        },
+        {
+            "example_name":"Example 2",
+            "example_description":"The same simple binary example as in Example 1, but with `pos_label` set to `0`.",
+            "example_code":[
+                "f1_metric = datasets.load_metric(\"f1\")",
+                "results = f1_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0], pos_label=0)",
+                "print(results)",
+                ["{'f1': 0.6666666666666666}"]
+            ]
+        },
+        {
+            "example_name":"Example 3",
+            "example_description":"The same simple binary example as in Example 1, but with `sample_weight` included.",
+            "example_code":[
+                "f1_metric = datasets.load_metric(\"f1\")",
+                "results = f1_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0], sample_weight=[0.9, 0.5, 3.9, 1.2, 0.3])",
+                "print(results)",
+                ["{'f1': 0.35294117647058826}"]
+            ]
+        },
+        {
+            "example_name":"Example 4",
+            "example_description":"A multiclass example, with different values for the `average` input.",
+            "example_code":[
+                "predictions = [0, 2, 1, 0, 0, 1]",
+                "references = [0, 1, 2, 0, 1, 2]",
+                "results = f1_metric.compute(predictions=predictions, references=references, average=\"macro\")",
+                "print(results)",
+                ["{'f1': 0.26666666666666666}"],
+                "results = f1_metric.compute(predictions=predictions, references=references, average=\"micro\")",
+                "print(results)",
+                ["{'f1': 0.3333333333333333}"],
+                "results = f1_metric.compute(predictions=predictions, references=references, average=\"weighted\")",
+                "print(results)",
+                "[{'f1': 0.26666666666666666}]",
+                "results = f1_metric.compute(predictions=predictions, references=references, average=None)",
+                "print(results)",
+                ["{'f1': array([0.8, 0. , 0. ])}"]
+            ]
+        }
+    ],
+    "limitations_and_bias":"",
+    "citations":[
+        "@article{scikit-learn,\n    title={Scikit-learn: Machine Learning in {P}ython},\n    author={Pedregosa, F. and Varoquaux, G. and Gramfort, A. and Michel, V.\n           and Thirion, B. and Grisel, O. and Blondel, M. and Prettenhofer, P.\n           and Weiss, R. and Dubourg, V. and Vanderplas, J. and Passos, A. and\n           Cournapeau, D. and Brucher, M. and Perrot, M. and Duchesnay, E.},\n    journal={Journal of Machine Learning Research},\n    volume={12},\n    pages={2825--2830},\n    year={2011}\n}"
+    ],
+    "further_references":null
+}
