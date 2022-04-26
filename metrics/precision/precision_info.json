@@ -35,7 +35,7 @@
             "input_name":"labels",
             "input_type":"`list` of `int`",
             "default_value":"None",
-            "explanation":"The set of labels to include when `average` is not set to `'binary'`. If `average` is `None`, it should be the label order. Labels present in the data can be excluded, for example to calculate a multiclass average ignoring a majority negative class, while labels not present in the data will result in 0 components in a macro average. For multilabel targets, labels are column indices. By default, all labels in `predictions` and `references` are used in sorted order.",
+            "explanation":"The set of labels to include when `average` is not set to `'binary'`. If `average` is `None`, it should be the label order. Labels present in the data can be excluded, for example to calculate a multiclass average ignoring a majority negative class. Labels not present in the data will result in 0 components in a macro average. For multilabel targets, labels are column indices. By default, all labels in `predictions` and `references` are used in sorted order.",
             "possible_values":null
         },
         {
@@ -134,8 +134,8 @@
             "example_code":[
                 "precision_metric = datasets.load_metric(\"precision\")",
                 "results = precision_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0], pos_label=0)",
-                "print(results)",
-                ["{'precision': 0.6666666666666666}"]
+                "print(round(results['precision'], 2))",
+                ["{'precision': 0.67}"]
             ]
         },
         {
@@ -164,8 +164,8 @@
                 "print(results)",
                 ["{'precision': 0.2222222222222222}"],
                 "results = precision_metric.compute(predictions=predictions, references=references, average=None)",
-                "print(results)",
-                ["{'precision': array([0.66666667, 0.0, 0.0])}"]
+                "print([round(res, 2) for res in results['precision']])",
+                ["[0.67, 0.0, 0.0]"]
             ]
         }
     ],

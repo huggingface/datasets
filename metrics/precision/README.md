@@ -23,7 +23,7 @@ At minimum, precision takes as input a list of predicted labels, `predictions`, 
 ### Inputs
 - **predictions** (`list` of `int`): Predicted class labels.
 - **references** (`list` of `int`): Actual class labels.
-- **labels** (`list` of `int`): The set of labels to include when `average` is not set to `'binary'`. If `average` is `None`, it should be the label order. Labels present in the data can be excluded, for example to calculate a multiclass average ignoring a majority negative class, while labels not present in the data will result in 0 components in a macro average. For multilabel targets, labels are column indices. By default, all labels in `predictions` and `references` are used in sorted order. Defaults to None.
+- **labels** (`list` of `int`): The set of labels to include when `average` is not set to `'binary'`. If `average` is `None`, it should be the label order. Labels present in the data can be excluded, for example to calculate a multiclass average ignoring a majority negative class. Labels not present in the data will result in 0 components in a macro average. For multilabel targets, labels are column indices. By default, all labels in `predictions` and `references` are used in sorted order. Defaults to None.
 - **pos_label** (`int`): The class to be considered the positive class, in the case where `average` is set to `binary`. Defaults to 1.
 - **average** (`string`): This parameter is required for multiclass/multilabel targets. If set to `None`, the scores for each class are returned. Otherwise, this determines the type of averaging performed on the data. Defaults to `'binary'`.
     - 'binary': Only report results for the class specified by `pos_label`. This is applicable only if the classes found in `predictions` and `references` are binary.
@@ -69,8 +69,8 @@ Example 2-The same simple binary example as in Example 1, but with `pos_label` s
 ```python
 >>> precision_metric = datasets.load_metric("precision")
 >>> results = precision_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0], pos_label=0)
->>> print(results)
-{'precision': 0.6666666666666666}
+>>> print(round(results['precision'], 2))
+{'precision': 0.67}
 ```
 
 Example 3-The same simple binary example as in Example 1, but with `sample_weight` included.
@@ -95,8 +95,8 @@ Example 4-A multiclass example, with different values for the `average` input.
 >>> print(results)
 {'precision': 0.2222222222222222}
 >>> results = precision_metric.compute(predictions=predictions, references=references, average=None)
->>> print(results)
-{'precision': array([0.66666667, 0.0, 0.0])}
+>>> print([round(res, 2) for res in results['precision']])
+[0.67, 0.0, 0.0]
 ```
 
 
