@@ -326,7 +326,7 @@ class TensorflowDatasetMixin:
         label_cols: Optional[Union[str, Sequence[str]]] = None,
         prefetch: bool = True,
         error_on_missing: bool = True,
-        auto_fix_label_names: bool = True
+        auto_fix_label_names: bool = True,
     ):
         """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
         the Dataset, and is suitable for passing to methods like model.fit() or model.predict().
