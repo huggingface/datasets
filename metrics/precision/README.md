@@ -70,7 +70,7 @@ Example 2-The same simple binary example as in Example 1, but with `pos_label` s
 >>> precision_metric = datasets.load_metric("precision")
 >>> results = precision_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0], pos_label=0)
 >>> print(round(results['precision'], 2))
-{'precision': 0.67}
+0.67
 ```
 
 Example 3-The same simple binary example as in Example 1, but with `sample_weight` included.
