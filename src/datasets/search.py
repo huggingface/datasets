@@ -243,7 +243,7 @@ class FaissIndex(BaseIndex):
         self.faiss_index = custom_index
         if not _has_faiss:
             raise ImportError(
-                "You must install Faiss to use FaissIndex. To do so you can run `pip install faiss-cpu` or `pip install faiss-gpu`"
+                "You must install Faiss to use FaissIndex. To do so you can run `conda install -c pytorch faiss-cpu` or `conda install -c pytorch faiss-gpu`"
             )
 
     def add_vectors(
