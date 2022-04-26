@@ -420,13 +420,12 @@ class TensorflowDatasetMixin:
         non_numerical_cols = {
             feature_name for feature_name, feature in self.features.items() if not is_numeric_feature(feature)
         }
-        if non_numerical_cols:
-            pre_collate_cols_to_retain = set(self.features.keys()) - non_numerical_cols
-            if self.format["type"] != "custom":
-                dataset = self.with_format("numpy", columns=pre_collate_cols_to_retain)
-            else:
-                existing_transform = self.format["format_kwargs"]["transform"]
-                dataset = self.with_transform(existing_transform, columns=pre_collate_cols_to_retain)
+        pre_collate_cols_to_retain = set(self.features.keys()) - non_numerical_cols
+        if self.format["type"] != "custom":
+            dataset = self.with_format("numpy", columns=pre_collate_cols_to_retain)
+        else:
+            existing_transform = self.format["format_kwargs"]["transform"]
+            dataset = self.with_transform(existing_transform, columns=pre_collate_cols_to_retain)
         # endregion
 
         # region Compute dataset signature and verify columns
