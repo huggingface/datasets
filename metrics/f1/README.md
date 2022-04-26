@@ -67,7 +67,7 @@ Example 2-The same simple binary example as in Example 1, but with `pos_label` s
 >>> f1_metric = datasets.load_metric("f1")
 >>> results = f1_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0], pos_label=0)
 >>> print(round(results['f1'], 2))
-{'f1': 0.67}
+0.67
 ```
 
 Example 3-The same simple binary example as in Example 1, but with `sample_weight` included.
@@ -75,7 +75,7 @@ Example 3-The same simple binary example as in Example 1, but with `sample_weigh
 >>> f1_metric = datasets.load_metric("f1")
 >>> results = f1_metric.compute(references=[0, 1, 0, 1, 0], predictions=[0, 0, 1, 1, 0], sample_weight=[0.9, 0.5, 3.9, 1.2, 0.3])
 >>> print(round(results['f1'], 2))
-{'f1': 0.35}
+0.35
 ```
 
 Example 4-A multiclass example, with different values for the `average` input.
@@ -84,13 +84,13 @@ Example 4-A multiclass example, with different values for the `average` input.
 >>> references = [0, 1, 2, 0, 1, 2]
 >>> results = f1_metric.compute(predictions=predictions, references=references, average="macro")
 >>> print(round(results['f1'], 2))
-{'f1': 0.27}
+0.27
 >>> results = f1_metric.compute(predictions=predictions, references=references, average="micro")
 >>> print(round(results['f1'], 2))
-{'f1': 0.33}
+0.33
 >>> results = f1_metric.compute(predictions=predictions, references=references, average="weighted")
 >>> print(round(results['f1'], 2))
-{'f1': 0.27}
+0.27
 >>> results = f1_metric.compute(predictions=predictions, references=references, average=None)
 >>> print(results)
 {'f1': array([0.8, 0. , 0. ])}
