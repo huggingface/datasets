@@ -50,11 +50,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification **
-- **Repository: N/A **
-- **Paper: N/A **
-- **Leaderboard: https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/leaderboard **
-- **Point of Contact: N/A **
+- **Homepage:** https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification
+- **Repository:**
+- **Paper:**
+- **Leaderboard:** https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/leaderboard
+- **Point of Contact:**
 
 ### Dataset Summary
 
