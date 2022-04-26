@@ -744,13 +744,13 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
-            else get_patterns_locally(self.data_dir)
+            else get_patterns_locally(os.path.join(self.path, self.data_dir))
             if self.data_dir is not None
             else get_patterns_locally(self.path)
         )
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
-            base_path=self.data_dir if self.data_dir else self.path,
+            base_path=os.path.join(self.path, self.data_dir) if self.data_dir else self.path,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         infered_module_names = {
@@ -830,7 +830,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.name = name
         self.revision = revision
         self.data_files = data_files
-        self.data_dir = data_dir if data_dir else None
+        self.data_dir = data_dir
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         assert self.name.count("/") == 1
