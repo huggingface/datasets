@@ -56,11 +56,11 @@ pretty_name: Disaster Response Messages
 
 ## Dataset Description
 
-- **Homepage: [HomePage](https://appen.com/datasets/combined-disaster-response-data/)
-- **Repository: [Repo to Download the Dataset](https://datasets.appen.com/appen_datasets/disaster_response_data/disaster_response_messages_training.csv)
+- **Homepage:** [HomePage](https://appen.com/datasets/combined-disaster-response-data/)
+- **Repository:** [Repo to Download the Dataset](https://datasets.appen.com/appen_datasets/disaster_response_data/disaster_response_messages_training.csv)
 - **Paper:
 - **Leaderboard:
-- **Point of Contact:[Darshan Gandhi](darshangandhi1151@gmail.com)
+- **Point of Contact:** [Darshan Gandhi](darshangandhi1151@gmail.com)
 
 ### Dataset Summary
 
