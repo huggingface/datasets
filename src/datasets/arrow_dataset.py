@@ -417,10 +417,11 @@ class TensorflowDatasetMixin:
         # endregion
 
         # region Set dataset format and drop non-numerical columns
-        pre_collate_cols_to_retain = [
+        non_numerical_cols = {
             feature_name for feature_name, feature in self.features.items() if not is_numeric_feature(feature)
-        ]
-        if set(pre_collate_cols_to_retain) != set(self.features.keys()):
+        }
+        if non_numerical_cols:
+            pre_collate_cols_to_retain = set(self.features.keys()) - non_numerical_cols
             if self.format["type"] != "custom":
                 dataset = self.with_format("numpy", columns=pre_collate_cols_to_retain)
             else:
