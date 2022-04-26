@@ -1,4 +1,31 @@
 ---
+annotations_creators:
+- expert-generated
+language_creators:
+- machine-generated
+languages:
+- tr
+licenses:
+  snli_tr:
+  - cc-by-4.0
+  multinli_tr:
+  - cc-by-3.0
+  - cc-by-sa-3.0-at
+  - mit
+  - other-Open Portion of the American National Corpus
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- extended|snli
+- extended|multi_nli
+task_categories:
+- text-classification
+- text-scoring
+task_ids:
+- natural-language-inference
+- semantic-similarity-scoring
 paperswithcode_id: nli-tr
 pretty_name: Natural Language Inference in Turkish
 ---

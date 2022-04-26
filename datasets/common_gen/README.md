@@ -3,6 +3,10 @@ languages:
 - en
 paperswithcode_id: commongen
 pretty_name: CommonGen
+task_ids:
+- text2text-generation-other-concepts-to-text
+tasks_categories:
+- text2text-generation
 ---
 
 # Dataset Card for "common_gen"

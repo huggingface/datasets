@@ -434,6 +434,7 @@ licenses:
 multilinguality:
 - multilingual
 - translation
+pretty_name: XTREME
 size_categories:
 - n<1K
 - 1K<n<10K
@@ -449,21 +450,22 @@ source_datasets:
 - extended|tatoeba
 - extended|squad
 task_categories:
+- multiple-choice
 - question-answering
-- structure-prediction
+- token-classification
 - text-classification
 - text-retrieval
+- token-classification
 task_ids:
-- open-domain-qa
 - multiple-choice-qa
 - extractive-qa
-- named-entity-recognition
-- part-of-speech-tagging
+- open-domain-qa
 - natural-language-inference
 - text-classification-other-paraphrase-identification
 - text-retrieval-other-parallel-sentence-retrieval
+- named-entity-recognition
+- part-of-speech-tagging
 paperswithcode_id: xtreme
-pretty_name: XTREME
 ---
 
 # Dataset Card for "xtreme"

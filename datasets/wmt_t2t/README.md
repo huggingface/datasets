@@ -4,9 +4,8 @@ paperswithcode_id: null
 multilinguality:
 - translation
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 ---
 
 # Dataset Card for "wmt_t2t"

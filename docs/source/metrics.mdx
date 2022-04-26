@@ -2,7 +2,7 @@
 
 🤗 Datasets provides various common and NLP-specific [metrics](https://huggingface.co/metrics) for you to measure your models performance. In this section of the tutorials, you will load a metric and use it to evaluate your models predictions.
 
-You can see what metrics are available with [`datasets.list_metrics`]:
+You can see what metrics are available with [`list_metrics`]:
 
 ```py
 >>> from datasets import list_metrics
@@ -15,7 +15,7 @@ You can see what metrics are available with [`datasets.list_metrics`]:
 
 ## Load metric
 
-It is very easy to load a metric with 🤗 Datasets. In fact, you will notice that it is very similar to loading a dataset! Load a metric from the Hub with [`datasets.load_metric`]:
+It is very easy to load a metric with 🤗 Datasets. In fact, you will notice that it is very similar to loading a dataset! Load a metric from the Hub with [`load_metric`]:
 
 ```py
 >>> from datasets import load_metric
@@ -34,7 +34,7 @@ If you are using a benchmark dataset, you need to select a metric that is associ
 
 ## Metrics object
 
-Before you begin using a [`datasets.Metric`] object, you should get to know it a little better. As with a dataset, you can return some basic information about a metric. For example, use `datasets.Metric.inputs_descriptions` to get more information about a metrics expected input format and some usage examples:
+Before you begin using a [`Metric`] object, you should get to know it a little better. As with a dataset, you can return some basic information about a metric. For example, access the `inputs_description` parameter in [`datasets.MetricInfo`] to get more information about a metrics expected input format and some usage examples:
 
 ```py
 >>> print(metric.inputs_description)
@@ -67,11 +67,11 @@ Examples:
     ...
 ```
 
-Notice for the MRPC configuration, the metric expects the input format to be zero or one. For a complete list of attributes you can return with your metric, take a look at [`datasets.MetricInfo`].
+Notice for the MRPC configuration, the metric expects the input format to be zero or one. For a complete list of attributes you can return with your metric, take a look at [`MetricInfo`].
 
 ## Compute metric
 
-Once you have loaded a metric, you are ready to use it to evaluate a models predictions. Provide the model predictions and references to `datasets.Metric.compute`:
+Once you have loaded a metric, you are ready to use it to evaluate a models predictions. Provide the model predictions and references to [`~datasets.Metric.compute`]:
 
 ```py
 >>> model_predictions = model(model_inputs)

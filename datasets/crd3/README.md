@@ -13,10 +13,10 @@ multilinguality:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- sequence-modeling
-task_ids:
 - summarization
+- text-generation
+- fill-mask
+task_ids:
 - dialogue-modeling
 size_categories:
 - 10K<n<100K

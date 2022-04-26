@@ -15,10 +15,10 @@ source_datasets:
 - original
 task_categories:
 - text-classification
-- structure-prediction
+- token-classification
 task_ids:
 - text-classification-other-propaganda-technique-classification
-- structure-prediction-other-propaganda-span-identification
+- token-classification-other-propaganda-span-identification
 paperswithcode_id: null
 pretty_name: "SemEval-2020 Task 11"
 ---

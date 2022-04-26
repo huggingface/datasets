@@ -46,22 +46,21 @@ source_datasets:
 - original
 task_categories:
   monolingual:
-  - conditional-text-generation
+  - translation
   monolingual_raw:
-  - sequence-modeling
+  - text-generation
+  - fill-mask
   parallel:
-  - conditional-text-generation
+  - translation
   parallel_raw:
-  - conditional-text-generation
+  - translation
 task_ids:
-  monolingual:
-  - machine-translation
+  monolingual: []
   monolingual_raw:
   - language-modeling
-  parallel:
-  - machine-translation
-  parallel_raw:
-  - machine-translation
+  - masked-language-modeling
+  parallel: []
+  parallel_raw: []
 paperswithcode_id: chren
 ---
 

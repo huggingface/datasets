@@ -225,7 +225,7 @@ class DatasetBuilder:
             cache_dir: `str`, directory to read/write data. Defaults to "~/datasets".
             name: `str` name, optional configuration for the dataset that affects the data generated on disk. Different
                 `builder_config`s will have their own subdirectories and versions.
-                If not provided, uses the first configuration in self.BUILDER_CONFIGS
+                If not provided it uses the default configuration, if it exists.
             hash: a hash specific to the dataset code. Used to update the caching directory when the dataset loading
                 script code is updated (to avoid reusing old data).
                 The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``
@@ -350,7 +350,7 @@ class DatasetBuilder:
                         + f"\nExample of usage:\n\t`{example_of_usage}`"
                     )
                 builder_config = self.BUILDER_CONFIGS[0]
-                logger.info(f"No config specified, defaulting to first: {self.name}/{builder_config.name}")
+                logger.info(f"No config specified, defaulting to the single config: {self.name}/{builder_config.name}")
 
         # try get config by name
         if isinstance(name, str):
@@ -1287,8 +1287,9 @@ class BeamBasedBuilder(DatasetBuilder):
             fs = beam.io.filesystems.FileSystems
             with fs.create(os.path.join(self._cache_dir, config.DATASET_INFO_FILENAME)) as f:
                 self.info._dump_info(f)
-            with fs.create(os.path.join(self._cache_dir, config.LICENSE_FILENAME)) as f:
-                self.info._dump_license(f)
+            if self.info.license:
+                with fs.create(os.path.join(self._cache_dir, config.LICENSE_FILENAME)) as f:
+                    self.info._dump_license(f)
 
     def _prepare_split(self, split_generator, pipeline):
         import apache_beam as beam

@@ -35,9 +35,8 @@ size_categories:
 source_datasets:
 - extended|other-common-voice
 task_categories:
-- speech-processing
-task_ids:
 - automatic-speech-recognition
+task_ids: []
 paperswithcode_id: null
 pretty_name: CoVoST 2
 ---
