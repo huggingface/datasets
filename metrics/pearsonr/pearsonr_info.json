@@ -60,7 +60,7 @@
     ],
     "output_examples":[
         "{'pearsonr': -0.7}",
-        ""
+        "{'p-value': 0.15}"
     ],
     "values_from_popular_papers":"",
     "code_examples":[
