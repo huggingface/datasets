@@ -737,7 +737,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.path = path
         self.name = Path(path).stem
         self.data_files = data_files
-        self.data_dir = data_dir if data_dir else None
+        self.data_dir = data_dir
         self.download_mode = download_mode
 
     def get_module(self) -> DatasetModule:
@@ -790,14 +790,18 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
 
         self.name = name
         self.data_files = data_files
-        self.data_dir = str(Path(data_dir).resolve()) if data_dir else str(Path().resolve())
+        self.data_dir = data_dir
         self.download_config = download_config
         self.download_mode = download_mode
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
         patterns = (
-            sanitize_patterns(self.data_files) if self.data_files is not None else get_patterns_locally(self.data_dir)
+            sanitize_patterns(self.data_files)
+            if self.data_files is not None
+            else get_patterns_locally(str(Path(self.data_dir).resolve()))
+            if self.data_dir is not None
+            else get_patterns_locally(str(Path().resolve()))
         )
         data_files = DataFilesDict.from_local_or_remote(
             patterns, use_auth_token=self.download_config.use_auth_token, base_path=self.data_dir
