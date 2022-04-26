@@ -1,0 +1,102 @@
+{
+    "metric_name":"Accuracy",
+    "metric_description":"Accuracy is the proportion of correct predictions among the total number of cases processed. It can be computed with:\nAccuracy = (TP + TN) / (TP + TN + FP + FN)\n Where:\nTP: True positive\nTN: True negative\nFP: False positive\nFN: False negative",
+    "how_to_use":{
+        "description":"At minimum, this metric requires predictions and references as inputs.",
+        "simple_code_examples":[
+            {
+                "example_name":null,
+                "example_description":null,
+                "example_code":[
+                    "accuracy_metric = datasets.load_metric(\"accuracy\")",
+                    "results = accuracy_metric.compute(references=[0, 1], predictions=[0, 1])",
+                    "print(results)",
+                    ["{'accuracy': 1.0}"]
+                ]
+            }
+        ]
+    },
+    "input_fields":[
+        {
+            "input_name":"predictions",
+            "input_type":"`list` of `int`",
+            "default_value":null,
+            "explanation":"Predicted labels.",
+            "possible_values":null
+        },
+        {
+            "input_name":"references",
+            "input_type":"`list` of `int`",
+            "default_value":null,
+            "explanation":"Ground truth labels.",
+            "possible_values":null
+        },
+        {
+            "input_name":"normalize",
+            "input_type":"`boolean`",
+            "default_value":"True",
+            "explanation":"If set to False, returns the number of correctly classified samples. Otherwise, returns the fraction of correctly classified samples.",
+            "possible_values":null
+        },
+        {
+            "input_name":"sample_weight",
+            "input_type":"`list` of `float`",
+            "default_value":"None",
+            "explanation":"Sample weights",
+            "possible_values":null
+        }
+    ],
+    "output_explanation":"This metric outputs a dictionary, containing the accuracy score.",
+    "output_fields":[
+        {
+            "output_name":"accuracy",
+            "output_type":"`float` or `int`",
+            "explanation":"Accuracy score.",
+            "minimum_possible_value":"0",
+            "maximum_possible_value":"1.0, or the number of examples input, if `normalize` is set to `True`.",
+            "explanation_of_values":"A higher score means higher accuracy."
+        }
+    ],
+    "output_examples":[
+        "{'accuracy': 1.0}",
+        ""
+    ],
+    "values_from_popular_papers":"",
+    "code_examples":[
+        {
+            "example_name":"Example 1",
+            "example_description":"A simple example",
+            "example_code":[
+                "accuracy_metric = datasets.load_metric(\"accuracy\")",
+                    "results = accuracy_metric.compute(references=[0, 1, 2, 0, 1, 2], predictions=[0, 1, 1, 2, 1, 0])",
+                    "print(results)",
+                    ["{'accuracy': 0.5}"]
+            ]
+        },
+        {
+            "example_name":"Example 2",
+            "example_description":"The same as Example 1, except with `normalize` set to `False`.",
+            "example_code":[
+                "accuracy_metric = datasets.load_metric(\"accuracy\")",
+                    "results = accuracy_metric.compute(references=[0, 1, 2, 0, 1, 2], predictions=[0, 1, 1, 2, 1, 0], normalize=False)",
+                    "print(results)",
+                    ["{'accuracy': 0.3}"]
+            ]
+        },
+        {
+            "example_name":"Example 3",
+            "example_description":"The same as Example 1, except with `sample_weight` set.",
+            "example_code":[
+                "accuracy_metric = datasets.load_metric(\"accuracy\")",
+                    "results = accuracy_metric.compute(references=[0, 1, 2, 0, 1, 2], predictions=[0, 1, 1, 2, 1, 0], sample_weight=[0.5, 2, 0.7, 0.5, 9, 0.4])",
+                    "print(results)",
+                    ["{'accuracy': 0.8778625954198473}"]
+            ]
+        }
+    ],
+    "limitations_and_bias":"This metric can be easily misleading, especially in the case of unbalanced classes. For example, a high accuracy might be because a model is doing well, but if the data is unbalanced, it might also be because the model is only accurately labeling the high-frequency class. In such cases, a more detailed analysis of the model's behavior, or the use of a different metric entirely, is necessary to determine how well the model is actually performing.",
+    "citations":[
+        "@article{scikit-learn,\n  title={Scikit-learn: Machine Learning in {P}ython},\n  author={Pedregosa, F. and Varoquaux, G. and Gramfort, A. and Michel, V.\n         and Thirion, B. and Grisel, O. and Blondel, M. and Prettenhofer, P.\n         and Weiss, R. and Dubourg, V. and Vanderplas, J. and Passos, A. and\n         Cournapeau, D. and Brucher, M. and Perrot, M. and Duchesnay, E.},\n  journal={Journal of Machine Learning Research},\n  volume={12},\n  pages={2825--2830},\n  year={2011}\n}"
+    ],
+    "further_references":null
+}
