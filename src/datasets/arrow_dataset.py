@@ -321,7 +321,6 @@ class TensorflowDatasetMixin:
         shuffle: bool = True,
         collate_fn: Optional[Callable] = None,
         drop_remainder: Optional[bool] = None,
-        drop_columns: Optional[Union[str, Sequence[str]]] = None,
         collate_fn_args: Optional[Dict[str, Any]] = None,
         label_cols: Optional[Union[str, Sequence[str]]] = None,
         prefetch: bool = True,
@@ -347,8 +346,6 @@ class TensorflowDatasetMixin:
             label_cols (:obj:`List[str]` or :obj:`str`, default ``None``): Dataset column(s) to load as
                 labels. Note that many models compute loss internally rather than letting Keras do it, in which case it is
                 not necessary to actually pass the labels here, as long as they're in the input `columns`.
-            drop_columns (:obj:`List[str]` or :obj:`str` or :obj:`bool`, optional): Dataset column(s) to drop before
-                passing to the `collate_fn`. By default, we drop non-numerical columns.
             prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
@@ -417,20 +414,13 @@ class TensorflowDatasetMixin:
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
-        if drop_columns is None:
-            drop_columns = [
-                feature_name for feature_name, feature in self.features.items() if not is_numeric_feature(feature)
-            ]
-        elif isinstance(drop_columns, str):
-            drop_columns = [drop_columns]
-        if drop_columns:
-            pre_collate_cols_to_retain = set(self.features.keys()) - set(drop_columns)
-        else:
-            pre_collate_cols_to_retain = None  # Will keep all
         # endregion
 
-        # region Set dataset format and drop unnecessary columns
-        if pre_collate_cols_to_retain:
+        # region Set dataset format and drop non-numerical columns
+        pre_collate_cols_to_retain = [
+            feature_name for feature_name, feature in self.features.items() if not is_numeric_feature(feature)
+        ]
+        if set(pre_collate_cols_to_retain) != set(self.features.keys()):
             if self.format["type"] != "custom":
                 dataset = self.with_format("numpy", columns=pre_collate_cols_to_retain)
             else:
