@@ -65,14 +65,14 @@ Examples:
         >>> predictions = [0, 2, 1, 0, 0, 1]
         >>> references = [0, 1, 2, 0, 1, 2]
         >>> results = f1_metric.compute(predictions=predictions, references=references, average="macro")
-        >>> print(results)
+        >>> print(round(results['f1'], 2))
         {'f1': 0.26666666666666666}
         >>> results = f1_metric.compute(predictions=predictions, references=references, average="micro")
         >>> print(results)
         {'f1': 0.3333333333333333}
         >>> results = f1_metric.compute(predictions=predictions, references=references, average="weighted")
         >>> print(results)
-        >>> [{'f1': 0.26666666666666666}]
+        >>> print(round(results['f1'], 2))
         >>> results = f1_metric.compute(predictions=predictions, references=references, average=None)
         >>> print(results)
         {'f1': array([0.8, 0. , 0. ])}
