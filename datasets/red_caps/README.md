@@ -460,7 +460,7 @@ From the paper:
 
 ### Citation Information
 
-```
+```bibtex
 @misc{desai2021redcaps,
       title={RedCaps: web-curated image-text data created by the people, for the people},
       author={Karan Desai and Gaurav Kaul and Zubin Aysola and Justin Johnson},
