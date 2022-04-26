@@ -2304,56 +2304,17 @@ class BaseDatasetTest(TestCase):
 
     @require_tf
     def test_tf_dataset_conversion(self, in_memory):
-        def tf_default_data_collator(features):
-            """This is the tf_default_data_collator from transformers, copied so we avoid depending on that library."""
-            import numpy as np
-            import tensorflow as tf
-
-            first = features[0]
-            batch = {}
-
-            # Special handling for labels.
-            # Ensure that tensor is created with the correct type
-            # (it should be automatically the case, but let's make sure of it.)
-            if "label" in first and first["label"] is not None:
-                if isinstance(first["label"], tf.Tensor):
-                    dtype = tf.int64 if first["label"].dtype.is_integer() else tf.float32
-                elif isinstance(first["label"], np.ndarray):
-                    dtype = tf.int64 if np.issubdtype(first["label"].dtype, np.integer) else tf.float32
-                elif isinstance(first["label"], (tuple, list)):
-                    dtype = tf.int64 if isinstance(first["label"][0], int) else tf.float32
-                else:
-                    dtype = tf.int64 if isinstance(first["label"], int) else tf.float32
-                batch["labels"] = tf.convert_to_tensor([f["label"] for f in features], dtype=dtype)
-            elif "label_ids" in first and first["label_ids"] is not None:
-                if isinstance(first["label_ids"], tf.Tensor):
-                    batch["labels"] = tf.stack([f["label_ids"] for f in features])
-                else:
-                    dtype = tf.int64 if type(first["label_ids"][0]) is int else tf.float32
-                    batch["labels"] = tf.convert_to_tensor([f["label_ids"] for f in features], dtype=dtype)
-
-            # Handling of all other possible keys.
-            # Again, we will use the first element to figure out which key/values are not None for this model.
-            for k, v in first.items():
-                if k not in ("label", "label_ids") and v is not None and not isinstance(v, str):
-                    if isinstance(v, (tf.Tensor, np.ndarray)):
-                        batch[k] = tf.stack([f[k] for f in features])
-                    else:
-                        batch[k] = tf.convert_to_tensor([f[k] for f in features])
-
-            return batch
-
         tmp_dir = tempfile.TemporaryDirectory()
         with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
             tf_dataset = dset.to_tf_dataset(
-                columns="col_3", batch_size=4, shuffle=False, collate_fn=tf_default_data_collator
+                columns="col_3", batch_size=4, shuffle=False
             )
             batch = next(iter(tf_dataset))
             self.assertEqual(batch.shape.as_list(), [4, 4])
             self.assertEqual(batch.dtype.name, "int64")
         with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
             tf_dataset = dset.to_tf_dataset(
-                columns="col_1", batch_size=4, shuffle=False, collate_fn=tf_default_data_collator
+                columns="col_1", batch_size=4, shuffle=False
             )
             batch = next(iter(tf_dataset))
             self.assertEqual(batch.shape.as_list(), [4])
