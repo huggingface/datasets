@@ -733,6 +733,8 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         data_files: Optional[Union[str, List, Dict]] = None,
         download_mode: Optional[DownloadMode] = None,
     ):
+        if data_dir and os.path.isabs(data_dir):
+            raise ValueError(f"`data_dir` must be relative to a dataset directory's root: {path}")
 
         self.path = path
         self.name = Path(path).stem
