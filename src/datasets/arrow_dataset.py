@@ -393,6 +393,8 @@ class TensorflowDatasetMixin:
             collate_fn = minimal_tf_collate_fn
         if collate_fn_args is None:
             collate_fn_args = {}
+        if label_cols and not columns:
+            raise ValueError("Cannot specify label_cols without specifying columns!")
         if label_cols is None:
             label_cols = []
         elif isinstance(label_cols, str):
@@ -415,7 +417,7 @@ class TensorflowDatasetMixin:
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
-        if not drop_columns:
+        if drop_columns is None:
             drop_columns = [
                 feature_name for feature_name, feature in self.features.items() if not is_numeric_feature(feature)
             ]
@@ -428,11 +430,12 @@ class TensorflowDatasetMixin:
         # endregion
 
         # region Set dataset format and drop unnecessary columns
-        if self.format["type"] != "custom":
-            dataset = self.with_format("numpy", columns=pre_collate_cols_to_retain)
-        else:
-            existing_transform = self.format["format_kwargs"]["transform"]
-            dataset = self.with_transform(existing_transform, columns=pre_collate_cols_to_retain)
+        if pre_collate_cols_to_retain:
+            if self.format["type"] != "custom":
+                dataset = self.with_format("numpy", columns=pre_collate_cols_to_retain)
+            else:
+                existing_transform = self.format["format_kwargs"]["transform"]
+                dataset = self.with_transform(existing_transform, columns=pre_collate_cols_to_retain)
         # endregion
 
         # region Compute dataset signature and verify columns
