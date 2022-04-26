@@ -20,7 +20,7 @@ task_categories:
 - automatic-speech-recognition
 - audio-classification
 task_ids:
-- audio-speaker-identification
+- speaker-identification
 ---
 
 # Dataset Card for librispeech_asr

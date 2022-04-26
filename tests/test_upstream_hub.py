@@ -148,7 +148,7 @@ class TestPushToHub(TestCase):
 
         ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
         try:
-            local_ds.push_to_hub(ds_name, token=self._token, shard_size=500 << 5)
+            local_ds.push_to_hub(ds_name, token=self._token, max_shard_size="16KB")
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
             self.assertDictEqual(local_ds.column_names, hub_ds.column_names)

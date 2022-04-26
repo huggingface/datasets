@@ -21,6 +21,7 @@ import json
 import os
 import shutil
 import tempfile
+import warnings
 import weakref
 from collections import Counter, UserDict
 from collections.abc import Mapping
@@ -89,7 +90,7 @@ from .utils import logging
 from .utils._hf_hub_fixes import create_repo
 from .utils.file_utils import _retry, estimate_dataset_size
 from .utils.info_utils import is_small_dataset
-from .utils.py_utils import temporary_assignment, unique_values
+from .utils.py_utils import convert_file_size_to_int, temporary_assignment, unique_values
 from .utils.streaming_download_manager import xgetsize
 from .utils.typing import PathLike
 
@@ -976,6 +977,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Saves a dataset to a dataset directory, or in a filesystem using either :class:`~filesystems.S3FileSystem` or
         any implementation of ``fsspec.spec.AbstractFileSystem``.
 
+        For :class:`Image` and :class:`Audio` data:
+
+        If your images and audio files are local files, then the resulting arrow file will store paths to these files.
+        If you want to include the bytes or your images or audio files instead, you must `read()` those files first.
+        This can be done by storing the "bytes" instead of the "path" of the images or audio files:
+
+        ```python
+        >>> def read_image_file(example):
+        ...     with open(example["image"].filename, "rb") as f:
+        ...         return {"image": {"bytes": f.read()}}
+        >>> ds = ds.map(read_image_file)
+        >>> ds.save_to_disk("path/to/dataset/dir")
+        ```
+
+        ```python
+        >>> def read_audio_file(example):
+        ...     with open(example["audio"]["path"], "rb") as f:
+        ...         return {"audio": {"bytes": f.read()}}
+        >>> ds = ds.map(read_audio_file)
+        >>> ds.save_to_disk("path/to/dataset/dir")
+        ```
+
         Args:
             dataset_path (:obj:`str`): Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset directory where the dataset will be saved to.
@@ -1163,7 +1186,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return (self._indices.num_rows, self._data.num_columns)
         return self._data.shape
 
-    def unique(self, column: str) -> List[Any]:
+    def unique(self, column: str) -> List:
         """Return a list of the unique elements in a column.
 
         This is implemented in the low-level backend and as such, very fast.
@@ -1842,11 +1865,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Args:
             function (:obj:`Callable`): Function with one of the following signatures:
 
-                - `function(example: Union[Dict, Any]) -> Union[Dict, Any]` if `batched=False` and `with_indices=False` and `with_rank=False`
-                - `function(example: Union[Dict, Any], *extra_args) -> Union[Dict, Any]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
-                - `function(batch: Union[Dict[List], List[Any]]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False` and `with_rank=False`
-                - `function(batch: Union[Dict[List], List[Any]], *extra_args) -> Union[Dict, Any]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+                - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False` and `with_rank=False`
+                - `function(example: Dict[str, Any], *extra_args) -> Dict[str, Any]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False` and `with_rank=False`
+                - `function(batch: Dict[str, List], *extra_args) -> Dict[str, List]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
 
+                For advanced usage, the function can also return a `pyarrow.Table`.
+                Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
                 If no function is provided, default to identity function: ``lambda x: x``.
             with_indices (:obj:`bool`, default `False`): Provide example indices to `function`. Note that in this case the
                 signature of `function` should be `def function(example, idx[, rank]): ...`.
@@ -2111,10 +2136,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             function (:obj:`Callable`): with one of the following signature:
-                - `function(example: Union[Dict, Any]) -> Union[Dict, Any]` if `batched=False` and `with_indices=False` and `with_rank=False`
-                - `function(example: Union[Dict, Any], *extra_args) -> Union[Dict, Any]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
-                - `function(batch: Union[Dict[List], List[Any]]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False` and `with_rank=False`
-                - `function(batch: Union[Dict[List], List[Any]], *extra_args) -> Union[Dict, Any]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+                - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False` and `with_rank=False`
+                - `function(example: Dict[str, Any], *extra_args) -> Dict[str, Any]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False` and `with_rank=False`
+                - `function(batch: Dict[str, List], *extra_args) -> Dict[str, List]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+
+                For advanced usage, the function can also return a `pyarrow.Table`.
+                Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
                 If no function is provided, default to identity function: lambda x: x
             with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
             with_rank (:obj:`bool`, default `False`): Provide process rank to `function`. Note that in this case the signature of `function` should be `def function(example[, idx], rank): ...`.
@@ -2414,10 +2442,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Args:
             function (:obj:`Callable`): Callable with one of the following signatures:
 
-                - ``function(example: Union[Dict, Any]) -> bool`` if ``with_indices=False, batched=False``
-                - ``function(example: Union[Dict, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
-                - ``function(example: Union[Dict, Any]) -> List[bool]`` if ``with_indices=False, batched=True``
-                - ``function(example: Union[Dict, Any], indices: int) -> List[bool]`` if ``with_indices=True, batched=True``
+                - ``function(example: Dict[str, Any]) -> bool`` if ``with_indices=False, batched=False``
+                - ``function(example: Dict[str, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
+                - ``function(example: Dict[str, List]) -> List[bool]`` if ``with_indices=False, batched=True``
+                - ``function(example: Dict[str, List], indices: List[int]) -> List[bool]`` if ``with_indices=True, batched=True``
 
                 If no function is provided, defaults to an always True function: ``lambda x: True``.
             with_indices (:obj:`bool`, default `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
@@ -3293,7 +3321,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         branch: Optional[str] = None,
-        shard_size: Optional[int] = 500 << 20,
+        max_shard_size: Union[int, str] = "500MB",
         embed_external_files: bool = True,
     ) -> Tuple[str, str, int, int]:
         """Pushes the dataset to the hub.
@@ -3316,9 +3344,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             branch (Optional :obj:`str`):
                 The git branch on which to push the dataset. This defaults to the default branch as specified
                 in your repository, which defaults to `"main"`.
-            shard_size (Optional :obj:`int`):
-                The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
-                of the size specified here, in bytes. Defaults to a shard size of 500MB.
+            max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
+                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
+                (like `"5MB"`).
             embed_external_files (:obj:`bool`, default ``True``):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -3337,6 +3365,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
         ```
         """
+        max_shard_size = convert_file_size_to_int(max_shard_size)
+
         api = HfApi(endpoint=config.HF_ENDPOINT)
         token = token if token is not None else HfFolder.get_token()
 
@@ -3405,7 +3435,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if self._indices is not None:
             dataset_nbytes = dataset_nbytes * len(self._indices) / len(self.data)
 
-        num_shards = int(dataset_nbytes / shard_size) + 1
+        num_shards = int(dataset_nbytes / max_shard_size) + 1
         num_shards = max(num_shards, 1)
         shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
 
@@ -3499,11 +3529,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         branch: Optional[str] = None,
-        shard_size: Optional[int] = 500 << 20,
+        max_shard_size: Union[int, str] = "500MB",
+        shard_size: Optional[int] = "deprecated",
         embed_external_files: bool = True,
     ):
-        """Pushes the dataset to the hub.
+        """Pushes the dataset to the hub as a Parquet dataset.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
+
+        The resulting Parquet files are self-contained by default: if your dataset contains :class:`Image` or :class:`Audio`
+        data, the Parquet files will store the bytes of your images or audio files.
+        You can disable this by setting `embed_external_files` to False.
 
         Args:
             repo_id (:obj:`str`):
@@ -3522,9 +3557,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             branch (Optional :obj:`str`):
                 The git branch on which to push the dataset. This defaults to the default branch as specified
                 in your repository, which defaults to `"main"`.
+            max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
+                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
+                (like `"5MB"`).
             shard_size (Optional :obj:`int`):
-                The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
-                of the size specified here, in bytes. Defaults to a shard size of 500MB.
+                Deprecated: 'shard_size' was renamed to 'max_shard_size' in version 2.1.1 and will be removed in 2.4.0.
             embed_external_files (:obj:`bool`, default ``True``):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -3537,13 +3574,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
         ```
         """
+        if shard_size != "deprecated":
+            warnings.warn(
+                "'shard_size' was renamed to 'max_shard_size' in version 2.1.1 and will be removed in 2.4.0.",
+                FutureWarning,
+            )
+            max_shard_size = shard_size
+
         repo_id, split, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
             split=split,
             private=private,
             token=token,
             branch=branch,
-            shard_size=shard_size,
+            max_shard_size=max_shard_size,
             embed_external_files=embed_external_files,
         )
         organization, dataset_name = repo_id.split("/")
@@ -4025,7 +4069,7 @@ def get_indices_from_mask_function(
                 )
         else:
             # inputs is a list of columns
-            columns: List[List[Any]] = inputs
+            columns: List[List] = inputs
             num_examples = len(columns[0])
             for i in range(num_examples):
                 input = [column[i] for column in columns]
