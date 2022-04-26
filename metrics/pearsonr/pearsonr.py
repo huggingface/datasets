@@ -100,7 +100,6 @@ class Pearsonr(datasets.Metric):
     def _compute(self, predictions, references, return_pvalue=False):
         if return_pvalue:
             results = pearsonr(references, predictions)
-            print("results:", results)
             return {"pearsonr": results[0], "p-value": results[1]}
         else:
             return {"pearsonr": float(pearsonr(references, predictions)[0])}
