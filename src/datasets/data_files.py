@@ -302,7 +302,7 @@ def _resolve_single_pattern_in_dataset_repository(
     data_files_ignore = FILES_TO_IGNORE
     fs = HfFileSystem(repo_info=dataset_info)
     if base_path:
-        pattern = os.path.join(base_path, pattern)
+        pattern = f"{base_path}/{pattern}"
     glob_iter = [PurePath(filepath) for filepath in fs.glob(PurePath(pattern).as_posix()) if fs.isfile(filepath)]
     matched_paths = [
         filepath
