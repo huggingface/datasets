@@ -326,6 +326,7 @@ class TensorflowDatasetMixin:
         label_cols: Optional[Union[str, Sequence[str]]] = None,
         prefetch: bool = True,
         error_on_missing: bool = True,
+        auto_fix_label_names: bool = True
     ):
         """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
         the Dataset, and is suitable for passing to methods like model.fit() or model.predict().
@@ -353,6 +354,9 @@ class TensorflowDatasetMixin:
                 background while the model is training.
             error_on_missing (:obj:`bool`, default ``True``): Whether to return an error if one of the requested columns
                 is missing. Should be set to `False` if columns or label_cols are autodetected from a model.
+            auto_fix_label_names (:obj:`bool`, default ``True``): Automatically replace "label" or "label_ids" in
+                column lists with "labels". This is useful for compatibility with the `transformers` library, but
+                might need to be disabled in certain other edge cases.
 
         Returns:
             :class:`tf.data.Dataset`
@@ -393,19 +397,21 @@ class TensorflowDatasetMixin:
             label_cols = []
         elif isinstance(label_cols, str):
             label_cols = [label_cols]
-        elif len(set(label_cols)) < len(label_cols):
+        if label_cols and auto_fix_label_names:
+            label_cols = [col if col not in ("label", "label_ids") else "labels" for col in label_cols]
+        if len(set(label_cols)) < len(label_cols):
             raise ValueError("List of label_cols contains duplicates.")
         if columns:
             if isinstance(columns, str):
                 columns = [columns]
-            elif len(set(columns)) < len(columns):
+            if auto_fix_label_names:
+                columns = [col if col not in ("label", "label_ids") else "labels" for col in columns]
+            if len(set(columns)) < len(columns):
                 raise ValueError("List of columns contains duplicates.")
-            if not label_cols:
-                post_collate_cols_to_retain = columns
-            else:
-                post_collate_cols_to_retain = list(set(columns + label_cols))
+            post_collate_cols_to_retain = list(set(columns + label_cols))
         else:
             post_collate_cols_to_retain = None  # Indicates keeping all columns
+            columns = []
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
