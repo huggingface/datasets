@@ -1,7 +1,23 @@
 ---
 pretty_name: IMDB
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
 languages:
 - en
+licenses:
+- other
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- sentiment-classification
 paperswithcode_id: imdb-movie-reviews
 ---
 
