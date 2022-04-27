@@ -115,7 +115,7 @@ dictionary contains:
 
 ### Data Splits
 
-The dataset is spread across four files, for the four different splits: train, dev, test and ood.
+The dataset is spread across four files, for the four different splits: train, dev, test and test_ood.
 Additional details on the data statistics can be found in the [paper](https://arxiv.org/abs/2109.12085)
 
 ## Dataset Creation
