@@ -11,7 +11,7 @@ multilinguality:
 - monolingual
 pretty_name: Text-based NP Enrichment
 size_categories:
-- unknown
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
