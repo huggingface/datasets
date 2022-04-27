@@ -14,16 +14,18 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
+- translation
 - question-answering
 task_ids:
 - abstractive-qa
 - explanation-generation
 - extractive-qa
-- machine-translation
 - open-domain-qa
+- open-domain-abstractive-qa
 - summarization
 - text-simplification
+pretty_name: WikiSummary
 ---
 
 # Dataset Card for [Needs More Information]

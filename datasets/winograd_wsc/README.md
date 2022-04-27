@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- multiple-choice
 task_ids:
 - coreference-resolution
 paperswithcode_id: wsc
+pretty_name: Winograd Schema Challenge
 ---
 
 # Dataset Card for The Winograd Schema Challenge

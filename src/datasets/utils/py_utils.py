@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +25,7 @@ import pickle
 import re
 import sys
 import types
+from contextlib import contextmanager
 from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
 from shutil import disk_usage
@@ -36,7 +36,7 @@ import dill
 import numpy as np
 from tqdm.auto import tqdm
 
-from .. import utils
+from .. import config
 from . import logging
 
 
@@ -72,7 +72,7 @@ def size_str(size_in_bytes):
     if not size_in_bytes:
         return "Unknown size"
 
-    _NAME_LIST = [("PiB", 2 ** 50), ("TiB", 2 ** 40), ("GiB", 2 ** 30), ("MiB", 2 ** 20), ("KiB", 2 ** 10)]
+    _NAME_LIST = [("PiB", 2**50), ("TiB", 2**40), ("GiB", 2**30), ("MiB", 2**20), ("KiB", 2**10)]
 
     size_in_bytes = float(size_in_bytes)
     for (name, size_bytes) in _NAME_LIST:
@@ -82,11 +82,46 @@ def size_str(size_in_bytes):
     return f"{int(size_in_bytes)} bytes"
 
 
+def convert_file_size_to_int(size: Union[int, str]) -> int:
+    """
+    Converts a size expressed as a string with digits an unit (like `"5MB"`) to an integer (in bytes).
+
+    Args:
+        size (`int` or `str`): The size to convert. Will be directly returned if an `int`.
+
+    Example:
+    ```py
+    >>> convert_file_size_to_int("1MiB")
+    1048576
+    ```
+    """
+    if isinstance(size, int):
+        return size
+    if size.upper().endswith("GIB"):
+        return int(size[:-3]) * (2**30)
+    if size.upper().endswith("MIB"):
+        return int(size[:-3]) * (2**20)
+    if size.upper().endswith("KIB"):
+        return int(size[:-3]) * (2**10)
+    if size.upper().endswith("GB"):
+        if size.endswith("Gb"):
+            # gigabits
+            return int(size[:-2]) * (10**9 >> 3)
+        else:
+            # gigabytes
+            return int(size[:-2]) * (10**9)
+    if size.upper().endswith("MB"):
+        return int(size[:-2]) * (10**6)
+    if size.upper().endswith("KB"):
+        return int(size[:-2]) * (10**3)
+    raise ValueError("`size` is not in a valid format. Use an integer followed by the unit, e.g., '5GB'.")
+
+
 def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
     """Un-format a string using a python f-string pattern.
     From https://stackoverflow.com/a/36838374
 
-    Examples:
+    Example::
 
         >>> p = 'hello, my name is {name} and I am a {age} year old {what}'
         >>> s = p.format(name='cody', age=18, what='quarterback')
@@ -118,6 +153,60 @@ def temporary_assignment(obj, attr, value):
         yield
     finally:
         setattr(obj, attr, original)
+
+
+@contextmanager
+def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
+    """Temporarily set the random seed. This works for python numpy, pytorch and tensorflow."""
+    np_state = np.random.get_state()
+    np.random.seed(seed)
+
+    if set_pytorch and config.TORCH_AVAILABLE:
+        import torch
+
+        torch_state = torch.random.get_rng_state()
+        torch.random.manual_seed(seed)
+
+        if torch.cuda.is_available():
+            torch_cuda_states = torch.cuda.get_rng_state_all()
+            torch.cuda.manual_seed_all(seed)
+
+    if set_tensorflow and config.TF_AVAILABLE:
+        import tensorflow as tf
+        from tensorflow.python import context as tfpycontext
+
+        tf_state = tf.random.get_global_generator()
+        temp_gen = tf.random.Generator.from_seed(seed)
+        tf.random.set_global_generator(temp_gen)
+
+        if not tf.executing_eagerly():
+            raise ValueError("Setting random seed for TensorFlow is only available in eager mode")
+
+        tf_context = tfpycontext.context()  # eager mode context
+        tf_seed = tf_context._seed
+        tf_rng_initialized = hasattr(tf_context, "_rng")
+        if tf_rng_initialized:
+            tf_rng = tf_context._rng
+        tf_context._set_global_seed(seed)
+
+    try:
+        yield
+    finally:
+        np.random.set_state(np_state)
+
+        if set_pytorch and config.TORCH_AVAILABLE:
+            torch.random.set_rng_state(torch_state)
+            if torch.cuda.is_available():
+                torch.cuda.set_rng_state_all(torch_cuda_states)
+
+        if set_tensorflow and config.TF_AVAILABLE:
+            tf.random.set_global_generator(tf_state)
+
+            tf_context._seed = tf_seed
+            if tf_rng_initialized:
+                tf_context._rng = tf_rng
+            else:
+                delattr(tf_context, "_rng")
 
 
 def unique_values(values):
@@ -168,17 +257,17 @@ class NonMutableDict(dict):
         )
         if kwargs:
             raise ValueError("NonMutableDict cannot be initialized with kwargs.")
-        super(NonMutableDict, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def __setitem__(self, key, value):
         if key in self:
             raise ValueError(self._error_msg.format(key=key))
-        return super(NonMutableDict, self).__setitem__(key, value)
+        return super().__setitem__(key, value)
 
     def update(self, other):
         if any(k in self for k in other):
             raise ValueError(self._error_msg.format(key=set(self) & set(other)))
-        return super(NonMutableDict, self).update(other)
+        return super().update(other)
 
 
 class classproperty(property):  # pylint: disable=invalid-name
@@ -190,7 +279,7 @@ class classproperty(property):  # pylint: disable=invalid-name
 
 def _single_map_nested(args):
     """Apply a function recursively to each element of a nested data struct."""
-    function, data_struct, types, rank, disable_tqdm = args
+    function, data_struct, types, rank, disable_tqdm, desc = args
 
     # Singleton first to spare some computation
     if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
@@ -201,18 +290,18 @@ def _single_map_nested(args):
         logging.set_verbosity_warning()
     # Print at least one thing to fix tqdm in notebooks in multiprocessing
     # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
-    if rank is not None and not disable_tqdm and "notebook" in tqdm.__name__:
+    if rank is not None and not disable_tqdm and any("notebook" in tqdm_cls.__name__ for tqdm_cls in tqdm.__mro__):
         print(" ", end="", flush=True)
 
     # Loop over single examples or batches and write to buffer/file if examples are to be updated
     pbar_iterable = data_struct.items() if isinstance(data_struct, dict) else data_struct
-    pbar_desc = "#" + str(rank) if rank is not None else None
-    pbar = utils.tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc)
+    pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
+    pbar = logging.tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc)
 
     if isinstance(data_struct, dict):
-        return {k: _single_map_nested((function, v, types, None, True)) for k, v in pbar}
+        return {k: _single_map_nested((function, v, types, None, True, None)) for k, v in pbar}
     else:
-        mapped = [_single_map_nested((function, v, types, None, True)) for v in pbar]
+        mapped = [_single_map_nested((function, v, types, None, True, None)) for v in pbar]
         if isinstance(data_struct, list):
             return mapped
         elif isinstance(data_struct, tuple):
@@ -231,6 +320,7 @@ def map_nested(
     num_proc: Optional[int] = None,
     types=None,
     disable_tqdm: bool = True,
+    desc: Optional[str] = None,
 ):
     """Apply a function recursively to each element of a nested data struct.
     If num_proc > 1 and the length of data_struct is longer than num_proc: use multi-processing
@@ -250,17 +340,15 @@ def map_nested(
     if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
         return function(data_struct)
 
-    disable_tqdm = (
-        disable_tqdm or bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled()
-    )
+    disable_tqdm = disable_tqdm or not logging.is_progress_bar_enabled()
     iterable = list(data_struct.values()) if isinstance(data_struct, dict) else data_struct
 
     if num_proc is None:
         num_proc = 1
     if num_proc <= 1 or len(iterable) <= num_proc:
         mapped = [
-            _single_map_nested((function, obj, types, None, True))
-            for obj in utils.tqdm(iterable, disable=disable_tqdm)
+            _single_map_nested((function, obj, types, None, True, None))
+            for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
         split_kwds = []  # We organize the splits ourselve (contiguous splits)
@@ -269,7 +357,7 @@ def map_nested(
             mod = len(iterable) % num_proc
             start = div * index + min(index, mod)
             end = start + div + (1 if index < mod else 0)
-            split_kwds.append((function, iterable[start:end], types, index, disable_tqdm))
+            split_kwds.append((function, iterable[start:end], types, index, disable_tqdm, desc))
 
         if len(iterable) != sum(len(i[1]) for i in split_kwds):
             raise ValueError(
@@ -299,34 +387,6 @@ def map_nested(
             return tuple(mapped)
         else:
             return np.array(mapped)
-
-
-def zip_nested(arg0, *args, **kwargs):
-    """Zip data struct together and return a data struct with the same shape."""
-    # Python 2 do not support kwargs only arguments
-    dict_only = kwargs.pop("dict_only", False)
-    assert not kwargs
-
-    # Could add support for more exotic data_struct, like OrderedDict
-    if isinstance(arg0, dict):
-        return {k: zip_nested(*a, dict_only=dict_only) for k, a in zip_dict(arg0, *args)}
-    elif not dict_only:
-        if isinstance(arg0, list):
-            return [zip_nested(*a, dict_only=dict_only) for a in zip(arg0, *args)]
-    # Singleton
-    return (arg0,) + args
-
-
-def flatten_nest_dict(d):
-    """Return the dict with all nested keys flattened joined with '/'."""
-    # Use NonMutableDict to ensure there is no collision between features keys
-    flat_dict = NonMutableDict()
-    for k, v in d.items():
-        if isinstance(v, dict):
-            flat_dict.update({f"{k}/{k2}": v2 for k2, v2 in flatten_nest_dict(v).items()})
-        else:
-            flat_dict[k] = v
-    return flat_dict
 
 
 class NestedDataStructure:
@@ -635,7 +695,6 @@ try:
         pickler.save_reduce(regex.compile, args, obj=obj)
         dill._dill.log.info("# Re")
         return
-
 
 except ImportError:
     pass

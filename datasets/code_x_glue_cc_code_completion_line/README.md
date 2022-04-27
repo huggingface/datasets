@@ -25,9 +25,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - slot-filling
+pretty_name: CodeXGlueCcCodeCompletionLine
 ---
 # Dataset Card for "code_x_glue_cc_code_completion_line"
 

@@ -15,10 +15,12 @@ source_datasets:
 - original
 task_categories:
 - question-answering
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - open-domain-qa
 - dialogue-modeling
+pretty_name: ConvQuestions
 ---
 
 # Dataset Card for ConvQuestions

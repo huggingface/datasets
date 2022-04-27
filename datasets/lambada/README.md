@@ -1,8 +1,8 @@
 ---
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
-- conditional-text-generation-other-long-range-dependency
+- text2text-generation-other-long-range-dependency
 multilinguality:
 - monolingual
 languages:
@@ -18,6 +18,7 @@ size_categories:
 licenses:
 - cc-by-4.0
 paperswithcode_id: lambada
+pretty_name: LAMBADA
 ---
 
 # Dataset Card for LAMBADA

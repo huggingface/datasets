@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: gap
+pretty_name: GAP Benchmark Suite
 ---
 
 # Dataset Card for "gap"

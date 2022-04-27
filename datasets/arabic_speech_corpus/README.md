@@ -16,9 +16,8 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- speech-processing
-task_ids:
 - automatic-speech-recognition
+task_ids: []
 ---
 
 # Dataset Card for Arabic Speech Corpus
@@ -133,7 +132,7 @@ An example from the dataset is:
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset.
 
 ## Considerations for Using the Data
 
@@ -157,7 +156,7 @@ The corpus was recorded in south Levantine Arabic (Damascian accent) using a pro
 
 ### Licensing Information
 
-CC BY 4.0
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
 ### Citation Information
 

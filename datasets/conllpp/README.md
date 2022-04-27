@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - extended|conll2003
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: conll
+pretty_name: CoNLL++
 ---
 
 # Dataset Card for "conllpp"

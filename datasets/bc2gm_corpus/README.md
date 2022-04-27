@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: Bc2GmCorpus
 ---
 
 # Dataset Card for bc2gm_corpus

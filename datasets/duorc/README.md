@@ -18,10 +18,12 @@ source_datasets:
 - original
 task_categories:
 - question-answering
+- text2text-generation
 task_ids:
 - abstractive-qa
 - extractive-qa
 paperswithcode_id: duorc
+pretty_name: DuoRC
 ---
 
 # Dataset Card for duorc

@@ -22,9 +22,9 @@ task_categories:
   Ade_corpus_v2_classification:
   - text-classification
   Ade_corpus_v2_drug_ade_relation:
-  - structure-prediction
+  - token-classification
   Ade_corpus_v2_drug_dosage_relation:
-  - structure-prediction
+  - token-classification
 task_ids:
   Ade_corpus_v2_classification:
   - fact-checking
@@ -33,6 +33,7 @@ task_ids:
   Ade_corpus_v2_drug_dosage_relation:
   - coreference-resolution
 paperswithcode_id: null
+pretty_name: Adverse Drug Reaction Data v2
 ---
 
 # Dataset Card for Adverse Drug Reaction Data v2

@@ -17,11 +17,12 @@ size_categories:
 source_datasets: []
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
 - semantic-similarity-classification
 - semantic-similarity-scoring
+- text-scoring
 paperswithcode_id: refresd
+pretty_name: Rationalized English-French Semantic Divergences
 ---
 
 # Dataset Card for REFreSD Dataset

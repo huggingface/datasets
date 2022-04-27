@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - intent-classification
 paperswithcode_id: null
+pretty_name: Poleval 2019 cyberbullying
 ---
 
 # Dataset Card for Poleval 2019 cyberbullying

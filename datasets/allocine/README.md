@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: allocine
+pretty_name: Allociné
 ---
 
 # Dataset Card for Allociné

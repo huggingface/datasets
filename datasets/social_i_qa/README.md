@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: social-iqa
+pretty_name: Social Interaction QA
 ---
 
 # Dataset Card for "social_i_qa"

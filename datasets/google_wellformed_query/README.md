@@ -1,10 +1,10 @@
 ---
 task_categories:
-- text-scoring
+- text-classification
 multilinguality:
 - monolingual
 task_ids:
-- other
+- text-scoring
 languages:
 - en
 annotations_creators:
@@ -16,6 +16,7 @@ size_categories:
 licenses:
 - CC-BY-SA-4.0
 paperswithcode_id: null
+pretty_name: GoogleWellformedQuery
 ---
 
 # Dataset Card Creation Guide

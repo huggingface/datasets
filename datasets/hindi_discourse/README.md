@@ -14,10 +14,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
-task_ids:
-- sequence-modeling-other-discourse-analysis
+- text-generation
+- fill-mask
+- text-generation
+- fill-mask
+- text-generation-other-discourse-analysis
 paperswithcode_id: null
+pretty_name: Discourse Analysis dataset
 ---
 
 # Dataset Card for Discourse Analysis dataset

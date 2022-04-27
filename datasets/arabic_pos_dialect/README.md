@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - extended
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - part-of-speech-tagging
 paperswithcode_id: null
+pretty_name: Arabic POS Dialect
 ---
 
 # Dataset Card for Arabic POS Dialect

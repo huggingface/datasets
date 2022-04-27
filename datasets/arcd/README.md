@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: arcd
+pretty_name: ARCD
 ---
 
 # Dataset Card for "arcd"

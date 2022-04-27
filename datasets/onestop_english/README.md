@@ -14,12 +14,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 - text-classification
 task_ids:
 - multi-class-classification
 - text-simplification
 paperswithcode_id: onestopenglish
+pretty_name: OneStopEnglish corpus
 ---
 
 # Dataset Card for OneStopEnglish corpus

@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: Sepedi NER Corpus
 ---
 
 # Dataset Card for Sepedi NER Corpus

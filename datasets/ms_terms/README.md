@@ -129,10 +129,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
+pretty_name: MsTerms
 ---
 
 # Dataset Card for [ms_terms]

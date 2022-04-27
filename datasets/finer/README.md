@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: finer
+pretty_name: Finnish News Corpus for Named Entity Recognition
 ---
 
 # Dataset Card for [Dataset Name]

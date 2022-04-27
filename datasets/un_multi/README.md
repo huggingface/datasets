@@ -76,10 +76,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: multiun
+pretty_name: Multilingual Corpus from United Nation Documents
 ---
 
 # Dataset Card for [Dataset Name]

@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: Isizulu Ner Corpus
 ---
 
 # Dataset Card for Isizulu Ner Corpus

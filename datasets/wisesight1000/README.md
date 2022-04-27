@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - extended|wisesight_sentiment
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
-- structure-prediction-other-word-tokenization
+- token-classification-other-word-tokenization
 paperswithcode_id: null
+pretty_name: wisesight1000
 ---
 
 # Dataset Card for `wisesight1000`

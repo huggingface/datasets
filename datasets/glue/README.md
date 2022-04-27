@@ -35,7 +35,7 @@ task_categories:
   sst2:
   - text-classification
   stsb:
-  - text-scoring
+  - text-classification
   wnli:
   - text-classification
 task_ids:
@@ -60,13 +60,15 @@ task_ids:
   sst2:
   - sentiment-classification
   stsb:
+  - text-scoring
   - semantic-similarity-scoring
   wnli:
   - text-classification-other-coreference-nli
 paperswithcode_id: glue
+pretty_name: GLUE (General Language Understanding Evaluation benchmark)
 ---
 
-# Dataset Card for "glue"
+# Dataset Card for GLUE
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

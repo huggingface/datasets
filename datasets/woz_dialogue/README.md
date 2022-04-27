@@ -25,14 +25,16 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
-- structure-prediction
+- text-generation
+- fill-mask
+- token-classification
 - text-classification
 task_ids:
 - dialogue-modeling
 - multi-class-classification
 - parsing
 paperswithcode_id: wizard-of-oz
+pretty_name: Wizard-of-Oz
 ---
 
 # Dataset Card Creation Guide

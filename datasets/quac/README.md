@@ -16,11 +16,13 @@ source_datasets:
 - extended|wikipedia
 task_categories:
 - question-answering
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - dialogue-modeling
 - extractive-qa
 paperswithcode_id: quac
+pretty_name: Question Answering in Context
 ---
 
 # Dataset Card Creation Guide

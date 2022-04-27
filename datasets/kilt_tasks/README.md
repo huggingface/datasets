@@ -136,7 +136,7 @@ task_categories:
   cweb:
   - text-retrieval
   eli5:
-  - question-answering
+  - text2text-generation
   - text-retrieval
   fever:
   - text-classification
@@ -148,10 +148,12 @@ task_categories:
   - question-answering
   - text-retrieval
   structured_zeroshot:
-  - sequence-modeling
+  - text-generation
+  - fill-mask
   - text-retrieval
   trex:
-  - sequence-modeling
+  - text-generation
+  - fill-mask
   - text-retrieval
   triviaqa_support_only:
   - question-answering
@@ -159,7 +161,8 @@ task_categories:
   wned:
   - text-retrieval
   wow:
-  - sequence-modeling
+  - text-generation
+  - fill-mask
   - text-retrieval
 task_ids:
   aidayago2:
@@ -171,7 +174,7 @@ task_ids:
   eli5:
   - abstractive-qa
   - document-retrieval
-  - open-domain-qa
+  - open-domain-abstractive-qa
   fever:
   - document-retrieval
   - fact-checking

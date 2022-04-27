@@ -23,10 +23,11 @@ size_categories:
 source_datasets:
 - extended|other-wikipedia
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
 - text-simplification
 paperswithcode_id: null
+pretty_name: WikiAuto
 ---
 
 # Dataset Card for WikiAuto
@@ -155,10 +156,11 @@ The data has the following field:
 In `auto`, the `part_2` split corresponds to the articles used in `manual`, and `part_1` has the rest of Wikipedia.
 
 The `manual` config is provided with a `train`/`dev`/`test` split with the following amounts of data:
-|                            | Tain   | Dev   | Test   |
-| -----                      | ------ | ----- | ----   |
-| Total sentence pairs       | 373801 | 73249 | 118074 |
-| Aligned sentence pairs     |  1889  |  346  | 677    |
+
+|                        |   train | validation |    test |
+|------------------------|--------:|-----------:|--------:|
+| Total sentence pairs   |  373801 |      73249 |  118074 |
+| Aligned sentence pairs |    1889 |        346 |     677 |
 
 ## Dataset Creation
 

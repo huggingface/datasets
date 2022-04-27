@@ -19,6 +19,7 @@ task_ids:
 - closed-domain-qa
 - extractive-qa
 paperswithcode_id: null
+pretty_name: COVID-QA
 ---
 
 

@@ -14,17 +14,17 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- translation
+- summarization
 - text-retrieval
 task_ids:
 - document-retrieval
 - entity-linking-retrieval
 - explanation-generation
 - fact-checking-retrieval
-- machine-translation
-- summarization
 - text-simplification
 paperswithcode_id: null
+pretty_name: arXiv Dataset
 ---
 
 # Dataset Card For arXiv Dataset

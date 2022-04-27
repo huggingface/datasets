@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - extended|other-turkish_ner
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: TurkishShrinkedNer
 ---
 
 # Dataset Card for turkish_shrinked_ner

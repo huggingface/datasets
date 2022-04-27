@@ -66,7 +66,7 @@ languages:
 - zh-HK
 - zh-TW
 licenses:
-- cc-by-nc-4.0
+- cc0-1.0
 multilinguality:
 - multilingual
 size_categories:
@@ -193,9 +193,8 @@ size_categories:
 source_datasets:
 - extended|common_voice
 task_categories:
-- speech-processing
-task_ids:
 - automatic-speech-recognition
+task_ids: []
 paperswithcode_id: common-voice
 ---
 
@@ -348,7 +347,7 @@ The dataset consists of people who have donated their voice online.  You agree t
 
 ### Licensing Information
 
-[More Information Needed] 
+Public Domain, [CC-0](https://creativecommons.org/share-your-work/public-domain/cc0/)
 
 ### Citation Information
 

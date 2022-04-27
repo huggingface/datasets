@@ -22,12 +22,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: NCHLT
 ---
-# Dataset Card Creation Guide
+# Dataset Card for NCHLT
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

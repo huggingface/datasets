@@ -4,18 +4,19 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages: []
+languages:
+- en
 licenses:
 - unknown
-multilinguality: []
+multilinguality:
+- monolingual
 size_categories:
 - 10K<n<100K
 source_datasets:
 - extended|other-80-Million-Tiny-Images
 task_categories:
-- other
-task_ids:
-- other-other-image-classification
+- image-classification
+task_ids: []
 paperswithcode_id: cifar-10
 ---
 
@@ -60,7 +61,7 @@ The dataset is divided into five training batches and one test batch, each with 
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `image-classification`: The goal of this task is to classify a given image into one of 10 classes. The leaderboard is available [here](https://paperswithcode.com/sota/image-classification-on-cifar-10).
 
 ### Languages
 

@@ -24,6 +24,7 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: pubmedqa
+pretty_name: PubMedQA
 ---
 
 # Dataset Card for [Dataset Name]

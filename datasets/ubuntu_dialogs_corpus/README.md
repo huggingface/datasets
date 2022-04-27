@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: ubuntu-dialogue-corpus
+pretty_name: Ubuntu Dialogue Corpus
 ---
 
 # Dataset Card for "ubuntu_dialogs_corpus"

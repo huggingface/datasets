@@ -14,14 +14,16 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
-- structure-prediction
+- text-generation
+- fill-mask
+- token-classification
 - text-classification
 task_ids:
 - named-entity-recognition
 - slot-filling
 - topic-classification
 paperswithcode_id: null
+pretty_name: SofcMaterialsArticles
 ---
 
 

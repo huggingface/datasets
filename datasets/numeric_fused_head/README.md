@@ -21,10 +21,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
-- structure-prediction-other-fused-head-identification
+- token-classification-other-fused-head-identification
 paperswithcode_id: numeric-fused-head
+pretty_name: Numeric Fused Heads
 ---
 
 # Dataset Card for Numeric Fused Heads

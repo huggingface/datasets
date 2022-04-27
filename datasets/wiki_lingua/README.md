@@ -84,10 +84,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids: []
 paperswithcode_id: wikilingua
+pretty_name: WikiLingua
 ---
 # Dataset Card for "wiki_lingua"
 

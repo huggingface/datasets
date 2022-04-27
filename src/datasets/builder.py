@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,9 +27,6 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Dict, Mapping, Optional, Tuple, Union
 
-from datasets.features import Features
-from datasets.utils.mock_download_manager import MockDownloadManager
-
 from . import config, utils
 from .arrow_dataset import Dataset
 from .arrow_reader import (
@@ -43,16 +39,26 @@ from .arrow_reader import (
 from .arrow_writer import ArrowWriter, BeamWriter
 from .data_files import DataFilesDict, sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
+from .features import Features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils import logging
-from .utils.download_manager import DownloadManager, GenerateMode
-from .utils.file_utils import DownloadConfig, is_remote_url
+from .utils.download_manager import DownloadManager, DownloadMode
+from .utils.file_utils import DownloadConfig, cached_path, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
+from .utils.mock_download_manager import MockDownloadManager
+from .utils.py_utils import (
+    classproperty,
+    has_sufficient_disk_space,
+    map_nested,
+    memoize,
+    size_str,
+    temporary_assignment,
+)
 from .utils.streaming_download_manager import StreamingDownloadManager
 
 
@@ -203,6 +209,7 @@ class DatasetBuilder:
         name: Optional[str] = None,
         hash: Optional[str] = None,
         base_path: Optional[str] = None,
+        info: Optional[DatasetInfo] = None,
         features: Optional[Features] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
         namespace: Optional[str] = None,
@@ -218,7 +225,7 @@ class DatasetBuilder:
             cache_dir: `str`, directory to read/write data. Defaults to "~/datasets".
             name: `str` name, optional configuration for the dataset that affects the data generated on disk. Different
                 `builder_config`s will have their own subdirectories and versions.
-                If not provided, uses the first configuration in self.BUILDER_CONFIGS
+                If not provided it uses the default configuration, if it exists.
             hash: a hash specific to the dataset code. Used to update the caching directory when the dataset loading
                 script code is updated (to avoid reusing old data).
                 The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``
@@ -263,11 +270,12 @@ class DatasetBuilder:
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
-        info = self.get_exported_dataset_info()
-        info.update(self._info())
-        info.builder_name = self.name
-        info.config_name = self.config.name
-        info.version = self.config.version
+        if info is None:
+            info = self.get_exported_dataset_info()
+            info.update(self._info())
+            info.builder_name = self.name
+            info.config_name = self.config.name
+            info.version = self.config.version
         self.info = info
         # update info with user specified infos
         if features is not None:
@@ -295,6 +303,9 @@ class DatasetBuilder:
 
         # Set download manager
         self.dl_manager = None
+
+        # Record infos even if verify_infos=False; used by "datasets-cli test" to generate dataset_infos.json
+        self._record_infos = False
 
     # Must be set for datasets that use 'data_dir' functionality - the ones
     # that require users to do additional steps to download the data
@@ -339,7 +350,7 @@ class DatasetBuilder:
                         + f"\nExample of usage:\n\t`{example_of_usage}`"
                     )
                 builder_config = self.BUILDER_CONFIGS[0]
-                logger.info(f"No config specified, defaulting to first: {self.name}/{builder_config.name}")
+                logger.info(f"No config specified, defaulting to the single config: {self.name}/{builder_config.name}")
 
         # try get config by name
         if isinstance(name, str):
@@ -388,9 +399,9 @@ class DatasetBuilder:
 
         return builder_config, config_id
 
-    @utils.classproperty
+    @classproperty
     @classmethod
-    @utils.memoize()
+    @memoize()
     def builder_configs(cls):
         """Pre-defined list of configurations for this builder class."""
         configs = {config.name: config for config in cls.BUILDER_CONFIGS}
@@ -476,7 +487,7 @@ class DatasetBuilder:
     def download_and_prepare(
         self,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
         ignore_verifications: bool = False,
         try_from_hf_gcs: bool = True,
         dl_manager: Optional[DownloadManager] = None,
@@ -487,27 +498,27 @@ class DatasetBuilder:
         """Downloads and prepares dataset for reading.
 
         Args:
-            download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
-            download_mode (Optional `datasets.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
-            ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
-            save_infos (bool): Save the dataset information (checksums/size/splits/...)
-            try_from_hf_gcs (bool): If True, it will try to download the already prepared dataset from the Hf google cloud storage
-            dl_manager (Optional ``datasets.DownloadManager``): specific Download Manger to use
-            base_path ( Optional ``str``): base path for relative paths that are used to download files. This can be a remote url.
-                If not specified, the value of the ``base_path`` attribute (``self.base_path``) will be used instead.
-            use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            download_config (:class:`DownloadConfig`, optional): specific download configuration parameters.
+            download_mode (:class:`DownloadMode`, optional): select the download/generate mode - Default to ``REUSE_DATASET_IF_EXISTS``
+            ignore_verifications (:obj:`bool`): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
+            save_infos (:obj:`bool`): Save the dataset information (checksums/size/splits/...)
+            try_from_hf_gcs (:obj:`bool`): If True, it will try to download the already prepared dataset from the Hf google cloud storage
+            dl_manager (:class:`DownloadManager`, optional): specific Download Manger to use
+            base_path (:obj:`str`, optional): base path for relative paths that are used to download files. This can be a remote url.
+                If not specified, the value of the `base_path` attribute (`self.base_path`) will be used instead.
+            use_auth_token (:obj:`Union[str, bool]`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
                 If True, will get token from ~/.huggingface.
 
         """
-        download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
+        download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
         base_path = base_path if base_path is not None else self.base_path
         if dl_manager is None:
             if download_config is None:
                 download_config = DownloadConfig(
                     cache_dir=self._cache_downloaded_dir,
-                    force_download=bool(download_mode == GenerateMode.FORCE_REDOWNLOAD),
-                    force_extract=bool(download_mode == GenerateMode.FORCE_REDOWNLOAD),
+                    force_download=bool(download_mode == DownloadMode.FORCE_REDOWNLOAD),
+                    force_extract=bool(download_mode == DownloadMode.FORCE_REDOWNLOAD),
                     use_etag=False,
                     use_auth_token=use_auth_token,
                 )  # We don't use etag for data files to speed up the process
@@ -517,6 +528,7 @@ class DatasetBuilder:
                 download_config=download_config,
                 data_dir=self.config.data_dir,
                 base_path=base_path,
+                record_checksums=self._record_infos or verify_infos,
             )
         elif isinstance(dl_manager, MockDownloadManager):
             try_from_hf_gcs = False
@@ -526,7 +538,7 @@ class DatasetBuilder:
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path):
             data_exists = os.path.exists(self._cache_dir)
-            if data_exists and download_mode == GenerateMode.REUSE_DATASET_IF_EXISTS:
+            if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
                 logger.warning(f"Reusing dataset {self.name} ({self._cache_dir})")
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
@@ -535,9 +547,9 @@ class DatasetBuilder:
                 return
             logger.info(f"Generating dataset {self.name} ({self._cache_dir})")
             if not is_remote_url(self._cache_dir_root):  # if cache dir is local, check for available space
-                if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
-                    raise IOError(
-                        f"Not enough disk space. Needed: {utils.size_str(self.info.size_in_bytes or 0)} (download: {utils.size_str(self.info.download_size or 0)}, generated: {utils.size_str(self.info.dataset_size or 0)}, post-processed: {utils.size_str(self.info.post_processing_size or 0)})"
+                if not has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
+                    raise OSError(
+                        f"Not enough disk space. Needed: {size_str(self.info.size_in_bytes or 0)} (download: {size_str(self.info.download_size or 0)}, generated: {size_str(self.info.dataset_size or 0)}, post-processed: {size_str(self.info.post_processing_size or 0)})"
                     )
 
             @contextlib.contextmanager
@@ -563,9 +575,9 @@ class DatasetBuilder:
             if self.info.size_in_bytes:
                 print(
                     f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
-                    f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, "
-                    f"post-processed: {utils.size_str(self.info.post_processing_size)}, "
-                    f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
+                    f"(download: {size_str(self.info.download_size)}, generated: {size_str(self.info.dataset_size)}, "
+                    f"post-processed: {size_str(self.info.post_processing_size)}, "
+                    f"total: {size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
                 )
             else:
                 print(
@@ -578,7 +590,7 @@ class DatasetBuilder:
             with incomplete_dir(self._cache_dir) as tmp_data_dir:
                 # Temporarily assign _cache_dir to tmp_data_dir to avoid having to forward
                 # it to every sub function.
-                with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir):
+                with temporary_assignment(self, "_cache_dir", tmp_data_dir):
                     # Try to download the already prepared dataset files
                     downloaded_from_gcs = False
                     if try_from_hf_gcs:
@@ -612,11 +624,12 @@ class DatasetBuilder:
         if self.manual_download_instructions is not None and dl_manager.manual_dir is None:
             raise ManualDownloadError(
                 textwrap.dedent(
-                    f"""The dataset {self.name} with config {self.config.name} requires manual data.
+                    f"""\
+                    The dataset {self.name} with config {self.config.name} requires manual data.
                     Please follow the manual download instructions:
                      {self.manual_download_instructions}
                     Manual data can be loaded with:
-                     datasets.load_dataset({self.name}, data_dir='<path/to/manual/data>')"""
+                     datasets.load_dataset("{self.name}", data_dir="<path/to/manual/data>")"""
                 )
             )
 
@@ -634,7 +647,7 @@ class DatasetBuilder:
                 if os.sep in resource_file_name:
                     raise ValueError(f"Resources shouldn't be in a sub-directory: {resource_file_name}")
                 try:
-                    resource_path = utils.cached_path(remote_cache_dir + "/" + resource_file_name)
+                    resource_path = cached_path(remote_cache_dir + "/" + resource_file_name)
                     shutil.move(resource_path, os.path.join(self._cache_dir, resource_file_name))
                 except ConnectionError:
                     logger.info(f"Couldn't download resourse file {resource_file_name} from Hf google storage.")
@@ -673,7 +686,7 @@ class DatasetBuilder:
                     "._split_generator()."
                 )
 
-            logger.info(f"Generating split {split_generator.split_info.name}")
+            logger.info(f"Generating {split_generator.split_info.name} split")
             split_dict.add(split_generator.split_info)
 
             try:
@@ -746,11 +759,9 @@ class DatasetBuilder:
         """
         if not os.path.exists(self._cache_dir):
             raise AssertionError(
-                (
-                    f"Dataset {self.name}: could not find data in {self._cache_dir_root}. Please make sure to call "
-                    "builder.download_and_prepare(), or pass download=True to "
-                    "datasets.load_dataset() before trying to access the Dataset object."
-                )
+                f"Dataset {self.name}: could not find data in {self._cache_dir_root}. Please make sure to call "
+                "builder.download_and_prepare(), or pass download=True to "
+                "datasets.load_dataset() before trying to access the Dataset object."
             )
 
         logger.debug(f'Constructing Dataset for split {split or ", ".join(self.info.splits)}, from {self._cache_dir}')
@@ -760,7 +771,7 @@ class DatasetBuilder:
             split = {s: s for s in self.info.splits}
 
         # Create a dataset for each of the given splits
-        datasets = utils.map_nested(
+        datasets = map_nested(
             partial(
                 self._build_single_dataset,
                 run_post_process=run_post_process,
@@ -769,7 +780,7 @@ class DatasetBuilder:
             ),
             split,
             map_tuple=True,
-            disable_tqdm=False,
+            disable_tqdm=not logging.is_progress_bar_enabled(),
         )
         if isinstance(datasets, dict):
             datasets = DatasetDict(datasets)
@@ -808,7 +819,7 @@ class DatasetBuilder:
                 ds = post_processed
                 recorded_checksums = {}
                 for resource_name, resource_path in resources_paths.items():
-                    size_checksum = get_size_checksum_dict(resource_path)
+                    size_checksum = get_size_checksum_dict(resource_path, record_checksum=verify_infos)
                     recorded_checksums[resource_name] = size_checksum
                 if verify_infos:
                     if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
@@ -902,7 +913,7 @@ class DatasetBuilder:
             raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
 
         # Create a dataset for each of the given splits
-        datasets = utils.map_nested(
+        datasets = map_nested(
             self._as_streaming_dataset_single,
             splits_generator,
             map_tuple=True,
@@ -939,7 +950,7 @@ class DatasetBuilder:
         This function returns a list of `SplitGenerator`s defining how to generate
         data and what splits to use.
 
-        Example:
+        Example::
 
             return [
                     datasets.SplitGenerator(
@@ -1017,7 +1028,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
     DEFAULT_WRITER_BATCH_SIZE = None
 
     def __init__(self, *args, writer_batch_size=None, **kwargs):
-        super(GeneratorBasedBuilder, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # Batch size used by the ArrowWriter
         # It defines the number of samples that are kept in memory before writing them
         # and also the length of the arrow chunks
@@ -1054,8 +1065,11 @@ class GeneratorBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
-    def _prepare_split(self, split_generator):
-        split_info = split_generator.split_info
+    def _prepare_split(self, split_generator, check_duplicate_keys):
+        if self.info.splits is not None:
+            split_info = self.info.splits[split_generator.name]
+        else:
+            split_info = split_generator.split_info
 
         fname = f"{self.name}-{split_generator.name}.arrow"
         fpath = os.path.join(self._cache_dir, fname)
@@ -1067,15 +1081,16 @@ class GeneratorBasedBuilder(DatasetBuilder):
             path=fpath,
             writer_batch_size=self._writer_batch_size,
             hash_salt=split_info.name,
-            check_duplicates=True,
+            check_duplicates=check_duplicate_keys,
         ) as writer:
             try:
-                for key, record in utils.tqdm(
+                for key, record in logging.tqdm(
                     generator,
                     unit=" examples",
                     total=split_info.num_examples,
                     leave=False,
-                    disable=bool(logging.get_verbosity() == logging.NOTSET),
+                    disable=not logging.is_progress_bar_enabled(),
+                    desc=f"Generating {split_info.name} split",
                 ):
                     example = self.info.features.encode_example(record)
                     writer.write(example, key)
@@ -1084,6 +1099,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
+
+    def _download_and_prepare(self, dl_manager, verify_infos):
+        super()._download_and_prepare(dl_manager, verify_infos, check_duplicate_keys=verify_infos)
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
         return ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
@@ -1130,8 +1148,8 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
         with ArrowWriter(features=self.info.features, path=fpath) as writer:
-            for key, table in utils.tqdm(
-                generator, unit=" tables", leave=False, disable=True  # bool(logging.get_verbosity() == logging.NOTSET)
+            for key, table in logging.tqdm(
+                generator, unit=" tables", leave=False, disable=True  # not logging.is_progress_bar_enabled()
             ):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
@@ -1160,7 +1178,7 @@ class BeamBasedBuilder(DatasetBuilder):
     def __init__(self, *args, **kwargs):
         self._beam_runner = kwargs.pop("beam_runner", None)
         self._beam_options = kwargs.pop("beam_options", None)
-        super(BeamBasedBuilder, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._beam_writers = {}  # {split: beam_writer} mapping.
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -1187,7 +1205,7 @@ class BeamBasedBuilder(DatasetBuilder):
         can be accessed by the workers jobs. The data should be located in a
         shared filesystem, like GCS.
 
-        Example:
+        Example::
 
         ```
         def _build_pcollection(pipeline, extracted_dir):
@@ -1242,7 +1260,7 @@ class BeamBasedBuilder(DatasetBuilder):
             runner=beam_runner,
             options=beam_options,
         )
-        super(BeamBasedBuilder, self)._download_and_prepare(
+        super()._download_and_prepare(
             dl_manager,
             verify_infos=False,
             pipeline=pipeline,
@@ -1269,8 +1287,9 @@ class BeamBasedBuilder(DatasetBuilder):
             fs = beam.io.filesystems.FileSystems
             with fs.create(os.path.join(self._cache_dir, config.DATASET_INFO_FILENAME)) as f:
                 self.info._dump_info(f)
-            with fs.create(os.path.join(self._cache_dir, config.LICENSE_FILENAME)) as f:
-                self.info._dump_license(f)
+            if self.info.license:
+                with fs.create(os.path.join(self._cache_dir, config.LICENSE_FILENAME)) as f:
+                    self.info._dump_license(f)
 
     def _prepare_split(self, split_generator, pipeline):
         import apache_beam as beam

@@ -14,13 +14,15 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- summarization
 - text-classification
 task_ids:
-- summarization
+- news-articles-summarization
+- news-articles-headline-generation
 - text-simplification
 - topic-classification
 paperswithcode_id: pn-summary
+pretty_name: Persian News Summary (PnSummary)
 ---
 
 # Dataset Card for Persian News Summary (pn_summary)

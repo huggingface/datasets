@@ -1,6 +1,25 @@
 ---
+annotations_creators:
+- no-annotation
+language_creators:
+- found
 languages:
 - en
+licenses:
+- cc0-1.0
+multilinguality:
+- monolingual
+pretty_name: OpenWebText
+size_categories:
+- 1M<n<10M
+source_datasets:
+- original
+task_categories:
+- text-generation
+- fill-mask
+task_ids:
+- language-modeling
+- masked-language-modeling
 paperswithcode_id: openwebtext
 ---
 
@@ -82,9 +101,9 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-|   name   | train |
-|----------|------:|
-|plain_text|8013769|
+| name       |   train |
+|------------|--------:|
+| plain_text | 8013769 |
 
 ## Dataset Creation
 
@@ -149,9 +168,7 @@ The data fields are the same among all splits.
 	howpublished{\url{http://Skylion007.github.io/OpenWebTextCorpus}},
 	year={2019}
 }
-
 ```
-
 
 ### Contributions
 
