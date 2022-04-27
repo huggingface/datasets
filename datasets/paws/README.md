@@ -25,7 +25,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-classification
+- multi-input-text-classification
 task_ids:
 - semantic-similarity-classification
 - semantic-similarity-scoring

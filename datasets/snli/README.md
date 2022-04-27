@@ -15,7 +15,7 @@ source_datasets:
 - extended|other-flicker-30k
 - extended|other-visual-genome
 task_categories:
-- text-classification
+- multi-input-text-classification
 task_ids:
 - natural-language-inference
 paperswithcode_id: snli
