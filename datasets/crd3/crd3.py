@@ -74,12 +74,11 @@ class CRD3(datasets.GeneratorBasedBuilder):
                     "turn_start": datasets.Value("int32"),
                     "turn_end": datasets.Value("int32"),
                     "alignment_score": datasets.Value("float32"),
-                    
-                    "turns":[
+                    "turns": [
                         {
                             "names": datasets.features.Sequence(datasets.Value("string")),
                             "utterances": datasets.features.Sequence(datasets.Value("string")),
-                            "number": datasets.Value("int32")
+                            "number": datasets.Value("int32"),
                         }
                     ],
                 }
@@ -136,7 +135,7 @@ class CRD3(datasets.GeneratorBasedBuilder):
                     turn_start = row["ALIGNMENT"]["TURN START"]
                     turn_end = row["ALIGNMENT"]["TURN END"]
                     score = row["ALIGNMENT"]["ALIGNMENT SCORE"]
-                    for id2, turn in enumerate(row["TURNS"]):
+                    for turn in enumerate(row["TURNS"]):
                         turn["names"] = turn["NAMES"]
                         turn["utterances"] = turn["UTTERANCES"]
                         turn["number"] = turn["NUMBER"]
@@ -144,13 +143,12 @@ class CRD3(datasets.GeneratorBasedBuilder):
                         del turn["NAMES"]
                         del turn["UTTERANCES"]
                         del turn["NUMBER"]
-                        
-                    
+
                     yield str(id0) + "_" + str(id1), {
                         "chunk": chunk,
                         "chunk_id": chunk_id,
                         "turn_start": turn_start,
                         "turn_end": turn_end,
                         "alignment_score": score,
-                        "turns": row["TURNS"]
+                        "turns": row["TURNS"],
                     }
