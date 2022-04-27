@@ -25,10 +25,10 @@ task_ids:
 - semantic-similarity-scoring
 - multi-input-text-classification
 paperswithcode_id: climate-fever
-pretty_name: 
+pretty_name: ClimateFever
 ---
 
-# Dataset Card for 
+# Dataset Card for ClimateFever
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -56,7 +56,7 @@ pretty_name:
 
 ## Dataset Description
 
-- **Homepage:** [CLIMATE-FEVER homepage](http://.ai)
+- **Homepage:** [CLIMATE-FEVER homepage](http://climatefever.ai)
 - **Repository:** [CLIMATE-FEVER repository](https://github.com/tdiggelm/climate-fever-dataset)
 - **Paper:** [CLIMATE-FEVER: A Dataset for Verification of Real-World Climate Claims](https://arxiv.org/abs/2012.00614)
 - **Leaderboard:** [Needs More Information]
@@ -232,7 +232,7 @@ This benchmark dataset currently consists of a single data split `test` that con
 ### Citation Information
 
 ```bibtex
-@misc{diggelmann2020,
+@misc{diggelmann2020climatefever,
       title={CLIMATE-FEVER: A Dataset for Verification of Real-World Climate Claims},
       author={Thomas Diggelmann and Jordan Boyd-Graber and Jannis Bulian and Massimiliano Ciaramita and Markus Leippold},
       year={2020},
