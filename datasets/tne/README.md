@@ -185,4 +185,4 @@ The data is released under the MIT license.
 
 ### Contributions
 
-The first author added this dataset.
+Thanks to [@yanaiela](https://github.com/yanaiela), who is also the first author of the paper, for adding this dataset.
