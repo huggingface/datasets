@@ -6,7 +6,7 @@ paperswithcode_id: imdb-movie-reviews
 train-eval-index:
 - config: plain_text
   task: text-classification
-  task_id: binary__classification
+  task_id: binary_classification
   splits:
     train_split: train
     eval_split: test
