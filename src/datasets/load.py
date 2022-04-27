@@ -724,7 +724,8 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
 
 
 class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
-    """Get the module of a dataset loaded from the user's data files. The dataset builder module to use is infered from the data files extensions."""
+    """Get the module of a dataset loaded from the user's data files. The dataset builder module to use is inferred
+    from the data files extensions."""
 
     def __init__(
         self,
@@ -748,15 +749,15 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         data_files = DataFilesDict.from_local_or_remote(
             patterns, base_path=self.path, allowed_extensions=ALL_ALLOWED_EXTENSIONS
         )
-        infered_module_names = {
+        inferred_module_names = {
             key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
         }
-        if len(set(list(infered_module_names.values()))) > 1:
-            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {infered_module_names}")
-        infered_module_name = next(iter(infered_module_names.values()))
-        if not infered_module_name:
+        if len(set(list(inferred_module_names.values()))) > 1:
+            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {inferred_module_names}")
+        inferred_module_name = next(iter(inferred_module_names.values()))
+        if not inferred_module_name:
             raise FileNotFoundError(f"No data files or dataset script found in {self.path}")
-        module_path, hash = _PACKAGED_DATASETS_MODULES[infered_module_name]
+        module_path, hash = _PACKAGED_DATASETS_MODULES[inferred_module_name]
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
@@ -806,7 +807,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
 class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
     """
     Get the module of a dataset loaded from data files of a dataset repository.
-    The dataset builder module to use is infered from the data files extensions.
+    The dataset builder module to use is inferred from the data files extensions.
     """
 
     def __init__(
@@ -850,16 +851,16 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             dataset_info=hfh_dataset_info,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
-        infered_module_names = {
+        inferred_module_names = {
             key: infer_module_for_data_files(data_files_list, use_auth_token=self.download_config.use_auth_token)
             for key, data_files_list in data_files.items()
         }
-        if len(set(list(infered_module_names.values()))) > 1:
-            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {infered_module_names}")
-        infered_module_name = next(iter(infered_module_names.values()))
-        if not infered_module_name:
+        if len(set(list(inferred_module_names.values()))) > 1:
+            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {inferred_module_names}")
+        inferred_module_name = next(iter(inferred_module_names.values()))
+        if not inferred_module_name:
             raise FileNotFoundError(f"No data files or dataset script found in {self.name}")
-        module_path, hash = _PACKAGED_DATASETS_MODULES[infered_module_name]
+        module_path, hash = _PACKAGED_DATASETS_MODULES[inferred_module_name]
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
