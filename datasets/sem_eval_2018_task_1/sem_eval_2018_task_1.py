@@ -48,6 +48,18 @@ _LICENSE = ""
 _VERSION = datasets.Version("1.1.0")
 
 _SUBSETS = [
+    "subtask1.anger.english",
+    "subtask1.fear.english",
+    "subtask1.joy.english",
+    "subtask1.sadness.english",
+    "subtask1.anger.spanish",
+    "subtask1.fear.spanish",
+    "subtask1.joy.spanish",
+    "subtask1.sadness.spanish",
+    "subtask1.anger.arabic",
+    "subtask1.fear.arabic",
+    "subtask1.joy.arabic",
+    "subtask1.sadness.arabic",
     "subtask2.anger.english",
     "subtask2.fear.english",
     "subtask2.joy.english",
@@ -74,7 +86,7 @@ def parse_subset_string(s):
     d = {}
     d["task_id"] = int(s.split(".")[0][-1])
     d["language"] = s.split(".")[-1]
-    if d["task_id"] == 2:
+    if d["task_id"] in [1, 2]:
         d["emotion"] = s.split(".")[1]
     return d
 
@@ -103,6 +115,15 @@ def _generate_builder_configs():
                     description=f"This is the {language}-{emotion} dataset of subtask 2: EI-oc: Emotion Intensity Ordinal Classiﬁcation.",
                 )
             )
+        elif task_id == 1:
+            emotion = d["emotion"]
+            builder_configs.append(
+                datasets.BuilderConfig(
+                    name=f"subtask{task_id}.{emotion}.{language}",
+                    version=_VERSION,
+                    description=f"This is the {language}-{emotion} dataset of subtask 1: EI-reg: Emotion Intensity Regression.",
+                )
+            )
         else:
             raise ValueError()
     return builder_configs
@@ -115,7 +136,16 @@ class SemEval2018Task1(datasets.GeneratorBasedBuilder):
     def _info(self):
         task_id = parse_subset_string(self.config.name)["task_id"]
 
-        if task_id == 2:
+        if task_id == 1:
+            features = datasets.Features(
+                {
+                    "ID": datasets.Value("string"),
+                    "Tweet": datasets.Value("string"),
+                    "affect": datasets.Value("string"),
+                    "intensity": datasets.Value("float"),
+                }
+            )
+        elif task_id == 2:
             features = datasets.Features(
                 {
                     "ID": datasets.Value("string"),
@@ -168,21 +198,29 @@ class SemEval2018Task1(datasets.GeneratorBasedBuilder):
         else:
             raise ValueError()
 
-        if d["task_id"] == 2:
+        if d["task_id"] in [1, 2]:
+
+            if d["task_id"] == 2:
+                task_code = "EI-oc"
+            elif d["task_id"] == 1:
+                task_code = "EI-reg"
+            else:
+                raise ValueError()
+
             subfolder_names = {
                 "train": "training",
                 "test-gold": "test-gold",
                 "dev": "development",
             }
             subfolder_name = subfolder_names[split_file]
-            base_subtask_path = f"EI-oc/{subfolder_name}/"
+            base_subtask_path = f"{task_code}/{subfolder_name}/"
 
             if not (subfolder_name == "training" and lang_long == "English"):
                 # NOTE: this is due to some weirdness in the dataset formatting, where English training
                 #  is the only data that doesn't have `2018-` at the beginning of the filename
                 base_subtask_path = base_subtask_path + "2018-"
 
-            subtask_path = f"{base_subtask_path}EI-oc-{lang_short}-{d['emotion']}"
+            subtask_path = f"{base_subtask_path}{task_code}-{lang_short}-{d['emotion']}"
 
         elif d["task_id"] == 5:
             subtask_path = "E-c/2018-E-c-" + lang_short
@@ -223,7 +261,14 @@ class SemEval2018Task1(datasets.GeneratorBasedBuilder):
             for id_, row in enumerate(f):
                 data = row.split("\t")
 
-                if task_id == 2:
+                if task_id == 1:
+                    yield id_, {
+                        "ID": data[0],
+                        "Tweet": data[1],
+                        "affect": data[2],
+                        "intensity": float(data[3]),
+                    }
+                elif task_id == 2:
                     yield id_, {
                         "ID": data[0],
                         "Tweet": data[1],
