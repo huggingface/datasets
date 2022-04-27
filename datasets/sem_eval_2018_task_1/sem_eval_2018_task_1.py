@@ -76,9 +76,7 @@ _SUBSETS = [
     "subtask5.spanish",
     "subtask5.arabic",
 ]
-_url = [
-    "https://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/SemEval2018-Task1-all-data.zip"
-]
+_url = ["https://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/SemEval2018-Task1-all-data.zip"]
 _URLs = {s: _url for s in _SUBSETS}
 
 
