@@ -3,6 +3,30 @@ pretty_name: IMDB
 languages:
 - en
 paperswithcode_id: imdb-movie-reviews
+train-eval-index:
+- config: plain_text
+  task: text-classification
+  task_id: binary__classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    text: text
+    label: label
+  metrics:
+  - type: accuracy
+  - type: f1
+    name: f1_macro
+    args:
+      average: macro
+  - type: f1
+    name: f1_micro
+    args:
+      average: micro  
+  - type: f1
+    name: f1_weighted
+    args:
+      average: weighted  
 ---
 
 # Dataset Card for "imdb"
