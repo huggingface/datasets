@@ -64,7 +64,9 @@ _SUBSETS = [
     "subtask5.spanish",
     "subtask5.arabic",
 ]
-_url = ["https://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/SemEval2018-Task1-all-data.zip"]
+_url = [
+    "https://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/SemEval2018-Task1-all-data.zip"
+]
 _URLs = {s: _url for s in _SUBSETS}
 
 
@@ -175,10 +177,10 @@ class SemEval2018Task1(datasets.GeneratorBasedBuilder):
             subfolder_name = subfolder_names[split_file]
             base_subtask_path = f"EI-oc/{subfolder_name}/"
 
-            if subfolder_name != "training":
-                # NOTE: this is due to some weirdness in the dataset formatting, where all data splits
-                #  except for the training one have `2018-` at the beginning of the filename
-                base_subtask_path += "2018-"
+            if not (subfolder_name == "training" and lang_long == "English"):
+                # NOTE: this is due to some weirdness in the dataset formatting, where English training
+                #  is the only data that doesn't have `2018-` at the beginning of the filename
+                base_subtask_path = base_subtask_path + "2018-"
 
             subtask_path = f"{base_subtask_path}EI-oc-{lang_short}-{d['emotion']}"
 
