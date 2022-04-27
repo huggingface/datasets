@@ -74,11 +74,12 @@ class CRD3(datasets.GeneratorBasedBuilder):
                     "turn_start": datasets.Value("int32"),
                     "turn_end": datasets.Value("int32"),
                     "alignment_score": datasets.Value("float32"),
-                    "turn_num": datasets.Value("int32"),
+                    
                     "turns": datasets.features.Sequence(
                         {
-                            "names": datasets.Value("string"),
-                            "utterances": datasets.Value("string"),
+                            "names": datasets.features.Sequence(datasets.Value("string")),
+                            "utterances": datasets.features.Sequence(datasets.Value("string")),
+                            "number": datasets.Value("int32")
                         }
                     ),
                 }
@@ -136,18 +137,20 @@ class CRD3(datasets.GeneratorBasedBuilder):
                     turn_end = row["ALIGNMENT"]["TURN END"]
                     score = row["ALIGNMENT"]["ALIGNMENT SCORE"]
                     for id2, turn in enumerate(row["TURNS"]):
-                        turn_names = turn["NAMES"]
-                        turn_utterances = turn["UTTERANCES"]
-                        turn_num = turn["NUMBER"]
-                        yield str(id0) + "_" + str(id1) + "_" + str(id2), {
-                            "chunk": chunk,
-                            "chunk_id": chunk_id,
-                            "turn_start": turn_start,
-                            "turn_end": turn_end,
-                            "alignment_score": score,
-                            "turn_num": turn_num,
-                            "turns": {
-                                "names": turn_names,
-                                "utterances": turn_utterances,
-                            },
-                        }
+                        turn["names"] = turn["NAMES"]
+                        turn["utterances"] = turn["UTTERANCES"]
+                        turn["number"] = turn["NUMBER"]
+
+                        del turn["NAMES"]
+                        del turn["UTTERANCES"]
+                        del turn["NUMBER"]
+                        
+                    
+                    yield str(id0) + "_" + str(id1), {
+                        "chunk": chunk,
+                        "chunk_id": chunk_id,
+                        "turn_start": turn_start,
+                        "turn_end": turn_end,
+                        "alignment_score": score,
+                        "turns": row["TURNS"]
+                    }
