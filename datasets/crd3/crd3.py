@@ -75,13 +75,13 @@ class CRD3(datasets.GeneratorBasedBuilder):
                     "turn_end": datasets.Value("int32"),
                     "alignment_score": datasets.Value("float32"),
                     
-                    "turns": datasets.features.Sequence(
+                    "turns":[
                         {
                             "names": datasets.features.Sequence(datasets.Value("string")),
                             "utterances": datasets.features.Sequence(datasets.Value("string")),
                             "number": datasets.Value("int32")
                         }
-                    ),
+                    ],
                 }
             ),
             homepage="https://github.com/RevanthRameshkumar/CRD3",
