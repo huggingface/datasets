@@ -22,7 +22,16 @@ from datasets.utils.file_utils import hf_hub_url
 _TEST_PATTERNS = ["*", "**", "**/*", "*.txt", "data/*", "**/*.txt", "**/train.txt"]
 _FILES_TO_IGNORE = {".dummy", "README.md", "dummy_data.zip", "dataset_infos.json"}
 _TEST_PATTERNS_SIZES = dict(
-    [("*", 0), ("**", 4), ("**/*", 4), ("*.txt", 0), ("data/*", 2), ("data/**", 4), ("**/*.txt", 4), ("**/train.txt", 2)]
+    [
+        ("*", 0),
+        ("**", 4),
+        ("**/*", 4),
+        ("*.txt", 0),
+        ("data/*", 2),
+        ("data/**", 4),
+        ("**/*.txt", 4),
+        ("**/train.txt", 2),
+    ]
 )
 
 _TEST_URL = "https://raw.githubusercontent.com/huggingface/datasets/9675a5a1e7b99a86f9c250f6ea5fa5d1e6d5cc7d/setup.py"
