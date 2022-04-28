@@ -135,7 +135,7 @@ class CRD3(datasets.GeneratorBasedBuilder):
                     turn_start = row["ALIGNMENT"]["TURN START"]
                     turn_end = row["ALIGNMENT"]["TURN END"]
                     score = row["ALIGNMENT"]["ALIGNMENT SCORE"]
-                    for turn in enumerate(row["TURNS"]):
+                    for turn in row["TURNS"]:
                         turn["names"] = turn["NAMES"]
                         turn["utterances"] = turn["UTTERANCES"]
                         turn["number"] = turn["NUMBER"]
