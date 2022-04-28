@@ -262,7 +262,8 @@ task_ids:
   - topic-classification
   ner:
   - named-entity-recognition
-  ntg: []
+  ntg:
+  - news-articles-headline-generation
   paws-x:
   - text-classification-other-paraphrase-identification
   pos:
