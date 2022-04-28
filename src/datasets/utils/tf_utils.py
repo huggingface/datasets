@@ -32,7 +32,7 @@ def minimal_tf_collate_fn(features):
         if isinstance(v, np.ndarray):
             batch[k] = np.stack([f[k] for f in features])
         elif isinstance(v, tf.Tensor):
-            batch[k] = np.stack([f[k].numpy() for f in features])
+            batch[k] = tf.stack([f[k] for f in features])
         else:
             batch[k] = np.array([f[k] for f in features])
     return batch
