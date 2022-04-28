@@ -53,7 +53,7 @@ pretty_name: WikiText-TL-39
 ## Dataset Description
 
 - **Homepage:** [Filipino Text Benchmarks](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
-- **Repository: **
+- **Repository:**
 - **Paper:** [Evaluating language model finetuning techniques for low-resource languages](https://arxiv.org/abs/1907.00409)
 - **Leaderboard:**
 - **Point of Contact:** Jan Christian Blaise Cruz (jan_christian_cruz@dlsu.edu.ph)

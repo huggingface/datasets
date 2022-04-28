@@ -50,11 +50,11 @@ pretty_name: AppReviews
 
 ## Dataset Description
 
-- **Homepage: [Home Page](https://github.com/sealuzh/user_quality)
-- **Repository: [Repo Link](https://github.com/sealuzh/user_quality)
-- **Paper: [Link](https://giograno.me/assets/pdf/workshop/wama17.pdf)
+- **Homepage:** [Home Page](https://github.com/sealuzh/user_quality)
+- **Repository:** [Repo Link](https://github.com/sealuzh/user_quality)
+- **Paper:** [Link](https://giograno.me/assets/pdf/workshop/wama17.pdf)
 - **Leaderboard:
-- **Point of Contact: [Darshan Gandhi](darshangandhi1151@gmail.com)
+- **Point of Contact:** [Darshan Gandhi](darshangandhi1151@gmail.com)
 
 ### Dataset Summary
 
