@@ -752,9 +752,9 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         inferred_module_names = {
             key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
         }
-        if len(set(list(inferred_module_names.values()))) > 1:
+        if len(set(list(zip(*inferred_module_names.values()))[0])) > 1:
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {inferred_module_names}")
-        inferred_module_name = next(iter(inferred_module_names.values()))
+        inferred_module_name, inferred_builder_kwargs = next(iter(inferred_module_names.values()))
         if not inferred_module_name:
             raise FileNotFoundError(f"No data files or dataset script found in {self.path}")
         module_path, hash = _PACKAGED_DATASETS_MODULES[inferred_module_name]
@@ -763,6 +763,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "data_files": data_files,
             "name": os.path.basename(self.path),
             "base_path": self.path,
+            **inferred_builder_kwargs,
         }
         if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
@@ -855,9 +856,9 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             key: infer_module_for_data_files(data_files_list, use_auth_token=self.download_config.use_auth_token)
             for key, data_files_list in data_files.items()
         }
-        if len(set(list(inferred_module_names.values()))) > 1:
+        if len(set(list(zip(*inferred_module_names.values()))[0])) > 1:
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {inferred_module_names}")
-        inferred_module_name = next(iter(inferred_module_names.values()))
+        inferred_module_name, inferred_builder_kwargs = next(iter(inferred_module_names.values()))
         if not inferred_module_name:
             raise FileNotFoundError(f"No data files or dataset script found in {self.name}")
         module_path, hash = _PACKAGED_DATASETS_MODULES[inferred_module_name]
@@ -866,6 +867,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "data_files": data_files,
             "name": self.name.replace("/", "--"),
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
+            **inferred_builder_kwargs,
         }
         download_config = self.download_config.copy()
         if download_config.download_desc is None:

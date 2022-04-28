@@ -180,7 +180,7 @@ def test_infer_module_for_data_files(data_files, expected_module, expected_build
 def test_infer_module_for_data_files_in_archives(data_file, expected_module, zip_csv_path, zip_csv_with_dir_path):
     data_file_paths = {"zip_csv_path": zip_csv_path, "zip_csv_with_dir_path": zip_csv_with_dir_path}
     data_files = [str(data_file_paths[data_file])]
-    inferred_module = infer_module_for_data_files_in_archives(data_files, False)
+    inferred_module, _ = infer_module_for_data_files_in_archives(data_files, False)
     assert inferred_module == expected_module
 
 
