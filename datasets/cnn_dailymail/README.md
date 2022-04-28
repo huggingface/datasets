@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - summarization
 task_ids:
-- summarization-news-articles-summarization
+- news-articles-summarization
 paperswithcode_id: cnn-daily-mail-1
 pretty_name: CNN / Daily Mail
 ---

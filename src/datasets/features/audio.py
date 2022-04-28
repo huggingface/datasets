@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass, field
 from io import BytesIO
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
@@ -70,11 +71,16 @@ class Audio:
             raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
         if isinstance(value, str):
             return {"bytes": None, "path": value}
-        elif isinstance(value, dict) and "array" in value:
+        elif "array" in value:
+            # convert the audio array to wav bytes
             buffer = BytesIO()
             sf.write(buffer, value["array"], value["sampling_rate"], format="wav")
-            return {"bytes": buffer.getvalue(), "path": value.get("path")}
+            return {"bytes": buffer.getvalue(), "path": None}
+        elif value.get("path") is not None and os.path.isfile(value["path"]):
+            # we set "bytes": None to not duplicate the data if they're already available locally
+            return {"bytes": None, "path": value.get("path")}
         elif value.get("bytes") is not None or value.get("path") is not None:
+            # store the audio bytes, and path is used to infer the audio format using the file extension
             return {"bytes": value.get("bytes"), "path": value.get("path")}
         else:
             raise ValueError(
