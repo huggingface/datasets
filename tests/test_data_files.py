@@ -161,17 +161,12 @@ def test_resolve_patterns_in_dataset_repository(hub_dataset_info, pattern, hub_d
         assert len(hub_dataset_info_patterns_results[pattern]) == 0
 
 
-@pytest.mark.parametrize("pattern,size,base_path", [
-    ("**", 4, None),
-    ("**", 4, "data"),
-    ("**", 2, "data/subdir"),
-    ("**", 0, "data/subdir2")
-])
+@pytest.mark.parametrize(
+    "pattern,size,base_path", [("**", 4, None), ("**", 4, "data"), ("**", 2, "data/subdir"), ("**", 0, "data/subdir2")]
+)
 def test_resolve_patterns_in_dataset_repository_with_base_path(hub_dataset_info, pattern, size, base_path):
     if size > 0:
-        resolved_data_files = resolve_patterns_in_dataset_repository(
-            hub_dataset_info, [pattern], base_path=base_path
-        )
+        resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, [pattern], base_path=base_path)
         assert len(resolved_data_files) == size
     else:
         with pytest.raises(FileNotFoundError):
@@ -248,14 +243,17 @@ def test_DataFilesDict_from_hf_repo(hub_dataset_info, hub_dataset_info_patterns_
         assert len(hub_dataset_info_patterns_results[pattern]) == 0
 
 
-@pytest.mark.parametrize("pattern,size,base_path,split_name", [
-    ("**", 4, None, "train"),
-    ("**", 4, "data", "train"),
-    ("**", 2, "data/subdir", "train"),
-    ("**train*", 1, "data/subdir", "train"),
-    ("**test*", 1, "data/subdir", "test"),
-    ("**", 0, "data/subdir2", "train")
-])
+@pytest.mark.parametrize(
+    "pattern,size,base_path,split_name",
+    [
+        ("**", 4, None, "train"),
+        ("**", 4, "data", "train"),
+        ("**", 2, "data/subdir", "train"),
+        ("**train*", 1, "data/subdir", "train"),
+        ("**test*", 1, "data/subdir", "test"),
+        ("**", 0, "data/subdir2", "train"),
+    ],
+)
 def test_DataFilesDict_from_hf_repo_with_base_path(hub_dataset_info, pattern, size, base_path, split_name):
     if size > 0:
         data_files = DataFilesDict.from_hf_repo({split_name: [pattern]}, hub_dataset_info, base_path=base_path)

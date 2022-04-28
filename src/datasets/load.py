@@ -808,7 +808,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
             use_auth_token=self.download_config.use_auth_token,
-            base_path=str(Path(self.data_dir).resolve()) if self.data_dir else None
+            base_path=str(Path(self.data_dir).resolve()) if self.data_dir else None,
         )
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
         builder_kwargs = {"hash": hash, "data_files": data_files}
