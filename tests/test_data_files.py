@@ -41,6 +41,13 @@ def complex_data_dir(tmp_path):
         f.write("This is a readme")
     with open(data_dir / ".dummy", "w") as f:
         f.write("this is a dummy file that is not a data file")
+
+    (data_dir / "data" / "subdir").mkdir()
+    with open(data_dir / "data" / "subdir" / "train.txt", "w") as f:
+        f.write("foo\n" * 10)
+    with open(data_dir / "data" / "subdir" / "test.txt", "w") as f:
+        f.write("bar\n" * 10)
+
     return str(data_dir)
 
 
@@ -125,7 +132,7 @@ def test_resolve_patterns_locally_or_by_urls_with_extensions(complex_data_dir, p
         assert len(resolved_data_files) == size
     else:
         with pytest.raises(FileNotFoundError):
-            resolve_patterns_locally_or_by_urls(complex_data_dir, pattern, allowed_extensions=extensions)
+            resolve_patterns_locally_or_by_urls(complex_data_dir, [pattern], allowed_extensions=extensions)
 
 
 def test_fail_resolve_patterns_locally_or_by_urls(complex_data_dir):
@@ -152,6 +159,25 @@ def test_resolve_patterns_in_dataset_repository(hub_dataset_info, pattern, hub_d
         assert all(isinstance(url, Url) for url in resolved_data_files)
     except FileNotFoundError:
         assert len(hub_dataset_info_patterns_results[pattern]) == 0
+
+
+@pytest.mark.parametrize("pattern,size,base_path", [
+    ("**", 4, None),
+    ("**", 4, "data"),
+    ("**", 2, "data/subdir"),
+    ("**", 0, "data/subdir2")
+])
+def test_resolve_patterns_in_dataset_repository_with_base_path(hub_dataset_info, pattern, size, base_path):
+    if size > 0:
+        resolved_data_files = resolve_patterns_in_dataset_repository(
+            hub_dataset_info, [pattern], base_path=base_path
+        )
+        assert len(resolved_data_files) == size
+    else:
+        with pytest.raises(FileNotFoundError):
+            resolved_data_files = resolve_patterns_in_dataset_repository(
+                hub_dataset_info, [pattern], base_path=base_path
+            )
 
 
 @pytest.mark.parametrize("pattern,size,extensions", [("**", 2, ["txt"]), ("**", 2, None), ("**", 0, ["blablabla"])])
@@ -220,6 +246,23 @@ def test_DataFilesDict_from_hf_repo(hub_dataset_info, hub_dataset_info_patterns_
         assert all(isinstance(url, Url) for url in data_files[split_name])
     except FileNotFoundError:
         assert len(hub_dataset_info_patterns_results[pattern]) == 0
+
+
+@pytest.mark.parametrize("pattern,size,base_path,split_name", [
+    ("**", 4, None, "train"),
+    ("**", 4, "data", "train"),
+    ("**", 2, "data/subdir", "train"),
+    ("**train*", 1, "data/subdir", "train"),
+    ("**test*", 1, "data/subdir", "test"),
+    ("**", 0, "data/subdir2", "train")
+])
+def test_DataFilesDict_from_hf_repo_with_base_path(hub_dataset_info, pattern, size, base_path, split_name):
+    if size > 0:
+        data_files = DataFilesDict.from_hf_repo({split_name: [pattern]}, hub_dataset_info, base_path=base_path)
+        assert len(data_files[split_name]) == size
+    else:
+        with pytest.raises(FileNotFoundError):
+            data_files = DataFilesDict.from_hf_repo({split_name: [pattern]}, hub_dataset_info, base_path=base_path)
 
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
