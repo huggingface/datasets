@@ -284,6 +284,7 @@ pretty_name: XGLUE
 # Dataset Card for XGLUE
 
 ## Table of Contents
+- [Table of Contents](#table-of-contents)
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
   - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
@@ -323,10 +324,27 @@ The following table shows which languages are present as validation and test dat
 
 Therefore, for each config, a cross-lingual pre-trained model should be fine-tuned on the English training data, and evaluated on for all languages.
 
-### Leaderboards
+### Supported Tasks and Leaderboards
 
 The XGLUE leaderboard can be found on the [homepage](https://microsoft.github.io/XGLUE/) and 
 consits of a XGLUE-Understanding Score (the average of the tasks `ner`, `pos`, `mlqa`, `nc`, `xnli`, `paws-x`, `qadsm`, `wpr`, `qam`) and a XGLUE-Generation Score (the average of the tasks `qg`, `ntg`).
+
+### Languages
+
+For all tasks (configurations), the "train" split is in English (`en`).
+
+For each task, the "validation" and "test" splits are present in these languages:
+- ner: `en`, `de`, `es`, `nl`
+- pos: `en`, `de`, `es`, `nl`, `bg`, `el`, `fr`, `pl`, `tr`, `vi`, `zh`, `ur`, `hi`, `it`, `ar`, `ru`, `th`
+- mlqa: `en`, `de`, `ar`, `es`, `hi`, `vi`, `zh`
+- nc: `en`, `de`, `es`, `fr`, `ru`
+- xnli: `en`, `ar`, `bg`, `de`, `el`, `es`, `fr`, `hi`, `ru`, `sw`, `th`, `tr`, `ur`, `vi`, `zh`
+- paws-x: `en`, `de`, `es`, `fr`
+- qadsm: `en`, `de`, `fr`
+- wpr: `en`, `de`, `es`, `fr`, `it`, `pt`, `zh`
+- qam: `en`, `de`, `fr`
+- qg: `en`, `de`, `es`, `fr`, `it`, `pt`
+- ntg: `en`, `de`, `es`, `fr`, `ru`
 
 ## Dataset Structure
 
@@ -719,12 +737,6 @@ The following table shows the number of data samples/number of rows for each spl
 |    |train |validation.en|validation.ar|validation.bg|validation.de|validation.el|validation.es|validation.fr|validation.hi|validation.ru|validation.sw|validation.th|validation.tr|validation.ur|validation.vi|validation.zh|test.en|test.ar|test.bg|test.de|test.el|test.es|test.fr|test.hi|test.ru|test.sw|test.th|test.tr|test.ur|test.vi|test.zh|
 |----|-----:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|
 |xnli|392702|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|
-
-The following table shows the number of data samples/number of rows for each split in mlqa.
-
-|    |train|validation.en|validation.de|validation.ar|validation.es|validation.hi|validation.vi|validation.zh|test.en|test.de|test.ar|test.es|test.hi|test.vi|test.zh|                                                                                                                                                      
-|----|----:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------:|------:|------:|------:|------:|------:|------:|                                                                                                                                                      
-|mlqa|87599|         1148|          512|          517|          500|          507|          511|          504|  11590|   4517|   5335|   5253|   4918|   5495|   5137|                                                                                                                                                      
 
 
 #### nc
