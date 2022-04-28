@@ -22,7 +22,7 @@ from datasets.utils.file_utils import hf_hub_url
 _TEST_PATTERNS = ["*", "**", "**/*", "*.txt", "data/*", "**/*.txt", "**/train.txt"]
 _FILES_TO_IGNORE = {".dummy", "README.md", "dummy_data.zip", "dataset_infos.json"}
 _TEST_PATTERNS_SIZES = dict(
-    [("*", 0), ("**", 2), ("**/*", 2), ("*.txt", 0), ("data/*", 2), ("**/*.txt", 2), ("**/train.txt", 1)]
+    [("*", 0), ("**", 4), ("**/*", 4), ("*.txt", 0), ("data/*", 2), ("data/**", 4), ("**/*.txt", 4), ("**/train.txt", 2)]
 )
 
 _TEST_URL = "https://raw.githubusercontent.com/huggingface/datasets/9675a5a1e7b99a86f9c250f6ea5fa5d1e6d5cc7d/setup.py"
@@ -123,7 +123,7 @@ def test_resolve_patterns_locally_or_by_urls_with_absolute_path(tmp_path, comple
     assert len(resolved_data_files) == 1
 
 
-@pytest.mark.parametrize("pattern,size,extensions", [("**", 2, ["txt"]), ("**", 2, None), ("**", 0, ["blablabla"])])
+@pytest.mark.parametrize("pattern,size,extensions", [("**", 4, ["txt"]), ("**", 4, None), ("**", 0, ["blablabla"])])
 def test_resolve_patterns_locally_or_by_urls_with_extensions(complex_data_dir, pattern, size, extensions):
     if size > 0:
         resolved_data_files = resolve_patterns_locally_or_by_urls(
@@ -175,7 +175,7 @@ def test_resolve_patterns_in_dataset_repository_with_base_path(hub_dataset_info,
             )
 
 
-@pytest.mark.parametrize("pattern,size,extensions", [("**", 2, ["txt"]), ("**", 2, None), ("**", 0, ["blablabla"])])
+@pytest.mark.parametrize("pattern,size,extensions", [("**", 4, ["txt"]), ("**", 4, None), ("**", 0, ["blablabla"])])
 def test_resolve_patterns_in_dataset_repository_with_extensions(hub_dataset_info, pattern, size, extensions):
     if size > 0:
         resolved_data_files = resolve_patterns_in_dataset_repository(
@@ -284,11 +284,11 @@ def test_DataFilesDict_from_hf_repo_hashing(hub_dataset_info):
     data_files2 = DataFilesDict(sorted(data_files1.items(), reverse=True))
     assert Hasher.hash(data_files1) == Hasher.hash(data_files2)
 
-    patterns2 = {"train": ["data/train.txt"], "test": ["data/test.txt"]}
+    patterns2 = {"train": ["data/**train.txt"], "test": ["data/**test.txt"]}
     data_files2 = DataFilesDict.from_hf_repo(patterns2, hub_dataset_info)
     assert Hasher.hash(data_files1) == Hasher.hash(data_files2)
 
-    patterns2 = {"train": ["data/train.txt"], "test": ["data/train.txt"]}
+    patterns2 = {"train": ["data/**train.txt"], "test": ["data/**train.txt"]}
     data_files2 = DataFilesDict.from_hf_repo(patterns2, hub_dataset_info)
     assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
 
