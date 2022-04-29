@@ -75,7 +75,7 @@ class Samsum(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        path = dl_manager.download_and_extract(_URL)
+        path = dl_manager.download(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
@@ -105,12 +105,11 @@ class Samsum(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """Yields examples."""
-
         path, fname = filepath
-
-        with py7zr.SevenZipFile(path, "r") as z:
-            for name, bio in z.readall().items():
-                if name == fname:
-                    data = json.load(bio)
+        with open(path, "rb") as f:
+            with py7zr.SevenZipFile(f, "r") as z:
+                for name, bio in z.readall().items():
+                    if name == fname:
+                        data = json.load(bio)
         for example in data:
             yield example["id"], example
