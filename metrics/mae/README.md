@@ -25,8 +25,11 @@ Mandatory inputs:
 - `references`: numeric array-like of shape (`n_samples,`) or (`n_samples`, `n_outputs`), representing the ground truth (correct) target values.
 
 Optional arguments:
-- **sample_weight**: array-like of shape (`n_samples,`) representing sample weights. The default is `None`.
-- **multioutput**: `raw_values`, `uniform_average` or array-like of shape (`n_outputs,`), which defines the aggregation of multiple output values; the array-like value defines weights used to average errors. `raw_values` returns a full set of errors in case of multioutput input, whereas `uniform_average` means that the errors of all outputs are averaged with uniform weight. The default value is `uniform_average`.
+- `sample_weight`: numeric array-like of shape (`n_samples,`) representing sample weights. The default is `None`.
+- `multioutput`: `raw_values`, `uniform_average` or numeric array-like of shape (`n_outputs,`), which defines the aggregation of multiple output values. The default value is `uniform_average`.
+  - `raw_values` returns a full set of errors in case of multioutput input.
+  - `uniform_average` means that the errors of all outputs are averaged with uniform weight. 
+  - the array-like value defines weights used to average errors.
 
 ### Output Values
 This metric outputs a dictionary, containing the mean absolute error score, which is of type:
