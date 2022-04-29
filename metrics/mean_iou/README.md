@@ -9,7 +9,7 @@ For binary (two classes) or multi-class segmentation, the *mean IoU* of the imag
 
 ## How to Use
 
-The Mean IoU metric takes two arrays as input corresponding to the predicted and ground truth segmentations:
+The Mean IoU metric takes two numeric arrays as input corresponding to the predicted and ground truth segmentations:
 ```python
 >>> import numpy as np
 >>> mean_iou = datasets.load_metric("mean_iou")
