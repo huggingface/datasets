@@ -1136,7 +1136,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import DatasetDict
-        >>> ds = DatasetDict.from_csv('path/to/dataset.csv')
+        >>> ds = DatasetDict.from_csv({'train': 'path/to/dataset.csv'})
         ```
         """
         # Dynamic import to avoid circular dependency
@@ -1170,7 +1170,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import DatasetDict
-        >>> ds = DatasetDict.from_json('path/to/dataset.json')
+        >>> ds = DatasetDict.from_json({'train': 'path/to/dataset.json'})
         ```
         """
         # Dynamic import to avoid circular dependency
@@ -1208,7 +1208,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import DatasetDict
-        >>> ds = DatasetDict.from_parquet('path/to/dataset/parquet')
+        >>> ds = DatasetDict.from_parquet({'train': 'path/to/dataset/parquet'})
         ```
         """
         # Dynamic import to avoid circular dependency
@@ -1247,7 +1247,7 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import DatasetDict
-        >>> ds = DatasetDict.from_text('path/to/dataset.txt')
+        >>> ds = DatasetDict.from_text({'train': 'path/to/dataset.txt'})
         ```
         """
         # Dynamic import to avoid circular dependency
