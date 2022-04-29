@@ -42,6 +42,8 @@ Output Example(s):
 ```python
 {'mae': 0.5}
 ```
+
+If `multioutput="raw_values"`:
 ```python
 {'mae': 0.5}
 ```
