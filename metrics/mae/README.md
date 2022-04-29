@@ -3,7 +3,7 @@
 
 ## Metric Description
 
-Mean Absolute Error (MAE) is the mean of the magnitude of difference between the predicted and actual values:
+Mean Absolute Error (MAE) is the mean of the magnitude of difference between the predicted and actual numeric values:
 ![image](https://user-images.githubusercontent.com/14205986/165824243-e1078dfd-489d-456c-a0da-cbaa28726220.png)
 
 
