@@ -88,3 +88,4 @@ year = {2020}
 
 
 ## Further References
+- [Wikipedia article - Jaccard Index](https://en.wikipedia.org/wiki/Jaccard_index)
