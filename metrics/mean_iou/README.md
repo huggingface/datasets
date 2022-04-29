@@ -32,11 +32,11 @@ The Mean IoU metric takes two numeric arrays as input corresponding to the predi
 
 ### Output Values
 The metric returns a dictionary with the following elements:
-- **mean_iou** (`float`): Mean Intersection-over-Union (IoU averaged over all categories).
-- **mean_accuracy** (`float`): Mean accuracy (averaged over all categories). 
-- **overall_accuracy** (`float`): Overall accuracy on all images.
-- **per_category_accuracy** (`ndarray` of shape `(num_labels,)`): Per category accuracy.
-- **per_category_iou** (`ndarray` of shape `(num_labels,)`): Per category IoU.
+- `mean_iou` (`float`): Mean Intersection-over-Union (IoU averaged over all categories).
+- `mean_accuracy` (`float`): Mean accuracy (averaged over all categories). 
+- `overall_accuracy` (`float`): Overall accuracy on all images.
+- `per_category_accuracy` (`ndarray` of shape `(num_labels,)`): Per category accuracy.
+- `per_category_iou` (`ndarray` of shape `(num_labels,)`): Per category IoU.
 
 The values of all of the scores reported range from from `0.0` (minimum) and `1.0` (maximum).
 
