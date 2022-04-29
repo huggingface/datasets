@@ -29,9 +29,11 @@ Optional arguments:
 - **multioutput**: `raw_values`, `uniform_average` or array-like of shape (`n_outputs,`), which defines the aggregation of multiple output values; the array-like value defines weights used to average errors. `raw_values` returns a full set of errors in case of multioutput input, whereas `uniform_average` means that the errors of all outputs are averaged with uniform weight. The default value is `uniform_average`.
 
 ### Output Values
-- **mae**(`float`): This metric outputs a dictionary, containing the mean absolute error score. 
-- 
-- If multioutput is `raw_values`, then the score is returned for each output separately. If multioutput is `uniform_average` or an ndarray of weights, then the weighted average of all output errors is returned. It ranges from `0.0` to `1.0`, with the best value is 0.0.
+This metric outputs a dictionary, containing the mean absolute error score, which is of type:
+- `float`: if multioutput is `uniform_average` or an ndarray of weights, then the weighted average of all output errors is returned.
+- numeric array-like of shape (`n_outputs,`): if multioutput is `raw_values`, then the score is returned for each output separately. 
+
+Each MAE `float` value ranges from `0.0` to `1.0`, with the best value being 0.0.
 
 Output Example(s):
 ```python
