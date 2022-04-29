@@ -108,7 +108,7 @@ class MedMCQA(datasets.GeneratorBasedBuilder):
                     "opb": data["opb"],
                     "opc": data["opc"],
                     "opd": data["opd"],
-                    "cop": "" if split == "test" else int(data["cop"]) -1,
+                    "cop": -1 if split == "test" else int(data["cop"]) -1,
                     "choice_type": data["choice_type"],
                     "exp": "" if split == "test" else data["exp"],
                     "subject_name": data["subject_name"],
