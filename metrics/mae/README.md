@@ -21,8 +21,8 @@ At minimum, this metric requires predictions and references as inputs.
 ### Inputs
 
 Mandatory inputs: 
-- **predictions**: array-like of shape (`n_samples,`) or (`n_samples`, `n_outputs`), representing the estimated target values.
-- **references**: array-like of shape (`n_samples,`) or (`n_samples`, `n_outputs`), representing the ground truth (correct) target values.
+- `predictions`: numeric array-like of shape (`n_samples,`) or (`n_samples`, `n_outputs`), representing the estimated target values.
+- `references`: numeric array-like of shape (`n_samples,`) or (`n_samples`, `n_outputs`), representing the ground truth (correct) target values.
 
 Optional arguments:
 - **sample_weight**: array-like of shape (`n_samples,`) representing sample weights. The default is `None`.
