@@ -40,7 +40,7 @@ Each MAE `float` value ranges from `0.0` to `1.0`, with the best value being 0.0
 
 Output Example(s):
 ```python
-{'mae': array([0.5, 1. ])}
+{'mae': 0.5}
 ```
 ```python
 {'mae': 0.5}
