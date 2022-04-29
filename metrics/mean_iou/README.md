@@ -26,9 +26,9 @@ The Mean IoU metric takes two numeric arrays as input corresponding to the predi
 - `ignore_index` (`int`): Index that will be ignored during evaluation.
 
 **Optional inputs**
-- **nan_to_num** (`int`): If specified, NaN values will be replaced by the number defined by the user.
-- **label_map** (`dict`): If specified, dictionary mapping old label indices to new label indices.
-- **reduce_labels** (`bool`): Whether or not to reduce all label values of segmentation maps by 1. Usually used for datasets where 0 is used for background, and background itself is not included in all classes of a dataset (e.g. ADE20k). The background label will be replaced by 255. The default value is `False`.
+- `nan_to_num` (`int`): If specified, NaN values will be replaced by the number defined by the user.
+- `label_map` (`dict`): If specified, dictionary mapping old label indices to new label indices.
+- `reduce_labels` (`bool`): Whether or not to reduce all label values of segmentation maps by 1. Usually used for datasets where 0 is used for background, and background itself is not included in all classes of a dataset (e.g. ADE20k). The background label will be replaced by 255. The default value is `False`.
 
 ### Output Values
 The metric returns a dictionary with the following elements:
