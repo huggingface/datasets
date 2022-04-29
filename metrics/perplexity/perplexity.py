@@ -43,13 +43,14 @@ Args:
                     https://huggingface.co/docs/transformers/master/en/model_doc/auto#transformers.AutoModelForCausalLM )
 
     input_texts (list of str): input text, each separate text snippet
-        is one list entry. Perplexity returned will be an average of
-        the perplexity for each list entry.
-    stride (int): stride size, defaults to 512
+        is one list entry.
+    batch_size (int): the batch size to run texts through the model. Defaults to 16.
+    add_start_token (bool): whether to add the start token to the texts,
+        so the perplexity can include the probability of the first word. Defaults to True.
     device (str): device to run on, defaults to 'cuda' when available
 Returns:
-    perplexity: dictionary containing the average perplexity score for the text
-        in the input list.
+    perplexity: dictionary containing the perplexity scores for the texts
+        in the input list, as well as the mean perplexity.
 Examples:
     Example 1:
         >>> perplexity = datasets.load_metric("perplexity")
@@ -76,9 +77,9 @@ Examples:
         >>> print(list(results.keys()))
         ['perplexities', 'mean_perplexity']
         >>> print(round(results["mean_perplexity"], 2))
-        1977.55
+        60.35
         >>> print(round(results["perplexities"][0], 2))
-        1349.56
+        81.12
 """
 
 
@@ -160,12 +161,11 @@ class Perplexity(datasets.Metric):
             end_index = min(start_index + batch_size, len(encoded_texts))
             encoded_batch = encoded_texts[start_index:end_index]
             attn_mask = attn_masks[start_index:end_index]
-
             if add_start_token:
                 bos_tokens_tensor = torch.tensor([[tokenizer.bos_token_id]] * encoded_batch.size(dim=0)).to(device)
                 encoded_batch = torch.cat([bos_tokens_tensor, encoded_batch], dim=1)
                 attn_mask = torch.cat(
-                    [torch.zeros(bos_tokens_tensor.size(), dtype=torch.int64).to(device), attn_mask], dim=1
+                    [torch.ones(bos_tokens_tensor.size(), dtype=torch.int64).to(device), attn_mask], dim=1
                 )
 
             labels = encoded_batch
