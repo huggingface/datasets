@@ -20,10 +20,10 @@ The Mean IoU metric takes two numeric arrays as input corresponding to the predi
 
 ### Inputs
 **Mandatory inputs**
-- **predictions** (`List[ndarray]`): List of predicted segmentation maps, each of shape (height, width). Each segmentation map can be of a different size.
-- **references** (`List[ndarray]`): List of ground truth segmentation maps, each of shape (height, width). Each segmentation map can be of a different size.
-- **num_labels** (`int`): Number of classes (categories). 
-- **ignore_index** (`int`): Index that will be ignored during evaluation.
+- `predictions` (`List[ndarray]`): List of predicted segmentation maps, each of shape (height, width). Each segmentation map can be of a different size.
+- `references` (`List[ndarray]`): List of ground truth segmentation maps, each of shape (height, width). Each segmentation map can be of a different size.
+- `num_labels` (`int`): Number of classes (categories). 
+- `ignore_index` (`int`): Index that will be ignored during evaluation.
 
 **Optional inputs**
 - **nan_to_num** (`int`): If specified, NaN values will be replaced by the number defined by the user.
