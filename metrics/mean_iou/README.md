@@ -63,9 +63,9 @@ The [leaderboard for the CityScapes dataset](https://paperswithcode.com/sota/sem
 >>> actual_2 = np.array([[1, 7], [9, 2], [3, 6]])
 >>> predicted_3 = np.array([[2, 2, 3], [8, 2, 4], [3, 255, 2]])
 >>> actual_3 = np.array([[1, 2, 2], [8, 2, 1], [3, 255, 1]])
->>> predicted = [predicted_1, predicted_2, predicted_3]
->>> ground_truth = [actual_1, actual_2, actual_3]
->>> results = mean_iou.compute(predictions=predicted, references=ground_truth, num_labels=10, ignore_index=255, reduce_labels=False)
+>>> predictions = [predicted_1, predicted_2, predicted_3]
+>>> references = [actual_1, actual_2, actual_3]
+>>> results = mean_iou.compute(predictions=predictions, references=references, num_labels=10, ignore_index=255, reduce_labels=False)
 >>> print(results) # doctest: +NORMALIZE_WHITESPACE
 {'mean_iou': 0.47750000000000004, 'mean_accuracy': 0.5916666666666666, 'overall_accuracy': 0.5263157894736842, 'per_category_iou': array([0.   , 0.   , 0.375, 0.4  , 0.5  , 0.   , 0.5  , 1.   , 1.   , 1.   ]), 'per_category_accuracy': array([0.        , 0.        , 0.75      , 0.66666667, 1.        , 0.        , 0.5       , 1.        , 1.        , 1.        ])}
 ``` 
