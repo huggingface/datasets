@@ -45,7 +45,7 @@ Output Example(s):
 
 If `multioutput="raw_values"`:
 ```python
-{'mae': 0.5}
+{'mae': array([0.5, 1. ])}
 ```
 
 #### Values from Popular Papers
