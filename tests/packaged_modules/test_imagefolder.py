@@ -2,11 +2,15 @@ import os
 import shutil
 import textwrap
 
+import numpy as np
 import pytest
 
 from datasets import Features, Image, Value
 from datasets.data_files import DataFilesDict, get_patterns_locally
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder
+from datasets.streaming import extend_module_for_streaming
+
+from ..utils import require_pil
 
 
 @pytest.fixture
@@ -53,7 +57,7 @@ def data_files_with_one_split_and_metadata(tmp_path, image_file):
         """\
         {"file_name": "image_rgb.jpg", "caption": "Nice image"}
         {"file_name": "image_rgb2.jpg", "caption": "Nice second image"}
-        {"file_name": "image_rgb3.jpg", "caption": "Nice third image"}
+        {"file_name": "subdir/image_rgb3.jpg", "caption": "Nice third image"}
         """
     )
     with open(image_metadata_filename, "w", encoding="utf-8") as f:
@@ -62,6 +66,7 @@ def data_files_with_one_split_and_metadata(tmp_path, image_file):
         get_patterns_locally(data_dir), data_dir
     )
     assert len(data_files_with_one_split_and_metadata) == 1
+    assert len(data_files_with_one_split_and_metadata["train"]) == 4
     return data_files_with_one_split_and_metadata
 
 
@@ -102,9 +107,50 @@ def data_files_with_two_splits_and_metadata(tmp_path, image_file):
         get_patterns_locally(data_dir), data_dir
     )
     assert len(data_files_with_two_splits_and_metadata) == 2
+    assert len(data_files_with_two_splits_and_metadata["train"]) == 3
+    assert len(data_files_with_two_splits_and_metadata["test"]) == 2
     return data_files_with_two_splits_and_metadata
 
 
+@pytest.fixture
+def data_files_with_zip_archives(tmp_path, image_file):
+    from PIL import Image, ImageOps
+
+    data_dir = tmp_path / "imagefolder_data_dir_with_zip_archives"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    archive_dir = data_dir / "archive"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    subdir = archive_dir / "subdir"
+    subdir.mkdir(parents=True, exist_ok=True)
+
+    image_filename = archive_dir / "image_rgb.jpg"
+    shutil.copyfile(image_file, image_filename)
+    image_filename2 = subdir / "image_rgb2.jpg"  # in subdir
+    # make sure they're two different images
+    # Indeed we won't be able to compare the image.filename, since the archive is not extracted in streaming mode
+    ImageOps.flip(Image.open(image_file)).save(image_filename2)
+
+    image_metadata_filename = archive_dir / "metadata.jsonl"
+    image_metadata = textwrap.dedent(
+        """\
+        {"file_name": "image_rgb.jpg", "caption": "Nice image"}
+        {"file_name": "subdir/image_rgb2.jpg", "caption": "Nice second image"}
+        """
+    )
+    with open(image_metadata_filename, "w", encoding="utf-8") as f:
+        f.write(image_metadata)
+
+    shutil.make_archive(archive_dir, "zip", archive_dir)
+    shutil.rmtree(str(archive_dir))
+
+    data_files_with_zip_archives = DataFilesDict.from_local_or_remote(get_patterns_locally(data_dir), data_dir)
+
+    assert len(data_files_with_zip_archives) == 1
+    assert len(data_files_with_zip_archives["train"]) == 1
+    return data_files_with_zip_archives
+
+
+@require_pil
 @pytest.mark.parametrize("drop_labels", [True, False])
 def test_generate_examples_drop_labels(image_file, drop_labels):
     imagefolder = ImageFolder(drop_labels=drop_labels)
@@ -121,6 +167,7 @@ def test_generate_examples_drop_labels(image_file, drop_labels):
         )
 
 
+@require_pil
 @pytest.mark.parametrize("drop_metadata", [True, False])
 def test_generate_examples_drop_metadata(image_file_with_metadata, drop_metadata):
     image_file, image_metadata_file = image_file_with_metadata
@@ -144,19 +191,42 @@ def test_generate_examples_drop_metadata(image_file_with_metadata, drop_metadata
         )
 
 
+@require_pil
+@pytest.mark.parametrize("streaming", [False, True])
 @pytest.mark.parametrize("n_splits", [1, 2])
-def test_data_files_with_metadata(
-    cache_dir, n_splits, data_files_with_one_split_and_metadata, data_files_with_two_splits_and_metadata
+def test_data_files_with_metadata_and_splits(
+    streaming, cache_dir, n_splits, data_files_with_one_split_and_metadata, data_files_with_two_splits_and_metadata
 ):
     data_files = data_files_with_one_split_and_metadata if n_splits == 1 else data_files_with_two_splits_and_metadata
-    imagefolder = ImageFolder(data_files=data_files_with_two_splits_and_metadata, cache_dir=cache_dir)
+    imagefolder = ImageFolder(data_files=data_files, cache_dir=cache_dir)
     imagefolder.download_and_prepare()
-    datasets = imagefolder.as_dataset()
-    for split, data_files in data_files_with_two_splits_and_metadata.items():
+    datasets = imagefolder.as_streaming_dataset() if streaming else imagefolder.as_dataset()
+    for split, data_files in data_files.items():
         expected_num_of_images = len(data_files) - 1  # don't count the metadata file
         assert split in datasets
-        dataset = datasets[split]
+        dataset = list(datasets[split])
         assert len(dataset) == expected_num_of_images
         # make sure each sample has its own image and metadata
-        assert len(set(img.filename for img in dataset["image"])) == expected_num_of_images
-        assert len(dataset.unique("caption")) == expected_num_of_images
+        assert len(set(example["image"].filename for example in dataset)) == expected_num_of_images
+        assert len(set(example["caption"] for example in dataset)) == expected_num_of_images
+        assert all(example["caption"] is not None for example in dataset)
+
+
+@require_pil
+@pytest.mark.parametrize("streaming", [False, True])
+def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_with_zip_archives):
+    if streaming:
+        extend_module_for_streaming(ImageFolder.__module__)
+    imagefolder = ImageFolder(data_files=data_files_with_zip_archives, cache_dir=cache_dir)
+    imagefolder.download_and_prepare()
+    datasets = imagefolder.as_streaming_dataset() if streaming else imagefolder.as_dataset()
+    for split, data_files in data_files_with_zip_archives.items():
+        num_of_archives = len(data_files)  # the metadata file is inside the archive
+        expected_num_of_images = 2 * num_of_archives
+        assert split in datasets
+        dataset = list(datasets[split])
+        assert len(dataset) == expected_num_of_images
+        # make sure each sample has its own image and metadata
+        assert len(set([np.array(example["image"])[0, 0, 0] for example in dataset])) == expected_num_of_images
+        assert len(set(example["caption"] for example in dataset)) == expected_num_of_images
+        assert all(example["caption"] is not None for example in dataset)
