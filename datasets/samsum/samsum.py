@@ -40,7 +40,7 @@ There are two features:
   - id: id of a example.
 """
 
-_HOMEPAGE = "https://arxiv.org/abs/1911.12237v2"
+_HOMEPAGE = "https://arxiv.org/abs/1911.12237"
 
 _LICENSE = "CC BY-NC-ND 4.0"
 
@@ -79,7 +79,6 @@ class Samsum(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": (path, "train.json"),
                     "split": "train",
@@ -87,7 +86,6 @@ class Samsum(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": (path, "test.json"),
                     "split": "test",
@@ -95,7 +93,6 @@ class Samsum(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": (path, "val.json"),
                     "split": "val",
