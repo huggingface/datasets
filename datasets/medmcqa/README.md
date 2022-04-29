@@ -20,9 +20,9 @@ task_ids:
 - multiple-choice-qa
 - open-domain-qa
 paperswithcode_id:
-- medmcqa
+medmcqa
 pretty_name:
-- MedMCQA
+MedMCQA
 ---
 
 # Dataset Card for MedMCQA
