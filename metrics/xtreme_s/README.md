@@ -108,7 +108,7 @@ For the `minds14` subset (which outputs `f1` and `accuracy`):
 ## Limitations and bias
 This metric works only with datasets that have the same format as the [XTREME-S dataset](https://huggingface.co/datasets/google/xtreme_s).
 
-While the XTREME-S dataset is meant to represent a variety of languages and tasks, it has inherent biases : it is missing many languages that are important and under-represented in NLP datasets. 
+While the XTREME-S dataset is meant to represent a variety of languages and tasks, it has inherent biases: it is missing many languages that are important and under-represented in NLP datasets. 
 
 It also has a particular focus on read-speech because common evaluation benchmarks like CoVoST-2 or LibriSpeech evaluate on this type of speech, which results in a mismatch between performance obtained in a read-speech setting and a more noisy setting (in production or live deployment, for instance). 
 
