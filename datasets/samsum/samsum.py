@@ -44,7 +44,7 @@ _HOMEPAGE = "https://arxiv.org/abs/1911.12237v2"
 
 _LICENSE = "CC BY-NC-ND 4.0"
 
-_URLs = "https://arxiv.org/src/1911.12237v2/anc/corpus.7z"
+_URL = "https://huggingface.co/datasets/datafiles/samsum/resolve/main/corpus.7z"
 
 
 class Samsum(datasets.GeneratorBasedBuilder):
@@ -75,8 +75,7 @@ class Samsum(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        my_urls = _URLs
-        path = dl_manager.download_and_extract(my_urls)
+        path = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
