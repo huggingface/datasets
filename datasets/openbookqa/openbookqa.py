@@ -158,7 +158,7 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
                     "question_stem": data["question"]["stem"],
                     "choices": {
                         "text": [choice["text"] for choice in data["question"]["choices"]],
-                        "label": [choice["text"] for choice in data["question"]["choices"]],
+                        "label": [choice["label"] for choice in data["question"]["choices"]],
                     },
                     "answerKey": data["answerKey"],
                 }
