@@ -1,3 +1,4 @@
+---
 languages:
 - en
 licenses:
@@ -6,12 +7,12 @@ multilinguality:
 - monolingual
 task_categories:
 - text-classification
-task_ids
+task_ids:
 - sentiment-classification
-paperswithcode_id
+paperswithcode_id:
 - mr
-pretty_name
--  MR (MR Movie Reviews) 
+pretty_name: MR Movie Reviews
+---
 
 # Dataset Card for mr_polarity
 
@@ -37,6 +38,7 @@ pretty_name
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -64,16 +66,17 @@ English
 
 {
     'label': 1,
-    'text': "director robert zemekis must be given an equal amount of praise for overseeing the entire production , which included hundreds of animators . "
+    'text': "director robert zemekis must be given an equal amount of praise for overseeing the entire production, which included hundreds of animators. "
 }
 
 ### Data Fields
 
-[Needs More Information]
+- `text`: A sentence from a movie review.
+- `label`: Sentiment; 0 = negative, 1 = positive
 
 ### Data Splits
 
-[Needs More Information]
+The original dataset was not divided into splits, therefore we are only providing a 'train' split which contains 5331 positive and 5331 negative examples.
 
 ## Dataset Creation
 
@@ -130,5 +133,17 @@ English
 [Needs More Information]
 
 ### Citation Information
+
+```
+@inproceedings{Pang+Lee:05a,
+   author = {Bo Pang and Lillian Lee},
+   title = {Seeing stars: Exploiting class relationships for sentiment categorization with respect to rating scales},
+   year = {2005},
+   pages = {115--124},
+   booktitle = {Proceedings of ACL}
+}
+```
+
+### Contributions
 
 [Needs More Information]
