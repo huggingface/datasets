@@ -1,4 +1,8 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
 languages:
 - en
 licenses:
@@ -11,6 +15,10 @@ task_ids:
 - sentiment-classification
 paperswithcode_id:
 - mr
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
 pretty_name: MR Movie Reviews
 ---
 
@@ -146,4 +154,6 @@ The original dataset was not divided into splits, therefore we are only providin
 
 ### Contributions
 
-[Needs More Information]
+Thanks to [@mo6zes](https://github.com/mo6zes/) for this dataset.
+
+
