@@ -50,7 +50,9 @@ Args:
     device (str): device to run on, defaults to 'cuda' when available
 Returns:
     perplexity: dictionary containing the perplexity scores for the texts
-        in the input list, as well as the mean perplexity.
+        in the input list, as well as the mean perplexity. If one of the input texts is
+        longer than the max input length of the model, then it is truncated to the
+        max length for the perplexity computation.
 Examples:
     Example 1:
         >>> perplexity = datasets.load_metric("perplexity")

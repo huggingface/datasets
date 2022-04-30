@@ -30,6 +30,7 @@ results = perplexity.compute(input_texts=input_texts, model_id='gpt2')
 
 ### Output Values
 This metric outputs a dictionary with the perplexity scores for the text input in the list, and the average perplexity.
+If one of the input texts is longer than the max input length of the model, then it is truncated to the max length for the perplexity computation.
 
 ```
 {'perplexities': [8.182524681091309, 33.42122268676758, 27.012239456176758], 'mean_perplexity': 22.871995608011883}
