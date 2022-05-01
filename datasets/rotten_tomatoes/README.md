@@ -20,7 +20,6 @@ size_categories:
 - 1K<n<10K
 source_datasets:
 - original
-paperswithcode_id: mr
 ---
 
 # Dataset Card for "rotten_tomatoes"
