@@ -1,4 +1,24 @@
-[Needs More Information]
+---
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: CMU MoCap
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- other
+task_ids: []
+paperswithcode_id: mocap
+---
 
 # Dataset Card for CMU MoCap 
 
