@@ -1,0 +1,27 @@
+name: Dataset Viewer Issue
+description: Issue related to the Dataset Viewer on huggingface.co/datasets
+title: "Dataset Viewer issue for [dataset name]"
+labels: ["dataset-viewer"]
+assignees:
+  - severo
+body:
+  - type: input
+    id: url
+    attributes:
+      label: Link
+      description: Link to the dataset viewer page
+      placeholder: ex. https://huggingface.co/datasets/glue/viewer/cola/test
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Short description of the issue
+      placeholder: Tell us what the issue is and which error you get
+  - type: dropdown
+    id: owner
+    attributes:
+      label: Owner
+      description: Is it you who added this dataset?
+      options:
+        - "Yes"
+        - "No"
