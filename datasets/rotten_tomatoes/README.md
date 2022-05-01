@@ -14,8 +14,7 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
-paperswithcode_id:
-- mr
+paperswithcode_id: mr
 size_categories:
 - 1K<n<10K
 source_datasets:
