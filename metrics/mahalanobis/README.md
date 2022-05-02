@@ -14,8 +14,8 @@ At minimum, this metric requires two `list`s of datapoints:
 ```
 
 ### Inputs
-- **`X`** (`list`): datapoints to be compared with the `reference_distribution`.
-- **`reference_distribution`** (`list`): datapoints from the reference distribution that we want to compare to.
+- `X` (`list`): data points to be compared with the `reference_distribution`.
+- `reference_distribution` (`list`): data points from the reference distribution that we want to compare to.
                     
 ### Output Values
 **`mahalanobis`** (`array`): the Mahalonobis distance for each datapoint in `X`.
