@@ -51,11 +51,11 @@ There are two features:
   - abstract: Patent abastract.
 """
 
-_REPO = "https://huggingface.co/datasets/datafiles/big_patent/resolve/main/"
+_REPO = "https://huggingface.co/datasets/big_patent/resolve/main/data"
 _URLS = {
-    "train": _REPO + "train.zip",
-    "validation": _REPO + "val.zip",
-    "test": _REPO + "test.zip",
+    "train": f"{_REPO}/train.zip",
+    "validation": f"{_REPO}/val.zip",
+    "test": f"{_REPO}/test.zip",
 }
 
 _DOCUMENT = "description"
