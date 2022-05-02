@@ -9,7 +9,7 @@ licenses:
 - cc-by-4.0
 multilinguality:
 - monolingual
-pretty_name: Electricity Transformer Dataset
+pretty_name: Electricity Transformer Temperature
 size_categories:
 - 1K<n<10K
 source_datasets:
@@ -21,7 +21,7 @@ task_ids:
 - multivariate-time-series-forecasting
 ---
 
-# Dataset Card for [Electricity Transformer Dataset](https://github.com/zhouhaoyi/ETDataset)
+# Dataset Card for [Electricity Transformer Temperature](https://github.com/zhouhaoyi/ETDataset)
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
