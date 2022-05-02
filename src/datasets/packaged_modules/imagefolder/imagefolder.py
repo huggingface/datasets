@@ -85,6 +85,11 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                             labels.add(os.path.basename(os.path.dirname(original_file)))
                         elif os.path.basename(original_file) == self.METADATA_FILENAME:
                             metadata_files[split].append((original_file, downloaded_file))
+                        else:
+                            original_file_name = os.path.basename(original_file)
+                            logger.debug(
+                                f"The file '{original_file_name}' was ignored: it is not an image, and is not {self.METADATA_FILENAME} either."
+                            )
                 else:
                     archives, downloaded_dirs = files_or_archives, downloaded_files_or_dirs
                     for archive, downloaded_dir in zip(archives, downloaded_dirs):
@@ -95,6 +100,12 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                                 labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
                             elif os.path.basename(downloaded_dir_file) == self.METADATA_FILENAME:
                                 metadata_files[split].append((None, downloaded_dir_file))
+                            else:
+                                archive_file_name = os.path.basename(archive)
+                                original_file_name = os.path.basename(original_file)
+                                logger.debug(
+                                    f"The file '{original_file_name}' from the archive '{archive_file_name}' was ignored: it is not an image, and is not {self.METADATA_FILENAME} either."
+                                )
 
             if not self.config.drop_labels:
                 logger.info("Inferring labels from data files...")
