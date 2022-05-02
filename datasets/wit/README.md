@@ -233,8 +233,8 @@ total > 14K  | 38     | images > 13K  | 38
 - `mime_type`: Mime type associated to the image.
 - `original_height`: Image height
 - `original_width`: Image width
-- `is_main_image`: [More Information Needed]
-- `attribution_passes_lang_id`: [More Information Needed]
+- `is_main_image`: Flag determining if the image is the first image of the page. Usually displayed on the top-right part of the page when using web browsers.
+- `attribution_passes_lang_id`: Compared `language` field with the attribution language (written in the prefix of the attribution description). 
 - `page_changed_recently`: [More Information Needed] 
 - `context_page_description`: Page description corresponds to the short description of the page. It provides a concise explanation of the scope of the page.
 - `context_section_description`: Text within the image's section.
