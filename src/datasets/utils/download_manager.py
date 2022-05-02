@@ -148,7 +148,7 @@ class DownloadManager:
         data_dir: Optional[str] = None,
         download_config: Optional[DownloadConfig] = None,
         base_path: Optional[str] = None,
-        record_checksums="deprecated",
+        record_checksums=True,
     ):
         """Download manager constructor.
 
@@ -160,25 +160,17 @@ class DownloadManager:
                 download options
             base_path: `str`, base path that is used when relative paths are used to
                 download files. This can be a remote url.
-            record_checksums:
-                Deprecated: 'record_checksms' was replaced by 'DownloadConfig.record_checksums' in version 2.1.1 and will be removed in 2.4.0.
+            record_checksums (:obj:`bool`, default `True`): Whether to record the checksums of the downloaded files. If None, the value is inferred from the builder.
         """
         self._dataset_name = dataset_name
         self._data_dir = data_dir
         self._base_path = base_path or os.path.abspath(".")
         # To record what is being used: {url: {num_bytes: int, checksum: str}}
         self._recorded_sizes_checksums: Dict[str, Dict[str, Optional[Union[int, str]]]] = {}
+        self.record_checksums = record_checksums
         self.download_config = download_config or DownloadConfig()
         self.downloaded_paths = {}
         self.extracted_paths = {}
-
-        if record_checksums != "deprecated":
-            warnings.warn(
-                "'record_checksms' was replaced by 'DownloadConfig.record_checksums' in version 2.1.1 and will be removed in 2.4.0.",
-                FutureWarning,
-            )
-            self.download_config = self.download_config.copy()
-            self.download_config.record_checksums = record_checksums
 
     @property
     def manual_dir(self):
@@ -221,7 +213,7 @@ class DownloadManager:
         for url, path in zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()):
             # call str to support PathLike objects
             self._recorded_sizes_checksums[str(url)] = get_size_checksum_dict(
-                path, record_checksum=self.download_config.record_checksums
+                path, record_checksum=self.record_checksums
             )
 
     def download_custom(self, url_or_urls, custom_download):

@@ -527,17 +527,14 @@ class DatasetBuilder:
                     use_auth_token=use_auth_token,
                 )  # We don't use etag for data files to speed up the process
 
-            if download_config.record_checksums is None:
-                download_config = download_config.copy()
-                download_config.record_checksums = (
-                    (self._record_infos or verify_infos) if not self.SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT else False
-                )
-
             dl_manager = DownloadManager(
                 dataset_name=self.name,
                 download_config=download_config,
                 data_dir=self.config.data_dir,
                 base_path=base_path,
+                record_checksums=(self._record_infos or verify_infos)
+                if not self.SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT
+                else False,
             )
 
         elif isinstance(dl_manager, MockDownloadManager):
@@ -682,7 +679,7 @@ class DatasetBuilder:
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
 
         # Checksums verification
-        if verify_infos and dl_manager.download_config.record_checksums:
+        if verify_infos and dl_manager.record_checksums:
             verify_checksums(
                 self.info.download_checksums, dl_manager.get_recorded_sizes_checksums(), "dataset source files"
             )
