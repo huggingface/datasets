@@ -24,7 +24,7 @@ import datasets
 _CITATION = """
 @inproceedings{singh2019towards,
     title={Towards VQA Models That Can Read},
-    author={Singh, Amanpreet and Natarjan, Vivek and Shah, Meet and Jiang, Yu and Chen, Xinlei and Parikh, Devi and Rohrbach, Marcus},
+    author={Singh, Amanpreet and Natarjan, Vivek and Shah, Meet and Jiang, Yu and Chen, Xinlei and Batra, Dhruv and Parikh, Devi and Rohrbach, Marcus},
     booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
     pages={8317-8326},
     year={2019}
@@ -53,24 +53,18 @@ _URLS["test_images"] = "https://dl.fbaipublicfiles.com/textvqa/images/test_image
 _NUM_ANSWERS_PER_QUESTION = 10
 
 
-class TextvqaConfig(datasets.BuilderConfig):
-    """BuilderConfig for TextVQA"""
-
-    def __init__(self, name, **kwargs):
-        """BuilderConfig for TextVQA.
-
-        Args:
-            **kwargs: keyword arguments forwarded to super.
-        """
-        super(TextvqaConfig, self).__init__(version=datasets.Version("0.5.1", ""), name=name, **kwargs)
-
-
 class Textvqa(datasets.GeneratorBasedBuilder):
     """TextVQA dataset."""
 
-    BUILDER_CONFIGS = [TextvqaConfig(split) for split in _SPLITS]
+    BUILDER_CONFIGS = [
+        datasets.BuilderConfig(
+            name="textvqa",
+            version=datasets.Version("0.5.1"),
+            description=_DESCRIPTION,
+        )
+    ]
 
-    DEFAULT_CONFIG_NAME = "train"
+    DEFAULT_CONFIG_NAME = "textvqa"
 
     def _info(self):
         features = datasets.Features(

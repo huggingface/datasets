@@ -80,7 +80,7 @@ An example look like below:
 ```
   {'question': 'who is this copyrighted by?',
    'image_id': '00685bc495504d61',
-   'image': 
+   'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x276021C5EB8>,
    'image_classes': ['Vehicle', 'Tower', 'Airplane', 'Aircraft'],
    'flickr_original_url': 'https://farm2.staticflickr.com/5067/5620759429_4ea686e643_o.jpg',
    'flickr_300k_url': 'https://c5.staticflickr.com/6/5067/5620759429_f43a649fb5_z.jpg',
@@ -104,50 +104,36 @@ An example look like below:
 
 ### Data Fields
 
-{
-      "question_id": "INT, incremental unique ID for the question",
-      "question": "what is ....?",
-      "question_tokens": [
-        "token_1",
-        "token_2",
-        "...",
-        "token_N"
-      ],
-      "image_id": "OpenImages Image ID",
-      "image_classes": [
-        "OpenImages_class_1",
-        "OpenImages_class_2",
-        "...",
-        "OpenImages_class_n"
-      ],
-      "flickr_original_url": "OpenImages original flickr url",
-      "flickr_300k_url": "OpenImages flickr 300k thumbnail url",
-      "image_width": "INT, Width of the image",
-      "image_height": "INT, Height of the image",
-      "set_name": "Dataset split question belongs to",
-      "answers": [
-        "answer_1",
-        "answer_2",
-        "...",
-        "answer_10"
-      ]
-}
+- `question`: string, the question that is being asked about the image
+- `image_id`: string, id of the image which is same as the OpenImages id
+- `image`: A `PIL.Image.Image` object containing the image about which the question is being asked. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`.
+- `image_classes`: List[str], The OpenImages classes to which the image belongs to.
+- `flickr_original_url`: string, URL to original image on Flickr
+- `flickr_300k_url`: string, URL to resized and low-resolution image on Flickr.
+- `image_width`: int, Width of the original image.
+- `image_height`: int, Height of the original image.
+- `question_tokens`:  List[str], A pre-tokenized list of question.
+- `answers`: List[str], List of 10 human-annotated answers for the question. These 10 answers are collected from 10 different users.
+- `question_id`: int, Unique id of the question.
+- `set_name`: string, the set to which this question belongs.
 
 ### Data Splits
 
-There are three splits. `train`, `validation` and `test`. `train` and `validation` share images and have their answers available. For test set predictions, you need to go to the [EvalAI leaderboard] and upload your predictions there. Please see instructions at [https://textvqa.org/challenge/](https://textvqa.org/challenge/).
+There are three splits. `train`, `validation` and `test`. The `train` and `validation` sets share images with OpenImages `train` set and have their answers available. To get inference results and numbers on `test` set, you need to go to the [EvalAI leaderboard](https://eval.ai/web/challenges/challenge-page/874/overview) and upload your predictions there. Please see instructions at [https://textvqa.org/challenge/](https://textvqa.org/challenge/).
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[Needs More Information]
+From the paper:
+
+> Studies have shown that a dominant class of questions asked by visually impaired users on images of their surroundings involves reading text in the image. But today’s VQA models can not read! Our paper takes a first step towards addressing this problem. First, we introduce a new “TextVQA” dataset to facilitate progress on this important problem. Existing datasets either have a small proportion of questions about text (e.g., the VQA dataset) or are too small (e.g., the VizWiz dataset). TextVQA contains 45,336 questions on 28,408 images that require reasoning about text to answer.
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[Needs More Information]
+The initial images were sourced from [OpenImages](https://storage.googleapis.com/openimages/web/factsfigures_v4.html) v4 dataset. These were first filtered based on automatic heuristics using an OCR system where we only took images which had at least some text detected in them. See [annotation process](#annotation-process) section to understand the next stages. 
 
 #### Who are the source language producers?
 
@@ -157,35 +143,44 @@ English Crowdsource Annotators
 
 #### Annotation process
 
-See the [paper](https://arxiv.org/abs/1904.08920).
+ After the automatic process of filter the images that contain text, the images were manually verified using human annotators making sure that they had text. In next stage, the annotators were asked to write questions involving scene text for the image. For some images, in this stage, two questions were collected whenever possible. Finally, in the last stage, ten different human annotators answer the questions asked in last stage.
 
 #### Who are the annotators?
 
-See the [paper](https://arxiv.org/abs/1904.08920).
+Annotators are from one of the major data collection platforms such as AMT. Exact details are not mentioned in the paper.
 
 ### Personal and Sensitive Information
 
-See the [paper](https://arxiv.org/abs/1904.08920).
+The dataset does have similar PII issues as OpenImages and can at some times contain human faces, license plates, and documents. Using provided `image_classes` data field is one option to try to filter out some of this information.
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-See the [paper](https://arxiv.org/abs/1904.08920).
+The paper helped realize the importance of scene text recognition and reasoning in general purpose machine learning applications and has led to many follow-up works including [TextCaps](https://textvqa.org/textcaps) and [TextOCR](https://textvqa.org/textocr). Similar datasets were introduced over the time which specifically focus on sight-disabled users such as [VizWiz](https://vizwiz.org) or focusing specifically on the same problem as TextVQA like [STVQA](https://paperswithcode.com/dataset/st-vqa), [DocVQA](https://arxiv.org/abs/2007.00398v3) and [OCRVQA](https://ocr-vqa.github.io/). Currently, most methods train on combined dataset from TextVQA and STVQA to achieve state-of-the-art performance on both datasets.
 
 ### Discussion of Biases
 
-See the [paper](https://arxiv.org/abs/1904.08920).
+Question-only bias where a model is able to answer the question without even looking at the image is discussed in the [paper](https://arxiv.org/abs/1904.08920) which was a major issue with original VQA dataset. The outlier bias in answers is prevented by collecting 10 different answers which are also taken in consideration by the evaluation metric.
 
 ### Other Known Limitations
 
-See the [paper](https://arxiv.org/abs/1904.08920).
+- The dataset is english only but does involve images with non-English latin characters so can involve some multi-lingual understanding.
+- The performance on the dataset is also dependent on the quality of OCR used as the OCR errors can directly lead to wrong answers.
+- The metric used for calculating accuracy is same as [VQA accuracy](https://visualqa.org/evaluation.html). This involves one-to-one matching with the given answers and thus doesn't allow analyzing one-off errors through OCR.
 
 ## Additional Information
 
 ### Dataset Curators
 
-[Amanpreet Singh](https://github.com/apsdehal)
+- [Amanpreet Singh](https://github.com/apsdehal)
+- Vivek Natarjan
+- Meet Shah
+- Yu Jiang
+- Xinlei Chen
+- Dhruv Batra
+- Devi Parikh
+- Marcus Rohrbach
 
 ### Licensing Information
 
@@ -196,7 +191,7 @@ CC by 4.0
 ```bibtex
 @inproceedings{singh2019towards,
     title={Towards VQA Models That Can Read},
-    author={Singh, Amanpreet and Natarjan, Vivek and Shah, Meet and Jiang, Yu and Chen, Xinlei and Parikh, Devi and Rohrbach, Marcus},
+    author={Singh, Amanpreet and Natarjan, Vivek and Shah, Meet and Jiang, Yu and Chen, Xinlei and Batra, Dhruv and Parikh, Devi and Rohrbach, Marcus},
     booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
     pages={8317-8326},
     year={2019}
