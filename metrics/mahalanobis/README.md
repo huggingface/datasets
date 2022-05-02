@@ -35,7 +35,6 @@ At minimum, this metric requires two `list`s of datapoints:
 >>> results = mahalanobis_metric.compute(reference_distribution=[[0, 1], [1, 0]], X=[[0, 1]])
 >>> print(results)
 {'mahalanobis': array([0.5])}
-"""
 ```
 
 ## Limitations and Bias
