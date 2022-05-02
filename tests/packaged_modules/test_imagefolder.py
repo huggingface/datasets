@@ -230,3 +230,46 @@ def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_
         assert len(set([np.array(example["image"])[0, 0, 0] for example in dataset])) == expected_num_of_images
         assert len(set(example["caption"] for example in dataset)) == expected_num_of_images
         assert all(example["caption"] is not None for example in dataset)
+
+
+@require_pil
+def test_data_files_with_wrong_metadata_file_name(cache_dir, tmp_path, image_file):
+    data_dir = tmp_path / "data_dir_with_bad_metadata"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(image_file, data_dir / "image_rgb.jpg")
+    image_metadata_filename = data_dir / "bad_metadata.jsonl"  # bad file
+    image_metadata = textwrap.dedent(
+        """\
+        {"file_name": "image_rgb.jpg", "caption": "Nice image"}
+        """
+    )
+    with open(image_metadata_filename, "w", encoding="utf-8") as f:
+        f.write(image_metadata)
+
+    data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(get_patterns_locally(data_dir), data_dir)
+    imagefolder = ImageFolder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
+    imagefolder.download_and_prepare()
+    dataset = imagefolder.as_dataset(split="train")
+    # check that there are no metadata, since the metadata file name doesn't have the right name
+    assert "caption" not in dataset.column_names
+
+
+@require_pil
+def test_data_files_with_wrong_image_file_name_column_in_metadata_file(cache_dir, tmp_path, image_file):
+    data_dir = tmp_path / "data_dir_with_bad_metadata"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(image_file, data_dir / "image_rgb.jpg")
+    image_metadata_filename = data_dir / "metadata.jsonl"
+    image_metadata = textwrap.dedent(  # with bad column "bad_file_name" instead of "file_name"
+        """\
+        {"bad_file_name": "image_rgb.jpg", "caption": "Nice image"}
+        """
+    )
+    with open(image_metadata_filename, "w", encoding="utf-8") as f:
+        f.write(image_metadata)
+
+    data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(get_patterns_locally(data_dir), data_dir)
+    imagefolder = ImageFolder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
+    with pytest.raises(ValueError) as exc_info:
+        imagefolder.download_and_prepare()
+    assert "`file_name` must be present" in str(exc_info.value)
