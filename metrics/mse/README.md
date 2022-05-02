@@ -30,7 +30,7 @@ Optional arguments:
   - `raw_values` returns a full set of errors in case of multioutput input.
   - `uniform_average` means that the errors of all outputs are averaged with uniform weight. 
   - the array-like value defines weights used to average errors.
-- `squared` : (`bool`) -- If `True` returns MSE value, if `False` returns RMSE (Root Mean Squared Error). The default value is `True`.
+- `squared` (`bool`): If `True` returns MSE value, if `False` returns RMSE (Root Mean Squared Error). The default value is `True`.
         
 
 ### Output Values
