@@ -19,7 +19,6 @@ import enum
 import io
 import os
 import tarfile
-import warnings
 from datetime import datetime
 from functools import partial
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
