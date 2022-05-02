@@ -386,7 +386,7 @@ def test_xgetsize(input_path, size, tmp_path, mock_fsspec):
 def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
     if input_path.startswith("tmp_path"):
         input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
-        expected_paths = [(tmp_path / file).as_posix() for file in expected_paths]
+        expected_paths = [str(tmp_path / file) for file in expected_paths]
         for file in ["file1.txt", "file2.txt", "README.md"]:
             (tmp_path / file).touch()
     output_paths = sorted(xglob(input_path))

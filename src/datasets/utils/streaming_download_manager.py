@@ -100,10 +100,7 @@ def xjoin(a, *p):
         >>> xjoin("zip://folder1::https://host.com/archive.zip", "file.txt")
         zip://folder1/file.txt::https://host.com/archive.zip
     """
-    # required for `xjoin(str(Path(...)), ...)` to work
-    a = _as_posix(PurePath(a))
-    p = [_as_posix(PurePath(x)) for x in p]
-    a, *b = a.split("::")
+    a, *b = str(a).split("::")
     if is_local_path(a):
         a = Path(a, *p).as_posix()
     else:
@@ -130,9 +127,7 @@ def xdirname(a):
         >>> xdirname("zip://folder1/file.txt::https://host.com/archive.zip")
         zip://folder1::https://host.com/archive.zip
     """
-    # required for `xdirname(str(Path(...)))` to work
-    a = _as_posix(PurePath(a))
-    a, *b = a.split("::")
+    a, *b = str(a).split("::")
     if is_local_path(a):
         a = os.path.dirname(Path(a).as_posix())
     else:
@@ -163,9 +158,7 @@ def xbasename(a):
         >>> xbasename("zip://folder1/file.txt::https://host.com/archive.zip")
         file.txt
     """
-    # required for `xbasename(str(Path(...)))` to work
-    a = _as_posix(PurePath(a))
-    a, *b = a.split("::")
+    a, *b = str(a).split("::")
     if is_local_path(a):
         return os.path.basename(Path(a).as_posix())
     else:
@@ -191,9 +184,7 @@ def xsplit(a):
         >>> xsplit("zip://folder1/file.txt::https://host.com/archive.zip")
         ('zip://folder1::https://host.com/archive.zip', 'file.txt')
     """
-    # required for `xsplit(str(Path(...)))` to work
-    a = _as_posix(PurePath(a))
-    a, *b = a.split("::")
+    a, *b = str(a).split("::")
     if is_local_path(a):
         return os.path.split(Path(a).as_posix())
     else:
@@ -220,9 +211,7 @@ def xsplitext(a):
         >>> xsplitext("zip://folder1/file.txt::https://host.com/archive.zip")
         ('zip://folder1/file::https://host.com/archive.zip', '.txt')
     """
-    # required for `xsplitext(str(Path(...)))` to work
-    a = _as_posix(PurePath(a))
-    a, *b = a.split("::")
+    a, *b = str(a).split("::")
     if is_local_path(a):
         return os.path.splitext(Path(a).as_posix())
     else:
@@ -239,8 +228,6 @@ def xisfile(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
     Returns:
         :obj:`bool`
     """
-    # required for `xisfile(str(Path(...)))` to work
-    path = _as_posix(PurePath(path))
     main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
         return os.path.isfile(path)
@@ -264,9 +251,7 @@ def xgetsize(path, use_auth_token: Optional[Union[str, bool]] = None) -> int:
     Returns:
         :obj:`int`, optional
     """
-    # required for `xgetsize(str(Path(...)))` to work
-    path = _as_posix(PurePath(path))
-    main_hop, *rest_hops = path.split("::")
+    main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
         return os.path.getsize(path)
     else:
@@ -294,9 +279,7 @@ def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
     Returns:
         :obj:`bool`
     """
-    # required for `xisdir(str(Path(...)))` to work
-    path = _as_posix(PurePath(path))
-    main_hop, *rest_hops = path.split("::")
+    main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
         return os.path.isdir(path)
     else:
@@ -320,9 +303,7 @@ def xrelpath(path, start=None):
     Returns:
         :obj:`str`
     """
-    # required for `xrelpath(str(Path(...)))` to work
-    path = _as_posix(PurePath(path))
-    main_hop, *rest_hops = path.split("::")
+    main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
         return os.path.relpath(main_hop, start=start) if start else os.path.relpath(main_hop)
     else:
@@ -487,9 +468,7 @@ def xlistdir(path: str, use_auth_token: Optional[Union[str, bool]] = None) -> Li
     Returns:
         :obj:`list` of :obj:`str`
     """
-    # required for `xlistdir(str(Path(...)))` to work
-    path = _as_posix(PurePath(path))
-    main_hop, *rest_hops = path.split("::")
+    main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
         return os.listdir(path)
     else:
@@ -529,9 +508,7 @@ def xglob(urlpath, *, recursive=False, use_auth_token: Optional[Union[str, bool]
     Returns:
         :obj:`list` of :obj:`str`
     """
-    # required for `xglob(str(Path(...)))` to work
-    urlpath = _as_posix(PurePath(urlpath))
-    main_hop, *rest_hops = urlpath.split("::")
+    main_hop, *rest_hops = str(urlpath).split("::")
     if is_local_path(main_hop):
         return glob.glob(main_hop, recursive=recursive)
     else:
@@ -657,9 +634,7 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
     Yields:
         :obj:`tuple`: 3-tuple (dirpath, dirnames, filenames).
     """
-    # required for `xisdir(str(Path(...)))` to work
-    urlpath = _as_posix(PurePath(urlpath))
-    main_hop, *rest_hops = urlpath.split("::")
+    main_hop, *rest_hops = str(urlpath).split("::")
     if is_local_path(main_hop):
         return os.walk(main_hop)
     else:
@@ -877,3 +852,4 @@ class StreamingDownloadManager:
             str: File URL path.
         """
         return FilesIterable.from_urlpaths(urlpaths, use_auth_token=self.download_config.use_auth_token)
+        
