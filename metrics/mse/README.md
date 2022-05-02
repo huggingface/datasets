@@ -12,7 +12,7 @@ Mean Squared Error(MSE) represents the average of the squares of errors -- i.e. 
 At minimum, this metric requires predictions and references as inputs.
 
 ```python
->>> mse_metric = load_metric("mse")
+>>> mse_metric = datasets.load_metric("mse")
 >>> predictions = [2.5, 0.0, 2, 8]
 >>> references = [3, -0.5, 2, 7]
 >>> results = mse_metric.compute(predictions=predictions, references=references)
