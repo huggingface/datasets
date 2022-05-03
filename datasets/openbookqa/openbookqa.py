@@ -39,12 +39,9 @@ class OpenbookqaConfig(datasets.BuilderConfig):
         Args:
           data_dir: directory for the given dataset name
           **kwargs: keyword arguments forwarded to super.
-
         """
 
-        super(OpenbookqaConfig, self).__init__(
-            version=datasets.Version("1.0.0", ""), **kwargs
-        )
+        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
         self.data_dir = data_dir
 
@@ -162,12 +159,8 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
                     "id": data["id"],
                     "question_stem": data["question"]["stem"],
                     "choices": {
-                        "text": [
-                            choice["text"] for choice in data["question"]["choices"]
-                        ],
-                        "label": [
-                            choice["label"] for choice in data["question"]["choices"]
-                        ],
+                        "text": [choice["text"] for choice in data["question"]["choices"]],
+                        "label": [choice["label"] for choice in data["question"]["choices"]],
                     },
                     "answerKey": data["answerKey"],
                 }
