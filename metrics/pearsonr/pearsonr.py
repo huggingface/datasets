@@ -27,9 +27,9 @@ The p-value roughly indicates the probability of an uncorrelated system producin
 
 _KWARGS_DESCRIPTION = """
 Args:
-- **predictions** (`list` of `int`): Predicted class labels, as returned by a model.
-- **references** (`list` of `int`): Ground truth labels.
-- **return_pvalue** (`boolean`): If `True`, returns the p-value, along with the correlation coefficient. If `False`, returns only the correlation coefficient. Defaults to `False`.
+    predictions (`list` of `int`): Predicted class labels, as returned by a model.
+    references (`list` of `int`): Ground truth labels.
+    return_pvalue (`boolean`): If `True`, returns the p-value, along with the correlation coefficient. If `False`, returns only the correlation coefficient. Defaults to `False`.
 
 Returns:
 - **pearsonr** (`float`): Pearson correlation coefficient. Minimum possible value is -1. Maximum possible value is 1. Values of 1 and -1 indicate exact linear positive and negative relationships, respectively. A value of 0 implies no correlation.
