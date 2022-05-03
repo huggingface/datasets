@@ -76,10 +76,8 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- explanation-generation
 - summarization
+task_ids: []
 paperswithcode_id: wikiatomicedits
 pretty_name: WikiAtomicEdits
 ---

@@ -23,7 +23,7 @@ pretty_name: MyanmarNews
 
 ## Dataset Description
 
-- **Repository: ** https://github.com/ayehninnkhine/MyanmarNewsClassificationSystem
+- **Repository:** https://github.com/ayehninnkhine/MyanmarNewsClassificationSystem
 
 ### Dataset Summary
 

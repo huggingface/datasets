@@ -56,7 +56,7 @@ You should probably TRAIN this model on a down-stream task to be able to use it 
 
 ## Tokenize the dataset
 
-The next step is to tokenize the text in order to build sequences of integers the model can understand. Encode the entire dataset with [`datasets.Dataset.map`], and truncate and pad the inputs to the maximum length of the model. This ensures the appropriate tensor batches are built.
+The next step is to tokenize the text in order to build sequences of integers the model can understand. Encode the entire dataset with [`Dataset.map`], and truncate and pad the inputs to the maximum length of the model. This ensures the appropriate tensor batches are built.
 
 ```py
 >>> def encode(examples):
@@ -90,7 +90,7 @@ Depending on whether you are using PyTorch, TensorFlow, or JAX, you will need to
 2. Retrieve the actual tensors from the Dataset object instead of using the current Python objects.
 3. Filter the dataset to only return the model inputs: `input_ids`, `token_type_ids`, and `attention_mask`.
 
-[`datasets.Dataset.set_format`] completes the last two steps on-the-fly. After you set the format, wrap the dataset in `torch.utils.data.DataLoader`:
+[`Dataset.set_format`] completes the last two steps on-the-fly. After you set the format, wrap the dataset in `torch.utils.data.DataLoader`:
 
 
 ```py
@@ -132,7 +132,7 @@ Depending on whether you are using PyTorch, TensorFlow, or JAX, you will need to
 2. Retrieve the actual tensors from the Dataset object instead of using the current Python objects.
 3. Filter the dataset to only return the model inputs: `input_ids`, `token_type_ids`, and `attention_mask`.
 
-[`datasets.Dataset.set_format`] completes the last two steps on-the-fly. After you set the format, wrap the dataset in `tf.data.Dataset`:
+[`Dataset.set_format`] completes the last two steps on-the-fly. After you set the format, wrap the dataset in `tf.data.Dataset`:
 
 
 ```py

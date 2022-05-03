@@ -1,6 +1,6 @@
 # Cloud storage
 
-🤗 Datasets supports access to cloud storage providers through a S3 filesystem implementation: [`datasets.filesystems.S3FileSystem`]. You can save and load datasets from your Amazon S3 bucket in a Pythonic way. Take a look at the following table for other supported cloud storage providers:
+🤗 Datasets supports access to cloud storage providers through a S3 filesystem implementation: [`filesystems.S3FileSystem`]. You can save and load datasets from your Amazon S3 bucket in a Pythonic way. Take a look at the following table for other supported cloud storage providers:
 
 | Storage provider     | Filesystem implementation                                     |
 |----------------------|---------------------------------------------------------------|
@@ -63,7 +63,7 @@ Other filesystem implementations, like Google Cloud Storage, are used similarly:
 
 ## Saving datasets
 
-After you have processed your dataset, you can save it to S3 with [`datasets.Dataset.save_to_disk`]:
+After you have processed your dataset, you can save it to S3 with [`Dataset.save_to_disk`]:
 
 ```py
 >>> from datasets.filesystems import S3FileSystem
@@ -99,7 +99,7 @@ Save your dataset with `botocore.session.Session` and a custom AWS profile:
 
 ## Loading datasets
 
-When you are ready to use your dataset again, reload it with `datasets.load_from_disk`:
+When you are ready to use your dataset again, reload it with [`Dataset.load_from_disk`]:
 
 ```py
 >>> from datasets import load_from_disk

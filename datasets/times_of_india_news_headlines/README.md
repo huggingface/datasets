@@ -14,13 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 - text-retrieval
 task_ids:
 - document-retrieval
-- explanation-generation
 - fact-checking-retrieval
-- other-structured-to-text
 - text-simplification
 paperswithcode_id: null
 pretty_name: Times of India News Headlines

@@ -15,10 +15,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 - text-classification
 task_ids:
-- explanation-generation
+- text2text-generation-other-explanation-generation
 - hate-speech-detection
 paperswithcode_id: null
 ---

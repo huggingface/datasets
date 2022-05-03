@@ -43,9 +43,9 @@ Returns:
 Examples:
 
     >>> pearsonr_metric = datasets.load_metric("pearsonr")
-    >>> results = pearsonr_metric.compute(references=[0, 1], predictions=[0, 1])
-    >>> print(results)
-    {'pearsonr': 1.0}
+    >>> results = pearsonr_metric.compute(references=[1, 2, 3, 4, 5], predictions=[10, 9, 2.5, 6, 4])
+    >>> print(results)  # doctest: +ELLIPSIS
+    {'pearsonr': -0.74261[...]}
 """
 
 _CITATION = r"""\
@@ -84,8 +84,8 @@ class Pearsonr(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Value("int32"),
-                    "references": datasets.Value("int32"),
+                    "predictions": datasets.Value("float"),
+                    "references": datasets.Value("float"),
                 }
             ),
             reference_urls=["https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html"],

@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - extended|gigaword_2003
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- summarization--other-headline-generation
 paperswithcode_id: null
 pretty_name: Gigaword
 ---

@@ -20,7 +20,7 @@ import re
 import sys
 from collections.abc import Iterable
 from dataclasses import InitVar, _asdict_inner, dataclass, field, fields
-from functools import reduce
+from functools import reduce, wraps
 from operator import mul
 from typing import Any, ClassVar, Dict, List, Optional
 from typing import Sequence as Sequence_
@@ -257,20 +257,22 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
     )
 
 
-def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, bool]:
+def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_casting: bool) -> Tuple[Any, bool]:
     """
     Cast pytorch/tensorflow/pandas objects to python numpy array/lists.
     It works recursively.
 
-    To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be casted.
+    If `optimize_list_casting` is True, to avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be casted.
     If the first element needs to be casted, then all the elements of the list will be casted, otherwise they'll stay the same.
     This trick allows to cast objects that contain tokenizers outputs without iterating over every single token for example.
 
     Args:
-        obj: the object (nested struct) to cast
+        obj: the object (nested struct) to cast.
         only_1d_for_numpy (bool): whether to keep the full multi-dim tensors as multi-dim numpy arrays, or convert them to
             nested lists of 1-dimensional numpy arrays. This can be useful to keep only 1-d arrays to instantiate Arrow arrays.
             Indeed Arrow only support converting 1-dimensional array values.
+        optimize_list_casting (bool): whether to optimize list casting by checking the first non-null element to see if it needs to be casted
+            and if it doesn't, not checking the rest of the list elements.
 
     Returns:
         casted_obj: the casted object
@@ -293,24 +295,42 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj, False
         else:
-            return [_cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0] for x in obj], True
+            return [
+                _cast_to_python_objects(
+                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0]
+                for x in obj
+            ], True
     elif config.TORCH_AVAILABLE and "torch" in sys.modules and isinstance(obj, torch.Tensor):
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj.detach().cpu().numpy(), True
         else:
             return [
-                _cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0] for x in obj.detach().cpu().numpy()
+                _cast_to_python_objects(
+                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0]
+                for x in obj.detach().cpu().numpy()
             ], True
     elif config.TF_AVAILABLE and "tensorflow" in sys.modules and isinstance(obj, tf.Tensor):
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj.numpy(), True
         else:
-            return [_cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0] for x in obj.numpy()], True
+            return [
+                _cast_to_python_objects(
+                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0]
+                for x in obj.numpy()
+            ], True
     elif config.JAX_AVAILABLE and "jax" in sys.modules and isinstance(obj, jnp.ndarray):
         if not only_1d_for_numpy or obj.ndim == 1:
             return np.asarray(obj), True
         else:
-            return [_cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0] for x in np.asarray(obj)], True
+            return [
+                _cast_to_python_objects(
+                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0]
+                for x in np.asarray(obj)
+            ], True
     elif config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(obj, PIL.Image.Image):
         return encode_pil_image(obj), True
     elif isinstance(obj, pd.Series):
@@ -321,7 +341,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
         output = {}
         has_changed = False
         for k, v in obj.items():
-            casted_v, has_changed_v = _cast_to_python_objects(v, only_1d_for_numpy=only_1d_for_numpy)
+            casted_v, has_changed_v = _cast_to_python_objects(
+                v, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+            )
             has_changed |= has_changed_v
             output[k] = casted_v
         return output if has_changed else obj, has_changed
@@ -331,10 +353,15 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
                 if _check_non_null_non_empty_recursive(first_elmt):
                     break
             casted_first_elmt, has_changed_first_elmt = _cast_to_python_objects(
-                first_elmt, only_1d_for_numpy=only_1d_for_numpy
+                first_elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
             )
-            if has_changed_first_elmt:
-                return [_cast_to_python_objects(elmt, only_1d_for_numpy=only_1d_for_numpy)[0] for elmt in obj], True
+            if has_changed_first_elmt or not optimize_list_casting:
+                return [
+                    _cast_to_python_objects(
+                        elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                    )[0]
+                    for elmt in obj
+                ], True
             else:
                 if isinstance(obj, list):
                     return obj, False
@@ -346,22 +373,29 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
         return obj, False
 
 
-def cast_to_python_objects(obj: Any, only_1d_for_numpy=False) -> Any:
+def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_casting=True) -> Any:
     """
     Cast numpy/pytorch/tensorflow/pandas objects to python lists.
     It works recursively.
 
-    To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be casted.
+    If `optimize_list_casting` is True, To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be casted.
     If the first element needs to be casted, then all the elements of the list will be casted, otherwise they'll stay the same.
     This trick allows to cast objects that contain tokenizers outputs without iterating over every single token for example.
 
     Args:
         obj: the object (nested struct) to cast
+        only_1d_for_numpy (bool, default ``False``): whether to keep the full multi-dim tensors as multi-dim numpy arrays, or convert them to
+            nested lists of 1-dimensional numpy arrays. This can be useful to keep only 1-d arrays to instantiate Arrow arrays.
+            Indeed Arrow only support converting 1-dimensional array values.
+        optimize_list_casting (bool, default ``True``): whether to optimize list casting by checking the first non-null element to see if it needs to be casted
+            and if it doesn't, not checking the rest of the list elements.
 
     Returns:
         casted_obj: the casted object
     """
-    return _cast_to_python_objects(obj, only_1d_for_numpy=only_1d_for_numpy)[0]
+    return _cast_to_python_objects(
+        obj, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+    )[0]
 
 
 @dataclass
@@ -961,7 +995,7 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
     return schema()
 
 
-def encode_nested_example(schema, obj):
+def encode_nested_example(schema, obj, level=0):
     """Encode a nested example.
     This is used since some features (in particular ClassLabel) have some logic during encoding.
 
@@ -970,7 +1004,17 @@ def encode_nested_example(schema, obj):
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
-        return {k: encode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in zip_dict(schema, obj)}
+        if level == 0 and obj is None:
+            raise ValueError("Got None but expected a dictionary instead")
+        return (
+            {
+                k: encode_nested_example(sub_schema, sub_obj, level=level + 1)
+                for k, (sub_schema, sub_obj) in zip_dict(schema, obj)
+            }
+            if obj is not None
+            else None
+        )
+
     elif isinstance(schema, (list, tuple)):
         sub_schema = schema[0]
         if obj is None:
@@ -980,10 +1024,12 @@ def encode_nested_example(schema, obj):
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
                         break
-                if encode_nested_example(sub_schema, first_elmt) != first_elmt:
-                    return [encode_nested_example(sub_schema, o) for o in obj]
+                if encode_nested_example(sub_schema, first_elmt, level=level + 1) != first_elmt:
+                    return [encode_nested_example(sub_schema, o, level=level + 1) for o in obj]
             return list(obj)
     elif isinstance(schema, Sequence):
+        if obj is None:
+            return None
         # We allow to reverse list of dict => dict of list for compatiblity with tfds
         if isinstance(schema.feature, dict):
             # dict of list to fill
@@ -991,26 +1037,27 @@ def encode_nested_example(schema, obj):
             if isinstance(obj, (list, tuple)):
                 # obj is a list of dict
                 for k, dict_tuples in zip_dict(schema.feature, *obj):
-                    list_dict[k] = [encode_nested_example(dict_tuples[0], o) for o in dict_tuples[1:]]
+                    list_dict[k] = [encode_nested_example(dict_tuples[0], o, level=level + 1) for o in dict_tuples[1:]]
                 return list_dict
             else:
                 # obj is a single dict
                 for k, (sub_schema, sub_objs) in zip_dict(schema.feature, obj):
-                    list_dict[k] = [encode_nested_example(sub_schema, o) for o in sub_objs]
+                    list_dict[k] = [encode_nested_example(sub_schema, o, level=level + 1) for o in sub_objs]
                 return list_dict
         # schema.feature is not a dict
         if isinstance(obj, str):  # don't interpret a string as a list
             raise ValueError(f"Got a string but expected a list instead: '{obj}'")
-        if obj is None:
-            return None
         else:
             if len(obj) > 0:
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, schema.feature):
                         break
                 # be careful when comparing tensors here
-                if not isinstance(first_elmt, list) or encode_nested_example(schema.feature, first_elmt) != first_elmt:
-                    return [encode_nested_example(schema.feature, o) for o in obj]
+                if (
+                    not isinstance(first_elmt, list)
+                    or encode_nested_example(schema.feature, first_elmt, level=level + 1) != first_elmt
+                ):
+                    return [encode_nested_example(schema.feature, o, level=level + 1) for o in obj]
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
@@ -1029,7 +1076,11 @@ def decode_nested_example(schema, obj):
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
-        return {k: decode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in zip_dict(schema, obj)}
+        return (
+            {k: decode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in zip_dict(schema, obj)}
+            if obj is not None
+            else None
+        )
     elif isinstance(schema, (list, tuple)):
         sub_schema = schema[0]
         if obj is None:
@@ -1164,6 +1215,28 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
         return hasattr(feature, "decode_example") and (feature.decode if not ignore_decode_attribute else True)
 
 
+def keep_features_dicts_synced(func):
+    """
+    Wrapper to keep the secondary dictionary, which tracks whether keys are decodable, of the :class:`datasets.Features` object
+    in sync with the main dictionary.
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if args:
+            self: "Features" = args[0]
+            args = args[1:]
+        else:
+            self: "Features" = kwargs.pop("self")
+        out = func(self, *args, **kwargs)
+        assert hasattr(self, "_column_requires_decoding")
+        self._column_requires_decoding = {col: require_decoding(feature) for col, feature in self.items()}
+        return out
+
+    wrapper._decorator_name_ = "_keep_dicts_synced"
+    return wrapper
+
+
 class Features(dict):
     """A special dictionary that defines the internal structure of a dataset.
 
@@ -1203,9 +1276,13 @@ class Features(dict):
             col: require_decoding(feature) for col, feature in self.items()
         }
 
-    def __setitem__(self, column_name: str, feature: FeatureType):
-        super().__setitem__(column_name, feature)
-        self._column_requires_decoding[column_name] = require_decoding(feature)
+    __setitem__ = keep_features_dicts_synced(dict.__setitem__)
+    __delitem__ = keep_features_dicts_synced(dict.__delitem__)
+    update = keep_features_dicts_synced(dict.update)
+    setdefault = keep_features_dicts_synced(dict.setdefault)
+    pop = keep_features_dicts_synced(dict.pop)
+    popitem = keep_features_dicts_synced(dict.popitem)
+    clear = keep_features_dicts_synced(dict.clear)
 
     def __reduce__(self):
         return Features, (dict(self),)
@@ -1457,7 +1534,16 @@ class Features(dict):
                     del flattened[column_name]
                 elif isinstance(subfeature, Sequence) and isinstance(subfeature.feature, dict):
                     no_change = False
-                    flattened.update({f"{column_name}.{k}": Sequence(v) for k, v in subfeature.feature.items()})
+                    flattened.update(
+                        {
+                            f"{column_name}.{k}": Sequence(v) if not isinstance(v, dict) else [v]
+                            for k, v in subfeature.feature.items()
+                        }
+                    )
+                    del flattened[column_name]
+                elif hasattr(subfeature, "flatten") and subfeature.flatten() != subfeature:
+                    no_change = False
+                    flattened.update({f"{column_name}.{k}": v for k, v in subfeature.flatten().items()})
                     del flattened[column_name]
             self = flattened
             if no_change:

@@ -106,6 +106,28 @@ def data_dir(tmp_path):
 
 
 @pytest.fixture
+def sub_data_dirs(tmp_path):
+    data_dir2 = tmp_path / "data_dir2"
+    relative_subdir1 = "subdir1"
+    sub_data_dir1 = data_dir2 / relative_subdir1
+    sub_data_dir1.mkdir(parents=True)
+    with open(sub_data_dir1 / "train.txt", "w") as f:
+        f.write("foo\n" * 10)
+    with open(sub_data_dir1 / "test.txt", "w") as f:
+        f.write("bar\n" * 10)
+
+    relative_subdir2 = "subdir2"
+    sub_data_dir2 = tmp_path / data_dir2 / relative_subdir2
+    sub_data_dir2.mkdir(parents=True)
+    with open(sub_data_dir2 / "train.txt", "w") as f:
+        f.write("foo\n" * 10)
+    with open(sub_data_dir2 / "test.txt", "w") as f:
+        f.write("bar\n" * 10)
+
+    return str(data_dir2), relative_subdir1
+
+
+@pytest.fixture
 def complex_data_dir(tmp_path):
     data_dir = tmp_path / "complex_data_dir"
     data_dir.mkdir()
@@ -168,9 +190,13 @@ def test_infer_module_for_data_files_in_archives(data_file, expected_module, zip
 
 class ModuleFactoryTest(TestCase):
     @pytest.fixture(autouse=True)
-    def inject_fixtures(self, jsonl_path, data_dir, dataset_loading_script_dir, metric_loading_script_dir):
+    def inject_fixtures(
+        self, jsonl_path, data_dir, sub_data_dirs, dataset_loading_script_dir, metric_loading_script_dir
+    ):
         self._jsonl_path = jsonl_path
         self._data_dir = data_dir
+        self._data_dir2 = sub_data_dirs[0]
+        self._sub_data_dir = sub_data_dirs[1]
         self._dataset_loading_script_dir = dataset_loading_script_dir
         self._metric_loading_script_dir = metric_loading_script_dir
 
@@ -231,6 +257,21 @@ class ModuleFactoryTest(TestCase):
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert os.path.isdir(module_factory_result.builder_kwargs["base_path"])
 
+    def test_LocalDatasetModuleFactoryWithoutScript_with_data_dir(self):
+        factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir2, data_dir=self._sub_data_dir)
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert (
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) == 1
+            and len(module_factory_result.builder_kwargs["data_files"]["test"]) == 1
+        )
+        assert all(
+            self._sub_data_dir in Path(data_file).parts
+            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
+            + module_factory_result.builder_kwargs["data_files"]["test"]
+        )
+
     def test_PackagedDatasetModuleFactory(self):
         factory = PackagedDatasetModuleFactory(
             "json", data_files=self._jsonl_path, download_config=self.download_config
@@ -245,8 +286,10 @@ class ModuleFactoryTest(TestCase):
         assert (
             module_factory_result.builder_kwargs["data_files"] is not None
             and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
+            and len(module_factory_result.builder_kwargs["data_files"]["test"]) > 0
         )
         assert Path(module_factory_result.builder_kwargs["data_files"]["train"][0]).parent.samefile(self._data_dir)
+        assert Path(module_factory_result.builder_kwargs["data_files"]["test"][0]).parent.samefile(self._data_dir)
 
     def test_HubDatasetModuleFactoryWithoutScript(self):
         factory = HubDatasetModuleFactoryWithoutScript(
@@ -266,11 +309,13 @@ class ModuleFactoryTest(TestCase):
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
         assert (
             module_factory_result.builder_kwargs["data_files"] is not None
-            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) == 1
+            and len(module_factory_result.builder_kwargs["data_files"]["test"]) == 1
         )
         assert all(
             data_dir in Path(data_file).parts
             for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
+            + module_factory_result.builder_kwargs["data_files"]["test"]
         )
 
     def test_HubDatasetModuleFactoryWithScript(self):
@@ -312,6 +357,30 @@ class ModuleFactoryTest(TestCase):
                 )
                 module_factory_result = factory.get_module()
                 assert importlib.import_module(module_factory_result.module_path) is not None
+
+
+@pytest.mark.parametrize(
+    "factory_class",
+    [
+        CachedDatasetModuleFactory,
+        CachedMetricModuleFactory,
+        GithubDatasetModuleFactory,
+        GithubMetricModuleFactory,
+        HubDatasetModuleFactoryWithoutScript,
+        HubDatasetModuleFactoryWithScript,
+        LocalDatasetModuleFactoryWithoutScript,
+        LocalDatasetModuleFactoryWithScript,
+        LocalMetricModuleFactory,
+        PackagedDatasetModuleFactory,
+    ],
+)
+def test_module_factories(factory_class):
+    if issubclass(factory_class, (HubDatasetModuleFactoryWithoutScript, HubDatasetModuleFactoryWithScript)):
+        name = "dummy_org/dummy_name"
+    else:
+        name = "dummy_name"
+    factory = factory_class(name)
+    assert factory.name == name
 
 
 class LoadTest(TestCase):

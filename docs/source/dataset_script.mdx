@@ -28,11 +28,11 @@ To help you get started, try beginning with the dataset loading script [template
 
 ## Add dataset attributes
 
-The first step is to add some information, or attributes, about your dataset in [`datasets.DatasetBuilder._info`]. The most important attributes you should specify are:
+The first step is to add some information, or attributes, about your dataset in [`DatasetBuilder._info`]. The most important attributes you should specify are:
 
-1. `datasets.DatasetInfo.description` provides a concise description of your dataset. The description informs the user what's in the dataset, how it was collected, and how it can be used for a NLP task.
+1. `DatasetInfo.description` provides a concise description of your dataset. The description informs the user what's in the dataset, how it was collected, and how it can be used for a NLP task.
 
-2. `datasets.DatasetInfo.features` defines the name and type of each column in your dataset. This will also provide the structure for each example, so it is possible to create nested subfields in a column if you want. Take a look at [`datasets.Features`] for a full list of feature types you can use.
+2. `DatasetInfo.features` defines the name and type of each column in your dataset. This will also provide the structure for each example, so it is possible to create nested subfields in a column if you want. Take a look at [`Features`] for a full list of feature types you can use.
 
 ```py
 datasets.Features(
@@ -51,9 +51,9 @@ datasets.Features(
 )
 ```
 
-3. `datasets.DatasetInfo.homepage` contains the URL to the dataset homepage so users can find more details about the dataset.
+3. `DatasetInfo.homepage` contains the URL to the dataset homepage so users can find more details about the dataset.
 
-4. `datasets.DatasetInfo.citation` contains a BibTeX citation for the dataset.
+4. `DatasetInfo.citation` contains a BibTeX citation for the dataset.
 
 After you've filled out all these fields in the template, it should look like the following example from the SQuAD loading script:
 
@@ -82,11 +82,11 @@ def _info(self):
 
 ### Multiple configurations
 
-In some cases, your dataset may have multiple configurations. For example, the [SuperGLUE](https://huggingface.co/datasets/super_glue) dataset is a collection of 5 datasets designed to evaluate language understanding tasks. 🤗 Datasets provides [`datasets.BuilderConfig`] which allows you to create different configurations for the user to select from.
+In some cases, your dataset may have multiple configurations. For example, the [SuperGLUE](https://huggingface.co/datasets/super_glue) dataset is a collection of 5 datasets designed to evaluate language understanding tasks. 🤗 Datasets provides [`BuilderConfig`] which allows you to create different configurations for the user to select from.
 
 Let's study the [SuperGLUE loading script](https://github.com/huggingface/datasets/blob/master/datasets/super_glue/super_glue.py) to see how you can define several configurations.
 
-1. Create a [`datasets.BuilderConfig`] subclass with attributes about your dataset. These attributes can be the features of your dataset, label classes, and a URL to the data files.
+1. Create a [`BuilderConfig`] subclass with attributes about your dataset. These attributes can be the features of your dataset, label classes, and a URL to the data files.
 
 ```py
 class SuperGlueConfig(datasets.BuilderConfig):
@@ -120,7 +120,7 @@ class SuperGlueConfig(datasets.BuilderConfig):
         self.url = url
 ```
 
-2. Create instances of your config to specify the values of the attributes of each configuration. This gives you the flexibility to specify all the name and description of each configuration. These sub-class instances should be listed under `datasets.DatasetBuilder.BUILDER_CONFIGS`:
+2. Create instances of your config to specify the values of the attributes of each configuration. This gives you the flexibility to specify all the name and description of each configuration. These sub-class instances should be listed under `DatasetBuilder.BUILDER_CONFIGS`:
 
 ```py
 class SuperGlue(datasets.GeneratorBasedBuilder):
@@ -157,7 +157,7 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
 
 ### Default configurations
 
-Users must specify a configuration name when they load a dataset with multiple configurations. Otherwise, 🤗 Datasets will raise a `ValueError`, and prompt the user to select a configuration name. You can avoid this by setting a default dataset configuration with the ['datasets.DatasetBuilder.DEFAULT_CONFIG_NAME'] attribute:
+Users must specify a configuration name when they load a dataset with multiple configurations. Otherwise, 🤗 Datasets will raise a `ValueError`, and prompt the user to select a configuration name. You can avoid this by setting a default dataset configuration with the `DEFAULT_CONFIG_NAME` attribute:
 
 ```py
 class NewDataset(datasets.GeneratorBasedBuilder):
@@ -198,13 +198,13 @@ If the data files live in the same folder or repository of the dataset script, y
 
 </Tip>
 
-2. [`datasets.DownloadManager.download_and_extract`] takes this dictionary and downloads the data files. Once the files are downloaded, use [`datasets.SplitGenerator`] to organize each split in the dataset. This is a simple class that contains:
+2. [`DownloadManager.download_and_extract`] takes this dictionary and downloads the data files. Once the files are downloaded, use [`SplitGenerator`] to organize each split in the dataset. This is a simple class that contains:
 
-   - The `name` of each split. You should use the standard split names: `datasets.Split.TRAIN`, `datasets.Split.TEST`, and `datasets.Split.VALIDATION`.
+   - The `name` of each split. You should use the standard split names: `Split.TRAIN`, `Split.TEST`, and `Split.VALIDATION`.
 
    - `gen_kwargs` provides the file paths to the data files to load for each split.
 
-Your `datasets.DatasetBuilder._split_generator()` should look like this now:
+Your `DatasetBuilder._split_generator()` should look like this now:
 
 ```py
 def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
@@ -227,7 +227,7 @@ At this point, you have:
 
 The next step is to actually generate the samples in each split. 
 
-1. `datasets.DatasetBuilder._generate_examples` takes the file path provided by `gen_kwargs` to read and parse the data files. You need to write a function that loads the data files and extracts the columns.
+1. `DatasetBuilder._generate_examples` takes the file path provided by `gen_kwargs` to read and parse the data files. You need to write a function that loads the data files and extracts the columns.
 
 2. Your function should yield a tuple of an `id_`, and an example from the dataset.
 

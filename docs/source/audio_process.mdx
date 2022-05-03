@@ -1,24 +1,33 @@
 # Process audio data
 
-🤗 Datasets supports an [`datasets.Audio`] feature, enabling users to load and process raw audio files for training. This guide will show you how to:
+🤗 Datasets supports an [`Audio`] feature, enabling users to load and process raw audio files for training. This guide will show you how to:
 
 - Load your own custom audio dataset.
 - Resample audio files.
-- Use [`datasets.Dataset.map`] with audio files.
+- Use [`Dataset.map`] with audio files.
 
 ## Installation
 
-The [`datasets.Audio`] feature is an experimental feature and should be installed as an extra dependency in 🤗 Datasets. Install the [`datasets.Audio`] feature with pip:
+The [`Audio`] feature should be installed as an extra dependency in 🤗 Datasets. Install the [`Audio`] feature (and its dependencies) with pip:
 
-```py
->>> pip install datasets[audio]
+```bash
+pip install datasets[audio]
 ```
 
-Users should also install [torchaudio](https://pytorch.org/audio/stable/index.html) and [librosa](https://librosa.org/doc/latest/index.html), two common libraries used by 🤗 Datasets for handling audio data.
+<Tip warning={true}>
 
-```py
->>> pip install librosa
->>> pip install torchaudio
+On Linux, non-Python dependency on `libsndfile` package must be installed manually, using your distribution package manager, for example:
+
+```bash
+sudo apt-get install libsndfile1
+```
+
+</Tip>
+
+To support loading audio datasets containing MP3 files, users should additionally install [torchaudio](https://pytorch.org/audio/stable/index.html), so that audio data is handled with high performance.
+
+```bash
+pip install torchaudio
 ```
 
 <Tip warning={true}>
@@ -57,7 +66,7 @@ When you access an audio file, it is automatically decoded and resampled. Genera
 /root/.cache/huggingface/datasets/downloads/extracted/05be0c29807a73c9b099873d2f5975dae6d05e9f7d577458a2466ecb9a2b0c6b/cv-corpus-6.1-2020-12-11/tr/clips/common_voice_tr_21921195.mp3
 ```
 
-The `path` is useful if you want to load your own audio dataset. In this case, provide a column of audio file paths to [`datasets.Dataset.cast_column`]:
+The `path` is useful if you want to load your own audio dataset. In this case, provide a column of audio file paths to [`Dataset.cast_column`]:
 
 ```py
 >>> my_audio_dataset = my_audio_dataset.cast_column("paths_to_my_audio_files", Audio())
@@ -65,13 +74,13 @@ The `path` is useful if you want to load your own audio dataset. In this case, p
 
 ## Resample
 
-Some models expect the audio data to have a certain sampling rate due to how the model was pretrained. For example, the [XLSR-Wav2Vec2](https://huggingface.co/facebook/wav2vec2-large-xlsr-53) model expects the input to have a sampling rate of 16kHz, but an audio file from the Common Voice dataset has a sampling rate of 48kHz. You can use [`datasets.Dataset.cast_column`] to downsample the sampling rate to 16kHz:
+Some models expect the audio data to have a certain sampling rate due to how the model was pretrained. For example, the [XLSR-Wav2Vec2](https://huggingface.co/facebook/wav2vec2-large-xlsr-53) model expects the input to have a sampling rate of 16kHz, but an audio file from the Common Voice dataset has a sampling rate of 48kHz. You can use [`Dataset.cast_column`] to downsample the sampling rate to 16kHz:
 
 ```py
 >>> common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16_000))
 ```
 
-The next time you load the audio file, the [`datasets.Audio`] feature will load and resample it to 16kHz:
+The next time you load the audio file, the [`Audio`] feature will load and resample it to 16kHz:
 
 ```py
 >>> common_voice_train[0]["audio"]
@@ -88,7 +97,7 @@ The next time you load the audio file, the [`datasets.Audio`] feature will load 
 
 ## Map
 
-Just like text datasets, you can apply a preprocessing function over an entire dataset with [`datasets.Dataset.map`], which is useful for preprocessing all of your audio data at once. Start with a [speech recognition model](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&sort=downloads) of your choice, and load a `processor` object that contains:
+Just like text datasets, you can apply a preprocessing function over an entire dataset with [`Dataset.map`], which is useful for preprocessing all of your audio data at once. Start with a [speech recognition model](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&sort=downloads) of your choice, and load a `processor` object that contains:
 
 1. A feature extractor to convert the speech signal to the model's input format. Every speech recognition model on the 🤗 [Hub](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&sort=downloads) contains a predefined feature extractor that can be easily loaded with `AutoFeatureExtractor.from_pretrained(...)`.
 
@@ -112,7 +121,7 @@ For fine-tuned speech recognition models, you can simply load a predefined `proc
 >>> processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
 ```
 
-Make sure to include the `audio` key in your preprocessing function when you call [`datasets.Dataset.map`] so that you are actually resampling the audio data:
+Make sure to include the `audio` key in your preprocessing function when you call [`Dataset.map`] so that you are actually resampling the audio data:
 
 ```py
 >>> def prepare_dataset(batch):
