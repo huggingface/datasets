@@ -51,7 +51,7 @@ Examples:
         >>> accuracy_metric = datasets.load_metric("accuracy")
         >>> results = accuracy_metric.compute(references=[0, 1, 2, 0, 1, 2], predictions=[0, 1, 1, 2, 1, 0], normalize=False)
         >>> print(results)
-        {'accuracy': 0.3}
+        {'accuracy': 3.0}
 
     Example 3-The same as Example 1, except with `sample_weight` set.
         >>> accuracy_metric = datasets.load_metric("accuracy")
