@@ -42,7 +42,9 @@ class OpenbookqaConfig(datasets.BuilderConfig):
 
         """
 
-        super(OpenbookqaConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(OpenbookqaConfig, self).__init__(
+            version=datasets.Version("1.0.0", ""), **kwargs
+        )
 
         self.data_dir = data_dir
 
@@ -92,7 +94,10 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
                     "id": datasets.Value("string"),
                     "question_stem": datasets.Value("string"),
                     "choices": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "label": datasets.Value("string")}
+                        {
+                            "text": datasets.Value("string"),
+                            "label": datasets.Value("string"),
+                        }
                     ),
                     "answerKey": datasets.Value("string"),
                 }
@@ -157,8 +162,12 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
                     "id": data["id"],
                     "question_stem": data["question"]["stem"],
                     "choices": {
-                        "text": [choice["text"] for choice in data["question"]["choices"]],
-                        "label": [choice["text"] for choice in data["question"]["choices"]],
+                        "text": [
+                            choice["text"] for choice in data["question"]["choices"]
+                        ],
+                        "label": [
+                            choice["label"] for choice in data["question"]["choices"]
+                        ],
                     },
                     "answerKey": data["answerKey"],
                 }
