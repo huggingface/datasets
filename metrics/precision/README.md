@@ -16,7 +16,7 @@ At minimum, precision takes as input a list of predicted labels, `predictions`, 
 >>> precision_metric = datasets.load_metric("precision")
 >>> results = precision_metric.compute(references=[0, 1], predictions=[0, 1])
 >>> print(results)
-["{'precision': 1.0}"]
+{'precision': 1.0}
 ```
 
 
