@@ -50,9 +50,9 @@ pretty_name: HindEnCorp
 
 ## Dataset Description
 
-- **Homepage:https://lindat.mff.cuni.cz/repository/xmlui/handle/11858/00-097C-0000-0023-625F-0**
-- **Repository:https://lindat.mff.cuni.cz/repository/xmlui/**
-- **Paper:http://www.lrec-conf.org/proceedings/lrec2014/pdf/835_Paper.pdf**
+- **Homepage:** https://lindat.mff.cuni.cz/repository/xmlui/handle/11858/00-097C-0000-0023-625F-0
+- **Repository:** https://lindat.mff.cuni.cz/repository/xmlui/
+- **Paper:** http://www.lrec-conf.org/proceedings/lrec2014/pdf/835_Paper.pdf
 - **Leaderboard:**
 - **Point of Contact:**
 

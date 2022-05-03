@@ -71,10 +71,13 @@ from functools import partial
 import io
 import urllib
 
-import PIL
+import PIL.Image
 
 from datasets import load_dataset
 from datasets.utils.file_utils import get_datasets_user_agent
+
+
+USER_AGENT = get_datasets_user_agent()
 
 
 def fetch_single_image(image_url, timeout=None, retries=0):
@@ -83,7 +86,7 @@ def fetch_single_image(image_url, timeout=None, retries=0):
             request = urllib.request.Request(
                 image_url,
                 data=None,
-                headers={"user-agent": get_datasets_user_agent()},
+                headers={"user-agent": USER_AGENT},
             )
             with urllib.request.urlopen(request, timeout=timeout) as req:
                 image = PIL.Image.open(io.BytesIO(req.read()))

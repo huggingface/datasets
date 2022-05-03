@@ -49,9 +49,9 @@ pretty_name: 10k German News Articles Datasets
 
 ## Dataset Description
 
-- **Homepage: [10k German News Article Dataset](https://tblock.github.io/10kGNAD/)**
-- **Repository: [10k German News Article Dataset](https://github.com/tblock/10kGNAD)()**
-- **Point of Contact: [Steven Liu](stevhliu@gmail.com)**
+- **Homepage:** [10k German News Article Dataset](https://tblock.github.io/10kGNAD/)
+- **Repository:** [10k German News Article Dataset](https://github.com/tblock/10kGNAD)
+- **Point of Contact:** [Steven Liu](stevhliu@gmail.com)
 
 ### Dataset Summary
 

@@ -49,10 +49,10 @@ task_ids: []
 ## Dataset Description
 
 - **Homepage:** [Cats vs Dogs Dataset](https://www.microsoft.com/en-us/download/details.aspx?id=54765)
-- **Repository:** N/A
+- **Repository:**
 - **Paper:** [Paper](https://www.microsoft.com/en-us/research/wp-content/uploads/2007/10/CCS2007.pdf)
-- **Leaderboard:** N/A
-- **Point of Contact:** N/A
+- **Leaderboard:**
+- **Point of Contact:**
 
 ### Dataset Summary
 

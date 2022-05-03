@@ -132,18 +132,15 @@ class update_main:
         self.tag_name = tag_name
 
     def __call__(self, dataset_name: str) -> bool:
-        auth_base64 = base64.b64encode(f"user:{self.token}".encode("ascii")).decode()
         try:
             create_remote_repo(dataset_name, self.token)
         except requests.exceptions.HTTPError as e:
             if "409 Client Error: Conflict for url:" not in repr(e):  # don't log if repo already exists
                 logger.warning(f"[{dataset_name}] " + repr(e))
         if not canonical_dataset_path(dataset_name).is_dir():
-            # use http.extraHeader to avoid rate limit
             repo = Repo.clone_from(
-                canonical_dataset_git_url(dataset_name, self.token),
+                canonical_dataset_git_url(dataset_name, token=self.token),
                 to_path=canonical_dataset_path(dataset_name),
-                multi_options=[f'-c http.extraHeader="authorization: Basic {auth_base64}"'],
             )
         else:
             repo = Repo(canonical_dataset_path(dataset_name))
@@ -175,6 +172,7 @@ class update_main:
                 logs.append(repo.git.tag(self.tag_name, f"-m Add tag from datasets {self.tag_name}"))
                 logs.append(repo.git.push("--tags"))
         except Exception as e:
+            logs.append("push failed !")
             logs.append(repr(e))
         if "Your branch is up to date with" not in repo.git.status():
             logs.append(repo.git.status())

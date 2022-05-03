@@ -55,8 +55,8 @@ task_ids:
     - [Contributions](#contributions)
 
 ## Dataset Description
-- **Repository: https://github.com/google-research/google-research/tree/master/mbpp**
-- **Paper: [Program Synthesis with Large Language Models](https://arxiv.org/abs/2108.07732)**
+- **Repository:** https://github.com/google-research/google-research/tree/master/mbpp
+- **Paper:** [Program Synthesis with Large Language Models](https://arxiv.org/abs/2108.07732)
 
 ### Dataset Summary
 The benchmark consists of around 1,000 crowd-sourced Python programming problems, designed to be solvable by entry level programmers, covering programming fundamentals, standard library functionality, and so on. Each problem consists of a task description, code solution and 3 automated test cases. As described in the paper, a subset of the data has been hand-verified by us. 
