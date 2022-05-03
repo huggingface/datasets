@@ -77,11 +77,11 @@ pretty_name: OpusRf
 
 ## Dataset Description
 
-- **Homepage: http://opus.nlpl.eu/RF.php**
-- **Repository: NA**
-- **Paper: http://www.lrec-conf.org/proceedings/lrec2012/pdf/463_Paper.pdf**
-- **Leaderboard: [More Information Needed]**
-- **Point of Contact: [More Information Needed]**
+- **Homepage:** http://opus.nlpl.eu/RF.php
+- **Repository:**
+- **Paper:** http://www.lrec-conf.org/proceedings/lrec2012/pdf/463_Paper.pdf
+- **Leaderboard:** [More Information Needed]
+- **Point of Contact:** [More Information Needed]
 
 ### Dataset Summary
 
