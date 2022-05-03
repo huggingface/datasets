@@ -51,6 +51,8 @@ There are two features:
   - abstract: Patent abastract.
 """
 
+_LICENSE = "Creative Commons Attribution 4.0 International"
+
 _REPO = "https://huggingface.co/datasets/big_patent/resolve/main/data"
 _URLS = {
     "train": f"{_REPO}/train.zip",
@@ -121,6 +123,7 @@ class BigPatent(datasets.GeneratorBasedBuilder):
             features=datasets.Features({_DOCUMENT: datasets.Value("string"), _SUMMARY: datasets.Value("string")}),
             supervised_keys=(_DOCUMENT, _SUMMARY),
             homepage=_HOMEPAGE,
+            license=_LICENSE,
             citation=_CITATION,
         )
 

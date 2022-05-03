@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 licenses:
-- unknown
+- cc-by-4.0
 multilinguality:
 - monolingual
 size_categories:
@@ -72,7 +72,7 @@ pretty_name: Big Patent
 - **Repository:**
 - **Paper:** [BIGPATENT: A Large-Scale Dataset for Abstractive and Coherent Summarization](https://arxiv.org/abs/1906.03741)
 - **Leaderboard:**
-- **Point of Contact:**
+- **Point of Contact:** [Lu Wang](mailto:wangluxy@umich.edu)
 
 ### Dataset Summary
 
