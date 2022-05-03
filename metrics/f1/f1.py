@@ -26,17 +26,18 @@ F1 = 2 * (precision * recall) / (precision + recall)
 
 _KWARGS_DESCRIPTION = """
 Args:
-- **predictions** (`list` of `int`): Predicted labels.
-- **references** (`list` of `int`): Ground truth labels.
-- **labels** (`list` of `int`): The set of labels to include when `average` is not set to `'binary'`, and the order of the labels if `average` is `None`. Labels present in the data can be excluded, for example to calculate a multiclass average ignoring a majority negative class. Labels not present in the data will result in 0 components in a macro average. For multilabel targets, labels are column indices. By default, all labels in `predictions` and `references` are used in sorted order. Defaults to None.
-- **pos_label** (`int`): The class to be considered the positive class, in the case where `average` is set to `binary`. Defaults to 1.
-- **average** (`string`): This parameter is required for multiclass/multilabel targets. If set to `None`, the scores for each class are returned. Otherwise, this determines the type of averaging performed on the data. Defaults to `'binary'`.
-    - 'binary': Only report results for the class specified by `pos_label`. This is applicable only if the classes found in `predictions` and `references` are binary.
-    - 'micro': Calculate metrics globally by counting the total true positives, false negatives and false positives.
-    - 'macro': Calculate metrics for each label, and find their unweighted mean. This does not take label imbalance into account.
-    - 'weighted': Calculate metrics for each label, and find their average weighted by support (the number of true instances for each label). This alters `'macro'` to account for label imbalance. This option can result in an F-score that is not between precision and recall.
-    - 'samples': Calculate metrics for each instance, and find their average (only meaningful for multilabel classification).
-- **sample_weight** (`list` of `float`): Sample weights Defaults to None.
+    predictions (`list` of `int`): Predicted labels.
+    references (`list` of `int`): Ground truth labels.
+    labels (`list` of `int`): The set of labels to include when `average` is not set to `'binary'`, and the order of the labels if `average` is `None`. Labels present in the data can be excluded, for example to calculate a multiclass average ignoring a majority negative class. Labels not present in the data will result in 0 components in a macro average. For multilabel targets, labels are column indices. By default, all labels in `predictions` and `references` are used in sorted order. Defaults to None.
+    pos_label (`int`): The class to be considered the positive class, in the case where `average` is set to `binary`. Defaults to 1.
+    average (`string`): This parameter is required for multiclass/multilabel targets. If set to `None`, the scores for each class are returned. Otherwise, this determines the type of averaging performed on the data. Defaults to `'binary'`.
+
+        - 'binary': Only report results for the class specified by `pos_label`. This is applicable only if the classes found in `predictions` and `references` are binary.
+        - 'micro': Calculate metrics globally by counting the total true positives, false negatives and false positives.
+        - 'macro': Calculate metrics for each label, and find their unweighted mean. This does not take label imbalance into account.
+        - 'weighted': Calculate metrics for each label, and find their average weighted by support (the number of true instances for each label). This alters `'macro'` to account for label imbalance. This option can result in an F-score that is not between precision and recall.
+        - 'samples': Calculate metrics for each instance, and find their average (only meaningful for multilabel classification).
+    sample_weight (`list` of `float`): Sample weights Defaults to None.
 
 Returns:
 - **f1** (`float` or `array` of `float`): F1 score or list of f1 scores, depending on the value passed to `average`. Minimum possible value is 0. Maximum possible value is 1. Higher f1 scores are better.
