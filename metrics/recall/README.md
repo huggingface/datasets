@@ -39,7 +39,7 @@ At minimum, this metric takes as input two `list`s, each containing `int`s: pred
 
 
 ### Output Values
-- **recall**(`float`, or `array` of `float`): Either the general recall score, or the recall scores for individual classes, depending on the values input to `labels` and `average`. Minimum possible value is 0. Maximum possible value is 1. A higher recall means that more of the positive examples have been labeled correctly. Therefore, a higher recall is generally considered better.
+- **recall**(`float`, or `array` of `float`, for multiclass targets): Either the general recall score, or the recall scores for individual classes, depending on the values input to `labels` and `average`. Minimum possible value is 0. Maximum possible value is 1. A higher recall means that more of the positive examples have been labeled correctly. Therefore, a higher recall is generally considered better.
 
 Output Example(s):
 ```python
