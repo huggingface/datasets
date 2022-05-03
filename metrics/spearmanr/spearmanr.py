@@ -56,9 +56,9 @@ Examples:
         >>> results = spearmanr_metric.compute(references=[1, 2, 3, 4, 5],
         ...                                     predictions=[10, 9, 2.5, 6, 4],
         ...                                     return_pvalue=True)
-        >>> print(results['spearmanr'].correlation)
+        >>> print(results['spearmanr`])
         -0.7
-        >>> print(round(results['spearmanr'].pvalue, 2))
+        >>> print(round(results['spearmanr_pvalue'], 2))
         0.19
 """
 
