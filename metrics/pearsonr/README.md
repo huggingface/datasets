@@ -30,6 +30,8 @@ This metric takes a list of predictions and a list of references as input
 - **pearsonr**(`float`): Pearson correlation coefficient. Minimum possible value is -1. Maximum possible value is 1. Values of 1 and -1 indicate exact linear positive and negative relationships, respectively. A value of 0 implies no correlation.
 - **p-value**(`float`): P-value, which roughly indicates the probability of an The p-value roughly indicates the probability of an uncorrelated system producing datasets that have a Pearson correlation at least as extreme as the one computed from these datasets. Minimum possible value is 0. Maximum possible value is 1. Higher values indicate higher probabilities.
 
+Like other correlation coefficients, this one varies between -1 and +1 with 0 implying no correlation. Correlations of -1 or +1 imply an exact linear relationship. Positive correlations imply that as x increases, so does y. Negative correlations imply that as x increases, y decreases.
+
 Output Example(s):
 ```python
 {'pearsonr': -0.7}
@@ -38,13 +40,7 @@ Output Example(s):
 {'p-value': 0.15}
 ```
 
-
-
-
 #### Values from Popular Papers
-
-
-
 
 ### Examples
 
