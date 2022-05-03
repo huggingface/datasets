@@ -42,9 +42,8 @@ Args:
     - return_pvalue (`bool`): If `True`, returns the p-value. If `False`, returns
             only the spearmanr score. Defaults to `False`.
 Returns:
-    -  **`spearmanr`** (`float`): Spearman correlation coefficient.
-    - **`p-value`** (`float`): p-value. **Note**: is only returned
-                        if `return_pvalue=True` is input.
+    - spearmanr (`float`): Spearman correlation coefficient.
+    - p-value (`float`): p-value. **Note**: is only returned if `return_pvalue=True` is input.
 Examples:
     Example 1:
         >>> spearmanr_metric = datasets.load_metric("spearmanr")
