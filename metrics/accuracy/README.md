@@ -38,16 +38,13 @@ Output Example(s):
 ```python
 {'accuracy': 1.0}
 ```
-```python
-
-```
 
 This metric outputs a dictionary, containing the accuracy score.
 
 
 #### Values from Popular Papers
 
-
+Top-1 or top-5 accuracy is often used to report performance on supervised classification tasks such as image classification (e.g. on [ImageNet](https://paperswithcode.com/sota/image-classification-on-imagenet)) or sentiment analysis (e.g. on [IMDB](https://paperswithcode.com/sota/text-classification-on-imdb)). 
 
 
 ### Examples
