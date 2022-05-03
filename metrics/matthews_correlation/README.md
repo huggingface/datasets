@@ -87,4 +87,5 @@ The same example as above, with sample weights that cause a negative correlation
 ```
 
 ## Further References
-*Add any useful further references.*
+
+- This Hugging Face implementation uses [this scikit-learn implementation](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.matthews_corrcoef.html)
