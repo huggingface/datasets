@@ -71,6 +71,7 @@ Example 2-The same as Example 1, but that also returns the `p-value`.
 
 ## Limitations and Bias
 
+As stated above, the calculation of the p-value relies on the assumption that each data set is normally distributed. This is not always the case, so verifying the true distribution of datasets is recommended.
 
 
 ## Citation(s)
