@@ -15,7 +15,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- question-answering
+- visual-question-answering
 task_ids:
 - visual-question-answering
 ---
