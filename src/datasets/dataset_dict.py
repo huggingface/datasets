@@ -1386,6 +1386,19 @@ class IterableDatasetDict(dict):
 
             type (:obj:`str`, optional, default None): if set to "torch", the returned dataset
                 will be a subclass of torch.utils.data.IterableDataset to be used in a DataLoader
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> from transformers import AutoTokenizer
+        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+        >>> def encode(example):
+        ...     return tokenizer(examples["text"], truncation=True, padding="max_length")
+        >>> ds = ds.map(encode, batched=True, remove_columns=["text"])
+        >>> ds = ds.with_format("torch")
+        ```
         """
         return IterableDatasetDict({k: dataset.with_format(type=type) for k, dataset in self.items()})
 
@@ -1437,6 +1450,20 @@ class IterableDatasetDict(dict):
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> def add_prefix(example):
+        ...     example["text"] = "Review: " + example["text"]
+        ...     return example
+        >>> ds = ds.map(add_prefix)
+        >>> next(iter(ds["train"]))
+        {'label': 1,
+         'text': 'Review: the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
+        ```
         """
         return IterableDatasetDict(
             {
@@ -1479,6 +1506,20 @@ class IterableDatasetDict(dict):
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (:obj:`bool`, defaults to `False`): Provide batch of examples to `function`
             batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds = ds.filter(lambda x: x["label"] == 0)
+        >>> list(ds["train"].take(3))
+        [{'label': 0, 'text': 'Review: simplistic , silly and tedious .'},
+         {'label': 0,
+         'text': "Review: it's so laddish and juvenile , only teenage boys could possibly find it funny ."},
+         {'label': 0,
+         'text': 'Review: exploitative and largely devoid of the depth or sophistication that would make watching such a graphic treatment of the crimes bearable .'}]
+        ```
         """
         return IterableDatasetDict(
             {
@@ -1519,6 +1560,27 @@ class IterableDatasetDict(dict):
             generator (:obj:`numpy.random.Generator`, optional): Numpy random Generator to use to compute the permutation of the dataset rows.
                 If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
             buffer_size (:obj:`int`, default 1000): size of the buffer.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> list(ds["train"].take(3))
+        [{'label': 1,
+         'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
+         {'label': 1,
+         'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'},
+         {'label': 1, 'text': 'effective but too-tepid biopic'}]
+        >>> ds = ds.shuffle(seed=42)
+        >>> list(ds["train"].take(3))
+        [{'label': 1,
+         'text': "a sports movie with action that's exciting on the field and a story you care about off it ."},
+         {'label': 1,
+         'text': 'at its best , the good girl is a refreshingly adult take on adultery . . .'},
+         {'label': 1,
+         'text': "sam jones became a very lucky filmmaker the day wilco got dropped from their record label , proving that one man's ruin may be another's fortune ."}]
+        ```
         """
         return IterableDatasetDict(
             {
@@ -1539,6 +1601,17 @@ class IterableDatasetDict(dict):
 
         Returns:
             :class:`IterableDatasetDict`: A copy of the dataset with a renamed column.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds = ds.rename_column("text", "movie_review")
+        >>> next(iter(ds["train"]))
+        {'label': 1,
+         'movie_review': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
+        ```
         """
         return IterableDatasetDict(
             {
@@ -1558,6 +1631,17 @@ class IterableDatasetDict(dict):
 
         Returns:
             :class:`IterableDatasetDict`: A copy of the dataset with renamed columns
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds = ds.rename_columns({"text": "movie_review", "label": "rating"})
+        >>> next(iter(ds["train"]))
+        {'movie_review': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .',
+         'rating': 1}
+        ```
         """
         return IterableDatasetDict(
             {k: dataset.rename_columns(column_mapping=column_mapping) for k, dataset in self.items()}
@@ -1575,6 +1659,15 @@ class IterableDatasetDict(dict):
 
         Returns:
             :class:`IterableDatasetDict`: A copy of the dataset object without the columns to remove.
+        
+        Example:
+
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds = ds.remove_columns("label")
+        >>> next(iter(ds["train"]))
+        {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
+        ```
         """
         return IterableDatasetDict({k: dataset.remove_columns(column_names) for k, dataset in self.items()})
 
@@ -1588,6 +1681,20 @@ class IterableDatasetDict(dict):
 
         Returns:
             :class:`IterableDatasetDict`
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds["train"].features
+        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+         'text': Value(dtype='string', id=None)}
+        >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
+        >>> ds["train"].features
+        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+         'text': Value(dtype='string', id=None)}
+        ```
         """
         return IterableDatasetDict(
             {k: dataset.cast_column(column=column, feature=feature) for k, dataset in self.items()}
@@ -1609,5 +1716,22 @@ class IterableDatasetDict(dict):
 
         Returns:
             :class:`IterableDatasetDict`: A copy of the dataset with casted features.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds["train"].features
+        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+         'text': Value(dtype='string', id=None)}
+        >>> new_features = ds["train"].features.copy()
+        >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
+        >>> new_features['text'] = Value('large_string')
+        >>> ds = ds.cast(new_features)
+        >>> ds["train"].features
+        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+         'text': Value(dtype='large_string', id=None)}
+        ```
         """
         return IterableDatasetDict({k: dataset.cast(features=features) for k, dataset in self.items()})
