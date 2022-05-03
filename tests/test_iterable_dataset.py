@@ -237,7 +237,7 @@ def test_mapped_examples_iterable_drop_last_batch(generate_examples_fn, n, func,
         all_transformed_examples = []
         for batch_offset in range(0, len(all_examples), batch_size):
             examples = all_examples[batch_offset : batch_offset + batch_size]
-            if len(examples) < batch_size:
+            if len(examples) < batch_size:  # ignore last batch
                 break
             batch = _examples_to_batch(examples)
             transformed_batch = func(batch)
