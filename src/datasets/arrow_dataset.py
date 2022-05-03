@@ -4408,30 +4408,30 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError(f"Column ({label_column}) not in table columns ({self._data.column_names}).")
 
         label_feature = self.features[label_column]
-        if not isinstance(label_feature, ClassLabel):
-            raise ValueError(
-                f"Aligning labels with a mapping is only supported for {ClassLabel.__name__} column, and column {label_feature} is {type(label_feature).__name__}."
-            )
+        # if not isinstance(label_feature, ClassLabel):
+        #     raise ValueError(
+        #         f"Aligning labels with a mapping is only supported for {ClassLabel.__name__} column, and column {label_feature} is {type(label_feature).__name__}."
+        #     )
 
         # Sort input mapping by ID value to ensure the label names are aligned
         label2id = dict(sorted(label2id.items(), key=lambda item: item[1]))
         label_names = list(label2id.keys())
         # Some label mappings use uppercase label names so we lowercase them during alignment
         label2id = {k.lower(): v for k, v in label2id.items()}
-        int2str_function = label_feature.int2str
+        int2str_function = label_feature.int2str if isinstance(label_feature, ClassLabel) else label_feature.feature.int2str
 
         def process_label_ids(batch):
-            dset_label_names = [
-                int2str_function(label_id).lower() if label_id is not None else None
-                for label_id in batch[label_column]
-            ]
-            batch[label_column] = [
-                label2id[label_name] if label_name is not None else None for label_name in dset_label_names
-            ]
+            dset_label_names = []
+            for seq in batch[label_column]:
+                dset_label_names.append([int2str_function(label_id).lower() for label_id in seq])
+            outputs = []
+            for seq in dset_label_names:
+                outputs.append([label2id[label_name] for label_name in seq])
+            batch[label_column] = outputs
             return batch
 
         features = self.features.copy()
-        features[label_column] = ClassLabel(num_classes=len(label_names), names=label_names)
+        features[label_column] = ClassLabel(num_classes=len(label_names), names=label_names) if isinstance(label_feature, ClassLabel) else Sequence(ClassLabel(num_classes=len(label_names), names=label_names))
         return self.map(process_label_ids, features=features, batched=True, desc="Aligning the labels")
 
 
