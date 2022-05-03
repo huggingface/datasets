@@ -184,7 +184,6 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
         urls = _URLS[self.config.format]
         metadata_path = dl_manager.download(_METADATA_URL)
         data_dir = dl_manager.download_and_extract(urls)
-        print(data_dir)
         data_path = self._get_data_path(data_dir)
         return [
             datasets.SplitGenerator(
