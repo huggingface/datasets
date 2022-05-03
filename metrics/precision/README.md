@@ -102,6 +102,7 @@ Example 4-A multiclass example, with different values for the `average` input.
 
 ## Limitations and Bias
 
+[Precision](https://huggingface.co/metrics/precision) and [recall](https://huggingface.co/metrics/recall) are complementary and can be used to measure different aspects of model performance -- using both of them (or an averaged measure like [F1 score](https://huggingface.co/metrics/F1) to better represent different aspects of performance. See [Wikipedia](https://en.wikipedia.org/wiki/Precision_and_recall) for more information.
 
 ## Citation(s)
 ```bibtex
@@ -120,3 +121,4 @@ Example 4-A multiclass example, with different values for the `average` input.
 
 
 ## Further References
+- [Wikipedia -- Precision and recall](https://en.wikipedia.org/wiki/Precision_and_recall)
