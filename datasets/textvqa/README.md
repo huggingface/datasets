@@ -73,7 +73,7 @@ The questions in the dataset are in English.
 
 ### Data Instances
 
-A typical sample mainly contains the question in `question` field, an image object in `image` field, OpenImage image id in `image_id` and lot of other useful metadata. 10 answers per questions are contained in the `answers` attribute.
+A typical sample mainly contains the question in `question` field, an image object in `image` field, OpenImage image id in `image_id` and lot of other useful metadata. 10 answers per questions are contained in the `answers` attribute. For test set, 10 empty strings are contained in the `answers` field as the answers are not available for it.
 
 An example look like below: 
 
@@ -113,13 +113,13 @@ An example look like below:
 - `image_width`: int, Width of the original image.
 - `image_height`: int, Height of the original image.
 - `question_tokens`:  List[str], A pre-tokenized list of question.
-- `answers`: List[str], List of 10 human-annotated answers for the question. These 10 answers are collected from 10 different users.
+- `answers`: List[str], List of 10 human-annotated answers for the question. These 10 answers are collected from 10 different users. The list will contain empty strings for test set for which we don't have the answers.
 - `question_id`: int, Unique id of the question.
 - `set_name`: string, the set to which this question belongs.
 
 ### Data Splits
 
-There are three splits. `train`, `validation` and `test`. The `train` and `validation` sets share images with OpenImages `train` set and have their answers available. To get inference results and numbers on `test` set, you need to go to the [EvalAI leaderboard](https://eval.ai/web/challenges/challenge-page/874/overview) and upload your predictions there. Please see instructions at [https://textvqa.org/challenge/](https://textvqa.org/challenge/).
+There are three splits. `train`, `validation` and `test`. The `train` and `validation` sets share images with OpenImages `train` set and have their answers available. For test set answers, we return a list of ten empty strings. To get inference results and numbers on `test` set, you need to go to the [EvalAI leaderboard](https://eval.ai/web/challenges/challenge-page/874/overview) and upload your predictions there. Please see instructions at [https://textvqa.org/challenge/](https://textvqa.org/challenge/).
 
 ## Dataset Creation
 
