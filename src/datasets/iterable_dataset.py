@@ -202,7 +202,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     (key, example) for key, example in islice(iterator, self.batch_size - 1)
                 ]
                 keys, examples = zip(*key_examples_list)
-                if self.drop_last_batch and len(examples) < self.batch_size:
+                if self.drop_last_batch and len(examples) < self.batch_size:  # ignore last batch
                     return
                 batch = _examples_to_batch(examples)
                 # then apply the transform
