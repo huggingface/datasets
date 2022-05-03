@@ -114,7 +114,8 @@ class Spearmanr(datasets.Metric):
     def _compute(self, predictions, references, return_pvalue=False):
         if return_pvalue:
             return {
-                "spearmanr": spearmanr(references, predictions),
+                "spearmanr": spearmanr(references, predictions)[0],
+                "spearmanr_pvalue": spearmanr(references, predictions)[1],
             }
         else:
             return {
