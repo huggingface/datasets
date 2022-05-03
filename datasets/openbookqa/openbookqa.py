@@ -55,25 +55,25 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
         OpenbookqaConfig(
             name="main",
             description=textwrap.dedent(
+                """\
+                It consists of 5,957 multiple-choice elementary-level science questions (4,957 train, 500 dev, 500 test),
+                which probe the understanding of a small “book” of 1,326 core science facts and the application of these facts to novel
+                situations. For training, the dataset includes a mapping from each question to the core science fact it was designed to
+                probe. Answering OpenBookQA questions requires additional broad common knowledge, not contained in the book. The questions,
+                by design, are answered incorrectly by both a retrieval-based algorithm and a word co-occurrence algorithm. Strong neural
+                baselines achieve around 50% on OpenBookQA, leaving a large gap to the 92% accuracy of crowd-workers.
                 """
-                                  It consists of 5,957 multiple-choice elementary-level science questions (4,957 train, 500 dev, 500 test),
-                                  which probe the understanding of a small “book” of 1,326 core science facts and the application of these facts to novel
-                                  situations. For training, the dataset includes a mapping from each question to the core science fact it was designed to
-                                  probe. Answering OpenBookQA questions requires additional broad common knowledge, not contained in the book. The questions,
-                                  by design, are answered incorrectly by both a retrieval-based algorithm and a word co-occurrence algorithm. Strong neural
-                                  baselines achieve around 50% on OpenBookQA, leaving a large gap to the 92% accuracy of crowd-workers.
-                                """
             ),
             data_dir="Main",
         ),
         OpenbookqaConfig(
             name="additional",
             description=textwrap.dedent(
+                """\
+                Additionally, we provide 5,167 crowd-sourced common knowledge facts, and an expanded version of the train/dev/test questions where
+                each question is associated with its originating core fact, a human accuracy score, a clarity score, and an anonymized crowd-worker
+                ID (in the 'Additional' folder).
                 """
-                                  Additionally, we provide 5,167 crowd-sourced common knowledge facts, and an expanded version of the train/dev/test questions where
-                                  each question is associated with its originating core fact, a human accuracy score, a clarity score, and an anonymized crowd-worker
-                                  ID (in the “Additional” folder).
-                                """
             ),
             data_dir="Additional",
         ),
