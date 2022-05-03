@@ -40,7 +40,7 @@ Args:
     sample_weight (`list` of `float`): Sample weights Defaults to None.
 
 Returns:
-- **f1** (`float` or `array` of `float`): F1 score or list of f1 scores, depending on the value passed to `average`. Minimum possible value is 0. Maximum possible value is 1. Higher f1 scores are better.
+    f1 (`float` or `array` of `float`): F1 score or list of f1 scores, depending on the value passed to `average`. Minimum possible value is 0. Maximum possible value is 1. Higher f1 scores are better.
 
 Examples:
 
