@@ -54,6 +54,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = ImageFolderConfig
 
     IMAGE_EXTENSIONS: List[str] = []  # definition at the bottom of the script
+    SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT = True
     METADATA_FILENAME: str = "metadata.jsonl"
 
     def _info(self):
