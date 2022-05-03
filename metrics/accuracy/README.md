@@ -20,7 +20,7 @@ At minimum, this metric requires predictions and references as inputs.
 >>> accuracy_metric = datasets.load_metric("accuracy")
 >>> results = accuracy_metric.compute(references=[0, 1], predictions=[0, 1])
 >>> print(results)
-["{'accuracy': 1.0}"]
+{'accuracy': 1.0}
 ```
 
 
