@@ -44,9 +44,9 @@ If `return_pvalue=False`, the output is a `dict` with one value, as below:
 {'spearmanr': -0.7}
 ```
 
-Otherwise, if `return_pvalue=True`, the output is a `dict` containing a `SpearmanrResult` object:
+Otherwise, if `return_pvalue=True`, the output is a `dict` containing a the `spearmanr` value as well as the corresponding `pvalue`:
 ```python
-{'spearmanr': SpearmanrResult(correlation=-0.7, pvalue=0.1881204043741873)}
+{'spearmanr': -0.7, 'spearmanr_pvalue': 0.1881204043741873}
 ```
 
 Spearman rank-order correlations can take on any value from `-1` to `1`, inclusive.
@@ -70,11 +70,11 @@ The same example, but that also returns the pvalue:
 >>> spearmanr_metric = datasets.load_metric("spearmanr")
 >>> results = spearmanr_metric.compute(references=[1, 2, 3, 4, 5], predictions=[10, 9, 2.5, 6, 4], return_pvalue=True)
 >>> print(results)
-{'spearmanr': SpearmanrResult(correlation=-0.7, pvalue=0.1881204043741873)}
->>> print(results['spearmanr'].correlation)
+{'spearmanr': -0.7, 'spearmanr_pvalue': 0.1881204043741873
+>>> print(results['spearmanr'])
 -0.7
->>> print(round(results['spearmanr'].pvalue, 2))
-0.19
+>>> print(results['spearmanr_pvalue'])
+0.1881204043741873
 ```
 
 ## Limitations and Bias
