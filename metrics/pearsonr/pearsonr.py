@@ -64,11 +64,11 @@ author  = {Virtanen, Pauli and Gommers, Ralf and Oliphant, Travis E. and
       Brett, Matthew and Wilson, Joshua and Millman, K. Jarrod and
       Mayorov, Nikolay and Nelson, Andrew R. J. and Jones, Eric and
       Kern, Robert and Larson, Eric and Carey, C J and
-      Polat, {\.I}lhan and Feng, Yu and Moore, Eric W. and
+      Polat, Ilhan and Feng, Yu and Moore, Eric W. and
       {VanderPlas}, Jake and Laxalde, Denis and Perktold, Josef and
       Cimrman, Robert and Henriksen, Ian and Quintero, E. A. and
       Harris, Charles R. and Archibald, Anne M. and
-      Ribeiro, Ant{\^o}nio H. and Pedregosa, Fabian and
+      Ribeiro, Antonio H. and Pedregosa, Fabian and
       {van Mulbregt}, Paul and {SciPy 1.0 Contributors}},
 title   = {{{SciPy} 1.0: Fundamental Algorithms for Scientific
       Computing in Python}},
