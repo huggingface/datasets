@@ -37,9 +37,9 @@ reliable but are probably reasonable for datasets larger than 500 or so.
 
 _KWARGS_DESCRIPTION = """
 Args:
-    - predictions (`List[float]`): Predicted labels, as returned by a model.
-    - references (`List[float]`): Ground truth labels.
-    - return_pvalue (`bool`): If `True`, returns the p-value. If `False`, returns
+    predictions (`List[float]`): Predicted labels, as returned by a model.
+    references (`List[float]`): Ground truth labels.
+    return_pvalue (`bool`): If `True`, returns the p-value. If `False`, returns
             only the spearmanr score. Defaults to `False`.
 Returns:
     - spearmanr (`float`): Spearman correlation coefficient.
