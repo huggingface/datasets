@@ -165,3 +165,5 @@ From the website:
 > The data used in this project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF EIA-0196217.
 
 ### Contributions
+
+Thanks to [@dnaveenr](https://github.com/dnaveenr) for adding this dataset.
