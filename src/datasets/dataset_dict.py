@@ -1659,7 +1659,7 @@ class IterableDatasetDict(dict):
 
         Returns:
             :class:`IterableDatasetDict`: A copy of the dataset object without the columns to remove.
-        
+
         Example:
 
         >>> from datasets import load_dataset

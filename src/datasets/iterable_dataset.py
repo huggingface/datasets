@@ -763,7 +763,7 @@ class IterableDataset(DatasetInfoMixin):
 
         Args:
             n (:obj:`int`): number of elements to skip.
-        
+
         Example:
 
         >>> from datasets import load_dataset
