@@ -1662,6 +1662,7 @@ class IterableDatasetDict(dict):
 
         Example:
 
+        ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes", streaming=True)
         >>> ds = ds.remove_columns("label")

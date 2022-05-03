@@ -766,6 +766,7 @@ class IterableDataset(DatasetInfoMixin):
 
         Example:
 
+        ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
         >>> list(ds.take(3))
