@@ -35,10 +35,10 @@ class S3FileSystem(s3fs.S3FileSystem):
         kwargs: other parameters for core session.
         session: aiobotocore AioSession object to be used for all connections. This session will be used inplace of creating a new
             session inside S3FileSystem. For example: `aiobotocore.session.AioSession(profile='test_user')`.
-        skip_instance_cache: Control reuse of instances. Passed on to `fsspec`.
-        use_listings_cache: Control reuse of directory listings. Passed on to `fsspec`.
-        listings_expirty_time: Control reuse of directory listings. Passed on to `fsspec`.
-        max_paths: Control reuse of directory listings. Passed on to `fsspec`.
+        skip_instance_cache (`bool`): Control reuse of instances. Passed on to `fsspec`.
+        use_listings_cache (`bool`): Control reuse of directory listings. Passed on to `fsspec`.
+        listings_expiry_time (`int` or `float`): Control reuse of directory listings. Passed on to `fsspec`.
+        max_paths (`int`): Control reuse of directory listings. Passed on to `fsspec`.
 
     Examples:
 
