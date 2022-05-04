@@ -13,7 +13,7 @@ class S3FileSystem(s3fs.S3FileSystem):
         anon (`bool`, default to `False`): Whether to use anonymous connection (public buckets only). If False, uses the key/secret given,
             or boto's credential resolver (client_kwargs, environment, variables, config files, EC2 IAM server, in that order).
         key (`str`): If not anonymous, use this access key ID, if specified.
-        secret (`str): If not anonymous, use this secret access key, if specified.
+        secret (`str`): If not anonymous, use this secret access key, if specified.
         token (`str`): If not anonymous, use this security token, if specified.
         use_ssl (`bool`, default to `True`): Whether to use SSL in connections to S3; may be faster without, but insecure. If `use_ssl` is
             also set in `client_kwargs`, the value set in `client_kwargs` will take priority.
