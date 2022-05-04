@@ -22,10 +22,10 @@ import datasets
 
 
 _DESCRIPTION = """\
-MedMCQA is a large-scale, Multiple-Choice Question Answering (MCQA) dataset designed to address real-world medical entrance exam questions. 
+MedMCQA is a large-scale, Multiple-Choice Question Answering (MCQA) dataset designed to address real-world medical entrance exam questions.
 MedMCQA has more than 194k high-quality AIIMS & NEET PG entrance exam MCQs covering 2.4k healthcare topics and 21 medical subjects are collected with an average token length of 12.77 and high topical diversity.
 The dataset contains questions about the following topics: Anesthesia, Anatomy, Biochemistry, Dental, ENT, Forensic Medicine (FM)
-Obstetrics and Gynecology (O&G), Medicine, Microbiology, Ophthalmology, Orthopedics Pathology, Pediatrics, Pharmacology, Physiology, 
+Obstetrics and Gynecology (O&G), Medicine, Microbiology, Ophthalmology, Orthopedics Pathology, Pediatrics, Pharmacology, Physiology,
 Psychiatry, Radiology Skin, Preventive & Social Medicine (PSM) and Surgery
 """
 

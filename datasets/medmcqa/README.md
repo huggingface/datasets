@@ -19,10 +19,8 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 - open-domain-qa
-paperswithcode_id:
-medmcqa
-pretty_name:
-MedMCQA
+paperswithcode_id: medmcqa
+pretty_name: MedMCQA
 ---
 
 # Dataset Card for MedMCQA
