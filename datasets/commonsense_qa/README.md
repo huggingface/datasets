@@ -1,13 +1,30 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
 languages:
 - en
-paperswithcode_id: commonsenseqa
+licenses:
+- unknown
+multilinguality:
+- monolingual
 pretty_name: CommonsenseQA
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- open-domain-qa
+paperswithcode_id: commonsenseqa
 ---
 
 # Dataset Card for "commonsense_qa"
 
 ## Table of Contents
+- [Table of Contents](#table-of-contents)
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
   - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
