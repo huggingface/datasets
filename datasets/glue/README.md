@@ -166,8 +166,6 @@ The language data in GLUE is in English (BCP-47 `en`)
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### ax

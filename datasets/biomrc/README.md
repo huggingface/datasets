@@ -55,8 +55,6 @@ We introduce BIOMRC, a large-scale cloze-style biomedical MRC dataset. Care was 
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### biomrc_large_A

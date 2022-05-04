@@ -61,8 +61,6 @@ answers and a rationalte. Each example in this dataset has the following 5 parts
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

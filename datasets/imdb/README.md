@@ -72,8 +72,6 @@ This is a dataset for binary sentiment classification containing substantially m
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### plain_text

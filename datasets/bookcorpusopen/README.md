@@ -74,8 +74,6 @@ This version of bookcorpus has 17868 dataset items (books). Each item contains t
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### plain_text

@@ -62,8 +62,6 @@ Wikipedia article containing the answer. Following the original work, we evaluat
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### axb

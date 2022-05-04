@@ -79,8 +79,6 @@ Web of Science Dataset WOS-5736
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### WOS11967

@@ -56,8 +56,6 @@ Topics and opinions are obtained from Tripadvisor, Edmunds.com and Amazon.com.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

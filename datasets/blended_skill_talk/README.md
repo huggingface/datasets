@@ -55,8 +55,6 @@ A dataset of 7k conversations explicitly designed to exhibit multiple conversati
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default
