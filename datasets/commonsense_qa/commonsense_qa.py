@@ -46,21 +46,21 @@ _URLS = {
 
 class CommonsenseQa(datasets.GeneratorBasedBuilder):
     """CommonsenseQA dataset."""
-
-    # TODO(commonsense_qa): Set up version.
-    VERSION = datasets.Version("0.1.0")
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
         features = datasets.Features(
             {
-                "answerKey": datasets.Value("string"),
+                "id": datasets.Value("string"),
                 "question": datasets.Value("string"),
+                "question_concept": datasets.Value("string"),
                 "choices": datasets.features.Sequence(
                     {
                         "label": datasets.Value("string"),
                         "text": datasets.Value("string"),
                     }
                 ),
+                "answerKey": datasets.Value("string"),
             }
         )
         return datasets.DatasetInfo(
@@ -89,14 +89,13 @@ class CommonsenseQa(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for uid, row in enumerate(f):
                 data = json.loads(row)
-                question = data["question"]
-                choices = question["choices"]
+                choices = data["question"]["choices"]
                 labels = [label["label"] for label in choices]
                 texts = [text["text"] for text in choices]
-                stem = question["stem"]
-                answerkey = data.get("answerKey", "")
                 yield uid, {
-                    "answerKey": answerkey,
-                    "question": stem,
+                    "id": data["id"],
+                    "question": data["question"]["stem"],
+                    "question_concept": data["question"]["question_concept"],
                     "choices": {"label": labels, "text": texts},
+                    "answerKey": data.get("answerKey", ""),
                 }
