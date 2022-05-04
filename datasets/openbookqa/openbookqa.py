@@ -32,7 +32,7 @@ _URL = "https://s3-us-west-2.amazonaws.com/ai2-website/data/OpenBookQA-V1-Sep201
 
 
 class OpenbookqaConfig(datasets.BuilderConfig):
-    def __init__(self, data_dir=None, filenames=None, version=datasets.Version("1.0.0", ""), **kwargs):
+    def __init__(self, data_dir=None, filenames=None, version=datasets.Version("1.0.1", ""), **kwargs):
         """BuilderConfig for openBookQA dataset
 
         Args:
