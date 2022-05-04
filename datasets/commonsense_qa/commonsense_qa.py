@@ -62,7 +62,7 @@ class CommonsenseQa(datasets.GeneratorBasedBuilder):
             # builder.as_dataset.
             supervised_keys=None,
             # Homepage of the dataset for documentation
-            homepage="https://www.tau-datasets.org/commonsenseqa",
+            homepage="https://www.tau-nlp.org/commonsenseqa",
             citation=_CITATION,
         )
 
