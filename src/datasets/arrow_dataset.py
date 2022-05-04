@@ -4423,10 +4423,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         def process_label_ids(batch):
-            dset_label_names = [
-                [int2str_function(label_id).lower() for label_id in seq] for seq in batch[label_column]
-            ]
-            batch[label_column] = [[label2id[label_name] for label_name in seq] for seq in dset_label_names]
+            if isinstance(label_feature, ClassLabel):
+                dset_label_names = [
+                    int2str_function(label_id).lower() if label_id is not None else None
+                    for label_id in batch[label_column]
+                ]
+                batch[label_column] = [
+                    label2id[label_name] if label_name is not None else None for label_name in dset_label_names
+                ]
+            else:
+                dset_label_names = [
+                    [int2str_function(label_id).lower() if label_id is not None else None for label_id in seq]
+                    for seq in batch[label_column]
+                ]
+                batch[label_column] = [
+                    [label2id[label_name] if label_name is not None else None for label_name in seq]
+                    for seq in dset_label_names
+                ]
             return batch
 
         features = self.features.copy()
