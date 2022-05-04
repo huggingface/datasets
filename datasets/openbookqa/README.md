@@ -87,7 +87,7 @@ We show detailed information for up to 5 configurations of the dataset.
 - **Size of the generated dataset:** 1.38 MB
 - **Total amount of disk used:** 2.75 MB
 
-An example of 'validation' looks as follows:
+An example of 'train' looks as follows:
 ```
 {'id': '7-980',
  'question_stem': 'The sun is responsible for',
