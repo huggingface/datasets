@@ -86,9 +86,8 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=datasets.Features(
+        if self.config.name == "main":
+            features = datasets.Features(
                 {
                     "id": datasets.Value("string"),
                     "question_stem": datasets.Value("string"),
@@ -100,7 +99,28 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
                     ),
                     "answerKey": datasets.Value("string"),
                 }
-            ),
+            )
+        else:
+            features = datasets.Features(
+                {
+                    "id": datasets.Value("string"),
+                    "question_stem": datasets.Value("string"),
+                    "choices": datasets.features.Sequence(
+                        {
+                            "text": datasets.Value("string"),
+                            "label": datasets.Value("string"),
+                        }
+                    ),
+                    "answerKey": datasets.Value("string"),
+                    "fact1": datasets.Value("string"),
+                    "humanScore": datasets.Value("float"),
+                    "clarity": datasets.Value("float"),
+                    "turkIdAnonymized": datasets.Value("string"),
+                }
+            )
+        return datasets.DatasetInfo(
+            description=_DESCRIPTION,
+            features=features,
             homepage=_HOMEPAGE,
             citation=_CITATION,
         )
@@ -123,7 +143,7 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for uid, row in enumerate(f):
                 data = json.loads(row)
-                yield uid, {
+                example = {
                     "id": data["id"],
                     "question_stem": data["question"]["stem"],
                     "choices": {
@@ -132,3 +152,7 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
                     },
                     "answerKey": data["answerKey"],
                 }
+                if self.config.name == "additional":
+                    for key in ["fact1", "humanScore", "clarity", "turkIdAnonymized"]:
+                        example[key] = data[key]
+                yield uid, example
