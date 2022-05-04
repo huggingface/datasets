@@ -84,6 +84,7 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
             },
         ),
     ]
+    DEFAULT_CONFIG_NAME = "main"
 
     def _info(self):
         if self.config.name == "main":
