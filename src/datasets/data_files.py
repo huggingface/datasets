@@ -296,10 +296,13 @@ def get_patterns_locally(base_path: str) -> Dict[str, List[str]]:
 def _resolve_single_pattern_in_dataset_repository(
     dataset_info: huggingface_hub.hf_api.DatasetInfo,
     pattern: str,
+    base_path: Optional[str] = None,
     allowed_extensions: Optional[list] = None,
 ) -> List[PurePath]:
     data_files_ignore = FILES_TO_IGNORE
     fs = HfFileSystem(repo_info=dataset_info)
+    if base_path:
+        pattern = f"{base_path}/{pattern}"
     glob_iter = [PurePath(filepath) for filepath in fs.glob(PurePath(pattern).as_posix()) if fs.isfile(filepath)]
     matched_paths = [
         filepath
@@ -330,6 +333,7 @@ def _resolve_single_pattern_in_dataset_repository(
 def resolve_patterns_in_dataset_repository(
     dataset_info: huggingface_hub.hf_api.DatasetInfo,
     patterns: List[str],
+    base_path: Optional[str] = None,
     allowed_extensions: Optional[list] = None,
 ) -> List[Url]:
     """
@@ -364,6 +368,9 @@ def resolve_patterns_in_dataset_repository(
         dataset_info (huggingface_hub.hf_api.DatasetInfo): dataset info obtained using the hugginggace_hub.HfApi
         patterns (List[str]): Unix patterns or paths of the files in the dataset repository.
             The paths should be relative to the root of the repository.
+        base_path (Optional[str], optional): Path inside a repo to use when resolving relative paths.
+            Defaults to None (search from a repository's root). Used if files only from a specific
+            directory should be resolved.
         allowed_extensions (Optional[list], optional): White-list of file extensions to use. Defaults to None (all extensions).
             For example: allowed_extensions=["csv", "json", "txt", "parquet"]
 
@@ -372,7 +379,9 @@ def resolve_patterns_in_dataset_repository(
     """
     data_files_urls: List[Url] = []
     for pattern in patterns:
-        for rel_path in _resolve_single_pattern_in_dataset_repository(dataset_info, pattern, allowed_extensions):
+        for rel_path in _resolve_single_pattern_in_dataset_repository(
+            dataset_info, pattern, base_path, allowed_extensions
+        ):
             data_files_urls.append(Url(hf_hub_url(dataset_info.id, rel_path.as_posix(), revision=dataset_info.sha)))
     if not data_files_urls:
         error_msg = f"Unable to resolve any data file that matches {patterns} in dataset repository {dataset_info.id}"
@@ -382,7 +391,9 @@ def resolve_patterns_in_dataset_repository(
     return data_files_urls
 
 
-def get_patterns_in_dataset_repository(dataset_info: huggingface_hub.hf_api.DatasetInfo) -> Dict[str, List[str]]:
+def get_patterns_in_dataset_repository(
+    dataset_info: huggingface_hub.hf_api.DatasetInfo, base_path: str
+) -> Dict[str, List[str]]:
     """
     Get the default pattern from a repository by testing all the supported patterns.
     The first patterns to return a non-empty list of data files is returned.
@@ -466,7 +477,7 @@ def get_patterns_in_dataset_repository(dataset_info: huggingface_hub.hf_api.Data
 
     In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
     """
-    resolver = partial(_resolve_single_pattern_in_dataset_repository, dataset_info)
+    resolver = partial(_resolve_single_pattern_in_dataset_repository, dataset_info, base_path=base_path)
     try:
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:
@@ -526,9 +537,10 @@ class DataFilesList(List[Union[Path, Url]]):
         cls,
         patterns: List[str],
         dataset_info: huggingface_hub.hf_api.DatasetInfo,
+        base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
     ) -> "DataFilesList":
-        data_files = resolve_patterns_in_dataset_repository(dataset_info, patterns, allowed_extensions)
+        data_files = resolve_patterns_in_dataset_repository(dataset_info, patterns, base_path, allowed_extensions)
         origin_metadata = [(dataset_info.id, dataset_info.sha) for _ in patterns]
         return cls(data_files, origin_metadata)
 
@@ -589,13 +601,17 @@ class DataFilesDict(Dict[str, DataFilesList]):
         cls,
         patterns: Dict[str, Union[List[str], DataFilesList]],
         dataset_info: huggingface_hub.hf_api.DatasetInfo,
+        base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
     ) -> "DataFilesDict":
         out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
                 DataFilesList.from_hf_repo(
-                    patterns_for_key, dataset_info=dataset_info, allowed_extensions=allowed_extensions
+                    patterns_for_key,
+                    dataset_info=dataset_info,
+                    base_path=base_path,
+                    allowed_extensions=allowed_extensions,
                 )
                 if not isinstance(patterns_for_key, DataFilesList)
                 else patterns_for_key

@@ -185,6 +185,14 @@ class DatasetInfo:
         Args:
             dataset_info_dir (str): Destination directory.
             pretty_print (bool, default ``False``): If True, the JSON will be pretty-printed with the indent level of 4.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.info.write_to_directory("/path/to/directory/")
+        ```
         """
         with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f, pretty_print=pretty_print)
@@ -242,6 +250,13 @@ class DatasetInfo:
         Args:
             dataset_info_dir (`str`): The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
+
+        Example:
+
+        ```py
+        >>> from datasets import DatasetInfo
+        >>> ds_info = DatasetInfo.from_directory("/path/to/directory/")
+        ```
         """
         logger.info(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:

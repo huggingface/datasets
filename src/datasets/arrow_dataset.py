@@ -342,6 +342,17 @@ class TensorflowDatasetMixin:
 
         Returns:
             :class:`tf.data.Dataset`
+
+        Example:
+
+        ```py
+        >>> ds_train = ds["train"].to_tf_dataset(
+        ...    columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'],
+        ...    shuffle=True,
+        ...    batch_size=16,
+        ...    collate_fn=data_collator,
+        ... )
+        ```
         """
 
         if config.TF_AVAILABLE:
@@ -772,6 +783,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             :class:`Dataset`
+
+        Example:
+
+        ```py
+        >>> ds = Dataset.from_pandas(df)
+        ```
         """
         if info is not None and features is not None and info.features != features:
             raise ValueError(
@@ -846,6 +863,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             :class:`Dataset`
+
+        Example:
+
+        ```py
+        >>> ds = Dataset.from_csv('path/to/dataset.csv')
+        ```
         """
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetReader
@@ -877,6 +900,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             :class:`Dataset`
+
+        Example:
+
+        ```py
+        >>> ds = Dataset.from_json('path/to/dataset.json')
+        ```
         """
         # Dynamic import to avoid circular dependency
         from .io.json import JsonDatasetReader
@@ -916,6 +945,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             :class:`Dataset`
+
+        Example:
+
+        ```py
+        >>> ds = Dataset.from_parquet('path/to/dataset.parquet')
+        ```
         """
         # Dynamic import to avoid circular dependency
         from .io.parquet import ParquetDatasetReader
@@ -951,6 +986,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             :class:`Dataset`
+
+        Example:
+
+        ```py
+        >>> ds = Dataset.from_text('path/to/dataset.txt')
+        ```
         """
         # Dynamic import to avoid circular dependency
         from .io.text import TextDatasetReader
@@ -1004,6 +1045,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 of the dataset directory where the dataset will be saved to.
             fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
                 Instance of the remote filesystem used to download the files from.
+
+        Example:
+
+        ```py
+        >>> saved_ds = ds.save_to_disk("path/to/dataset/directory")
+        ```
         """
         if self.list_indexes():
             raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
@@ -1109,6 +1156,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             :class:`Dataset` or :class:`DatasetDict`:
             - If `dataset_path` is a path of a dataset directory: the dataset requested.
             - If `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
+
+        Example:
+
+        ```py
+        >>> ds = load_from_disk("path/to/dataset/directory")
+        ```
         """
         # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
         fs = fsspec.filesystem("file") if fs is None else fs
@@ -1151,12 +1204,37 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @property
     def data(self) -> Table:
-        """The Apache Arrow table backing the dataset."""
+        """The Apache Arrow table backing the dataset.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.data
+        MemoryMappedTable
+        text: string
+        label: int64
+        ----
+        text: [["compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .","the soundtrack alone is worth the price of admission .","rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .","beneath the film's obvious determination to shock at any cost lies considerable skill and determination , backed by sheer nerve .","bielinsky is a filmmaker of impressive talent .","so beautifully acted and directed , it's clear that washington most certainly has a new career ahead of him if he so chooses .","a visual spectacle full of stunning images and effects .","a gentle and engrossing character study .","it's enough to watch huppert scheming , with her small , intelligent eyes as steady as any noir villain , and to enjoy the perfectly pitched web of tension that chabrol spins .","an engrossing portrait of uncompromising artists trying to create something original against the backdrop of a corporate music industry that only seems to care about the bottom line .",...,"ultimately , jane learns her place as a girl , softens up and loses some of the intensity that made her an interesting character to begin with .","ah-nuld's action hero days might be over .","it's clear why deuces wild , which was shot two years ago , has been gathering dust on mgm's shelf .","feels like nothing quite so much as a middle-aged moviemaker's attempt to surround himself with beautiful , half-naked women .","when the precise nature of matthew's predicament finally comes into sharp focus , the revelation fails to justify the build-up .","this picture is murder by numbers , and as easy to be bored by as your abc's , despite a few whopping shootouts .","hilarious musical comedy though stymied by accents thick as mud .","if you are into splatter movies , then you will probably have a reasonably good time with the salton sea .","a dull , simple-minded and stereotypical tale of drugs , death and mind-numbing indifference on the inner-city streets .","the feature-length stretch . . . strains the show's concept ."]]
+        label: [[1,1,1,1,1,1,1,1,1,1,...,0,0,0,0,0,0,0,0,0,0]]
+        ```
+        """
         return self._data
 
     @property
     def cache_files(self) -> List[dict]:
-        """The cache files containing the Apache Arrow table backing the dataset."""
+        """The cache files containing the Apache Arrow table backing the dataset.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.cache_files
+        [{'filename': '/root/.cache/huggingface/datasets/rotten_tomatoes_movie_review/default/1.0.0/40d411e45a6ce3484deed7cc15b82a53dad9a72aafd9f86f8f227134bec5ca46/rotten_tomatoes_movie_review-validation.arrow'}]
+        ```
+        """
         cache_files = list_table_cache_files(self._data)
         if self._indices is not None:
             cache_files += list_table_cache_files(self._indices)
@@ -1164,24 +1242,64 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @property
     def num_columns(self) -> int:
-        """Number of columns in the dataset."""
+        """Number of columns in the dataset.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.num_columns
+        2
+        ```
+        """
         return self._data.num_columns
 
     @property
     def num_rows(self) -> int:
-        """Number of rows in the dataset (same as :meth:`Dataset.__len__`)."""
+        """Number of rows in the dataset (same as :meth:`Dataset.__len__`).
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.num_rows
+        1066
+        ```
+        """
         if self._indices is not None:
             return self._indices.num_rows
         return self._data.num_rows
 
     @property
     def column_names(self) -> List[str]:
-        """Names of the columns in the dataset."""
+        """Names of the columns in the dataset.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.column_names
+        ['text', 'label']
+        ```
+        """
         return self._data.column_names
 
     @property
     def shape(self) -> Tuple[int, int]:
-        """Shape of the dataset (number of columns, number of rows)."""
+        """Shape of the dataset (number of columns, number of rows).
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.shape
+        (1066, 2)
+        ```
+        """
         if self._indices is not None:
             return (self._indices.num_rows, self._data.num_columns)
         return self._data.shape
@@ -1196,6 +1314,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             :obj:`list`: List of unique elements in the given column.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.unique('label')
+        [1, 0]
+        ```
         """
         if column not in self._data.column_names:
             raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
@@ -1216,6 +1343,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Whether to include null values in the class labels. If True, the null values will be encoded as the `"None"` class label.
 
                 *New in version 1.14.2*
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("boolq", split="validation")
+        >>> ds.features
+        {'answer': Value(dtype='bool', id=None),
+         'passage': Value(dtype='string', id=None),
+         'question': Value(dtype='string', id=None)}
+        >>> ds = ds.class_encode_column('answer')
+        >>> ds.features
+        {'answer': ClassLabel(num_classes=2, names=['False', 'True'], id=None),
+         'passage': Value(dtype='string', id=None),
+         'question': Value(dtype='string', id=None)}
+        ```
         """
         # Sanity checks
         if column not in self._data.column_names:
@@ -1273,6 +1416,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             :class:`Dataset`: A copy of the dataset with flattened columns.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("squad", split="train")
+        >>> ds.features
+        {'answers': Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
+         'context': Value(dtype='string', id=None),
+         'id': Value(dtype='string', id=None),
+         'question': Value(dtype='string', id=None),
+         'title': Value(dtype='string', id=None)}
+        >>> ds.flatten()
+        Dataset({
+            features: ['id', 'title', 'context', 'question', 'answers.text', 'answers.answer_start'],
+            num_rows: 87599
+        })
+        ```
         """
         dataset = copy.deepcopy(self)
         for depth in range(1, max_depth):
@@ -1319,6 +1480,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             :class:`Dataset`: A copy of the dataset with casted features.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset, ClassLabel, Value
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.features
+        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+         'text': Value(dtype='string', id=None)}
+        >>> new_features = ds.features.copy()
+        >>> new_features['label'] = ClassLabel(names=['bad', 'good'])
+        >>> new_features['text'] = Value('large_string')
+        >>> ds = ds.cast(new_features)
+        >>> ds.features
+        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+         'text': Value(dtype='large_string', id=None)}
+        ```
         """
         if sorted(features) != sorted(self._data.column_names):
             raise ValueError(
@@ -1355,6 +1533,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             :class:`Dataset`
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.features
+        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+         'text': Value(dtype='string', id=None)}
+        >>> ds = ds.cast_column('label', ClassLabel(names=['bad', 'good']))
+        >>> ds.features
+        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+         'text': Value(dtype='string', id=None)}
+        ```
         """
         if hasattr(feature, "cast_storage"):
             dataset = copy.deepcopy(self)
@@ -1384,6 +1576,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             :class:`Dataset`: A copy of the dataset object without the columns to remove.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.remove_columns('label')
+        Dataset({
+            features: ['text'],
+            num_rows: 1066
+        })
+        ```
         """
         dataset = copy.deepcopy(self)
         if isinstance(column_names, str):
@@ -1419,6 +1623,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             :class:`Dataset`: A copy of the dataset with a renamed column.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.rename_column('label', 'label_new')
+        Dataset({
+            features: ['text', 'label_new'],
+            num_rows: 1066
+        })
+        ```
         """
         dataset = copy.deepcopy(self)
         if original_column_name not in dataset._data.column_names:
@@ -1466,6 +1682,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             :class:`Dataset`: A copy of the dataset with renamed columns
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.rename_columns({'text': 'text_new', 'label': 'label_new'})
+        Dataset({
+            features: ['text_new', 'label_new'],
+            num_rows: 1066
+        })
+        ```
         """
         dataset = copy.deepcopy(self)
 
@@ -1507,7 +1735,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset
 
     def __len__(self):
-        """Number of rows in the dataset."""
+        """Number of rows in the dataset.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.__len__
+        <bound method Dataset.__len__ of Dataset({
+            features: ['text', 'label'],
+            num_rows: 1066
+        })>
+        ```
+        """
         return self.num_rows
 
     def _iter(self, decoded: bool = True):
@@ -1596,6 +1837,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             new formatted columns = (all columns - previously unformatted columns)
 
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> from transformers import AutoTokenizer
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+        >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
+        >>> ds.set_format(type='numpy', columns=['text', 'label'])
+        >>> ds.format
+        {'columns': ['input_ids', 'token_type_ids', 'attention_mask', 'label'],
+         'format_kwargs': {},
+         'output_all_columns': False,
+         'type': 'numpy'}
+        ```
         """
         format_kwargs.update(format_kwargs.pop("format_kwargs", {}))  # allow to use self.set_format(self.format)
 
@@ -1631,6 +1887,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Reset __getitem__ return format to python objects and all columns.
 
         Same as ``self.set_format()``
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> from transformers import AutoTokenizer
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+        >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
+        >>> ds.set_format(type='numpy', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
+        >>> ds.format
+        {'columns': ['input_ids', 'token_type_ids', 'attention_mask', 'label'],
+         'format_kwargs': {},
+         'output_all_columns': False,
+         'type': 'numpy'}
+        >>> ds.reset_format()
+        >>> ds.format
+        {'columns': ['text', 'label', 'input_ids', 'token_type_ids', 'attention_mask'],
+         'format_kwargs': {},
+         'output_all_columns': False,
+         'type': None}
+        ```
         """
         self.set_format()
 
@@ -1652,6 +1930,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
                 If set to True, then the other un-formatted columns are kept with the output of the transform.
 
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> from transformers import AutoTokenizer
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
+        >>> def encode(batch):
+        ...     return tokenizer(batch['text'], padding=True, truncation=True, return_tensors='pt')
+        >>> ds.set_transform(encode)
+        >>> ds[0]
+        {'attention_mask': tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+         1, 1]),
+         'input_ids': tensor([  101, 29353,  2135, 15102,  1996,  9428, 20868,  2890,  8663,  6895,
+                 20470,  2571,  3663,  2090,  4603,  3017,  3008,  1998,  2037, 24211,
+                 5637,  1998, 11690,  2336,  1012,   102]),
+         'token_type_ids': tensor([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                 0, 0])}
+        ```
         """
         self.set_format("custom", columns=columns, output_all_columns=output_all_columns, transform=transform)
 
@@ -1677,6 +1974,27 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 None means __getitem__ returns all columns (default)
             output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
             format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> from transformers import AutoTokenizer
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+        >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
+        >>> ds.format
+        {'columns': ['text', 'label', 'input_ids', 'token_type_ids', 'attention_mask'],
+         'format_kwargs': {},
+         'output_all_columns': False,
+         'type': None}
+        >>> ds = ds.with_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
+        >>> ds.format
+        {'columns': ['input_ids', 'token_type_ids', 'attention_mask', 'label'],
+         'format_kwargs': {},
+         'output_all_columns': False,
+         'type': 'tensorflow'}
+        ```
         """
         dataset = copy.deepcopy(self)
         dataset.set_format(type=type, columns=columns, output_all_columns=output_all_columns, **format_kwargs)
@@ -1703,6 +2021,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
                 If set to True, then the other un-formatted columns are kept with the output of the transform.
 
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> from transformers import AutoTokenizer
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+        >>> def encode(example):
+        ...     return tokenizer(example["text"], padding=True, truncation=True, return_tensors='pt')
+        >>> ds = ds.with_transform(encode)
+        >>> ds[0]
+        {'attention_mask': tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+         1, 1, 1, 1, 1]),
+         'input_ids': tensor([  101, 18027, 16310, 16001,  1103,  9321,   178, 11604,  7235,  6617,
+                 1742,  2165,  2820,  1206,  6588, 22572, 12937,  1811,  2153,  1105,
+                 1147, 12890, 19587,  6463,  1105, 15026,  1482,   119,   102]),
+         'token_type_ids': tensor([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                 0, 0, 0, 0, 0])}
+        ```
         """
         dataset = copy.deepcopy(self)
         dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
@@ -1796,6 +2133,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             :obj:`int`: Number of removed files.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.cleanup_cache_files()
+        10
+        ```
         """
         current_cache_files = [os.path.abspath(cache_file["filename"]) for cache_file in self.cache_files]
         if not current_cache_files:
@@ -1907,6 +2253,26 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             new_fingerprint (:obj:`str`, optional, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
             desc (:obj:`str`, optional, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> def add_prefix(example):
+        ...     example["text"] = "Review: " + example["text"]
+        ...     return example
+        >>> ds = ds.map(add_prefix)
+        >>> ds[0:3]["text"]
+        ['Review: compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .',
+         'Review: the soundtrack alone is worth the price of admission .',
+         'Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .']
+
+        # process a batch of examples
+        >>> ds = ds.map(lambda example: tokenizer(example["text"]), batched=True)
+        # set number of processors
+        >>> ds = ds.map(add_prefix, num_proc=4)
+        ```
         """
         if keep_in_memory and cache_file_name is not None:
             raise ValueError("Please use either `keep_in_memory` or `cache_file_name` but not both.")
@@ -2474,6 +2840,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             new_fingerprint (:obj:`str`, optional): The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
             desc (:obj:`str`, optional, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while filtering examples.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.filter(lambda x: x["label"] == 1)
+        Dataset({
+            features: ['text', 'label'],
+            num_rows: 533
+        })
+        ```
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -2599,6 +2977,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             new_fingerprint (:obj:`str`, optional, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.select(range(4))
+        Dataset({
+            features: ['text', 'label'],
+            num_rows: 4
+        })
+        ```
         """
         if keep_in_memory and indices_cache_file_name is not None:
             raise ValueError("Please use either `keep_in_memory` or `indices_cache_file_name` but not both.")
@@ -2706,6 +3096,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Higher value gives smaller cache files, lower value consume less temporary memory.
             new_fingerprint (:obj:`str`, optional, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds['label'][:10]
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        >>> sorted_ds = ds.sort('label')
+        >>> sorted_ds['label'][:10]
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        ```
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -2784,6 +3186,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             new_fingerprint (:obj:`str`, optional, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds['label'][:10]
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+        # set a seed
+        >>> shuffled_ds = ds.shuffle(seed=42)
+        >>> shuffled_ds['label'][:10]
+        [1, 0, 1, 1, 0, 0, 0, 0, 0, 0]
+        ```
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -2884,6 +3300,27 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
             test_new_fingerprint (:obj:`str`, optional, defaults to `None`): the new fingerprint of the test set after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = ds.train_test_split(test_size=0.2, shuffle=True)
+        DatasetDict({
+            train: Dataset({
+                features: ['text', 'label'],
+                num_rows: 852
+            })
+            test: Dataset({
+                features: ['text', 'label'],
+                num_rows: 214
+            })
+        })
+
+        # set a seed
+        >>> ds = ds.train_test_split(test_size=0.2, seed=42)
+        ```
         """
         from .dataset_dict import DatasetDict  # import here because of circular dependency
 
@@ -3063,6 +3500,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds
+        Dataset({
+            features: ['text', 'label'],
+            num_rows: 1066
+        })
+        >>> ds.shard(num_shards=2, index=0)
+        Dataset({
+            features: ['text', 'label'],
+            num_rows: 533
+        })
+        ```
         """
         if not 0 <= index < num_shards:
             raise ValueError("index should be in [0, num_shards-1]")
@@ -3187,6 +3641,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             int: The number of characters or bytes written
+
+        Example:
+
+        ```py
+        >>> ds.to_csv("path/to/dataset/directory")
+        ```
         """
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetWriter
@@ -3204,6 +3664,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             `dict` or `Iterator[dict]`
+
+        Example:
+
+        ```py
+        >>> ds.to_dict()
+        ```
         """
         if not batched:
             return query_table(
@@ -3255,6 +3721,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             int: The number of characters or bytes written.
+
+        Example:
+
+        ```py
+        >>> ds.to_json("path/to/dataset/directory")
+        ```
         """
         # Dynamic import to avoid circular dependency
         from .io.json import JsonDatasetWriter
@@ -3274,6 +3746,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
+
+        Example:
+
+        ```py
+        >>> ds.to_pandas()
+        ```
         """
         if not batched:
             return query_table(
@@ -3308,6 +3786,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             int: The number of characters or bytes written
+
+        Example:
+
+        ```py
+        >>> ds.to_parquet("path/to/dataset/directory")
+        ```
         """
         # Dynamic import to avoid circular dependency
         from .io.parquet import ParquetDatasetWriter
@@ -3626,6 +4110,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             :class:`Dataset`
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> more_text = ds["text"]
+        >>> ds.add_column(name="text_2", column=more_text)
+        Dataset({
+            features: ['text', 'label', 'text_2'],
+            num_rows: 1066
+        })
+        ```
         """
         column_table = InMemoryTable.from_pydict({name: column})
         _check_column_names(self._data.column_names + column_table.column_names)
@@ -3845,6 +4342,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Returns:
             :class:`Dataset`
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> new_review = {'label': 0, 'text': 'this movie is the absolute worst thing I have ever seen'}
+        >>> ds = ds.add_item(new_review)
+        >>> ds[-1]
+        {'label': 0, 'text': 'this movie is the absolute worst thing I have ever seen'}
+        ```
         """
         item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
         # We don't call _check_if_features_can_be_aligned here so this cast is "unsafe"
@@ -3945,6 +4453,12 @@ def concatenate_datasets(
             (horizontally).
 
             *New in version 1.6.0*
+
+    Example:
+
+    ```py
+    >>> ds3 = concatenate_datasets([ds1, ds2])
+    ```
     """
     # Ignore datasets with no rows
     if any(dset.num_rows > 0 for dset in dsets):

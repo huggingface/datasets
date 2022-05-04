@@ -1,15 +1,15 @@
 ---
+pretty_name: IMDB
 annotations_creators:
-- found
+- expert-generated
 language_creators:
-- found
+- expert-generated
 languages:
 - en
 licenses:
-- unknown
+- other
 multilinguality:
 - monolingual
-pretty_name: IMDB
 size_categories:
 - 10K<n<100K
 source_datasets:

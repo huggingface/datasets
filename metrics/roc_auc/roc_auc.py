@@ -33,9 +33,9 @@ Args:
     - binary: expects an array-like of shape (n_samples,)
     - multiclass: expects an array-like of shape (n_samples,)
     - multilabel: expects an array-like of shape (n_samples, n_classes)
-- prediction_scores (array-like of shape (n_samples,) or (n_samples, n_classes)): Ground truth labels. Expects different inputs based on use case:
+- prediction_scores (array-like of shape (n_samples,) or (n_samples, n_classes)): Model predictions. Expects different inputs based on use case:
     - binary: expects an array-like of shape (n_samples,)
-    - multiclass: expects an array-like of shape (n_samples,)
+    - multiclass: expects an array-like of shape (n_samples, n_classes)
     - multilabel: expects an array-like of shape (n_samples, n_classes)
 - average (`str`): Type of average, and is ignored in the binary use case. Defaults to 'macro'. Options are:
     - `'micro'`: Calculates metrics globally by considering each element of the label indicator matrix as a label. Only works with the multilabel use case.
