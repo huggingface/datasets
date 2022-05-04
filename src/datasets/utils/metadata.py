@@ -155,7 +155,7 @@ def validate_type(value: Any, expected_type: Type):
                     return f"Expected `{expected_type_origin}` of length 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
 
             # Assuming non empty
-            if not isinstance(value, expected_type_origin) or len(value) == 0:
+            if not isinstance(value, (dict, tuple, list)) or len(value) == 0:
                 return f"Expected `{expected_type_origin}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
 
             if expected_type_origin is dict:

@@ -477,6 +477,7 @@ class TestMetadataUtils(unittest.TestCase):
                 "task_categories": ["question-answering"],
                 "task_ids": ["open-domain-qa"],
                 "paperswithcode_id": ["squad"],
+                'train_eval_index': None,
             },
         )
         fr_metadata = metadata.get_metadata_by_config_name("fr")
@@ -494,6 +495,7 @@ class TestMetadataUtils(unittest.TestCase):
                 "task_categories": ["question-answering"],
                 "task_ids": ["open-domain-qa"],
                 "paperswithcode_id": ["squad"],
+                'train_eval_index': None,
             },
         )
 
@@ -539,6 +541,7 @@ class TestMetadataUtils(unittest.TestCase):
                 "task_categories": ["question-answering"],
                 "task_ids": ["open-domain-qa"],
                 "paperswithcode_id": ["squad"],
+                'train_eval_index': None,
             },
         )
         fr_metadata = metadata.get_metadata_by_config_name("fr")
@@ -556,6 +559,7 @@ class TestMetadataUtils(unittest.TestCase):
                 "task_categories": ["question-answering"],
                 "task_ids": ["open-domain-qa"],
                 "paperswithcode_id": ["squad"],
+                'train_eval_index': None,
             },
         )
 
@@ -604,6 +608,7 @@ class TestMetadataUtils(unittest.TestCase):
                 "task_categories": ["question-answering"],
                 "task_ids": ["open-domain-qa"],
                 "paperswithcode_id": ["squad"],
+                'train_eval_index': None,
             },
         )
         zh_metadata = metadata.get_metadata_by_config_name("zh")
@@ -621,6 +626,7 @@ class TestMetadataUtils(unittest.TestCase):
                 "task_categories": ["question-answering"],
                 "task_ids": ["open-domain-qa"],
                 "paperswithcode_id": ["squad"],
+                'train_eval_index': None,
             },
         )
         with self.assertRaises(TypeError):
