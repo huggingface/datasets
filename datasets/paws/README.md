@@ -31,6 +31,7 @@ task_ids:
 - semantic-similarity-scoring
 - text-classification-other-paraphrase-identification
 - text-scoring
+- multi-input-text-classification
 paperswithcode_id: paws
 ---
 
