@@ -18,7 +18,7 @@ import copy
 import json
 import re
 import sys
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import InitVar, _asdict_inner, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
@@ -337,9 +337,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         return obj.values.tolist(), True
     elif isinstance(obj, pd.DataFrame):
         return obj.to_dict("list"), True
-    elif isinstance(obj, dict):
+    elif isinstance(obj, Mapping):  # check for dict-like to handle nested LazyDict objects
+        has_changed = not isinstance(obj, dict)
         output = {}
-        has_changed = False
         for k, v in obj.items():
             casted_v, has_changed_v = _cast_to_python_objects(
                 v, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting

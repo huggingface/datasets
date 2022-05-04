@@ -2637,8 +2637,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if input_num_examples != processed_inputs_num_examples:
                     raise NumExamplesMismatchError()
             if isinstance(inputs, dict) and isinstance(processed_inputs, Mapping):
-                inputs.update(processed_inputs)
-                return inputs
+                return {**inputs, **processed_inputs}
             else:
                 return processed_inputs
 

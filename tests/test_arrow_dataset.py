@@ -1166,6 +1166,13 @@ class BaseDatasetTest(TestCase):
                         with dset.map(lambda example: {"otherfield": {"append_x": example["field"] + "x"}}) as dset:
                             self.assertEqual(dset[0], {"field": "a", "otherfield": {"append_x": "ax"}})
 
+    def test_map_return_example_as_dict_value(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict({"en": ["aa", "bb"], "fr": ["cc", "dd"]}) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    with dset.map(lambda example: {"translation": example}) as dset:
+                        self.assertEqual(dset[0], {"en": "aa", "fr": "cc", "translation": {"en": "aa", "fr": "cc"}})
+
     def test_map_fn_kwargs(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict({"id": range(10)}) as dset:
