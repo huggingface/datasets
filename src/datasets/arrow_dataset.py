@@ -4408,7 +4408,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError(f"Column ({label_column}) not in table columns ({self._data.column_names}).")
 
         label_feature = self.features[label_column]
-        if not (isinstance(label_feature, ClassLabel) or (isinstance(label_feature, Sequence) and isinstance(label_feature.feature, ClassLabel))):
+        if not (
+            isinstance(label_feature, ClassLabel)
+            or (isinstance(label_feature, Sequence) and isinstance(label_feature.feature, ClassLabel))
+        ):
             raise ValueError(
                 f"Aligning labels with a mapping is only supported for {ClassLabel.__name__} or {Sequence.__name__} column, and column {label_feature} is of type {type(label_feature).__name__}."
             )
@@ -4422,8 +4425,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             label_feature.int2str if isinstance(label_feature, ClassLabel) else label_feature.feature.int2str
         )
 
-        def process_label_ids(batch):
         if isinstance(label_feature, ClassLabel):
+
             def process_label_ids(batch):
                 dset_label_names = [
                     int2str_function(label_id).lower() if label_id is not None else None
@@ -4433,7 +4436,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     label2id[label_name] if label_name is not None else None for label_name in dset_label_names
                 ]
                 return batch
+
         else:
+
             def process_label_ids(batch):
                 dset_label_names = [
                     [int2str_function(label_id).lower() if label_id is not None else None for label_id in seq]
