@@ -46,6 +46,7 @@ _URLS = {
 
 class CommonsenseQa(datasets.GeneratorBasedBuilder):
     """CommonsenseQA dataset."""
+
     VERSION = datasets.Version("1.0.0")
 
     def _info(self):
