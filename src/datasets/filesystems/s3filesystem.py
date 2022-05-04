@@ -10,30 +10,30 @@ class S3FileSystem(s3fs.S3FileSystem):
     Users can use this class to access S3 as if it were a file system. It exposes a filesystem-like API (ls, cp, open, etc.) on top of S3 storage. Provide credentials either explicitly (`key=`, `secret=`) or with boto's credential methods. See botocore documentation for more information. If no credentials are availabe, use `anon=True`.
 
     Args:
-        anon (`bool`, default to `False`): Whether to use anonymous connection (public buckets only). If False, uses the key/secret given, 
+        anon (`bool`, default to `False`): Whether to use anonymous connection (public buckets only). If False, uses the key/secret given,
             or boto's credential resolver (client_kwargs, environment, variables, config files, EC2 IAM server, in that order).
         key (`str`): If not anonymous, use this access key ID, if specified.
         secret (`str): If not anonymous, use this secret access key, if specified.
         token (`str`): If not anonymous, use this security token, if specified.
-        use_ssl (`bool`, default to `True`): Whether to use SSL in connections to S3; may be faster without, but insecure. If `use_ssl` is 
+        use_ssl (`bool`, default to `True`): Whether to use SSL in connections to S3; may be faster without, but insecure. If `use_ssl` is
             also set in `client_kwargs`, the value set in `client_kwargs` will take priority.
-        s3_additional_kwargs (`Dict`): Parameters that are used when calling s3 api methods. Typically used for things 
+        s3_additional_kwargs (`Dict`): Parameters that are used when calling s3 api methods. Typically used for things
             like ServerSideEncryption.
         client_kwargs (`Dict`): Parameters for the botocore client.
         requester_pays (`bool`, default to `False`): If RequesterPays buckets are supported.
-        default_block_size (`int`): If given, the default block size value used for `open()`, if no specific value is given at all time. 
+        default_block_size (`int`): If given, the default block size value used for `open()`, if no specific value is given at all time.
             The built-in default is 5MB.
         default_fill_cache (`bool`, default to `True`): Whether to use cache filling with open by default. Refer to `S3File.open`.
-        default_cache_type (`str`, default to `bytes`): If given, the default cache_type value used for `open()`. Set to `none` if no 
+        default_cache_type (`str`, default to `bytes`): If given, the default cache_type value used for `open()`. Set to `none` if no
             caching is desired. See fsspec's documentation for other available cache_type values. Default cache_type is `bytes`.
-        version_aware (`bool`, default to `False`): Whether to support bucket versioning. If enable this will require the user to have 
+        version_aware (`bool`, default to `False`): Whether to support bucket versioning. If enable this will require the user to have
             the necessary IAM permissions for dealing with versioned objects.
-        cache_regions (`bool`, default to `False`): Whether to cache bucket regions or not. Whenever a new bucket is used, it will 
+        cache_regions (`bool`, default to `False`): Whether to cache bucket regions or not. Whenever a new bucket is used, it will
             first find out which region it belongs and then use the client for that region.
         asynchronous (`bool`, default to `False`): Whether this instance is to be used from inside coroutines.
         config_kwargs (`Dict`): Parameters passed to `botocore.client.Config`.
         kwargs: other parameters for core session.
-        session: aiobotocore AioSession object to be used for all connections. This session will be used inplace of creating a new 
+        session: aiobotocore AioSession object to be used for all connections. This session will be used inplace of creating a new
             session inside S3FileSystem. For example: `aiobotocore.session.AioSession(profile='test_user')`.
         skip_instance_cache: Control reuse of instances. Passed on to `fsspec`.
         use_listings_cache: Control reuse of directory listings. Passed on to `fsspec`.
@@ -75,7 +75,7 @@ class S3FileSystem(s3fs.S3FileSystem):
     ```py
     >>> from datasets import load_from_disk
     >>> from datasets.filesystems import S3Filesystem
-    
+
     >>> s3 = S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)  # doctest: +SKIP
     >>> dataset = load_from_disk('s3://my-private-datasets/imdb/train',fs=s3)  # doctest: +SKIP
     >>> print(len(dataset))
@@ -87,7 +87,7 @@ class S3FileSystem(s3fs.S3FileSystem):
     ```py
     >>> from datasets import load_dataset
     >>> from datasets.filesystems import S3Filesystem
-    
+
     >>> dataset = load_dataset("imdb")
     >>> s3 = S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)  # doctest: +SKIP
     >>> dataset.save_to_disk('s3://my-private-datasets/imdb/train',fs=s3)  # doctest: +SKIP
