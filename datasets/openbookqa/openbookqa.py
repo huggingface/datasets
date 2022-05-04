@@ -1,4 +1,4 @@
-"""TODO(openBookQA): Add a description here."""
+"""OpenBookQA dataset."""
 
 
 import json
@@ -8,7 +8,17 @@ import textwrap
 import datasets
 
 
-# TODO(openBookQA): BibTeX citation
+_HOMEPAGE = "https://allenai.org/data/open-book-qa"
+
+_DESCRIPTION = """\
+OpenBookQA aims to promote research in advanced question-answering, probing a deeper understanding of both the topic
+(with salient facts summarized as an open book, also provided with the dataset) and the language it is expressed in. In
+particular, it contains questions that require multi-step reasoning, use of additional common and commonsense knowledge,
+and rich text comprehension.
+OpenBookQA is a new kind of question-answering dataset modeled after open book exams for assessing human understanding
+of a subject.
+"""
+
 _CITATION = """\
 @inproceedings{OpenBookQA2018,
  title={Can a Suit of Armor Conduct Electricity? A New Dataset for Open Book Question Answering},
@@ -18,39 +28,25 @@ _CITATION = """\
 }
 """
 
-# TODO(openBookQA):
-_DESCRIPTION = textwrap.dedent(
-    """\
-OpenBookQA aims to promote research in advanced question-answering, probing a deeper understanding of both the topic
-(with salient facts summarized as an open book, also provided with the dataset) and the language it is expressed in. In
-particular, it contains questions that require multi-step reasoning, use of additional common and commonsense knowledge,
-and rich text comprehension.
-OpenBookQA is a new kind of question-answering dataset modeled after open book exams for assessing human understanding of
-a subject.
-"""
-)
 _URL = "https://s3-us-west-2.amazonaws.com/ai2-website/data/OpenBookQA-V1-Sep2018.zip"
 
 
 class OpenbookqaConfig(datasets.BuilderConfig):
-    def __init__(self, data_dir, **kwargs):
+    def __init__(self, data_dir=None, filenames=None, version=datasets.Version("1.0.0", ""), **kwargs):
         """BuilderConfig for openBookQA dataset
 
         Args:
           data_dir: directory for the given dataset name
           **kwargs: keyword arguments forwarded to super.
         """
-
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
-
+        super().__init__(version=version, **kwargs)
         self.data_dir = data_dir
+        self.filenames = filenames
 
 
 class Openbookqa(datasets.GeneratorBasedBuilder):
-    """TODO(openBookQA): Short description of my dataset."""
+    """OpenBookQA dataset."""
 
-    # TODO(openBookQA): Set up version.
-    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         OpenbookqaConfig(
             name="main",
@@ -65,6 +61,11 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
                 """
             ),
             data_dir="Main",
+            filenames={
+                "train": "train.jsonl",
+                "validation": "dev.jsonl",
+                "test": "test.jsonl",
+            },
         ),
         OpenbookqaConfig(
             name="additional",
@@ -76,18 +77,19 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
                 """
             ),
             data_dir="Additional",
+            filenames={
+                "train": "train_complete.jsonl",
+                "validation": "dev_complete.jsonl",
+                "test": "test_complete.jsonl",
+            },
         ),
     ]
 
     def _info(self):
-        # TODO(openBookQA): Specifies the datasets.DatasetInfo object
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # datasets.features.FeatureConnectors
             features=datasets.Features(
                 {
-                    # These are the features of your dataset like images, labels ...
                     "id": datasets.Value("string"),
                     "question_stem": datasets.Value("string"),
                     "choices": datasets.features.Sequence(
@@ -99,63 +101,29 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
                     "answerKey": datasets.Value("string"),
                 }
             ),
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
-            supervised_keys=None,
-            # Homepage of the dataset for documentation
-            homepage="https://allenai.org/data/open-book-qa",
+            homepage=_HOMEPAGE,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO(openBookQA): Downloads the data and defines the splits
-        # dl_manager is a datasets.download.DownloadManager that can be used to
-        # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
-        data_dir = os.path.join(dl_dir, "OpenBookQA-V1-Sep2018", "Data")
-        data_dir = os.path.join(data_dir, self.config.data_dir)
-        train_file = (
-            os.path.join(data_dir, "train.jsonl")
-            if self.config.name == "main"
-            else os.path.join(data_dir, "train_complete.jsonl")
-        )
-        test_file = (
-            os.path.join(data_dir, "test.jsonl")
-            if self.config.name == "main"
-            else os.path.join(data_dir, "test_complete.jsonl")
-        )
-        dev_file = (
-            os.path.join(data_dir, "dev.jsonl")
-            if self.config.name == "main"
-            else os.path.join(data_dir, "dev_complete.jsonl")
-        )
+        data_dir = os.path.join(dl_dir, "OpenBookQA-V1-Sep2018", "Data", self.config.data_dir)
+        splits = [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": train_file},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": test_file},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": dev_file},
-            ),
+                name=split,
+                gen_kwargs={"filepath": os.path.join(data_dir, self.config.filenames[split])},
+            )
+            for split in splits
         ]
 
     def _generate_examples(self, filepath):
         """Yields examples."""
-        # TODO(openBookQA): Yields (key, example) tuples from the dataset
         with open(filepath, encoding="utf-8") as f:
-            for row in f:
+            for uid, row in enumerate(f):
                 data = json.loads(row)
-                yield data["id"], {
+                yield uid, {
                     "id": data["id"],
                     "question_stem": data["question"]["stem"],
                     "choices": {
