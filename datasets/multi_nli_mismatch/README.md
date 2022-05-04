@@ -81,8 +81,6 @@ basis for the shared task of the RepEval 2017 Workshop at EMNLP in Copenhagen.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### plain_text

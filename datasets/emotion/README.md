@@ -72,8 +72,6 @@ Emotion is a dataset of English Twitter messages with six basic emotions: anger,
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

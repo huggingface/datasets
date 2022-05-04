@@ -65,8 +65,6 @@ DoQA enables the development and evaluation of conversational QA systems that he
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### cooking

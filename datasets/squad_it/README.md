@@ -75,8 +75,6 @@ into Italian. It represents a large-scale dataset for open question answering pr
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

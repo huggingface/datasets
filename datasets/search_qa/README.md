@@ -61,8 +61,6 @@ Following this approach, we built SearchQA, which consists of more than 140k que
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### raw_jeopardy
