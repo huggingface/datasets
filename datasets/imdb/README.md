@@ -1,9 +1,25 @@
 ---
-pretty_name: IMDB
+annotations_creators:
+- found
+language_creators:
+- found
 languages:
 - en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: IMDB
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- sentiment-classification
 paperswithcode_id: imdb-movie-reviews
-train_eval_index:
+train-eval-index:
 - config: plain_text
   task: text-classification
   task_id: binary_classification

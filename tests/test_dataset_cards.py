@@ -73,6 +73,7 @@ def test_changed_dataset_card(dataset_name):
         metadata = DatasetMetadata.from_readme(card_path)
         metadata.validate()
     except Exception as metadata_error:
+        raise
         error_messages.append(
             f"The following issues have been found in the dataset cards:\nYAML tags:\n{metadata_error}"
         )
