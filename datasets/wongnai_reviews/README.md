@@ -23,7 +23,7 @@ pretty_name: WongnaiReviews
 
 ## Dataset Description
 
-- **Repository: ** https://github.com/wongnai/wongnai-corpus
+- **Repository:** https://github.com/wongnai/wongnai-corpus
 
 ### Dataset Summary
 

@@ -16,9 +16,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- summarization-other-reddit-posts-summarization
 ---
 
 # Dataset Card for Reddit Webis-TLDR-17
@@ -84,8 +84,6 @@ Known ROUGE scores achieved for the Webis-TLDR-17:
 English 
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

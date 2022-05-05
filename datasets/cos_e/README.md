@@ -57,8 +57,6 @@ inference in a novel Commonsense Auto-Generated Explanation (CAGE) framework.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### v1.0

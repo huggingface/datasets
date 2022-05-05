@@ -13,10 +13,10 @@ multilinguality:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- sequence-modeling
-task_ids:
 - summarization
+- text-generation
+- fill-mask
+task_ids:
 - dialogue-modeling
 size_categories:
 - 10K<n<100K
@@ -76,8 +76,6 @@ and semantic ties to the previous dialogues.
 The text in the dataset is in English, as spoken by actors on The Critical Role show, which is a weekly unscripted, live-stream of a fixed group of people playing Dungeons and Dragons, a popular role-playing game.
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

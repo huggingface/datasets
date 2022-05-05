@@ -452,6 +452,7 @@ source_datasets:
 task_categories:
 - multiple-choice
 - question-answering
+- token-classification
 - text-classification
 - text-retrieval
 - token-classification
@@ -530,8 +531,6 @@ Niger-Congo languages Swahili and Yoruba, spoken in Africa.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

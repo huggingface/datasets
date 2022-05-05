@@ -15,8 +15,8 @@ This metric takes as input lists of predicted sentences and reference sentences:
 
 ```python
 >>> predictions = [
-...     ["hello", "there", "general", "kenobi",
-...     ["foo", "bar" "foobar"]
+...     ["hello", "there", "general", "kenobi"],
+...     ["foo", "bar", "foobar"]
 ... ]
 >>> references = [
 ...     [["hello", "there", "general", "kenobi"]],

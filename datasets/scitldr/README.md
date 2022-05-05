@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- summarization-other-scientific-documents-summarization
 paperswithcode_id: scitldr
 pretty_name: SciTLDR
 ---

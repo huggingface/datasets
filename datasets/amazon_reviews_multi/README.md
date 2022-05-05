@@ -58,15 +58,16 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- sequence-modeling
+- summarization
+- text-generation
+- fill-mask
 - text-classification
-- text-scoring
 task_ids:
+- text-scoring
 - language-modeling
+- masked-language-modeling
 - sentiment-classification
 - sentiment-scoring
-- summarization
 - topic-classification
 paperswithcode_id: null
 pretty_name: The Multilingual Amazon Reviews Corpus

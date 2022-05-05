@@ -18,6 +18,7 @@ task_categories:
 - text-classification
 task_ids:
 - natural-language-inference
+- multi-input-text-classification
 paperswithcode_id: snli
 pretty_name: Stanford Natural Language Inference
 ---

@@ -13,10 +13,10 @@
         "type": "audio"
     },
     "automatic-speech-recognition": {
-        "type": "multimodal"
+        "type": "audio"
     },
     "conversational": {
-        "type": "text",
+        "type": "nlp",
         "subtasks": [
             "dialogue-generation"
         ]
@@ -25,26 +25,29 @@
         "type": "multimodal"
     },
     "fill-mask": {
-        "type": "text",
+        "type": "nlp",
         "subtasks": [
             "slot-filling",
             "masked-language-modeling"
         ]
     },
     "image-classification": {
-        "type": "image",
+        "type": "cv",
         "subtasks": [
             "multi-label-image-classification",
             "multi-class-image-classification"
         ]
     },
     "image-segmentation": {
-        "type": "image",
+        "type": "cv",
         "subtasks": [
             "instance-segmentation",
             "semantic-segmentation",
             "panoptic-segmentation"
         ]
+    },
+    "image-to-image": {
+        "type": "cv"
     },
     "image-to-text": {
         "type": "multimodal",
@@ -53,24 +56,24 @@
         ]
     },
     "multiple-choice": {
-        "type": "text",
+        "type": "nlp",
         "subtasks": [
             "multiple-choice-qa",
             "multiple-choice-coreference-resolution"
         ]
     },
     "object-detection": {
-        "type": "image",
+        "type": "cv",
         "subtasks": [
             "face-detection",
             "vehicle-detection"
         ]
     },
+    "other": {
+        "type": "other"
+    },
     "question-answering": {
-        "type": "text",
-        "aliases": [
-            "extractive-question-answering"
-        ],
+        "type": "nlp",
         "subtasks": [
             "extractive-qa",
             "open-domain-qa",
@@ -78,10 +81,26 @@
         ]
     },
     "sentence-similarity": {
-        "type": "text"
+        "type": "nlp"
+    },
+    "summarization": {
+        "type": "nlp",
+        "subtasks": [
+            "news-articles-summarization",
+            "news-articles-headline-generation"
+        ]
+    },
+    "table-question-answering": {
+        "type": "nlp"
+    },
+    "table-to-text": {
+        "type": "nlp",
+        "subtasks": [
+            "rdf-to-text"
+        ]
     },
     "tabular-classification": {
-        "type": "text",
+        "type": "structured",
         "subtasks": [
             "tabular-multi-class-classification",
             "tabular-multi-label-classification",
@@ -89,26 +108,13 @@
         ]
     },
     "tabular-to-text": {
-        "type": "text",
+        "type": "structured",
         "subtasks": [
             "rdf-to-text"
         ]
     },
-    "summarization": {
-        "type": "text",
-        "subtasks": [
-            "news-articles-summarization",
-            "news-articles-headline-generation"
-        ]
-    },
-    "table-to-text": {
-        "type": "text"
-    },
-    "table-question-answering": {
-        "type": "text"
-    },
     "text-classification": {
-        "type": "text",
+        "type": "nlp",
         "subtasks": [
             "acceptability-classification",
             "entity-linking-classification",
@@ -124,18 +130,19 @@
             "sentiment-scoring",
             "sentiment-analysis",
             "hate-speech-detection",
-            "text-scoring"
+            "text-scoring",
+            "multi-input-text-classification"
         ]
     },
     "text-generation": {
-        "type": "text",
+        "type": "nlp",
         "subtasks": [
             "dialogue-modeling",
             "language-modeling"
         ]
     },
     "text-retrieval": {
-        "type": "text",
+        "type": "nlp",
         "subtasks": [
             "document-retrieval",
             "utterance-retrieval",
@@ -146,18 +153,11 @@
     "text-to-image": {
         "type": "multimodal"
     },
-    "text-to-tabular": {
-        "type": "text",
-        "subtasks": [
-            "relation-extraction",
-            "semantic-role-labeling"
-        ]
-    },
     "text-to-speech": {
-        "type": "multimodal"
+        "type": "audio"
     },
     "text2text-generation": {
-        "type": "text",
+        "type": "nlp",
         "subtasks": [
             "text-simplification",
             "explanation-generation",
@@ -169,20 +169,17 @@
         ]
     },
     "time-series-forecasting": {
-        "type": "time series",
+        "type": "structured",
         "subtasks": [
             "univariate-time-series-forecasting",
             "multivariate-time-series-forecasting"
         ]
     },
     "token-classification": {
-        "type": "text",
-        "aliases": [
-            "structure-prediction"
-        ],
+        "type": "nlp",
         "subtasks": [
             "named-entity-recognition",
-            "part-of-speech-tagging",
+            "part-of-speech",
             "parsing",
             "lemmatization",
             "word-sense-disambiguation",
@@ -190,24 +187,24 @@
         ]
     },
     "translation": {
-        "type": "text"
+        "type": "nlp"
+    },
+    "unconditional-image-generation": {
+        "type": "cv"
     },
     "visual-question-answering": {
-        "type": "multimodal"
+        "type": "multimodal",
+        "subtasks": [
+            "visual-question-answering"
+        ]
     },
     "voice-activity-detection": {
         "type": "audio"
     },
     "zero-shot-classification": {
-        "type": "text"
+        "type": "nlp"
     },
     "zero-shot-image-classification": {
-        "type": "multimodal"
-    },
-    "reinforcement-learning": {
-        "type": "other"
-    },
-    "other": {
-        "type": "other"
+        "type": "cv"
     }
 }

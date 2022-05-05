@@ -1139,6 +1139,25 @@ class BaseDatasetTest(TestCase):
                     )
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test_with_indices_batched)
 
+        # check remove columns for even if the function modifies input in-place
+        def map_batched_modifying_inputs_inplace(example):
+            result = {"filename_new": [x + "_extension" for x in example["filename"]]}
+            del example["filename"]
+            return result
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(
+                    map_batched_modifying_inputs_inplace, batched=True, remove_columns="filename"
+                ) as dset_test_modifying_inputs_inplace:
+                    self.assertEqual(len(dset_test_modifying_inputs_inplace), 30)
+                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                    self.assertDictEqual(
+                        dset_test_modifying_inputs_inplace.features,
+                        Features({"filename_new": Value("string")}),
+                    )
+                    assert_arrow_metadata_are_synced_with_dataset_features(dset_test_modifying_inputs_inplace)
+
     def test_map_nested(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict({"field": ["a", "b"]}) as dset:
@@ -1146,6 +1165,13 @@ class BaseDatasetTest(TestCase):
                     with dset.map(lambda example: {"otherfield": {"capital": example["field"].capitalize()}}) as dset:
                         with dset.map(lambda example: {"otherfield": {"append_x": example["field"] + "x"}}) as dset:
                             self.assertEqual(dset[0], {"field": "a", "otherfield": {"append_x": "ax"}})
+
+    def test_map_return_example_as_dict_value(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict({"en": ["aa", "bb"], "fr": ["cc", "dd"]}) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    with dset.map(lambda example: {"translation": example}) as dset:
+                        self.assertEqual(dset[0], {"en": "aa", "fr": "cc", "translation": {"en": "aa", "fr": "cc"}})
 
     def test_map_fn_kwargs(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:

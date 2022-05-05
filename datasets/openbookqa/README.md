@@ -1,11 +1,28 @@
 ---
+annotations_creators:
+- crowdsourced
+- expert-generated
+language_creators:
+- expert-generated
 languages:
 - en
-paperswithcode_id: openbookqa
+licenses:
+- unknown
+multilinguality:
+- monolingual
 pretty_name: OpenBookQA
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- open-domain-qa
+paperswithcode_id: openbookqa
 ---
 
-# Dataset Card for "openbookqa"
+# Dataset Card for OpenBookQA
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -59,8 +76,6 @@ a subject.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

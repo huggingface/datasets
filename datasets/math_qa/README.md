@@ -55,8 +55,6 @@ Our dataset is gathered by using a new representation language to annotate over 
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

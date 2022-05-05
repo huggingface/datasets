@@ -15,8 +15,8 @@ source_datasets:
 - original
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
+- text-scoring
 - natural-language-inference
 - semantic-similarity-scoring
 paperswithcode_id: assin2

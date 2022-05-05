@@ -55,8 +55,6 @@ Ubuntu Dialogue Corpus, a dataset containing almost 1 million multi-turn dialogu
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### train

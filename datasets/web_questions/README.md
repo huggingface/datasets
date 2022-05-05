@@ -58,8 +58,6 @@ The questions are popular ones asked on the web (at least in 2013).
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

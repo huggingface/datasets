@@ -49,9 +49,9 @@ paperswithcode_id: mocha
 
 ## Dataset Description
 
-- **Homepage:[Mocha](https://allennlp.org/mocha)**
-- **Repository:[https://github.com/anthonywchen/MOCHA](https://github.com/anthonywchen/MOCHA)**
-- **Paper:[MOCHA: A Dataset for Training and Evaluating Generative Reading Comprehension Metrics](https://www.aclweb.org/anthology/2020.emnlp-main.528/)**
+- **Homepage:** [Mocha](https://allennlp.org/mocha)
+- **Repository:** [https://github.com/anthonywchen/MOCHA](https://github.com/anthonywchen/MOCHA)
+- **Paper:** [MOCHA: A Dataset for Training and Evaluating Generative Reading Comprehension Metrics](https://www.aclweb.org/anthology/2020.emnlp-main.528/)
 - **Leaderboard:**
 - **Point of Contact:**
 

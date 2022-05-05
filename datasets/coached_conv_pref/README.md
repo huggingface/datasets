@@ -15,8 +15,9 @@ source_datasets:
 - original
 task_categories:
 - other
-- sequence-modeling
-- structure-prediction
+- text-generation
+- fill-mask
+- token-classification
 task_ids:
 - other-other-Conversational Recommendation
 - dialogue-modeling

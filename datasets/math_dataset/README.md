@@ -69,8 +69,6 @@ train_examples, val_examples = datasets.load_dataset(
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### algebra__linear_1d

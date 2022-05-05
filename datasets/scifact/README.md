@@ -55,8 +55,6 @@ SciFact, a dataset of 1.4K expert-written scientific claims paired with evidence
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### claims

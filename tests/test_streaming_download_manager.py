@@ -29,6 +29,7 @@ from datasets.utils.streaming_download_manager import (
     xpathstem,
     xpathsuffix,
     xrelpath,
+    xsplit,
     xsplitext,
 )
 
@@ -230,6 +231,28 @@ def test_xdirname(input_path, expected_path):
     output_path = xdirname(input_path)
     output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
     assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+
+
+@pytest.mark.parametrize(
+    "input_path, expected_head_and_tail",
+    [
+        (
+            str(Path(__file__).resolve()),
+            (str(Path(__file__).resolve().parent), str(Path(__file__).resolve().name)),
+        ),
+        ("https://host.com/archive.zip", ("https://host.com", "archive.zip")),
+        ("zip://file.txt::https://host.com/archive.zip", ("zip://::https://host.com/archive.zip", "file.txt")),
+        ("zip://folder::https://host.com/archive.zip", ("zip://::https://host.com/archive.zip", "folder")),
+        ("zip://::https://host.com/archive.zip", ("zip://::https://host.com/archive.zip", "")),
+    ],
+)
+def test_xsplit(input_path, expected_head_and_tail):
+    output_path, tail = xsplit(input_path)
+    expected_path, expected_tail = expected_head_and_tail
+    output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
+    expected_path = _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+    assert output_path == expected_path
+    assert tail == expected_tail
 
 
 @pytest.mark.parametrize(
