@@ -138,7 +138,7 @@ The training set of MedMCQA consists of all the collected mock & online test ser
 
 Similar questions from train , test and dev set were removed based on similarity. The final split sizes are as follow:
 
-|                             | Train   | Valid | Test |
+|                             | Train   | Test | Valid |
 | -----                       | ------ | ----- | ---- |
 | Question #| 182,822 |  6,150 | 4,183|
 | Vocab       | 94,231 |  11,218 | 10,800 |
