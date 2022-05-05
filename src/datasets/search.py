@@ -313,6 +313,8 @@ class FaissIndex(BaseIndex):
         if device is None:
             return index
 
+        import faiss  # noqa: F811
+
         # If the device id is given as an integer
         if isinstance(device, int):
             # Positive integers are directly mapped to GPU ids
