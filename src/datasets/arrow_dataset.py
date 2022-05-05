@@ -218,7 +218,6 @@ class TensorflowDatasetMixin:
     @staticmethod
     def _get_output_signature(
         dataset: "Dataset",
-        cols_to_retain: Optional[List],
         collate_fn: Callable,
         collate_fn_args: dict,
         batch_size: int,
@@ -265,9 +264,6 @@ class TensorflowDatasetMixin:
             test_batch = dataset[indices]
             test_batch = [{key: value[i] for key, value in test_batch.items()} for i in range(test_batch_size)]
             test_batch = collate_fn(test_batch, **collate_fn_args)
-            test_batch = {
-                key: val for key, val in test_batch.items() if cols_to_retain is None or key in cols_to_retain
-            }
             test_batches.append(test_batch)
         # endregion
 
@@ -324,16 +320,14 @@ class TensorflowDatasetMixin:
         collate_fn_args: Optional[Dict[str, Any]] = None,
         label_cols: Optional[Union[str, Sequence[str]]] = None,
         prefetch: bool = True,
-        error_on_missing: bool = True,
-        auto_fix_label_names: bool = True,
     ):
         """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
         the Dataset, and is suitable for passing to methods like model.fit() or model.predict().
 
         Args:
-            columns (:obj:`List[str]` or :obj:`str`, optional): Dataset column(s) to load in the tf.data.Dataset. It is acceptable
-                to include column names that are created by the `collate_fn` and that do not exist in the original
-                dataset.
+            columns (:obj:`List[str]` or :obj:`str`, optional): Dataset column(s) to load in the tf.data.Dataset. Column
+             names that are created by the `collate_fn` and that do not exist in the original dataset can be used.
+             If this argument is not set, we retain all non-numerical columns.
             batch_size (:obj:`int`): Size of batches to load from the dataset.
             shuffle(:obj:`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
                 validation/evaluation.
@@ -344,16 +338,11 @@ class TensorflowDatasetMixin:
             collate_fn_args (:obj:`Dict`, optional): An optional `dict` of keyword arguments to be passed to the
                 `collate_fn`.
             label_cols (:obj:`List[str]` or :obj:`str`, default ``None``): Dataset column(s) to load as
-                labels. Note that many models compute loss internally rather than letting Keras do it, in which case it is
-                not necessary to actually pass the labels here, as long as they're in the input `columns`.
+                labels. Note that many models compute loss internally rather than letting Keras do it, in which case it
+                passing the labels here is optional, as long as they're in the input `columns`.
             prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
-            error_on_missing (:obj:`bool`, default ``True``): Whether to return an error if one of the requested columns
-                is missing. Should be set to `False` if columns or label_cols are autodetected from a model.
-            auto_fix_label_names (:obj:`bool`, default ``True``): Automatically replace "label" or "label_ids" in
-                column lists with "labels". This is useful for compatibility with the `transformers` library, but
-                might need to be disabled in certain other edge cases.
 
         Returns:
             :class:`tf.data.Dataset`
@@ -396,51 +385,55 @@ class TensorflowDatasetMixin:
             label_cols = []
         elif isinstance(label_cols, str):
             label_cols = [label_cols]
-        if label_cols and auto_fix_label_names:
-            label_cols = [col if col not in ("label", "label_ids") else "labels" for col in label_cols]
         if len(set(label_cols)) < len(label_cols):
             raise ValueError("List of label_cols contains duplicates.")
         if columns:
             if isinstance(columns, str):
                 columns = [columns]
-            if auto_fix_label_names:
-                columns = [col if col not in ("label", "label_ids") else "labels" for col in columns]
             if len(set(columns)) < len(columns):
                 raise ValueError("List of columns contains duplicates.")
-            post_collate_cols_to_retain = list(set(columns + label_cols))
+            cols_to_retain = list(set(columns + label_cols))
         else:
-            post_collate_cols_to_retain = None  # Indicates keeping all columns
+            cols_to_retain = None  # Indicates keeping all columns
             columns = []
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
         # endregion
 
-        # region Set dataset format and drop non-numerical columns
-        non_numerical_cols = {
-            feature_name for feature_name, feature in self.features.items() if not is_numeric_feature(feature)
-        }
-        pre_collate_cols_to_retain = set(self.features.keys()) - non_numerical_cols
+        # region Set dataset format and drop unwanted
+
         if self.format["type"] != "custom":
-            dataset = self.with_format("numpy", columns=pre_collate_cols_to_retain)
+            dataset = self.with_format("numpy")
         else:
-            existing_transform = self.format["format_kwargs"]["transform"]
-            dataset = self.with_transform(existing_transform, columns=pre_collate_cols_to_retain)
+            dataset = self
+        if cols_to_retain is not None:
+            # Following the logic in `transformers.Trainer`, we do not drop `label_ids` or `label` even if they
+            # are not in the list of requested columns, because the collator may rename them
+            # This might work better if moved to a method attached to our transformers Model objects, but doing so
+            # could break backward compatibility
+            unwanted_columns = [
+                col
+                for col in self.features.keys()
+                if col not in columns and col not in label_cols and col not in ("label_ids", "label")
+            ]
+            dataset = dataset.remove_columns(unwanted_columns)
+        else:
+            # If the user hasn't specified columns, give them all numerical columns
+            unwanted_columns = [
+                feature_name for feature_name, feature in self.features.items() if not is_numeric_feature(feature)
+            ]
+            dataset = dataset.remove_columns(unwanted_columns)
+
         # endregion
 
         # region Compute dataset signature and verify columns
         output_signature, columns_to_np_types = self._get_output_signature(
             dataset,
-            cols_to_retain=post_collate_cols_to_retain,
             collate_fn=collate_fn,
             collate_fn_args=collate_fn_args,
             batch_size=batch_size if drop_remainder else None,
         )
-        if error_on_missing and post_collate_cols_to_retain is not None:
-            # Assert all columns the user asked for are here
-            missing_cols = set(post_collate_cols_to_retain) - set(output_signature.keys())
-            if missing_cols:
-                raise ValueError(f"Some columns were not present in the dataset after collation: {missing_cols}")
         # endregion
 
         # region Initial dataset creation
