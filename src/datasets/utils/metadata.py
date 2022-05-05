@@ -159,6 +159,8 @@ def validate_type(value: Any, expected_type: Type):
                 return f"Expected `{expected_type_origin}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
 
             if expected_type_origin is dict:
+                if not isinstance(value, dict):
+                    return f"Expected `{expected_type_origin}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
                 if expected_type_args != Dict.__args__:  # if we specified types for keys and values
                     key_type, value_type = expected_type_args
                     key_error_string = ""
@@ -170,6 +172,8 @@ def validate_type(value: Any, expected_type: Type):
                         return f"Typing errors with keys:\n {key_error_string} and values:\n {value_error_string}"
 
             else:  # `List`/`Tuple`
+                if not isinstance(value, (list, tuple)):
+                    return f"Expected `{expected_type_origin}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
                 if expected_type_args != List.__args__:  # if we specified types for the items in the list
                     value_type = expected_type_args[0]
                     value_error_string = ""
