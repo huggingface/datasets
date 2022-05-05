@@ -68,7 +68,7 @@ class MedMCQA(datasets.GeneratorBasedBuilder):
                 "opb": datasets.Value("string"),
                 "opc": datasets.Value("string"),
                 "opd": datasets.Value("string"),
-                "cop": datasets.features.ClassLabel(num_classes=4, names=["a", "b", "c", "d"]),
+                "cop": datasets.features.ClassLabel(names=["a", "b", "c", "d"]),
                 "choice_type": datasets.Value("string"),
                 "exp": datasets.Value("string"),
                 "subject_name": datasets.Value("string"),
