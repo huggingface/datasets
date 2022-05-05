@@ -467,3 +467,19 @@ def text_path_with_unicode_new_lines(tmp_path_factory):
     with open(path, "w", encoding="utf-8") as f:
         f.write(text)
     return path
+
+
+@pytest.fixture(scope="session")
+def image_path():
+    return os.path.join(os.path.dirname(__file__), "features", "data", "test_image_rgb.jpg")
+
+
+@pytest.fixture(scope="session")
+def zip_image_path(image_path, tmp_path_factory):
+    import zipfile
+
+    path = tmp_path_factory.mktemp("data") / "dataset.img.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(image_path, arcname=os.path.basename(image_path))
+        f.write(image_path, arcname=os.path.basename(image_path).replace(".jpg", "2.jpg"))
+    return path

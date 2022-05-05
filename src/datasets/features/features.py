@@ -1067,7 +1067,7 @@ def encode_nested_example(schema, obj, level=0):
     return obj
 
 
-def decode_nested_example(schema, obj):
+def decode_nested_example(schema, obj, token_per_repo_id=None):
     """Decode a nested example.
     This is used since some features (in particular Audio and Image) have some logic during decoding.
 
@@ -1101,7 +1101,8 @@ def decode_nested_example(schema, obj):
             return decode_nested_example([schema.feature], obj)
     # Object with special decoding:
     elif isinstance(schema, (Audio, Image)):
-        return schema.decode_example(obj) if obj is not None else None
+        # we pass the token to read and decode files from private repositories in streaming mode
+        return schema.decode_example(obj, token_per_repo_id=token_per_repo_id) if obj is not None else None
     return obj
 
 
@@ -1390,18 +1391,21 @@ class Features(dict):
             encoded_batch[key] = [encode_nested_example(self[key], obj) for obj in column]
         return encoded_batch
 
-    def decode_example(self, example: dict):
+    def decode_example(self, example: dict, token_per_repo_id=None):
         """Decode example with custom feature decoding.
 
         Args:
             example (:obj:`dict[str, Any]`): Dataset row data.
+            token_per_repo_id (:obj:`dict`, optional): To access and decode
+                audio or image files from private repositories on the Hub, you can pass
+                a dictionary repo_id (str) -> token (bool or str)
 
         Returns:
             :obj:`dict[str, Any]`
         """
 
         return {
-            column_name: decode_nested_example(feature, value)
+            column_name: decode_nested_example(feature, value, token_per_repo_id=token_per_repo_id)
             if self._column_requires_decoding[column_name]
             else value
             for column_name, (feature, value) in zip_dict(

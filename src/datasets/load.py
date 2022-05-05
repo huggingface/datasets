@@ -877,6 +877,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "data_files": data_files,
             "name": self.name.replace("/", "--"),
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
+            "repo_id": self.name,
         }
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
@@ -915,14 +916,14 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def download_loading_script(self) -> str:
-        file_path = hf_hub_url(path=self.name, name=self.name.split("/")[1] + ".py", revision=self.revision)
+        file_path = hf_hub_url(repo_id=self.name, path=self.name.split("/")[1] + ".py", revision=self.revision)
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading builder script"
         return cached_path(file_path, download_config=download_config)
 
     def download_dataset_infos_file(self) -> str:
-        dataset_infos = hf_hub_url(path=self.name, name=config.DATASETDICT_INFOS_FILENAME, revision=self.revision)
+        dataset_infos = hf_hub_url(repo_id=self.name, path=config.DATASETDICT_INFOS_FILENAME, revision=self.revision)
         # Download the dataset infos file if available
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
@@ -942,7 +943,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         imports = get_imports(local_path)
         local_imports = _download_additional_modules(
             name=self.name,
-            base_path=hf_hub_url(path=self.name, name="", revision=self.revision),
+            base_path=hf_hub_url(repo_id=self.name, path="", revision=self.revision),
             imports=imports,
             download_config=self.download_config,
         )
@@ -963,7 +964,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
-            "namespace": self.name.split("/")[0],
+            "repo_id": self.name,
         }
         return DatasetModule(module_path, hash, builder_kwargs)
 
@@ -1020,7 +1021,7 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
         importlib.invalidate_caches()
         builder_kwargs = {
             "hash": hash,
-            "namespace": self.name.split("/")[0] if self.name.count("/") > 0 else None,
+            "repo_id": self.name,
         }
         return DatasetModule(module_path, hash, builder_kwargs)
 

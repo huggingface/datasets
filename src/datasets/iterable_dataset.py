@@ -463,6 +463,7 @@ class IterableDataset(DatasetInfoMixin):
         split: Optional[NamedSplit] = None,
         format_type: Optional[str] = None,
         shuffling: Optional[ShufflingConfig] = None,
+        token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
     ):
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
@@ -471,6 +472,7 @@ class IterableDataset(DatasetInfoMixin):
         self._format_type = format_type
         self._shuffling = shuffling
         self._epoch = 0
+        self._token_per_repo_id = token_per_repo_id or {}
 
     def _head(self, n=5):
         return _examples_to_batch([x for key, x in islice(self._iter(), n)])
@@ -503,7 +505,10 @@ class IterableDataset(DatasetInfoMixin):
                 # we encode the example for ClassLabel feature types for example
                 encoded_example = self.features.encode_example(example)
                 # Decode example for Audio feature, e.g.
-                decoded_example = self.features.decode_example(encoded_example)
+                # the auth token is required to acecss and decode files from private repositories
+                decoded_example = self.features.decode_example(
+                    encoded_example, token_per_repo_id=self._token_per_repo_id
+                )
                 yield decoded_example
             else:
                 yield example
@@ -531,6 +536,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=type,
             shuffling=copy.deepcopy(self._shuffling),
+            token_per_repo_id=self._token_per_repo_id,
         )
 
     def map(
@@ -624,6 +630,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            token_per_repo_id=self._token_per_repo_id,
         )
 
     def filter(
@@ -690,6 +697,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            token_per_repo_id=self._token_per_repo_id,
         )
 
     def shuffle(
@@ -752,6 +760,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=shuffling,
+            token_per_repo_id=self._token_per_repo_id,
         )
 
     def set_epoch(self, epoch: int):
@@ -791,6 +800,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            token_per_repo_id=self._token_per_repo_id,
         )
 
     def take(self, n) -> "IterableDataset":
@@ -820,6 +830,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            token_per_repo_id=self._token_per_repo_id,
         )
 
     def add_column(self, name: str, column: Union[list, np.array]) -> "IterableDataset":
@@ -979,6 +990,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            token_per_repo_id=self._token_per_repo_id,
         )
 
     def cast(
@@ -1027,6 +1039,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            token_per_repo_id=self._token_per_repo_id,
         )
 
 
@@ -1036,6 +1049,7 @@ def iterable_dataset(
     split: Optional[NamedSplit] = None,
     format_type: Optional[str] = None,
     shuffling: Optional[ShufflingConfig] = None,
+    token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
 ):
     if format_type is not None and format_type == "torch":
         import torch
@@ -1052,4 +1066,5 @@ def iterable_dataset(
         split=split,
         format_type=format_type,
         shuffling=shuffling,
+        token_per_repo_id=token_per_repo_id,
     )
