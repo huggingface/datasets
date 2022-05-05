@@ -57,8 +57,6 @@ the dataset contains some inherent noise, it can serve as valuable training data
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

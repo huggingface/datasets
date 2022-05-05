@@ -56,8 +56,6 @@ questions about grade school science (8,134 train, 926 dev, 920 test), and comes
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

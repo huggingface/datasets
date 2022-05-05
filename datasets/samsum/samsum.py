@@ -44,7 +44,7 @@ _HOMEPAGE = "https://arxiv.org/abs/1911.12237"
 
 _LICENSE = "CC BY-NC-ND 4.0"
 
-_URL = "https://huggingface.co/datasets/datafiles/samsum/resolve/main/corpus.7z"
+_URL = "https://huggingface.co/datasets/samsum/resolve/main/data/corpus.7z"
 
 
 class Samsum(datasets.GeneratorBasedBuilder):

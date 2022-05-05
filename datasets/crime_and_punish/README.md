@@ -53,8 +53,6 @@ pretty_name: CrimeAndPunish
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### crime-and-punish

@@ -130,7 +130,8 @@
             "sentiment-scoring",
             "sentiment-analysis",
             "hate-speech-detection",
-            "text-scoring"
+            "text-scoring",
+            "multi-input-text-classification"
         ]
     },
     "text-generation": {

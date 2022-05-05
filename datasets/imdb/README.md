@@ -1,7 +1,23 @@
 ---
 pretty_name: IMDB
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
 languages:
 - en
+licenses:
+- other
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- sentiment-classification
 paperswithcode_id: imdb-movie-reviews
 ---
 
@@ -55,8 +71,6 @@ This is a dataset for binary sentiment classification containing substantially m
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

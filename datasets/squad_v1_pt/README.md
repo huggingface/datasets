@@ -72,8 +72,6 @@ Portuguese translation of the SQuAD dataset. The translation was performed autom
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

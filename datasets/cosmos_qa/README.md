@@ -55,8 +55,6 @@ Cosmos QA is a large-scale dataset of 35.6K problems that require commonsense-ba
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

@@ -46,7 +46,7 @@ _IN1K_VAL_PREP_SCRIPT = "https://raw.githubusercontent.com/soumith/imagenetloade
 _DEFAULT_CONFIG_NAME = "default"
 
 
-class Imagenet2012Config(datasets.BuilderConfig):
+class Imagenet1kConfig(datasets.BuilderConfig):
     def __init__(
         self,
         name=_DEFAULT_CONFIG_NAME,
@@ -62,16 +62,16 @@ class Imagenet2012Config(datasets.BuilderConfig):
             synset_mapping (string, optional): URL or path to synset mapping. Defaults to _IN1K_SYNSET_MAPPING.
         """
         kwargs.pop("version", None)
-        super(Imagenet2012Config, self).__init__(version=datasets.Version("1.0.0"), name=name, **kwargs)
+        super(Imagenet1kConfig, self).__init__(version=datasets.Version("1.0.0"), name=name, **kwargs)
         self.val_prep_script = val_prep_script
         self.num_classes = num_classes
 
 
-class Imagenet2012(datasets.GeneratorBasedBuilder):
-    BUILDER_CONFIG_CLASS = Imagenet2012Config
+class Imagenet1k(datasets.GeneratorBasedBuilder):
+    BUILDER_CONFIG_CLASS = Imagenet1kConfig
 
     BUILDER_CONFIGS = [
-        Imagenet2012Config(
+        Imagenet1kConfig(
             name="default",
             val_prep_script=_IN1K_VAL_PREP_SCRIPT,
             num_classes=_IN1K_NUM_CLASSES,
