@@ -50,8 +50,8 @@ task_ids:
 - **Homepage:** https://yanaiela.github.io/TNE/
 - **Repository:** https://github.com/yanaiela/TNE
 - **Paper:** https://arxiv.org/abs/2109.12085
-- **Leaderboard:** [TNE](https://leaderboard.allenai.org/tne/submissions/public)
-[TNE OOD](https://leaderboard.allenai.org/tne-ood/submissions/public)
+- **Leaderboard:** [TNE OOD](https://leaderboard.allenai.org/tne-ood/submissions/public)
+[TNE](https://leaderboard.allenai.org/tne/submissions/public)
 - **Point of Contact:** [Yanai Elazar](mailto:yanaiela@gmail.com)
 
 ### Dataset Summary
@@ -62,7 +62,10 @@ The main data comes from WikiNews, which is used for train/dev/test. We also col
 
 ### Supported Tasks and Leaderboards
 
-[Needs More Information]
+The data contain both the main data for the TNE task, as well as coreference resolution data.
+There are two leaderboards for the TNE data, one for the standard test set, and another one for the OOD test set:
+- [TNE Leaderboard](https://leaderboard.allenai.org/tne/submissions/public)
+- [TNE OOD Leaderboard](https://leaderboard.allenai.org/tne-ood/submissions/public)
 
 ### Languages
 
