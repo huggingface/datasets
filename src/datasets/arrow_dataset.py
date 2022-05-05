@@ -4413,7 +4413,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             or (isinstance(label_feature, Sequence) and isinstance(label_feature.feature, ClassLabel))
         ):
             raise ValueError(
-                f"Aligning labels with a mapping is only supported for {ClassLabel.__name__} or {Sequence.__name__} column, and column {label_feature} is of type {type(label_feature).__name__}."
+                f"Aligning labels with a mapping is only supported for {ClassLabel.__name__} column or {Sequence.__name__} column with the inner type {ClassLabel.__name__}, and column {label_feature} is of type {type(label_feature).__name__}."
             )
 
         # Sort input mapping by ID value to ensure the label names are aligned
