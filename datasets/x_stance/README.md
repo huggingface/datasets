@@ -55,8 +55,6 @@ It can be used to train and evaluate stance detection systems.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

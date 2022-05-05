@@ -91,8 +91,6 @@ AdvGLUE deviates from the GLUE dataset, which has a base language of English.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

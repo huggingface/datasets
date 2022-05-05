@@ -180,12 +180,14 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         input_columns: Optional[List[str]] = None,
         batched: bool = False,
         batch_size: int = 1000,
+        drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
         self.batched = batched
         self.batch_size = batch_size
+        self.drop_last_batch = drop_last_batch
         self.remove_columns = remove_columns
         self.with_indices = with_indices
         self.input_columns = input_columns
@@ -200,6 +202,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     (key, example) for key, example in islice(iterator, self.batch_size - 1)
                 ]
                 keys, examples = zip(*key_examples_list)
+                if self.drop_last_batch and len(examples) < self.batch_size:  # ignore last batch
+                    return
                 batch = _examples_to_batch(examples)
                 # then apply the transform
                 inputs = batch
@@ -542,6 +546,7 @@ class IterableDataset(DatasetInfoMixin):
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: int = 1000,
+        drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, List[str]]] = None,
     ) -> "IterableDataset":
         """
@@ -576,9 +581,28 @@ class IterableDataset(DatasetInfoMixin):
                 as positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (:obj:`bool`, default `False`): Provide batch of examples to `function`.
             batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
+            drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
+                dropped instead of being processed by the function.
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> def add_prefix(example):
+        ...     example["text"] = "Review: " + example["text"]
+        ...     return example
+        >>> ds = ds.map(add_prefix)
+        >>> list(ds.take(3))
+        [{'label': 1,
+         'text': 'Review: the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
+         {'label': 1,
+         'text': 'Review: the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'},
+         {'label': 1, 'text': 'Review: effective but too-tepid biopic'}]
+        ```
         """
         if isinstance(input_columns, str):
             input_columns = [input_columns]
@@ -597,6 +621,7 @@ class IterableDataset(DatasetInfoMixin):
             input_columns=input_columns,
             batched=batched,
             batch_size=batch_size,
+            drop_last_batch=drop_last_batch,
             remove_columns=remove_columns,
         )
         return iterable_dataset(
@@ -633,6 +658,20 @@ class IterableDataset(DatasetInfoMixin):
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (:obj:`bool`, defaults to `False`): Provide batch of examples to `function`
             batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds = ds.filter(lambda x: x["label"] == 0)
+        >>> list(ds.take(3))
+        [{'label': 0, 'movie_review': 'simplistic , silly and tedious .'},
+         {'label': 0,
+         'movie_review': "it's so laddish and juvenile , only teenage boys could possibly find it funny ."},
+         {'label': 0,
+         'movie_review': 'exploitative and largely devoid of the depth or sophistication that would make watching such a graphic treatment of the crimes bearable .'}]
+        ```
         """
         if isinstance(input_columns, str):
             input_columns = [input_columns]
@@ -686,6 +725,27 @@ class IterableDataset(DatasetInfoMixin):
             generator (:obj:`numpy.random.Generator`, optional): Numpy random Generator to use to compute the permutation of the dataset rows.
                 If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
             buffer_size (:obj:`int`, default 1000): size of the buffer.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> list(ds.take(3))
+        [{'label': 1,
+         'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
+         {'label': 1,
+         'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'},
+         {'label': 1, 'text': 'effective but too-tepid biopic'}]
+        >>> shuffled_ds = ds.shuffle(seed=42)
+        >>> list(shuffled_ds.take(3))
+        [{'label': 1,
+         'text': "a sports movie with action that's exciting on the field and a story you care about off it ."},
+         {'label': 1,
+         'text': 'at its best , the good girl is a refreshingly adult take on adultery . . .'},
+         {'label': 1,
+         'text': "sam jones became a very lucky filmmaker the day wilco got dropped from their record label , proving that one man's ruin may be another's fortune ."}]
+        ```
         """
         if generator is None:
             generator = np.random.default_rng(seed)
@@ -712,6 +772,26 @@ class IterableDataset(DatasetInfoMixin):
 
         Args:
             n (:obj:`int`): number of elements to skip.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> list(ds.take(3))
+        [{'label': 1,
+         'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
+         {'label': 1,
+         'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'},
+         {'label': 1, 'text': 'effective but too-tepid biopic'}]
+        >>> ds = ds.skip(1)
+        >>> list(ds.take(3))
+        [{'label': 1,
+         'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'},
+         {'label': 1, 'text': 'effective but too-tepid biopic'},
+         {'label': 1,
+         'text': 'if you sometimes like to go to the movies to have fun , wasabi is a good place to start .'}]
+        ```
         """
         ex_iterable = SkipExamplesIterable(self._ex_iterable, n)
         return iterable_dataset(
@@ -729,6 +809,19 @@ class IterableDataset(DatasetInfoMixin):
 
         Args:
             n (:obj:`int`): number of elements to take.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> small_ds = ds.take(2)
+        >>> list(small_ds)
+        [{'label': 1,
+         'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
+         {'label': 1,
+         'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'}]
+        ```
         """
         ex_iterable = TakeExamplesIterable(self._ex_iterable, n)
         return iterable_dataset(
@@ -769,6 +862,20 @@ class IterableDataset(DatasetInfoMixin):
 
         Returns:
             :class:`IterableDataset`: A copy of the dataset with a renamed column.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> next(iter(ds))
+        {'label': 1,
+         'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
+        >>> ds.rename_column("text", "movie_review")
+        >>> next(iter(ds))
+        {'label': 1,
+         'movie_review': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
+        ```
         """
 
         def rename_column_fn(example):
@@ -823,6 +930,18 @@ class IterableDataset(DatasetInfoMixin):
 
         Returns:
             :class:`IterableDataset`: A copy of the dataset object without the columns to remove.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> next(iter(ds))
+        {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .', 'label': 1}
+        >>> ds = ds.remove_columns("label")
+        >>> next(iter(ds))
+        {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
+        ```
         """
         return self.map(remove_columns=column_names)
 
@@ -835,6 +954,28 @@ class IterableDataset(DatasetInfoMixin):
 
         Returns:
             :class:`IterableDataset`
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset, Audio
+        >>> ds = load_dataset("PolyAI/minds14", name="en-US", split="train", streaming=True)
+        >>> ds.features
+        {'audio': Audio(sampling_rate=8000, mono=True, decode=True, id=None),
+         'english_transcription': Value(dtype='string', id=None),
+         'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill'], id=None),
+         'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN'], id=None),
+         'path': Value(dtype='string', id=None),
+         'transcription': Value(dtype='string', id=None)}
+        >>> ds = ds.cast_column("audio", Audio(sampling_rate=16000))
+        >>> ds.features
+        {'audio': Audio(sampling_rate=16000, mono=True, decode=True, id=None),
+         'english_transcription': Value(dtype='string', id=None),
+         'intent_class': ClassLabel(num_classes=14, names=['abroad', 'address', 'app_error', 'atm_limit', 'balance', 'business_loan',  'card_issues', 'cash_deposit', 'direct_debit', 'freeze', 'high_value_payment', 'joint_account', 'latest_transactions', 'pay_bill'], id=None),
+         'lang_id': ClassLabel(num_classes=14, names=['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR',  'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN'], id=None),
+         'path': Value(dtype='string', id=None),
+         'transcription': Value(dtype='string', id=None)}
+        ```
         """
         info = self._info.copy()
         info.features[column] = feature
@@ -867,6 +1008,23 @@ class IterableDataset(DatasetInfoMixin):
 
         Returns:
             :class:`IterableDataset`: A copy of the dataset with casted features.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds.features
+        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+         'text': Value(dtype='string', id=None)}
+        >>> new_features = ds.features.copy()
+        >>> new_features["label"] = ClassLabel(names=["bad", "good"])
+        >>> new_features["text"] = Value("large_string")
+        >>> ds = ds.cast(new_features)
+        >>> ds.features
+        {'label': ClassLabel(num_classes=2, names=['bad', 'good'], id=None),
+         'text': Value(dtype='large_string', id=None)}
+        ```
         """
         info = self._info.copy()
         info.features = features

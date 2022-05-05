@@ -532,8 +532,6 @@ Niger-Congo languages Swahili and Yoruba, spoken in Africa.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### MLQA.ar.ar

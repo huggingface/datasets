@@ -72,8 +72,6 @@ Piaf is a reading comprehension dataset. This version, published in February 202
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### plain_text

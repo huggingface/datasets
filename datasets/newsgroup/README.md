@@ -60,8 +60,6 @@ does not include cross-posts and includes only the "From" and "Subject" headers.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### 18828_alt.atheism

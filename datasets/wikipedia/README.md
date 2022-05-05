@@ -714,8 +714,6 @@ You can find the list of languages [here](https://meta.wikimedia.org/wiki/List_o
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 An example looks as follows:

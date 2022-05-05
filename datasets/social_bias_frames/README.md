@@ -79,8 +79,6 @@ The language in SBIC is predominantly white-aligned English (78%, using a lexica
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 Each instance contains a post that may contain an offensive statement and annotated information concerning the nature of the offensive implication as well as the demographics of the annotator and origin of the post. See the [Social Bias Frames dataset viewer](https://huggingface.co/datasets/viewer/?dataset=social_bias_frames) to explore more examples. 

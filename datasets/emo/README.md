@@ -55,8 +55,6 @@ In this dataset, given a textual dialogue i.e. an utterance along with two previ
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### emo2019

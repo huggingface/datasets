@@ -55,8 +55,6 @@ We introduce Social IQa: Social Interaction QA, a new question-answering benchma
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

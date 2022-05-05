@@ -203,6 +203,9 @@ class DatasetBuilder:
     # Optional default config name to be used used when name is None
     DEFAULT_CONFIG_NAME = None
 
+    # Whether to skip checksum computation of the downloaded data files.
+    SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT = False
+
     def __init__(
         self,
         cache_dir: Optional[str] = None,
@@ -515,6 +518,7 @@ class DatasetBuilder:
         download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
         base_path = base_path if base_path is not None else self.base_path
+
         if dl_manager is None:
             if download_config is None:
                 download_config = DownloadConfig(
@@ -530,8 +534,11 @@ class DatasetBuilder:
                 download_config=download_config,
                 data_dir=self.config.data_dir,
                 base_path=base_path,
-                record_checksums=self._record_infos or verify_infos,
+                record_checksums=(self._record_infos or verify_infos)
+                if not self.SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT
+                else False,
             )
+
         elif isinstance(dl_manager, MockDownloadManager):
             try_from_hf_gcs = False
         self.dl_manager = dl_manager
@@ -674,7 +681,7 @@ class DatasetBuilder:
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
 
         # Checksums verification
-        if verify_infos:
+        if verify_infos and dl_manager.record_checksums:
             verify_checksums(
                 self.info.download_checksums, dl_manager.get_recorded_sizes_checksums(), "dataset source files"
             )
@@ -820,10 +827,11 @@ class DatasetBuilder:
             if post_processed is not None:
                 ds = post_processed
                 recorded_checksums = {}
+                record_checksums = False
                 for resource_name, resource_path in resources_paths.items():
-                    size_checksum = get_size_checksum_dict(resource_path, record_checksum=verify_infos)
+                    size_checksum = get_size_checksum_dict(resource_path)
                     recorded_checksums[resource_name] = size_checksum
-                if verify_infos:
+                if verify_infos and record_checksums:
                     if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
                         expected_checksums = None
                     else:

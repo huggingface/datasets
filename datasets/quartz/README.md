@@ -60,8 +60,6 @@ The dataset is split into train (2696), dev (384) and test (784). A background s
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

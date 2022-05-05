@@ -61,8 +61,6 @@ The two QAngaroo datasets provide a training and evaluation resource for such me
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### masked_medhop

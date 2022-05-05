@@ -81,8 +81,6 @@ The wikipedia dump is the one from Dec. 20, 2018.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 Each instance contains a paragraph of at most 100 words, as well as the title of the wikipedia page it comes from, and the DPR embedding (a 768-d vector).

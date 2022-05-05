@@ -18,7 +18,7 @@ import copy
 import json
 import re
 import sys
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import InitVar, _asdict_inner, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
@@ -337,9 +337,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         return obj.values.tolist(), True
     elif isinstance(obj, pd.DataFrame):
         return obj.to_dict("list"), True
-    elif isinstance(obj, dict):
+    elif isinstance(obj, Mapping):  # check for dict-like to handle nested LazyDict objects
+        has_changed = not isinstance(obj, dict)
         output = {}
-        has_changed = False
         for k, v in obj.items():
             casted_v, has_changed_v = _cast_to_python_objects(
                 v, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
@@ -995,7 +995,7 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
     return schema()
 
 
-def encode_nested_example(schema, obj):
+def encode_nested_example(schema, obj, level=0):
     """Encode a nested example.
     This is used since some features (in particular ClassLabel) have some logic during encoding.
 
@@ -1004,7 +1004,17 @@ def encode_nested_example(schema, obj):
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
-        return {k: encode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in zip_dict(schema, obj)}
+        if level == 0 and obj is None:
+            raise ValueError("Got None but expected a dictionary instead")
+        return (
+            {
+                k: encode_nested_example(sub_schema, sub_obj, level=level + 1)
+                for k, (sub_schema, sub_obj) in zip_dict(schema, obj)
+            }
+            if obj is not None
+            else None
+        )
+
     elif isinstance(schema, (list, tuple)):
         sub_schema = schema[0]
         if obj is None:
@@ -1014,8 +1024,8 @@ def encode_nested_example(schema, obj):
                 for first_elmt in obj:
                     if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
                         break
-                if encode_nested_example(sub_schema, first_elmt) != first_elmt:
-                    return [encode_nested_example(sub_schema, o) for o in obj]
+                if encode_nested_example(sub_schema, first_elmt, level=level + 1) != first_elmt:
+                    return [encode_nested_example(sub_schema, o, level=level + 1) for o in obj]
             return list(obj)
     elif isinstance(schema, Sequence):
         if obj is None:
@@ -1027,12 +1037,12 @@ def encode_nested_example(schema, obj):
             if isinstance(obj, (list, tuple)):
                 # obj is a list of dict
                 for k, dict_tuples in zip_dict(schema.feature, *obj):
-                    list_dict[k] = [encode_nested_example(dict_tuples[0], o) for o in dict_tuples[1:]]
+                    list_dict[k] = [encode_nested_example(dict_tuples[0], o, level=level + 1) for o in dict_tuples[1:]]
                 return list_dict
             else:
                 # obj is a single dict
                 for k, (sub_schema, sub_objs) in zip_dict(schema.feature, obj):
-                    list_dict[k] = [encode_nested_example(sub_schema, o) for o in sub_objs]
+                    list_dict[k] = [encode_nested_example(sub_schema, o, level=level + 1) for o in sub_objs]
                 return list_dict
         # schema.feature is not a dict
         if isinstance(obj, str):  # don't interpret a string as a list
@@ -1043,8 +1053,11 @@ def encode_nested_example(schema, obj):
                     if _check_non_null_non_empty_recursive(first_elmt, schema.feature):
                         break
                 # be careful when comparing tensors here
-                if not isinstance(first_elmt, list) or encode_nested_example(schema.feature, first_elmt) != first_elmt:
-                    return [encode_nested_example(schema.feature, o) for o in obj]
+                if (
+                    not isinstance(first_elmt, list)
+                    or encode_nested_example(schema.feature, first_elmt, level=level + 1) != first_elmt
+                ):
+                    return [encode_nested_example(schema.feature, o, level=level + 1) for o in obj]
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
@@ -1063,7 +1076,11 @@ def decode_nested_example(schema, obj, token_per_repo_id=None):
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
-        return {k: decode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in zip_dict(schema, obj)}
+        return (
+            {k: decode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in zip_dict(schema, obj)}
+            if obj is not None
+            else None
+        )
     elif isinstance(schema, (list, tuple)):
         sub_schema = schema[0]
         if obj is None:
