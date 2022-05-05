@@ -116,9 +116,8 @@ class MedMCQA(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for key, row in enumerate(f):
                 data = json.loads(row)
-                key = data["id"]
                 yield key, {
-                    "id": key,
+                    "id": data["id"],
                     "question": data["question"],
                     "opa": data["opa"],
                     "opb": data["opb"],
