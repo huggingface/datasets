@@ -382,8 +382,6 @@ Each example has one `target` per example in its training set, and a set of `ref
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### common_gen

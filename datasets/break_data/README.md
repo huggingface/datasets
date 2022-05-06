@@ -57,8 +57,6 @@ This repository contains the Break dataset along with information on the exact d
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### QDMR

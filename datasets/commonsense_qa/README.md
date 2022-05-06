@@ -58,8 +58,6 @@ CommonsenseQA is a new multiple-choice question answering dataset that requires 
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

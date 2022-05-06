@@ -68,8 +68,6 @@ https://research.google/pubs/pub47761/
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

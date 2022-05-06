@@ -74,8 +74,6 @@ combines the 100,000 questions in SQuAD1.1 with over 50,000 unanswerable questio
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### squad_v2

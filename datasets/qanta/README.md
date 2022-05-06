@@ -55,8 +55,6 @@ The Qanta dataset is a question answering dataset based on the academic trivia g
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### mode=first,char_skip=25

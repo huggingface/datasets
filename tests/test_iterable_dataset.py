@@ -215,6 +215,52 @@ def test_mapped_examples_iterable(generate_examples_fn, n, func, batch_size):
 @pytest.mark.parametrize(
     "n, func, batch_size",
     [
+        (3, lambda x: {"id+1": x["id"] + 1}, None),  # just add 1 to the id
+        (3, lambda x: {"id+1": [x["id"][0] + 1]}, 1),  # same with bs=1
+        (5, lambda x: {"id+1": [i + 1 for i in x["id"]]}, 10),  # same with bs=10
+        (25, lambda x: {"id+1": [i + 1 for i in x["id"]]}, 10),  # same with bs=10
+        (3, lambda x: {k: v * 2 for k, v in x.items()}, 1),  # make a duplicate of each example
+    ],
+)
+def test_mapped_examples_iterable_drop_last_batch(generate_examples_fn, n, func, batch_size):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = MappedExamplesIterable(
+        base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size, drop_last_batch=True
+    )
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    is_empty = False
+    if batch_size is None:
+        # `drop_last_batch` has no effect here
+        expected = [{**x, **func(x)} for x in all_examples]
+    else:
+        # For batched map we have to format the examples as a batch (i.e. in one single dictionary) to pass the batch to the function
+        all_transformed_examples = []
+        for batch_offset in range(0, len(all_examples), batch_size):
+            examples = all_examples[batch_offset : batch_offset + batch_size]
+            if len(examples) < batch_size:  # ignore last batch
+                break
+            batch = _examples_to_batch(examples)
+            transformed_batch = func(batch)
+            all_transformed_examples.extend(_batch_to_examples(transformed_batch))
+        all_examples = all_examples if n % batch_size == 0 else all_examples[: n // batch_size * batch_size]
+        if all_examples:
+            expected = _examples_to_batch(all_examples)
+            expected.update(_examples_to_batch(all_transformed_examples))
+            expected = list(_batch_to_examples(expected))
+        else:
+            is_empty = True
+
+    if not is_empty:
+        assert next(iter(ex_iterable))[1] == expected[0]
+        assert list(x for _, x in ex_iterable) == expected
+    else:
+        with pytest.raises(StopIteration):
+            next(iter(ex_iterable))
+
+
+@pytest.mark.parametrize(
+    "n, func, batch_size",
+    [
         (3, lambda x, index: {"id+idx": x["id"] + index}, None),  # add the index to the id
         (25, lambda x, indices: {"id+idx": [i + j for i, j in zip(x["id"], indices)]}, 10),  # add the index to the id
     ],

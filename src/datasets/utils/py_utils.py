@@ -90,6 +90,7 @@ def convert_file_size_to_int(size: Union[int, str]) -> int:
         size (`int` or `str`): The size to convert. Will be directly returned if an `int`.
 
     Example:
+
     ```py
     >>> convert_file_size_to_int("1MiB")
     1048576
@@ -104,16 +105,14 @@ def convert_file_size_to_int(size: Union[int, str]) -> int:
     if size.upper().endswith("KIB"):
         return int(size[:-3]) * (2**10)
     if size.upper().endswith("GB"):
-        if size.endswith("Gb"):
-            # gigabits
-            return int(size[:-2]) * (10**9 >> 3)
-        else:
-            # gigabytes
-            return int(size[:-2]) * (10**9)
+        int_size = int(size[:-2]) * (10**9)
+        return int_size // 8 if size.endswith("b") else int_size
     if size.upper().endswith("MB"):
-        return int(size[:-2]) * (10**6)
+        int_size = int(size[:-2]) * (10**6)
+        return int_size // 8 if size.endswith("b") else int_size
     if size.upper().endswith("KB"):
-        return int(size[:-2]) * (10**3)
+        int_size = int(size[:-2]) * (10**3)
+        return int_size // 8 if size.endswith("b") else int_size
     raise ValueError("`size` is not in a valid format. Use an integer followed by the unit, e.g., '5GB'.")
 
 
@@ -138,7 +137,10 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
         Dict[str, str]: dictionary of variable -> value, retrieved from the input using the pattern
     """
     regex = re.sub(r"{(.+?)}", r"(?P<_\1>.+)", pattern)
-    values = list(re.search(regex, string).groups())
+    result = re.search(regex, string)
+    if result is None:
+        raise ValueError(f"Pattern {pattern} doesn't match {string}")
+    values = list(result.groups())
     keys = re.findall(r"{(.+?)}", pattern)
     _dict = dict(zip(keys, values))
     return _dict

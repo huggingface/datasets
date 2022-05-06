@@ -68,8 +68,6 @@ IMPORTANT: train+validation+test[:60%] will generate the wrong splits becasue th
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### cross_genre_1

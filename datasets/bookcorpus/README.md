@@ -73,8 +73,6 @@ Books are a rich source of both fine-grained information, how a character, an ob
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### plain_text

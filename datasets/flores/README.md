@@ -83,8 +83,6 @@ Evaluation datasets for low-resource machine translation: Nepali-English and Sin
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### neen

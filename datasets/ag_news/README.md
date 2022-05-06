@@ -84,8 +84,6 @@ in Neural Information Processing Systems 28 (NIPS 2015).
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default
