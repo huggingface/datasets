@@ -26,11 +26,12 @@ source_datasets:
 - original
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
 - semantic-similarity-classification
 - semantic-similarity-scoring
-- text-scoring-other-paraphrase-identification
+- text-classification-other-paraphrase-identification
+- text-scoring
+- multi-input-text-classification
 paperswithcode_id: paws
 ---
 

@@ -14,7 +14,7 @@ size_categories:
 source_datasets:
 - extended|conll2003
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: conll
@@ -78,8 +78,6 @@ correction on the test set for example, is:
 [More Information Needed]
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

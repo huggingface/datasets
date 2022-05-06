@@ -1017,3 +1017,20 @@ def test_cast_array_to_features_nested():
     assert cast_array_to_feature(arr, [{"foo": Sequence(Value("string"))}]).type == pa.list_(
         pa.struct({"foo": pa.list_(pa.string())})
     )
+
+
+def test_cast_array_to_features_nested_with_null_values():
+    # same type
+    arr = pa.array([{"foo": [None, [0]]}], pa.struct({"foo": pa.list_(pa.list_(pa.int64()))}))
+    casted_array = cast_array_to_feature(arr, {"foo": [[Value("int64")]]})
+    assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int64()))})
+    assert casted_array.to_pylist() == arr.to_pylist()
+
+    # different type
+    arr = pa.array([{"foo": [None, [0]]}], pa.struct({"foo": pa.list_(pa.list_(pa.int64()))}))
+    with pytest.warns(UserWarning, match="None values are converted to empty lists.+"):
+        casted_array = cast_array_to_feature(arr, {"foo": [[Value("int32")]]})
+    assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int32()))})
+    assert casted_array.to_pylist() == [
+        {"foo": [[], [0]]}
+    ]  # empty list because of https://github.com/huggingface/datasets/issues/3676

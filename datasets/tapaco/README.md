@@ -380,11 +380,11 @@ size_categories:
 source_datasets:
 - extended|other-tatoeba
 task_categories:
-- conditional-text-generation
+- text2text-generation
+- translation
 - text-classification
 task_ids:
-- conditional-text-generation-other-given-a-sentence-generate-a-paraphrase-either-in-same-language-or-another-language
-- machine-translation
+- text2text-generation-other-paraphrase-generation
 - semantic-similarity-classification
 paperswithcode_id: tapaco
 pretty_name: TaPaCo Corpus

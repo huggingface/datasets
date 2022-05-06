@@ -1,10 +1,10 @@
 ---
 task_categories:
-- text-scoring
+- text-classification
 multilinguality:
 - monolingual
 task_ids:
-- other
+- text-scoring
 languages:
 - en
 annotations_creators:

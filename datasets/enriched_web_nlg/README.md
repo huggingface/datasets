@@ -17,9 +17,9 @@ size_categories:
 source_datasets:
 - extended|other-web-nlg
 task_categories:
-- conditional-text-generation
+- tabular-to-text
 task_ids:
-- other-structured-to-text
+- rdf-to-text
 paperswithcode_id: null
 pretty_name: Enriched WebNLG
 ---
@@ -64,7 +64,7 @@ DBpedia triples shown in (a), the aim is to generate a text such as (b). It is a
 
 ### Supported Tasks and Leaderboards
 
-The dataset supports a `other-structured-to-text` task which requires a model takes a set of RDF (Resource Description
+The dataset supports a `other-rdf-to-text` task which requires a model takes a set of RDF (Resource Description
 Format) triples from a database (DBpedia) of the form (subject, property, object) as input and write out a natural
 language sentence expressing the information contained in the triples.
 

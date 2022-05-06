@@ -18,9 +18,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
-- semantic-similarity-scoring
+- natural-language-inference
+- multi-input-text-classification
 paperswithcode_id: multinli
 pretty_name: Multi-Genre Natural Language Inference
 ---
@@ -79,8 +80,6 @@ basis for the shared task of the RepEval 2017 Workshop at EMNLP in Copenhagen.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

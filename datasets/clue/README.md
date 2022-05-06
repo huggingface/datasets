@@ -55,8 +55,6 @@ evaluating, and analyzing Chinese language understanding systems.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### afqmc

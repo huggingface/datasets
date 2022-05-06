@@ -1,8 +1,24 @@
 ---
-pretty_name: RottenTomatoes - Movie Review Data
+pretty_name: RottenTomatoes - MR Movie Review Data
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
 languages:
 - en
-paperswithcode_id: null
+licenses:
+- unknown
+multilinguality:
+- monolingual
+task_categories:
+- text-classification
+task_ids:
+- sentiment-classification
+paperswithcode_id: mr
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
 ---
 
 # Dataset Card for "rotten_tomatoes"
@@ -35,7 +51,7 @@ paperswithcode_id: null
 
 - **Homepage:** [http://www.cs.cornell.edu/people/pabo/movie-review-data/](http://www.cs.cornell.edu/people/pabo/movie-review-data/)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [https://arxiv.org/abs/cs/0506075](https://arxiv.org/abs/cs/0506075)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 0.47 MB
 - **Size of the generated dataset:** 1.28 MB
@@ -60,8 +76,6 @@ ACL, 2005.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default
@@ -74,7 +88,7 @@ An example of 'validation' looks as follows.
 ```
 {
     "label": 1,
-    "text": "Sometimes the days and nights just drag on-- it's the morning that make me feel alive. And I have one thing to thank for that: pancakes."
+    "text": "Sometimes the days and nights just drag on -- it 's the morning that make me feel alive . And I have one thing to thank for that : pancakes . "
 }
 ```
 

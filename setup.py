@@ -64,8 +64,8 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 5.0.0 to support mix of struct and list types in parquet, and batch iterators of parquet data, masks in StructArray
-    "pyarrow>=5.0.0",
+    # Minimum 6.0.0 to support wrap_array which is needed for ArrayND features
+    "pyarrow>=6.0.0",
     # For smart caching dataset processing
     "dill",
     # For performance gains with apache arrow
@@ -88,7 +88,7 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub>=0.1.0,<1.0.0",
+    "huggingface-hub>=0.1.0,<1.0.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     "responses<0.19",
@@ -196,7 +196,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.0.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.1.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

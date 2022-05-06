@@ -9,9 +9,11 @@ licenses:
 - cc-by-sa-3.0
 - gfdl-1.3-or-later
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 source_datasets:
 - original
 multilinguality:
@@ -711,8 +713,6 @@ The dataset is generally used for Language Modeling.
 You can find the list of languages [here](https://meta.wikimedia.org/wiki/List_of_Wikipedias).
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

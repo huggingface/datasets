@@ -1,6 +1,7 @@
 import copy
 import os
 import tempfile
+import warnings
 from functools import partial
 from itertools import groupby
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, TypeVar, Union
@@ -1705,6 +1706,8 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
         array = array.storage
     if isinstance(pa_type, pa.ExtensionType):
         return pa_type.wrap_array(array)
+    elif array.type == pa_type:
+        return array
     elif pa.types.is_struct(array.type):
         if pa.types.is_struct(pa_type) and (
             set(field.name for field in pa_type) == set(field.name for field in array.type)
@@ -1719,6 +1722,10 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
                     pa_type.list_size,
                 )
         elif pa.types.is_list(pa_type):
+            if array.null_count > 0:
+                warnings.warn(
+                    f"None values are converted to empty lists when converting array to {pa_type}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                )
             return pa.ListArray.from_arrays(array.offsets, _c(array.values, pa_type.value_type))
     elif pa.types.is_fixed_size_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
@@ -1728,6 +1735,10 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             )
         elif pa.types.is_list(pa_type):
             offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+            if array.null_count > 0:
+                warnings.warn(
+                    f"None values are converted to empty lists when converting array to {pa_type}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                )
             return pa.ListArray.from_arrays(offsets_arr, _c(array.values, pa_type.value_type))
     else:
         if (
@@ -1784,16 +1795,36 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
     elif pa.types.is_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         if isinstance(feature, list):
-            return pa.ListArray.from_arrays(array.offsets, _c(array.values, feature[0]))
+            casted_values = _c(array.values, feature[0])
+            if casted_values.type == array.values.type:
+                return array
+            else:
+                if array.null_count > 0:
+                    warnings.warn(
+                        f"None values are converted to empty lists when converting array to {feature}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                    )
+                return pa.ListArray.from_arrays(array.offsets, casted_values)
         elif isinstance(feature, Sequence):
             if feature.length > -1:
                 if feature.length * len(array) == len(array.values):
                     return pa.FixedSizeListArray.from_arrays(_c(array.values, feature.feature), feature.length)
             else:
-                return pa.ListArray.from_arrays(array.offsets, _c(array.values, feature.feature))
+                casted_values = _c(array.values, feature.feature)
+                if casted_values.type == array.values.type:
+                    return array
+                else:
+                    if array.null_count > 0:
+                        warnings.warn(
+                            f"None values are converted to empty lists when converting array to {feature}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                        )
+                    return pa.ListArray.from_arrays(array.offsets, _c(array.values, feature.feature))
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         if isinstance(feature, list):
+            if array.null_count > 0:
+                warnings.warn(
+                    f"None values are converted to empty lists when converting array to {feature}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                )
             return pa.ListArray.from_arrays(array.offsets, _c(array.values, feature[0]))
         elif isinstance(feature, Sequence):
             if feature.length > -1:
@@ -1801,6 +1832,10 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                     return pa.FixedSizeListArray.from_arrays(_c(array.values, feature.feature), feature.length)
             else:
                 offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+                if array.null_count > 0:
+                    warnings.warn(
+                        f"None values are converted to empty lists when converting array to {feature}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                    )
                 return pa.ListArray.from_arrays(offsets_arr, _c(array.values, feature.feature))
     if pa.types.is_null(array.type):
         return array_cast(array, get_nested_type(feature), allow_number_to_str=allow_number_to_str)

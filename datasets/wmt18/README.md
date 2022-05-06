@@ -4,9 +4,8 @@ paperswithcode_id: wmt-2018
 multilinguality:
 - translation
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 ---
 
 # Dataset Card for "wmt18"
@@ -74,8 +73,6 @@ builder = datasets.builder("wmt_translate", config=config)
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

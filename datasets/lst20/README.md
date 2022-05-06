@@ -14,13 +14,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 - part-of-speech-tagging
-- structure-prediction-other-clause-segmentation
-- structure-prediction-other-sentence-segmentation
-- structure-prediction-other-word-segmentation
+- token-classification-other-clause-segmentation
+- token-classification-other-sentence-segmentation
+- token-classification-other-word-segmentation
 paperswithcode_id: null
 pretty_name: LST20
 ---

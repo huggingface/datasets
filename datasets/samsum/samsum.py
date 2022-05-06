@@ -40,11 +40,11 @@ There are two features:
   - id: id of a example.
 """
 
-_HOMEPAGE = "https://arxiv.org/abs/1911.12237v2"
+_HOMEPAGE = "https://arxiv.org/abs/1911.12237"
 
 _LICENSE = "CC BY-NC-ND 4.0"
 
-_URLs = "https://arxiv.org/src/1911.12237v2/anc/corpus.7z"
+_URL = "https://huggingface.co/datasets/samsum/resolve/main/data/corpus.7z"
 
 
 class Samsum(datasets.GeneratorBasedBuilder):
@@ -75,12 +75,10 @@ class Samsum(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        my_urls = _URLs
-        path = dl_manager.download_and_extract(my_urls)
+        path = dl_manager.download(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": (path, "train.json"),
                     "split": "train",
@@ -88,7 +86,6 @@ class Samsum(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": (path, "test.json"),
                     "split": "test",
@@ -96,7 +93,6 @@ class Samsum(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": (path, "val.json"),
                     "split": "val",
@@ -106,12 +102,11 @@ class Samsum(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """Yields examples."""
-
         path, fname = filepath
-
-        with py7zr.SevenZipFile(path, "r") as z:
-            for name, bio in z.readall().items():
-                if name == fname:
-                    data = json.load(bio)
+        with open(path, "rb") as f:
+            with py7zr.SevenZipFile(f, "r") as z:
+                for name, bio in z.readall().items():
+                    if name == fname:
+                        data = json.load(bio)
         for example in data:
             yield example["id"], example

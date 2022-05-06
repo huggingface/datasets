@@ -58,8 +58,6 @@ The text-pair classification setup is similar to existing natural language infer
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

@@ -85,8 +85,6 @@ across 11 languages.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### xquad.ar

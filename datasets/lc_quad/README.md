@@ -55,8 +55,6 @@ LC-QuAD 2.0 is a Large Question Answering dataset with 30,000 pairs of question 
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

@@ -197,5 +197,9 @@ def _interleave_iterable_datasets(
     if info is None:
         info = DatasetInfo.from_merge([d.info for d in datasets])
         info.features = None
+    # Get all the auth tokens per repository - in case the datasets come from different private repositories
+    token_per_repo_id = {
+        repo_id: token for dataset in datasets for repo_id, token in dataset._token_per_repo_id.items()
+    }
     # Return new daset
-    return iterable_dataset(ex_iterable=ex_iterable, info=info, split=split)
+    return iterable_dataset(ex_iterable=ex_iterable, info=info, split=split, token_per_repo_id=token_per_repo_id)

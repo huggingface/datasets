@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 licenses:
-- unknown
+- cc-by-4.0
 multilinguality:
 - monolingual
 size_categories:
@@ -33,9 +33,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- summarization-other-patent-summarization
 paperswithcode_id: bigpatent
 pretty_name: Big Patent
 ---
@@ -68,11 +68,11 @@ pretty_name: Big Patent
 
 ## Dataset Description
 
-- **Homepage:[Big Patent](https://evasharma.github.io/bigpatent/)**
+- **Homepage:** [Big Patent](https://evasharma.github.io/bigpatent/)
 - **Repository:**
-- **Paper:[BIGPATENT: A Large-Scale Dataset for Abstractive and Coherent Summarization](https://arxiv.org/abs/1906.03741)**
+- **Paper:** [BIGPATENT: A Large-Scale Dataset for Abstractive and Coherent Summarization](https://arxiv.org/abs/1906.03741)
 - **Leaderboard:**
-- **Point of Contact:**
+- **Point of Contact:** [Lu Wang](mailto:wangluxy@umich.edu)
 
 ### Dataset Summary
 

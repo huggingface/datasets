@@ -37,6 +37,10 @@ class DummyBuilder(DatasetBuilder):
         split_generator.split_info.num_bytes = num_bytes
 
 
+class DummyBuilderSkipChecksumComputation(DummyBuilder):
+    SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT = True
+
+
 class DummyGeneratorBasedBuilder(GeneratorBasedBuilder):
     def _info(self):
         return DatasetInfo(features=Features({"text": Value("string")}))
@@ -136,6 +140,24 @@ class BuilderTest(TestCase):
             self.assertEqual(dummy_builder.info.splits["train"].num_examples, 100)
             self.assertTrue(
                 os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dataset_info.json"))
+            )
+
+    def test_download_and_prepare_checksum_computation(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
+            dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD)
+            self.assertTrue(all(v["checksum"] is not None for _, v in dummy_builder.info.download_checksums.items()))
+            dummy_builder_skip_checksum_computation = DummyBuilderSkipChecksumComputation(
+                cache_dir=tmp_dir, name="dummy"
+            )
+            dummy_builder_skip_checksum_computation.download_and_prepare(
+                try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD
+            )
+            self.assertTrue(
+                all(
+                    v["checksum"] is None
+                    for _, v in dummy_builder_skip_checksum_computation.info.download_checksums.items()
+                )
             )
 
     def test_concurrent_download_and_prepare(self):

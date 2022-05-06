@@ -64,8 +64,6 @@ temporal or measurable quantities, TIMEX3 and the International System of Units 
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

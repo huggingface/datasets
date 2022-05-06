@@ -16,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.6"
+          python-version: "3.7"
       - name: Set up default Git config
         run: |
           git config --global user.name system
@@ -32,4 +32,5 @@ jobs:
           export HF_TOKEN=${{ secrets.HUB_TRUSTED_COMMITER_TOKEN }}
           export DATASETS_LIB_PATH=$GITHUB_WORKSPACE
           export HF_USE_PROD=1
+          export GIT_LFS_SKIP_SMUDGE=1
           python update_hub_repositories.py --auto
