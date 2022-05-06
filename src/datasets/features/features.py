@@ -854,7 +854,7 @@ class ClassLabel:
 
     def str2int(self, values: Union[str, Iterable]):
         """Conversion class name string => integer.
-        
+
         Example:
 
         ```py
@@ -893,7 +893,7 @@ class ClassLabel:
 
     def int2str(self, values: Union[int, Iterable]):
         """Conversion integer => class name string.
-        
+
         Example:
 
         ```py
