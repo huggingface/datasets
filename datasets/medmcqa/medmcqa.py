@@ -86,46 +86,31 @@ class MedMCQA(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         data_dir = dl_manager.download_and_extract(_URL)
-
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "train.json"),
-                    "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "test.json"),
-                    "split": "test",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "dev.json"),
-                    "split": "dev",
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
-
+    def _generate_examples(self, filepath):
         with open(filepath, encoding="utf-8") as f:
             for key, row in enumerate(f):
                 data = json.loads(row)
-                yield key, {
-                    "id": data["id"],
-                    "question": data["question"],
-                    "opa": data["opa"],
-                    "opb": data["opb"],
-                    "opc": data["opc"],
-                    "opd": data["opd"],
-                    "cop": -1 if split == "test" else int(data["cop"]) - 1,
-                    "choice_type": data["choice_type"],
-                    "exp": "" if split == "test" else data["exp"],
-                    "subject_name": data["subject_name"],
-                    "topic_name": data["topic_name"],
-                }
+                data["cop"] = int(data.get("cop", 0)) - 1
+                data["exp"] = data.get("exp", "")
+                yield key, data
