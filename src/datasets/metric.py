@@ -401,6 +401,14 @@ class Metric(MetricInfoMixin):
 
             - Dictionary with the metrics if this metric is run on the main process (``process_id == 0``).
             - None if the metric is not run on the main process (``process_id != 0``).
+
+        Example:
+
+        ```py
+        >>> from datasets import load_metric
+        >>> metric = load_metric("accuracy")
+        >>> accuracy = metric.compute(predictions=model_prediction, references=labels)
+        ```
         """
         all_kwargs = {"predictions": predictions, "references": references, **kwargs}
         if predictions is None and references is None:
@@ -454,6 +462,14 @@ class Metric(MetricInfoMixin):
         Args:
             predictions (list/array/tensor, optional): Predictions.
             references (list/array/tensor, optional): References.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_metric
+        >>> metric = load_metric("accuracy")
+        >>> metric.add_batch(predictions=model_prediction, references=labels)
+        ```
         """
         bad_inputs = [input_name for input_name in kwargs if input_name not in self.features]
         if bad_inputs:
@@ -493,6 +509,14 @@ class Metric(MetricInfoMixin):
         Args:
             prediction (list/array/tensor, optional): Predictions.
             reference (list/array/tensor, optional): References.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_metric
+        >>> metric = load_metric("accuracy")
+        >>> metric.add(predictions=model_predictions, references=labels)
+        ```
         """
         bad_inputs = [input_name for input_name in kwargs if input_name not in self.features]
         if bad_inputs:

@@ -429,6 +429,15 @@ class Value:
     large_binary
     string
     large_string
+
+    Example:
+
+    ```py
+    >>> from datasets import Features
+    >>> features = Features({'stars': Value(dtype='int32')})
+    >>> features
+    {'stars': Value(dtype='int32', id=None)}
+    ```
     """
 
     dtype: str
@@ -792,6 +801,15 @@ class ClassLabel:
         names (:obj:`list` of :obj:`str`, optional): String names for the integer classes.
             The order in which the names are provided is kept.
         names_file (:obj:`str`, optional): Path to a file with names for the integer classes, one per line.
+
+    Example:
+
+    ```py
+    >>> from datasets Features
+    >>> features = Features({'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'])})
+    >>> features
+    {'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'], id=None)}
+    ```
     """
 
     num_classes: int = None
@@ -835,7 +853,17 @@ class ClassLabel:
         return self.pa_type
 
     def str2int(self, values: Union[str, Iterable]):
-        """Conversion class name string => integer."""
+        """Conversion class name string => integer.
+        
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds.features["label"].str2int('neg')
+        0
+        ```
+        """
         if not isinstance(values, str) and not isinstance(values, Iterable):
             raise ValueError(
                 f"Values {values} should be a string or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
@@ -864,7 +892,17 @@ class ClassLabel:
         return output if return_list else output[0]
 
     def int2str(self, values: Union[int, Iterable]):
-        """Conversion integer => class name string."""
+        """Conversion integer => class name string.
+        
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds.features["label"].int2str(0)
+        'neg'
+        ```
+        """
         if not isinstance(values, int) and not isinstance(values, Iterable):
             raise ValueError(
                 f"Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
@@ -1453,6 +1491,17 @@ class Features(dict):
 
         Returns:
             :class:`Features`
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> copy_of_features = ds.features.copy()
+        >>> copy_of_features
+        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+         'text': Value(dtype='string', id=None)}
+        ```
         """
         return copy.deepcopy(self)
 
@@ -1527,6 +1576,20 @@ class Features(dict):
 
         Returns:
             Features: the flattened features
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("squad", split="train")
+        >>> ds.features.flatten()
+        {'answers.answer_start': Sequence(feature=Value(dtype='int32', id=None), length=-1, id=None),
+         'answers.text': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None),
+         'context': Value(dtype='string', id=None),
+         'id': Value(dtype='string', id=None),
+         'question': Value(dtype='string', id=None),
+         'title': Value(dtype='string', id=None)}
+        ```
         """
         for depth in range(1, max_depth):
             no_change = True
