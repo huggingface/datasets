@@ -2316,9 +2316,10 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(batch.shape.as_list(), [4])
             self.assertEqual(batch.dtype.name, "int64")
         with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-            tf_dataset = dset.to_tf_dataset()  # Check that it works with all default options
+            # Check that it works with all default options (except batch_size because the dummy dataset only has 4)
+            tf_dataset = dset.to_tf_dataset(batch_size=4)
             batch = next(iter(tf_dataset))
-            self.assertEqual(batch.shape.as_list(), [8])
+            self.assertEqual(batch.shape.as_list(), [4])
             self.assertEqual(batch.dtype.name, "int64")
         del tf_dataset  # For correct cleanup
 
