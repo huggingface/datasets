@@ -3054,7 +3054,7 @@ def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_param
 
 
 @pytest.mark.skipif(
-    os.name == "nt",
+    os.name == "nt" and os.getenv("CIRCLECI") == "true",
     reason='On Windows CircleCI, it raises botocore.exceptions.EndpointConnectionError: Could not connect to the endpoint URL: "http://127.0.0.1:5555/test"',
 )  # TODO(QL): find what's wrong with CircleCI
 @require_s3
