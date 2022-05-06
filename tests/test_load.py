@@ -31,6 +31,7 @@ from datasets.load import (
     LocalDatasetModuleFactoryWithScript,
     LocalMetricModuleFactory,
     PackagedDatasetModuleFactory,
+    infer_module_for_data_files,
     infer_module_for_data_files_in_archives,
 )
 from datasets.utils.file_utils import DownloadConfig, is_remote_url
@@ -181,11 +182,28 @@ def metric_loading_script_dir(tmp_path):
     return str(script_dir)
 
 
+@pytest.mark.parametrize(
+    "data_files, expected_module, expected_builder_kwargs",
+    [
+        (["train.csv"], "csv", {}),
+        (["train.tsv"], "csv", {"sep": "\t"}),
+        (["train.json"], "json", {}),
+        (["train.jsonl"], "json", {}),
+        (["train.parquet"], "parquet", {}),
+        (["train.txt"], "text", {}),
+    ],
+)
+def test_infer_module_for_data_files(data_files, expected_module, expected_builder_kwargs):
+    module, builder_kwargs = infer_module_for_data_files(data_files)
+    assert module == expected_module
+    assert builder_kwargs == expected_builder_kwargs
+
+
 @pytest.mark.parametrize("data_file, expected_module", [("zip_csv_path", "csv"), ("zip_csv_with_dir_path", "csv")])
 def test_infer_module_for_data_files_in_archives(data_file, expected_module, zip_csv_path, zip_csv_with_dir_path):
     data_file_paths = {"zip_csv_path": zip_csv_path, "zip_csv_with_dir_path": zip_csv_with_dir_path}
     data_files = [str(data_file_paths[data_file])]
-    inferred_module = infer_module_for_data_files_in_archives(data_files, False)
+    inferred_module, _ = infer_module_for_data_files_in_archives(data_files, False)
     assert inferred_module == expected_module
 
 
