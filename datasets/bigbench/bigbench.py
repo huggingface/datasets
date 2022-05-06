@@ -21,8 +21,8 @@ from typing import Optional
 
 import bigbench.api.util as bb_utils  # From: "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz"
 import bigbench.bbseqio.bigbench_bridge as bbb
-from sentencepiece import sentencepiece_model_pb2  # noqa: this is also required by bigbench.api.util
 from bigbench.bbseqio import bigbench_json_paths as bb_json_paths
+from sentencepiece import sentencepiece_model_pb2  # noqa: this is also required by bigbench.api.util
 
 import datasets
 
