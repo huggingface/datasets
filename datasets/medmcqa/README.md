@@ -125,7 +125,9 @@ The questions and answers are available in English.
 - `opc` : Option C
 - `opd` : Option D
 - `cop` : Correct option, i.e., 1,2,3,4
-- `choice_type` : Question is `single-choice` or `multi-choice`
+- `choice_type` ({"single", "multi"}): Question choice type.
+  - "single": Single-choice question, where each choice contains a single option.
+  - "multi": Multi-choice question, where each choice contains a combination of multiple suboptions.
 - `exp` : Expert's explanation of the answer
 - `subject_name` : Medical Subject name of the particular question
 - `topic_name` : Medical topic name from the particular subject
