@@ -143,7 +143,8 @@ TESTS_REQUIRE = [
     "py7zr",
     "tldextract",
     "zstandard",
-    "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz", 
+    "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz",
+    "sentencepiece",  # bigbench requires t5 which requires seqio which requires sentencepiece
     # metrics dependencies
     "bert_score>=0.3.6",
     "rouge_score",
