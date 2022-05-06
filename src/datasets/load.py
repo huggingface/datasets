@@ -421,7 +421,19 @@ def _create_importable_file(
 
 def infer_module_for_data_files(
     data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]] = None
-) -> Optional[str]:
+) -> Optional[Tuple[str, str]]:
+    """Infer module (and builder kwargs) from list of data files.
+
+    Args:
+        data_files_list (DataFilesList): List of data files.
+        use_auth_token (bool or str, optional): Whether to use token or token to authenticate on the Hugging Face Hub
+            for private remote files.
+
+    Returns:
+        tuple[str, str]: Tuple with
+            - inferred module name
+            - builder kwargs
+    """
     extensions_counter = Counter(
         suffix[1:]
         for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE]
@@ -437,7 +449,19 @@ def infer_module_for_data_files(
 
 def infer_module_for_data_files_in_archives(
     data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]]
-) -> Optional[str]:
+) -> Optional[Tuple[str, str]]:
+    """Infer module (and builder kwargs) from list of archive data files.
+
+    Args:
+        data_files_list (DataFilesList): List of data files.
+        use_auth_token (bool or str, optional): Whether to use token or token to authenticate on the Hugging Face Hub
+            for private remote files.
+
+    Returns:
+        tuple[str, str]: Tuple with
+            - inferred module name
+            - builder kwargs
+    """
     archived_files = []
     archive_files_counter = 0
     for filepath in data_files_list:
