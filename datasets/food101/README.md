@@ -15,9 +15,9 @@ size_categories:
 source_datasets:
 - extended|other-foodspotting
 task_categories:
-- other
+- image-classification
 task_ids:
-- other-other-image-classification
+- multi-class-image-classification
 paperswithcode_id: food-101
 ---
 
@@ -62,7 +62,7 @@ This dataset consists of 101 food categories, with 101'000 images. For each clas
 
 ### Supported Tasks and Leaderboards
 
-- image-classification
+- `image-classification`: The goal of this task is to classify a given image of a dish into one of 101 classes. The leaderboard is available [here](https://paperswithcode.com/sota/fine-grained-image-classification-on-food-101).
 
 ### Languages
 

@@ -9,7 +9,7 @@ from asyncio import TimeoutError
 from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePath, PurePosixPath
-from typing import List, Optional, Tuple, Union
+from typing import Callable, Generator, Iterable, List, Optional, Tuple, Union
 from xml.etree import ElementTree as ET
 
 import fsspec
@@ -77,6 +77,10 @@ MAGIC_NUMBER_MAX_LENGTH = max(
 )
 
 
+class NonStreamableDatasetError(Exception):
+    pass
+
+
 def xjoin(a, *p):
     """
     This function extends os.path.join to support the "::" hop separator. It supports both paths and urls.
@@ -96,7 +100,7 @@ def xjoin(a, *p):
         >>> xjoin("zip://folder1::https://host.com/archive.zip", "file.txt")
         zip://folder1/file.txt::https://host.com/archive.zip
     """
-    a, *b = a.split("::")
+    a, *b = str(a).split("::")
     if is_local_path(a):
         a = Path(a, *p).as_posix()
     else:
@@ -123,7 +127,7 @@ def xdirname(a):
         >>> xdirname("zip://folder1/file.txt::https://host.com/archive.zip")
         zip://folder1::https://host.com/archive.zip
     """
-    a, *b = a.split("::")
+    a, *b = str(a).split("::")
     if is_local_path(a):
         a = os.path.dirname(Path(a).as_posix())
     else:
@@ -154,11 +158,38 @@ def xbasename(a):
         >>> xbasename("zip://folder1/file.txt::https://host.com/archive.zip")
         file.txt
     """
-    a, *b = a.split("::")
+    a, *b = str(a).split("::")
     if is_local_path(a):
         return os.path.basename(Path(a).as_posix())
     else:
         return posixpath.basename(a)
+
+
+def xsplit(a):
+    """
+    This function extends os.path.split to support the "::" hop separator. It supports both paths and urls.
+
+    A shorthand, particularly useful where you have multiple hops, is to “chain” the URLs with the special separator "::".
+    This is used to access files inside a zip file over http for example.
+
+    Let's say you have a zip file at https://host.com/archive.zip, and you want to access the file inside the zip file at /folder1/file.txt.
+    Then you can just chain the url this way:
+
+        zip://folder1/file.txt::https://host.com/archive.zip
+
+    The xsplit function allows you to apply the xsplit on the first path of the chain.
+
+    Example::
+
+        >>> xsplit("zip://folder1/file.txt::https://host.com/archive.zip")
+        ('zip://folder1::https://host.com/archive.zip', 'file.txt')
+    """
+    a, *b = str(a).split("::")
+    if is_local_path(a):
+        return os.path.split(Path(a).as_posix())
+    else:
+        a, tail = posixpath.split(a)
+        return "::".join([a + "//" if a.endswith(":") else a] + b), tail
 
 
 def xsplitext(a):
@@ -180,7 +211,7 @@ def xsplitext(a):
         >>> xsplitext("zip://folder1/file.txt::https://host.com/archive.zip")
         ('zip://folder1/file::https://host.com/archive.zip', '.txt')
     """
-    a, *b = a.split("::")
+    a, *b = str(a).split("::")
     if is_local_path(a):
         return os.path.splitext(Path(a).as_posix())
     else:
@@ -197,7 +228,7 @@ def xisfile(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
     Returns:
         :obj:`bool`
     """
-    main_hop, *rest_hops = path.split("::")
+    main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
         return os.path.isfile(path)
     else:
@@ -211,6 +242,34 @@ def xisfile(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
         return fs.isfile(main_hop)
 
 
+def xgetsize(path, use_auth_token: Optional[Union[str, bool]] = None) -> int:
+    """Extend `os.path.getsize` function to support remote files.
+
+    Args:
+        path (:obj:`str`): URL path.
+
+    Returns:
+        :obj:`int`, optional
+    """
+    main_hop, *rest_hops = str(path).split("::")
+    if is_local_path(main_hop):
+        return os.path.getsize(path)
+    else:
+        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            storage_options = {
+                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
+            }
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        size = fs.size(main_hop)
+        if size is None:
+            # use xopen instead of fs.open to make data fetching more robust
+            with xopen(path, use_auth_token=use_auth_token) as f:
+                size = len(f.read())
+        return size
+
+
 def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
     """Extend `os.path.isdir` function to support remote files.
 
@@ -220,7 +279,7 @@ def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
     Returns:
         :obj:`bool`
     """
-    main_hop, *rest_hops = path.split("::")
+    main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
         return os.path.isdir(path)
     else:
@@ -232,6 +291,23 @@ def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
             storage_options = None
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
         return fs.isdir(main_hop)
+
+
+def xrelpath(path, start=None):
+    """Extend `os.path.relpath` function to support remote files.
+
+    Args:
+        path (:obj:`str`): URL path.
+        start (:obj:`str`): Start URL directory path.
+
+    Returns:
+        :obj:`str`
+    """
+    main_hop, *rest_hops = str(path).split("::")
+    if is_local_path(main_hop):
+        return os.path.relpath(main_hop, start=start) if start else os.path.relpath(main_hop)
+    else:
+        return posixpath.relpath(main_hop, start=str(start).split("::")[0]) if start else os.path.relpath(main_hop)
 
 
 def _as_posix(path: Path):
@@ -339,6 +415,9 @@ def _prepare_http_url_kwargs(url: str, use_auth_token: Optional[Union[str, bool]
                 url += "&confirm=" + v
                 cookies = response.cookies
                 kwargs["cookies"] = cookies
+    # Fix Google Drive URL to avoid Virus scan warning
+    if "drive.google.com" in url and "confirm=" not in url:
+        url += "&confirm=t"
     if url.startswith("https://raw.githubusercontent.com/"):
         # Workaround for served data with gzip content-encoding: https://github.com/fsspec/filesystem_spec/issues/389
         kwargs["block_size"] = 0
@@ -366,7 +445,16 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     else:
         new_kwargs = {}
     kwargs = {**kwargs, **new_kwargs}
-    file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
+    try:
+        file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
+    except ValueError as e:
+        if str(e) == "Cannot seek streaming HTTP file":
+            raise NonStreamableDatasetError(
+                "Streaming is not possible for this dataset because data host server doesn't support HTTP range "
+                "requests. You can still load this dataset in non-streaming mode by passing `streaming=False` (default)"
+            ) from e
+        else:
+            raise
     _add_retries_to_file_obj_read_method(file_obj)
     return file_obj
 
@@ -380,7 +468,7 @@ def xlistdir(path: str, use_auth_token: Optional[Union[str, bool]] = None) -> Li
     Returns:
         :obj:`list` of :obj:`str`
     """
-    main_hop, *rest_hops = path.split("::")
+    main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
         return os.listdir(path)
     else:
@@ -420,7 +508,7 @@ def xglob(urlpath, *, recursive=False, use_auth_token: Optional[Union[str, bool]
     Returns:
         :obj:`list` of :obj:`str`
     """
-    main_hop, *rest_hops = urlpath.split("::")
+    main_hop, *rest_hops = str(urlpath).split("::")
     if is_local_path(main_hop):
         return glob.glob(main_hop, recursive=recursive)
     else:
@@ -546,7 +634,7 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
     Yields:
         :obj:`tuple`: 3-tuple (dirpath, dirnames, filenames).
     """
-    main_hop, *rest_hops = urlpath.split("::")
+    main_hop, *rest_hops = str(urlpath).split("::")
     if is_local_path(main_hop):
         return os.walk(main_hop)
     else:
@@ -606,13 +694,85 @@ def xet_parse(source, parser=None, use_auth_token: Optional[Union[str, bool]] = 
             return ET.parse(f, parser=parser)
 
 
-class StreamingDownloadManager(object):
+class _IterableFromGenerator(Iterable):
+    """Utility class to create an iterable from a generator function, in order to reset the generator when needed."""
+
+    def __init__(self, generator: Callable, *args, **kwargs):
+        self.generator = generator
+        self.args = args
+        self.kwargs = kwargs
+
+    def __iter__(self):
+        yield from self.generator(*self.args, **self.kwargs)
+
+
+class ArchiveIterable(_IterableFromGenerator):
+    """An iterable of (path, fileobj) from a TAR archive, used by `iter_archive`"""
+
+    @classmethod
+    def _iter_from_fileobj(cls, f) -> Generator[Tuple, None, None]:
+        stream = tarfile.open(fileobj=f, mode="r|*")
+        for tarinfo in stream:
+            file_path = tarinfo.name
+            if not tarinfo.isreg():
+                continue
+            if file_path is None:
+                continue
+            if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
+                # skipping hidden files
+                continue
+            file_obj = stream.extractfile(tarinfo)
+            yield file_path, file_obj
+            stream.members = []
+        del stream
+
+    @classmethod
+    def _iter_from_urlpath(
+        cls, urlpath: str, use_auth_token: Optional[Union[str, bool]] = None
+    ) -> Generator[Tuple, None, None]:
+        with xopen(urlpath, "rb", use_auth_token=use_auth_token) as f:
+            yield from cls._iter_from_fileobj(f)
+
+    @classmethod
+    def from_buf(cls, fileobj) -> "ArchiveIterable":
+        return cls(cls._iter_from_fileobj, fileobj)
+
+    @classmethod
+    def from_urlpath(cls, urlpath_or_buf, use_auth_token: Optional[Union[str, bool]] = None) -> "ArchiveIterable":
+        return cls(cls._iter_from_urlpath, urlpath_or_buf, use_auth_token)
+
+
+class FilesIterable(_IterableFromGenerator):
+    """An iterable of paths from a list of directories or files"""
+
+    @classmethod
+    def _iter_from_urlpaths(
+        cls, urlpaths: Union[str, List[str]], use_auth_token: Optional[Union[str, bool]] = None
+    ) -> Generator[str, None, None]:
+        if not isinstance(urlpaths, list):
+            urlpaths = [urlpaths]
+        for urlpath in urlpaths:
+            if xisfile(urlpath, use_auth_token=use_auth_token):
+                yield urlpath
+            else:
+                for dirpath, _, filenames in xwalk(urlpath, use_auth_token=use_auth_token):
+                    for filename in filenames:
+                        yield xjoin(dirpath, filename)
+
+    @classmethod
+    def from_urlpaths(cls, urlpaths, use_auth_token: Optional[Union[str, bool]] = None) -> "FilesIterable":
+        return cls(cls._iter_from_urlpaths, urlpaths, use_auth_token)
+
+
+class StreamingDownloadManager:
     """
     Download manager that uses the "::" separator to navigate through (possibly remote) compressed archives.
     Contrary to the regular DownloadManager, the `download` and `extract` methods don't actually download nor extract
     data, but they rather return the path or url that could be opened using the `xopen` function which extends the
     builtin `open` function to stream data from remote files.
     """
+
+    is_streaming = True
 
     def __init__(
         self,
@@ -666,7 +826,7 @@ class StreamingDownloadManager(object):
     def download_and_extract(self, url_or_urls):
         return self.extract(self.download(url_or_urls))
 
-    def iter_archive(self, urlpath_or_buf: Union[str, io.BufferedReader]):
+    def iter_archive(self, urlpath_or_buf: Union[str, io.BufferedReader]) -> Iterable[Tuple]:
         """Iterate over files within an archive.
 
         Args:
@@ -677,41 +837,18 @@ class StreamingDownloadManager(object):
                 File object is opened in binary mode.
         """
 
-        def _iter_archive(f):
-            stream = tarfile.open(fileobj=f, mode="r|*")
-            for tarinfo in stream:
-                file_path = tarinfo.name
-                if not tarinfo.isreg():
-                    continue
-                if file_path is None:
-                    continue
-                if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
-                    # skipping hidden files
-                    continue
-                file_obj = stream.extractfile(tarinfo)
-                yield file_path, file_obj
-                stream.members = []
-            del stream
-
         if hasattr(urlpath_or_buf, "read"):
-            yield from _iter_archive(urlpath_or_buf)
+            return ArchiveIterable.from_buf(urlpath_or_buf)
         else:
-            with xopen(urlpath_or_buf, "rb", use_auth_token=self.download_config.use_auth_token) as f:
-                yield from _iter_archive(f)
+            return ArchiveIterable.from_urlpath(urlpath_or_buf, use_auth_token=self.download_config.use_auth_token)
 
-    def iter_files(self, urlpaths):
+    def iter_files(self, urlpaths: Union[str, List[str]]) -> Iterable[str]:
         """Iterate over files.
 
         Args:
-            urlpaths (list): Root paths.
+            urlpaths (:obj:`str` or :obj:`list` of :obj:`str`): Root paths.
 
         Yields:
             str: File URL path.
         """
-        for urlpath in urlpaths:
-            if xisfile(urlpath, use_auth_token=self.download_config.use_auth_token):
-                yield urlpath
-            else:
-                for dirpath, _, filenames in xwalk(urlpath, use_auth_token=self.download_config.use_auth_token):
-                    for filename in filenames:
-                        yield xjoin(dirpath, filename)
+        return FilesIterable.from_urlpaths(urlpaths, use_auth_token=self.download_config.use_auth_token)

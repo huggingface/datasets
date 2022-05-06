@@ -35,7 +35,7 @@ task_categories:
   sst2:
   - text-classification
   stsb:
-  - text-scoring
+  - text-classification
   wnli:
   - text-classification
 task_ids:
@@ -60,6 +60,7 @@ task_ids:
   sst2:
   - sentiment-classification
   stsb:
+  - text-scoring
   - semantic-similarity-scoring
   wnli:
   - text-classification-other-coreference-nli
@@ -164,8 +165,6 @@ The Winograd Schema Challenge (Levesque et al., 2011) is a reading comprehension
 The language data in GLUE is in English (BCP-47 `en`)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

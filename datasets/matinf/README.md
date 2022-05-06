@@ -58,8 +58,6 @@ merits held by MATINF.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### age_classification

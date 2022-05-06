@@ -15,9 +15,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- image-classification
 task_ids:
-- other-other-image-classification
+- multi-class-image-classification
 ---
 
 # Dataset Card for Beans
@@ -61,7 +61,7 @@ Beans leaf dataset with images of diseased and health leaves.
 
 ### Supported Tasks and Leaderboards
 
-- image-classification
+- `image-classification`: Based on a leaf image, the goal of this task is to predict the disease type (Angular Leaf Spot and Bean Rust), if any.
 
 ### Languages
 

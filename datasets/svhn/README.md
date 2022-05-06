@@ -15,10 +15,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
-task_ids:
-- other-other-object-detection
-- other-other-image-classification
+- image-classification
+- object-detection
+task_ids: []
 paperswithcode_id: svhn
 pretty_name: Street View House Numbers
 ---
@@ -66,7 +65,7 @@ SVHN is a real-world image dataset for developing machine learning and object re
 
 ### Supported Tasks and Leaderboards
 
-- `object-classification`: The dataset can be used to train a model for digit detection.
+- `object-detection`: The dataset can be used to train a model for digit detection.
 - `image-classification`: The dataset can be used to train a model for Image Classification where the task is to predict a correct digit on the image. The leaderboard for this task is available at:
 https://paperswithcode.com/sota/image-classification-on-svhn
 

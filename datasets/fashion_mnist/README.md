@@ -1,19 +1,22 @@
 ---
 annotations_creators:
 - expert-generated
-language_creators: []
-languages: []
+language_creators:
+- found
+languages:
+- en
 licenses:
 - mit
-multilinguality: []
+multilinguality:
+- monolingual
 size_categories:
 - 10K<n<100K
 source_datasets:
 - original
 task_categories:
-- other
+- image-classification
 task_ids:
-- other-other-image-classification
+- multi-class-image-classification
 paperswithcode_id: fashion-mnist
 pretty_name: FashionMNIST
 ---
@@ -58,7 +61,7 @@ Fashion-MNIST is a dataset of Zalando's article images—consisting of a trainin
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `image-classification`: The goal of this task is to classify a given image of Zalando's article into one of 10 classes. The leaderboard is available [here](https://paperswithcode.com/sota/image-classification-on-fashion-mnist).
 
 ### Languages
 
@@ -128,7 +131,7 @@ We use the front look thumbnail images of 70,000 unique products to build Fashio
 6. Negating the intensities of the image.
 7. Converting the image to 8-bit grayscale pixels.
 
-#### Who are the source image producers?
+#### Who are the source language producers?
 
 **From the arXiv paper:**
 Every fashion product on Zalando has a set of pictures shot by professional photographers, demonstrating different aspects of the product, i.e. front and back looks, details, looks with model and in an outfit.

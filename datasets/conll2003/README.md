@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 licenses:
-- unknown
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -14,7 +14,7 @@ size_categories:
 source_datasets:
 - extended|other-reuters-corpus
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 - part-of-speech-tagging
@@ -196,7 +196,21 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+From the [CoNLL2003 shared task](https://www.clips.uantwerpen.be/conll2003/ner/) page:
+
+> The English data is a collection of news wire articles from the Reuters Corpus. The annotation has been done by people of the University of Antwerp. Because of copyright reasons we only make available the annotations. In order to build the complete data sets you will need access to the Reuters Corpus. It can be obtained for research purposes without any charge from NIST.
+
+The copyrights are defined below, from the [Reuters Corpus page](https://trec.nist.gov/data/reuters/reuters.html):
+
+> The stories in the Reuters Corpus are under the copyright of Reuters Ltd and/or Thomson Reuters, and their use is governed by the following agreements:
+>
+> [Organizational agreement](https://trec.nist.gov/data/reuters/org_appl_reuters_v4.html)
+>
+> This agreement must be signed by the person responsible for the data at your organization, and sent to NIST.
+>
+> [Individual agreement](https://trec.nist.gov/data/reuters/ind_appl_reuters_v4.html)
+>
+> This agreement must be signed by all researchers using the Reuters Corpus at your organization, and kept on file at your organization.
 
 ### Citation Information
 

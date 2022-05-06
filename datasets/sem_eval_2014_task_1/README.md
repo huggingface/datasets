@@ -15,8 +15,8 @@ source_datasets:
 - extended|other-ImageFlickr and SemEval-2012 STS MSR-Video Descriptions
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
+- text-scoring
 - natural-language-inference
 - semantic-similarity-scoring
 paperswithcode_id: null

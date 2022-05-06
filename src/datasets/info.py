@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,7 +79,7 @@ class PostProcessedInfo:
 
     @classmethod
     def from_dict(cls, post_processed_info_dict: dict) -> "PostProcessedInfo":
-        field_names = set(f.name for f in dataclasses.fields(cls))
+        field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in post_processed_info_dict.items() if k in field_names})
 
 
@@ -180,20 +179,30 @@ class DatasetInfo:
     def _license_path(self, dataset_info_dir):
         return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)
 
-    def write_to_directory(self, dataset_info_dir):
-        """Write `DatasetInfo` as JSON to `dataset_info_dir`.
+    def write_to_directory(self, dataset_info_dir, pretty_print=False):
+        """Write `DatasetInfo` and license (if present) as JSON files to `dataset_info_dir`.
 
-        Also save the license separately in LICENCE.
+        Args:
+            dataset_info_dir (str): Destination directory.
+            pretty_print (bool, default ``False``): If True, the JSON will be pretty-printed with the indent level of 4.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.info.write_to_directory("/path/to/directory/")
+        ```
         """
         with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
-            self._dump_info(f)
+            self._dump_info(f, pretty_print=pretty_print)
+        if self.license:
+            with open(os.path.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
+                self._dump_license(f)
 
-        with open(os.path.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
-            self._dump_license(f)
-
-    def _dump_info(self, file):
+    def _dump_info(self, file, pretty_print=False):
         """Dump info in `file` file-like object open in bytes mode (to support remote files)"""
-        file.write(json.dumps(asdict(self)).encode("utf-8"))
+        file.write(json.dumps(asdict(self), indent=4 if pretty_print else None).encode("utf-8"))
 
     def _dump_license(self, file):
         """Dump license in `file` file-like object open in bytes mode (to support remote files)"""
@@ -241,18 +250,25 @@ class DatasetInfo:
         Args:
             dataset_info_dir (`str`): The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
+
+        Example:
+
+        ```py
+        >>> from datasets import DatasetInfo
+        >>> ds_info = DatasetInfo.from_directory("/path/to/directory/")
+        ```
         """
         logger.info(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
 
-        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), encoding="utf-8") as f:
             dataset_info_dict = json.load(f)
         return cls.from_dict(dataset_info_dict)
 
     @classmethod
     def from_dict(cls, dataset_info_dict: dict) -> "DatasetInfo":
-        field_names = set(f.name for f in dataclasses.fields(cls))
+        field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in dataset_info_dict.items() if k in field_names})
 
     def update(self, other_dataset_info: "DatasetInfo", ignore_none=True):
@@ -270,7 +286,7 @@ class DatasetInfo:
 
 
 class DatasetInfosDict(Dict[str, DatasetInfo]):
-    def write_to_directory(self, dataset_infos_dir, overwrite=False):
+    def write_to_directory(self, dataset_infos_dir, overwrite=False, pretty_print=False):
         total_dataset_infos = {}
         dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)
         if os.path.exists(dataset_infos_path) and not overwrite:
@@ -280,12 +296,16 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
             logger.info(f"Writing new Dataset Infos in {dataset_infos_dir}")
         total_dataset_infos.update(self)
         with open(dataset_infos_path, "w", encoding="utf-8") as f:
-            json.dump({config_name: asdict(dset_info) for config_name, dset_info in total_dataset_infos.items()}, f)
+            json.dump(
+                {config_name: asdict(dset_info) for config_name, dset_info in total_dataset_infos.items()},
+                f,
+                indent=4 if pretty_print else None,
+            )
 
     @classmethod
     def from_directory(cls, dataset_infos_dir):
         logger.info(f"Loading Dataset Infos from {dataset_infos_dir}")
-        with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
             dataset_infos_dict = {
                 config_name: DatasetInfo.from_dict(dataset_info_dict)
                 for config_name, dataset_info_dict in json.load(f).items()
@@ -321,8 +341,6 @@ class MetricInfo:
     experiment_id: Optional[str] = None
 
     def __post_init__(self):
-        if "predictions" not in self.features:
-            raise ValueError("Need to have at least a 'predictions' field in 'features'.")
         if self.format is not None:
             for key, value in self.features.items():
                 if not isinstance(value, Value):
@@ -331,15 +349,17 @@ class MetricInfo:
                         f"Here {key} is an instance of {value.__class__.__name__}"
                     )
 
-    def write_to_directory(self, metric_info_dir):
+    def write_to_directory(self, metric_info_dir, pretty_print=False):
         """Write `MetricInfo` as JSON to `metric_info_dir`.
         Also save the license separately in LICENCE.
+        If `pretty_print` is True, the JSON will be pretty-printed with the indent level of 4.
         """
         with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "w", encoding="utf-8") as f:
-            json.dump(asdict(self), f)
+            json.dump(asdict(self), f, indent=4 if pretty_print else None)
 
-        with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
-            f.write(self.license)
+        if self.license:
+            with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
+                f.write(self.license)
 
     @classmethod
     def from_directory(cls, metric_info_dir) -> "MetricInfo":
@@ -353,11 +373,11 @@ class MetricInfo:
         if not metric_info_dir:
             raise ValueError("Calling MetricInfo.from_directory() with undefined metric_info_dir.")
 
-        with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), encoding="utf-8") as f:
             metric_info_dict = json.load(f)
         return cls.from_dict(metric_info_dict)
 
     @classmethod
     def from_dict(cls, metric_info_dict: dict) -> "MetricInfo":
-        field_names = set(f.name for f in dataclasses.fields(cls))
+        field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in metric_info_dict.items() if k in field_names})

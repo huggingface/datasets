@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 Optuna, Hugging Face
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +24,8 @@ from logging import NOTSET  # NOQA
 from logging import WARN  # NOQA
 from logging import WARNING  # NOQA
 from typing import Optional
+
+from tqdm import auto as tqdm_lib
 
 
 log_levels = {
@@ -87,13 +88,17 @@ def get_verbosity() -> int:
     """Return the current level for the HuggingFace datasets library's root logger.
     Returns:
         Logging level, e.g., ``datasets.logging.DEBUG`` and ``datasets.logging.INFO``.
-    .. note::
+
+    <Tip>
+
         HuggingFace datasets library has following logging levels:
-        - ``datasets.logging.CRITICAL``, ``datasets.logging.FATAL``
-        - ``datasets.logging.ERROR``
-        - ``datasets.logging.WARNING``, ``datasets.logging.WARN``
-        - ``datasets.logging.INFO``
-        - ``datasets.logging.DEBUG``
+        - `datasets.logging.CRITICAL`, `datasets.logging.FATAL`
+        - `datasets.logging.ERROR`
+        - `datasets.logging.WARNING`, `datasets.logging.WARN`
+        - `datasets.logging.INFO`
+        - `datasets.logging.DEBUG`
+
+    </Tip>
     """
     return _get_library_root_logger().getEffectiveLevel()
 
@@ -164,3 +169,68 @@ def enable_propagation() -> None:
 
 # Configure the library root logger at the module level (singleton-like)
 _configure_library_root_logger()
+
+
+class EmptyTqdm:
+    """Dummy tqdm which doesn't do anything."""
+
+    def __init__(self, *args, **kwargs):  # pylint: disable=unused-argument
+        self._iterator = args[0] if args else None
+
+    def __iter__(self):
+        return iter(self._iterator)
+
+    def __getattr__(self, _):
+        """Return empty function."""
+
+        def empty_fn(*args, **kwargs):  # pylint: disable=unused-argument
+            return
+
+        return empty_fn
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type_, value, traceback):
+        return
+
+
+_tqdm_active = True
+
+
+class _tqdm_cls:
+    def __call__(self, *args, **kwargs):
+        if _tqdm_active:
+            return tqdm_lib.tqdm(*args, **kwargs)
+        else:
+            return EmptyTqdm(*args, **kwargs)
+
+    def set_lock(self, *args, **kwargs):
+        self._lock = None
+        if _tqdm_active:
+            return tqdm_lib.tqdm.set_lock(*args, **kwargs)
+
+    def get_lock(self):
+        if _tqdm_active:
+            return tqdm_lib.tqdm.get_lock()
+
+
+tqdm = _tqdm_cls()
+
+
+def is_progress_bar_enabled() -> bool:
+    """Return a boolean indicating whether tqdm progress bars are enabled."""
+    global _tqdm_active
+    return bool(_tqdm_active)
+
+
+def enable_progress_bar():
+    """Enable tqdm progress bar."""
+    global _tqdm_active
+    _tqdm_active = True
+
+
+def disable_progress_bar():
+    """Disable tqdm progress bar."""
+    global _tqdm_active
+    _tqdm_active = False

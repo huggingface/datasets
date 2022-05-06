@@ -72,8 +72,6 @@ Piaf is a reading comprehension dataset. This version, published in February 202
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### plain_text
@@ -112,7 +110,7 @@ The data fields are the same among all splits.
 ### Data Splits
 
 | name       | train |
-| ---------- | ----: |
+|------------|------:|
 | plain_text |  3835 |
 
 ## Dataset Creation

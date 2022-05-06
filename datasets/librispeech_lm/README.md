@@ -53,8 +53,6 @@ Language modeling resources to be used in conjunction with the LibriSpeech ASR c
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

@@ -16,9 +16,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
-task_ids:
-- sequence-modeling-code-modeling
+- text-generation
+- fill-mask
+- text-generation
+- fill-mask
+- text-generation-other-code-modeling
 paperswithcode_id: null
 ---
 # Dataset Card for [py_ast]
@@ -90,11 +92,12 @@ The main key is `ast` wherein every program's AST is stored.
 ### Data Splits
 
 The data is split into a training and test set.   
-The final split sizes are as follow:
+The final split sizes are as follows:
 
-|                             | Tain   | Valid |
-| -----                       | ------ | ----- |
-| py_ast examples| 100000 |  50000 |
+|                  |   train |  validation |
+|------------------|--------:|------------:|
+| py_ast examples  |  100000 |       50000 |
+
 ## Dataset Creation
 [More Information Needed]
 ### Curation Rationale

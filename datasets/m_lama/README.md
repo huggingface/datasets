@@ -71,10 +71,11 @@ source_datasets:
 - extended|lama
 task_categories:
 - question-answering
-- text-scoring
+- text-classification
 task_ids:
 - open-domain-qa
-- text-scoring-other-probing
+- text-scoring
+- text-classification-other-probing
 paperswithcode_id: null
 pretty_name: MLama
 ---

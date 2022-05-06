@@ -25,11 +25,13 @@ source_datasets:
 - original
 task_categories:
 - text-classification
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - topic-classification
 - multi-label-classification
 - language-modeling
+- masked-language-modeling
 ---
 
 # Dataset Card for blbooksgenre

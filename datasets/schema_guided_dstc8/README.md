@@ -15,8 +15,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
-- structure-prediction
+- text-generation
+- fill-mask
+- token-classification
 - text-classification
 task_ids:
 - dialogue-modeling
@@ -114,10 +115,10 @@ Each dialog instance has the following fields:
 
 The dataset is split into a `train`, `validation`, and `test` split with the following sizes:
 
-|                            | Tain   | Valid | Test  |
-| -----                      | ------ | ----- | ----- |
-| Number of dialogues        | 16142  | 2482  | 4201  |
-| Number of turns            | 48426  | 7446  | 12603 |
+|                     | train | validation |  test |
+|---------------------|------:|-----------:|------:|
+| Number of dialogues | 16142 |       2482 |  4201 |
+| Number of turns     | 48426 |       7446 | 12603 |
 
 
 ## Dataset Creation

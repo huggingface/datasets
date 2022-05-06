@@ -18,30 +18,32 @@ task_categories:
   ynat:
   - text-classification
   sts:
-  - text-scoring
+  - text-classification
   nli:
   - text-classification
   ner:
-  - structure-prediction
+  - token-classification
   re:
-  - structure-prediction
+  - token-classification
   dp:
-  - structure-prediction
+  - token-classification
   mrc:
   - question-answering
   wos:
-  - sequence-modeling
+  - text-generation
+  - fill-mask
 task_ids:
   ynat:
   - topic-classification
   sts:
+  - text-scoring
   - semantic-similarity-scoring
   nli:
   - natural-language-inference
   ner:
   - named-entity-recognition
   re:
-  - other-relation-extraction
+  - token-classification-other-relation-extraction
   dp:
   - parsing
   mrc:

@@ -4,22 +4,23 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages: []
+languages:
+- en
 licenses:
 - unknown
-multilinguality: []
+multilinguality:
+- monolingual
 size_categories:
 - 10K<n<100K
 source_datasets:
 - extended|other-80-Million-Tiny-Images
 task_categories:
-- other
-task_ids:
-- other-other-image-classification
+- image-classification
+task_ids: []
 paperswithcode_id: cifar-100
 ---
  
-# Dataset Card for CIFAR-10
+# Dataset Card for CIFAR-100
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -61,7 +62,7 @@ There are two labels per image - fine label (actual class) and coarse label (sup
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `image-classification`: The goal of this task is to classify a given image into one of 100 classes. The leaderboard is available [here](https://paperswithcode.com/sota/image-classification-on-cifar-100).
 
 ### Languages
 
@@ -399,3 +400,7 @@ A sample from the training set is provided below:
     year = {2009}
 }
 ```
+
+### Contributions
+
+Thanks to [@gchhablani](https://github.com/gchablani) for adding this dataset.

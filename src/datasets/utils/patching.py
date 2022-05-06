@@ -10,7 +10,7 @@ class _PatchedModuleObj:
     def __init__(self, module, attrs=None):
         attrs = attrs or []
         if module is not None:
-            for key in getattr(module, "__all__", module.__dict__):
+            for key in module.__dict__:
                 if key in attrs or not key.startswith("__"):
                     setattr(self, key, getattr(module, key))
 
@@ -19,7 +19,7 @@ class patch_submodule:
     """
     Patch a submodule attribute of an object, by keeping all other submodules intact at all levels.
 
-    Examples:
+    Example::
 
         >>> import importlib
         >>> from datasets.load import dataset_module_factory

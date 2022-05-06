@@ -16,6 +16,8 @@
 # Lint as: python3
 """Introduction to the CoNLL-2003 Shared Task: Language-Independent Named Entity Recognition"""
 
+import os
+
 import datasets
 
 
@@ -50,7 +52,7 @@ tagging scheme, whereas the original dataset uses IOB1.
 For more details see https://www.clips.uantwerpen.be/conll2003/ner/ and https://www.aclweb.org/anthology/W03-0419
 """
 
-_URL = "https://github.com/davidsbatista/NER-datasets/raw/master/CONLL2003/"
+_URL = "https://data.deepai.org/conll2003.zip"
 _TRAINING_FILE = "train.txt"
 _DEV_FILE = "valid.txt"
 _TEST_FILE = "test.txt"
@@ -188,17 +190,17 @@ class Conll2003(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        urls_to_download = {
-            "train": f"{_URL}{_TRAINING_FILE}",
-            "dev": f"{_URL}{_DEV_FILE}",
-            "test": f"{_URL}{_TEST_FILE}",
+        downloaded_file = dl_manager.download_and_extract(_URL)
+        data_files = {
+            "train": os.path.join(downloaded_file, _TRAINING_FILE),
+            "dev": os.path.join(downloaded_file, _DEV_FILE),
+            "test": os.path.join(downloaded_file, _TEST_FILE),
         }
-        downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_files["train"]}),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": data_files["dev"]}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": data_files["test"]}),
         ]
 
     def _generate_examples(self, filepath):

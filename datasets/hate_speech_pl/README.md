@@ -15,8 +15,8 @@ source_datasets:
 - original
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
+- text-scoring
 - multi-class-classification
 - multi-label-classification
 - sentiment-classification

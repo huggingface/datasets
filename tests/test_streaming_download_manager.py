@@ -13,6 +13,7 @@ from datasets.utils.streaming_download_manager import (
     _as_posix,
     _get_extraction_protocol,
     xbasename,
+    xgetsize,
     xglob,
     xisdir,
     xisfile,
@@ -27,10 +28,12 @@ from datasets.utils.streaming_download_manager import (
     xpathrglob,
     xpathstem,
     xpathsuffix,
+    xrelpath,
+    xsplit,
     xsplitext,
 )
 
-from .utils import require_lz4, require_zstandard
+from .utils import require_lz4, require_zstandard, slow
 
 
 TEST_URL = "https://huggingface.co/datasets/lhoestq/test/raw/main/some_text.txt"
@@ -231,6 +234,28 @@ def test_xdirname(input_path, expected_path):
 
 
 @pytest.mark.parametrize(
+    "input_path, expected_head_and_tail",
+    [
+        (
+            str(Path(__file__).resolve()),
+            (str(Path(__file__).resolve().parent), str(Path(__file__).resolve().name)),
+        ),
+        ("https://host.com/archive.zip", ("https://host.com", "archive.zip")),
+        ("zip://file.txt::https://host.com/archive.zip", ("zip://::https://host.com/archive.zip", "file.txt")),
+        ("zip://folder::https://host.com/archive.zip", ("zip://::https://host.com/archive.zip", "folder")),
+        ("zip://::https://host.com/archive.zip", ("zip://::https://host.com/archive.zip", "")),
+    ],
+)
+def test_xsplit(input_path, expected_head_and_tail):
+    output_path, tail = xsplit(input_path)
+    expected_path, expected_tail = expected_head_and_tail
+    output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
+    expected_path = _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+    assert output_path == expected_path
+    assert tail == expected_tail
+
+
+@pytest.mark.parametrize(
     "input_path, expected_path_and_ext",
     [
         (
@@ -318,6 +343,22 @@ def test_xisfile(input_path, isfile, tmp_path, mock_fsspec):
 
 
 @pytest.mark.parametrize(
+    "input_path, size",
+    [
+        ("tmp_path/file.txt", 100),
+        ("mock://", 0),
+        ("mock://top_level/second_level/date=2019-10-01/a.parquet", 100),
+    ],
+)
+def test_xgetsize(input_path, size, tmp_path, mock_fsspec):
+    if input_path.startswith("tmp_path"):
+        input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+        (tmp_path / "file.txt").touch()
+        (tmp_path / "file.txt").write_bytes(b"x" * 100)
+    assert xgetsize(input_path) == size
+
+
+@pytest.mark.parametrize(
     "input_path, expected_paths",
     [
         ("tmp_path/*.txt", ["file1.txt", "file2.txt"]),
@@ -350,6 +391,29 @@ def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
             (tmp_path / file).touch()
     output_paths = sorted(xglob(input_path))
     assert output_paths == expected_paths
+
+
+@pytest.mark.parametrize(
+    "input_path, start_path, expected_path",
+    [
+        ("dir1/dir2/file.txt".replace("/", os.path.sep), "dir1", "dir2/file.txt".replace("/", os.path.sep)),
+        ("dir1/dir2/file.txt".replace("/", os.path.sep), "dir1/dir2".replace("/", os.path.sep), "file.txt"),
+        ("zip://file.txt::https://host.com/archive.zip", "zip://::https://host.com/archive.zip", "file.txt"),
+        (
+            "zip://folder/file.txt::https://host.com/archive.zip",
+            "zip://::https://host.com/archive.zip",
+            "folder/file.txt",
+        ),
+        (
+            "zip://folder/file.txt::https://host.com/archive.zip",
+            "zip://folder::https://host.com/archive.zip",
+            "file.txt",
+        ),
+    ],
+)
+def test_xrelpath(input_path, start_path, expected_path):
+    output_path = xrelpath(input_path, start=start_path)
+    assert output_path == expected_path
 
 
 @pytest.mark.parametrize(
@@ -587,10 +651,20 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
         ("https://github.com/user/repo/blob/master/data/morph_train.tsv?raw=true", None),
         ("https://repo.org/bitstream/handle/20.500.12185/346/annotated_corpus.zip?sequence=3&isAllowed=y", "zip"),
         ("https://zenodo.org/record/2787612/files/SICK.zip?download=1", "zip"),
+    ],
+)
+def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected_protocol):
+    assert _get_extraction_protocol(urlpath) == expected_protocol
+
+
+@pytest.mark.parametrize(
+    "urlpath, expected_protocol",
+    [
         (TEST_GG_DRIVE_GZIPPED_URL, "gzip"),
         (TEST_GG_DRIVE_ZIPPED_URL, "zip"),
     ],
 )
+@slow  # otherwise it spams google drive and the CI gets banned
 def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):
     assert _get_extraction_protocol(urlpath) == expected_protocol
 
@@ -608,23 +682,27 @@ def test_streaming_dl_manager_get_extraction_protocol_throws(urlpath):
     _get_extraction_protocol(urlpath)
 
 
+@slow  # otherwise it spams google drive and the CI gets banned
 def test_streaming_gg_drive():
     with xopen(TEST_GG_DRIVE_URL) as f:
         assert f.read() == TEST_GG_DRIVE_CONTENT
 
 
+@slow  # otherwise it spams google drive and the CI gets banned
 def test_streaming_gg_drive_no_extract():
     urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_URL)
     with xopen(urlpath) as f:
         assert f.read() == TEST_GG_DRIVE_CONTENT
 
 
+@slow  # otherwise it spams google drive and the CI gets banned
 def test_streaming_gg_drive_gzipped():
     urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_GZIPPED_URL)
     with xopen(urlpath) as f:
         assert f.read() == TEST_GG_DRIVE_CONTENT
 
 
+@slow  # otherwise it spams google drive and the CI gets banned
 def test_streaming_gg_drive_zipped():
     urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_ZIPPED_URL)
     all_files = list(xglob(xjoin(urlpath, "*")))
@@ -644,14 +722,30 @@ def _test_jsonl(path, file):
 
 def test_iter_archive_path(tar_jsonl_path):
     dl_manager = StreamingDownloadManager()
-    for num_jsonl, (path, file) in enumerate(dl_manager.iter_archive(str(tar_jsonl_path)), start=1):
+    archive_iterable = dl_manager.iter_archive(str(tar_jsonl_path))
+    num_jsonl = 0
+    for num_jsonl, (path, file) in enumerate(archive_iterable, start=1):
+        _test_jsonl(path, file)
+    assert num_jsonl == 2
+    # do it twice to make sure it's reset correctly
+    num_jsonl = 0
+    for num_jsonl, (path, file) in enumerate(archive_iterable, start=1):
         _test_jsonl(path, file)
     assert num_jsonl == 2
 
 
 def test_iter_archive_file(tar_nested_jsonl_path):
     dl_manager = StreamingDownloadManager()
-    for num_tar, (path, file) in enumerate(dl_manager.iter_archive(str(tar_nested_jsonl_path)), start=1):
+    files_iterable = dl_manager.iter_archive(str(tar_nested_jsonl_path))
+    num_tar, num_jsonl = 0, 0
+    for num_tar, (path, file) in enumerate(files_iterable, start=1):
+        for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
+            _test_jsonl(subpath, subfile)
+    assert num_tar == 1
+    assert num_jsonl == 2
+    # do it twice to make sure it's reset correctly
+    num_tar, num_jsonl = 0, 0
+    for num_tar, (path, file) in enumerate(files_iterable, start=1):
         for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
             _test_jsonl(subpath, subfile)
     assert num_tar == 1

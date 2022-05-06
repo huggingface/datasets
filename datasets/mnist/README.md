@@ -1,20 +1,22 @@
 ---
 annotations_creators:
-- experts
+- expert-generated
 language_creators:
 - found
-languages: []
+languages:
+- en
 licenses:
-- MIT
-multilinguality: []
+- mit
+multilinguality:
+- monolingual
 size_categories:
 - 10K<n<100K
 source_datasets:
 - extended|other-nist
 task_categories:
-- other
+- image-classification
 task_ids:
-- other-other-image-classification
+- multi-class-image-classification
 paperswithcode_id: mnist
 pretty_name: MNIST
 ---
@@ -60,7 +62,7 @@ Half of the image were drawn by Census Bureau employees and the other half by hi
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `image-classification`: The goal of this task is to classify a given image of a handwritten digit into one of 10 classes representing integer values from 0 to 9, inclusively. The leaderboard is available [here](https://paperswithcode.com/sota/image-classification-on-mnist).
 
 ### Languages
 
@@ -101,7 +103,7 @@ The goal in building MNIST was to have a training and test set following the sam
 
 The original images from NIST were size normalized to fit a 20x20 pixel box while preserving their aspect ratio. The resulting images contain grey levels (i.e., pixels don't simply have a value of black and white, but a level of greyness from 0 to 255) as a result of the anti-aliasing technique used by the normalization algorithm. The images were then centered in a 28x28 image by computing the center of mass of the pixels, and translating the image so as to position this point at the center of the 28x28 field.
 
-#### Who are the source image producers?
+#### Who are the source language producers?
 
 Half of the source images were drawn by Census Bureau employees, half by high school students. According to the dataset curator, the images from the first group are more easily recognizable.
 

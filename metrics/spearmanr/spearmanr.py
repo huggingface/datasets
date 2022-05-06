@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,16 +19,15 @@ import datasets
 
 
 _DESCRIPTION = """
-Calculate a Spearman correlation coefficient with associated p-value.
-
-The Spearman rank-order correlation coefficient is a nonparametric measure
-of the monotonicity of the relationship between two datasets. Unlike the
-Pearson correlation, the Spearman correlation does not assume that both
-datasets are normally distributed. Like other correlation coefficients,
+The Spearman rank-order correlation coefficient is a measure of the
+relationship between two datasets. Like other correlation coefficients,
 this one varies between -1 and +1 with 0 implying no correlation.
-Correlations of -1 or +1 imply an exact monotonic relationship. Positive
-correlations imply that as x increases, so does y. Negative correlations
-imply that as x increases, y decreases.
+Positive correlations imply that as data in dataset x increases, so
+does data in dataset y. Negative correlations imply that as x increases,
+y decreases. Correlations of -1 or +1 imply an exact monotonic relationship.
+
+Unlike the Pearson correlation, the Spearman correlation does not
+assume that both datasets are normally distributed.
 
 The p-value roughly indicates the probability of an uncorrelated system
 producing datasets that have a Spearman correlation at least as extreme
@@ -39,19 +37,38 @@ reliable but are probably reasonable for datasets larger than 500 or so.
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions: Predicted labels, as returned by a model.
-    references: Ground truth labels.
+    predictions (`List[float]`): Predicted labels, as returned by a model.
+    references (`List[float]`): Ground truth labels.
+    return_pvalue (`bool`): If `True`, returns the p-value. If `False`, returns
+            only the spearmanr score. Defaults to `False`.
 Returns:
-    spearmanr: Spearman correlation coefficient.
+    spearmanr (`float`): Spearman correlation coefficient.
+    p-value (`float`): p-value. **Note**: is only returned if `return_pvalue=True` is input.
 Examples:
+    Example 1:
+        >>> spearmanr_metric = datasets.load_metric("spearmanr")
+        >>> results = spearmanr_metric.compute(references=[1, 2, 3, 4, 5], predictions=[10, 9, 2.5, 6, 4])
+        >>> print(results)
+        {'spearmanr': -0.7}
 
-    >>> spearmanr_metric = datasets.load_metric("spearmanr")
-    >>> results = spearmanr_metric.compute(references=[0, 1, 1], predictions=[0, 1, 1])
-    >>> print(results)
-    {'spearmanr': 1.0}
+    Example 2:
+        >>> spearmanr_metric = datasets.load_metric("spearmanr")
+        >>> results = spearmanr_metric.compute(references=[1, 2, 3, 4, 5],
+        ...                                     predictions=[10, 9, 2.5, 6, 4],
+        ...                                     return_pvalue=True)
+        >>> print(results['spearmanr'])
+        -0.7
+        >>> print(round(results['spearmanr_pvalue'], 2))
+        0.19
 """
 
 _CITATION = r"""\
+@book{kokoska2000crc,
+  title={CRC standard probability and statistics tables and formulae},
+  author={Kokoska, Stephen and Zwillinger, Daniel},
+  year={2000},
+  publisher={Crc Press}
+}
 @article{2020SciPy-NMeth,
   author  = {Virtanen, Pauli and Gommers, Ralf and Oliphant, Travis E. and
             Haberland, Matt and Reddy, Tyler and Cournapeau, David and
@@ -87,14 +104,20 @@ class Spearmanr(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Value("int32"),
-                    "references": datasets.Value("int32"),
+                    "predictions": datasets.Value("float"),
+                    "references": datasets.Value("float"),
                 }
             ),
             reference_urls=["https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html"],
         )
 
-    def _compute(self, predictions, references):
-        return {
-            "spearmanr": spearmanr(references, predictions)[0],
-        }
+    def _compute(self, predictions, references, return_pvalue=False):
+        if return_pvalue:
+            return {
+                "spearmanr": spearmanr(references, predictions)[0],
+                "spearmanr_pvalue": spearmanr(references, predictions)[1],
+            }
+        else:
+            return {
+                "spearmanr": spearmanr(references, predictions)[0],
+            }

@@ -55,8 +55,6 @@ HotpotQA is a new dataset with 113k  Wikipedia-based question-answer  pairs with
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### distractor

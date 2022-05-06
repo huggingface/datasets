@@ -35,5 +35,5 @@ class TaskTemplate(abc.ABC):
 
     @classmethod
     def from_dict(cls: Type[T], template_dict: dict) -> T:
-        field_names = set(f.name for f in dataclasses.fields(cls))
+        field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in template_dict.items() if k in field_names})
