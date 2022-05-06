@@ -1737,7 +1737,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             offsets_arr = pa.array(range(len(array) + 1), pa.int32())
             if array.null_count > 0:
                 warnings.warn(
-                    f"None values are converted to empty lists when converting array to {pa_type}. More info: https://github.com/huggingface/datasets/issues/3676 This will raise an error in a future major version of `datasets`"
+                    f"None values are converted to empty lists when converting array to {pa_type}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
                 )
             return pa.ListArray.from_arrays(offsets_arr, _c(array.values, pa_type.value_type))
     else:
