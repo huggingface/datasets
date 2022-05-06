@@ -9,7 +9,7 @@ language_creators:
 - machine-generated
 - other
 languages:
-- en-US
+- en
 licenses:
 - apache-2.0
 multilinguality:
@@ -221,9 +221,10 @@ For a more thorough discussion of all aspects of BIG-bench including dataset cre
 [Apache License 2.0](https://github.com/google/BIG-bench/blob/main/LICENSE)
 
 ### Citation Information
-TODO(andersjohanandreassen): Add bibtex citation block. 
+
+To be added soon !
 
 ### Contributions
-For a full list of contributors to the BIG-bench dataset, see the paper [].
+For a full list of contributors to the BIG-bench dataset, see the paper.
 
 Thanks to [@andersjohanandreassen](https://github.com/andersjohanandreassen) and [@ethansdyer](https://github.com/ethansdyer) for adding this dataset to HuggingFace.
