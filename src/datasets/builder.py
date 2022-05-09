@@ -506,7 +506,6 @@ class DatasetBuilder:
             download_config (:class:`DownloadConfig`, optional): specific download configuration parameters.
             download_mode (:class:`DownloadMode`, optional): select the download/generate mode - Default to ``REUSE_DATASET_IF_EXISTS``
             ignore_verifications (:obj:`bool`): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
-            save_infos (:obj:`bool`): Save the dataset information (checksums/size/splits/...)
             try_from_hf_gcs (:obj:`bool`): If True, it will try to download the already prepared dataset from the Hf google cloud storage
             dl_manager (:class:`DownloadManager`, optional): specific Download Manger to use
             base_path (:obj:`str`, optional): base path for relative paths that are used to download files. This can be a remote url.
