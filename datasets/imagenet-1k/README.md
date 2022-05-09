@@ -59,13 +59,6 @@ task_ids:
 
 ILSVRC 2012, commonly known as 'ImageNet' is an image dataset organized according to the WordNet hierarchy. Each meaningful concept in WordNet, possibly described by multiple words or word phrases, is called a "synonym set" or "synset". There are more than 100,000 synsets in WordNet, majority of them are nouns (80,000+). ImageNet aims to provide on average 1000 images to illustrate each synset. Images of each concept are quality-controlled and human-annotated.
 
-🛑 This dataset requires **manual download** of the ImageNet data tar file (which is about **155GB** in size) [imagenet_object_localization_patched2019.tar.gz](https://www.kaggle.com/competitions/imagenet-object-localization-challenge/data?select=imagenet_object_localization_patched2019.tar.gz) and point datasets library to it by:
-
-```python
-from datasets import load_dataset
-dataset = load_dataset("imagenet-1k", data_dir="/path/to/imagenet_object_localization_patched2019.tar.gz")
-```
-
 💡 This dataset provides access to ImageNet (ILSVRC) 2012 which is the most commonly used **subset** of ImageNet. This dataset spans 1000 object classes and contains 1,281,167 training images, 50,000 validation images and 100,000 test images. The version also has the [patch](https://drive.google.com/file/d/16RYnHpVOW0XKCsn3G3S9GTHUyoV2-4WX/view) which fixes some of the corrupted test set images already applied. For full ImageNet dataset presented in [[2]](https://ieeexplore.ieee.org/abstract/document/5206848), please check the download section of the [main website](https://image-net.org/download-images.php).
 
 ### Supported Tasks and Leaderboards
