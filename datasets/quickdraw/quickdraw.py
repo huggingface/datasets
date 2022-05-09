@@ -14,13 +14,14 @@
 # limitations under the License.
 """Quickdraw dataset"""
 
-
 import json
+import os
 import struct
 import textwrap
 from datetime import datetime
 
 import numpy as np
+import io
 
 import datasets
 from datasets.tasks import ImageClassification
@@ -121,7 +122,7 @@ tractor,traffic light,train,tree,triangle
 trombone,truck,trumpet,umbrella,underwear
 van,vase,violin,washing machine,watermelon
 waterslide,whale,wheel,windmill,wine bottle
-wine glass,wristwatch,yoga,zebra,zigza
+wine glass,wristwatch,yoga,zebra,zigzag
 """
 _NAMES = [name for line in _NAMES.strip().splitlines() for name in line.strip().split(",")]
 
@@ -129,6 +130,8 @@ _CONFIG_NAME_TO_BASE_URL = {
     "raw": "https://storage.googleapis.com/quickdraw_dataset/full/raw/{}.ndjson",
     "preprocessed_simplified_drawings": "https://storage.googleapis.com/quickdraw_dataset/full/binary/{}.bin",
     "preprocessed_bitmaps": "https://storage.googleapis.com/quickdraw_dataset/full/numpy_bitmap/{}.npy",
+    "sketch_rnn": "https://storage.googleapis.com/quickdraw_dataset/sketchrnn/{}.npz",
+    "sketch_rnn_full": "https://storage.googleapis.com/quickdraw_dataset/sketchrnn/{}.full.npz",
 }
 
 
@@ -158,6 +161,22 @@ class Quickdraw(datasets.GeneratorBasedBuilder):
             version=VERSION,
             description="The preprocessed dataset where all the simplified drawings have been rendered into a 28x28 grayscale bitmap.",
         ),
+        datasets.BuilderConfig(
+            name="sketch_rnn",
+            version=VERSION,
+            description=textwrap.dedent(
+                """\
+                This dataset was used for training the Sketch-RNN model from the paper https://arxiv.org/abs/1704.03477. 
+                In this dataset, 75K samples (70K Training, 2.5K Validation, 2.5K Test) has been randomly selected from each category,
+                processed with RDP line simplification with an epsilon parameter of 2.0
+                """
+            ),
+        ),
+        datasets.BuilderConfig(
+            name="sketch_rnn_full",
+            version=VERSION,
+            description="Compared to the `sketch_rnn` config, this version provides the full data for each category for training more complex models.",
+        ),
     ]
 
     DEFAULT_CONFIG_NAME = "preprocessed_bitmaps"
@@ -167,7 +186,7 @@ class Quickdraw(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "key_id": datasets.Value("string"),
-                    "word": datasets.Value("string"),
+                    "word": datasets.ClassLabel(names=_NAMES),
                     "recognized": datasets.Value("bool"),
                     "timestamp": datasets.Value("timestamp[us, tz=UTC]"),
                     "countrycode": datasets.Value("string"),
@@ -184,6 +203,7 @@ class Quickdraw(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "key_id": datasets.Value("string"),
+                    "word": datasets.ClassLabel(names=_NAMES),
                     "recognized": datasets.Value("bool"),
                     "timestamp": datasets.Value("timestamp[us, tz=UTC]"),
                     "countrycode": datasets.Value("string"),
@@ -195,11 +215,18 @@ class Quickdraw(datasets.GeneratorBasedBuilder):
                     ),
                 }
             )
-        else:
+        elif self.config.name == "preprocessed_bitmaps":
             features = datasets.Features(
                 {
                     "image": datasets.Image(),
                     "label": datasets.ClassLabel(names=_NAMES),
+                }
+            )
+        else:  # sketch_rnn, sketch_rnn_full
+            features = datasets.Features(
+                {
+                    "word": datasets.ClassLabel(names=_NAMES),
+                    "drawing": datasets.Array2D(shape=(None, 3), dtype="int16"),
                 }
             )
         return datasets.DatasetInfo(
@@ -215,26 +242,52 @@ class Quickdraw(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         base_url = _CONFIG_NAME_TO_BASE_URL[self.config.name]
-        if self.config.name == "preprocessed_bitmaps":
-            file_paths = dl_manager.download(
+        if not self.config.name.startswith("sketch_rnn"):
+            files = dl_manager.download(
                 {name: url for name, url in zip(_NAMES, [base_url.format(name) for name in _NAMES])}
             )
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "files": files,
+                        "split": "train",
+                    },
+                ),
+            ]
         else:
-            file_paths = dl_manager.download([base_url.format(name) for name in _NAMES])
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "file_paths": file_paths,
-                },
-            ),
-        ]
+            files = dl_manager.download_and_extract(
+                {name: url for name, url in zip(_NAMES, [base_url.format(name) for name in _NAMES])}
+            )
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "files": files,
+                        "split": "train",
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        "files": files,
+                        "split": "valid",
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "files": files,
+                        "split": "test",
+                    },
+                ),
+            ]
 
-    def _generate_examples(self, file_paths):
+    def _generate_examples(self, files, split):
         if self.config.name == "raw":
             idx = 0
-            for file_path in file_paths:
-                with open(file_path, encoding="utf-8") as f:
+            for _, file in files.items():
+                with open(file, encoding="utf-8") as f:
                     for line in f:
                         example = json.loads(line)
                         example["timestamp"] = datetime.strptime(example["timestamp"], "%Y-%m-%d %H:%M:%S.%f %Z")
@@ -243,23 +296,37 @@ class Quickdraw(datasets.GeneratorBasedBuilder):
                         idx += 1
         elif self.config.name == "preprocessed_simplified_drawings":
             idx = 0
-            for file_path in file_paths:
-                with open(file_path, "rb") as f:
+            for label, file in files.items():
+                with open(file, "rb") as f:
                     while True:
                         try:
-                            yield idx, process_struct(f)
+                            example = process_struct(f)
+                            example["word"] = label
+                            yield idx, example
                         except struct.error:
                             break
                         idx += 1
-        else:
+        elif self.config.name == "preprocessed_bitmaps":
             idx = 0
-            for label, path in file_paths.items():
-                with open(path, "rb") as f:
+            for label, file in files.items():
+                with open(file, "rb") as f:
                     images = np.load(f)
                     for image in images:
                         yield idx, {
                             "image": image.reshape(28, 28),
                             "label": label,
+                        }
+                        idx += 1
+        else:  # sketch_rnn, sketch_rnn_full
+            idx = 0
+            for label, file in files.items():
+                with open(os.path.join(file, f"{split}.npy"), "rb") as f:
+                    # read entire file since f.seek is not supported in the streaming mode 
+                    drawings = np.load(io.BytesIO(f.read()), encoding="latin1", allow_pickle=True)
+                    for drawing in drawings:
+                        yield idx, {
+                            "word": label,
+                            "drawing": drawing,
                         }
                         idx += 1
 
