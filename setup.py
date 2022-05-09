@@ -137,6 +137,7 @@ TESTS_REQUIRE = [
     "h5py",
     "langdetect",
     "lxml",
+    "lz4",
     "mwparserfromhell",
     "nltk",
     "openpyxl",
