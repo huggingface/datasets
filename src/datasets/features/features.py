@@ -485,6 +485,20 @@ class _ArrayXD:
 
 @dataclass
 class Array2D(_ArrayXD):
+    """Create a two-dimensional array.
+
+    Args:
+        shape (`tuple`): The size of each dimension.
+        dtype (`str`): The value of the data type.
+
+    Example:
+
+    ```py
+    >>> from datasets import Features
+    >>> features = Features({'x': Array2D(shape=(1, 3), dtype='int32')})
+    ```
+    """
+
     shape: tuple
     dtype: str
     id: Optional[str] = None
@@ -494,6 +508,20 @@ class Array2D(_ArrayXD):
 
 @dataclass
 class Array3D(_ArrayXD):
+    """Create a three-dimensional array.
+
+    Args:
+        shape (`tuple`): The size of each dimension.
+        dtype (`str`): The value of the data type.
+
+    Example:
+
+    ```py
+    >>> from datasets import Features
+    >>> features = Features({'x': Array3D(shape=(1, 2, 3), dtype='int32')})
+    ```
+    """
+
     shape: tuple
     dtype: str
     id: Optional[str] = None
@@ -503,6 +531,20 @@ class Array3D(_ArrayXD):
 
 @dataclass
 class Array4D(_ArrayXD):
+    """Create a four-dimensional array.
+
+    Args:
+        shape (`tuple`): The size of each dimension.
+        dtype (`str`): The value of the data type.
+
+    Example:
+
+    ```py
+    >>> from datasets import Features
+    >>> features = Features({'x': Array4D(shape=(1, 2, 2, 3), dtype='int32')})
+    ```
+    """
+
     shape: tuple
     dtype: str
     id: Optional[str] = None
@@ -512,6 +554,20 @@ class Array4D(_ArrayXD):
 
 @dataclass
 class Array5D(_ArrayXD):
+    """Create a five-dimensional array.
+
+    Args:
+        shape (`tuple`): The size of each dimension.
+        dtype (`str`): The value of the data type.
+
+    Example:
+
+    ```py
+    >>> from datasets import Features
+    >>> features = Features({'x': Array5D(shape=(1, 2, 2, 3, 3), dtype='int32')})
+    ```
+    """
+
     shape: tuple
     dtype: str
     id: Optional[str] = None
@@ -949,6 +1005,19 @@ class ClassLabel:
 class Sequence:
     """Construct a list of feature from a single type or a dict of types.
     Mostly here for compatiblity with tfds.
+
+    Args:
+        feature: A list of features of a single type or a dictionary of types.
+        length (`int`): Length of the sequence.
+
+    Example:
+
+    ```py
+    >>> from datasets import Features, Sequence, Value, ClassLabel
+    >>> features = Features({'post': Sequence(feature={'text': Value(dtype='string'), 'upvotes': Value(dtype='int32'), 'label': ClassLabel(num_classes=2, names=['hot', 'cold'])})})
+    >>> features
+    {'post': Sequence(feature={'text': Value(dtype='string', id=None), 'upvotes': Value(dtype='int32', id=None), 'label': ClassLabel(num_classes=2, names=['hot', 'cold'], id=None)}, length=-1, id=None)}
+    ```
     """
 
     feature: Any
