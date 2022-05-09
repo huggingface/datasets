@@ -47,6 +47,13 @@ def list_datasets(with_community_datasets=True, with_details=False):
     Args:
         with_community_datasets (:obj:`bool`, optional, default ``True``): Include the community provided datasets.
         with_details (:obj:`bool`, optional, default ``False``): Return the full details on the datasets instead of only the short name.
+
+    Example:
+
+    ```py
+    >>> from datasets import list_datasets
+    >>> list_datasets()
+    ```
     """
     datasets = huggingface_hub.list_datasets(full=with_details)
     if not with_community_datasets:
@@ -62,6 +69,13 @@ def list_metrics(with_community_metrics=True, with_details=False):
     Args:
         with_community_metrics (:obj:`bool`, optional, default ``True``): Include the community provided metrics.
         with_details (:obj:`bool`, optional, default ``False``): Return the full details on the metrics instead of only the short name.
+
+    Example:
+
+    ```py
+    >>> from datasets import list_metrics
+    >>> list_metrics()
+    ```
     """
     metrics = huggingface_hub.list_metrics()
     if not with_community_metrics:
@@ -151,6 +165,13 @@ def get_dataset_infos(
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
         config_kwargs: optional attributes for builder class which will override the attributes if supplied.
+
+    Example:
+
+    ```py
+    >>> from datasets import get_dataset_infos
+    >>> get_dataset_infos('rotten_tomatoes')
+    ```
     """
     config_names = get_dataset_config_names(
         path=path,
@@ -209,6 +230,25 @@ def get_dataset_config_names(
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied,
             for example ``use_auth_token``
+
+    Example:
+
+    ```py
+    >>> from datasets import get_dataset_config_names
+    >>> get_dataset_config_names("glue")
+    ['cola',
+     'sst2',
+     'mrpc',
+     'qqp',
+     'stsb',
+     'mnli',
+     'mnli_mismatched',
+     'mnli_matched',
+     'qnli',
+     'rte',
+     'wnli',
+     'ax']
+    ```
     """
     dataset_module = dataset_module_factory(
         path,
@@ -319,6 +359,13 @@ def get_dataset_split_names(
             If True, will get token from `"~/.huggingface"`.
         config_kwargs: optional attributes for builder class which will override the attributes if supplied.
 
+    Example:
+
+    ```py
+    >>> from datasets import get_dataset_split_names
+    >>> get_dataset_split_names('rotten_tomatoes')
+    ['train', 'validation', 'test']
+    ```
     """
     info = get_dataset_config_info(
         path,
