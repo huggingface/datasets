@@ -45,7 +45,7 @@ class AudioFolderConfig(datasets.BuilderConfig):
     """BuilderConfig for AudioFolder."""
 
     features: Optional[datasets.Features] = None
-    drop_labels: bool = False  # TODO: true?
+    drop_labels: bool = True  # different from ImageFolder as we don't want to infer labels by default
     drop_metadata: bool = False
 
 
@@ -163,12 +163,11 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
         # before building the features
         if self.config.features is None:
             if not self.config.drop_labels:
+                # audio classification is not a canonical task, but we keep inferring labels from directories names
+                # to be aligned with ImageFolder
                 self.info.features = datasets.Features(
                     {"audio": datasets.Audio(), "label": datasets.ClassLabel(names=sorted(labels))}
                 )
-                # task_template = Im(image_column="audio", label_column="label")
-                # task_template = task_template.align_with_features(self.info.features)
-                # self.info.task_templates = [task_template]
             else:
                 self.info.features = datasets.Features({"audio": datasets.Audio()})
 
