@@ -10,6 +10,7 @@ from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePath, PurePosixPath
 from typing import Callable, Generator, Iterable, List, Optional, Tuple, Union
+from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 import fsspec
@@ -375,12 +376,11 @@ def _get_extraction_protocol_with_magic_number(f) -> Optional[str]:
 
 def _get_extraction_protocol(urlpath: str, use_auth_token: Optional[Union[str, bool]] = None) -> Optional[str]:
     # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
-    path = urlpath.split("::")[0]
-    # Get extension: https://foo.bar/train.json.gz -> gz
+    path = urlpath.split("::")[0] if "::" in urlpath else urlparse(urlpath).path
+    # Get extension: train.json.gz -> gz
     extension = path.split(".")[-1]
-    # Remove query params ("dl=1", "raw=true"): gz?dl=1 -> gz
     # Remove shards infos (".txt_1", ".txt-00000-of-00100"): txt_1 -> txt
-    for symb in "?-_":
+    for symb in "-_":
         extension = extension.split(symb)[0]
     if extension in BASE_KNOWN_EXTENSIONS:
         return None
@@ -813,15 +813,12 @@ class StreamingDownloadManager:
             return urlpath
         elif protocol in SINGLE_FILE_COMPRESSION_PROTOCOLS:
             # there is one single file which is the uncompressed file
-            inner_file = os.path.basename(urlpath.split("::")[0])
+            inner_file = posixpath.basename(urlparse(urlpath.split("::")[0]).path)
             inner_file = inner_file[: inner_file.rindex(".")] if "." in inner_file else inner_file
             # check for tar.gz, tar.bz2 etc.
             if inner_file.endswith(".tar"):
-                return f"tar://::{protocol}://{inner_file}::{urlpath}"
-            else:
-                return f"{protocol}://{inner_file}::{urlpath}"
-        else:
-            return f"{protocol}://::{urlpath}"
+                return f"tar://::{protocol}://::{urlpath}"
+        return f"{protocol}://::{urlpath}"
 
     def download_and_extract(self, url_or_urls):
         return self.extract(self.download(url_or_urls))
