@@ -593,9 +593,7 @@ def test_streaming_dl_manager_download_and_extract_no_extraction(urlpath):
 def test_streaming_dl_manager_extract(text_gz_path, text_path):
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.extract(text_gz_path)
-    path = os.path.basename(text_gz_path)
-    path = path[: path.rindex(".")]
-    assert output_path == f"gzip://{path}::{text_gz_path}"
+    assert output_path == f"gzip://::{text_gz_path}"
     fsspec_open_file = xopen(output_path, encoding="utf-8")
     with fsspec_open_file as f, open(text_path, encoding="utf-8") as expected_file:
         assert f.read() == expected_file.read()
@@ -604,9 +602,7 @@ def test_streaming_dl_manager_extract(text_gz_path, text_path):
 def test_streaming_dl_manager_download_and_extract_with_extraction(text_gz_path, text_path):
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.download_and_extract(text_gz_path)
-    path = os.path.basename(text_gz_path)
-    path = path[: path.rindex(".")]
-    assert output_path == f"gzip://{path}::{text_gz_path}"
+    assert output_path == f"gzip://::{text_gz_path}"
     fsspec_open_file = xopen(output_path, encoding="utf-8")
     with fsspec_open_file as f, open(text_path, encoding="utf-8") as expected_file:
         assert f.read() == expected_file.read()
