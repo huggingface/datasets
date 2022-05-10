@@ -220,7 +220,7 @@ class TensorflowDatasetMixin:
         dataset: "Dataset",
         collate_fn: Callable,
         collate_fn_args: dict,
-        batch_size: int,
+        batch_size: Optional[int],
         num_test_batches: int = 10,
     ):
         """Private method used by `to_tf_dataset()` to find the shapes and dtypes of samples from this dataset
@@ -414,7 +414,7 @@ class TensorflowDatasetMixin:
             # could break backward compatibility
             unwanted_columns = [
                 col
-                for col in self.features.keys()
+                for col in dataset.features.keys()
                 if col not in columns and col not in label_cols and col not in ("label_ids", "label")
             ]
             dataset = dataset.remove_columns(unwanted_columns)
@@ -424,7 +424,7 @@ class TensorflowDatasetMixin:
         # endregion
 
         # region Compute dataset signature and verify columns
-        output_signature, columns_to_np_types = self._get_output_signature(
+        output_signature, columns_to_np_types = dataset._get_output_signature(
             dataset,
             collate_fn=collate_fn,
             collate_fn_args=collate_fn_args,
