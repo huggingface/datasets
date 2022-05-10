@@ -1,7 +1,7 @@
 import collections
 import itertools
-import glob
 import os
+from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
 import pyarrow.compute as pc
@@ -41,6 +41,7 @@ def count_path_segments(path):
     return cnt
 
 
+@dataclass
 class AudioFolderConfig(datasets.BuilderConfig):
     """BuilderConfig for AudioFolder."""
 
