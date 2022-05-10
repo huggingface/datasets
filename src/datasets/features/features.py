@@ -1178,7 +1178,15 @@ def list_of_np_array_to_pyarrow_listarray(l_arr: List[np.ndarray], type: pa.Data
         return pa.array([], type=type)
 
 
-def contains_any_np_array(data):
+def contains_any_np_array(data: Any):
+    """Return `True` if data is a NumPy ndarray or (recursively) a list containing any NumPy ndarray.
+
+    Args:
+        data (Any): Data.
+
+    Returns:
+        bool
+    """
     if isinstance(data, np.ndarray):
         return True
     elif isinstance(data, list):
@@ -1187,14 +1195,32 @@ def contains_any_np_array(data):
         return False
 
 
-def any_np_array_to_pyarrow_listarray(data, type=None):
+def any_np_array_to_pyarrow_listarray(data: Union[np.ndarray, List], type: pa.DataType = None) -> pa.ListArray:
+    """Convert to PyArrow ListArray either a NumPy ndarray or (recursively) a list that may contain any NumPy ndarray.
+
+    Args:
+        data (Union[np.ndarray, List]): Data.
+        type (pa.DataType): Explicit PyArrow DataType passed to coerce the ListArray data type.
+
+    Returns:
+        pa.ListArray
+    """
     if isinstance(data, np.ndarray):
         return numpy_to_pyarrow_listarray(data, type=type)
     elif isinstance(data, list):
         return list_of_pa_arrays_to_pyarrow_listarray([any_np_array_to_pyarrow_listarray(i, type=type) for i in data])
 
 
-def to_pyarrow_listarray(data, pa_type):
+def to_pyarrow_listarray(data: Any, pa_type: _ArrayXDExtensionType) -> pa.Array:
+    """Convert to PyArrow ListArray.
+
+    Args:
+        data (Any): Sequence, iterable, np.ndarray or pd.Series.
+        pa_type (_ArrayXDExtensionType): Any of the ArrayNDExtensionType.
+
+    Returns:
+        pyarrow.Array
+    """
     if contains_any_np_array(data):
         return any_np_array_to_pyarrow_listarray(data, type=pa_type.value_type)
     else:
