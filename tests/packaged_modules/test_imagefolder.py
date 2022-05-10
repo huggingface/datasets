@@ -193,7 +193,9 @@ def test_generate_examples_drop_metadata(image_file_with_metadata, drop_metadata
     else:
         features = Features({"image": Image()})
     imagefolder = ImageFolder(drop_metadata=drop_metadata, features=features)
-    generator = imagefolder._generate_examples([(image_file, image_file)], {"train": [(image_metadata_file)]}, "train")
+    generator = imagefolder._generate_examples(
+        [(image_file, image_file)], {"train": [(image_metadata_file, image_metadata_file)]}, "train"
+    )
     if not drop_metadata:
         assert all(
             example.keys() == {"image", "caption"} and all(val is not None for val in example.values())
@@ -215,7 +217,9 @@ def test_generate_examples_with_metadata_in_wrong_location(image_file, image_fil
     else:
         features = Features({"image": Image()})
     imagefolder = ImageFolder(drop_metadata=drop_metadata, features=features)
-    generator = imagefolder._generate_examples([(image_file, image_file)], {"train": [(image_metadata_file)]}, "train")
+    generator = imagefolder._generate_examples(
+        [(image_file, image_file)], {"train": [(image_metadata_file, image_metadata_file)]}, "train"
+    )
     if not drop_metadata:
         with pytest.raises(ValueError):
             list(generator)
@@ -238,7 +242,9 @@ def test_generate_examples_with_metadata_that_misses_one_image(
         features = Features({"image": Image()})
     imagefolder = ImageFolder(drop_metadata=drop_metadata, features=features)
     generator = imagefolder._generate_examples(
-        [(image_file, image_file2)], {"train": [(image_metadata_file)]}, "train"
+        [(image_file, image_file), (image_file2, image_file2)],
+        {"train": [(image_metadata_file, image_metadata_file)]},
+        "train",
     )
     if not drop_metadata:
         with pytest.raises(ValueError):

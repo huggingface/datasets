@@ -103,7 +103,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                                 metadata_files[split].append((None, downloaded_dir_file))
                             else:
                                 archive_file_name = os.path.basename(archive)
-                                original_file_name = os.path.basename(original_file)
+                                original_file_name = os.path.basename(downloaded_dir_file)
                                 logger.debug(
                                     f"The file '{original_file_name}' from the archive '{archive_file_name}' was ignored: it is not an image, and is not {self.METADATA_FILENAME} either."
                                 )
@@ -198,10 +198,9 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
         return files, archives
 
     def _generate_examples(self, files, metadata_files, split_name):
-        split_metadata_files = metadata_files.get(split_name, []) if metadata_files else []
-        if not self.config.drop_metadata and split_metadata_files:
-            non_metadata_keys = ["image", "label"] if not self.config.drop_labels and not metadata_files else ["image"]
-            image_empty_metadata = {k: None for k in self.info.features if k not in non_metadata_keys}
+        if not self.config.drop_metadata and metadata_files:
+            split_metadata_files = metadata_files.get(split_name, [])
+            image_empty_metadata = {k: None for k in self.info.features if k != "image"}
 
             last_checked_dir = None
             metadata_dir = None
@@ -251,7 +250,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                                 }
                             else:
                                 raise ValueError(
-                                    f"No metadata.jsonl found in the same directory or in a parent directory of {original_file}."
+                                    f"One or several metadata.jsonl were found, but not in the same directory or in a parent directory of {downloaded_file_or_dir}."
                                 )
                         if metadata_dir is not None and downloaded_metadata_file is not None:
                             file_relpath = os.path.relpath(original_file, metadata_dir)
@@ -263,7 +262,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                             image_metadata = metadata_dict[file_relpath]
                         else:
                             raise ValueError(
-                                f"No metadata.jsonl found in the same directory or in a parent directory of {original_file}."
+                                f"One or several metadata.jsonl were found, but not in the same directory or in a parent directory of {downloaded_file_or_dir}."
                             )
                         yield file_idx, {
                             **image_empty_metadata,
@@ -313,7 +312,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                                     }
                                 else:
                                     raise ValueError(
-                                        f"One of several metadata.jsonl were found, but not in the same directory or in a parent directory of {downloaded_dir_file}."
+                                        f"One or several metadata.jsonl were found, but not in the same directory or in a parent directory of {downloaded_dir_file}."
                                     )
                             if metadata_dir is not None and downloaded_metadata_file is not None:
                                 downloaded_dir_file_relpath = os.path.relpath(downloaded_dir_file, metadata_dir)
@@ -339,7 +338,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 if original_file is not None:
                     _, original_file_ext = os.path.splitext(original_file)
                     if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
-                        if self.config.drop_labels or split_metadata_files:
+                        if self.config.drop_labels or metadata_files:
                             yield file_idx, {
                                 "image": downloaded_file_or_dir,
                             }
@@ -353,7 +352,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                     for downloaded_dir_file in downloaded_file_or_dir:
                         _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
                         if downloaded_dir_file_ext.lower() in self.IMAGE_EXTENSIONS:
-                            if self.config.drop_labels or split_metadata_files:
+                            if self.config.drop_labels or metadata_files:
                                 yield file_idx, {
                                     "image": downloaded_dir_file,
                                 }
