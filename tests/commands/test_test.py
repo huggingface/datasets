@@ -22,10 +22,8 @@ if config.PY_VERSION >= version.parse("3.7"):
             "ignore_verifications",
             "force_redownload",
             "clear_cache",
-            "proc_rank",
-            "num_proc",
         ],
-        defaults=[None, None, None, False, False, False, False, False, 0, 1],
+        defaults=[None, None, None, False, False, False, False, False],
     )
 else:
 
@@ -40,8 +38,6 @@ else:
         ignore_verifications: bool = False
         force_redownload: bool = False
         clear_cache: bool = False
-        proc_rank: int = 0
-        num_proc: int = 1
 
         def __iter__(self):
             return iter(self.__dict__.values())
