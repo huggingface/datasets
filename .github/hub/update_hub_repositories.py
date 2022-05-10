@@ -105,17 +105,6 @@ def check_authorizations(user_info: dict):
         )
 
 
-def apply_hacks_for_moon_landing(dataset_repo_path: Path):
-    if (dataset_repo_path / "README.md").is_file():
-        with (dataset_repo_path / "README.md").open() as f:
-            readme_content = f.read()
-        if readme_content.count("---\n") > 1:
-            _, tags, content = readme_content.split("---\n", 2)
-            tags = tags.replace("\nlicense:", "\nlicenses:").replace(".", "-").replace("$", "%")
-            with (dataset_repo_path / "README.md").open("w") as f:
-                f.write("---\n".join(["", tags, content]))
-
-
 class update_main:
     def __init__(
         self,
@@ -159,7 +148,6 @@ class update_main:
                 (canonical_dataset_path(dataset_name) / filepath_to_delete).unlink()
             except Exception as e:
                 logger.warning(f"[{dataset_name}] Couldn't delete file at {filepath_to_delete}: {repr(e)}")
-        apply_hacks_for_moon_landing(canonical_dataset_path(dataset_name))
         logs.append(repo.git.add("."))
         if "Changes to be committed:" in repo.git.status():
             logs.append(repo.git.commit(*self.commit_args))
