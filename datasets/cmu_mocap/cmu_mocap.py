@@ -30,7 +30,7 @@ The CMU Graphics Lab Motion Capture Database is a dataset containing motion capt
 _HOMEPAGE = "http://mocap.cs.cmu.edu/"
 
 # TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+_LICENSE = "This data is free for use in research projects. You may include this data in commercially-sold products, but you may not resell this data directly, even in converted form."
 
 
 _URLS = {
