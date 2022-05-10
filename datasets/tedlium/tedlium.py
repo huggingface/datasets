@@ -198,8 +198,9 @@ class Tedlium(datasets.BeamBasedBuilder):
     return splits
 
   def _build_pcollection(self, pipeline, directory):
-    beam = datasets.lazy_imports.apache_beam
-    stm_files = datasets.Value('io').gfile.glob(os.path.join(directory, "stm", "*stm"))
+    import apache_beam as beam
+    stm_directory = os.path.join(directory, "stm")
+    stm_files = [os.path.join(stm_directory, f) for f in os.listdir(stm_directory) if f.endswith('.stm')]
     return (pipeline
             | beam.Create(stm_files)
             | beam.FlatMap(_generate_examples_from_stm_file))
@@ -261,6 +262,7 @@ def _parse_gender(label_str):
 def _extract_audio_segment(sph_path, channel, start_sec, end_sec):
   """Extracts segment of audio samples (as an ndarray) from the given path."""
   with open(sph_path, "rb") as f:
+    # need to fix this tfds import too
     segment = datasets.lazy_imports.pydub.AudioSegment.from_file(
         f, format="nistsphere")
   # The dataset only contains mono audio.
