@@ -415,7 +415,7 @@ class TensorflowDatasetMixin:
             unwanted_columns = [
                 col
                 for col in dataset.features.keys()
-                if col not in columns and col not in label_cols and col not in ("label_ids", "label")
+                if col not in cols_to_retain and col not in ("label_ids", "label")
             ]
             dataset = dataset.remove_columns(unwanted_columns)
         # If the user hasn't specified columns, give them all columns. This may break some data collators if columns
