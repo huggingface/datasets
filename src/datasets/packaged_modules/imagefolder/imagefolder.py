@@ -164,7 +164,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
         # Normally, we would do this in _info, but we need to know the labels and/or metadata
         # before building the features
         if self.config.features is None:
-            if not self.config.drop_labels:
+            if not self.config.drop_labels and not metadata_files:
                 self.info.features = datasets.Features(
                     {"image": datasets.Image(), "label": datasets.ClassLabel(names=sorted(labels))}
                 )
@@ -198,14 +198,15 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
         return files, archives
 
     def _generate_examples(self, files, metadata_files, split_name):
-        if not self.config.drop_metadata and metadata_files:
-            split_metadata_files = metadata_files.get(split_name, [])
-            non_metadata_keys = ["image", "label"] if not self.config.drop_labels else ["image"]
+        split_metadata_files = metadata_files.get(split_name, []) if metadata_files else []
+        if not self.config.drop_metadata and split_metadata_files:
+            non_metadata_keys = ["image", "label"] if not self.config.drop_labels and not metadata_files else ["image"]
             image_empty_metadata = {k: None for k in self.info.features if k not in non_metadata_keys}
 
             last_checked_dir = None
             metadata_dir = None
             metadata_dict = None
+            downloaded_metadata_file = None
 
             file_idx = 0
             for original_file, downloaded_file_or_dir in files:
@@ -217,17 +218,18 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                         current_dir = os.path.dirname(original_file)
                         if last_checked_dir is None or last_checked_dir != current_dir:
                             last_checked_dir = current_dir
-                            metadata_dir = None
-                            metadata_dict = None
                             metadata_file_candidates = [
                                 (
-                                    os.path.relpath(original_file, os.path.dirname(metadata_file)),
-                                    metadata_file,
+                                    os.path.relpath(original_file, os.path.dirname(metadata_file_candidate)),
+                                    metadata_file_candidate,
                                     downloaded_metadata_file,
                                 )
-                                for metadata_file, downloaded_metadata_file in split_metadata_files
-                                if metadata_file is not None  # ignore metadata_files that are inside archives
-                                and not os.path.relpath(original_file, os.path.dirname(metadata_file)).startswith("..")
+                                for metadata_file_candidate, downloaded_metadata_file in split_metadata_files
+                                if metadata_file_candidate
+                                is not None  # ignore metadata_files that are inside archives
+                                and not os.path.relpath(
+                                    original_file, os.path.dirname(metadata_file_candidate)
+                                ).startswith("..")
                             ]
                             if metadata_file_candidates:
                                 _, metadata_file, downloaded_metadata_file = min(
@@ -247,23 +249,27 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                                         pa_file_name_array.to_pylist(), pa_table_to_pylist(pa_metadata_table)
                                     )
                                 }
-                        if metadata_dir is not None:
+                            else:
+                                raise ValueError(
+                                    f"No metadata.jsonl found in the same directory or in a parent directory of {original_file}."
+                                )
+                        if metadata_dir is not None and downloaded_metadata_file is not None:
                             file_relpath = os.path.relpath(original_file, metadata_dir)
                             file_relpath = file_relpath.replace("\\", "/")
-                            image_metadata = metadata_dict.get(file_relpath, image_empty_metadata)
+                            if file_relpath not in metadata_dict:
+                                raise ValueError(
+                                    f"Image at {file_relpath} doesn't have metadata in {downloaded_metadata_file}."
+                                )
+                            image_metadata = metadata_dict[file_relpath]
                         else:
-                            image_metadata = image_empty_metadata
-                        if self.config.drop_labels:
-                            yield file_idx, {
-                                "image": downloaded_file_or_dir,
-                                **image_metadata,
-                            }
-                        else:
-                            yield file_idx, {
-                                "image": downloaded_file_or_dir,
-                                "label": os.path.basename(os.path.dirname(original_file)),
-                                **image_metadata,
-                            }
+                            raise ValueError(
+                                f"No metadata.jsonl found in the same directory or in a parent directory of {original_file}."
+                            )
+                        yield file_idx, {
+                            **image_empty_metadata,
+                            "image": downloaded_file_or_dir,
+                            **image_metadata,
+                        }
                         file_idx += 1
                 else:
                     for downloaded_dir_file in downloaded_file_or_dir:
@@ -272,18 +278,17 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                             current_dir = os.path.dirname(downloaded_dir_file)
                             if last_checked_dir is None or last_checked_dir != current_dir:
                                 last_checked_dir = current_dir
-                                metadata_dir = None
-                                metadata_dict = None
                                 metadata_file_candidates = [
                                     (
                                         os.path.relpath(
                                             downloaded_dir_file, os.path.dirname(downloaded_metadata_file)
                                         ),
-                                        metadata_file,
+                                        metadata_file_candidate,
                                         downloaded_metadata_file,
                                     )
-                                    for metadata_file, downloaded_metadata_file in split_metadata_files
-                                    if metadata_file is None  # ignore metadata_files that are not inside archives
+                                    for metadata_file_candidate, downloaded_metadata_file in split_metadata_files
+                                    if metadata_file_candidate
+                                    is None  # ignore metadata_files that are not inside archives
                                     and not os.path.relpath(
                                         downloaded_dir_file, os.path.dirname(downloaded_metadata_file)
                                     ).startswith("..")
@@ -306,23 +311,27 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                                             pa_file_name_array.to_pylist(), pa_table_to_pylist(pa_metadata_table)
                                         )
                                     }
-                            if metadata_dir is not None:
+                                else:
+                                    raise ValueError(
+                                        f"One of several metadata.jsonl were found, but not in the same directory or in a parent directory of {downloaded_dir_file}."
+                                    )
+                            if metadata_dir is not None and downloaded_metadata_file is not None:
                                 downloaded_dir_file_relpath = os.path.relpath(downloaded_dir_file, metadata_dir)
                                 downloaded_dir_file_relpath = downloaded_dir_file_relpath.replace("\\", "/")
-                                image_metadata = metadata_dict.get(downloaded_dir_file_relpath, image_empty_metadata)
+                                if downloaded_dir_file_relpath not in metadata_dict:
+                                    raise ValueError(
+                                        f"Image at {downloaded_dir_file_relpath} doesn't have metadata in {downloaded_metadata_file}."
+                                    )
+                                image_metadata = metadata_dict[downloaded_dir_file_relpath]
                             else:
-                                image_metadata = image_empty_metadata
-                            if self.config.drop_labels:
-                                yield file_idx, {
-                                    "image": downloaded_dir_file,
-                                    **image_metadata,
-                                }
-                            else:
-                                yield file_idx, {
-                                    "image": downloaded_dir_file,
-                                    "label": os.path.basename(os.path.dirname(downloaded_dir_file)),
-                                    **image_metadata,
-                                }
+                                raise ValueError(
+                                    f"One or several metadata.jsonl were found, but not in the same directory or in a parent directory of {downloaded_dir_file}."
+                                )
+                            yield file_idx, {
+                                **image_empty_metadata,
+                                "image": downloaded_dir_file,
+                                **image_metadata,
+                            }
                             file_idx += 1
         else:
             file_idx = 0
@@ -330,7 +339,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 if original_file is not None:
                     _, original_file_ext = os.path.splitext(original_file)
                     if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
-                        if self.config.drop_labels:
+                        if self.config.drop_labels or split_metadata_files:
                             yield file_idx, {
                                 "image": downloaded_file_or_dir,
                             }
@@ -344,7 +353,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                     for downloaded_dir_file in downloaded_file_or_dir:
                         _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
                         if downloaded_dir_file_ext.lower() in self.IMAGE_EXTENSIONS:
-                            if self.config.drop_labels:
+                            if self.config.drop_labels or split_metadata_files:
                                 yield file_idx, {
                                     "image": downloaded_dir_file,
                                 }
