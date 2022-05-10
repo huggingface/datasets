@@ -402,6 +402,23 @@ class Split:
     Note: All splits, including compositions inherit from `datasets.SplitBase`
 
     See the :doc:`guide on splits </loading>` for more information.
+
+    Example:
+
+    ```py
+    >>> datasets.SplitGenerator(
+    ...     name=datasets.Split.TRAIN,
+    ...     gen_kwargs={"split_key": "train", "files": dl_manager.iter_archive(archive)},
+    ... ),
+    ... datasets.SplitGenerator(
+    ...     name=datasets.Split.VALIDATION,
+    ...     gen_kwargs={"split_key": "validation", "files": dl_manager.iter_archive(archive)},
+    ... ),
+    ... datasets.SplitGenerator(
+    ...     name=datasets.Split.TEST,
+    ...     gen_kwargs={"split_key": "test", "files": dl_manager.iter_archive(archive)},
+    ... )
+    ```
     """
     # pylint: enable=line-too-long
     TRAIN = NamedSplit("train")
@@ -559,6 +576,15 @@ class SplitGenerator:
             create the examples.
         **gen_kwargs: Keyword arguments to forward to the :meth:`DatasetBuilder._generate_examples` method
             of the builder.
+
+    Example:
+
+    ```py
+    >>> datasets.SplitGenerator(
+    ...     name=datasets.Split.TRAIN,
+    ...     gen_kwargs={"split_key": "train", "files": dl_manager.iter_archive(archive)},
+    ... )
+    ```
     """
 
     name: str

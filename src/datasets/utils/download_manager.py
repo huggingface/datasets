@@ -228,6 +228,12 @@ class DownloadManager:
         Returns:
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
+
+        Example:
+
+        ```py
+        >>> downloaded_files = dl_manager.download_custom('https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz')
+        ```
         """
         cache_dir = self.download_config.cache_dir or config.DOWNLOADED_DATASETS_PATH
         max_retries = self.download_config.max_retries
@@ -266,6 +272,12 @@ class DownloadManager:
         Returns:
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
+
+        Example:
+
+        ```py
+        >>> downloaded_files = dl_manager.download('https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz')
+        ```
         """
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = False
@@ -316,6 +328,13 @@ class DownloadManager:
         Yields:
             :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
                 File object is opened in binary mode.
+
+        Example:
+
+        ```py
+        >>> archive = dl_manager.download('https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz')
+        >>> files = dl_manager.iter_archive(archive)
+        ```
         """
 
         if hasattr(path_or_buf, "read"):
@@ -331,6 +350,13 @@ class DownloadManager:
 
         Yields:
             str: File path.
+
+        Example:
+
+        ```py
+        >>> files = dl_manager.download_and_extract('https://huggingface.co/datasets/beans/resolve/main/data/train.zip')
+        >>> files = dl_manager.iter_files(files)
+        ```
         """
         return FilesIterable.from_paths(paths)
 
@@ -346,6 +372,13 @@ class DownloadManager:
         Returns:
             extracted_path(s): `str`, The extracted paths matching the given input
                 path_or_paths.
+
+        Example:
+
+        ```py
+        >>> downloaded_files = dl_manager.download('https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz')
+        >>> extracted_files = dl_manager.extract(downloaded_files)
+        ```
         """
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
