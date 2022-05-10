@@ -2319,8 +2319,10 @@ class BaseDatasetTest(TestCase):
             # Check that it works with all default options (except batch_size because the dummy dataset only has 4)
             tf_dataset = dset.to_tf_dataset(batch_size=4)
             batch = next(iter(tf_dataset))
-            self.assertEqual(batch.shape.as_list(), [4])
-            self.assertEqual(batch.dtype.name, "int64")
+            self.assertEqual(batch["col_1"].shape.as_list(), [4])
+            self.assertEqual(batch["col_2"].shape.as_list(), [4])
+            self.assertEqual(batch["col_1"].dtype.name, "int64")
+            self.assertEqual(batch["col_2"].dtype.name, "string")  # Assert that we're converting strings properly
         del tf_dataset  # For correct cleanup
 
 
