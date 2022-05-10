@@ -20,9 +20,7 @@ import os
 import datasets
 
 
-_CITATION = """\
-
-"""
+_CITATION = "N/A"
 
 
 _DESCRIPTION = """\
