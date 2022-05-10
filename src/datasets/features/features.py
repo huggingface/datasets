@@ -35,7 +35,7 @@ from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from .. import config
 from ..utils import logging
-from ..utils.py_utils import zip_dict
+from ..utils.py_utils import first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
 from .translation import Translation, TranslationVariableLanguages
@@ -1179,7 +1179,7 @@ def list_of_np_array_to_pyarrow_listarray(l_arr: List[np.ndarray], type: pa.Data
 
 
 def contains_any_np_array(data: Any):
-    """Return `True` if data is a NumPy ndarray or (recursively) a list containing any NumPy ndarray.
+    """Return `True` if data is a NumPy ndarray or (recursively) if first non-null value in list is a NumPy ndarray.
 
     Args:
         data (Any): Data.
@@ -1190,7 +1190,7 @@ def contains_any_np_array(data: Any):
     if isinstance(data, np.ndarray):
         return True
     elif isinstance(data, list):
-        return any(contains_any_np_array(item) for item in data)
+        return contains_any_np_array(first_non_null_value(data)[1])
     else:
         return False
 
