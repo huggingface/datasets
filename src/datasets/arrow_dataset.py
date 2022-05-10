@@ -94,7 +94,7 @@ from .utils.file_utils import _retry, estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import convert_file_size_to_int, temporary_assignment, unique_values
 from .utils.streaming_download_manager import xgetsize
-from .utils.tf_utils import is_numeric_feature, minimal_tf_collate_fn
+from .utils.tf_utils import minimal_tf_collate_fn
 from .utils.typing import PathLike
 
 
