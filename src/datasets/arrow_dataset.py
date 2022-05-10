@@ -394,7 +394,7 @@ class TensorflowDatasetMixin:
                 raise ValueError("List of columns contains duplicates.")
             cols_to_retain = list(set(columns + label_cols))
         else:
-            cols_to_retain = None  # Indicates keeping all columns
+            cols_to_retain = None  # Indicates keeping all non-numerical columns
             columns = []
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
@@ -418,12 +418,8 @@ class TensorflowDatasetMixin:
                 if col not in columns and col not in label_cols and col not in ("label_ids", "label")
             ]
             dataset = dataset.remove_columns(unwanted_columns)
-        else:
-            # If the user hasn't specified columns, give them all numerical columns
-            unwanted_columns = [
-                feature_name for feature_name, feature in self.features.items() if not is_numeric_feature(feature)
-            ]
-            dataset = dataset.remove_columns(unwanted_columns)
+        # If the user hasn't specified columns, give them all columns. This may break some data collators if columns
+        # are non-numeric!
 
         # endregion
 
