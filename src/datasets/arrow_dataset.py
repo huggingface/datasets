@@ -220,7 +220,7 @@ class TensorflowDatasetMixin:
         dataset: "Dataset",
         collate_fn: Callable,
         collate_fn_args: dict,
-        batch_size: Optional[int],
+        batch_size: Optional[int] = None,
         num_test_batches: int = 10,
     ):
         """Private method used by `to_tf_dataset()` to find the shapes and dtypes of samples from this dataset
