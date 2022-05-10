@@ -1106,7 +1106,9 @@ The labels are indexed based on a sorted list of synset ids such as `n07565083` 
 
 ### Data Splits
 
-[More Information Needed]
+|             |train|
+|-------------|----:|
+|# of examples|50000|
 
 ## Dataset Creation
 
