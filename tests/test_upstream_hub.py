@@ -29,7 +29,7 @@ def with_staging_testing(func):
     config = patch.multiple(
         "datasets.config",
         HF_ENDPOINT=ENDPOINT_STAGING,
-        HUB_DATASETS_URL=ENDPOINT_STAGING + "/datasets/{path}/resolve/{revision}/{name}",
+        HUB_DATASETS_URL=ENDPOINT_STAGING + "/datasets/{repo_id}/resolve/{revision}/{path}",
     )
     return config(func)
 

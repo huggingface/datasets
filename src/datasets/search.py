@@ -243,7 +243,9 @@ class FaissIndex(BaseIndex):
         self.faiss_index = custom_index
         if not _has_faiss:
             raise ImportError(
-                "You must install Faiss to use FaissIndex. To do so you can run `pip install faiss-cpu` or `pip install faiss-gpu`"
+                "You must install Faiss to use FaissIndex. To do so you can run `conda install -c pytorch faiss-cpu` or `conda install -c pytorch faiss-gpu`. "
+                "A community supported package is also available on pypi: `pip install faiss-cpu` or `pip install faiss-gpu`. "
+                "Note that pip may not have the latest version of FAISS, and thus, some of the latest features and bug fixes may not be available."
             )
 
     def add_vectors(
@@ -312,6 +314,8 @@ class FaissIndex(BaseIndex):
         # If device is not specified, then it runs on CPU.
         if device is None:
             return index
+
+        import faiss  # noqa: F811
 
         # If the device id is given as an integer
         if isinstance(device, int):

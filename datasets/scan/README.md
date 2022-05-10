@@ -102,8 +102,6 @@ data = datasets.load_dataset('scan/length')
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### addprim_jump

@@ -93,8 +93,6 @@ These highlight existing biases which motivate the use of a multi-lingual datase
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### de

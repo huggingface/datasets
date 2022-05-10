@@ -55,8 +55,6 @@ The SciQ dataset contains 13,679 crowdsourced science exam questions about Physi
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

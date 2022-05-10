@@ -57,8 +57,6 @@ Data are collected from four sources: 4,500 English questions published by USC (
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

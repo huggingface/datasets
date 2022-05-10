@@ -126,10 +126,11 @@ class RunBeamCommand(BaseDatasetsCLICommand):
                 if not self._force_redownload
                 else DownloadMode.FORCE_REDOWNLOAD,
                 download_config=DownloadConfig(cache_dir=config.DOWNLOADED_DATASETS_PATH),
-                save_infos=self._save_infos,
                 ignore_verifications=self._ignore_verifications,
                 try_from_hf_gcs=False,
             )
+            if self._save_infos:
+                builder._save_infos()
 
         print("Apache beam run successful.")
 

@@ -57,8 +57,6 @@ coreferences before selecting the appropriate span(s) in the paragraphs for answ
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

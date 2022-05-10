@@ -51,9 +51,9 @@ pretty_name: RedCaps
 
 ## Dataset Description
 
-- **Homepage:** https://redcaps.xyz/
-- **Repository:**
-- **Paper:** https://arxiv.org/abs/2111.11431
+- **Homepage:** [RedCaps homepage](https://redcaps.xyz/)
+- **Repository:** [RedCaps repository](https://github.com/redcaps-dataset/redcaps-downloader)
+- **Paper:** [RedCaps: web-curated image-text data created by the people, for the people](https://arxiv.org/abs/2111.11431)
 - **Leaderboard:**
 - **Point of Contact:** [Karan Desai](mailto:kdexd@umich.edu)
 
@@ -84,13 +84,16 @@ from datasets import load_dataset
 from datasets.utils.file_utils import get_datasets_user_agent
 
 
+USER_AGENT = get_datasets_user_agent()
+
+
 def fetch_single_image(image_url, timeout=None, retries=0):
     for _ in range(retries + 1):
         try:
             request = urllib.request.Request(
                 image_url,
                 data=None,
-                headers={"user-agent": get_datasets_user_agent()},
+                headers={"user-agent": USER_AGENT},
             )
             with urllib.request.urlopen(request, timeout=timeout) as req:
                 image = PIL.Image.open(io.BytesIO(req.read()))
@@ -118,6 +121,8 @@ Some image links point to more than one image. You can process and downloaded th
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 import io
+import os
+import re
 import urllib
 
 import PIL.Image
@@ -127,13 +132,16 @@ from datasets import load_dataset
 from datasets.utils.file_utils import get_datasets_user_agent
 
 
+USER_AGENT = get_datasets_user_agent()
+
+
 def fetch_single_image(image_url, timeout=None, retries=0):
     for _ in range(retries + 1):
         try:
             request = urllib.request.Request(
                 image_url,
                 data=None,
-                headers={"user-agent": get_datasets_user_agent()},
+                headers={"user-agent": USER_AGENT},
             )
             with urllib.request.urlopen(request, timeout=timeout) as req:
                 image = PIL.Image.open(io.BytesIO(req.read()))
@@ -452,7 +460,7 @@ From the paper:
 
 ### Citation Information
 
-```
+```bibtex
 @misc{desai2021redcaps,
       title={RedCaps: web-curated image-text data created by the people, for the people},
       author={Karan Desai and Gaurav Kaul and Zubin Aysola and Justin Johnson},

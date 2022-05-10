@@ -60,8 +60,6 @@ data = datasets.load_dataset('cfq/mcd1')
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### mcd1

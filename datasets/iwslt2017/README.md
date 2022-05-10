@@ -57,8 +57,6 @@ For each language pair, training and development sets are available through the 
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### iwslt2017-ar-en

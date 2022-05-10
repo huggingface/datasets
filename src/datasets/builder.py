@@ -203,6 +203,9 @@ class DatasetBuilder:
     # Optional default config name to be used used when name is None
     DEFAULT_CONFIG_NAME = None
 
+    # Whether to skip checksum computation of the downloaded data files.
+    SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT = False
+
     def __init__(
         self,
         cache_dir: Optional[str] = None,
@@ -212,7 +215,7 @@ class DatasetBuilder:
         info: Optional[DatasetInfo] = None,
         features: Optional[Features] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
-        namespace: Optional[str] = None,
+        repo_id: Optional[str] = None,
         data_files: Optional[Union[str, list, dict, DataFilesDict]] = None,
         data_dir: Optional[str] = None,
         **config_kwargs,
@@ -234,8 +237,9 @@ class DatasetBuilder:
                 It can be used to changed the :obj:`datasets.Features` description of a dataset for example.
             use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
                 for remote files on the Datasets Hub. If True, will get token from ``"~/.huggingface"``.
-            namespace: `str`, used to separate builders with the same name but not coming from the same namespace.
-                For example to separate "squad" from "lhoestq/squad" (the builder name would be "lhoestq___squad").
+            repo_id: `str`, used to separate builders with the same name but not coming from the same namespace.
+                For example to separate repo_id "squad" from repo_id "lhoestq/squad".
+                In this case, the builder name would be "lhoestq___squad".
             data_files: for builders like "csv" or "json" that need the user to specify data files. They can be either
                 local or remote files. For convenience you can use a DataFilesDict.
             data_dir: `str`, for builders that require manual download. It must be the path to the local directory containing
@@ -248,7 +252,7 @@ class DatasetBuilder:
         self.hash: Optional[str] = hash
         self.base_path = base_path
         self.use_auth_token = use_auth_token
-        self.namespace = namespace
+        self.repo_id = repo_id
 
         if data_files is not None and not isinstance(data_files, DataFilesDict):
             data_files = DataFilesDict.from_local_or_remote(
@@ -418,11 +422,12 @@ class DatasetBuilder:
         """Relative path of this dataset in cache_dir:
         Will be:
             self.name/self.config.version/self.hash/
-        or if a namespace has been specified:
+        or if a repo_id with a namespace has been specified:
             self.namespace___self.name/self.config.version/self.hash/
         If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
-        builder_data_dir = self.name if self.namespace is None else f"{self.namespace}___{self.name}"
+        namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
+        builder_data_dir = self.name if namespace is None else f"{namespace}___{self.name}"
         builder_config = self.config
         hash = self.hash
         if builder_config:
@@ -501,7 +506,6 @@ class DatasetBuilder:
             download_config (:class:`DownloadConfig`, optional): specific download configuration parameters.
             download_mode (:class:`DownloadMode`, optional): select the download/generate mode - Default to ``REUSE_DATASET_IF_EXISTS``
             ignore_verifications (:obj:`bool`): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
-            save_infos (:obj:`bool`): Save the dataset information (checksums/size/splits/...)
             try_from_hf_gcs (:obj:`bool`): If True, it will try to download the already prepared dataset from the Hf google cloud storage
             dl_manager (:class:`DownloadManager`, optional): specific Download Manger to use
             base_path (:obj:`str`, optional): base path for relative paths that are used to download files. This can be a remote url.
@@ -513,6 +517,7 @@ class DatasetBuilder:
         download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
         base_path = base_path if base_path is not None else self.base_path
+
         if dl_manager is None:
             if download_config is None:
                 download_config = DownloadConfig(
@@ -528,8 +533,11 @@ class DatasetBuilder:
                 download_config=download_config,
                 data_dir=self.config.data_dir,
                 base_path=base_path,
-                record_checksums=self._record_infos or verify_infos,
+                record_checksums=(self._record_infos or verify_infos)
+                if not self.SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT
+                else False,
             )
+
         elif isinstance(dl_manager, MockDownloadManager):
             try_from_hf_gcs = False
         self.dl_manager = dl_manager
@@ -672,7 +680,7 @@ class DatasetBuilder:
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
 
         # Checksums verification
-        if verify_infos:
+        if verify_infos and dl_manager.record_checksums:
             verify_checksums(
                 self.info.download_checksums, dl_manager.get_recorded_sizes_checksums(), "dataset source files"
             )
@@ -818,10 +826,11 @@ class DatasetBuilder:
             if post_processed is not None:
                 ds = post_processed
                 recorded_checksums = {}
+                record_checksums = False
                 for resource_name, resource_path in resources_paths.items():
-                    size_checksum = get_size_checksum_dict(resource_path, record_checksum=verify_infos)
+                    size_checksum = get_size_checksum_dict(resource_path)
                     recorded_checksums[resource_name] = size_checksum
-                if verify_infos:
+                if verify_infos and record_checksums:
                     if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
                         expected_checksums = None
                     else:
@@ -927,7 +936,11 @@ class DatasetBuilder:
         splits_generator,
     ) -> IterableDataset:
         ex_iterable = self._get_examples_iterable_for_split(splits_generator)
-        return IterableDataset(ex_iterable, info=self.info, split=splits_generator.name)
+        # add auth to be able to access and decode audio/image files from private repositories.
+        token_per_repo_id = {self.repo_id: self.use_auth_token} if self.repo_id else {}
+        return IterableDataset(
+            ex_iterable, info=self.info, split=splits_generator.name, token_per_repo_id=token_per_repo_id
+        )
 
     def _post_process(self, dataset: Dataset, resources_paths: Mapping[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
