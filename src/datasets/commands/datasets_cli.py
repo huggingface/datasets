@@ -9,6 +9,10 @@ from datasets.commands.test import TestCommand
 from datasets.utils.logging import set_verbosity_info
 
 
+def parse_unknown_args(unknown_args):
+    return {key.lstrip("-"): value for key, value in zip(unknown_args[::2], unknown_args[1::2])}
+
+
 def main():
     parser = ArgumentParser("HuggingFace Datasets CLI tool", usage="datasets-cli <command> [<args>]")
     commands_parser = parser.add_subparsers(help="datasets-cli command helpers")
@@ -21,15 +25,15 @@ def main():
     RunBeamCommand.register_subcommand(commands_parser)
     DummyDataCommand.register_subcommand(commands_parser)
 
-    # Let's go
-    args = parser.parse_args()
-
+    # Parse args
+    args, unknown_args = parser.parse_known_args()
     if not hasattr(args, "func"):
         parser.print_help()
         exit(1)
+    kwargs = parse_unknown_args(unknown_args)
 
     # Run
-    service = args.func(args)
+    service = args.func(args, **kwargs)
     service.run()
 
 
