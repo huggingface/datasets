@@ -225,7 +225,7 @@ class CnnDailymail(datasets.GeneratorBasedBuilder):
                     "urls_file": dl_paths[split],
                     "files_per_archive": [
                         dl_manager.iter_archive(dl_paths["cnn_stories"]),
-                        dl_manager.iter_archive(dl_paths["dm_stories"])
+                        dl_manager.iter_archive(dl_paths["dm_stories"]),
                     ],
                 },
             )
