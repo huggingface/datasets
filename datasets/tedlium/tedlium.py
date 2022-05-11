@@ -65,7 +65,7 @@ class TedLium(datasets.GeneratorBasedBuilder):
         # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
         if self.config.name == "release1":  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features({
-                "speech":
+                "audio":
                     datasets.features.Audio(sampling_rate=16_000),
                 "text":
                     datasets.Value('string'),
@@ -73,6 +73,7 @@ class TedLium(datasets.GeneratorBasedBuilder):
                     datasets.Value('string'),
                 "gender":
                     datasets.features.ClassLabel(names=["unknown", "female", "male"]),
+                "file": datasets.Value('string'),
                 "id":
                     datasets.Value('string'),
             })
@@ -83,7 +84,7 @@ class TedLium(datasets.GeneratorBasedBuilder):
             features=features,  # Here we define them above because they are different between the two configurations
             # If there's a common (input, target) tuple from the features, uncomment supervised_keys line below and
             # specify them. They'll be used if as_supervised=True in builder.as_dataset.
-            supervised_keys=("speech", "text"),
+            supervised_keys=("audio", "text"),
             # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
             # License for the dataset if available
@@ -93,11 +94,6 @@ class TedLium(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLS
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         urls = _URLS[self.config.name]
         data_dir = dl_manager.download_and_extract(urls)
 
@@ -115,29 +111,31 @@ class TedLium(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Generate examples from a TED-LIUM stm file."""
-        stm_path = os.path.join(filepath, "stm")
-        stm_dir = os.path.dirname(stm_path)
-        sph_dir = os.path.join(os.path.dirname(stm_dir), "sph")
-        with open(stm_path) as f:
-            for line in f:
-                line = line.strip()
-                fn, channel, speaker, start, end, label, transcript = line.split(" ", 6)
-                transcript = _maybe_trim_suffix(transcript)
+        stm_dir = os.path.join(filepath, "stm")
+        sph_dir = os.path.join(filepath, "sph")
+        stm_files = [os.path.join(stm_dir, f) for f in os.listdir(stm_dir) if f.endswith('.stm')]
+        for file in stm_files:
+            with open(file) as f:
+                for line in f:
+                    line = line.strip()
+                    fn, channel, speaker, start, end, label, transcript = line.split(" ", 6)
+                    transcript = _maybe_trim_suffix(transcript)
 
-                audio_file = "%s.sph" % fn
-                samples = _extract_audio_segment(
-                    os.path.join(sph_dir, audio_file), int(channel), float(start),
-                    float(end))
+                    audio_file = "%s.sph" % fn
+                    samples = _extract_audio_segment(
+                        os.path.join(sph_dir, audio_file), int(channel), float(start),
+                        float(end))
 
-                key = "-".join([speaker, start, end, label])
-                example = {
-                    "speech": samples,
-                    "text": transcript,
-                    "speaker_id": speaker,
-                    "gender": _parse_gender(label),
-                    "id": key,
-                }
-                yield key, example
+                    key = "-".join([speaker, start, end, label])
+                    example = {
+                        "audio": {"path": file, "bytes": samples},
+                        "text": transcript,
+                        "speaker_id": speaker,
+                        "gender": _parse_gender(label),
+                        "file": file,
+                        "id": key,
+                    }
+                    yield key, example
 
 def _maybe_trim_suffix(transcript):
     # stm files for the TEDLIUM release 1 train split contain a key (enclosed in
