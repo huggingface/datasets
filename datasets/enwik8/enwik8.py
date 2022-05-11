@@ -16,6 +16,7 @@ import os
 
 import datasets
 
+
 _CITATION = ""
 
 # You can copy an official description
@@ -29,10 +30,7 @@ _LICENSE = ""
 
 # The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URLS = {
-    "single_source": "http://cs.fit.edu/~mmahoney/compression/enwik8.zip",
-    "split_source": "https://data.deepai.org/enwik8.zip",
-}
+_URLS = {"source": "http://cs.fit.edu/~mmahoney/compression/enwik8.zip"}
 
 
 class Enwik8(datasets.GeneratorBasedBuilder):
@@ -41,28 +39,18 @@ class Enwik8(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="single",
+            name="enwik8",
             version=VERSION,
             description="This version of the dataset contains a split by line version with all content",
         ),
         datasets.BuilderConfig(
-            name="single-raw",
+            name="enwik8-raw",
             version=VERSION,
             description="This version of the dataset contains a raw string version split with all content",
         ),
-        datasets.BuilderConfig(
-            name="split",
-            version=VERSION,
-            description="This version of the dataset contains a split by line version for train, test and validation",
-        ),
-        datasets.BuilderConfig(
-            name="split-raw",
-            version=VERSION,
-            description="This version of the dataset contains a raw string version for train, test and validation",
-        ),
     ]
 
-    DEFAULT_CONFIG_NAME = "split"
+    DEFAULT_CONFIG_NAME = "enwik8"
 
     def _info(self):
 
@@ -80,43 +68,18 @@ class Enwik8(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
 
-        urls = _URLS[self.config.name]
+        urls = _URLS["source"]
         data_dir = dl_manager.download_and_extract(urls)
 
-        if self.config.name.startswith("single"):
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "enwik8"),
-                        "split": "train",
-                    },
-                )
-            ]
-        else:
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "train.txt.raw"),
-                        "split": "train",
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "test.txt.raw"),
-                        "split": "test",
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "valid.txt.raw"),
-                        "split": "dev",
-                    },
-                ),
-            ]
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "enwik8"),
+                    "split": "train",
+                },
+            )
+        ]
 
     # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     def _generate_examples(self, filepath, split):
@@ -130,4 +93,3 @@ class Enwik8(datasets.GeneratorBasedBuilder):
                         yield key, {"text": line}
                     else:
                         yield key, {"text": ""}
-
