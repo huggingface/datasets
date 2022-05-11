@@ -57,6 +57,22 @@ task_ids:
 
 The TED-LIUM corpus is English-language TED talks, with transcriptions, sampled at 16kHz. It contains about 118 hours of speech.
 
+
+### Example 
+
+```python
+from datasets import load_dataset
+
+tedlium = load_dataset("LIUM/minds14", "release1") # for Release 1
+
+# see structure
+print(tedlium)
+
+# load audio sample on the fly
+audio_input = tedlium["train"][0]["audio"]  # first decoded audio sample
+transcription = tedlium["train"][0]["text"]  # first transcription
+```
+
 ### Supported Tasks and Leaderboards
 
 - `automatic-speech-recognition`: The dataset can be used to train a model for Automatic Speech Recognition (ASR). The model is presented with an audio file and asked to transcribe the audio file to written text. The most common evaluation metric is the word error rate (WER). The task has an active leaderboard which can be found at https://paperswithcode.com/sota/speech-recognition-on-tedlium that ranks models based on their WER.
@@ -91,7 +107,7 @@ The audio and transcriptions are in English, as per the TED talks at http://www.
 ### Data Splits
 There are three releases for the TED-LIUM corpus, progressively increasing the number of transcribed speech training data from 118 hours (Release 1), to 207 hours (Release 2), to 452 hours (Release 3).
 
-Release 1 (default config) 2012:
+Release 1 (default config):
 - 774 audio talks and automatically aligned transcriptions.
 - Contains 118 hours of speech audio data.
 - Homepage: https://www.openslr.org/7/
@@ -104,7 +120,6 @@ Release 2:
 - Homepage: https://www.openslr.org/19/
 
 Release 3:
-
 - 2351 audio talks and automatically aligned transcriptions.
 - Contains 452 hours of speech audio data.
 - TED-LIUM 2 validation and test data: 19 TED talks with their corresponding manual transcriptions.
