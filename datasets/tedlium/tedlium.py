@@ -20,9 +20,8 @@ import numpy as np
 
 
 import datasets
-import tensorflow as tf
 
-import tensorflow_datasets.public_api as tfds
+from pydub import AudioSegment
 
 
 # Find for instance the citation on arxiv or on the dataset repo/website
@@ -114,10 +113,9 @@ class TedLium(datasets.GeneratorBasedBuilder):
             splits.append(datasets.SplitGenerator(name=split, gen_kwargs=kwargs))
         return splits
 
-    # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     def _generate_examples(self, filepath):
         """Generate examples from a TED-LIUM stm file."""
-        stm_path = filepath  # (?)
+        stm_path = os.path.join(filepath, "stm")
         stm_dir = os.path.dirname(stm_path)
         sph_dir = os.path.join(os.path.dirname(stm_dir), "sph")
         with open(stm_path) as f:
@@ -170,9 +168,8 @@ def _parse_gender(label_str):
 
 def _extract_audio_segment(sph_path, channel, start_sec, end_sec):
     """Extracts segment of audio samples (as an ndarray) from the given path."""
-    with tf.io.gfile.GFile(sph_path, "rb") as f:
-        segment = tfds.core.lazy_imports.pydub.AudioSegment.from_file(
-            f, format="nistsphere")
+    with open(sph_path, "rb") as f:
+        segment = AudioSegment.from_file(f, format="nistsphere")
     # The dataset only contains mono audio.
     assert segment.channels == 1
     assert channel == 1
