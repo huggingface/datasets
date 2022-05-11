@@ -1,3 +1,5 @@
+---
+pretty_name: TED-LIUM
 annotations_creators:
 - expert-generated
 language_creators:
@@ -16,6 +18,7 @@ task_categories:
 - automatic-speech-recognition
 task_ids:
 - automatic-speech-recognition
+---
 
 # Dataset Card for tedlium
 
@@ -143,10 +146,13 @@ Licensed under Creative Commons BY-NC-ND 3.0 (http://creativecommons.org/license
 
 ### Citation Information
 
-@inproceedings{rousseau2012tedlium,
-  title={TED-LIUM: an Automatic Speech Recognition dedicated corpus},
-  author={Rousseau, Anthony and Del{\'e}glise, Paul and Est{\`e}ve, Yannick},
-  booktitle={Conference on Language Resources and Evaluation (LREC)},
-  pages={125--129},
-  year={2012}
+```
+@inproceedings{panayotov2015librispeech,
+  title={Librispeech: an ASR corpus based on public domain audio books},
+  author={Panayotov, Vassil and Chen, Guoguo and Povey, Daniel and Khudanpur, Sanjeev},
+  booktitle={Acoustics, Speech and Signal Processing (ICASSP), 2015 IEEE International Conference on},
+  pages={5206--5210},
+  year={2015},
+  organization={IEEE}
 }
+```
