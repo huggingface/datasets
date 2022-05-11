@@ -57,6 +57,21 @@ paperswithcode_id: mocap
 
 The CMU Graphics Lab Motion Capture Database is a dataset containing motion capture recordings of people performing different actions such as walking, jumping, dancing etc. The actions have been performed by over 110 subjects. There are a total of over 2500 trials in 6 categories and 23 subcategories.
 
+### Dataset Preprocessing
+
+The dataset contains motions in the following formats :
+
+- asf/amc : The ASF file (Acclaim Skeleton File) is a skeleton file . AMC files (Acclaim Motion Capture data) are the motion files. Most of the time a single skeleton works for many different motions and rather than storing the same skeleton in each of the motion files, thus for each subject there is one ASF file along with AMC files for each motion.
+
+The AMC/ASF files can be parsed using [AMCParser library](https://github.com/CalciferZh/AMCParser). You can check the Usage section in this libary for more information.
+
+- c3d : The C3D format stores 3D coordinate information, analog data and associated information used in 3D motion data capture and subsequent analysis operations. 
+
+You can use [py-c3d library](https://c3d.readthedocs.io/en/stable/) for reading and writing C3D binary files.
+
+- avi and mpg : AVI (Audio Video Interleave) has been the long standing format to save and deliver movies and other video files. An MPG file is a common video file that uses a digital video format standardized by the Moving Picture Experts Group (MPEG)
+
+You can use a video loader library such as [decord](https://github.com/dmlc/decord) to load and process these files.
 ### Supported Tasks and Leaderboards
 
 [More Information Needed]
