@@ -14,7 +14,9 @@ def parse_unknown_args(unknown_args):
 
 
 def main():
-    parser = ArgumentParser("HuggingFace Datasets CLI tool", usage="datasets-cli <command> [<args>]")
+    parser = ArgumentParser(
+        "HuggingFace Datasets CLI tool", usage="datasets-cli <command> [<args>]", allow_abbrev=False
+    )
     commands_parser = parser.add_subparsers(help="datasets-cli command helpers")
     set_verbosity_info()
 

@@ -22,7 +22,7 @@ def run_beam_command_factory(args, **kwargs):
         args.save_infos,
         args.ignore_verifications,
         args.force_redownload,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -118,7 +118,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
                     beam_options=beam_options,
                     cache_dir=self._cache_dir,
                     base_path=dataset_module.builder_kwargs.get("base_path"),
-                    **self._config_kwargs
+                    **self._config_kwargs,
                 )
             )
 
