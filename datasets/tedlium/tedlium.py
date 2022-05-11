@@ -1,5 +1,4 @@
-# coding=utf-8
-# Copyright 2022 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
+# Copyright 2022 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,36 +20,13 @@ import numpy as np
 
 
 import datasets
-from datasets.tasks import AutomaticSpeechRecognition
+import tensorflow as tf
+
+import tensorflow_datasets.public_api as tfds
 
 
-class TedliumReleaseConfig(datasets.BuilderConfig):
-  """BuilderConfig for a release of the TED-LIUM dataset."""
-
-  def __init__(self, *, url, download_url, split_paths, citation, **kwargs):
-    super(TedliumReleaseConfig, self).__init__(
-        version=datasets.Version("1.0.1"), **kwargs)
-    self.url = url
-    self.download_url = download_url
-    # List of split, path pairs containing the relative path within the
-    # extracted tarball to the data for each split.
-    self.split_paths = split_paths
-    self.citation = citation
-
-
-def _make_builder_configs():
-  """Creates builder configs for all supported Tedlium dataset releases."""
-  release1 = TedliumReleaseConfig(
-      name="release1",
-      description="""\
-        The TED-LIUM corpus is English-language TED talks, with transcriptions,
-        sampled at 16kHz. It contains about 118 hours of speech.
-
-        This is the TED-LIUM corpus release 1,
-        licensed under Creative Commons BY-NC-ND 3.0
-        (http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en).
-        """,
-      citation="""\
+# Find for instance the citation on arxiv or on the dataset repo/website
+_CITATION = """\
         @inproceedings{rousseau2012tedlium,
           title={TED-LIUM: an Automatic Speech Recognition dedicated corpus},
           author={Rousseau, Anthony and Del{\\'e}glise, Paul and Est{\\`e}ve, Yannick},
@@ -58,218 +34,150 @@ def _make_builder_configs():
           pages={125--129},
           year={2012}
         }
-        """,
-      url="https://www.openslr.org/7/",
-      download_url="http://www.openslr.org/resources/7/TEDLIUM_release1.tar.gz",
-      split_paths=[(datasets.Split.TRAIN, os.path.join("TEDLIUM_release1",
-                                                   "train")),
-                   (datasets.Split.VALIDATION,
-                    os.path.join("TEDLIUM_release1", "dev")),
-                   (datasets.Split.TEST, os.path.join("TEDLIUM_release1", "test"))])
+        """
 
-  release2 = TedliumReleaseConfig(
-      name="release2",
-      description="""\
-        This is the TED-LIUM corpus release 2,
-        licensed under Creative Commons BY-NC-ND 3.0
-        (http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en).
-
-        All talks and text are property of TED Conferences LLC.
-
-        The TED-LIUM corpus was made from audio talks and their transcriptions
-        available on the TED website. We have prepared and filtered these data
-        in order to train acoustic models to participate to the International
-        Workshop on Spoken Language Translation 2011 (the LIUM English/French
-        SLT system reached the first rank in the SLT task).
-
-        Contains 1495 talks and transcripts.
-        """,
-      citation="""\
-        @inproceedings{rousseau2014tedlium2,
-          title={Enhancing the {TED-LIUM} Corpus with Selected Data for Language Modeling and More {TED} Talks},
-          author={Rousseau, Anthony and Del{\\'e}glise, Paul and Est{\\`e}ve, Yannick},
-          booktitle={Conference on Language Resources and Evaluation (LREC)},
-          year={2014}
-        }
-        """,
-      url="https://www.openslr.org/19/",
-      download_url="http://www.openslr.org/resources/19/TEDLIUM_release2.tar.gz",
-      split_paths=[(datasets.Split.TRAIN, os.path.join("TEDLIUM_release2",
-                                                   "train")),
-                   (datasets.Split.VALIDATION,
-                    os.path.join("TEDLIUM_release2", "dev")),
-                   (datasets.Split.TEST, os.path.join("TEDLIUM_release2", "test"))])
-
-  release3 = TedliumReleaseConfig(
-      name="release3",
-      description="""\
-        This is the TED-LIUM corpus release 3, licensed under Creative Commons
-        BY-NC-ND 3.0.
-
-        All talks and text are property of TED Conferences LLC.
-
-        This new TED-LIUM release was made through a collaboration between the
-        Ubiqus company and the LIUM (University of Le Mans, France)
-
-        Contents:
-
-        - 2351 audio talks in NIST sphere format (SPH), including talks from
-          TED-LIUM 2: be careful, same talks but not same audio files (only
-          these audio file must be used with the TED-LIUM 3 STM files)
-        - 452 hours of audio
-        - 2351 aligned automatic transcripts in STM format
-        - TEDLIUM 2 dev and test data: 19 TED talks in SPH format with
-          corresponding manual transcriptions (cf. 'legacy' distribution below).
-        - Dictionary with pronunciations (159848 entries), same file as the one
-          included in TED-LIUM 2
-        - Selected monolingual data for language modeling from WMT12 publicly
-          available corpora: these files come from the TED-LIUM 2 release, but
-          have been modified to get a tokenization more relevant for English
-          language
-
-        Two corpus distributions:
-        - the legacy one, on which the dev and test datasets are the same as in
-          TED-LIUM 2 (and TED-LIUM 1).
-        - the 'speaker adaptation' one, especially designed for experiments on
-          speaker adaptation.
-        """,
-      citation="""\
-        @inproceedings{hernandez2018tedlium3,
-          title={TED-LIUM 3: twice as much data and corpus repartition for experiments on speaker adaptation},
-          author={Hernandez, Fran{\\c{c}}ois and Nguyen, Vincent and Ghannay, Sahar and Tomashenko, Natalia and Est{\\`e}ve, Yannick},
-          booktitle={International Conference on Speech and Computer},
-          pages={198--208},
-          year={2018},
-          organization={Springer}
-        }
-        """,
-      url="https://www.openslr.org/51/",
-      download_url="http://www.openslr.org/resources/51/TEDLIUM_release-3.tgz",
-      split_paths=[
-          (datasets.Split.VALIDATION,
-           os.path.join("TEDLIUM_release-3", "legacy", "dev")),
-          (datasets.Split.TEST, os.path.join("TEDLIUM_release-3", "legacy",
-                                         "test")),
-          # The legacy/train directory contains symlinks to "data",
-          # which are skipped by extraction (see above).
-          # Work around this by manually dereferencing the links here.
-          (datasets.Split.TRAIN, os.path.join("TEDLIUM_release-3", "data"))
-      ])
-
-  return [release1, release2, release3]
-
-
-class Tedlium(datasets.BeamBasedBuilder):
-  """TED-LIUM speech recognition dataset."""
-
-  BUILDER_CONFIGS = _make_builder_configs()
-
-  def _info(self):
-    return datasets.DatasetInfo(
-        description="""
+_DESCRIPTION = """\
         The TED-LIUM corpus is English-language TED talks, with transcriptions,
         sampled at 16kHz. It contains about 118 hours of speech.
-        """,
-        features=datasets.Features({
-            "speech":
-                datasets.features.Audio(sampling_rate=16_000),
-            "text":
-                datasets.Value('string'),
-            "speaker_id":
-                datasets.Value('string'),
-            "gender":
-                datasets.features.ClassLabel(names=["unknown", "female", "male"]),
-            "id":
-                datasets.Value('string'),
-        }),
-        supervised_keys=("speech", "text"),
-        homepage=self.config.url,
-        citation=self.config.citation,
-        task_templates=[AutomaticSpeechRecognition(audio_column="speech", transcription_column="text")],
-    )
 
-  def _split_generators(self, dl_manager):
-    extracted_dir = dl_manager.download_and_extract(
-        self.config.download_url)
-    splits = []
-    for split, path in self.config.split_paths:
-      kwargs = {"directory": os.path.join(extracted_dir, path)}
-      splits.append(datasets.SplitGenerator(name=split, gen_kwargs=kwargs))
-    return splits
+        This is the TED-LIUM corpus release 1.
+        """
 
-  def _build_pcollection(self, pipeline, directory):
-    import apache_beam as beam
-    stm_directory = os.path.join(directory, "stm")
-    stm_files = [os.path.join(stm_directory, f) for f in os.listdir(stm_directory) if f.endswith('.stm')]
-    return (pipeline
-            | beam.Create(stm_files)
-            | beam.FlatMap(_generate_examples_from_stm_file))
+_HOMEPAGE = "https://www.openslr.org/7/"
+
+_LICENSE = "licensed under Creative Commons BY-NC-ND 3.0 (http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en)"
+
+# The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
+_URLS = {"release1" : "http://www.openslr.org/resources/7/TEDLIUM_release1.tar.gz"}
 
 
-def _generate_examples_from_stm_file(stm_path):
-  """Generate examples from a TED-LIUM stm file."""
-  stm_dir = os.path.dirname(stm_path)
-  sph_dir = os.path.join(os.path.dirname(stm_dir), "sph")
-  with open(stm_path) as f:
-    for line in f:
-      line = line.strip()
-      fn, channel, speaker, start, end, label, transcript = line.split(" ", 6)
-      transcript = _maybe_trim_suffix(transcript)
+class TedLium(datasets.GeneratorBasedBuilder):
+    """ The TED-LIUM corpus is English-language TED talks, with transcriptions, sampled at 16kHz. It contains about 118 hours of speech."""
 
-      audio_file = "%s.sph" % fn
-      samples = _extract_audio_segment(
-          os.path.join(sph_dir, audio_file), int(channel), float(start),
-          float(end))
+    VERSION = datasets.Version("1.1.0")
 
-      key = "-".join([speaker, start, end, label])
-      example = {
-          "speech": samples,
-          "text": transcript,
-          "speaker_id": speaker,
-          "gender": _parse_gender(label),
-          "id": key,
-      }
-      yield key, example
+    BUILDER_CONFIGS = [
+        datasets.BuilderConfig(name="release1", version=VERSION, description="TEDLIUM first release"),
+    ]
 
+    DEFAULT_CONFIG_NAME = "release1"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+
+    def _info(self):
+        # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
+        if self.config.name == "release1":  # This is the name of the configuration selected in BUILDER_CONFIGS above
+            features = datasets.Features({
+                "speech":
+                    datasets.features.Audio(sampling_rate=16_000),
+                "text":
+                    datasets.Value('string'),
+                "speaker_id":
+                    datasets.Value('string'),
+                "gender":
+                    datasets.features.ClassLabel(names=["unknown", "female", "male"]),
+                "id":
+                    datasets.Value('string'),
+            })
+        return datasets.DatasetInfo(
+            # This is the description that will appear on the datasets page.
+            description=_DESCRIPTION,
+            # This defines the different columns of the dataset and their types
+            features=features,  # Here we define them above because they are different between the two configurations
+            # If there's a common (input, target) tuple from the features, uncomment supervised_keys line below and
+            # specify them. They'll be used if as_supervised=True in builder.as_dataset.
+            supervised_keys=("speech", "text"),
+            # Homepage of the dataset for documentation
+            homepage=_HOMEPAGE,
+            # License for the dataset if available
+            license=_LICENSE,
+            # Citation for the dataset
+            citation=_CITATION,
+        )
+
+    def _split_generators(self, dl_manager):
+        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
+
+        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLS
+        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
+        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
+        urls = _URLS[self.config.name]
+        data_dir = dl_manager.download_and_extract(urls)
+
+        split_paths = [(datasets.Split.TRAIN, os.path.join("TEDLIUM_release1",
+                                                           "train")),
+                       (datasets.Split.VALIDATION,
+                        os.path.join("TEDLIUM_release1", "dev")),
+                       (datasets.Split.TEST, os.path.join("TEDLIUM_release1", "test"))]
+
+        splits = []
+        for split, path in split_paths:
+            kwargs = {"filepath": os.path.join(data_dir, path)}
+            splits.append(datasets.SplitGenerator(name=split, gen_kwargs=kwargs))
+        return splits
+
+    # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
+    def _generate_examples(self, filepath):
+        """Generate examples from a TED-LIUM stm file."""
+        stm_path = filepath  # (?)
+        stm_dir = os.path.dirname(stm_path)
+        sph_dir = os.path.join(os.path.dirname(stm_dir), "sph")
+        with open(stm_path) as f:
+            for line in f:
+                line = line.strip()
+                fn, channel, speaker, start, end, label, transcript = line.split(" ", 6)
+                transcript = _maybe_trim_suffix(transcript)
+
+                audio_file = "%s.sph" % fn
+                samples = _extract_audio_segment(
+                    os.path.join(sph_dir, audio_file), int(channel), float(start),
+                    float(end))
+
+                key = "-".join([speaker, start, end, label])
+                example = {
+                    "speech": samples,
+                    "text": transcript,
+                    "speaker_id": speaker,
+                    "gender": _parse_gender(label),
+                    "id": key,
+                }
+                yield key, example
 
 def _maybe_trim_suffix(transcript):
-  # stm files for the TEDLIUM release 1 train split contain a key (enclosed in
-  # parens) at the end.
-  splits = transcript.rsplit(" ", 1)
-  transcript = splits[0]
-  if len(splits) > 1:
-    suffix = splits[-1]
+    # stm files for the TEDLIUM release 1 train split contain a key (enclosed in
+    # parens) at the end.
+    splits = transcript.rsplit(" ", 1)
+    transcript = splits[0]
+    if len(splits) > 1:
+        suffix = splits[-1]
     if not suffix.startswith("("):
-      transcript += " " + suffix
-  return transcript
+        transcript += " " + suffix
+    return transcript
 
 
 def _parse_gender(label_str):
-  """Parse gender string from STM "<label>" field."""
-  gender = re.split(",|_", label_str)[-1][:-1]
-  # Fix inconsistencies in the data.
-  if not gender:
-    gender = -1  # Missing label.
-  elif gender == "<NA":  # In TEDLIUM release 3 training data.
-    gender = -1  # Missing label.
-  elif gender == "F":
-    gender = "female"
-  elif gender == "M":
-    gender = "male"
-  return gender
+    """Parse gender string from STM "<label>" field."""
+    gender = re.split(",|_", label_str)[-1][:-1]
+    # Fix inconsistencies in the data.
+    if not gender:
+        gender = -1  # Missing label.
+    elif gender == "<NA":  # In TEDLIUM release 3 training data.
+        gender = -1  # Missing label.
+    elif gender == "F":
+        gender = "female"
+    elif gender == "M":
+        gender = "male"
+    return gender
 
 
 def _extract_audio_segment(sph_path, channel, start_sec, end_sec):
-  """Extracts segment of audio samples (as an ndarray) from the given path."""
-  with open(sph_path, "rb") as f:
-    # need to fix this tfds import too
-    segment = datasets.lazy_imports.pydub.AudioSegment.from_file(
-        f, format="nistsphere")
-  # The dataset only contains mono audio.
-  assert segment.channels == 1
-  assert channel == 1
-  start_ms = int(start_sec * 1000)
-  end_ms = int(end_sec * 1000)
-  segment = segment[start_ms:end_ms]
-  samples = np.array(segment.get_array_of_samples())
-  return samples
+    """Extracts segment of audio samples (as an ndarray) from the given path."""
+    with tf.io.gfile.GFile(sph_path, "rb") as f:
+        segment = tfds.core.lazy_imports.pydub.AudioSegment.from_file(
+            f, format="nistsphere")
+    # The dataset only contains mono audio.
+    assert segment.channels == 1
+    assert channel == 1
+    start_ms = int(start_sec * 1000)
+    end_ms = int(end_sec * 1000)
+    segment = segment[start_ms:end_ms]
+    samples = np.array(segment.get_array_of_samples())
+    return samples
