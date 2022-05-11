@@ -408,15 +408,15 @@ class Split:
     ```py
     >>> datasets.SplitGenerator(
     ...     name=datasets.Split.TRAIN,
-    ...     gen_kwargs={"split_key": "train", "files": dl_manager.iter_archive(archive)},
+    ...     gen_kwargs={"split_key": "train", "files": dl_manager.download_and extract(url)},
     ... ),
     ... datasets.SplitGenerator(
     ...     name=datasets.Split.VALIDATION,
-    ...     gen_kwargs={"split_key": "validation", "files": dl_manager.iter_archive(archive)},
+    ...     gen_kwargs={"split_key": "validation", "files": dl_manager.download_and extract(url)},
     ... ),
     ... datasets.SplitGenerator(
     ...     name=datasets.Split.TEST,
-    ...     gen_kwargs={"split_key": "test", "files": dl_manager.iter_archive(archive)},
+    ...     gen_kwargs={"split_key": "test", "files": dl_manager.download_and extract(url)},
     ... )
     ```
     """
@@ -582,7 +582,7 @@ class SplitGenerator:
     ```py
     >>> datasets.SplitGenerator(
     ...     name=datasets.Split.TRAIN,
-    ...     gen_kwargs={"split_key": "train", "files": dl_manager.iter_archive(archive)},
+    ...     gen_kwargs={"split_key": "train", "files": dl_manager.download_and_extract(url)},
     ... )
     ```
     """

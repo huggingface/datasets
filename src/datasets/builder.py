@@ -533,6 +533,12 @@ class DatasetBuilder:
             use_auth_token (:obj:`Union[str, bool]`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
                 If True, will get token from ~/.huggingface.
 
+        Example:
+
+        ```py
+        >>> from datasets import download_and_prepare
+        >>> builder = load_dataset_builder('rotten_tomatoes')
+        >>> ds = builder.download_and_prepare()
         """
         download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
@@ -790,6 +796,7 @@ class DatasetBuilder:
         ```py
         >>> from datasets import load_dataset_builder
         >>> builder = load_dataset_builder('rotten_tomatoes')
+        >>> ds = builder.download_and_prepare()
         >>> ds = builder.as_dataset(split='train')
         >>> ds
         Dataset({

@@ -232,7 +232,7 @@ class DownloadManager:
         Example:
 
         ```py
-        >>> downloaded_files = dl_manager.download_custom('https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz')
+        >>> downloaded_files = dl_manager.download_custom('s3://my-bucket/data.zip', custom_download_for_my_private_bucket)
         ```
         """
         cache_dir = self.download_config.cache_dir or config.DOWNLOADED_DATASETS_PATH
