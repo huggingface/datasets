@@ -361,9 +361,8 @@ def _add_retries_to_file_obj_read_method(file_obj):
 
 def _get_extraction_protocol_with_magic_number(f) -> Optional[str]:
     """read the magic number from a file-like object and return the compression protocol"""
-    prev_loc = f.loc
     magic_number = f.read(MAGIC_NUMBER_MAX_LENGTH)
-    f.seek(prev_loc)
+    f.seek(0)
     for i in range(MAGIC_NUMBER_MAX_LENGTH):
         compression = MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL.get(magic_number[: MAGIC_NUMBER_MAX_LENGTH - i])
         if compression is not None:  # TODO(QL): raise an error for .tar.gz files as in _get_extraction_protocol
