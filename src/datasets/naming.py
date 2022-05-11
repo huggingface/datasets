@@ -80,3 +80,20 @@ def filepath_for_dataset_split(dataset_name, split, data_dir, filetype_suffix=No
     )
     filepath = os.path.join(data_dir, filename)
     return filepath
+
+
+class InvalidConfigName(ValueError):
+    pass
+
+
+def validate_config_name(name: str):
+    # The config name is used to name the cache directory.
+    invalid_characters = r"<>:/\|?*"
+    # The config name is used in YAML keys in the dataset cards
+    # and the Hugging Face Hub doesn't support dots:
+    invalid_characters += "."
+
+    if any(invalid_char in name for invalid_char in invalid_characters):
+        raise InvalidConfigName(
+            f"Unsupported characters from black list '{invalid_characters}' found in '{name}'."
+        )

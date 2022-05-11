@@ -223,6 +223,7 @@ class DatasetMetadata:
 
     # class attributes
     _FIELDS_WITH_DASHES: ClassVar[set] = {"train_eval_index"}  # train-eval-index in the YAML metadata
+    _ALLOWED_YAML_KEYS: ClassVar[set] = set()  # populated later
 
     def validate(self):
         validate_metadata_type(metadata_dict=vars(self))
@@ -288,8 +289,40 @@ class DatasetMetadata:
             raise TypeError(f"Unable to find a yaml block in '{path}'")
 
     @classmethod
-    def from_yaml_string(cls, string: str) -> "DatasetMetadata":
+    def _metadata_dict_from_yaml_string(cls, string: str) -> dict:
         """Loads and validates the dataset metadat from a YAML string
+
+        Args:
+            string (:obj:`str`): The YAML string
+
+        Returns:
+            :class:`dict`: The dataset's metadata as a dictionary
+
+        Raises:
+            :obj:`TypeError`: If the dataset's metadata is invalid
+        """
+        metadata_dict = yaml.load(string, Loader=NoDuplicateSafeLoader) or dict()
+
+        # Check if the YAML keys are all correct
+        bad_keys = [k for k in metadata_dict if k not in cls._ALLOWED_YAML_KEYS]
+        if bad_keys:
+            raise ValueError(f"Bad YAML keys: {bad_keys}. Allowed fields: {cls._ALLOWED_YAML_KEYS}")
+        
+        # Check if config names are valid
+        bad_keys = [k for k in metadata_dict if k not in cls._ALLOWED_YAML_KEYS]
+        if bad_keys:
+            raise ValueError(f"Bad YAML keys: {bad_keys}. Allowed fields: {cls._ALLOWED_YAML_KEYS}")
+
+        # Convert the YAML keys to DatasetMetadata fields
+        metadata_dict = {
+            (key.replace("-", "_") if key.replace("-", "_") in cls._FIELDS_WITH_DASHES else key): value
+            for key, value in metadata_dict.items()
+        }
+        return metadata_dict
+
+    @classmethod
+    def from_yaml_string(cls, string: str) -> "DatasetMetadata":
+        """Loads and validates the dataset metadata from a YAML string
 
         Args:
             string (:obj:`str`): The YAML string
@@ -299,29 +332,10 @@ class DatasetMetadata:
 
         Raises:
             :obj:`TypeError`: If the dataset's metadata is invalid
+            :obj:`ValueError`: If the dataset's metadata is invalid
         """
-        metada_dict = yaml.load(string, Loader=NoDuplicateSafeLoader) or dict()
-
-        # In general the allowed YAML keys are the fields of the DatasetMetadata dataclass.
-        # However it is not the case certain fields like train_eval_index,
-        # for which the YAML key must use dashes and not underscores.
-        # Fields that corresponds to YAML keys with dashes are defined in DatasetMetadata._FIELDS_WITH_DASHES
-        allowed_yaml_keys = [
-            field.name.replace("_", "-") if field.name in cls._FIELDS_WITH_DASHES else field.name
-            for field in fields(cls)
-        ]
-
-        # Check if the YAML keys are all correct
-        bad_keys = [k for k in metada_dict if k not in allowed_yaml_keys]
-        if bad_keys:
-            raise ValueError(f"Bad YAML keys: {bad_keys}. Allowed fields: {allowed_yaml_keys}")
-
-        # Convert the YAML keys to DatasetMetadata fields
-        metada_dict = {
-            (key.replace("-", "_") if key.replace("-", "_") in cls._FIELDS_WITH_DASHES else key): value
-            for key, value in metada_dict.items()
-        }
-        return cls(**metada_dict)
+        metadata_dict = cls._metadata_dict_from_yaml_string(string)
+        return cls(**metadata_dict)
 
     @staticmethod
     def validate_annotations_creators(annotations_creators: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
@@ -458,6 +472,16 @@ class DatasetMetadata:
             )
 
         return DatasetMetadata(**result_dict)
+
+
+# In general the allowed YAML keys are the fields of the DatasetMetadata dataclass.
+# However it is not the case certain fields like train_eval_index,
+# for which the YAML key must use dashes and not underscores.
+# Fields that corresponds to YAML keys with dashes are defined in DatasetMetadata._FIELDS_WITH_DASHES
+DatasetMetadata._ALLOWED_YAML_KEYS = {
+    field.name.replace("_", "-") if field.name in DatasetMetadata._FIELDS_WITH_DASHES else field.name
+    for field in fields(DatasetMetadata)
+}
 
 
 if __name__ == "__main__":

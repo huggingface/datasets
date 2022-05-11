@@ -43,7 +43,7 @@ from .features import Features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
-from .naming import camelcase_to_snakecase, filename_prefix_for_split
+from .naming import camelcase_to_snakecase, filename_prefix_for_split, validate_config_name
 from .splits import Split, SplitDict, SplitGenerator
 from .utils import logging
 from .utils.download_manager import DownloadManager, DownloadMode
@@ -63,10 +63,6 @@ from .utils.streaming_download_manager import StreamingDownloadManager
 
 
 logger = logging.get_logger(__name__)
-
-
-class InvalidConfigName(ValueError):
-    pass
 
 
 class DatasetBuildError(Exception):
@@ -99,14 +95,7 @@ class BuilderConfig:
     description: Optional[str] = None
 
     def __post_init__(self):
-        # The config name is used to name the cache directory.
-        invalid_windows_characters = r"<>:/\|?*"
-        for invalid_char in invalid_windows_characters:
-            if invalid_char in self.name:
-                raise InvalidConfigName(
-                    f"Bad characters from black list '{invalid_windows_characters}' found in '{self.name}'. "
-                    f"They could create issues when creating a directory for this config on Windows filesystem."
-                )
+        validate_config_name(self.name)
         if self.data_files is not None and not isinstance(self.data_files, DataFilesDict):
             raise ValueError(f"Expected a DataFilesDict in data_files but got {self.data_files}")
 
