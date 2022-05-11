@@ -68,26 +68,57 @@ The audio and transcriptions are in English, as per the TED talks at http://www.
 ## Dataset Structure
 
 ### Data Instances
-
-TODO
-
+```
+{'audio': {'path': '/home/sanchitgandhi/cache/downloads/extracted/6e3655f9e735ae3c467deed1df788e0dabd671c1f3e2e386e30aa3b571bd9761/TEDLIUM_release1/train/stm/PaulaScher_2008P.stm', 
+  'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346,
+          0.00091553,  0.00085449], dtype=float32),
+  'sampling_rate': 16000},
+'text': '{COUGH} but <sil> i was so {COUGH} utterly unqualified for(2) this project and {NOISE} so utterly ridiculous {SMACK} and ignored the brief {SMACK} <sil>', 
+'speaker_id': 'PaulaScher_2008P', 
+'gender': 'female', 
+'file': '/home/sanchitgandhi/cache/downloads/extracted/6e3655f9e735ae3c467deed1df788e0dabd671c1f3e2e386e30aa3b571bd9761/TEDLIUM_release1/train/stm/PaulaScher_2008P.stm', 
+'id': 'PaulaScher_2008P-1003.35-1011.16-<o,f0,female>'}
+```
 ### Data Fields
 
-- gender: an integer value corresponding to the gender of the speaker.
+- audio: A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `dataset[0]["audio"]` should **always** be preferred over `dataset["audio"][0]`. 
+- file: A path to the downloaded audio file in .sth format.
+- text: the transcription of the audio file.
+- gender: the gender of the speaker. One of: male, female or N/A.
 - id: unique id of the data sample.
 - speaker_id: unique id of the speaker. The same speaker id can be found for multiple data samples.
-- speech: A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the "audio" column, i.e. `dataset[0]["audio"]` should always be preferred over `dataset["audio"][0]`.
-- text: the transcription of the audio file.
 
 ### Data Splits
+There are three releases for the TED-LIUM corpus, progressively increasing the number of transcribed speech training data from 118 hours (Release 1), to 207 hours (Release 2), to 452 hours (Release 3).
 
-The data is split into a training, validation and test set.
+Release 1 (default config) 2012:
+- 774 audio talks and automatically aligned transcriptions.
+- Contains 118 hours of speech audio data.
+- Homepage: https://www.openslr.org/7/
 
-| Split      | Examples |
-|------------|----------|
-| Train      |   56,803 |
-| Validation |      591 |
-| Test       |    1,469 |
+Release 2:
+- 1495 audio talks and automatically aligned transcriptions.
+- Contains 207 hours of speech audio data.
+- Dictionary with pronunciations (159848 entries).
+- Selected monolingual data for language modeling from WMT12 publicly available corpora.
+- Homepage: https://www.openslr.org/19/
+
+Release 3:
+
+- 2351 audio talks and automatically aligned transcriptions.
+- Contains 452 hours of speech audio data.
+- TED-LIUM 2 validation and test data: 19 TED talks with their corresponding manual transcriptions.
+- Dictionary with pronunciations (159848 entries), the same file as the one included in TED-LIUM 2.
+- Selected monolingual data for language modeling from WMT12 publicly available corpora: these files come from the TED-LIUM 2 release, but have been modified to produce a tokenization more relevant for English language.
+- Homepage: https://www.openslr.org/51/
+
+Each release is split into a training, validation and test set:
+
+| Split      | Release 1 | Release 2 | Release 3 |
+|------------|-----------|-----------|-----------|
+| Train      | 56,803    | 92,973    | 268,263   |
+| Validation | 591       | 591       | 591       |
+| Test       | 1,469     | 1,469     | 1,469     |
 
 
 ## Dataset Creation
@@ -100,11 +131,11 @@ TED-LIUM was built during [The International Workshop on Spoken Language Trans- 
 
 #### Initial Data Collection and Normalization
 
-The data was obtained from publicly availably TED talks at http://www.ted.com. Proper alignments between the speech and the transcribed text were generated using an in-house speaker segmentation and clustering tool (LIUM_SpkDiarization). Speech disfluencies (e.g. repetitions, hesitations, false starts) were treated in the following way: the repetitions were transcribed, the hesitations were mapped to a specific filler word and the false starts were not taken into account. For full details on the data collection and processing, refer to the [TED-LIUM paper](https://aclanthology.org/L12-1405/).
+The data was obtained from publicly available TED talks at http://www.ted.com. Proper alignments between the speech and the transcribed text were generated using an in-house speaker segmentation and clustering tool (LIUM_SpkDiarization). Speech disfluencies (e.g. repetitions, hesitations, false starts) were treated in the following way: the repetitions were transcribed, the hesitations were mapped to a specific filler word and the false starts were not taken into account. For full details on the data collection and processing, refer to the [TED-LIUM paper](https://aclanthology.org/L12-1405/).
 
 #### Who are the source language producers?
 
-[Needs More Information]
+TED Talks are influential videos from expert speakers on education, business, science, tech and creativity.
 
 ### Annotations
 
