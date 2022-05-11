@@ -79,22 +79,22 @@ _FILE_PATHS = {
         "dev": [f"release_v2_constrained/xml/dev/{i}triples/" for i in range(1, 8)],
         "test": [f"release_v2_constrained/xml/test/{i}triples/" for i in range(1, 8)],
     },
-    "release_v2.1": {
+    "release_v2_1": {
         "train": [f"release_v2.1/xml/train/{i}triples/" for i in range(1, 8)],
         "dev": [f"release_v2.1/xml/dev/{i}triples/" for i in range(1, 8)],
         "test": [f"release_v2.1/xml/test/{i}triples/" for i in range(1, 8)],
     },
-    "release_v2.1_constrained": {
+    "release_v2_1_constrained": {
         "train": [f"release_v2.1_constrained/xml/train/{i}triples/" for i in range(1, 8)],
         "dev": [f"release_v2.1_constrained/xml/dev/{i}triples/" for i in range(1, 8)],
         "test": [f"release_v2.1_constrained/xml/test/{i}triples/" for i in range(1, 8)],
     },
-    "release_v3.0_en": {
+    "release_v3_0_en": {
         "train": [f"release_v3.0/en/train/{i}triples/" for i in range(1, 8)],
         "dev": [f"release_v3.0/en/dev/{i}triples/" for i in range(1, 8)],
         "test": ["release_v3.0/en/test/"],
     },
-    "release_v3.0_ru": {
+    "release_v3_0_ru": {
         "train": [f"release_v3.0/ru/train/{i}triples/" for i in range(1, 8)],
         "dev": [f"release_v3.0/ru/dev/{i}triples/" for i in range(1, 8)],
         "test": ["release_v3.0/ru/test/"],
@@ -176,16 +176,16 @@ class WebNlg(datasets.GeneratorBasedBuilder):
             name="release_v2_constrained",
             description="Same data as v2, the split into train/dev/test is more challenging.",
         ),
-        datasets.BuilderConfig(name="release_v2.1", description="5,667 texts from v2 were cleaned."),
+        datasets.BuilderConfig(name="release_v2_1", description="5,667 texts from v2 were cleaned."),
         datasets.BuilderConfig(
-            name="release_v2.1_constrained",
+            name="release_v2_1_constrained",
             description="Same data as v2.1, the split into train/dev/test is more challenging.",
         ),
         datasets.BuilderConfig(
-            name="release_v3.0_en", description="WebNLG+ data used in the WebNLG challenge 2020. English."
+            name="release_v3_0_en", description="WebNLG+ data used in the WebNLG challenge 2020. English."
         ),
         datasets.BuilderConfig(
-            name="release_v3.0_ru", description="WebNLG+ data used in the WebNLG challenge 2020. Russian."
+            name="release_v3_0_ru", description="WebNLG+ data used in the WebNLG challenge 2020. Russian."
         ),
     ]
 

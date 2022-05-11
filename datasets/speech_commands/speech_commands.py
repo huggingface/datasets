@@ -129,7 +129,7 @@ class SpeechCommandsConfig(datasets.BuilderConfig):
 class SpeechCommands(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         SpeechCommandsConfig(
-            name="v0.01",
+            name="v0_01",
             description=textwrap.dedent(
                 """\
                 Version 0.01 of the SpeechCommands dataset. Contains 30 words
@@ -140,7 +140,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             version=datasets.Version("0.1.0"),
         ),
         SpeechCommandsConfig(
-            name="v0.02",
+            name="v0_02",
             description=textwrap.dedent(
                 """\
                 Version 0.02 of the SpeechCommands dataset.
@@ -175,9 +175,9 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
 
         archive_paths = dl_manager.download(
             {
-                "train": _DL_URL.format(name=self.config.name, split="train"),
-                "validation": _DL_URL.format(name=self.config.name, split="validation"),
-                "test": _DL_URL.format(name=self.config.name, split="test"),
+                "train": _DL_URL.format(name=self.config.name.replace("_", "."), split="train"),
+                "validation": _DL_URL.format(name=self.config.name.replace("_", "."), split="validation"),
+                "test": _DL_URL.format(name=self.config.name.replace("_", "."), split="test"),
             }
         )
 

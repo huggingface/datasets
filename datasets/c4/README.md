@@ -70,11 +70,11 @@ This is the version prepared by AllenAI, hosted at this address: https://hugging
 It comes in four variants:
 
 - `en`: 305GB in JSON format
-- `en.noblocklist`: 380GB in JSON format
-- `en.noclean`: 2.3TB in JSON format
+- `en_noblocklist`: 380GB in JSON format
+- `en_noclean`: 2.3TB in JSON format
 - `realnewslike`: 15GB in JSON format
 
-The `en.noblocklist` variant is exactly the same as the `en` variant, except we turned off the so-called "badwords filter", which removes all documents that contain words from the lists at https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words.
+The `en_noblocklist` variant is exactly the same as the `en` variant, except we turned off the so-called "badwords filter", which removes all documents that contain words from the lists at https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words.
 
 ### Supported Tasks and Leaderboards
 

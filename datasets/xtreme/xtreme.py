@@ -155,20 +155,20 @@ _PAN_X_LANG = [
 
 _NAMES = ["XNLI", "tydiqa", "SQuAD"]
 for lang in _PAN_X_LANG:
-    _NAMES.append(f"PAN-X.{lang}")
+    _NAMES.append(f"PAN-X_{lang}")
 for lang1 in _MLQA_LANG:
     for lang2 in _MLQA_LANG:
-        _NAMES.append(f"MLQA.{lang1}.{lang2}")
+        _NAMES.append(f"MLQA_{lang1}_{lang2}")
 for lang in _XQUAD_LANG:
-    _NAMES.append(f"XQuAD.{lang}")
+    _NAMES.append(f"XQuAD_{lang}")
 for lang in _BUCC_LANG:
-    _NAMES.append(f"bucc18.{lang}")
+    _NAMES.append(f"bucc18_{lang}")
 for lang in _PAWSX_LANG:
-    _NAMES.append(f"PAWS-X.{lang}")
+    _NAMES.append(f"PAWS-X_{lang}")
 for lang in _TATOEBA_LANG:
-    _NAMES.append(f"tatoeba.{lang}")
+    _NAMES.append(f"tatoeba_{lang}")
 for lang in _UD_POS_LANG:
-    _NAMES.append(f"udpos.{lang}")
+    _NAMES.append(f"udpos_{lang}")
 
 _DESCRIPTIONS = {
     "tydiqa": textwrap.dedent(
@@ -451,11 +451,11 @@ class Xtreme(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         XtremeConfig(
             name=name,
-            description=_DESCRIPTIONS[name.split(".")[0]],
-            citation=_CITATIONS[name.split(".")[0]],
-            text_features=_TEXT_FEATURES[name.split(".")[0]],
-            data_url=_DATA_URLS[name.split(".")[0]],
-            url=_URLS[name.split(".")[0]],
+            description=_DESCRIPTIONS[name.split("_")[0]],
+            citation=_CITATIONS[name.split("_")[0]],
+            text_features=_TEXT_FEATURES[name.split("_")[0]],
+            data_url=_DATA_URLS[name.split("_")[0]],
+            url=_URLS[name.split("_")[0]],
         )
         for name in _NAMES
     ]
@@ -532,8 +532,8 @@ class Xtreme(datasets.GeneratorBasedBuilder):
 
         if self.config.name.startswith("MLQA"):
             mlqa_downloaded_files = dl_manager.download_and_extract(self.config.data_url)
-            l1 = self.config.name.split(".")[1]
-            l2 = self.config.name.split(".")[2]
+            l1 = self.config.name.split("_")[1]
+            l2 = self.config.name.split("_")[2]
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
@@ -558,7 +558,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             ]
 
         if self.config.name.startswith("XQuAD"):
-            lang = self.config.name.split(".")[1]
+            lang = self.config.name.split("_")[1]
             xquad_downloaded_file = dl_manager.download_and_extract(self.config.data_url + f"xquad.{lang}.json")
             return [
                 datasets.SplitGenerator(
@@ -570,7 +570,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("PAWS-X"):
             return PawsxParser.split_generators(dl_manager=dl_manager, config=self.config)
         elif self.config.name.startswith("tatoeba"):
-            lang = self.config.name.split(".")[1]
+            lang = self.config.name.split("_")[1]
 
             tatoeba_source_data = dl_manager.download_and_extract(self.config.data_url + f"tatoeba.{lang}-eng.{lang}")
             tatoeba_eng_data = dl_manager.download_and_extract(self.config.data_url + f"tatoeba.{lang}-eng.eng")
@@ -582,7 +582,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                 ),
             ]
         if self.config.name.startswith("bucc18"):
-            lang = self.config.name.split(".")[1]
+            lang = self.config.name.split("_")[1]
             bucc18_dl_test_archive = dl_manager.download(
                 self.config.data_url + f"bucc2018-{lang}-en.training-gold.tar.bz2"
             )
@@ -691,7 +691,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                                 },
                             }
         if self.config.name.startswith("bucc18"):
-            lang = self.config.name.split(".")[1]
+            lang = self.config.name.split("_")[1]
             data_dir = f"bucc2018/{lang}-en"
             for path, file in filepath:
                 if path.startswith(data_dir):
@@ -738,7 +738,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                 yield i, {
                     "source_sentence": source_sentences[i],
                     "target_sentence": target_sentences[i],
-                    "source_lang": source_file.split(".")[-1],
+                    "source_lang": source_file.split("_")[-1],
                     "target_lang": "eng",
                 }
         if self.config.name.startswith("udpos"):
@@ -772,7 +772,7 @@ class PanxParser:
     @staticmethod
     def split_generators(dl_manager=None, config=None):
         data_dir = dl_manager.download_and_extract(config.data_url)
-        lang = config.name.split(".")[1]
+        lang = config.name.split("_")[1]
         archive = os.path.join(data_dir, lang + ".tar.gz")
         split_filenames = {
             datasets.Split.TRAIN: "train",
@@ -842,7 +842,7 @@ class PawsxParser:
 
     @staticmethod
     def split_generators(dl_manager=None, config=None):
-        lang = config.name.split(".")[1]
+        lang = config.name.split("_")[1]
         archive = dl_manager.download(config.data_url)
         split_filenames = {
             datasets.Split.TRAIN: "translated_train.tsv" if lang != "en" else "train.tsv",
@@ -859,7 +859,7 @@ class PawsxParser:
 
     @staticmethod
     def generate_examples(config=None, filepath=None, filename=None):
-        lang = config.name.split(".")[1]
+        lang = config.name.split("_")[1]
         for path, file in filepath:
             if f"/{lang}/" in path and path.endswith(filename):
                 lines = (line.decode("utf-8") for line in file)
@@ -919,7 +919,7 @@ class UdposParser:
             )
             for split in split_names
         }
-        lang = config.name.split(".")[1]
+        lang = config.name.split("_")[1]
         if lang in ["Tagalog", "Thai", "Yoruba"]:
             return [split_generators["test"]]
         elif lang == "Kazakh":
@@ -929,7 +929,7 @@ class UdposParser:
 
     @staticmethod
     def generate_examples(config=None, filepath=None, split=None):
-        lang = config.name.split(".")[1]
+        lang = config.name.split("_")[1]
         idx = 0
         for path, file in filepath:
             if f"_{lang}" in path and split in path and path.endswith(".conllu"):

@@ -892,7 +892,7 @@ class WikipediaConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super().__init__(
-            name=f"{date}.{language}",
+            name=f"{date}_{language}",
             description=f"Wikipedia dataset for {language}, parsed from {date} dump.",
             version=version,
             **kwargs,

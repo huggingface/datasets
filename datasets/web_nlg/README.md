@@ -8,15 +8,15 @@ languages:
   - en
   release_v2:
   - en
-  release_v2.1:
+  release_v2_1:
   - en
-  release_v2.1_constrained:
+  release_v2_1_constrained:
   - en
   release_v2_constrained:
   - en
-  release_v3.0_en:
+  release_v3_0_en:
   - en
-  release_v3.0_ru:
+  release_v3_0_ru:
   - ru
   webnlg_challenge_2017:
   - en

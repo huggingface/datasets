@@ -70,13 +70,13 @@ class EvidenceInferTreatment(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = EvidenceInferenceConfig
     BUILDER_CONFIGS = [
         EvidenceInferenceConfig(
-            name="2.0",
+            name="2_0",
             description="EvidenceInference V2",
             version=datasets.Version("2.0.0"),
             zip_file="https://github.com/jayded/evidence-inference/archive/refs/tags/v2.0.zip",
         ),
         EvidenceInferenceConfig(
-            name="1.1",
+            name="1_1",
             description="EvidenceInference V1.1",
             version=datasets.Version("1.1.0"),
             zip_file="https://github.com/jayded/evidence-inference/archive/v1.1.zip",
@@ -135,7 +135,7 @@ class EvidenceInferTreatment(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         dl_dir = dl_manager.download_and_extract(self.config.zip_file)
-        dl_dir = os.path.join(dl_dir, f"evidence-inference-{self.config.name}", "annotations")
+        dl_dir = os.path.join(dl_dir, f"evidence-inference-{self.config.name.replace('_', '.')}", "annotations")
 
         SPLITS = {}
         for split in ["train", "test", "validation"]:

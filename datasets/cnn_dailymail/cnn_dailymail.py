@@ -193,7 +193,7 @@ class CnnDailymail(datasets.GeneratorBasedBuilder):
     """CNN/DailyMail non-anonymized summarization dataset."""
 
     BUILDER_CONFIGS = [
-        CnnDailymailConfig(name=str(version), description="Plain text", version=version)
+        CnnDailymailConfig(name=str(version).replace(".", "_"), description="Plain text", version=version)
         for version in _SUPPORTED_VERSIONS
     ]
 

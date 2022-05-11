@@ -31,13 +31,13 @@ _CITATION = """
 
 _URL = "https://github.com/allenai/allennlp/discussions/5056"
 
-_VARIANTS = ["en", "realnewslike", "en.noblocklist", "en.noclean"]
+_VARIANTS = ["en", "realnewslike", "en_noblocklist", "en_noclean"]
 
 _N_SHARDS_PER_SPLIT = {
     "en": {"train": 1024, "validation": 8},
     "realnewslike": {"train": 512, "validation": 1},
-    "en.noblocklist": {"train": 1024, "validation": 8},
-    "en.noclean": {"train": 7168, "validation": 64},
+    "en_noblocklist": {"train": 1024, "validation": 8},
+    "en_noclean": {"train": 7168, "validation": 64},
 }
 
 _DATA_URL = "https://huggingface.co/datasets/allenai/c4/resolve/1ddc917116b730e1859edef32896ec5c16be51d0/{name}/c4-{split}.{index:05d}-of-{n_shards:05d}.json.gz"
@@ -68,7 +68,7 @@ class C4(datasets.GeneratorBasedBuilder):
         for split in ["train", "validation"]:
             n_shards = _N_SHARDS_PER_SPLIT[self.config.name][split]
             data_urls[split] = [
-                _DATA_URL.format(name=self.config.name, split=split, index=index, n_shards=n_shards)
+                _DATA_URL.format(name=self.config.name.replace("_", "."), split=split, index=index, n_shards=n_shards)
                 for index in range(n_shards)
             ]
         train_downloaded_files = dl_manager.download(data_urls["train"])

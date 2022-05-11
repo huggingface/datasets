@@ -59,7 +59,7 @@ inference in a novel Commonsense Auto-Generated Explanation (CAGE) framework.
 
 ### Data Instances
 
-#### v1.0
+#### v1_0
 
 - **Size of downloaded dataset files:** 4.10 MB
 - **Size of the generated dataset:** 2.23 MB
@@ -77,7 +77,7 @@ An example of 'train' looks as follows.
 }
 ```
 
-#### v1.11
+#### v1_11
 
 - **Size of downloaded dataset files:** 6.23 MB
 - **Size of the generated dataset:** 2.91 MB
@@ -99,7 +99,7 @@ An example of 'train' looks as follows.
 
 The data fields are the same among all splits.
 
-#### v1.0
+#### v1_0
 - `id`: a `string` feature.
 - `question`: a `string` feature.
 - `choices`: a `list` of `string` features.
@@ -107,7 +107,7 @@ The data fields are the same among all splits.
 - `abstractive_explanation`: a `string` feature.
 - `extractive_explanation`: a `string` feature.
 
-#### v1.11
+#### v1_11
 - `id`: a `string` feature.
 - `question`: a `string` feature.
 - `choices`: a `list` of `string` features.

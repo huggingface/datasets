@@ -20,165 +20,165 @@ languages:
   - ur
   - vi
   - zh
-  PAWS-X.en:
+  PAWS-X_en:
   - en
-  PAWS-X.de:
+  PAWS-X_de:
   - de
-  PAWS-X.es:
+  PAWS-X_es:
   - es
-  PAWS-X.fr:
+  PAWS-X_fr:
   - fr
-  PAWS-X.ja:
+  PAWS-X_ja:
   - ja
-  PAWS-X.ko:
+  PAWS-X_ko:
   - ko
-  PAWS-X.zh:
+  PAWS-X_zh:
   - zh
-  udpos.Afrikans:
+  udpos_Afrikans:
   - af
-  udpos.Arabic:
+  udpos_Arabic:
   - ar
-  udpos.Basque:
+  udpos_Basque:
   - eu
-  udpos.Bulgarian:
+  udpos_Bulgarian:
   - bg
-  udpos.Dutch:
+  udpos_Dutch:
   - nl
-  udpos.English:
+  udpos_English:
   - en
-  udpos.Estonian:
+  udpos_Estonian:
   - et
-  udpos.Finnish:
+  udpos_Finnish:
   - fi
-  udpos.French:
+  udpos_French:
   - fr
-  udpos.German:
+  udpos_German:
   - de
-  udpos.Greek:
+  udpos_Greek:
   - el
-  udpos.Hebrew:
+  udpos_Hebrew:
   - he
-  udpos.Hindi:
+  udpos_Hindi:
   - hi
-  udpos.Hungarian:
+  udpos_Hungarian:
   - hu
-  udpos.Indonesian:
+  udpos_Indonesian:
   - id
-  udpos.Italian:
+  udpos_Italian:
   - it
-  udpos.Japanese:
+  udpos_Japanese:
   - ja
-  udpos.Kazakh:
+  udpos_Kazakh:
   - kk
-  udpos.Korean:
+  udpos_Korean:
   - ko
-  udpos.Chinese:
+  udpos_Chinese:
   - zh
-  udpos.Marathi:
+  udpos_Marathi:
   - mr
-  udpos.Persian:
+  udpos_Persian:
   - fa
-  udpos.Portuguese:
+  udpos_Portuguese:
   - pt
-  udpos.Russian:
+  udpos_Russian:
   - ru
-  udpos.Spanish:
+  udpos_Spanish:
   - es
-  udpos.Tagalog:
+  udpos_Tagalog:
   - tl
-  udpos.Tamil:
+  udpos_Tamil:
   - ta
-  udpos.Telugu:
+  udpos_Telugu:
   - te
-  udpos.Thai:
+  udpos_Thai:
   - th
-  udpos.Turkish:
+  udpos_Turkish:
   - tr
-  udpos.Urdu:
+  udpos_Urdu:
   - ur
-  udpos.Vietnamese:
+  udpos_Vietnamese:
   - vi
-  udpos.Yoruba:
+  udpos_Yoruba:
   - yo
-  PAN-X.af:
+  PAN-X_af:
   - af
-  PAN-X.ar:
+  PAN-X_ar:
   - ar
-  PAN-X.bg:
+  PAN-X_bg:
   - bg
-  PAN-X.bn:
+  PAN-X_bn:
   - bn
-  PAN-X.de:
+  PAN-X_de:
   - de
-  PAN-X.el:
+  PAN-X_el:
   - el
-  PAN-X.en:
+  PAN-X_en:
   - en
-  PAN-X.es:
+  PAN-X_es:
   - es
-  PAN-X.et:
+  PAN-X_et:
   - et
-  PAN-X.eu:
+  PAN-X_eu:
   - eu
-  PAN-X.fa:
+  PAN-X_fa:
   - fa
-  PAN-X.fi:
+  PAN-X_fi:
   - fi
-  PAN-X.fr:
+  PAN-X_fr:
   - fr
-  PAN-X.he:
+  PAN-X_he:
   - he
-  PAN-X.hi:
+  PAN-X_hi:
   - hi
-  PAN-X.hu:
+  PAN-X_hu:
   - hu
-  PAN-X.id:
+  PAN-X_id:
   - id
-  PAN-X.it:
+  PAN-X_it:
   - it
-  PAN-X.ja:
+  PAN-X_ja:
   - ja
-  PAN-X.jv:
+  PAN-X_jv:
   - jv
-  PAN-X.ka:
+  PAN-X_ka:
   - ka
-  PAN-X.kk:
+  PAN-X_kk:
   - kk
-  PAN-X.ko:
+  PAN-X_ko:
   - ko
-  PAN-X.ml:
+  PAN-X_ml:
   - ml
-  PAN-X.mr:
+  PAN-X_mr:
   - mr
-  PAN-X.ms:
+  PAN-X_ms:
   - ms
-  PAN-X.my:
+  PAN-X_my:
   - my
-  PAN-X.nl:
+  PAN-X_nl:
   - nl
-  PAN-X.pt:
+  PAN-X_pt:
   - pt
-  PAN-X.ru:
+  PAN-X_ru:
   - ru
-  PAN-X.sw:
+  PAN-X_sw:
   - sw
-  PAN-X.ta:
+  PAN-X_ta:
   - ta
-  PAN-X.te:
+  PAN-X_te:
   - te
-  PAN-X.th:
+  PAN-X_th:
   - th
-  PAN-X.tl:
+  PAN-X_tl:
   - tl
-  PAN-X.tr:
+  PAN-X_tr:
   - tr
-  PAN-X.ur:
+  PAN-X_ur:
   - ur
-  PAN-X.vi:
+  PAN-X_vi:
   - vi
-  PAN-X.yo:
+  PAN-X_yo:
   - yo
-  PAN-X.zh:
+  PAN-X_zh:
   - zh
   XQuAD:
   - ar
@@ -192,145 +192,145 @@ languages:
   - ru
   - th
   - tr
-  MLQA.ar.ar:
+  MLQA_ar_ar:
   - ar
-  MLQA.ar.de:
+  MLQA_ar_de:
   - ar
   - de
-  MLQA.ar.vi:
+  MLQA_ar_vi:
   - ar
   - vi
-  MLQA.ar.zh:
+  MLQA_ar_zh:
   - ar
   - zh
-  MLQA.ar.en:
+  MLQA_ar_en:
   - ar
   - en
-  MLQA.ar.es:
+  MLQA_ar_es:
   - ar
   - es
-  MLQA.ar.hi:
+  MLQA_ar_hi:
   - ar
   - hi
-  MLQA.de.ar:
+  MLQA_de_ar:
   - de
   - ar
-  MLQA.de.de:
+  MLQA_de_de:
   - de
-  MLQA.de.vi:
+  MLQA_de_vi:
   - de
   - vi
-  MLQA.de.zh:
+  MLQA_de_zh:
   - de
   - zh
-  MLQA.de.en:
+  MLQA_de_en:
   - de
   - en
-  MLQA.de.es:
+  MLQA_de_es:
   - de
   - es
-  MLQA.de.hi:
+  MLQA_de_hi:
   - de
   - hi
-  MLQA.vi.ar:
+  MLQA_vi_ar:
   - vi
   - ar
-  MLQA.vi.de:
+  MLQA_vi_de:
   - vi
   - de
-  MLQA.vi.vi:
+  MLQA_vi_vi:
   - vi
-  MLQA.vi.zh:
+  MLQA_vi_zh:
   - vi
   - zh
-  MLQA.vi.en:
+  MLQA_vi_en:
   - vi
   - en
-  MLQA.vi.es:
+  MLQA_vi_es:
   - vi
   - es
-  MLQA.vi.hi:
+  MLQA_vi_hi:
   - vi
   - hi
-  MLQA.zh.ar:
+  MLQA_zh_ar:
   - zh
   - ar
-  MLQA.zh.de:
+  MLQA_zh_de:
   - zh
   - de
-  MLQA.zh.vi:
+  MLQA_zh_vi:
   - zh
   - vi
-  MLQA.zh.zh:
+  MLQA_zh_zh:
   - zh
-  MLQA.zh.en:
+  MLQA_zh_en:
   - zh
   - en
-  MLQA.zh.es:
+  MLQA_zh_es:
   - zh
   - es
-  MLQA.zh.hi:
+  MLQA_zh_hi:
   - zh
   - hi
-  MLQA.en.ar:
+  MLQA_en_ar:
   - en
   - ar
-  MLQA.en.de:
+  MLQA_en_de:
   - en
   - de
-  MLQA.en.vi:
+  MLQA_en_vi:
   - en
   - vi
-  MLQA.en.zh:
+  MLQA_en_zh:
   - en
   - zh
-  MLQA.en.en:
+  MLQA_en_en:
   - en
-  MLQA.en.es:
+  MLQA_en_es:
   - en
   - es
-  MLQA.en.hi:
+  MLQA_en_hi:
   - en
   - hi
-  MLQA.es.ar:
+  MLQA_es_ar:
   - es
   - ar
-  MLQA.es.de:
+  MLQA_es_de:
   - es
   - de
-  MLQA.es.vi:
+  MLQA_es_vi:
   - es
   - vi
-  MLQA.es.zh:
+  MLQA_es_zh:
   - es
   - zh
-  MLQA.es.en:
+  MLQA_es_en:
   - es
   - en
-  MLQA.es.es:
+  MLQA_es_es:
   - es
-  MLQA.es.hi:
+  MLQA_es_hi:
   - es
   - hi
-  MLQA.hi.ar:
+  MLQA_hi_ar:
   - hi
   - ar
-  MLQA.hi.de:
+  MLQA_hi_de:
   - hi
   - de
-  MLQA.hi.vi:
+  MLQA_hi_vi:
   - hi
   - vi
-  MLQA.hi.zh:
+  MLQA_hi_zh:
   - hi
   - zh
-  MLQA.hi.en:
+  MLQA_hi_en:
   - hi
   - en
-  MLQA.hi.es:
+  MLQA_hi_es:
   - hi
   - es
-  MLQA.hi.hi:
+  MLQA_hi_hi:
   - hi
   tydiqa:
   - fi
@@ -342,85 +342,85 @@ languages:
   - sw
   - ko
   - bn
-  bucc18.de:
+  bucc18_de:
   - de
-  bucc18.fr:
+  bucc18_fr:
   - fr
-  bucc18.zh:
+  bucc18_zh:
   - zh
-  bucc18.ru:
+  bucc18_ru:
   - ru
-  tatoeba.afr:
+  tatoeba_afr:
   - af
-  tatoeba.ara:
+  tatoeba_ara:
   - ar
-  tatoeba.ben:
+  tatoeba_ben:
   - bn
-  tatoeba.bul:
+  tatoeba_bul:
   - bg
-  tatoeba.deu:
+  tatoeba_deu:
   - de
-  tatoeba.cmn:
+  tatoeba_cmn:
   - zh
-  tatoeba.ell:
+  tatoeba_ell:
   - el
-  tatoeba.est:
+  tatoeba_est:
   - et
-  tatoeba.eus:
+  tatoeba_eus:
   - eu
-  tatoeba.fin:
+  tatoeba_fin:
   - fi
-  tatoeba.fra:
+  tatoeba_fra:
   - fr
-  tatoeba.heb:
+  tatoeba_heb:
   - he
-  tatoeba.hin:
+  tatoeba_hin:
   - hi
-  tatoeba.hun:
+  tatoeba_hun:
   - hu
-  tatoeba.ind:
+  tatoeba_ind:
   - id
-  tatoeba.ita:
+  tatoeba_ita:
   - it
-  tatoeba.jav:
+  tatoeba_jav:
   - jv
-  tatoeba.jpn:
+  tatoeba_jpn:
   - ja
-  tatoeba.kat:
+  tatoeba_kat:
   - ka
-  tatoeba.kaz:
+  tatoeba_kaz:
   - kk
-  tatoeba.kor:
+  tatoeba_kor:
   - ko
-  tatoeba.mal:
+  tatoeba_mal:
   - ml
-  tatoeba.mar:
+  tatoeba_mar:
   - mr
-  tatoeba.nld:
+  tatoeba_nld:
   - nl
-  tatoeba.pes:
+  tatoeba_pes:
   - fa-IR
-  tatoeba.por:
+  tatoeba_por:
   - pt
-  tatoeba.rus:
+  tatoeba_rus:
   - ru
-  tatoeba.spa:
+  tatoeba_spa:
   - es
-  tatoeba.swh:
+  tatoeba_swh:
   - sw
-  tatoeba.tam:
+  tatoeba_tam:
   - ta
-  tatoeba.tel:
+  tatoeba_tel:
   - te
-  tatoeba.tgl:
+  tatoeba_tgl:
   - tl
-  tatoeba.tha:
+  tatoeba_tha:
   - th
-  tatoeba.tur:
+  tatoeba_tur:
   - tr
-  tatoeba.urd:
+  tatoeba_urd:
   - ur
-  tatoeba.vie:
+  tatoeba_vie:
   - vi
   SQuAD:
   - en
@@ -534,7 +534,7 @@ Niger-Congo languages Swahili and Yoruba, spoken in Africa.
 
 ### Data Instances
 
-#### MLQA.ar.ar
+#### MLQA_ar_ar
 
 - **Size of downloaded dataset files:** 72.21 MB
 - **Size of the generated dataset:** 8.77 MB
@@ -545,7 +545,7 @@ An example of 'validation' looks as follows.
 
 ```
 
-#### MLQA.ar.de
+#### MLQA_ar_de
 
 - **Size of downloaded dataset files:** 72.21 MB
 - **Size of the generated dataset:** 2.43 MB
@@ -556,7 +556,7 @@ An example of 'validation' looks as follows.
 
 ```
 
-#### MLQA.ar.en
+#### MLQA_ar_en
 
 - **Size of downloaded dataset files:** 72.21 MB
 - **Size of the generated dataset:** 8.62 MB
@@ -567,7 +567,7 @@ An example of 'validation' looks as follows.
 
 ```
 
-#### MLQA.ar.es
+#### MLQA_ar_es
 
 - **Size of downloaded dataset files:** 72.21 MB
 - **Size of the generated dataset:** 3.12 MB
@@ -578,7 +578,7 @@ An example of 'validation' looks as follows.
 
 ```
 
-#### MLQA.ar.hi
+#### MLQA_ar_hi
 
 - **Size of downloaded dataset files:** 72.21 MB
 - **Size of the generated dataset:** 3.17 MB
@@ -593,7 +593,7 @@ An example of 'validation' looks as follows.
 
 The data fields are the same among all splits.
 
-#### MLQA.ar.ar
+#### MLQA_ar_ar
 - `id`: a `string` feature.
 - `title`: a `string` feature.
 - `context`: a `string` feature.
@@ -602,7 +602,7 @@ The data fields are the same among all splits.
   - `answer_start`: a `int32` feature.
   - `text`: a `string` feature.
 
-#### MLQA.ar.de
+#### MLQA_ar_de
 - `id`: a `string` feature.
 - `title`: a `string` feature.
 - `context`: a `string` feature.
@@ -611,7 +611,7 @@ The data fields are the same among all splits.
   - `answer_start`: a `int32` feature.
   - `text`: a `string` feature.
 
-#### MLQA.ar.en
+#### MLQA_ar_en
 - `id`: a `string` feature.
 - `title`: a `string` feature.
 - `context`: a `string` feature.
@@ -620,7 +620,7 @@ The data fields are the same among all splits.
   - `answer_start`: a `int32` feature.
   - `text`: a `string` feature.
 
-#### MLQA.ar.es
+#### MLQA_ar_es
 - `id`: a `string` feature.
 - `title`: a `string` feature.
 - `context`: a `string` feature.
@@ -629,7 +629,7 @@ The data fields are the same among all splits.
   - `answer_start`: a `int32` feature.
   - `text`: a `string` feature.
 
-#### MLQA.ar.hi
+#### MLQA_ar_hi
 - `id`: a `string` feature.
 - `title`: a `string` feature.
 - `context`: a `string` feature.
@@ -642,11 +642,11 @@ The data fields are the same among all splits.
 
 |   name   |validation|test|
 |----------|---------:|---:|
-|MLQA.ar.ar|       517|5335|
-|MLQA.ar.de|       207|1649|
-|MLQA.ar.en|       517|5335|
-|MLQA.ar.es|       161|1978|
-|MLQA.ar.hi|       186|1831|
+|MLQA_ar_ar|       517|5335|
+|MLQA_ar_de|       207|1649|
+|MLQA_ar_en|       517|5335|
+|MLQA_ar_es|       161|1978|
+|MLQA_ar_hi|       186|1831|
 
 ## Dataset Creation
 

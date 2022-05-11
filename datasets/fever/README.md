@@ -80,7 +80,7 @@ The dataset is in English.
 
 ### Data Instances
 
-#### v1.0
+#### v1_0
 
 - **Size of downloaded dataset files:** 42.78 MB
 - **Size of the generated dataset:** 38.39 MB
@@ -97,7 +97,7 @@ An example of 'train' looks as follows.
  'evidence_annotation_id': 92206}
 ```
 
-#### v2.0
+#### v2_0
 
 - **Size of downloaded dataset files:** 0.37 MB
 - **Size of the generated dataset:** 0.29 MB
@@ -131,7 +131,7 @@ An example of 'wikipedia_pages' looks as follows.
 
 The data fields are the same among all splits.
 
-#### v1.0
+#### v1_0
 
 - `id`: a `int32` feature.
 - `label`: a `string` feature.
@@ -141,7 +141,7 @@ The data fields are the same among all splits.
 - `evidence_wiki_url`: a `string` feature.
 - `evidence_sentence_id`: a `int32` feature.
 
-#### v2.0
+#### v2_0
 
 - `id`: a `int32` feature.
 - `label`: a `string` feature.
@@ -159,17 +159,17 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-#### v1.0
+#### v1_0
 
 |    |train |unlabelled_dev|labelled_dev|paper_dev|unlabelled_test|paper_test|
 |----|-----:|-------------:|-----------:|--------:|--------------:|---------:|
-|v1.0|311431|         19998|       37566|    18999|          19998|     18567|
+|v1_0|311431|         19998|       37566|    18999|          19998|     18567|
 
-#### v2.0
+#### v2_0
 
 |    |validation|
 |----|---------:|
-|v2.0|      2384|
+|v2_0|      2384|
 
 #### wiki_pages
 

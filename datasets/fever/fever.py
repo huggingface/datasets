@@ -57,12 +57,12 @@ class Fever(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         FeverConfig(
-            name="v1.0",
+            name="v1_0",
             description="FEVER  V1.0",
             version=datasets.Version("1.0.0", ""),
         ),
         FeverConfig(
-            name="v2.0",
+            name="v2_0",
             description="FEVER  V2.0",
             version=datasets.Version("2.0.0", ""),
         ),
@@ -100,7 +100,7 @@ class Fever(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        if self.config.name == "v2.0":
+        if self.config.name == "v2_0":
             urls = "https://s3-eu-west-1.amazonaws.com/fever.public/fever2-fixers-dev.jsonl"
             dl_path = dl_manager.download_and_extract(urls)
             return [
@@ -111,7 +111,7 @@ class Fever(datasets.GeneratorBasedBuilder):
                     },
                 )
             ]
-        elif self.config.name == "v1.0":
+        elif self.config.name == "v1_0":
             urls = {
                 "train": "https://s3-eu-west-1.amazonaws.com/fever.public/train.jsonl",
                 "labelled_dev": "https://s3-eu-west-1.amazonaws.com/fever.public/shared_task_dev.jsonl",
@@ -177,7 +177,7 @@ class Fever(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Yields examples."""
-        if self.config.name == "v1.0" or self.config.name == "v2.0":
+        if self.config.name == "v1_0" or self.config.name == "v2_0":
             with open(filepath, encoding="utf-8") as f:
                 for row_id, row in enumerate(f):
                     data = json.loads(row)

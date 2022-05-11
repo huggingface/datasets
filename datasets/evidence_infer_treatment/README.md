@@ -1275,8 +1275,8 @@ We have recently collected additional data for this task (https://arxiv.org/abs/
 
 | name | train | validation | test |
 |------|------:|-----------:|-----:|
-| 1.1  |  1931 |        248 |  240 |
-| 2.0  |  2690 |        340 |  334 |
+| 1_1  |  1931 |        248 |  240 |
+| 2_0  |  2690 |        340 |  334 |
 
 ## Dataset Creation
 

@@ -11,9 +11,9 @@ multilinguality:
 - monolingual
 pretty_name: SpeechCommands
 size_categories:
-  v0.01:
+  v0_01:
     - 10K<n<100K
-  v0.02:
+  v0_02:
     - 100K<n<1M
 source_datasets:
 - original

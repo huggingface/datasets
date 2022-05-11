@@ -58,9 +58,9 @@ def _download_and_index_cqa(dl_manager, name):
 
     downloaded_files = dl_manager.download_and_extract(
         {
-            "cqa_train": _CQA_V1_11_URL_TRAIN if name == "v1.11" else _CQA_V1_0_URL_TRAIN,
-            "cqa_dev": _CQA_V1_11_URL_DEV if name == "v1.11" else _CQA_V1_0_URL_DEV,
-            "cqa_test": _CQA_V1_11_URL_TEST if name == "v1.11" else _CQA_V1_0_URL_TEST,
+            "cqa_train": _CQA_V1_11_URL_TRAIN if name == "v1_11" else _CQA_V1_0_URL_TRAIN,
+            "cqa_dev": _CQA_V1_11_URL_DEV if name == "v1_11" else _CQA_V1_0_URL_DEV,
+            "cqa_test": _CQA_V1_11_URL_TEST if name == "v1_11" else _CQA_V1_0_URL_TEST,
         }
     )
 
@@ -110,12 +110,12 @@ class CosE(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         CosEConfig(
-            name="v1.0",
+            name="v1_0",
             description="cos-e version 1.0",
             version=datasets.Version("1.0.0", ""),
         ),
         CosEConfig(
-            name="v1.11",
+            name="v1_11",
             description="cos-e version 1.11",
             version=datasets.Version("1.11.0", ""),
         ),
@@ -146,7 +146,7 @@ class CosE(datasets.GeneratorBasedBuilder):
         # want to _create_ the Cos-E dataset from scratch.
         cqa_indexed = _download_and_index_cqa(dl_manager, self.config.name)
 
-        if self.config.name == "v1.11":
+        if self.config.name == "v1_11":
             files = dl_manager.download_and_extract(
                 {
                     "dev": [_COS_E_URL + "v1.11/cose_dev_v1.11_processed.jsonl"],
@@ -154,7 +154,7 @@ class CosE(datasets.GeneratorBasedBuilder):
                 }
             )
 
-        elif self.config.name == "v1.0":
+        elif self.config.name == "v1_0":
             files = dl_manager.download_and_extract(
                 {
                     "dev": [_COS_E_URL + "v1.0/cose_dev_v1.0_processed.jsonl"],
