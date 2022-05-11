@@ -203,7 +203,9 @@ class TedLium(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Generate examples from a TED-LIUM stm file."""
+        # The stm directory houses the speaker and transcription information in .stm format
         stm_dir = os.path.join(filepath, "stm")
+        # The sph directory houses the audio files in .sph format
         sph_dir = os.path.join(filepath, "sph")
         stm_files = [os.path.join(stm_dir, f) for f in os.listdir(stm_dir) if f.endswith('.stm')]
         for file in stm_files:
