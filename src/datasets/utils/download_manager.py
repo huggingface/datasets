@@ -181,9 +181,17 @@ class DownloadManager:
         """Returns the total size of downloaded files."""
         return sum(checksums_dict["num_bytes"] for checksums_dict in self._recorded_sizes_checksums.values())
 
-    def ship_files_with_pipeline(self, downloaded_path_or_paths, pipeline):
-        """
-        Ship the files using Beam FileSystems to the pipeline temp dir.
+    @staticmethod
+    def ship_files_with_pipeline(downloaded_path_or_paths, pipeline):
+        """Ship the files using Beam FileSystems to the pipeline temp dir.
+
+        Args:
+            downloaded_path_or_paths (`str` or `list[str]` or `dict[str, str]`): Nested structure containing the
+                downloaded path(s).
+            pipeline [`utils.beam_utils.BeamPipeline`]: Apache Beam Pipeline.
+
+        Returns:
+            `str` or `list[str]` or `dict[str, str]`
         """
         from .beam_utils import upload_local_to_remote
 
