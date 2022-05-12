@@ -18,12 +18,9 @@
 
 import abc
 import collections
-import numbers
 import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Union
-
-import numpy as np
 
 from .arrow_reader import FileInstructions, make_file_instructions
 from .naming import _split_re
