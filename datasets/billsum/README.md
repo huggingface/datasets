@@ -19,6 +19,33 @@ task_ids:
 - summarization-other-bills-summarization
 paperswithcode_id: billsum
 pretty_name: BillSum
+train-eval-index:
+- config: default
+  task: text-generation
+  task_id: summarization
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    text: text
+    summary: target
+  metrics:
+    - type: rouge
+      name: Rouge
+      args:
+        rouge_types: rouge1
+    - type: rouge
+      name: Rouge
+      args:
+        rouge_types: rouge2
+    - type: rouge
+      name: Rouge
+      args:
+        rouge_types: rougeL
+    - type: rouge
+      name: Rouge
+      args:
+        rouge_types: rougeLSum
 ---
 
 # Dataset Card for "billsum"
