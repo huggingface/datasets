@@ -74,7 +74,7 @@ from .fingerprint import (
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
 from .info import DatasetInfo
 from .search import IndexableMixin
-from .splits import NamedSplit, Split, SplitInfo, _approximate_mode, check_random_state, generate_indices
+from .splits import NamedSplit, Split, SplitInfo, generate_indices
 from .table import (
     InMemoryTable,
     MemoryMappedTable,
