@@ -33,19 +33,19 @@ train-eval-index:
     - type: rouge
       name: Rouge
       args:
-        rouge_types: rouge1
+      	rouge_types: rouge1
     - type: rouge
       name: Rouge
       args:
-	rouge_types: rouge2
+      	rouge_types: rouge2
     - type: rouge
       name: Rouge
       args:
-	rouge_types: rougeL
+      	rouge_types: rougeL
     - type: rouge
       name: Rouge
       args:
-	rouge_types: rougeLSum
+      	rouge_types: rougeLSum
 	---
 
 # Dataset Card for Gigaword
