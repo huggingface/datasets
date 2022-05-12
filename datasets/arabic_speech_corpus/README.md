@@ -29,9 +29,9 @@ train-eval-index:
     file: path
     text: text
   metrics:
-    - type: wer
+  - type: wer
     name: WER
-    - type: cer
+  - type: cer
     name: CER
 ---
 
