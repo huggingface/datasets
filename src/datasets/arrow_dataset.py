@@ -1562,7 +1562,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_tasks
     @fingerprint_transform(inplace=False)
-    def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint) -> "Dataset":
+    def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
         """
         Remove one or several column(s) in the dataset and the features associated to them.
 
