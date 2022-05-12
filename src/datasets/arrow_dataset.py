@@ -3431,6 +3431,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # set a seed
         >>> ds = ds.train_test_split(test_size=0.2, seed=42)
+
+        # stratified split
+        >>> ds = load_dataset("imdb",split="train")
+        Dataset({
+            features: ['text', 'label'],
+            num_rows: 25000
+        })
+        >>> ds = ds.train_test_split(test_size=0.2,stratify="label")
+        DatasetDict({
+            train: Dataset({
+                features: ['text', 'label'],
+                num_rows: 20000
+            })
+            test: Dataset({
+                features: ['text', 'label'],
+                num_rows: 5000
+            })
+        })
         ```
         """
         from .dataset_dict import DatasetDict  # import here because of circular dependency
