@@ -238,8 +238,8 @@ def _maybe_trim_suffix(transcript):
     transcript = splits[0]
     if len(splits) > 1:
         suffix = splits[-1]
-    if not suffix.startswith("("):
-        transcript += " " + suffix
+        if not suffix.startswith("("):
+            transcript += " " + suffix
     return transcript
 
 

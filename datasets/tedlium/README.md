@@ -63,7 +63,7 @@ The TED-LIUM corpus is English-language TED talks, with transcriptions, sampled 
 ```python
 from datasets import load_dataset
 
-tedlium = load_dataset("LIUM/minds14", "release1") # for Release 1
+tedlium = load_dataset("LIUM/tedlium", "release1") # for Release 1
 
 # see structure
 print(tedlium)
@@ -72,6 +72,8 @@ print(tedlium)
 audio_input = tedlium["train"][0]["audio"]  # first decoded audio sample
 transcription = tedlium["train"][0]["text"]  # first transcription
 ```
+
+Note that the processing of the TEDLIUM dataset requires pydub for audio segmentation. Instructions on how to download pydub can be found at https://github.com/jiaaro/pydub#installation. 
 
 ### Supported Tasks and Leaderboards
 
