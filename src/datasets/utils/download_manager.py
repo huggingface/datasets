@@ -18,6 +18,7 @@
 import enum
 import io
 import os
+import posixpath
 import tarfile
 from datetime import datetime
 from functools import partial
@@ -191,7 +192,7 @@ class DownloadManager:
             raise ValueError("You need to specify 'temp_location' in PipelineOptions to upload files")
 
         def upload(local_file_path):
-            remote_file_path = os.path.join(
+            remote_file_path = posixpath.join(
                 remote_dir, config.DOWNLOADED_DATASETS_DIR, os.path.basename(local_file_path)
             )
             logger.info(
