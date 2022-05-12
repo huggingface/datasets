@@ -19,6 +19,33 @@ task_categories:
 task_ids:
 - news-articles-summarization
 paperswithcode_id: multi-news
+train-eval-index:
+- config: default
+  task: summarization
+  task_id: summarization
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    document: text
+    summary: target
+  metrics:
+    - type: rouge
+      name: Rouge
+      args:
+        rouge_types: rouge1
+    - type: rouge
+      name: Rouge
+      args:
+        rouge_types: rouge2
+    - type: rouge
+      name: Rouge
+      args:
+        rouge_types: rougeL
+    - type: rouge
+      name: Rouge
+      args:
+        rouge_types: rougeLSum
 ---
 
 # Dataset Card for Multi-News
