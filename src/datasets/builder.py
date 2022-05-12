@@ -1213,29 +1213,31 @@ class BeamBasedBuilder(DatasetBuilder):
         `_split_generators`. The examples from the PCollection will be
         encoded and written to disk.
 
+        <Tip warning={true}>
         Warning: When running in a distributed setup, make sure that the data
         which will be read (download_dir, manual_dir,...) and written (cache_dir)
         can be accessed by the workers jobs. The data should be located in a
         shared filesystem, like GCS.
+        </Tip>
 
-        Example::
+        Args:
+            pipeline ([`utils.beam_utils.BeamPipeline`]): Apache Beam pipeline.
+            **kwargs: Arguments forwarded from the SplitGenerator.gen_kwargs.
+
+        Returns:
+            `beam.PCollection`: Apache Beam PCollection containing the
+                example to send to `self.info.features.encode_example(...)`.
+
+        Example:
 
         ```
-        def _build_pcollection(pipeline, extracted_dir):
+        def _build_pcollection(pipeline, extracted_dir=None):
             return (
                     pipeline
                     | beam.Create(gfile.io.listdir(extracted_dir))
                     | beam.Map(_process_file)
             )
         ```
-
-        Args:
-            pipeline: `beam.Pipeline`, root Beam pipeline
-            **kwargs: Arguments forwarded from the SplitGenerator.gen_kwargs
-
-        Returns:
-            pcollection: `PCollection`, an Apache Beam PCollection containing the
-                example to send to `self.info.features.encode_example(...)`.
         """
         raise NotImplementedError()
 
