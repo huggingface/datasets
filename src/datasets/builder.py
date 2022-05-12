@@ -43,7 +43,7 @@ from .features import Features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
-from .naming import camelcase_to_snakecase, filename_prefix_for_split
+from .naming import camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator
 from .utils import logging
 from .utils.download_manager import DownloadManager, DownloadMode
