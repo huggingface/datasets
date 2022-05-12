@@ -790,6 +790,22 @@ class StreamingDownloadManager:
         return self._data_dir
 
     def download(self, url_or_urls):
+        """Download given url(s).
+
+        Args:
+            url_or_urls: url or `list`/`dict` of urls to download and extract. Each
+                url is a `str`.
+
+        Returns:
+            downloaded_path(s): `str`, The downloaded paths matching the given input
+                url_or_urls.
+
+        Example:
+
+        ```py
+        >>> downloaded_files = dl_manager.download('https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz')
+        ```
+        """
         url_or_urls = map_nested(self._download, url_or_urls, map_tuple=True)
         return url_or_urls
 
@@ -801,6 +817,25 @@ class StreamingDownloadManager:
         return urlpath
 
     def extract(self, path_or_paths):
+        """Extract given path(s).
+
+        Args:
+            path_or_paths: path or `list`/`dict` of path of file to extract. Each
+                path is a `str`.
+            num_proc: Use multi-processing if `num_proc` > 1 and the length of
+                `path_or_paths` is larger than `num_proc`
+
+        Returns:
+            extracted_path(s): `str`, The extracted paths matching the given input
+                path_or_paths.
+
+        Example:
+
+        ```py
+        >>> downloaded_files = dl_manager.download('https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz')
+        >>> extracted_files = dl_manager.extract(downloaded_files)
+        ```
+        """
         urlpaths = map_nested(self._extract, path_or_paths, map_tuple=True)
         return urlpaths
 
@@ -823,6 +858,21 @@ class StreamingDownloadManager:
             return f"{protocol}://::{urlpath}"
 
     def download_and_extract(self, url_or_urls):
+        """Download and extract given url_or_urls.
+
+        Is roughly equivalent to:
+
+        ```
+        extracted_paths = dl_manager.extract(dl_manager.download(url_or_urls))
+        ```
+
+        Args:
+            url_or_urls: url or `list`/`dict` of urls to download and extract. Each
+                url is a `str`.
+
+        Returns:
+            extracted_path(s): `str`, extracted paths of given URL(s).
+        """
         return self.extract(self.download(url_or_urls))
 
     def iter_archive(self, urlpath_or_buf: Union[str, io.BufferedReader]) -> Iterable[Tuple]:
@@ -834,6 +884,13 @@ class StreamingDownloadManager:
         Yields:
             :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
                 File object is opened in binary mode.
+
+        Example:
+
+        ```py
+        >>> archive = dl_manager.download('https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz')
+        >>> files = dl_manager.iter_archive(archive)
+        ```
         """
 
         if hasattr(urlpath_or_buf, "read"):
@@ -849,5 +906,12 @@ class StreamingDownloadManager:
 
         Yields:
             str: File URL path.
+
+        Example:
+
+        ```py
+        >>> files = dl_manager.download_and_extract('https://huggingface.co/datasets/beans/resolve/main/data/train.zip')
+        >>> files = dl_manager.iter_files(files)
+        ```
         """
         return FilesIterable.from_urlpaths(urlpaths, use_auth_token=self.download_config.use_auth_token)
