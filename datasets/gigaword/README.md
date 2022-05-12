@@ -46,7 +46,7 @@ train-eval-index:
       name: Rouge
       args:
       	rouge_types: rougeLSum
-	---
+---
 
 # Dataset Card for Gigaword
 
