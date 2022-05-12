@@ -1616,7 +1616,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_tasks
     @fingerprint_transform(inplace=False)
-    def rename_column(self, original_column_name: str, new_column_name: str, new_fingerprint: Optional[str] = None) -> "Dataset":
+    def rename_column(
+        self, original_column_name: str, new_column_name: str, new_fingerprint: Optional[str] = None
+    ) -> "Dataset":
         """
         Rename a column in the dataset, and move the features associated to the original column under the new column
         name.
