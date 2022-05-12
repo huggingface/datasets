@@ -1437,6 +1437,8 @@ def load_metric(
     ```py
     >>> from datasets import load_metric
     >>> accuracy = load_metric('accuracy')
+    >>> accuracy.compute(references=[1, 0], predictions=[1, 1])
+    {'accuracy': 0.5}
     ```
     """
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
@@ -1724,18 +1726,18 @@ def load_dataset(
     ```py
     # Load a CSV file
     >>> from datasets import load_dataset
-    >>> ds = load_dataset('csv', data_files='my_dataset.csv')
+    >>> ds = load_dataset('csv', data_files='path/to/local/my_dataset.csv')
 
     # Load a JSON file
     >>> from datasets import load_dataset
-    >>> ds = load_dataset('json', data_files='my_dataset.json')
+    >>> ds = load_dataset('json', data_files='path/to/local/my_dataset.json')
 
     # Load from a local loading script
     >>> from datasets import load_dataset
     >>> ds = load_dataset('path/to/local/loading_script/loading_script.py', split='train')
     ```
 
-    Load an [`IterableDataset`]:
+    Load an [`~datasets.IterableDataset`]:
 
     ```py
     >>> from datasets import load_dataset

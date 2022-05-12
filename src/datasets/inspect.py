@@ -53,6 +53,14 @@ def list_datasets(with_community_datasets=True, with_details=False):
     ```py
     >>> from datasets import list_datasets
     >>> list_datasets()
+    ['acronym_identification',
+     'ade_corpus_v2',
+     'adversarial_qa',
+     'aeslc',
+     'afrikaans_ner_corpus',
+     'ag_news',
+     ...
+    ]
     ```
     """
     datasets = huggingface_hub.list_datasets(full=with_details)
@@ -75,6 +83,14 @@ def list_metrics(with_community_metrics=True, with_details=False):
     ```py
     >>> from datasets import list_metrics
     >>> list_metrics()
+    ['accuracy',
+     'bertscore',
+     'bleu',
+     'bleurt',
+     'cer',
+     'chrf',
+     ...
+    ]
     ```
     """
     metrics = huggingface_hub.list_metrics()
@@ -171,6 +187,7 @@ def get_dataset_infos(
     ```py
     >>> from datasets import get_dataset_infos
     >>> get_dataset_infos('rotten_tomatoes')
+    {'default': DatasetInfo(description="Movie Review Dataset.\nThis is a dataset of containing 5,331 positive and 5,331 negative processed\nsentences from Rotten Tomatoes movie reviews...), ...}
     ```
     """
     config_names = get_dataset_config_names(
