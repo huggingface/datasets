@@ -27,8 +27,8 @@ train-eval-index:
       train_split: train
       eval_split: test
     col_mapping:
-  		review: text
-  		label: target
+      review: text
+      label: target
     metrics:
       - type: accuracy
         name: Accuracy
