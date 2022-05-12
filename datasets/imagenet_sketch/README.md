@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 licenses:
-- mit
+- unknown
 multilinguality:
 - monolingual
 paperswithcode_id: imagenet-sketch
