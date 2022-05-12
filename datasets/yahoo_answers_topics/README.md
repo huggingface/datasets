@@ -70,7 +70,7 @@ train-eval-index:
         average: weighted
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for "Yahoo Answers Topics"
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
