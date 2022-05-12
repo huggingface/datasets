@@ -35,7 +35,7 @@ from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from .. import config
 from ..utils import logging
-from ..utils.py_utils import zip_dict
+from ..utils.py_utils import first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
 from .translation import Translation, TranslationVariableLanguages
@@ -1178,7 +1178,7 @@ def list_of_pa_arrays_to_pyarrow_listarray(l_arr: List[Optional[pa.Array]]) -> p
     null_indices = [i for i, arr in enumerate(l_arr) if arr is None]
     l_arr = [arr for arr in l_arr if arr is not None]
     offsets = np.cumsum(
-        [0] + [len(arr) for arr in l_arr], dtype=np.object
+        [0] + [len(arr) for arr in l_arr], dtype=object
     )  # convert to dtype object to allow None insertion
     offsets = np.insert(offsets, null_indices, None)
     offsets = pa.array(offsets, type=pa.int32())
@@ -1194,6 +1194,55 @@ def list_of_np_array_to_pyarrow_listarray(l_arr: List[np.ndarray], type: pa.Data
         )
     else:
         return pa.array([], type=type)
+
+
+def contains_any_np_array(data: Any):
+    """Return `True` if data is a NumPy ndarray or (recursively) if first non-null value in list is a NumPy ndarray.
+
+    Args:
+        data (Any): Data.
+
+    Returns:
+        bool
+    """
+    if isinstance(data, np.ndarray):
+        return True
+    elif isinstance(data, list):
+        return contains_any_np_array(first_non_null_value(data)[1])
+    else:
+        return False
+
+
+def any_np_array_to_pyarrow_listarray(data: Union[np.ndarray, List], type: pa.DataType = None) -> pa.ListArray:
+    """Convert to PyArrow ListArray either a NumPy ndarray or (recursively) a list that may contain any NumPy ndarray.
+
+    Args:
+        data (Union[np.ndarray, List]): Data.
+        type (pa.DataType): Explicit PyArrow DataType passed to coerce the ListArray data type.
+
+    Returns:
+        pa.ListArray
+    """
+    if isinstance(data, np.ndarray):
+        return numpy_to_pyarrow_listarray(data, type=type)
+    elif isinstance(data, list):
+        return list_of_pa_arrays_to_pyarrow_listarray([any_np_array_to_pyarrow_listarray(i, type=type) for i in data])
+
+
+def to_pyarrow_listarray(data: Any, pa_type: _ArrayXDExtensionType) -> pa.Array:
+    """Convert to PyArrow ListArray.
+
+    Args:
+        data (Any): Sequence, iterable, np.ndarray or pd.Series.
+        pa_type (_ArrayXDExtensionType): Any of the ArrayNDExtensionType.
+
+    Returns:
+        pyarrow.Array
+    """
+    if contains_any_np_array(data):
+        return any_np_array_to_pyarrow_listarray(data, type=pa_type.value_type)
+    else:
+        return pa.array(data, pa_type.storage_dtype)
 
 
 def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False) -> bool:
