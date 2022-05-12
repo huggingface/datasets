@@ -20,6 +20,19 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: squad
+train-eval-index:
+- config: plain_text
+  task: question-answering
+  task_id: extractive_question_answering
+  splits:
+    train_split: train
+    eval_split: validation
+  col_mapping:
+    question: question
+    answers.text: answers.text
+  metrics:
+    - type: squad
+      name: SQuAD
 ---
 
 # Dataset Card for "squad"

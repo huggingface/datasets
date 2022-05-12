@@ -20,6 +20,19 @@ task_ids:
 - open-domain-qa
 - extractive-qa
 paperswithcode_id: squad
+train-eval-index:
+- config: squad_v2
+  task: question-answering
+  task_id: extractive_question_answering
+  splits:
+    train_split: train
+    eval_split: validation
+  col_mapping:
+    question: question
+    answers.text: answers.text
+  metrics:
+  - type: squad_v2
+    name: SQuAD_v2
 ---
 
 # Dataset Card for "squad_v2"
