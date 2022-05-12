@@ -31,12 +31,11 @@ import datasets
 
 
 _CITATION = """\
-@article{Wallace2020GeneratingN,
-    title        = {Generating (Factual?) Narrative Summaries of RCTs: Experiments with Neural Multi-Document Summarization},
-    author       = {Byron C. Wallace and Sayantani Saha and Frank Soboczenski and Iain James Marshall},
-    year         = 2020,
-    journal      = {AMIA Annual Symposium},
-    volume       = {abs/2008.11293}
+@inproceedings{DeYoung2021MS2MS,
+    title        = {MSˆ2: Multi-Document Summarization of Medical Studies},
+    author       = {Jay DeYoung and Iz Beltagy and Madeleine van Zuylen and Bailey Kuehl and Lucy Lu Wang},
+    booktitle    = {EMNLP},
+    year         = {2021}
 }
 @article{Wallace2020GeneratingN,
     title        = {Generating (Factual?) Narrative Summaries of RCTs: Experiments with Neural Multi-Document Summarization},

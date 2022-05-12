@@ -45,13 +45,15 @@ The Multidocument Summarization for Literature Review (MSLR) Shared Task aims to
 
 ### Supported Tasks and Leaderboards
 
-[Needs More Information]
+This dataset is used for the MSLR2022 Shared Task. For information on the shared task leaderboard, please refer [here](https://github.com/allenai/mslr-shared-task#leaderboard).
 
 ### Languages
 
-[Needs More Information]
+English
 
 ## Dataset Structure
+
+More information on dataset structure [here](https://github.com/allenai/mslr-shared-task#data-structure).
 
 ### Data Instances
 
@@ -66,6 +68,12 @@ The Multidocument Summarization for Literature Review (MSLR) Shared Task aims to
 [Needs More Information]
 
 ## Dataset Creation
+
+Please refer to the following papers for details about dataset curation:
+
+[MSˆ2: A Dataset for Multi-Document Summarization of Medical Studies](https://aclanthology.org/2021.emnlp-main.594.pdf)
+
+[Generating (Factual?) Narrative Summaries of RCTs: Experiments with Neural Multi-Document Summarization](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8378607/)
 
 ### Curation Rationale
 
