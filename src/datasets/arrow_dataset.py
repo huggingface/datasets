@@ -74,7 +74,7 @@ from .fingerprint import (
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
 from .info import DatasetInfo
 from .search import IndexableMixin
-from .splits import NamedSplit, Split, SplitInfo
+from .splits import NamedSplit, Split, SplitInfo, _approximate_mode, check_random_state, generate_indices
 from .table import (
     InMemoryTable,
     MemoryMappedTable,
@@ -3254,6 +3254,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         test_size: Union[float, int, None] = None,
         train_size: Union[float, int, None] = None,
         shuffle: bool = True,
+        stratify: Optional[str] = None,
         seed: Optional[int] = None,
         generator: Optional[np.random.Generator] = None,
         keep_in_memory: bool = False,
@@ -3280,6 +3281,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If int, represents the absolute number of train samples.
                 If None, the value is automatically set to the complement of the test size.
             shuffle (:obj:`bool`, optional, default `True`): Whether or not to shuffle the data before splitting.
+            stratify (:obj:`str`, optional, default `None`): data is split in a stratified fashion, using the specified class labels
             seed (:obj:`int`, optional): A seed to initialize the default BitGenerator if ``generator=None``.
                 If None, then fresh, unpredictable entropy will be pulled from the OS.
                 If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
@@ -3436,15 +3438,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         ),
                     }
                 )
-
         if not shuffle:
+            if stratify is not None:
+                raise ValueError("Stratified train/test split is not implemented for shuffle=False")
             train_indices = np.arange(n_train)
             test_indices = np.arange(n_train, n_train + n_test)
         else:
+            # stratified partition
+            if stratify is not None:
+                train_indices, test_indices = next(
+                    generate_indices(self[stratify], n_train, n_test, random_state=seed)
+                )
             # random partition
-            permutation = generator.permutation(len(self))
-            test_indices = permutation[:n_test]
-            train_indices = permutation[n_test : (n_test + n_train)]
+            else:
+                permutation = generator.permutation(len(self))
+                test_indices = permutation[:n_test]
+                train_indices = permutation[n_test : (n_test + n_train)]
 
         train_split = self.select(
             indices=train_indices,
