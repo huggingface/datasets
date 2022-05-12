@@ -29,7 +29,6 @@ train-eval-index:
     tweet: text
     label: target
     metrics:
-    metrics:
       - type: accuracy
         name: Accuracy
       - type: f1
