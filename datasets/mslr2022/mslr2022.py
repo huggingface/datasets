@@ -142,11 +142,10 @@ class MSLR2022(datasets.GeneratorBasedBuilder):
         if split != "test":
             targets_filepath = os.path.join(data_dir, f"{split}-targets.csv")
             targets_df = pd.read_csv(targets_filepath, index_col=0)
-
-        # Only MS^2 has the *-reviews-info.csv files, and only for the train and dev splits.
-        if self.config.name == "ms2" and split != "test":
-            reviews_info_filepath = os.path.join(data_dir, f"{split}-reviews-info.csv")
-            reviews_info_df = pd.read_csv(reviews_info_filepath, index_col=0)
+            # Only MS^2 has the *-reviews-info.csv files, and only for the train and dev splits.
+            if self.config.name == "ms2":
+                reviews_info_filepath = os.path.join(data_dir, f"{split}-reviews-info.csv")
+                reviews_info_df = pd.read_csv(reviews_info_filepath, index_col=0)
 
         for review_id in inputs_df.ReviewID.unique():
             inputs = inputs_df[inputs_df.ReviewID == review_id]
