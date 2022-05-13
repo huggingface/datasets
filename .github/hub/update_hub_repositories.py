@@ -149,7 +149,11 @@ class update_main:
         logs.append(repo.git.reset("--hard"))
         logs.append(repo.git.clean("-f", "-d"))
         logs.append(repo.git.checkout(CANONICAL_DATASET_REPO_MAIN_BRANCH))
-        logs.append(repo.remote().pull())
+        try:
+            logs.append(repo.remote().pull())
+        except Exception as e:
+            logs.append("pull failed !")
+            logs.append(repr(e))
         # Copy the changes and commit
         distutils.dir_util.copy_tree(
             str(src_canonical_dataset_path(datasets_lib_path, dataset_name)), str(canonical_dataset_path(dataset_name))

@@ -40,6 +40,12 @@ class Version:
         major (:obj:`str`):
         minor (:obj:`str`):
         patch (:obj:`str`):
+
+    Example:
+
+    ```py
+    >>> VERSION = datasets.Version("1.0.0")
+    ```
     """
 
     version_str: str
