@@ -13,10 +13,9 @@
 # limitations under the License.
 """ CTC-Consistency metric. """
 
+import datasets
 import ctc_score
 from ctc_score import SummarizationScorer
-
-import datasets
 
 
 _CITATION = """\
@@ -56,7 +55,7 @@ Examples:
 
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
-class CTC_Contensiscy(datasets.Metric):
+class CTC_Consistency(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
             description=_DESCRIPTION,
@@ -75,8 +74,8 @@ class CTC_Contensiscy(datasets.Metric):
         )
 
     def _compute(self, sources, hypothesis):
-        scorer = SummarizationScorer(align="D-cnndm")
+        scorer = SummarizationScorer(align='D-cnndm')
         scores = []
         for src_s, hyp_s in zip(sources, hypothesis):
-            scores.append(scorer.score(doc=src_s, refs=[], hypo=hyp_s, aspect="consistency"))
+            scores.append(scorer.score(doc=src_s, refs=[], hypo=hyp_s, aspect='consistency'))
         return {"scores": scores}
