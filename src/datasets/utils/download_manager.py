@@ -188,7 +188,7 @@ class DownloadManager:
         Args:
             downloaded_path_or_paths (`str` or `list[str]` or `dict[str, str]`): Nested structure containing the
                 downloaded path(s).
-            pipeline [`utils.beam_utils.BeamPipeline`]: Apache Beam Pipeline.
+            pipeline ([`utils.beam_utils.BeamPipeline`]): Apache Beam Pipeline.
 
         Returns:
             `str` or `list[str]` or `dict[str, str]`
