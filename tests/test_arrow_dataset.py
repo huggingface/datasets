@@ -11,6 +11,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import numpy as np
+import numpy.testing as npt
 import pandas as pd
 import pyarrow as pa
 import pytest
@@ -3553,3 +3554,33 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.map(lambda x: {"new_column": 0}, remove_columns=dset.column_names) as dset:
                 self.assertDictEqual(dset.features, features_after_map)
+
+
+def test_train_test_split_startify():
+    ys = [
+        np.array([1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3]),
+        np.array([0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3]),
+        np.array([0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2] * 2),
+        np.array([1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4]),
+        np.array([-1] * 800 + [1] * 50),
+        np.concatenate([[i] * (100 + i) for i in range(11)]),
+        [1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3],
+        ["1", "1", "1", "1", "2", "2", "2", "3", "3", "3", "3", "3"],
+    ]
+    for y in ys:
+        d1 = Dataset.from_dict({"feature": np.ones(len(y)), "label": y})
+        d1 = d1.train_test_split(test_size=0.33, stratify="label")
+        y = np.asanyarray(y)  # To make it indexable for y[train]
+        test_size = np.ceil(0.33 * len(y))
+        train_size = len(y) - test_size
+        npt.assert_array_equal(np.unique(d1["train"]["label"]), np.unique(d1["test"]["label"]))
+
+        # checking classes proportion
+        p_train = np.bincount(np.unique(d1["train"]["label"], return_inverse=True)[1]) / float(
+            len(d1["train"]["label"])
+        )
+        p_test = np.bincount(np.unique(d1["test"]["label"], return_inverse=True)[1]) / float(len(d1["test"]["label"]))
+        npt.assert_array_almost_equal(p_train, p_test, 1)
+        assert len(d1["train"]["feature"]) + len(d1["test"]["feature"]) == y.size
+        assert len(d1["train"]["feature"]) == train_size
+        assert len(d1["test"]["feature"]) == test_size
