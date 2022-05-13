@@ -38,7 +38,7 @@ nltk.download('stopwords')
 At minimum, this metric requires sources and hypothesis as inputs.
 
 ```python
->>> ctc_consistency = datasets.load_metric("CTC_Consistency")
+>>> ctc_consistency = datasets.load_metric("ctc_consistency")
 >>> results = ctc_consistency.compute(sources=sources, hypothesis=hypothesis)
 >>> print(results["scores"])
 {'accuracy': 1.0}
