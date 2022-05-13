@@ -222,7 +222,7 @@ class TedLium(datasets.GeneratorBasedBuilder):
 
                     key = "-".join([speaker, start, end, label])
                     example = {
-                        "audio": {"path": file, "bytes": samples},
+                        "audio": {"path": file, "array": samples, "sampling_rate": 16000},
                         "text": transcript,
                         "speaker_id": speaker,
                         "gender": _parse_gender(label),
