@@ -46,12 +46,12 @@ At minimum, this metric requires sources and hypothesis as inputs.
 
 
 ### Inputs
-- **sources** (`list` of `string`): Predicted labels.
-- **hypothesis** (`list` of `string`): Ground truth labels.
+- **sources** (`list` of `string`): source files.
+- **hypothesis** (`list` of `string`): all hypothesized texts to evaluate.
 
 
 ### Output Values
-- **scores**(`float` or `int`): Accuracy score. Minimum possible value is 0. Maximum possible value is 1.0, or the number of examples input, if `normalize` is set to `True`.. A higher score means higher accuracy.
+- **scores**(`float` or `int`): Summarization consistency score.
 
 Output Example(s):
 ```python
