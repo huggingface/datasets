@@ -74,7 +74,7 @@ version v1.1
 
 ### Data Instances
 
-#### v1.1
+#### v1_1
 
 - **Size of downloaded dataset files:** 160.88 MB
 - **Size of the generated dataset:** 414.48 MB
@@ -85,7 +85,7 @@ An example of 'train' looks as follows.
 
 ```
 
-#### v2.1
+#### v2_1
 
 - **Size of downloaded dataset files:** 1320.14 MB
 - **Size of the generated dataset:** 4088.84 MB
@@ -100,7 +100,7 @@ An example of 'validation' looks as follows.
 
 The data fields are the same among all splits.
 
-#### v1.1
+#### v1_1
 - `answers`: a `list` of `string` features.
 - `passages`: a dictionary feature containing:
   - `is_selected`: a `int32` feature.
@@ -111,7 +111,7 @@ The data fields are the same among all splits.
 - `query_type`: a `string` feature.
 - `wellFormedAnswers`: a `list` of `string` features.
 
-#### v2.1
+#### v2_1
 - `answers`: a `list` of `string` features.
 - `passages`: a dictionary feature containing:
   - `is_selected`: a `int32` feature.
@@ -126,8 +126,8 @@ The data fields are the same among all splits.
 
 |name|train |validation| test |
 |----|-----:|---------:|-----:|
-|v1.1| 82326|     10047|  9650|
-|v2.1|808731|    101093|101092|
+|v1_1| 82326|     10047|  9650|
+|v2_1|808731|    101093|101092|
 
 ## Dataset Creation
 

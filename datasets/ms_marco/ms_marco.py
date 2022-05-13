@@ -93,12 +93,12 @@ class MsMarco(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         MsMarcoConfig(
-            name="v1.1",
+            name="v1_1",
             description="""version v1.1""",
             version=datasets.Version("1.1.0", ""),
         ),
         MsMarcoConfig(
-            name="v2.1",
+            name="v2_1",
             description="""version v2.1""",
             version=datasets.Version("2.1.0", ""),
         ),
@@ -129,7 +129,7 @@ class MsMarco(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        if self.config.name == "v2.1":
+        if self.config.name == "v2_1":
             dl_path = dl_manager.download_and_extract(_V2_URLS)
         else:
             dl_path = dl_manager.download_and_extract(_V1_URLS)
@@ -151,7 +151,7 @@ class MsMarco(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         with open(filepath, encoding="utf-8") as f:
-            if self.config.name == "v2.1":
+            if self.config.name == "v2_1":
                 data = json.load(f)
                 questions = data["query"]
                 answers = data.get("answers", {})
@@ -179,7 +179,7 @@ class MsMarco(datasets.GeneratorBasedBuilder):
                         "query_type": query_type,
                         "wellFormedAnswers": wellFormedAnswer,
                     }
-            if self.config.name == "v1.1":
+            if self.config.name == "v1_1":
                 for row in f:
                     data = json.loads(row)
                     question = data["query"]

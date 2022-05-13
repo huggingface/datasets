@@ -60,7 +60,7 @@ paperswithcode_id: mlqa
 
 ### Data Instances
 
-#### mlqa-translate-test.ar
+#### mlqa-translate-test_ar
 
 - **Size of downloaded dataset files:** 9.61 MB
 - **Size of the generated dataset:** 5.23 MB
@@ -71,7 +71,7 @@ An example of 'test' looks as follows.
 
 ```
 
-#### mlqa-translate-test.de
+#### mlqa-translate-test_de
 
 - **Size of downloaded dataset files:** 9.61 MB
 - **Size of the generated dataset:** 3.70 MB
@@ -82,7 +82,7 @@ An example of 'test' looks as follows.
 
 ```
 
-#### mlqa-translate-test.es
+#### mlqa-translate-test_es
 
 - **Size of downloaded dataset files:** 9.61 MB
 - **Size of the generated dataset:** 3.74 MB
@@ -93,7 +93,7 @@ An example of 'test' looks as follows.
 
 ```
 
-#### mlqa-translate-test.hi
+#### mlqa-translate-test_hi
 
 - **Size of downloaded dataset files:** 9.61 MB
 - **Size of the generated dataset:** 4.40 MB
@@ -104,7 +104,7 @@ An example of 'test' looks as follows.
 
 ```
 
-#### mlqa-translate-test.vi
+#### mlqa-translate-test_vi
 
 - **Size of downloaded dataset files:** 9.61 MB
 - **Size of the generated dataset:** 5.72 MB
@@ -119,7 +119,7 @@ An example of 'test' looks as follows.
 
 The data fields are the same among all splits.
 
-#### mlqa-translate-test.ar
+#### mlqa-translate-test_ar
 - `context`: a `string` feature.
 - `question`: a `string` feature.
 - `answers`: a dictionary feature containing:
@@ -127,7 +127,7 @@ The data fields are the same among all splits.
   - `text`: a `string` feature.
 - `id`: a `string` feature.
 
-#### mlqa-translate-test.de
+#### mlqa-translate-test_de
 - `context`: a `string` feature.
 - `question`: a `string` feature.
 - `answers`: a dictionary feature containing:
@@ -135,7 +135,7 @@ The data fields are the same among all splits.
   - `text`: a `string` feature.
 - `id`: a `string` feature.
 
-#### mlqa-translate-test.es
+#### mlqa-translate-test_es
 - `context`: a `string` feature.
 - `question`: a `string` feature.
 - `answers`: a dictionary feature containing:
@@ -143,7 +143,7 @@ The data fields are the same among all splits.
   - `text`: a `string` feature.
 - `id`: a `string` feature.
 
-#### mlqa-translate-test.hi
+#### mlqa-translate-test_hi
 - `context`: a `string` feature.
 - `question`: a `string` feature.
 - `answers`: a dictionary feature containing:
@@ -151,7 +151,7 @@ The data fields are the same among all splits.
   - `text`: a `string` feature.
 - `id`: a `string` feature.
 
-#### mlqa-translate-test.vi
+#### mlqa-translate-test_vi
 - `context`: a `string` feature.
 - `question`: a `string` feature.
 - `answers`: a dictionary feature containing:
@@ -163,11 +163,11 @@ The data fields are the same among all splits.
 
 |         name         |test|
 |----------------------|---:|
-|mlqa-translate-test.ar|5335|
-|mlqa-translate-test.de|4517|
-|mlqa-translate-test.es|5253|
-|mlqa-translate-test.hi|4918|
-|mlqa-translate-test.vi|5495|
+|mlqa-translate-test_ar|5335|
+|mlqa-translate-test_de|4517|
+|mlqa-translate-test_es|5253|
+|mlqa-translate-test_hi|4918|
+|mlqa-translate-test_vi|5495|
 
 ## Dataset Creation
 

@@ -73,7 +73,7 @@ Indian languages by AI4Bharat.
 
 ### Data Instances
 
-#### actsa-sc.te
+#### actsa-sc_te
 
 - **Size of downloaded dataset files:** 0.36 MB
 - **Size of the generated dataset:** 1.63 MB
@@ -89,7 +89,7 @@ This example was too long and was cropped:
 }
 ```
 
-#### bbca.hi
+#### bbca_hi
 
 - **Size of downloaded dataset files:** 5.50 MB
 - **Size of the generated dataset:** 26.35 MB
@@ -105,7 +105,7 @@ This example was too long and was cropped:
 }
 ```
 
-#### copa.en
+#### copa_en
 
 - **Size of downloaded dataset files:** 0.72 MB
 - **Size of the generated dataset:** 0.11 MB
@@ -122,7 +122,7 @@ An example of 'validation' looks as follows.
 }
 ```
 
-#### copa.gu
+#### copa_gu
 
 - **Size of downloaded dataset files:** 0.72 MB
 - **Size of the generated dataset:** 0.22 MB
@@ -141,7 +141,7 @@ This example was too long and was cropped:
 }
 ```
 
-#### copa.hi
+#### copa_hi
 
 - **Size of downloaded dataset files:** 0.72 MB
 - **Size of the generated dataset:** 0.22 MB
@@ -162,29 +162,29 @@ An example of 'validation' looks as follows.
 
 The data fields are the same among all splits.
 
-#### actsa-sc.te
+#### actsa-sc_te
 - `text`: a `string` feature.
 - `label`: a classification label, with possible values including `positive` (0), `negative` (1).
 
-#### bbca.hi
+#### bbca_hi
 - `label`: a `string` feature.
 - `text`: a `string` feature.
 
-#### copa.en
+#### copa_en
 - `premise`: a `string` feature.
 - `choice1`: a `string` feature.
 - `choice2`: a `string` feature.
 - `question`: a `string` feature.
 - `label`: a `int32` feature.
 
-#### copa.gu
+#### copa_gu
 - `premise`: a `string` feature.
 - `choice1`: a `string` feature.
 - `choice2`: a `string` feature.
 - `question`: a `string` feature.
 - `label`: a `int32` feature.
 
-#### copa.hi
+#### copa._i
 - `premise`: a `string` feature.
 - `choice1`: a `string` feature.
 - `choice2`: a `string` feature.
@@ -193,31 +193,31 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-#### actsa-sc.te
+#### actsa-sc_te
 
 |           |train|validation|test|
 |-----------|----:|---------:|---:|
 |actsa-sc.te| 4328|       541| 541|
 
-#### bbca.hi
+#### bbca_hi
 
 |       |train|test|
 |-------|----:|---:|
 |bbca.hi| 3467| 866|
 
-#### copa.en
+#### copa_en
 
 |       |train|validation|test|
 |-------|----:|---------:|---:|
 |copa.en|  400|       100| 500|
 
-#### copa.gu
+#### copa_gu
 
 |       |train|validation|test|
 |-------|----:|---------:|---:|
 |copa.gu|  362|        88| 448|
 
-#### copa.hi
+#### copa_hi
 
 |       |train|validation|test|
 |-------|----:|---------:|---:|

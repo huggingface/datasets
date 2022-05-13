@@ -70,16 +70,16 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
             name="zh", description="The raw dataset of medical dialogs in Chinese.", version=VERSION
         ),
         datasets.BuilderConfig(
-            name="processed.en", description="The processed dataset of medical dialogs in English.", version=VERSION
+            name="processed_en", description="The processed dataset of medical dialogs in English.", version=VERSION
         ),
         datasets.BuilderConfig(
-            name="processed.zh", description="The processed dataset of medical dialogs in Chinese.", version=VERSION
+            name="processed_zh", description="The processed dataset of medical dialogs in Chinese.", version=VERSION
         ),
     ]
 
     @property
     def manual_download_instructions(self):
-        *processed, _ = self.config.name.split(".")
+        *processed, _ = self.config.name.split("_")
         return (
             None
             if processed
@@ -133,14 +133,14 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
                     ),
                 }
             )
-        elif self.config.name == "processed.en":
+        elif self.config.name == "processed_en":
             features = datasets.Features(
                 {
                     "description": datasets.Value("string"),
                     "utterances": datasets.Sequence(datasets.Value("string")),
                 }
             )
-        elif self.config.name == "processed.zh":
+        elif self.config.name == "processed_zh":
             features = datasets.Features(
                 {
                     "utterances": datasets.Sequence(datasets.Value("string")),
@@ -156,7 +156,7 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        *processed, lang = self.config.name.split(".")
+        *processed, lang = self.config.name.split("_")
         if processed:
             data_dir = dl_manager.download(_URLS[lang])
             splits = [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]
@@ -183,7 +183,7 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
         - The code makes some assumption on the structure of the raw .txt file.
         - There are some checks to separate different id's. Hopefully, should not cause further issues later when more txt files are added.
         """
-        *processed, data_lang = self.config.name.split(".")
+        *processed, data_lang = self.config.name.split("_")
         if processed:
             with open(filepaths, encoding="utf-8") as f:
                 if self.config.name == "processed.en":

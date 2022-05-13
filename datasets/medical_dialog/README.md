@@ -122,7 +122,7 @@ One example for chinese is
 }
 ```
 
-#### processed.en
+#### processed_en
 ```
 {
   'description': 'throat a bit sore and want to get a good imune booster, especially in light of the virus. please advise. have not been in contact with nyone with the virus.',
@@ -133,7 +133,7 @@ One example for chinese is
 }
 ```
 
-#### processed.zh
+#### processed_zh
 ```
 {
   'utterances': [
@@ -157,11 +157,11 @@ These are arranged as below in the prepared dataset. Each item will be represent
 - "dialogue_url": string - url of the conversation
 - "dialogue_turns": datasets.Sequence - sequence of dialogues between patient and the doctor.Consists ClassLabel(names=["病人", "医生"]), and "utterance"(string) for each turn. (ClassLable(names=["Patient", "Doctor"]) for english)
 
-#### processed.en
+#### processed_en
 - `description` (str): Description of the dialog.
 - `utterances` (list of str): Dialog utterances between patient and doctor.
 
-#### processed.zh
+#### processed_zh
 - `utterances` (list of str): Dialog utterances between patient and doctor.
 
 ### Data Splits
@@ -174,8 +174,8 @@ For processed configurations, data is split into train, validation and test, wit
 
 |              |   train | validation |   test |
 |--------------|--------:|-----------:|-------:|
-| processed.en |     482 |         60 |     61 |
-| processed.zh | 2725989 |     340748 | 340754 |
+| processed_en |     482 |         60 |     61 |
+| processed_zh | 2725989 |     340748 | 340754 |
 
 ## Dataset Creation
 

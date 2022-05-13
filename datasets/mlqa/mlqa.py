@@ -57,7 +57,7 @@ class Mlqa(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = (
         [
             MlqaConfig(
-                name="mlqa-translate-train." + lang,
+                name="mlqa-translate-train_" + lang,
                 data_url=_URL + _TRANSLATE_TRAIN_URL,
                 description="Machine-translated data for Translate-train (SQuAD Train and Dev sets machine-translated into "
                 "Arabic, German, Hindi, Vietnamese, Simplified Chinese and Spanish)",
@@ -67,7 +67,7 @@ class Mlqa(datasets.GeneratorBasedBuilder):
         ]
         + [
             MlqaConfig(
-                name="mlqa-translate-test." + lang,
+                name="mlqa-translate-test_" + lang,
                 data_url=_URL + _TRANSLATE_TEST_URL,
                 description="Machine-translated data for Translate-Test (MLQA-test set machine-translated into English) ",
             )
@@ -76,7 +76,7 @@ class Mlqa(datasets.GeneratorBasedBuilder):
         ]
         + [
             MlqaConfig(
-                name="mlqa." + lang1 + "." + lang2,
+                name="mlqa_" + lang1 + "_" + lang2,
                 data_url=_URL + _DEV_TEST_URL,
                 description="development and test splits",
             )
@@ -118,7 +118,7 @@ class Mlqa(datasets.GeneratorBasedBuilder):
         # download and extract URLs
         if self.config.name.startswith("mlqa-translate-train"):
             archive = dl_manager.download(self.config.data_url)
-            lang = self.config.name.split(".")[-1]
+            lang = self.config.name.split("_")[-1]
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
@@ -141,7 +141,7 @@ class Mlqa(datasets.GeneratorBasedBuilder):
         else:
             if self.config.name.startswith("mlqa."):
                 dl_file = dl_manager.download_and_extract(self.config.data_url)
-                name = self.config.name.split(".")
+                name = self.config.name.split("_")
                 l1, l2 = name[1:]
                 return [
                     datasets.SplitGenerator(
@@ -167,7 +167,7 @@ class Mlqa(datasets.GeneratorBasedBuilder):
             else:
                 if self.config.name.startswith("mlqa-translate-test"):
                     archive = dl_manager.download(self.config.data_url)
-                    lang = self.config.name.split(".")[-1]
+                    lang = self.config.name.split("_")[-1]
                     return [
                         datasets.SplitGenerator(
                             name=datasets.Split.TEST,

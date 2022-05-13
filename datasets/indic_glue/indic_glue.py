@@ -377,43 +377,43 @@ _WIKI_NER_LANGS = ["as", "bn", "gu", "hi", "kn", "ml", "mr", "or", "pa", "ta", "
 _NAMES = []
 
 for lang in _WNLI_LANGS:
-    _NAMES.append(f"wnli.{lang}")
+    _NAMES.append(f"wnli_{lang}")
 
 for lang in _COPA_LANGS:
-    _NAMES.append(f"copa.{lang}")
+    _NAMES.append(f"copa_{lang}")
 
 for lang in _SNA_LANGS:
-    _NAMES.append(f"sna.{lang}")
+    _NAMES.append(f"sna_{lang}")
 
 for lang in _CSQA_LANGS:
-    _NAMES.append(f"csqa.{lang}")
+    _NAMES.append(f"csqa_{lang}")
 
 for lang in _WSTP_LANGS:
-    _NAMES.append(f"wstp.{lang}")
+    _NAMES.append(f"wstp_{lang}")
 
 for lang in _iNLTKH_LANGS:
-    _NAMES.append(f"inltkh.{lang}")
+    _NAMES.append(f"inltkh_{lang}")
 
 for lang in _BBCA_LANGS:
-    _NAMES.append(f"bbca.{lang}")
+    _NAMES.append(f"bbca_{lang}")
 
 for lang in _CVIT_MKB_CLSR:
-    _NAMES.append(f"cvit-mkb-clsr.{lang}")
+    _NAMES.append(f"cvit-mkb-clsr_{lang}")
 
 for lang in _IITP_MR_LANGS:
-    _NAMES.append(f"iitp-mr.{lang}")
+    _NAMES.append(f"iitp-mr_{lang}")
 
 for lang in _IITP_PR_LANGS:
-    _NAMES.append(f"iitp-pr.{lang}")
+    _NAMES.append(f"iitp-pr_{lang}")
 
 for lang in _ACTSA_LANGS:
-    _NAMES.append(f"actsa-sc.{lang}")
+    _NAMES.append(f"actsa-sc_{lang}")
 
 for lang in _MD_LANGS:
-    _NAMES.append(f"md.{lang}")
+    _NAMES.append(f"md_{lang}")
 
 for lang in _WIKI_NER_LANGS:
-    _NAMES.append(f"wiki-ner.{lang}")
+    _NAMES.append(f"wiki-ner_{lang}")
 
 
 class IndicGlueConfig(datasets.BuilderConfig):
@@ -442,11 +442,11 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         IndicGlueConfig(
             name=name,
-            description=_DESCRIPTIONS[name.split(".")[0]],
-            text_features=_TEXT_FEATURES[name.split(".")[0]],
-            data_url=_DATA_URLS[name.split(".")[0]],
-            citation=_CITATIONS[name.split(".")[0]],
-            url=_URLS[name.split(".")[0]],
+            description=_DESCRIPTIONS[name.split("_")[0]],
+            text_features=_TEXT_FEATURES[name.split("_")[0]],
+            data_url=_DATA_URLS[name.split("_")[0]],
+            citation=_CITATIONS[name.split("_")[0]],
+            url=_URLS[name.split("_")[0]],
         )
         for name in _NAMES
     ]
@@ -516,7 +516,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("wnli"):
             archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = task_name + "/" + self.config.name.split(".")[1]
+            dl_dir = task_name + "/" + self.config.name.split("_")[1]
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
@@ -550,7 +550,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("copa"):
             archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = task_name + "/" + self.config.name.split(".")[1]
+            dl_dir = task_name + "/" + self.config.name.split("_")[1]
 
             return [
                 datasets.SplitGenerator(
@@ -585,7 +585,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("sna"):
             archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = task_name + "/" + self.config.name.split(".")[1]
+            dl_dir = task_name + "/" + self.config.name.split("_")[1]
 
             return [
                 datasets.SplitGenerator(
@@ -623,7 +623,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}.json",
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('_')[1]}.json",
                         "split": datasets.Split.TEST,
                         "files": dl_manager.iter_archive(archive),
                     },
@@ -633,13 +633,13 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("wstp"):
             archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = task_name + "/" + self.config.name.split(".")[1]
+            dl_dir = task_name + "/" + self.config.name.split("_")[1]
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-train.json",
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('_')[1]}-train.json",
                         "split": datasets.Split.TRAIN,
                         "files": dl_manager.iter_archive(archive),
                     },
@@ -647,7 +647,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-valid.json",
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('_')[1]}-valid.json",
                         "split": datasets.Split.VALIDATION,
                         "files": dl_manager.iter_archive(archive),
                     },
@@ -655,7 +655,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-test.json",
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('_')[1]}-test.json",
                         "split": datasets.Split.TEST,
                         "files": dl_manager.iter_archive(archive),
                     },
@@ -669,13 +669,13 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
         ):
             archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = task_name + "/" + self.config.name.split(".")[1]
+            dl_dir = task_name + "/" + self.config.name.split("_")[1]
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-train.csv",
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('_')[1]}-train.csv",
                         "split": datasets.Split.TRAIN,
                         "files": dl_manager.iter_archive(archive),
                     },
@@ -683,7 +683,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-valid.csv",
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('_')[1]}-valid.csv",
                         "split": datasets.Split.VALIDATION,
                         "files": dl_manager.iter_archive(archive),
                     },
@@ -691,7 +691,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-test.csv",
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('_')[1]}-test.csv",
                         "split": datasets.Split.TEST,
                         "files": dl_manager.iter_archive(archive),
                     },
@@ -701,13 +701,13 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("bbca"):
             archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = task_name + "/" + self.config.name.split(".")[1]
+            dl_dir = task_name + "/" + self.config.name.split("_")[1]
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-train.csv",
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('_')[1]}-train.csv",
                         "split": datasets.Split.TRAIN,
                         "files": dl_manager.iter_archive(archive),
                     },
@@ -715,7 +715,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-test.csv",
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('_')[1]}-test.csv",
                         "split": datasets.Split.TEST,
                         "files": dl_manager.iter_archive(archive),
                     },
@@ -725,15 +725,15 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("cvit"):
             archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = task_name + "/" + self.config.name.split(".")[1]
+            dl_dir = task_name + "/" + self.config.name.split("_")[1]
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
                         "datafile": None,
-                        "src": dl_dir + "/" + f"mkb.{self.config.name.split('.')[1].split('-')[0]}",
-                        "tgt": dl_dir + "/" + f"mkb.{self.config.name.split('.')[1].split('-')[1]}",
+                        "src": dl_dir + "/" + f"mkb.{self.config.name.split('_')[1].split('-')[0]}",
+                        "tgt": dl_dir + "/" + f"mkb.{self.config.name.split('_')[1].split('-')[1]}",
                         "split": datasets.Split.TEST,
                         "files": dl_manager.iter_archive(archive),
                     },
@@ -743,7 +743,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("md"):
             archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = task_name + "/" + self.config.name.split(".")[1]
+            dl_dir = task_name + "/" + self.config.name.split("_")[1]
 
             return [
                 datasets.SplitGenerator(
@@ -775,13 +775,13 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("wiki-ner"):
             archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = task_name + "/" + self.config.name.split(".")[1]
+            dl_dir = task_name + "/" + self.config.name.split("_")[1]
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-train.txt",
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('_')[1]}-train.txt",
                         "split": datasets.Split.TRAIN,
                         "files": dl_manager.iter_archive(archive),
                     },
@@ -789,7 +789,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-valid.txt",
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('_')[1]}-valid.txt",
                         "split": datasets.Split.VALIDATION,
                         "files": dl_manager.iter_archive(archive),
                     },
@@ -797,7 +797,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-test.txt",
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('_')[1]}-test.txt",
                         "split": datasets.Split.TEST,
                         "files": dl_manager.iter_archive(archive),
                     },
