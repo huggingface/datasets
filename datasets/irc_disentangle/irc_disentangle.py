@@ -125,7 +125,7 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
         files = dict()
         if self.config.name == "ubuntu":
             for split in ["train", "dev", "test"]:
-                files[split] = os.path.join(dl_dir, "jkkummerfeld-irc-disentanglement-fd379e9", "data", split)
+                files[split] = os.path.join(dl_dir, "jkkummerfeld-irc-disentanglement-35f0a40", "data", split)
 
             return [
                 datasets.SplitGenerator(
@@ -152,7 +152,7 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
             ]
 
         elif self.config.name == "channel_two":
-            filepath = os.path.join(dl_dir, "jkkummerfeld-irc-disentanglement-fd379e9", "data", "channel-two")
+            filepath = os.path.join(dl_dir, "jkkummerfeld-irc-disentanglement-35f0a40", "data", "channel-two")
             return [
                 datasets.SplitGenerator(
                     name="dev",
