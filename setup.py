@@ -150,6 +150,7 @@ TESTS_REQUIRE = [
     "mauve-text",
     "rouge_score",
     "sacrebleu",
+    "sacremoses",
     "scikit-learn",
     "scipy",
     "sentencepiece",  # for bleurt
