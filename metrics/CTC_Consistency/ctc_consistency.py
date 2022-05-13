@@ -13,15 +13,10 @@
 # limitations under the License.
 """ CTC-Consistency metric. """
 
-import nltk
-
-import datasets
-
-
-nltk.download("stopwords")
-
 import ctc_score
 from ctc_score import SummarizationScorer
+
+import datasets
 
 
 _CITATION = """\
@@ -42,8 +37,8 @@ _DESCRIPTION = """\
 _KWARGS_DESCRIPTION = """
 Computes CTC consistency score of translated segments against one or more references.
 Args:
-    sources: list of all document texts (line-by-line) 
-    hypothesis: list of all hypothesized texts to evaluate (line-by-line) 
+    sources: list of all document texts (line-by-line)
+    hypothesis: list of all hypothesized texts to evaluate (line-by-line)
 Returns:
     'scores: ctc-consistency score,
 Examples:
