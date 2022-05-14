@@ -287,13 +287,20 @@ class DatasetBuilder:
             self.info.features = features
 
         # prepare data dirs
-        cache_dir_root = str(cache_dir or config.HF_DATASETS_CACHE)
-        path_join = posixpath.join if is_remote_url(cache_dir_root) else os.path.join
+        self._cache_dir_root = str(cache_dir) if cache_dir else config.HF_DATASETS_CACHE
         self._cache_dir_root = (
-            os.path.expanduser(cache_dir_root) if not is_remote_url(cache_dir_root) else cache_dir_root
+            self._cache_dir_root if is_remote_url(self._cache_dir_root) else os.path.expanduser(self._cache_dir_root)
+        )
+        path_join = posixpath.join if is_remote_url(self._cache_dir_root) else os.path.join
+        self._cache_downloaded_dir = (
+            path_join(self._cache_dir_root, config.DOWNLOADED_DATASETS_DIR)
+            if cache_dir
+            else config.DOWNLOADED_DATASETS_PATH
         )
         self._cache_downloaded_dir = (
-            path_join(cache_dir, config.DOWNLOADED_DATASETS_DIR) if cache_dir else config.DOWNLOADED_DATASETS_PATH
+            self._cache_downloaded_dir
+            if is_remote_url(self._cache_downloaded_dir)
+            else os.path.expanduser(self._cache_downloaded_dir)
         )
         self._cache_dir = self._build_cache_dir()
         if not is_remote_url(self._cache_dir_root):
