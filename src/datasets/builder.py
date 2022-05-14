@@ -590,18 +590,21 @@ class DatasetBuilder:
         self.dl_manager = dl_manager
 
         # Prevent parallel disk operations
-        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(lock_path) if not is_remote_url(self._cache_dir_root) else contextlib.nullcontext():
-            data_exists = os.path.exists(self._cache_dir)
-            if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
-                logger.warning(f"Reusing dataset {self.name} ({self._cache_dir})")
-                # We need to update the info in case some splits were added in the meantime
-                # for example when calling load_dataset from multiple workers.
-                self.info = self._load_info()
-                self.download_post_processing_resources(dl_manager)
-                return
+        is_local = not is_remote_url(self._cache_dir_root)
+        if is_local:
+            lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
+        with FileLock(lock_path) if is_local else contextlib.nullcontext():
+            if is_local:
+                data_exists = os.path.exists(self._cache_dir)
+                if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
+                    logger.warning(f"Reusing dataset {self.name} ({self._cache_dir})")
+                    # We need to update the info in case some splits were added in the meantime
+                    # for example when calling load_dataset from multiple workers.
+                    self.info = self._load_info()
+                    self.download_post_processing_resources(dl_manager)
+                    return
             logger.info(f"Generating dataset {self.name} ({self._cache_dir})")
-            if not is_remote_url(self._cache_dir_root):  # if cache dir is local, check for available space
+            if is_local:  # if cache dir is local, check for available space
                 if not has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
                     raise OSError(
                         f"Not enough disk space. Needed: {size_str(self.info.size_in_bytes or 0)} (download: {size_str(self.info.download_size or 0)}, generated: {size_str(self.info.dataset_size or 0)}, post-processed: {size_str(self.info.post_processing_size or 0)})"
