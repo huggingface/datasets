@@ -19,7 +19,7 @@ import re
 from pathlib import Path
 
 import numpy as np
-from pydub import AudioSegment
+import soundfile as sf
 
 import datasets
 from datasets.tasks import AutomaticSpeechRecognition
@@ -210,7 +210,7 @@ class TedLium(datasets.GeneratorBasedBuilder):
             # the .sph speaker file almost always has the same file name as the .stm file
             speaker_file = Path(file).stem
             audio_file = os.path.join(sph_dir, speaker_file + ".sph")
-            segment = _read_audio_segment(os.path.join(sph_dir, audio_file))
+            segment, sampling_rate = sf.read(audio_file, dtype=np.int16)
             with open(file) as f:
                 for line in f:
                     line = line.strip()
@@ -219,12 +219,12 @@ class TedLium(datasets.GeneratorBasedBuilder):
                     if speaker_file != fn:
                         # handle the case where the stm file does not have the same file name as the transcript
                         speaker_file = fn
-                        segment = _read_audio_segment(os.path.join(sph_dir, speaker_file + ".sph"))
+                        segment, sampling_rate = sf.read(audio_file, dtype=np.int16)
                     samples = _extract_audio_segment(segment, int(channel), float(start), float(end))
 
                     key = "-".join([speaker, start, end, label])
                     example = {
-                        "audio": {"path": file, "array": samples, "sampling_rate": 16000},
+                        "audio": {"path": file, "array": samples, "sampling_rate": sampling_rate},
                         "text": transcript,
                         "speaker_id": speaker,
                         "gender": _parse_gender(label),
@@ -232,14 +232,6 @@ class TedLium(datasets.GeneratorBasedBuilder):
                         "id": key,
                     }
                     yield key, example
-
-
-def _read_audio_segment(sph_path):
-    """Reads segment of audio samples from given sph file path"""
-    with open(sph_path, "rb") as f:
-        segment = AudioSegment.from_file(f, format="nistsphere")
-    assert segment.channels == 1
-    return segment
 
 
 def _maybe_trim_suffix(transcript):
@@ -260,8 +252,7 @@ def _extract_audio_segment(segment, channel, start_sec, end_sec):
     assert channel == 1
     start_ms = int(start_sec * 1000)
     end_ms = int(end_sec * 1000)
-    segment = segment[start_ms:end_ms]
-    samples = np.array(segment.get_array_of_samples())
+    samples = segment[start_ms:end_ms]
     return samples
 
 
