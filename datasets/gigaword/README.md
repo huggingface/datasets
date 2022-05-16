@@ -32,20 +32,6 @@ train-eval-index:
   metrics:
     - type: rouge
       name: Rouge
-      args:
-        rouge_types: rouge1
-    - type: rouge
-      name: Rouge
-      args:
-        rouge_types: rouge2
-    - type: rouge
-      name: Rouge
-      args:
-        rouge_types: rougeL
-    - type: rouge
-      name: Rouge
-      args:
-        rouge_types: rougeLSum
 ---
 
 # Dataset Card for Gigaword
