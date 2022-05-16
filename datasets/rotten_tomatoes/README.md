@@ -33,7 +33,7 @@ train-eval-index:
     - type: accuracy
       name: Accuracy
     - type: f1
-      name: F1 macro
+      name: F1
       args:
         average: macro
     - type: f1
