@@ -15,37 +15,37 @@
 """TED-LIUM speech recognition dataset."""
 
 import os
-from pathlib import Path
 import re
-import numpy as np
+from pathlib import Path
 
+import numpy as np
+from pydub import AudioSegment
 
 import datasets
 from datasets.tasks import AutomaticSpeechRecognition
 
-from pydub import AudioSegment
 
 _LICENSE = "licensed under Creative Commons BY-NC-ND 3.0 (http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en)"
 
-class TedliumReleaseConfig(datasets.BuilderConfig):
-  """BuilderConfig for a release of the TED-LIUM dataset."""
 
-  def __init__(self, *, url, download_url, split_paths, citation, **kwargs):
-    super(TedliumReleaseConfig, self).__init__(
-        version=datasets.Version("1.0.1"), **kwargs)
-    self.url = url
-    self.download_url = download_url
-    # List of split, path pairs containing the relative path within the
-    # extracted tarball to the data for each split.
-    self.split_paths = split_paths
-    self.citation = citation
+class TedliumReleaseConfig(datasets.BuilderConfig):
+    """BuilderConfig for a release of the TED-LIUM dataset."""
+
+    def __init__(self, *, url, download_url, split_paths, citation, **kwargs):
+        super(TedliumReleaseConfig, self).__init__(version=datasets.Version("1.0.1"), **kwargs)
+        self.url = url
+        self.download_url = download_url
+        # List of split, path pairs containing the relative path within the
+        # extracted tarball to the data for each split.
+        self.split_paths = split_paths
+        self.citation = citation
 
 
 def _make_builder_configs():
-  """Creates builder configs for all supported Tedlium dataset releases."""
-  release1 = TedliumReleaseConfig(
-      name="release1",
-      description="""\
+    """Creates builder configs for all supported Tedlium dataset releases."""
+    release1 = TedliumReleaseConfig(
+        name="release1",
+        description="""\
         The TED-LIUM corpus is English-language TED talks, with transcriptions,
         sampled at 16kHz. It contains about 118 hours of speech.
 
@@ -53,7 +53,7 @@ def _make_builder_configs():
         licensed under Creative Commons BY-NC-ND 3.0
         (http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en).
         """,
-      citation="""\
+        citation="""\
         @inproceedings{rousseau2012tedlium,
           title={TED-LIUM: an Automatic Speech Recognition dedicated corpus},
           author={Rousseau, Anthony and Del{\\'e}glise, Paul and Est{\\`e}ve, Yannick},
@@ -62,17 +62,18 @@ def _make_builder_configs():
           year={2012}
         }
         """,
-      url="https://www.openslr.org/7/",
-      download_url="http://www.openslr.org/resources/7/TEDLIUM_release1.tar.gz",
-      split_paths=[(datasets.Split.TRAIN, os.path.join("TEDLIUM_release1",
-                                                   "train")),
-                   (datasets.Split.VALIDATION,
-                    os.path.join("TEDLIUM_release1", "dev")),
-                   (datasets.Split.TEST, os.path.join("TEDLIUM_release1", "test"))])
+        url="https://www.openslr.org/7/",
+        download_url="http://www.openslr.org/resources/7/TEDLIUM_release1.tar.gz",
+        split_paths=[
+            (datasets.Split.TRAIN, os.path.join("TEDLIUM_release1", "train")),
+            (datasets.Split.VALIDATION, os.path.join("TEDLIUM_release1", "dev")),
+            (datasets.Split.TEST, os.path.join("TEDLIUM_release1", "test")),
+        ],
+    )
 
-  release2 = TedliumReleaseConfig(
-      name="release2",
-      description="""\
+    release2 = TedliumReleaseConfig(
+        name="release2",
+        description="""\
         This is the TED-LIUM corpus release 2,
         licensed under Creative Commons BY-NC-ND 3.0
         (http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en).
@@ -87,7 +88,7 @@ def _make_builder_configs():
 
         Contains 1495 talks and transcripts.
         """,
-      citation="""\
+        citation="""\
         @inproceedings{rousseau2014tedlium2,
           title={Enhancing the {TED-LIUM} Corpus with Selected Data for Language Modeling and More {TED} Talks},
           author={Rousseau, Anthony and Del{\\'e}glise, Paul and Est{\\`e}ve, Yannick},
@@ -95,17 +96,18 @@ def _make_builder_configs():
           year={2014}
         }
         """,
-      url="https://www.openslr.org/19/",
-      download_url="http://www.openslr.org/resources/19/TEDLIUM_release2.tar.gz",
-      split_paths=[(datasets.Split.TRAIN, os.path.join("TEDLIUM_release2",
-                                                   "train")),
-                   (datasets.Split.VALIDATION,
-                    os.path.join("TEDLIUM_release2", "dev")),
-                   (datasets.Split.TEST, os.path.join("TEDLIUM_release2", "test"))])
+        url="https://www.openslr.org/19/",
+        download_url="http://www.openslr.org/resources/19/TEDLIUM_release2.tar.gz",
+        split_paths=[
+            (datasets.Split.TRAIN, os.path.join("TEDLIUM_release2", "train")),
+            (datasets.Split.VALIDATION, os.path.join("TEDLIUM_release2", "dev")),
+            (datasets.Split.TEST, os.path.join("TEDLIUM_release2", "test")),
+        ],
+    )
 
-  release3 = TedliumReleaseConfig(
-      name="release3",
-      description="""\
+    release3 = TedliumReleaseConfig(
+        name="release3",
+        description="""\
         This is the TED-LIUM corpus release 3, licensed under Creative Commons
         BY-NC-ND 3.0.
 
@@ -136,7 +138,7 @@ def _make_builder_configs():
         - the 'speaker adaptation' one, especially designed for experiments on
           speaker adaptation.
         """,
-      citation="""\
+        citation="""\
         @inproceedings{hernandez2018tedlium3,
           title={TED-LIUM 3: twice as much data and corpus repartition for experiments on speaker adaptation},
           author={Hernandez, Fran{\\c{c}}ois and Nguyen, Vincent and Ghannay, Sahar and Tomashenko, Natalia and Est{\\`e}ve, Yannick},
@@ -146,43 +148,39 @@ def _make_builder_configs():
           organization={Springer}
         }
         """,
-      url="https://www.openslr.org/51/",
-      download_url="http://www.openslr.org/resources/51/TEDLIUM_release-3.tgz",
-      split_paths=[
-          (datasets.Split.VALIDATION,
-           os.path.join("TEDLIUM_release-3", "legacy", "dev")),
-          (datasets.Split.TEST, os.path.join("TEDLIUM_release-3", "legacy",
-                                         "test")),
-          # The legacy/train directory contains symlinks to "data",
-          # which are skipped by extraction (see above).
-          # Work around this by manually dereferencing the links here.
-          (datasets.Split.TRAIN, os.path.join("TEDLIUM_release-3", "data"))
-      ])
+        url="https://www.openslr.org/51/",
+        download_url="http://www.openslr.org/resources/51/TEDLIUM_release-3.tgz",
+        split_paths=[
+            (datasets.Split.VALIDATION, os.path.join("TEDLIUM_release-3", "legacy", "dev")),
+            (datasets.Split.TEST, os.path.join("TEDLIUM_release-3", "legacy", "test")),
+            # The legacy/train directory contains symlinks to "data",
+            # which are skipped by extraction (see above).
+            # Work around this by manually dereferencing the links here.
+            (datasets.Split.TRAIN, os.path.join("TEDLIUM_release-3", "data")),
+        ],
+    )
 
-  return [release1, release2, release3]
+    return [release1, release2, release3]
 
 
 class TedLium(datasets.GeneratorBasedBuilder):
-    """ The TED-LIUM corpus is English-language TED talks, with transcriptions, sampled at 16kHz. It contains about 118 hours of speech."""
+    """The TED-LIUM corpus is English-language TED talks, with transcriptions, sampled at 16kHz. It contains about 118 hours of speech."""
 
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = _make_builder_configs()
 
     def _info(self):
-        features = datasets.Features({
-                "audio":
-                    datasets.features.Audio(sampling_rate=16_000),
-                "text":
-                    datasets.Value('string'),
-                "speaker_id":
-                    datasets.Value('string'),
-                "gender":
-                    datasets.features.ClassLabel(names=["unknown", "female", "male"]),
-                "file": datasets.Value('string'),
-                "id":
-                    datasets.Value('string'),
-            })
+        features = datasets.Features(
+            {
+                "audio": datasets.features.Audio(sampling_rate=16_000),
+                "text": datasets.Value("string"),
+                "speaker_id": datasets.Value("string"),
+                "gender": datasets.features.ClassLabel(names=["unknown", "female", "male"]),
+                "file": datasets.Value("string"),
+                "id": datasets.Value("string"),
+            }
+        )
         return datasets.DatasetInfo(
             description=self.config.description,
             features=features,
@@ -194,8 +192,7 @@ class TedLium(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        data_dir = dl_manager.download_and_extract(
-            self.config.download_url)
+        data_dir = dl_manager.download_and_extract(self.config.download_url)
         splits = []
         for split, path in self.config.split_paths:
             kwargs = {"filepath": os.path.join(data_dir, path)}
