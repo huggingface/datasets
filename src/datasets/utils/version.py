@@ -72,12 +72,15 @@ class Version:
         raise AssertionError(f"{other} (type {type(other)}) cannot be compared to version.")
 
     def __eq__(self, other):
-        other = self._validate_operand(other)
-        return self.tuple == other.tuple
+        try:
+            other = self._validate_operand(other)
+        except AssertionError:
+            return False
+        else:
+            return self.tuple == other.tuple
 
     def __ne__(self, other):
-        other = self._validate_operand(other)
-        return self.tuple != other.tuple
+        return not self.__eq__(other)
 
     def __lt__(self, other):
         other = self._validate_operand(other)
