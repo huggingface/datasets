@@ -94,7 +94,7 @@ To study the remaining programmatic tasks, please see the [BIG-bench GitHub repo
 
 ### Languages
 
-Althoug predomenantly English, BIG-bench contains a tasks in over 1000 written languages, as well as some synthetic and programming languages. 
+Although predominantly English, BIG-bench contains tasks in over 1000 written languages, as well as some synthetic and programming languages. 
 See [BIG-bench organized by keywords](https://github.com/google/BIG-bench/blob/main/bigbench/benchmark_tasks/keywords_to_tasks.md). Relevant keywords include `multilingual`, `non-english`, `low-resource-language`, `translation`.
 
 For tasks specifically targeting low-resource languages, see the table below:
@@ -187,7 +187,7 @@ Each task was required to describe the data source and curation methods on the t
 BIG-bench contains a wide range of tasks, some of which are sensitive and should be used with care.
 
 Some tasks are specifically designed to test biases and failures common to large language models, and so may elicit inappropriate or harmful responses.
-For a more thourough discussion see the [BIG-bench paper](in progress). 
+For a more thorough discussion see the [BIG-bench paper](in progress). 
 
 To view tasks designed to probe pro-social behavior, including alignment, social, racial, gender, religious or political bias; toxicity; inclusion; and other issues please see tasks under the [pro-social behavior keywords](https://github.com/google/BIG-bench/blob/main/bigbench/benchmark_tasks/keywords_to_tasks.md#pro-social-behavior) on the BIG-bench repository.
 
