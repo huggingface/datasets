@@ -93,7 +93,7 @@ class BuilderConfig:
     """
 
     name: str = "default"
-    version: Optional[Union[str, utils.Version]] = "0.0.0"
+    version: Optional[Union[str, utils.Version]] = utils.Version("0.0.0")
     data_dir: Optional[str] = None
     data_files: Optional[DataFilesDict] = None
     description: Optional[str] = None
@@ -191,8 +191,8 @@ class DatasetBuilder:
     pre-defined set of configurations in :meth:`datasets.DatasetBuilder.builder_configs`.
     """
 
-    # Default version.
-    VERSION = utils.Version("0.0.0")
+    # Default version
+    VERSION = None  # Default version set in BuilderConfig
 
     # Class for the builder config.
     BUILDER_CONFIG_CLASS = BuilderConfig
