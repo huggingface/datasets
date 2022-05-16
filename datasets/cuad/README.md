@@ -29,6 +29,7 @@ train-eval-index:
     eval_split: test
   col_mapping:
     question: question
+    context: context
     answers.text: answers.text
   metrics:
     - type: cuad
