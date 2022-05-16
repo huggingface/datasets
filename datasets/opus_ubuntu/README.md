@@ -1,6 +1,7 @@
 ---
 annotations_creators:
-- found
+- crowdsourced
+- expert-generated
 language_creators:
 - found
 languages:
@@ -249,7 +250,7 @@ languages:
 - zu
 - zza
 licenses:
-- unknown
+- bsd-3-clause
 multilinguality:
 - multilingual
 size_categories:
@@ -318,12 +319,13 @@ pretty_name: OpusUbuntu
 
 ### Dataset Summary
 
+These are translations of the Ubuntu software package messages, donated by the Ubuntu community.
 
 To load a language pair which isn't part of the config, all you need to do is specify the language code as pairs.
 You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/Ubuntu.php
 E.g.
 
-`dataset = load_dataset("ubuntu", lang1="it", lang2="pl")`
+`dataset = load_dataset("opus_ubuntu", lang1="it", lang2="pl")`
 
 
 ### Supported Tasks and Leaderboards
@@ -338,7 +340,17 @@ E.g.
 
 ### Data Instances
 
-[More Information Needed]
+Example instance:
+
+```
+{
+  'id': '0', 
+  'translation': {
+    'it': 'Comprende Gmail, Google Docs, Google+, YouTube e Picasa',
+    'pl': 'Zawiera Gmail, Google Docs, Google+, YouTube oraz Picasa'
+  }
+}
+```
 
 ### Data Fields
 
@@ -404,10 +416,10 @@ E.g.
 
 ### Licensing Information
 
-[More Information Needed]
+BSD "Revised" license (see (https://help.launchpad.net/Legal#Translations_copyright)[https://help.launchpad.net/Legal#Translations_copyright])
 
 ### Citation Information
-
+```
 @InProceedings{TIEDEMANN12.463,
   author = {J{\"o}rg Tiedemann},
   title = {Parallel Data, Tools and Interfaces in OPUS},
@@ -421,7 +433,7 @@ E.g.
   isbn = {978-2-9517408-7-7},
   language = {english}
  }
-
+``
 ### Contributions
 
 Thanks to [@rkc007](https://github.com/rkc007) for adding this dataset.
