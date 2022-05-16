@@ -30,6 +30,7 @@ train-eval-index:
   col_mapping:
     question: question
     answers.text: answers.text
+    answers.answer_start: answers.answer_start
   metrics:
   - type: squad_v2
     name: SQuAD v2
