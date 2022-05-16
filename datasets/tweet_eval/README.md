@@ -151,17 +151,9 @@ train-eval-index:
     - type: accuracy
       name: Accuracy
     - type: f1
-      name: F1 macro
+      name: F1 binary
       args:
-        average: macro
-    - type: f1
-      name: F1 micro
-      args:
-        average: micro
-    - type: f1
-      name: F1 weighted
-      args:
-        average: weighted
+        average: binary
     - type: precision
       name: Precision macro
       args:
@@ -199,16 +191,9 @@ train-eval-index:
     - type: accuracy
       name: Accuracy
     - type: f1
-      name: F1 macro
+      name: F1 binary
       args:
-        average: macro
-    - type: f1
-      name: F1 micro
-      args:
-        average: micro
-    - type: f1
-      name: F1 weighted
-      args:
+        average: binary
         average: weighted
     - type: precision
       name: Precision macro
@@ -247,17 +232,9 @@ train-eval-index:
     - type: accuracy
       name: Accuracy
     - type: f1
-      name: F1 macro
+      name: F1 binary
       args:
-        average: macro
-    - type: f1
-      name: F1 micro
-      args:
-        average: micro
-    - type: f1
-      name: F1 weighted
-      args:
-        average: weighted
+        average: binary
     - type: precision
       name: Precision macro
       args:
