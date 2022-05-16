@@ -21,7 +21,7 @@ paperswithcode_id: null
 pretty_name: Gigaword
 train-eval-index:
 - config: default
-  task: text-generation
+  task: summarization
   task_id: summarization
   splits:
     train_split: train
