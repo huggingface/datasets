@@ -194,7 +194,6 @@ train-eval-index:
       name: F1 binary
       args:
         average: binary
-        average: weighted
     - type: precision
       name: Precision macro
       args:
