@@ -22,7 +22,7 @@ paperswithcode_id: piqa
 pretty_name: 'Physical Interaction: Question Answering'
 train-eval-index:
 - config: plain_text
-  task: text-generation
+  task: text2text-generation
   task_id: generative_question_answering
   splits:
     train_split: train
