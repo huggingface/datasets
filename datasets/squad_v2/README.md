@@ -29,6 +29,7 @@ train-eval-index:
     eval_split: validation
   col_mapping:
     question: question
+    context: context
     answers.text: answers.text
     answers.answer_start: answers.answer_start
   metrics:
