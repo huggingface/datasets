@@ -19,6 +19,19 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: conll
 pretty_name: CoNLL++
+train-eval-index:
+- config: conllpp
+  task: token-classification
+  task_id: entity_extraction
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    tokens: tokens
+    ner_tags: tags
+  metrics:
+    - type: seqeval
+      name: seqeval
 ---
 
 # Dataset Card for "conllpp"

@@ -66,6 +66,35 @@ task_ids:
   - text-classification-other-coreference-nli
 paperswithcode_id: glue
 pretty_name: GLUE (General Language Understanding Evaluation benchmark)
+train-eval-index:
+- config: sst2
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    sentence: text
+    label: target
+  metrics:
+    - type: glue
+      name: GLUE
+      config:
+        sst2
+- config: cola
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    sentence: text
+    label: target
+  metrics:
+    - type: glue
+      name: GLUE
+      config:
+        cola
 ---
 
 # Dataset Card for GLUE
