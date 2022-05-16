@@ -20,6 +20,21 @@ task_ids:
 - extractive-qa
 paperswithcode_id: cuad
 pretty_name: CUAD
+train-eval-index:
+- config: default
+  task: question-answering
+  task_id: extractive_question_answering
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    question: question
+    context: context
+    answers.text: answers.text
+    answers.answer_start: answers.answer_start
+  metrics:
+    - type: cuad
+      name: CUAD
 ---
 
 # Dataset Card for CUAD

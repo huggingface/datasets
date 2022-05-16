@@ -196,7 +196,7 @@ class TestPushToHub(TestCase):
                     token=self._token,
                 )
 
-            local_ds.push_to_hub(ds_name, token=self._token, shard_size=500 << 5)
+            local_ds.push_to_hub(ds_name, token=self._token, max_shard_size=500 << 5)
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
@@ -226,7 +226,7 @@ class TestPushToHub(TestCase):
         # Push to hub two times, but the second time with fewer files.
         # Verify that the new files contain the correct dataset and that non-necessary files have been deleted.
         try:
-            local_ds.push_to_hub(ds_name, token=self._token, shard_size=500 << 5)
+            local_ds.push_to_hub(ds_name, token=self._token, max_shard_size=500 << 5)
 
             with tempfile.TemporaryDirectory() as tmp:
                 # Add a file starting with "data" to ensure it doesn't get deleted.
