@@ -30,44 +30,8 @@ train-eval-index:
     tokens: tokens
     ner_tags: tags
   metrics:
-    - type: accuracy
-      name: Accuracy
-    - type: f1
-      name: F1 macro
-      args:
-        average: macro
-    - type: f1
-      name: F1 micro
-      args:
-        average: micro
-    - type: f1
-      name: F1 weighted
-      args:
-        average: weighted
-    - type: precision
-      name: Precision macro
-      args:
-        average: macro
-    - type: precision
-      name: Precision micro
-      args:
-        average: micro
-    - type: precision
-      name: Precision weighted
-      args:
-        average: weighted
-    - type: recall
-      name: Recall macro
-      args:
-        average: macro
-    - type: recall
-      name: Recall micro
-      args:
-        average: micro
-    - type: recall
-      name: Recall weighted
-      args:
-        average: weighted
+    - type: seqeval
+      name: seqeval
 ---
 
 # Dataset Card for MSRA NER
