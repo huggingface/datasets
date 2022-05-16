@@ -32,7 +32,7 @@ train-eval-index:
     answers.text: answers.text
   metrics:
   - type: squad_v2
-    name: SQuAD_v2
+    name: SQuAD v2
 ---
 
 # Dataset Card for "squad_v2"
