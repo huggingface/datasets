@@ -31,6 +31,7 @@ train-eval-index:
     question: question
     context: context
     answers.text: answers.text
+    answers.answer_start: answers.answer_start
   metrics:
     - type: cuad
       name: CUAD
