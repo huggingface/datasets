@@ -5,7 +5,7 @@ paperswithcode_id: null
 pretty_name: quora
 train-eval-index:
 - config: default
-  task: question-answering
+  task: text-classification
   task_id: binary_classification
   splits:
     train_split: train
