@@ -189,7 +189,11 @@ class TestPushToHub(TestCase):
                     f.write("Bogus file")
 
                 self._api.upload_file(
-                    str(path), path_in_repo="datafile.txt", repo_id=ds_name, repo_type="dataset", token=self._token
+                    path_or_fileobj=str(path),
+                    path_in_repo="datafile.txt",
+                    repo_id=ds_name,
+                    repo_type="dataset",
+                    token=self._token,
                 )
 
             local_ds.push_to_hub(ds_name, token=self._token, shard_size=500 << 5)
@@ -231,7 +235,11 @@ class TestPushToHub(TestCase):
                     f.write("Bogus file")
 
                 self._api.upload_file(
-                    str(path), path_in_repo="datafile.txt", repo_id=ds_name, repo_type="dataset", token=self._token
+                    path_or_fileobj=str(path),
+                    path_in_repo="datafile.txt",
+                    repo_id=ds_name,
+                    repo_type="dataset",
+                    token=self._token,
                 )
 
             local_ds.push_to_hub(ds_name, token=self._token)
