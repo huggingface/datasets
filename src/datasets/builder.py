@@ -93,7 +93,7 @@ class BuilderConfig:
     """
 
     name: str = "default"
-    version: Optional[Union[str, utils.Version]] = utils.Version("0.0.0")
+    version: Optional[Union[utils.Version, str]] = utils.Version("0.0.0")
     data_dir: Optional[str] = None
     data_files: Optional[DataFilesDict] = None
     description: Optional[str] = None
