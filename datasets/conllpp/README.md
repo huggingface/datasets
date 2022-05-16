@@ -30,8 +30,8 @@ train-eval-index:
     tokens: tokens
     ner_tags: tags
   metrics:
-    - type: coval
-      name: CoVal
+    - type: seqeval
+      name: seqeval
 ---
 
 # Dataset Card for "conllpp"
