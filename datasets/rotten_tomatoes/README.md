@@ -35,7 +35,7 @@ train-eval-index:
     - type: f1
       name: F1
       args:
-        average: macro
+        average: binary
     - type: f1
       name: F1 micro
       args:
