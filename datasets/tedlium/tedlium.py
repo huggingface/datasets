@@ -15,6 +15,7 @@
 """TED-LIUM speech recognition dataset."""
 
 import os
+from pathlib import Path
 import re
 import numpy as np
 
@@ -207,18 +208,22 @@ class TedLium(datasets.GeneratorBasedBuilder):
         stm_dir = os.path.join(filepath, "stm")
         # The sph directory houses the audio files in .sph format
         sph_dir = os.path.join(filepath, "sph")
-        stm_files = [os.path.join(stm_dir, f) for f in os.listdir(stm_dir) if f.endswith('.stm')]
+        stm_files = [os.path.join(stm_dir, f) for f in os.listdir(stm_dir) if f.endswith(".stm")]
         for file in stm_files:
+            # the .sph speaker file almost always has the same file name as the .stm file
+            speaker_file = Path(file).stem
+            audio_file = os.path.join(sph_dir, speaker_file + ".sph")
+            segment = _read_audio_segment(os.path.join(sph_dir, audio_file))
             with open(file) as f:
                 for line in f:
                     line = line.strip()
                     fn, channel, speaker, start, end, label, transcript = line.split(" ", 6)
                     transcript = _maybe_trim_suffix(transcript)
-
-                    audio_file = "%s.sph" % fn
-                    samples = _extract_audio_segment(
-                        os.path.join(sph_dir, audio_file), int(channel), float(start),
-                        float(end))
+                    if speaker_file != fn:
+                        # handle the case where the stm file does not have the same file name as the transcript
+                        speaker_file = fn
+                        segment = _read_audio_segment(os.path.join(sph_dir, speaker_file + ".sph"))
+                    samples = _extract_audio_segment(segment, int(channel), float(start), float(end))
 
                     key = "-".join([speaker, start, end, label])
                     example = {
@@ -231,6 +236,15 @@ class TedLium(datasets.GeneratorBasedBuilder):
                     }
                     yield key, example
 
+
+def _read_audio_segment(sph_path):
+    """Reads segment of audio samples from given sph file path"""
+    with open(sph_path, "rb") as f:
+        segment = AudioSegment.from_file(f, format="nistsphere")
+    assert segment.channels == 1
+    return segment
+
+
 def _maybe_trim_suffix(transcript):
     # stm files for the TEDLIUM release 1 train split contain a key (enclosed in
     # parens) at the end.
@@ -241,6 +255,17 @@ def _maybe_trim_suffix(transcript):
         if not suffix.startswith("("):
             transcript += " " + suffix
     return transcript
+
+
+def _extract_audio_segment(segment, channel, start_sec, end_sec):
+    """Extracts segment of audio samples (as an ndarray) from the given segment."""
+    # The dataset only contains mono audio.
+    assert channel == 1
+    start_ms = int(start_sec * 1000)
+    end_ms = int(end_sec * 1000)
+    segment = segment[start_ms:end_ms]
+    samples = np.array(segment.get_array_of_samples())
+    return samples
 
 
 def _parse_gender(label_str):
@@ -256,17 +281,3 @@ def _parse_gender(label_str):
     elif gender == "M":
         gender = "male"
     return gender
-
-
-def _extract_audio_segment(sph_path, channel, start_sec, end_sec):
-    """Extracts segment of audio samples (as an ndarray) from the given path."""
-    with open(sph_path, "rb") as f:
-        segment = AudioSegment.from_file(f, format="nistsphere")
-    # The dataset only contains mono audio.
-    assert segment.channels == 1
-    assert channel == 1
-    start_ms = int(start_sec * 1000)
-    end_ms = int(end_sec * 1000)
-    segment = segment[start_ms:end_ms]
-    samples = np.array(segment.get_array_of_samples())
-    return samples
