@@ -536,9 +536,10 @@ class DatasetBuilder:
         Example:
 
         ```py
-        >>> from datasets import download_and_prepare
+        >>> from datasets import load_dataset_builder
         >>> builder = load_dataset_builder('rotten_tomatoes')
         >>> ds = builder.download_and_prepare()
+        ```
         """
         download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
