@@ -74,7 +74,7 @@ class Version:
     def __eq__(self, other):
         try:
             other = self._validate_operand(other)
-        except AssertionError:
+        except (AssertionError, ValueError):
             return False
         else:
             return self.tuple == other.tuple
