@@ -38,7 +38,7 @@ _CITATION = r"""
     publisher={Springer Berlin Heidelberg},
     address={Berlin, Heidelberg},
     pages={303--320},
-    abstract={This paper describes the methodology for testing the performance of Machine Reading systems through Question Answering and Reading Comprehension Tests. This was the attempt of the QA4MRE challenge which was run as a Lab at CLEF 2011--2013. The traditional QA task was replaced by a new Machine Reading task, whose intention was to ask questions that required a deep knowledge of individual short texts and in which systems were required to choose one answer, by analysing the corresponding test document in conjunction with background text collections provided by the organization. Four different tasks have been organized during these years: Main Task, Processing Modality and Negation for Machine Reading, Machine Reading of Biomedical Texts about Alzheimer's disease, and Entrance Exams. This paper describes their motivation, their goals, their methodology for preparing the data sets, their background collections, their metrics used for the evaluation, and the lessons learned along these three years.},
+    abstract={This paper describes the methodology for testing the performance of Machine Reading systems through Question Answering and Reading Comprehension Tests. This was the attempt of the QA4MRE challenge which was run as a Lab at CLEF 2011--2013_ The traditional QA task was replaced by a new Machine Reading task, whose intention was to ask questions that required a deep knowledge of individual short texts and in which systems were required to choose one answer, by analysing the corresponding test document in conjunction with background text collections provided by the organization. Four different tasks have been organized during these years: Main Task, Processing Modality and Negation for Machine Reading, Machine Reading of Biomedical Texts about Alzheimer's disease, and Entrance Exams. This paper describes their motivation, their goals, their methodology for preparing the data sets, their background collections, their metrics used for the evaluation, and the lessons learned along these three years.},
     isbn={978-3-642-40802-1}
 }
 """
@@ -152,7 +152,7 @@ class Qa4mreConfig(datasets.BuilderConfig):
         self.track = track.lower()
         self.lang = language.upper()
 
-        name = self.year + "." + self.track + "." + self.lang
+        name = self.year + "_" + self.track + "_" + self.lang
 
         description = _DESCRIPTION
         description += ("This configuration includes the {} track for {} language " "in {} year.").format(
@@ -165,29 +165,29 @@ class Qa4mreConfig(datasets.BuilderConfig):
 
 
 class Qa4mre(datasets.GeneratorBasedBuilder):
-    """QA4MRE dataset from CLEF shared tasks 2011, 2012, 2013."""
+    """QA4MRE dataset from CLEF shared tasks 2011, 2012, 2013_"""
 
     BUILDER_CONFIGS = [
-        Qa4mreConfig(year="2011", track="main", language="DE"),  # 2011 Main track German (2011.main.DE)
-        Qa4mreConfig(year="2011", track="main", language="EN"),  # 2011 Main track English (2011.main.EN)
-        Qa4mreConfig(year="2011", track="main", language="ES"),  # 2011 Main track Spanish (2011.main.ES)
-        Qa4mreConfig(year="2011", track="main", language="IT"),  # 2011 Main track Italian (2011.main.IT)
-        Qa4mreConfig(year="2011", track="main", language="RO"),  # 2011 Main track Romanian (2011.main.RO)
-        Qa4mreConfig(year="2012", track="main", language="AR"),  # 2012 Main track Arabic (2012.main.AR)
-        Qa4mreConfig(year="2012", track="main", language="BG"),  # 2012 Main track Bulgarian (2012.main.BG)
-        Qa4mreConfig(year="2012", track="main", language="DE"),  # 2012 Main track German (2012.main.DE)
-        Qa4mreConfig(year="2012", track="main", language="EN"),  # 2012 Main track English (2012.main.EN)
-        Qa4mreConfig(year="2012", track="main", language="ES"),  # 2012 Main track Spanish (2012.main.ES)
-        Qa4mreConfig(year="2012", track="main", language="IT"),  # 2012 Main track Italian (2012.main.IT)
-        Qa4mreConfig(year="2012", track="main", language="RO"),  # 2012 Main track Romanian (2012.main.RO)
-        Qa4mreConfig(year="2012", track="alzheimers", language="EN"),  # (2012.alzheimers.EN)
-        Qa4mreConfig(year="2013", track="main", language="AR"),  # 2013 Main track Arabic (2013.main.AR)
-        Qa4mreConfig(year="2013", track="main", language="BG"),  # 2013 Main track Bulgarian (2013.main.BG)
-        Qa4mreConfig(year="2013", track="main", language="EN"),  # 2013 Main track English (2013.main.EN)
-        Qa4mreConfig(year="2013", track="main", language="ES"),  # 2013 Main track Spanish (2013.main.ES)
-        Qa4mreConfig(year="2013", track="main", language="RO"),  # 2013 Main track Romanian (2013.main.RO)
-        Qa4mreConfig(year="2013", track="alzheimers", language="EN"),  # (2013.alzheimers.EN)
-        Qa4mreConfig(year="2013", track="entrance_exam", language="EN"),  # (2013.entrance_exam.EN)
+        Qa4mreConfig(year="2011", track="main", language="DE"),  # 2011 Main track German (2011_main_DE)
+        Qa4mreConfig(year="2011", track="main", language="EN"),  # 2011 Main track English (2011_main_EN)
+        Qa4mreConfig(year="2011", track="main", language="ES"),  # 2011 Main track Spanish (2011_main_ES)
+        Qa4mreConfig(year="2011", track="main", language="IT"),  # 2011 Main track Italian (2011_main_IT)
+        Qa4mreConfig(year="2011", track="main", language="RO"),  # 2011 Main track Romanian (2011_main_RO)
+        Qa4mreConfig(year="2012", track="main", language="AR"),  # 2012 Main track Arabic (2012_main_AR)
+        Qa4mreConfig(year="2012", track="main", language="BG"),  # 2012 Main track Bulgarian (2012_main_BG)
+        Qa4mreConfig(year="2012", track="main", language="DE"),  # 2012 Main track German (2012_main_DE)
+        Qa4mreConfig(year="2012", track="main", language="EN"),  # 2012 Main track English (2012_main_EN)
+        Qa4mreConfig(year="2012", track="main", language="ES"),  # 2012 Main track Spanish (2012_main_ES)
+        Qa4mreConfig(year="2012", track="main", language="IT"),  # 2012 Main track Italian (2012_main_IT)
+        Qa4mreConfig(year="2012", track="main", language="RO"),  # 2012 Main track Romanian (2012_main_RO)
+        Qa4mreConfig(year="2012", track="alzheimers", language="EN"),  # (2012_alzheimers_EN)
+        Qa4mreConfig(year="2013", track="main", language="AR"),  # 2013 Main track Arabic (2013_main_AR)
+        Qa4mreConfig(year="2013", track="main", language="BG"),  # 2013 Main track Bulgarian (2013_main_BG)
+        Qa4mreConfig(year="2013", track="main", language="EN"),  # 2013 Main track English (2013_main_EN)
+        Qa4mreConfig(year="2013", track="main", language="ES"),  # 2013 Main track Spanish (2013_main_ES)
+        Qa4mreConfig(year="2013", track="main", language="RO"),  # 2013 Main track Romanian (2013_main_RO)
+        Qa4mreConfig(year="2013", track="alzheimers", language="EN"),  # (2013_alzheimers_EN)
+        Qa4mreConfig(year="2013", track="entrance_exam", language="EN"),  # (2013_entrance_exam.EN)
     ]
 
     def _info(self):
@@ -224,22 +224,22 @@ class Qa4mre(datasets.GeneratorBasedBuilder):
         download_urls = dict()
 
         if cfg.track == "main":
-            download_urls["{}.main.{}".format(cfg.year, cfg.lang)] = _BASE_URL + PATHS[cfg.year][
+            download_urls["{}_main_{}".format(cfg.year, cfg.lang)] = _BASE_URL + PATHS[cfg.year][
                 "_PATH_TMPL_MAIN_GS"
             ].format(cfg.lang)
 
         if cfg.year in ["2012", "2013"] and cfg.track == "alzheimers":
-            download_urls["{}.alzheimers.EN".format(cfg.year)] = _BASE_URL + PATHS[cfg.year]["_PATH_ALZHEIMER"]
+            download_urls["{}_alzheimers_EN".format(cfg.year)] = _BASE_URL + PATHS[cfg.year]["_PATH_ALZHEIMER"]
 
         if cfg.year == "2013" and cfg.track == "entrance_exam":
-            download_urls["2013.entrance_exam.EN"] = _BASE_URL + PATHS[cfg.year]["_PATH_ENTRANCE_EXAM"]
+            download_urls["2013_entrance_exam_EN"] = _BASE_URL + PATHS[cfg.year]["_PATH_ENTRANCE_EXAM"]
 
         downloaded_files = dl_manager.download_and_extract(download_urls)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": downloaded_files["{}.{}.{}".format(cfg.year, cfg.track, cfg.lang)]},
+                gen_kwargs={"filepath": downloaded_files["{}_{}_{}".format(cfg.year, cfg.track, cfg.lang)]},
             )
         ]
 

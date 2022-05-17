@@ -51,17 +51,17 @@ class SemEval2018Task1(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="subtask5.english",
+            name="subtask5_english",
             version=VERSION,
             description="This is the English dataset of subtask 5: E-c: Detecting Emotions.",
         ),
         datasets.BuilderConfig(
-            name="subtask5.spanish",
+            name="subtask5_spanish",
             version=VERSION,
             description="This is the Spanish dataset of subtask 5: E-c: Detecting Emotions.",
         ),
         datasets.BuilderConfig(
-            name="subtask5.arabic",
+            name="subtask5_arabic",
             version=VERSION,
             description="This is the Arabic dataset of subtask 5: E-c: Detecting Emotions.",
         ),
@@ -98,13 +98,13 @@ class SemEval2018Task1(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         my_urls = _URLs[self.config.name]
-        if self.config.name == "subtask5.english":
+        if self.config.name == "subtask5_english":
             shortname = "En"
             longname = "English"
-        if self.config.name == "subtask5.spanish":
+        if self.config.name == "subtask5_spanish":
             shortname = "Es"
             longname = "Spanish"
-        if self.config.name == "subtask5.arabic":
+        if self.config.name == "subtask5_arabic":
             shortname = "Ar"
             longname = "Arabic"
         data_dir = dl_manager.download_and_extract(my_urls)

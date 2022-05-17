@@ -94,7 +94,7 @@ An example of 'train' looks as follows.
 
 ```
 
-#### rc.nocontext
+#### rc_nocontext
 
 - **Size of downloaded dataset files:** 2542.29 MB
 - **Size of the generated dataset:** 120.42 MB
@@ -116,7 +116,7 @@ An example of 'validation' looks as follows.
 
 ```
 
-#### unfiltered.nocontext
+#### unfiltered_nocontext
 
 - **Size of downloaded dataset files:** 603.25 MB
 - **Size of the generated dataset:** 71.11 MB
@@ -155,7 +155,7 @@ The data fields are the same among all splits.
 - `type`: a `string` feature.
 - `value`: a `string` feature.
 
-#### rc.nocontext
+#### rc_nocontext
 - `question`: a `string` feature.
 - `question_id`: a `string` feature.
 - `question_source`: a `string` feature.
@@ -203,7 +203,7 @@ The data fields are the same among all splits.
 - `type`: a `string` feature.
 - `value`: a `string` feature.
 
-#### unfiltered.nocontext
+#### unfiltered_nocontext
 - `question`: a `string` feature.
 - `question_id`: a `string` feature.
 - `question_source`: a `string` feature.
@@ -232,9 +232,9 @@ The data fields are the same among all splits.
 |        name        |train |validation|test |
 |--------------------|-----:|---------:|----:|
 |rc                  |138384|     18669|17210|
-|rc.nocontext        |138384|     18669|17210|
+|rc_nocontext        |138384|     18669|17210|
 |unfiltered          | 87622|     11313|10832|
-|unfiltered.nocontext| 87622|     11313|10832|
+|unfiltered_nocontext| 87622|     11313|10832|
 
 ## Dataset Creation
 

@@ -57,12 +57,12 @@ class SquadEs(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         SquadEsConfig(
-            name="v1.1.0",
+            name="v1_1_0",
             version=datasets.Version("1.1.0", ""),
             description="Plain text Spanish squad version 1",
         ),
         SquadEsConfig(
-            name="v2.0.0",
+            name="v2_0_0",
             version=datasets.Version("2.0.0", ""),
             description="Plain text Spanish squad version 2",
         ),
@@ -104,9 +104,9 @@ class SquadEs(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to
 
         # download and extract URLs
-        if self.config.name == "v1.1.0":
+        if self.config.name == "v1_1_0":
             dl_dir = dl_manager.download_and_extract(_URLS_V1)
-        elif self.config.name == "v2.0.0":
+        elif self.config.name == "v2_0_0":
             dl_dir = dl_manager.download_and_extract(_URLS_V2)
         else:
             raise Exception("version does not match any existing one")

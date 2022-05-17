@@ -305,7 +305,9 @@ class VisualGenomeConfig(datasets.BuilderConfig):
     def __init__(self, name: str, version: Optional[str] = None, with_image: bool = True, **kwargs):
         _version = _LATEST_VERSIONS[name] if version is None else version
         _name = f"{name}_v{_version}"
-        super(VisualGenomeConfig, self).__init__(version=datasets.Version(_version), name=_name, **kwargs)
+        super(VisualGenomeConfig, self).__init__(
+            version=datasets.Version(_version), name=_name.replace(".", "_"), **kwargs
+        )
         self._name_without_version = name
         self.annotations_features = _NAME_VERSION_TO_ANNOTATION_FEATURES[self._name_without_version][
             self.version.version_str

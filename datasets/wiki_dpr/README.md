@@ -85,7 +85,7 @@ The wikipedia dump is the one from Dec. 20, 2018.
 
 Each instance contains a paragraph of at most 100 words, as well as the title of the wikipedia page it comes from, and the DPR embedding (a 768-d vector).
 
-#### psgs_w100.multiset.compressed
+#### psgs_w100_multiset_compressed
 
 - **Size of downloaded dataset files:** 67678.16 MB
 - **Size of the generated dataset:** 74786.45 MB
@@ -111,7 +111,7 @@ This example was too long and was cropped:
    -0.7025573253631592]}
 ```
 
-#### psgs_w100.multiset.exact
+#### psgs_w100_multiset_exact
 
 - **Size of downloaded dataset files:** 67678.16 MB
 - **Size of the generated dataset:** 74786.45 MB
@@ -137,7 +137,7 @@ This example was too long and was cropped:
    -0.7025573253631592]}
 ```
 
-#### psgs_w100.multiset.no_index
+#### psgs_w100_multiset_no_index
 
 - **Size of downloaded dataset files:** 67678.16 MB
 - **Size of the generated dataset:** 74786.45 MB
@@ -163,7 +163,7 @@ This example was too long and was cropped:
    -0.7025573253631592]}
 ```
 
-#### psgs_w100.nq.compressed
+#### psgs_w100_nq_compressed
 
 - **Size of downloaded dataset files:** 67678.16 MB
 - **Size of the generated dataset:** 74786.45 MB
@@ -189,7 +189,7 @@ This example was too long and was cropped:
    -0.4741983711719513]}
 ```
 
-#### psgs_w100.nq.exact
+#### psgs_w100_nq_exact
 
 - **Size of downloaded dataset files:** 67678.16 MB
 - **Size of the generated dataset:** 74786.45 MB
@@ -219,31 +219,31 @@ This example was too long and was cropped:
 
 The data fields are the same among all splits.
 
-#### psgs_w100.multiset.compressed
+#### psgs_w100_multiset_compressed
 - `id`: a `string` feature.
 - `text`: a `string` feature.
 - `title`: a `string` feature.
 - `embeddings`: a `list` of `float32` features.
 
-#### psgs_w100.multiset.exact
+#### psgs_w100_multiset_exact
 - `id`: a `string` feature.
 - `text`: a `string` feature.
 - `title`: a `string` feature.
 - `embeddings`: a `list` of `float32` features.
 
-#### psgs_w100.multiset.no_index
+#### psgs_w100_multiset_no_index
 - `id`: a `string` feature.
 - `text`: a `string` feature.
 - `title`: a `string` feature.
 - `embeddings`: a `list` of `float32` features.
 
-#### psgs_w100.nq.compressed
+#### psgs_w100_nq_compressed
 - `id`: a `string` feature.
 - `text`: a `string` feature.
 - `title`: a `string` feature.
 - `embeddings`: a `list` of `float32` features.
 
-#### psgs_w100.nq.exact
+#### psgs_w100_nq_exact
 - `id`: a `string` feature.
 - `text`: a `string` feature.
 - `title`: a `string` feature.
@@ -253,11 +253,11 @@ The data fields are the same among all splits.
 
 |            name             | train  |
 |-----------------------------|-------:|
-|psgs_w100.multiset.compressed|21015300|
-|psgs_w100.multiset.exact     |21015300|
-|psgs_w100.multiset.no_index  |21015300|
-|psgs_w100.nq.compressed      |21015300|
-|psgs_w100.nq.exact           |21015300|
+|psgs_w100_multiset_compressed|21015300|
+|psgs_w100_multiset_exact     |21015300|
+|psgs_w100_multiset_no_index  |21015300|
+|psgs_w100_nq_compressed      |21015300|
+|psgs_w100_nq_exact           |21015300|
 
 ## Dataset Creation
 

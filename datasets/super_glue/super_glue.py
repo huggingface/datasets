@@ -390,7 +390,7 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
             url="https://cs.nyu.edu/faculty/davise/papers/WinogradSchemas/WS.html",
         ),
         SuperGlueConfig(
-            name="wsc.fixed",
+            name="wsc_fixed",
             description=(
                 _WSC_DESCRIPTION + "\n\nThis version fixes issues where the spans are not actually "
                 "substrings of the text."
@@ -535,7 +535,7 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
                     if self.config.name.startswith("wsc"):
                         row.update(row["target"])
                     example = {feature: row[feature] for feature in self.config.features}
-                    if self.config.name == "wsc.fixed":
+                    if self.config.name == "wsc_fixed":
                         example = _fix_wst(example)
                     example["idx"] = row["idx"]
 

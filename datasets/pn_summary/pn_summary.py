@@ -40,7 +40,7 @@ _HOMEPAGE = "https://github.com/hooshvare/pn-summary"
 _LICENSE = "MIT License"
 
 _URLs = {
-    "1.0.0": {
+    "1_0_0": {
         "data": "https://drive.google.com/u/0/uc?id=16OgJ_OrfzUF_i3ftLjFn9kpcyoi7UJeO&export=download",
         "features": [
             {"name": "id", "type": datasets.Value("string")},
@@ -97,7 +97,7 @@ class PnSummary(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         PnSummaryConfig(
-            name="1.0.0", version=datasets.Version("1.0.0"), description="The first version of pn_summary"
+            name="1_0_0", version=datasets.Version("1.0.0"), description="The first version of pn_summary"
         ),
     ]
 

@@ -44,9 +44,9 @@ _URLs = {
     "tnhcv1.0": "https://github.com/jitkapat/thailitcorpus/releases/download/v.1.0/tnhc_v.1.0.tar.gz",
 }
 _FILENAMES = {
-    "tlcv1.0": "นิราศอิเหนา.json",
-    "tlcv2.0": "นิราศอิเหนา.json",
-    "tnhcv1.0": "กาพย์เห่เรือ.json",
+    "tlcv1_0": "นิราศอิเหนา.json",
+    "tlcv2_0": "นิราศอิเหนา.json",
+    "tnhcv1_0": "กาพย์เห่เรือ.json",
 }
 
 
@@ -67,19 +67,19 @@ class Tlc(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="tlcv1.0", version=datasets.Version("1.0.0"), description="Thai Literature Corpora"
+            name="tlcv1_0", version=datasets.Version("1.0.0"), description="Thai Literature Corpora"
         ),
         datasets.BuilderConfig(
-            name="tlcv2.0", version=datasets.Version("2.0.0"), description="Thai Literature Corpora"
+            name="tlcv2_0", version=datasets.Version("2.0.0"), description="Thai Literature Corpora"
         ),
         datasets.BuilderConfig(
-            name="tnhcv1.0",
+            name="tnhcv1_0",
             version=datasets.Version("1.0.0"),
             description="Thai Literature Corpora: Thai National Historical Corpus",
         ),
     ]
 
-    DEFAULT_CONFIG_NAME = "tlcv2.0"
+    DEFAULT_CONFIG_NAME = "tlcv2_0"
 
     def _info(self):
         if self.config.name.startswith("tlc"):

@@ -79,7 +79,7 @@ class WikiDprConfig(datasets.BuilderConfig):
         assert wiki_split == "psgs_w100"
         assert embeddings_name in ("nq", "multiset")
         assert index_name in ("compressed", "exact", "no_index")
-        kwargs["name"] = ".".join(name)
+        kwargs["name"] = "_".join(name)
         super(WikiDprConfig, self).__init__(**kwargs)
 
         prefix = f"{wiki_split}.{embeddings_name}."

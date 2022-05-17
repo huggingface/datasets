@@ -51,7 +51,7 @@ class Xquad(datasets.GeneratorBasedBuilder):
 
     # TODO(xquad): Set up version.
     VERSION = datasets.Version("1.0.0")
-    BUILDER_CONFIGS = [XquadConfig(name=f"xquad.{lang}", description=_DESCRIPTION, lang=lang) for lang in _LANG]
+    BUILDER_CONFIGS = [XquadConfig(name=f"xquad_{lang}", description=_DESCRIPTION, lang=lang) for lang in _LANG]
 
     def _info(self):
         # TODO(xquad): Specifies the datasets.DatasetInfo object

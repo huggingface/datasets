@@ -118,10 +118,10 @@ class TriviaQaConfig(datasets.BuilderConfig):
         assert not unfiltered or source == "all"
 
         if source != "all":
-            name += f".{source}"
+            name += f"_{source}"
 
         if exclude_context:
-            name += ".nocontext"
+            name += "_nocontext"
         description = _UNFILTERED_DESCRIPTION if unfiltered else _RC_DESCRIPTION
         if not exclude_context:
             description += _CONTEXT_ADDENDUM

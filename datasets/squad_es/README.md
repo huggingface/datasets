@@ -55,7 +55,7 @@ automatic translation of the Stanford Question Answering Dataset (SQuAD) v2 into
 
 ### Data Instances
 
-#### v1.1.0
+#### v1_1_0
 
 - **Size of downloaded dataset files:** 37.47 MB
 - **Size of the generated dataset:** 90.25 MB
@@ -81,7 +81,7 @@ This example was too long and was cropped:
 
 The data fields are the same among all splits.
 
-#### v1.1.0
+#### v1_1_0
 - `id`: a `string` feature.
 - `title`: a `string` feature.
 - `context`: a `string` feature.
@@ -94,7 +94,7 @@ The data fields are the same among all splits.
 
 | name |train|validation|
 |------|----:|---------:|
-|v1.1.0|87595|     10570|
+|v1_1_0|87595|     10570|
 
 ## Dataset Creation
 

@@ -62,7 +62,7 @@ does not include cross-posts and includes only the "From" and "Subject" headers.
 
 ### Data Instances
 
-#### 18828_alt.atheism
+#### 18828_alt_atheism
 
 - **Size of downloaded dataset files:** 13.99 MB
 - **Size of the generated dataset:** 1.59 MB
@@ -73,7 +73,7 @@ An example of 'train' looks as follows.
 
 ```
 
-#### 18828_comp.graphics
+#### 18828_comp_graphics
 
 - **Size of downloaded dataset files:** 13.99 MB
 - **Size of the generated dataset:** 1.58 MB
@@ -84,7 +84,7 @@ An example of 'train' looks as follows.
 
 ```
 
-#### 18828_comp.os.ms-windows.misc
+#### 18828_comp_os_ms-windows_misc
 
 - **Size of downloaded dataset files:** 13.99 MB
 - **Size of the generated dataset:** 2.27 MB
@@ -95,7 +95,7 @@ An example of 'train' looks as follows.
 
 ```
 
-#### 18828_comp.sys.ibm.pc.hardware
+#### 18828_comp_sys_ibm_pc_hardware
 
 - **Size of downloaded dataset files:** 13.99 MB
 - **Size of the generated dataset:** 1.13 MB
@@ -106,7 +106,7 @@ An example of 'train' looks as follows.
 
 ```
 
-#### 18828_comp.sys.mac.hardware
+#### 18828_comp_sys_mac_hardware
 
 - **Size of downloaded dataset files:** 13.99 MB
 - **Size of the generated dataset:** 1.01 MB
@@ -121,30 +121,30 @@ An example of 'train' looks as follows.
 
 The data fields are the same among all splits.
 
-#### 18828_alt.atheism
+#### 18828_alt_atheism
 - `text`: a `string` feature.
 
-#### 18828_comp.graphics
+#### 18828_comp_graphics
 - `text`: a `string` feature.
 
-#### 18828_comp.os.ms-windows.misc
+#### 18828_comp_os_ms-windows_misc
 - `text`: a `string` feature.
 
-#### 18828_comp.sys.ibm.pc.hardware
+#### 18828_comp_sys_ibm_pc_hardware
 - `text`: a `string` feature.
 
-#### 18828_comp.sys.mac.hardware
+#### 18828_comp_sys_mac_hardware
 - `text`: a `string` feature.
 
 ### Data Splits
 
 |             name             |train|
 |------------------------------|----:|
-|18828_alt.atheism             |  799|
-|18828_comp.graphics           |  973|
-|18828_comp.os.ms-windows.misc |  985|
-|18828_comp.sys.ibm.pc.hardware|  982|
-|18828_comp.sys.mac.hardware   |  961|
+|18828_alt_atheism             |  799|
+|18828_comp_graphics           |  973|
+|18828_comp_os_ms-windows_misc |  985|
+|18828_comp_sys_ibm_pc_hardware|  982|
+|18828_comp_sys_mac_hardware   |  961|
 
 ## Dataset Creation
 

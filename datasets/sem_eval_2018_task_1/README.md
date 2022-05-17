@@ -89,7 +89,7 @@ English, Arabic and Spanish
 
 ### Data Instances
 
-An example from the `subtask5.english` config is:
+An example from the `subtask5_english` config is:
 
 ```
 {'ID': '2017-En-21441',

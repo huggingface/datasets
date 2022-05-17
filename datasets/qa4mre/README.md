@@ -60,7 +60,7 @@ alzheimers data, and the other on entrance exams data.
 
 ### Data Instances
 
-#### 2011.main.DE
+#### 2011_main_DE
 
 - **Size of downloaded dataset files:** 0.21 MB
 - **Size of the generated dataset:** 1.67 MB
@@ -71,7 +71,7 @@ An example of 'train' looks as follows.
 
 ```
 
-#### 2011.main.EN
+#### 2011_main_EN
 
 - **Size of downloaded dataset files:** 0.19 MB
 - **Size of the generated dataset:** 1.50 MB
@@ -82,7 +82,7 @@ An example of 'train' looks as follows.
 
 ```
 
-#### 2011.main.ES
+#### 2011_main_ES
 
 - **Size of downloaded dataset files:** 0.21 MB
 - **Size of the generated dataset:** 1.62 MB
@@ -93,7 +93,7 @@ An example of 'train' looks as follows.
 
 ```
 
-#### 2011.main.IT
+#### 2011_main_IT
 
 - **Size of downloaded dataset files:** 0.20 MB
 - **Size of the generated dataset:** 1.59 MB
@@ -104,7 +104,7 @@ An example of 'train' looks as follows.
 
 ```
 
-#### 2011.main.RO
+#### 2011_main_RO
 
 - **Size of downloaded dataset files:** 0.21 MB
 - **Size of the generated dataset:** 1.66 MB
@@ -119,7 +119,7 @@ An example of 'train' looks as follows.
 
 The data fields are the same among all splits.
 
-#### 2011.main.DE
+#### 2011_main_DE
 - `topic_id`: a `string` feature.
 - `topic_name`: a `string` feature.
 - `test_id`: a `string` feature.
@@ -133,7 +133,7 @@ The data fields are the same among all splits.
 - `correct_answer_id`: a `string` feature.
 - `correct_answer_str`: a `string` feature.
 
-#### 2011.main.EN
+#### 2011_main_EN
 - `topic_id`: a `string` feature.
 - `topic_name`: a `string` feature.
 - `test_id`: a `string` feature.
@@ -147,7 +147,7 @@ The data fields are the same among all splits.
 - `correct_answer_id`: a `string` feature.
 - `correct_answer_str`: a `string` feature.
 
-#### 2011.main.ES
+#### 2011_main_ES
 - `topic_id`: a `string` feature.
 - `topic_name`: a `string` feature.
 - `test_id`: a `string` feature.
@@ -161,7 +161,7 @@ The data fields are the same among all splits.
 - `correct_answer_id`: a `string` feature.
 - `correct_answer_str`: a `string` feature.
 
-#### 2011.main.IT
+#### 2011_main_IT
 - `topic_id`: a `string` feature.
 - `topic_name`: a `string` feature.
 - `test_id`: a `string` feature.
@@ -175,7 +175,7 @@ The data fields are the same among all splits.
 - `correct_answer_id`: a `string` feature.
 - `correct_answer_str`: a `string` feature.
 
-#### 2011.main.RO
+#### 2011_main_RO
 - `topic_id`: a `string` feature.
 - `topic_name`: a `string` feature.
 - `test_id`: a `string` feature.
@@ -193,11 +193,11 @@ The data fields are the same among all splits.
 
 |    name    |train|
 |------------|----:|
-|2011.main.DE|  120|
-|2011.main.EN|  120|
-|2011.main.ES|  120|
-|2011.main.IT|  120|
-|2011.main.RO|  120|
+|2011_main_DE|  120|
+|2011_main_EN|  120|
+|2011_main_ES|  120|
+|2011_main_IT|  120|
+|2011_main_RO|  120|
 
 ## Dataset Creation
 

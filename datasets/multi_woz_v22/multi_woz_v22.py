@@ -89,15 +89,15 @@ class MultiWozV22(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("2.2.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="v2.2", version=datasets.Version("2.2.0"), description="MultiWOZ v2.2"),
+        datasets.BuilderConfig(name="v2_2", version=datasets.Version("2.2.0"), description="MultiWOZ v2.2"),
         datasets.BuilderConfig(
-            name="v2.2_active_only",
+            name="v2_2_active_only",
             version=datasets.Version("2.2.0"),
             description="MultiWOZ v2.2, only keeps around frames with an active intent",
         ),
     ]
 
-    DEFAULT_CONFIG_NAME = "v2.2_active_only"
+    DEFAULT_CONFIG_NAME = "v2_2_active_only"
 
     def _info(self):
         features = datasets.Features(
