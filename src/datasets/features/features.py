@@ -813,26 +813,28 @@ class ClassLabel:
             values = [values]
             return_list = False
 
-        output = []
-        for value in values:
-            failed_parse = False
-            if self._str2int:
-                # strip key if not in dict
-                if value not in self._str2int:
-                    value = str(value).strip()
-                try:
-                    output.append(self._str2int[str(value)])
-                except ValueError:
-                    failed_parse = True
-            else:
-                # No names provided, try to integerize
-                try:
-                    output.append(int(value))
-                except ValueError:
-                    failed_parse = True
-            if failed_parse or not 0 <= value < self.num_classes:
-                raise ValueError(f"Invalid string class label {value}")
+        output = [self._strvalue2int(value) for value in values]
         return output if return_list else output[0]
+
+    def _strvalue2int(self, value: str):
+        failed_parse = False
+        if self._str2int:
+            # strip key if not in dict
+            if value not in self._str2int:
+                value = str(value).strip()
+            try:
+                int_value = self._str2int[str(value)]
+            except ValueError:
+                failed_parse = True
+        else:
+            # No names provided, try to integerize
+            try:
+                int_value = int(value)
+            except ValueError:
+                failed_parse = True
+        if failed_parse or not 0 <= int_value < self.num_classes:
+            raise ValueError(f"Invalid string class label {value}")
+        return int_value
 
     def int2str(self, values: Union[int, Iterable]):
         """Conversion integer => class name string."""
@@ -894,7 +896,9 @@ class ClassLabel:
                     f"Class label {min_max['max']} greater than configured num_classes {self.num_classes}"
                 )
         elif isinstance(storage, pa.StringArray):
-            storage = pa.array([self.str2int(label) if label is not None else None for label in storage.to_pylist()])
+            storage = pa.array(
+                [self._strvalue2int(label) if label is not None else None for label in storage.to_pylist()]
+            )
         return array_cast(storage, self.pa_type)
 
     @staticmethod
