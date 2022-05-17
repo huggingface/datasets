@@ -56,6 +56,8 @@ from multiprocess import Pool, RLock
 from requests import HTTPError
 from tqdm.auto import tqdm
 
+import datasets
+
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
@@ -91,6 +93,7 @@ from .utils._hf_hub_fixes import create_repo
 from .utils.file_utils import _retry, estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import convert_file_size_to_int, temporary_assignment, unique_values
+from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.streaming_download_manager import xgetsize
 from .utils.typing import PathLike
 
@@ -3242,116 +3245,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             new_fingerprint=new_fingerprint,
         )
 
-    def _approximate_mode(self, class_counts, n_draws, rng):
-        """Computes approximate mode of multivariate hypergeometric.
-        This is an approximation to the mode of the multivariate
-        hypergeometric given by class_counts and n_draws.
-        It shouldn't be off by more than one.
-        It is the mostly likely outcome of drawing n_draws many
-        samples from the population given by class_counts.
-        Args
-        ----------
-        class_counts : ndarray of int
-            Population per class.
-        n_draws : int
-            Number of draws (samples to draw) from the overall population.
-        rng : random state
-            Used to break ties.
-        Returns
-        -------
-        sampled_classes : ndarray of int
-            Number of samples drawn from each class.
-            np.sum(sampled_classes) == n_draws
-
-        """
-        # this computes a bad approximation to the mode of the
-        # multivariate hypergeometric given by class_counts and n_draws
-        continuous = n_draws * class_counts / class_counts.sum()
-        # floored means we don't overshoot n_samples, but probably undershoot
-        floored = np.floor(continuous)
-        # we add samples according to how much "left over" probability
-        # they had, until we arrive at n_samples
-        need_to_add = int(n_draws - floored.sum())
-        if need_to_add > 0:
-            remainder = continuous - floored
-            values = np.sort(np.unique(remainder))[::-1]
-            # add according to remainder, but break ties
-            # randomly to avoid biases
-            for value in values:
-                (inds,) = np.where(remainder == value)
-                # if we need_to_add less than what's in inds
-                # we draw randomly from them.
-                # if we need to add more, we add them all and
-                # go to the next value
-                add_now = min(len(inds), need_to_add)
-                inds = rng.choice(inds, size=add_now, replace=False)
-                floored[inds] += 1
-                need_to_add -= add_now
-                if need_to_add == 0:
-                    break
-        return floored.astype(np.int)
-
-    def _stratified_shuffle_split_generate_indices(self, y, n_train, n_test, rng, n_splits=10):
-        """
-
-        Provides train/test indices to split data in train/test sets.
-        It's reference is taken from StratifiedShuffleSplit implementation
-        of scikit-learn library.
-
-        Args
-        ----------
-
-        n_train : int,
-            represents the absolute number of train samples.
-
-        n_test : int,
-            represents the absolute number of test samples.
-
-        random_state : int or RandomState instance, default=None
-            Controls the randomness of the training and testing indices produced.
-            Pass an int for reproducible output across multiple function calls.
-
-        n_splits : int, default=10
-            Number of re-shuffling & splitting iterations.
-        """
-        classes, y_indices = np.unique(y, return_inverse=True)
-        n_classes = classes.shape[0]
-        class_counts = np.bincount(y_indices)
-        if np.min(class_counts) < 2:
-            raise ValueError(
-                "The least populated class in y has only 1"
-                " member, which is too few. The minimum"
-                " number of groups for any class cannot"
-                " be less than 2."
-            )
-        if n_train < n_classes:
-            raise ValueError(
-                "The train_size = %d should be greater or "
-                "equal to the number of classes = %d" % (n_train, n_classes)
-            )
-        if n_test < n_classes:
-            raise ValueError(
-                "The test_size = %d should be greater or " "equal to the number of classes = %d" % (n_test, n_classes)
-            )
-        class_indices = np.split(np.argsort(y_indices, kind="mergesort"), np.cumsum(class_counts)[:-1])
-        for _ in range(n_splits):
-            n_i = self._approximate_mode(class_counts, n_train, rng)
-            class_counts_remaining = class_counts - n_i
-            t_i = self._approximate_mode(class_counts_remaining, n_test, rng)
-
-            train = []
-            test = []
-
-            for i in range(n_classes):
-                permutation = rng.permutation(class_counts[i])
-                perm_indices_class_i = class_indices[i].take(permutation, mode="clip")
-                train.extend(perm_indices_class_i[: n_i[i]])
-                test.extend(perm_indices_class_i[n_i[i] : n_i[i] + t_i[i]])
-            train = rng.permutation(train)
-            test = rng.permutation(test)
-
-            yield train, test
-
     @transmit_format
     @fingerprint_transform(
         inplace=False,
@@ -3391,7 +3284,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If int, represents the absolute number of train samples.
                 If None, the value is automatically set to the complement of the test size.
             shuffle (:obj:`bool`, optional, default `True`): Whether or not to shuffle the data before splitting.
-            stratify (:obj:`str`, optional, default `None`): data is split in a stratified fashion, using the specified class labels
+            stratify (:obj:`str`, optional, default `None`):The column name of labels to use to stratify data.
             seed (:obj:`int`, optional): A seed to initialize the default BitGenerator if ``generator=None``.
                 If None, then fresh, unpredictable entropy will be pulled from the OS.
                 If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
@@ -3438,7 +3331,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features: ['text', 'label'],
             num_rows: 25000
         })
-        >>> ds = ds.train_test_split(test_size=0.2,stratify="label")
+        >>> ds = ds.train_test_split(test_size=0.2, stratify="label")
         DatasetDict({
             train: Dataset({
                 features: ['text', 'label'],
@@ -3574,9 +3467,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             # stratified partition
             if stratify is not None:
+                if not isinstance(self.features[stratify], datasets.ClassLabel):
+                    raise ValueError(f"Invalid value for stratify: {stratify} of type {type(stratify)}")
                 train_indices, test_indices = next(
-                    self._stratified_shuffle_split_generate_indices(
-                        self.with_format("numpy")[stratify], n_train, n_test, rng=generator
+                    stratified_shuffle_split_generate_indices(
+                        self.with_format("numpy")[stratify], stratify, n_train, n_test, rng=generator
                     )
                 )
             # random partition
