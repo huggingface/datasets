@@ -12,18 +12,18 @@ from datasets.utils.file_utils import cached_path
 
 
 DATASETS_ON_HF_GCP = [
-    {"dataset": "wikipedia", "config_name": "20220301.de"},
-    {"dataset": "wikipedia", "config_name": "20220301.en"},
-    {"dataset": "wikipedia", "config_name": "20220301.fr"},
-    {"dataset": "wikipedia", "config_name": "20220301.frr"},
-    {"dataset": "wikipedia", "config_name": "20220301.it"},
-    {"dataset": "wikipedia", "config_name": "20220301.simple"},
+    {"dataset": "wikipedia", "config_name": "20220301_de"},
+    {"dataset": "wikipedia", "config_name": "20220301_en"},
+    {"dataset": "wikipedia", "config_name": "20220301_fr"},
+    {"dataset": "wikipedia", "config_name": "20220301_frr"},
+    {"dataset": "wikipedia", "config_name": "20220301_it"},
+    {"dataset": "wikipedia", "config_name": "20220301_simple"},
     {"dataset": "snli", "config_name": "plain_text"},
     {"dataset": "eli5", "config_name": "LFQA_reddit"},
     {"dataset": "wiki40b", "config_name": "en"},
-    {"dataset": "wiki_dpr", "config_name": "psgs_w100.nq.compressed"},
-    {"dataset": "wiki_dpr", "config_name": "psgs_w100.nq.no_index"},
-    {"dataset": "wiki_dpr", "config_name": "psgs_w100.multiset.no_index"},
+    {"dataset": "wiki_dpr", "config_name": "psgs_w100_nq_compressed"},
+    {"dataset": "wiki_dpr", "config_name": "psgs_w100_nq_no_index"},
+    {"dataset": "wiki_dpr", "config_name": "psgs_w100_multiset_no_index"},
     {"dataset": "natural_questions", "config_name": "default"},
 ]
 
