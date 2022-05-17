@@ -2354,6 +2354,8 @@ class BaseDatasetTest(TestCase):
             )
             self.assertEqual(len(tf_dataset), 2)  # One batch of 3 and one batch of 1
             self.assertEqual(len(tf_dataset_with_drop), 1)  # Incomplete batch of 1 is dropped
+        del tf_dataset  # For correct cleanup
+        del tf_dataset_with_drop
 
 
 class MiscellaneousDatasetTest(TestCase):
