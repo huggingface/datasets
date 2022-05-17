@@ -16,8 +16,7 @@ source_datasets:
 - original
 task_categories:
 - automatic-speech-recognition
-task_ids:
-- automatic-speech-recognition
+task_ids: []
 ---
 
 # Dataset Card for tedlium
