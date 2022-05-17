@@ -11,7 +11,7 @@ multilinguality:
 - monolingual
 pretty_name: CMU MoCap
 size_categories:
-- 1K<n<10K
+- n<1K
 source_datasets:
 - original
 task_categories:
