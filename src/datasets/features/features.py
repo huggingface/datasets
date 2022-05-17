@@ -830,8 +830,9 @@ class ClassLabel:
                     int_value = int(value)
                 except ValueError:
                     failed_parse = True
-                if int_value < -1 or int_value >= self.num_classes:
-                    failed_parse = True
+                else:
+                    if int_value < -1 or int_value >= self.num_classes:
+                        failed_parse = True
         if failed_parse:
             raise ValueError(f"Invalid string class label {value}")
         return int_value
