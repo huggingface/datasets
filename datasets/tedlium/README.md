@@ -55,7 +55,7 @@ task_ids:
 
 ### Dataset Summary
 
-The TED-LIUM corpus is English-language TED talks, with transcriptions, sampled at 16kHz. It contains about 118 hours of speech.
+The TED-LIUM corpus is English-language TED talks, with transcriptions, sampled at 16kHz. The three releases of the corpus range from 118 to 452 hours of transcribed speech data.
 
 
 ### Example 
@@ -72,8 +72,6 @@ print(tedlium)
 audio_input = tedlium["train"][0]["audio"]  # first decoded audio sample
 transcription = tedlium["train"][0]["text"]  # first transcription
 ```
-
-Note that the processing of the TEDLIUM dataset requires pydub for audio segmentation. Instructions on how to download pydub can be found at https://github.com/jiaaro/pydub#installation. 
 
 ### Supported Tasks and Leaderboards
 
@@ -195,12 +193,11 @@ Licensed under Creative Commons BY-NC-ND 3.0 (http://creativecommons.org/license
 ### Citation Information
 
 ```
-@inproceedings{panayotov2015librispeech,
-  title={Librispeech: an ASR corpus based on public domain audio books},
-  author={Panayotov, Vassil and Chen, Guoguo and Povey, Daniel and Khudanpur, Sanjeev},
-  booktitle={Acoustics, Speech and Signal Processing (ICASSP), 2015 IEEE International Conference on},
-  pages={5206--5210},
-  year={2015},
-  organization={IEEE}
+@inproceedings{rousseau2012tedlium,
+  title={TED-LIUM: an Automatic Speech Recognition dedicated corpus},
+  author={Rousseau, Anthony and Del{\'e}glise, Paul and Est{\`e}ve, Yannick},
+  booktitle={Conference on Language Resources and Evaluation (LREC)},
+  pages={125--129},
+  year={2012}
 }
 ```
