@@ -17,6 +17,7 @@
 import os
 import re
 from pathlib import Path
+from collections import defaultdict
 
 import numpy as np
 import soundfile as sf
@@ -196,7 +197,6 @@ class TedLium(datasets.GeneratorBasedBuilder):
         # (Optional) In non-streaming mode, we can extract the archive locally to have actual local audio files:
         local_extracted_archive = dl_manager.extract(archive_path) if not dl_manager.is_streaming else {}
         splits = []
-        import ipdb; ipdb.set_trace()
         for split, path in self.config.split_paths:
             kwargs = {
                 "filepath": dl_manager.iter_archive(archive_path),
@@ -233,44 +233,69 @@ class TedLium(datasets.GeneratorBasedBuilder):
                         samples = _extract_audio_segment(segment, int(channel), float(start), float(end))
                         key = "-".join([speaker, start, end, label])
                         example = {
-                            "audio": {"path": file, "array": samples, "sampling_rate": sampling_rate},
+                            "audio": {"path": audio_file, "array": samples, "sampling_rate": sampling_rate},
                             "text": transcript,
                             "speaker_id": speaker,
                             "gender": _parse_gender(label),
-                            "file": file,
+                            "file": audio_file,
                             "id": key,
                         }
                         yield key, example
 
         else:
-            for path, fs in filepath:
+            key = 0
+            audio_data = {}
+            transcripts = defaultdict(list)
+            for path, f in filepath:
                 if path.split("/")[1] == split:
-                    # the .sph speaker file almost always has the same file name as the .stm file
-                    audio_file = path.replace("stm", "sph")
-
-                    segment, sampling_rate = sf.read(audio_file, dtype=np.int16)
-                    with open(path) as f:
+                    if path.endswith(".sph"):
+                        fn = path.split("/")[-1].strip(".sph")
+                        import ipdb; ipdb.set_trace()
+                        audio_data[fn] = f.read()
+                    elif path.endswith(".stm"):
                         for line in f:
-                            line = line.strip()
-                            fn, channel, speaker, start, end, label, transcript = line.split(" ", 6)
-                            transcript = _maybe_trim_suffix(transcript)
-                            if speaker_file != fn:
-                                # handle the case where the stm file does not have the same file name as the transcript
-                                speaker_file = fn
-                                segment, sampling_rate = sf.read(audio_file, dtype=np.int16)
-                            samples = _extract_audio_segment(segment, int(channel), float(start), float(end))
+                            if line:
+                                line = line.decode("utf-8").strip()
+                                fn, channel, speaker, start, end, label, transcript = line.split(" ", 6)
+                                transcript = _maybe_trim_suffix(transcript)
+                                audio_file = path.replace("stm", "sph")
+                                id_key = "-".join([speaker, start, end, label])
+                                # append metadata information to the dict of transcripts for the associated speaker
+                                transcripts[fn].append(
+                                    {
+                                        "text": transcript,
+                                        "speaker_id": speaker,
+                                        "gender": _parse_gender(label),
+                                        "file": audio_file,
+                                        "id": id_key,
+                                        "start": start,
+                                        "end": end,
+                                        "channel": channel,
+                                        "fn": fn,
+                                    }
+                                )
 
-                            key = "-".join([speaker, start, end, label])
-                            file = path
-                            example = {
-                                "audio": {"path": file, "array": samples, "sampling_rate": sampling_rate},
-                                "text": transcript,
-                                "speaker_id": speaker,
-                                "gender": _parse_gender(label),
-                                "file": file,
-                                "id": key,
+                if audio_data and audio_data.keys() == transcripts.keys():
+                    for fn, speaker in transcripts.items():
+                        for transcript in speaker:
+                            samples = _extract_audio_segment(
+                                audio_data[transcript["fn"]],
+                                int(transcript["channel"]),
+                                float(transcript["start"]),
+                                float(transcript["end"]),
+                            )
+                            audio = {"path": transcript["file"], "bytes": samples}
+                            yield key, {
+                                "audio": audio,
+                                "text": transcript["text"],
+                                "speaker_id": transcript["speaker_id"],
+                                "gender": transcript["gender"],
+                                "file": transcript["file"],
+                                "id": transcript["id"],
                             }
-                            yield key, example
+                            key += 1
+                    audio_data = {}
+                    transcripts = defaultdict(list)
 
 
 def _maybe_trim_suffix(transcript):
