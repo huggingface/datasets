@@ -15,10 +15,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - dialogue-modeling
-- other-multi-turn
 paperswithcode_id: kdconv
 pretty_name: Knowledge-driven Conversation
 ---

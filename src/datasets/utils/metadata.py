@@ -4,7 +4,7 @@ import re
 from collections import Counter
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, Type, Union
 
 
 # loading package files: https://stackoverflow.com/a/20885799
@@ -114,12 +114,12 @@ def tagset_validator(
 def validate_type(value: Any, expected_type: Type):
     error_string = ""
     NoneType = type(None)
-    if expected_type == NoneType:
+    if expected_type is NoneType:
         if not isinstance(value, NoneType):
             return f"Expected `{NoneType}`. Found value: `{value}` of type `{type(value)}`.\n"
         else:
             return error_string
-    if expected_type == str:
+    if expected_type is str:
         if not isinstance(value, str):
             return f"Expected `{str}`. Found value: `{value}` of type: `{type(value)}`.\n"
 
@@ -131,10 +131,10 @@ def validate_type(value: Any, expected_type: Type):
             return error_string
     # Add more `elif` statements if primitive type checking is needed
     else:
-        expected_type_origin = expected_type.__origin__
+        expected_type_name = str(expected_type).split(".", 1)[-1].split("[")[0]  # typing.List[str] -> List
         expected_type_args = expected_type.__args__
 
-        if expected_type_origin == Union:
+        if expected_type_name == "Union":
             for type_arg in expected_type_args:
                 temp_error_string = validate_type(value, type_arg)
                 if temp_error_string == "":  # at least one type is successfully validated
@@ -144,29 +144,43 @@ def validate_type(value: Any, expected_type: Type):
                         error_string = "(" + temp_error_string + ")"
                     else:
                         error_string += "\nOR\n" + "(" + temp_error_string + ")"
-
+        elif value is None:
+            return f"Expected `{expected_type}`. Found value: `{value}` of type: `{type(value)}`.\n"
         else:
-            # Assuming `List`/`Dict`/`Tuple`
-            if not isinstance(value, expected_type_origin) or len(value) == 0:
-                return f"Expected `{expected_type_origin}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
+            # Assuming non empty `List`/`Dict`/`Tuple`
+            if expected_type is EmptyList:
+                if len(value) == 0:
+                    return ""
+                else:
+                    return f"Expected `{expected_type}` of length 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
 
-            if expected_type_origin == Dict:
-                key_type, value_type = expected_type_args
-                key_error_string = ""
-                value_error_string = ""
-                for k, v in value.items():
-                    key_error_string += validate_type(k, key_type)
-                    value_error_string += validate_type(v, value_type)
-                if key_error_string != "" or value_error_string != "":
-                    return f"Typing errors with keys:\n {key_error_string} and values:\n {value_error_string}"
+            # Assuming non empty
+            if not isinstance(value, (dict, tuple, list)) or len(value) == 0:
+                return f"Expected `{expected_type}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
+
+            if expected_type_name == "Dict":
+                if not isinstance(value, dict):
+                    return f"Expected `{expected_type}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
+                if expected_type_args != Dict.__args__:  # if we specified types for keys and values
+                    key_type, value_type = expected_type_args
+                    key_error_string = ""
+                    value_error_string = ""
+                    for k, v in value.items():
+                        key_error_string += validate_type(k, key_type)
+                        value_error_string += validate_type(v, value_type)
+                    if key_error_string != "" or value_error_string != "":
+                        return f"Typing errors with keys:\n {key_error_string} and values:\n {value_error_string}"
 
             else:  # `List`/`Tuple`
-                value_type = expected_type_args[0]
-                value_error_string = ""
-                for v in value:
-                    value_error_string += validate_type(v, value_type)
-                if value_error_string != "":
-                    return f"Typing errors with values:\n {value_error_string}"
+                if not isinstance(value, (list, tuple)):
+                    return f"Expected `{expected_type}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
+                if expected_type_args != List.__args__:  # if we specified types for the items in the list
+                    value_type = expected_type_args[0]
+                    value_error_string = ""
+                    for v in value:
+                        value_error_string += validate_type(v, value_type)
+                    if value_error_string != "":
+                        return f"Typing errors with values:\n {value_error_string}"
 
         return error_string
 
@@ -185,19 +199,30 @@ def validate_metadata_type(metadata_dict: dict):
         raise TypeError(f"The following typing errors are found: {typing_errors}")
 
 
+class _nothing:
+    pass
+
+
+EmptyList = List[_nothing]
+
+
 @dataclass
 class DatasetMetadata:
     annotations_creators: Union[List[str], Dict[str, List[str]]]
-    language_creators: Union[List[str], Dict[str, List[str]]]
-    languages: Union[List[str], Dict[str, List[str]]]
+    language_creators: Union[EmptyList, List[str], Dict[str, List[str]]]
+    languages: Union[EmptyList, List[str], Dict[str, List[str]]]
     licenses: Union[List[str], Dict[str, List[str]]]
     multilinguality: Union[List[str], Dict[str, List[str]]]
     pretty_name: Union[str, Dict[str, str]]
     size_categories: Union[List[str], Dict[str, List[str]]]
     source_datasets: Union[List[str], Dict[str, List[str]]]
     task_categories: Union[List[str], Dict[str, List[str]]]
-    task_ids: Union[List[str], Dict[str, List[str]]]
+    task_ids: Union[EmptyList, List[str], Dict[str, List[str]]]
     paperswithcode_id: Optional[str] = None
+    train_eval_index: Optional[List[Dict]] = None
+
+    # class attributes
+    _FIELDS_WITH_DASHES: ClassVar[set] = {"train_eval_index"}  # train-eval-index in the YAML metadata
 
     def validate(self):
         validate_metadata_type(metadata_dict=vars(self))
@@ -216,6 +241,7 @@ class DatasetMetadata:
         self.paperswithcode_id, paperswithcode_id_errors = self.validate_paperswithcode_id_errors(
             self.paperswithcode_id
         )
+        self.train_eval_index, train_eval_index_errors = self.validate_train_eval_index(self.train_eval_index)
 
         errors = {
             "annotations_creators": annotations_creators_errors,
@@ -228,6 +254,7 @@ class DatasetMetadata:
             "task_ids": task_ids_errors,
             "languages": languages_errors,
             "paperswithcode_id": paperswithcode_id_errors,
+            "train_eval_index": train_eval_index_errors,
         }
 
         exception_msg_dict = dict()
@@ -274,6 +301,26 @@ class DatasetMetadata:
             :obj:`TypeError`: If the dataset's metadata is invalid
         """
         metada_dict = yaml.load(string, Loader=NoDuplicateSafeLoader) or dict()
+
+        # In general the allowed YAML keys are the fields of the DatasetMetadata dataclass.
+        # However it is not the case certain fields like train_eval_index,
+        # for which the YAML key must use dashes and not underscores.
+        # Fields that corresponds to YAML keys with dashes are defined in DatasetMetadata._FIELDS_WITH_DASHES
+        allowed_yaml_keys = [
+            field.name.replace("_", "-") if field.name in cls._FIELDS_WITH_DASHES else field.name
+            for field in fields(cls)
+        ]
+
+        # Check if the YAML keys are all correct
+        bad_keys = [k for k in metada_dict if k not in allowed_yaml_keys]
+        if bad_keys:
+            raise ValueError(f"Bad YAML keys: {bad_keys}. Allowed fields: {allowed_yaml_keys}")
+
+        # Convert the YAML keys to DatasetMetadata fields
+        metada_dict = {
+            (key.replace("-", "_") if key.replace("-", "_") in cls._FIELDS_WITH_DASHES else key): value
+            for key, value in metada_dict.items()
+        }
         return cls(**metada_dict)
 
     @staticmethod
@@ -321,9 +368,13 @@ class DatasetMetadata:
     def validate_task_ids(task_ids: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
-        known_set = [tid for _cat, d in known_task_ids.items() for tid in d["options"]]
+        known_set = [tid for _cat, d in known_task_ids.items() for tid in d.get("subtasks", [])]
         validated, error = tagset_validator(
-            task_ids, known_set, "task_ids", known_task_ids_url, lambda e: "-other-" in e or e.startswith("other-")
+            task_ids,
+            known_set,
+            "task_ids",
+            known_task_ids_url,
+            lambda e: not e or "-other-" in e or e.startswith("other-"),
         )
         return validated, error
 
@@ -374,6 +425,13 @@ class DatasetMetadata:
                 return None, error_string
             else:
                 return pretty_name, None
+
+    @staticmethod
+    def validate_train_eval_index(train_eval_index: Optional[Dict]):
+        if train_eval_index is not None and not isinstance(train_eval_index, list):
+            return None, f"train-eval-index must be a list, but got {type(train_eval_index)} instead."
+        else:
+            return train_eval_index, None
 
     def get_metadata_by_config_name(self, name: str) -> "DatasetMetadata":
         metadata_dict = asdict(self)

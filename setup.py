@@ -64,8 +64,8 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 5.0.0 to support mix of struct and list types in parquet, and batch iterators of parquet data, masks in StructArray
-    "pyarrow>=5.0.0",
+    # Minimum 6.0.0 to support wrap_array which is needed for ArrayND features
+    "pyarrow>=6.0.0",
     # For smart caching dataset processing
     "dill",
     # For performance gains with apache arrow
@@ -88,7 +88,7 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub>=0.1.0,<1.0.0",
+    "huggingface-hub>=0.1.0,<1.0.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     "responses<0.19",
@@ -137,6 +137,7 @@ TESTS_REQUIRE = [
     "h5py",
     "langdetect",
     "lxml",
+    "lz4",
     "mwparserfromhell",
     "nltk",
     "openpyxl",
@@ -145,15 +146,15 @@ TESTS_REQUIRE = [
     "zstandard",
     # metrics dependencies
     "bert_score>=0.3.6",
+    "jiwer",
+    "mauve-text",
     "rouge_score",
     "sacrebleu",
-    "scipy",
-    "seqeval",
+    "sacremoses",
     "scikit-learn",
-    "jiwer",
+    "scipy",
     "sentencepiece",  # for bleurt
-    "torchmetrics==0.6.0",  # for comet: https://github.com/PyTorchLightning/metrics/issues/770
-    "mauve-text",
+    "seqeval",
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
@@ -167,19 +168,6 @@ TESTS_REQUIRE = [
 
 TESTS_REQUIRE.extend(VISION_REQURE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
-
-if os.name != "nt":
-    # dependencies of unbabel-comet
-    # only test if not on windows since there're issues installing fairseq on windows
-    TESTS_REQUIRE.extend(
-        [
-            "wget>=3.2",
-            "pytorch-nlp==0.5.0",
-            "pytorch_lightning",
-            "fastBPE==0.1.0",
-            "fairseq",
-        ]
-    )
 
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
@@ -210,7 +198,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.0.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.2.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

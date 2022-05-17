@@ -59,9 +59,9 @@ size_categories:
 source_datasets:
 - extended|common_voice
 task_categories:
-- speech-processing
+- audio-classification
 task_ids:
-- other-other-speech-classification
+- speaker-language-identification
 ---
 
 # Dataset Card for common_language

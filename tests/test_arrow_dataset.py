@@ -20,7 +20,18 @@ import datasets.arrow_dataset
 from datasets import concatenate_datasets, interleave_datasets, load_from_disk
 from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
-from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
+from datasets.features import (
+    Array2D,
+    Array3D,
+    Audio,
+    ClassLabel,
+    Features,
+    Image,
+    Sequence,
+    Translation,
+    TranslationVariableLanguages,
+    Value,
+)
 from datasets.filesystems import extract_path_from_uri
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit
@@ -40,6 +51,7 @@ from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
     require_jax,
+    require_pil,
     require_s3,
     require_tf,
     require_torch,
@@ -737,6 +749,118 @@ class BaseDatasetTest(TestCase):
                         self.assertNotEqual(dset._fingerprint, fingerprint)
                         assert_arrow_metadata_are_synced_with_dataset_features(dset)
 
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict(
+                {"a": [{"en": "Thank you", "fr": "Merci"}] * 10, "foo": [1] * 10},
+                features=Features({"a": Translation(languages=["en", "fr"]), "foo": Value("int64")}),
+            ) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    fingerprint = dset._fingerprint
+                    with dset.flatten() as dset:
+                        self.assertListEqual(sorted(dset.column_names), ["a.en", "a.fr", "foo"])
+                        self.assertListEqual(sorted(dset.features.keys()), ["a.en", "a.fr", "foo"])
+                        self.assertDictEqual(
+                            dset.features,
+                            Features({"a.en": Value("string"), "a.fr": Value("string"), "foo": Value("int64")}),
+                        )
+                        self.assertNotEqual(dset._fingerprint, fingerprint)
+                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict(
+                {"a": [{"en": "the cat", "fr": ["le chat", "la chatte"], "de": "die katze"}] * 10, "foo": [1] * 10},
+                features=Features(
+                    {"a": TranslationVariableLanguages(languages=["en", "fr", "de"]), "foo": Value("int64")}
+                ),
+            ) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    fingerprint = dset._fingerprint
+                    with dset.flatten() as dset:
+                        self.assertListEqual(sorted(dset.column_names), ["a.language", "a.translation", "foo"])
+                        self.assertListEqual(sorted(dset.features.keys()), ["a.language", "a.translation", "foo"])
+                        self.assertDictEqual(
+                            dset.features,
+                            Features(
+                                {
+                                    "a.language": Sequence(Value("string")),
+                                    "a.translation": Sequence(Value("string")),
+                                    "foo": Value("int64"),
+                                }
+                            ),
+                        )
+                        self.assertNotEqual(dset._fingerprint, fingerprint)
+                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
+
+    @require_pil
+    def test_flatten_complex_image(self, in_memory):
+        # decoding turned on
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict(
+                {"a": [np.arange(4 * 4 * 3).reshape(4, 4, 3)] * 10, "foo": [1] * 10},
+                features=Features({"a": Image(), "foo": Value("int64")}),
+            ) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    fingerprint = dset._fingerprint
+                    with dset.flatten() as dset:
+                        self.assertListEqual(sorted(dset.column_names), ["a", "foo"])
+                        self.assertListEqual(sorted(dset.features.keys()), ["a", "foo"])
+                        self.assertDictEqual(dset.features, Features({"a": Image(), "foo": Value("int64")}))
+                        self.assertNotEqual(dset._fingerprint, fingerprint)
+                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
+
+        # decoding turned on + nesting
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict(
+                {"a": [{"b": np.arange(4 * 4 * 3).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
+                features=Features({"a": {"b": Image()}, "foo": Value("int64")}),
+            ) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    fingerprint = dset._fingerprint
+                    with dset.flatten() as dset:
+                        self.assertListEqual(sorted(dset.column_names), ["a.b", "foo"])
+                        self.assertListEqual(sorted(dset.features.keys()), ["a.b", "foo"])
+                        self.assertDictEqual(dset.features, Features({"a.b": Image(), "foo": Value("int64")}))
+                        self.assertNotEqual(dset._fingerprint, fingerprint)
+                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
+
+        # decoding turned off
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict(
+                {"a": [np.arange(4 * 4 * 3).reshape(4, 4, 3)] * 10, "foo": [1] * 10},
+                features=Features({"a": Image(decode=False), "foo": Value("int64")}),
+            ) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    fingerprint = dset._fingerprint
+                    with dset.flatten() as dset:
+                        self.assertListEqual(sorted(dset.column_names), ["a.bytes", "a.path", "foo"])
+                        self.assertListEqual(sorted(dset.features.keys()), ["a.bytes", "a.path", "foo"])
+                        self.assertDictEqual(
+                            dset.features,
+                            Features({"a.bytes": Value("binary"), "a.path": Value("string"), "foo": Value("int64")}),
+                        )
+                        self.assertNotEqual(dset._fingerprint, fingerprint)
+                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
+
+        # decoding turned off + nesting
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict(
+                {"a": [{"b": np.arange(4 * 4 * 3).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
+                features=Features({"a": {"b": Image(decode=False)}, "foo": Value("int64")}),
+            ) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    fingerprint = dset._fingerprint
+                    with dset.flatten() as dset:
+                        self.assertListEqual(sorted(dset.column_names), ["a.b.bytes", "a.b.path", "foo"])
+                        self.assertListEqual(sorted(dset.features.keys()), ["a.b.bytes", "a.b.path", "foo"])
+                        self.assertDictEqual(
+                            dset.features,
+                            Features(
+                                {"a.b.bytes": Value("binary"), "a.b.path": Value("string"), "foo": Value("int64")}
+                            ),
+                        )
+                        self.assertNotEqual(dset._fingerprint, fingerprint)
+                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
+
     def test_map(self, in_memory):
         # standard
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -1015,6 +1139,25 @@ class BaseDatasetTest(TestCase):
                     )
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test_with_indices_batched)
 
+        # check remove columns for even if the function modifies input in-place
+        def map_batched_modifying_inputs_inplace(example):
+            result = {"filename_new": [x + "_extension" for x in example["filename"]]}
+            del example["filename"]
+            return result
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(
+                    map_batched_modifying_inputs_inplace, batched=True, remove_columns="filename"
+                ) as dset_test_modifying_inputs_inplace:
+                    self.assertEqual(len(dset_test_modifying_inputs_inplace), 30)
+                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                    self.assertDictEqual(
+                        dset_test_modifying_inputs_inplace.features,
+                        Features({"filename_new": Value("string")}),
+                    )
+                    assert_arrow_metadata_are_synced_with_dataset_features(dset_test_modifying_inputs_inplace)
+
     def test_map_nested(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict({"field": ["a", "b"]}) as dset:
@@ -1022,6 +1165,13 @@ class BaseDatasetTest(TestCase):
                     with dset.map(lambda example: {"otherfield": {"capital": example["field"].capitalize()}}) as dset:
                         with dset.map(lambda example: {"otherfield": {"append_x": example["field"] + "x"}}) as dset:
                             self.assertEqual(dset[0], {"field": "a", "otherfield": {"append_x": "ax"}})
+
+    def test_map_return_example_as_dict_value(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict({"en": ["aa", "bb"], "fr": ["cc", "dd"]}) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    with dset.map(lambda example: {"translation": example}) as dset:
+                        self.assertEqual(dset[0], {"en": "aa", "fr": "cc", "translation": {"en": "aa", "fr": "cc"}})
 
     def test_map_fn_kwargs(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -1188,18 +1338,27 @@ class BaseDatasetTest(TestCase):
                         Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
                     )
                     assert_arrow_metadata_are_synced_with_dataset_features(dset)
-                    with dset.map(lambda x: x, remove_columns=["id"]) as dset:
-                        self.assertTrue("id" not in dset[0])
+                    with dset.map(lambda x: x, remove_columns=["id"]) as mapped_dset:
+                        self.assertTrue("id" not in mapped_dset[0])
                         self.assertDictEqual(
-                            dset.features, Features({"filename": Value("string"), "name": Value("string")})
+                            mapped_dset.features, Features({"filename": Value("string"), "name": Value("string")})
                         )
-                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
-                        with dset.with_format("numpy", columns=dset.column_names) as dset:
-                            with dset.map(lambda x: {"name": 1}, remove_columns=dset.column_names) as dset:
-                                self.assertTrue("filename" not in dset[0])
-                                self.assertTrue("name" in dset[0])
-                                self.assertDictEqual(dset.features, Features({"name": Value(dtype="int64")}))
-                                assert_arrow_metadata_are_synced_with_dataset_features(dset)
+                        assert_arrow_metadata_are_synced_with_dataset_features(mapped_dset)
+                        with mapped_dset.with_format("numpy", columns=mapped_dset.column_names) as mapped_dset:
+                            with mapped_dset.map(
+                                lambda x: {"name": 1}, remove_columns=mapped_dset.column_names
+                            ) as mapped_dset:
+                                self.assertTrue("filename" not in mapped_dset[0])
+                                self.assertTrue("name" in mapped_dset[0])
+                                self.assertDictEqual(mapped_dset.features, Features({"name": Value(dtype="int64")}))
+                                assert_arrow_metadata_are_synced_with_dataset_features(mapped_dset)
+                    # empty dataset
+                    columns_names = dset.column_names
+                    with dset.select([]) as empty_dset:
+                        self.assertEqual(len(empty_dset), 0)
+                        with empty_dset.map(lambda x: {}, remove_columns=columns_names[0]) as mapped_dset:
+                            self.assertListEqual(columns_names[1:], mapped_dset.column_names)
+                            assert_arrow_metadata_are_synced_with_dataset_features(mapped_dset)
 
     def test_map_stateful_callable(self, in_memory):
         # be sure that the state of the map callable is unaffected
@@ -3084,18 +3243,16 @@ class TaskTemplatesTest(TestCase):
         # Include a dummy extra column `dummy` to test we drop it correctly
         features_before_cast = Features(
             {
-                "input_audio_file_path": Value("string"),
+                "input_audio": Audio(sampling_rate=16_000),
                 "input_transcription": Value("string"),
                 "dummy": Value("string"),
             }
         )
-        features_after_cast = Features({"audio_file_path": Value("string"), "transcription": Value("string")})
-        task = AutomaticSpeechRecognition(
-            audio_file_path_column="input_audio_file_path", transcription_column="input_transcription"
-        )
+        features_after_cast = Features({"audio": Audio(sampling_rate=16_000), "transcription": Value("string")})
+        task = AutomaticSpeechRecognition(audio_column="input_audio", transcription_column="input_transcription")
         info = DatasetInfo(features=features_before_cast, task_templates=task)
         data = {
-            "input_audio_file_path": ["path/to/some/audio/file.wav"],
+            "input_audio": [{"bytes": None, "path": "path/to/some/audio/file.wav"}],
             "input_transcription": ["hello, my name is bob!"],
             "dummy": ["123456"],
         }
@@ -3103,7 +3260,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task="automatic-speech-recognition") as dset:
                 self.assertSetEqual(
-                    {"audio_file_path", "transcription"},
+                    {"audio", "transcription"},
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
@@ -3112,7 +3269,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
                 self.assertSetEqual(
-                    {"audio_file_path", "transcription"},
+                    {"audio", "transcription"},
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
@@ -3181,7 +3338,7 @@ class TaskTemplatesTest(TestCase):
             with dset.prepare_for_task(task="text-classification") as dset:
                 self.assertIsNone(dset.info.task_templates)
 
-    def test_align_labels_with_mapping(self):
+    def test_align_labels_with_mapping_classification(self):
         features = Features(
             {
                 "input_text": Value("string"),
@@ -3197,6 +3354,34 @@ class TaskTemplatesTest(TestCase):
             with dset.align_labels_with_mapping(label2id, "input_labels") as dset:
                 self.assertListEqual(expected_labels, dset["input_labels"])
                 aligned_label_names = [dset.features["input_labels"].int2str(idx) for idx in dset["input_labels"]]
+                self.assertListEqual(expected_label_names, aligned_label_names)
+
+    def test_align_labels_with_mapping_ner(self):
+        features = Features(
+            {
+                "input_text": Value("string"),
+                "input_labels": Sequence(
+                    ClassLabel(
+                        names=[
+                            "b-per",
+                            "i-per",
+                            "o",
+                        ]
+                    )
+                ),
+            }
+        )
+        data = {"input_text": [["Optimus", "Prime", "is", "a", "Transformer"]], "input_labels": [[0, 1, 2, 2, 2]]}
+        label2id = {"B-PER": 2, "I-PER": 1, "O": 0}
+        id2label = {v: k for k, v in label2id.items()}
+        expected_labels = [[2, 1, 0, 0, 0]]
+        expected_label_names = [[id2label[idx] for idx in seq] for seq in expected_labels]
+        with Dataset.from_dict(data, features=features) as dset:
+            with dset.align_labels_with_mapping(label2id, "input_labels") as dset:
+                self.assertListEqual(expected_labels, dset["input_labels"])
+                aligned_label_names = [
+                    dset.features["input_labels"].feature.int2str(idx) for idx in dset["input_labels"]
+                ]
                 self.assertListEqual(expected_label_names, aligned_label_names)
 
     def test_concatenate_with_no_task_templates(self):

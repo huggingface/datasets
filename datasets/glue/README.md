@@ -35,7 +35,7 @@ task_categories:
   sst2:
   - text-classification
   stsb:
-  - text-scoring
+  - text-classification
   wnli:
   - text-classification
 task_ids:
@@ -60,11 +60,41 @@ task_ids:
   sst2:
   - sentiment-classification
   stsb:
+  - text-scoring
   - semantic-similarity-scoring
   wnli:
   - text-classification-other-coreference-nli
 paperswithcode_id: glue
 pretty_name: GLUE (General Language Understanding Evaluation benchmark)
+train-eval-index:
+- config: sst2
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    sentence: text
+    label: target
+  metrics:
+    - type: glue
+      name: GLUE
+      config:
+        sst2
+- config: cola
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    sentence: text
+    label: target
+  metrics:
+    - type: glue
+      name: GLUE
+      config:
+        cola
 ---
 
 # Dataset Card for GLUE
@@ -164,8 +194,6 @@ The Winograd Schema Challenge (Levesque et al., 2011) is a reading comprehension
 The language data in GLUE is in English (BCP-47 `en`)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

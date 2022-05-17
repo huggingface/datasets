@@ -147,7 +147,7 @@ class DownloadManager:
         data_dir: Optional[str] = None,
         download_config: Optional[DownloadConfig] = None,
         base_path: Optional[str] = None,
-        record_checksums: bool = True,
+        record_checksums=True,
     ):
         """Download manager constructor.
 
@@ -159,14 +159,14 @@ class DownloadManager:
                 download options
             base_path: `str`, base path that is used when relative paths are used to
                 download files. This can be a remote url.
-            record_checksums: `bool`, whether to record checksums of downloaded files.
+            record_checksums (:obj:`bool`, default `True`): Whether to record the checksums of the downloaded files. If None, the value is inferred from the builder.
         """
         self._dataset_name = dataset_name
         self._data_dir = data_dir
         self._base_path = base_path or os.path.abspath(".")
-        self._record_checksums = record_checksums
         # To record what is being used: {url: {num_bytes: int, checksum: str}}
         self._recorded_sizes_checksums: Dict[str, Dict[str, Optional[Union[int, str]]]] = {}
+        self.record_checksums = record_checksums
         self.download_config = download_config or DownloadConfig()
         self.downloaded_paths = {}
         self.extracted_paths = {}
@@ -212,7 +212,7 @@ class DownloadManager:
         for url, path in zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()):
             # call str to support PathLike objects
             self._recorded_sizes_checksums[str(url)] = get_size_checksum_dict(
-                path, record_checksum=self._record_checksums
+                path, record_checksum=self.record_checksums
             )
 
     def download_custom(self, url_or_urls, custom_download):
@@ -228,6 +228,12 @@ class DownloadManager:
         Returns:
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
+
+        Example:
+
+        ```py
+        >>> downloaded_files = dl_manager.download_custom('s3://my-bucket/data.zip', custom_download_for_my_private_bucket)
+        ```
         """
         cache_dir = self.download_config.cache_dir or config.DOWNLOADED_DATASETS_PATH
         max_retries = self.download_config.max_retries
@@ -266,6 +272,12 @@ class DownloadManager:
         Returns:
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
+
+        Example:
+
+        ```py
+        >>> downloaded_files = dl_manager.download('https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz')
+        ```
         """
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = False
@@ -316,6 +328,13 @@ class DownloadManager:
         Yields:
             :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
                 File object is opened in binary mode.
+
+        Example:
+
+        ```py
+        >>> archive = dl_manager.download('https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz')
+        >>> files = dl_manager.iter_archive(archive)
+        ```
         """
 
         if hasattr(path_or_buf, "read"):
@@ -331,6 +350,13 @@ class DownloadManager:
 
         Yields:
             str: File path.
+
+        Example:
+
+        ```py
+        >>> files = dl_manager.download_and_extract('https://huggingface.co/datasets/beans/resolve/main/data/train.zip')
+        >>> files = dl_manager.iter_files(files)
+        ```
         """
         return FilesIterable.from_paths(paths)
 
@@ -346,6 +372,13 @@ class DownloadManager:
         Returns:
             extracted_path(s): `str`, The extracted paths matching the given input
                 path_or_paths.
+
+        Example:
+
+        ```py
+        >>> downloaded_files = dl_manager.download('https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz')
+        >>> extracted_files = dl_manager.extract(downloaded_files)
+        ```
         """
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = True

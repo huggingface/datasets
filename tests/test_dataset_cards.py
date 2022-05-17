@@ -42,7 +42,6 @@ def get_changed_datasets(repo_path: Path) -> List[Path]:
         for f in changed_files
         if f.exists() and str(f.resolve()).startswith(str(datasets_dir_path)) and not f.name == "dummy_data.zip"
     }
-
     return sorted(dataset_name for dataset_name in changed_datasets if dataset_name not in _PACKAGED_DATASETS_MODULES)
 
 

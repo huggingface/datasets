@@ -171,22 +171,22 @@ def patch_bertscore(module_name):
 
 @LocalMetricTest.register_intensive_calls_patcher("comet")
 def patch_comet(module_name):
-    def download_model(model):
+    def load_from_checkpoint(model_path):
         class Model:
             def predict(self, data, *args, **kwargs):
                 assert len(data) == 2
                 scores = [0.19, 0.92]
-                data[0]["predicted_score"] = scores[0]
-                data[1]["predicted_score"] = scores[1]
-                return data, scores
+                return scores, sum(scores) / len(scores)
 
-        print("Download succeeded. Loading model...")
         return Model()
 
-    # mock download_model which is supposed to do download a bert model
-    with patch("comet.models.download_model") as mock_download_model:
-        mock_download_model.side_effect = download_model
-        yield
+    # mock load_from_checkpoint which is supposed to do download a bert model
+    # mock load_from_checkpoint which is supposed to do download a bert model
+    with patch("comet.download_model") as mock_download_model:
+        mock_download_model.return_value = None
+        with patch("comet.load_from_checkpoint") as mock_load_from_checkpoint:
+            mock_load_from_checkpoint.side_effect = load_from_checkpoint
+            yield
 
 
 def test_seqeval_raises_when_incorrect_scheme():

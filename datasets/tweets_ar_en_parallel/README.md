@@ -16,9 +16,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- translation
 task_ids:
-- other-other-machine-translation
+- translation-other-tweets-translation
 paperswithcode_id: bilingual-corpus-of-arabic-english-parallel
 pretty_name: Bilingual Corpus of Arabic-English Parallel Tweets
 ---

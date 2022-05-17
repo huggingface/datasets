@@ -57,8 +57,6 @@ The dataset can be served as the training and test sets for machine comprehensio
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### all

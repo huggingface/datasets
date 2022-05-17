@@ -73,8 +73,6 @@ Multiple entities in a document generally exhibit complex inter-sentence relatio
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

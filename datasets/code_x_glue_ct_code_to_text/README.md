@@ -26,9 +26,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- translation
 task_ids:
-- machine-translation
+- translation-other-code-to-text
 pretty_name: CodeXGlueCtCodeToText
 ---
 # Dataset Card for "code_x_glue_ct_code_to_text"

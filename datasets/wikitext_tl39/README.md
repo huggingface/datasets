@@ -15,9 +15,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: wikitext-tl-39
 pretty_name: WikiText-TL-39
 ---
@@ -51,7 +53,7 @@ pretty_name: WikiText-TL-39
 ## Dataset Description
 
 - **Homepage:** [Filipino Text Benchmarks](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
-- **Repository: **
+- **Repository:**
 - **Paper:** [Evaluating language model finetuning techniques for low-resource languages](https://arxiv.org/abs/1907.00409)
 - **Leaderboard:**
 - **Point of Contact:** Jan Christian Blaise Cruz (jan_christian_cruz@dlsu.edu.ph)

@@ -652,9 +652,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-            task_templates=[
-                AutomaticSpeechRecognition(audio_file_path_column="path", transcription_column="sentence")
-            ],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="sentence")],
         )
 
     def _split_generators(self, dl_manager):
@@ -794,8 +792,9 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                     result = {key: value for key, value in zip(data_fields, field_values)}
 
                     # set audio feature
+                    path = os.path.join(local_extracted_archive, path) if local_extracted_archive else path
                     result["audio"] = {"path": path, "bytes": f.read()}
                     # set path to None if the audio file doesn't exist locally (i.e. in streaming mode)
-                    result["path"] = os.path.join(local_extracted_archive, path) if local_extracted_archive else None
+                    result["path"] = path if local_extracted_archive else None
 
                     yield path, result

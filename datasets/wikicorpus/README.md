@@ -49,37 +49,43 @@ source_datasets:
 - original
 task_categories:
   raw_ca:
-  - sequence-modeling
-  raw_en:
-  - sequence-modeling
+  - text-generation
+  - fill-mask
+  - text-generation
+  - fill-mask
+  - text-generation
+  - fill-mask
   raw_es:
-  - sequence-modeling
+  - text-generation
   tagged_ca:
-  - structure-prediction
+  - token-classification
   - text-classification
   tagged_en:
-  - structure-prediction
+  - token-classification
   - text-classification
   tagged_es:
-  - structure-prediction
+  - token-classification
   - text-classification
 task_ids:
   raw_ca:
   - language-modeling
-  raw_en:
+  - masked-language-modeling
   - language-modeling
+  - masked-language-modeling
+  - language-modeling
+  - masked-language-modeling
   raw_es:
   - language-modeling
   tagged_ca:
-  - structure-prediction-other-lemmatization
+  - token-classification-other-lemmatization
   - part-of-speech-tagging
   - text-classification-other-word-sense-disambiguation
   tagged_en:
-  - structure-prediction-other-lemmatization
+  - token-classification-other-lemmatization
   - part-of-speech-tagging
   - text-classification-other-word-sense-disambiguation
   tagged_es:
-  - structure-prediction-other-lemmatization
+  - token-classification-other-lemmatization
   - part-of-speech-tagging
   - text-classification-other-word-sense-disambiguation
 paperswithcode_id: null

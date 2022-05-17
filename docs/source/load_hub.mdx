@@ -4,7 +4,7 @@ Now that you are all setup, the first step is to load a dataset. The easiest way
 
 ## Load a dataset
 
-Before you take the time to download a dataset, it is often helpful to quickly get all the relevant information about a dataset. The [`datasets.load_dataset_builder`] method allows you to inspect the attributes of a dataset without downloading it.
+Before you take the time to download a dataset, it is often helpful to quickly get all the relevant information about a dataset. The [`load_dataset_builder`] method allows you to inspect the attributes of a dataset without downloading it.
 
 ```py
 >>> from datasets import load_dataset_builder
@@ -19,11 +19,11 @@ Before you take the time to download a dataset, it is often helpful to quickly g
 
 <Tip>
 
-Take a look at [`datasets.DatasetInfo`] for a full list of attributes you can use with `dataset_builder`.
+Take a look at [`DatasetInfo`] for a full list of attributes you can use with `dataset_builder`.
 
 </Tip>
 
-Once you are happy with the dataset you want, load it in a single line with [`datasets.load_dataset`]:
+Once you are happy with the dataset you want, load it in a single line with [`load_dataset`]:
 
 ```py
 >>> from datasets import load_dataset
@@ -34,7 +34,7 @@ Once you are happy with the dataset you want, load it in a single line with [`da
 
 Some datasets, like the [General Language Understanding Evaluation (GLUE)](https://huggingface.co/datasets/glue) benchmark, are actually made up of several datasets. These sub-datasets are called **configurations**, and you must explicitly select one when you load the dataset. If you don't provide a configuration name, 🤗 Datasets will raise a `ValueError` and remind you to select a configuration.
 
-Use `get_dataset_config_names` to retrieve a list of all the possible configurations available to your dataset:
+Use the [`get_dataset_config_names`] function to retrieve a list of all the possible configurations available to your dataset:
 
 ```py
 from datasets import get_dataset_config_names
@@ -92,7 +92,7 @@ test: Dataset({
 }
 ```
 
-You can list the split names for a dataset, or a specific configuration, with the [`datasets.get_dataset_split_names`] method:
+You can list the split names for a dataset, or a specific configuration, with the [`get_dataset_split_names`] method:
 
 ```py
 >>> from datasets import get_dataset_split_names

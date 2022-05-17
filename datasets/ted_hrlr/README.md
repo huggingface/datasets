@@ -54,8 +54,6 @@ where one is high resource and the other is low resource.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### az_to_en

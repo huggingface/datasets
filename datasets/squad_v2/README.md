@@ -20,6 +20,21 @@ task_ids:
 - open-domain-qa
 - extractive-qa
 paperswithcode_id: squad
+train-eval-index:
+- config: squad_v2
+  task: question-answering
+  task_id: extractive_question_answering
+  splits:
+    train_split: train
+    eval_split: validation
+  col_mapping:
+    question: question
+    context: context
+    answers.text: answers.text
+    answers.answer_start: answers.answer_start
+  metrics:
+  - type: squad_v2
+    name: SQuAD v2
 ---
 
 # Dataset Card for "squad_v2"
@@ -73,8 +88,6 @@ combines the 100,000 questions in SQuAD1.1 with over 50,000 unanswerable questio
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

@@ -17,10 +17,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- text-to-structured
 task_ids:
-- other-structured-to-text
-- other-other-relation-extraction
+- relation-extraction
 paperswithcode_id: null
 pretty_name: Ollie
 ---

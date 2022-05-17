@@ -32,39 +32,9 @@ source_datasets:
 - extended|other-db_pedia
 - original
 task_categories:
-  release_v1:
-  - conditional-text-generation
-  release_v2:
-  - conditional-text-generation
-  release_v2.1:
-  - conditional-text-generation
-  release_v2.1_constrained:
-  - conditional-text-generation
-  release_v2_constrained:
-  - conditional-text-generation
-  release_v3.0_en:
-  - conditional-text-generation
-  release_v3.0_ru:
-  - conditional-text-generation
-  webnlg_challenge_2017:
-  - conditional-text-generation
+- tabular-to-text
 task_ids:
-  release_v1:
-  - other-structured-to-text
-  release_v2:
-  - other-structured-to-text
-  release_v2.1:
-  - other-structured-to-text
-  release_v2.1_constrained:
-  - other-structured-to-text
-  release_v2_constrained:
-  - other-structured-to-text
-  release_v3.0_en:
-  - other-structured-to-text
-  release_v3.0_ru:
-  - other-structured-to-text
-  webnlg_challenge_2017:
-  - other-structured-to-text
+- rdf-to-text
 paperswithcode_id: webnlg
 pretty_name: WebNLG
 ---

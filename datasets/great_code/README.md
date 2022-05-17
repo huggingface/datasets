@@ -14,9 +14,8 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - table-to-text
+task_ids: []
 paperswithcode_id: null
 pretty_name: GREAT
 ---
