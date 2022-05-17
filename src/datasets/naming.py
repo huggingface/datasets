@@ -94,6 +94,4 @@ def validate_config_name(name: str):
     invalid_characters += "."
 
     if any(invalid_char in name for invalid_char in invalid_characters):
-        raise InvalidConfigName(
-            f"Unsupported characters from black list '{invalid_characters}' found in '{name}'."
-        )
+        raise InvalidConfigName(f"Unsupported characters from black list '{invalid_characters}' found in '{name}'.")
