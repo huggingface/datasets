@@ -16,8 +16,9 @@
 
 import os
 import re
-from pathlib import Path
 from collections import defaultdict
+from io import BytesIO
+from pathlib import Path
 
 import numpy as np
 import soundfile as sf
@@ -249,8 +250,10 @@ class TedLium(datasets.GeneratorBasedBuilder):
             for path, f in filepath:
                 if path.split("/")[1] == split:
                     if path.endswith(".sph"):
+                        # get the speaker id
                         fn = path.split("/")[-1].strip(".sph")
-                        audio_data[fn] = f.read()
+                        # read the audio data from raw byte form and add key-value pair to dict
+                        audio_data[fn] = sf.read(BytesIO(f.read()), dtype=np.int16)
                     elif path.endswith(".stm"):
                         for line in f:
                             if line:
@@ -277,13 +280,14 @@ class TedLium(datasets.GeneratorBasedBuilder):
                 if audio_data and audio_data.keys() == transcripts.keys():
                     for fn, speaker in transcripts.items():
                         for transcript in speaker:
+                            segment, sampling_rate = audio_data[transcript["fn"]]
                             samples = _extract_audio_segment(
-                                audio_data[transcript["fn"]],
+                                segment,
                                 int(transcript["channel"]),
                                 float(transcript["start"]),
                                 float(transcript["end"]),
                             )
-                            audio = {"path": transcript["file"], "bytes": samples}
+                            audio = {"path": transcript["file"], "array": samples, "sampling_rate": sampling_rate}
                             yield key, {
                                 "audio": audio,
                                 "text": transcript["text"],
