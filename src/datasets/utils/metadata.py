@@ -307,7 +307,7 @@ class DatasetMetadata:
         bad_keys = [k for k in metadata_dict if k not in cls._ALLOWED_YAML_KEYS]
         if bad_keys:
             raise ValueError(f"Bad YAML keys: {bad_keys}. Allowed fields: {cls._ALLOWED_YAML_KEYS}")
-        
+
         # Check if config names are valid
         bad_keys = [k for k in metadata_dict if k not in cls._ALLOWED_YAML_KEYS]
         if bad_keys:
