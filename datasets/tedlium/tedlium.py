@@ -250,7 +250,6 @@ class TedLium(datasets.GeneratorBasedBuilder):
                 if path.split("/")[1] == split:
                     if path.endswith(".sph"):
                         fn = path.split("/")[-1].strip(".sph")
-                        import ipdb; ipdb.set_trace()
                         audio_data[fn] = f.read()
                     elif path.endswith(".stm"):
                         for line in f:
