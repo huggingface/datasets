@@ -2335,7 +2335,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(batch.shape.as_list(), [2, 4])
             self.assertEqual(batch.dtype.name, "int64")
         # Test that requesting label_cols works as expected
-        with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
             tf_dataset = dset.to_tf_dataset(
                 columns="col_1", label_cols=["col_2", "col_3"], batch_size=4, shuffle=False
             )
@@ -2347,7 +2347,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(batch[1]["col_2"].shape.as_list(), [4])
             self.assertEqual(batch[1]["col_3"].shape.as_list(), [4])
         # Check that incomplete batches are dropped if requested
-        with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
             tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=3, shuffle=False)
             tf_dataset_with_drop = dset.to_tf_dataset(
                 columns="col_1", batch_size=3, shuffle=False, drop_remainder=True
