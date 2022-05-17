@@ -1,12 +1,30 @@
+from dataclasses import dataclass
+from typing import Optional
+
 import pandas as pd
 import pyarrow as pa
 
 import datasets
+from datasets.features.features import require_cast_storage
+from datasets.table import table_cast
+
+
+@dataclass
+class PandasConfig(datasets.BuilderConfig):
+    """BuilderConfig for Pandas."""
+
+    features: Optional[datasets.Features] = None
+
+    @property
+    def schema(self):
+        return self.features.arrow_schema if self.features is not None else None
 
 
 class Pandas(datasets.ArrowBasedBuilder):
+    BUILDER_CONFIG_CLASS = PandasConfig
+
     def _info(self):
-        return datasets.DatasetInfo()
+        return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
@@ -25,8 +43,19 @@ class Pandas(datasets.ArrowBasedBuilder):
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
+    def _cast_table(self, pa_table: pa.Table) -> pa.Table:
+        if self.config.features is not None:
+            schema = self.config.schema
+            if all(not require_cast_storage(feature) for feature in self.config.features.values()):
+                # cheaper cast
+                pa_table = pa.Table.from_arrays([pa_table[field.name] for field in schema], schema=schema)
+            else:
+                # more expensive cast; allows str <-> int/float or str to Audio for example
+                pa_table = table_cast(pa_table, schema)
+        return pa_table
+
     def _generate_tables(self, files):
         for i, file in enumerate(files):
             with open(file, "rb") as f:
                 pa_table = pa.Table.from_pandas(pd.read_pickle(f))
-                yield i, pa_table
+                yield i, self._cast_table(pa_table)

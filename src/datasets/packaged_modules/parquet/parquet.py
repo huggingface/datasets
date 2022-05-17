@@ -5,6 +5,8 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 import datasets
+from datasets.features.features import require_cast_storage
+from datasets.table import table_cast
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -17,6 +19,10 @@ class ParquetConfig(datasets.BuilderConfig):
     batch_size: int = 10_000
     columns: Optional[List[str]] = None
     features: Optional[datasets.Features] = None
+
+    @property
+    def schema(self):
+        return self.features.arrow_schema if self.features is not None else None
 
 
 class Parquet(datasets.ArrowBasedBuilder):
@@ -42,6 +48,17 @@ class Parquet(datasets.ArrowBasedBuilder):
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
+    def _cast_table(self, pa_table: pa.Table) -> pa.Table:
+        if self.config.features is not None:
+            schema = self.config.schema
+            if all(not require_cast_storage(feature) for feature in self.config.features.values()):
+                # cheaper cast
+                pa_table = pa.Table.from_arrays([pa_table[field.name] for field in schema], schema=schema)
+            else:
+                # more expensive cast; allows str <-> int/float or str to Audio for example
+                pa_table = table_cast(pa_table, schema)
+        return pa_table
+
     def _generate_tables(self, files):
         schema = pa.schema(self.config.features.type) if self.config.features is not None else None
         if self.config.features is not None and self.config.columns is not None:
@@ -57,12 +74,10 @@ class Parquet(datasets.ArrowBasedBuilder):
                         parquet_file.iter_batches(batch_size=self.config.batch_size, columns=self.config.columns)
                     ):
                         pa_table = pa.Table.from_batches([record_batch])
-                        if self.config.features is not None:
-                            pa_table = pa.Table.from_arrays([pa_table[field.name] for field in schema], schema=schema)
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield f"{file_idx}_{batch_idx}", pa_table
+                        yield f"{file_idx}_{batch_idx}", self._cast_table(pa_table)
                 except ValueError as e:
                     logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                     raise
