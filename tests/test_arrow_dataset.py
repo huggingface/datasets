@@ -2325,6 +2325,36 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(batch["col_2"].dtype.name, "string")  # Assert that we're converting strings properly
         del tf_dataset  # For correct cleanup
 
+    @require_tf
+    def test_tf_dataset_options(self, in_memory):
+        tmp_dir = tempfile.TemporaryDirectory()
+        # Test that batch_size option works as expected
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
+            tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=2, shuffle=False)
+            batch = next(iter(tf_dataset))
+            self.assertEqual(batch.shape.as_list(), [2, 4])
+            self.assertEqual(batch.dtype.name, "int64")
+        # Test that requesting label_cols works as expected
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
+            tf_dataset = dset.to_tf_dataset(
+                columns="col_1", label_cols=["col_2", "col_3"], batch_size=4, shuffle=False
+            )
+            batch = next(iter(tf_dataset))
+            self.assertEqual(len(batch), 2)
+            self.assertEqual(set(batch[1].keys()), {"col_2", "col_3"})
+            self.assertEqual(batch[0].dtype.name, "int64")
+            self.assertEqual(batch[0].shape.as_list(), [4])
+            self.assertEqual(batch[1]["col_2"].shape.as_list(), [4])
+            self.assertEqual(batch[1]["col_3"].shape.as_list(), [4])
+        # Check that incomplete batches are dropped if requested
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
+            tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=3, shuffle=False)
+            tf_dataset_with_drop = dset.to_tf_dataset(
+                columns="col_1", batch_size=3, shuffle=False, drop_remainder=True
+            )
+            self.assertEqual(len(tf_dataset), 2)  # One batch of 3 and one batch of 1
+            self.assertEqual(len(tf_dataset_with_drop), 1)  # Incomplete batch of 1 is dropped
+
 
 class MiscellaneousDatasetTest(TestCase):
     def test_from_pandas(self):
