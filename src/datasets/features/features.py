@@ -818,21 +818,21 @@ class ClassLabel:
 
     def _strvalue2int(self, value: str):
         failed_parse = False
-        if self._str2int:
-            # strip key if not in dict
-            if value not in self._str2int:
-                value = str(value).strip()
-            try:
-                int_value = self._str2int[str(value)]
-            except ValueError:
-                failed_parse = True
-        else:
-            # No names provided, try to integerize
-            try:
-                int_value = int(value)
-            except ValueError:
-                failed_parse = True
-        if failed_parse or not 0 <= int_value < self.num_classes:
+        value = str(value)
+        # first attempt - raw string value
+        int_value = self._str2int.get(value)
+        if int_value is None:
+            # second attempt - strip whitespace
+            int_value = self._str2int.get(value.strip())
+            if int_value is None:
+                # third attempt - convert str to int
+                try:
+                    int_value = int(value)
+                except ValueError:
+                    failed_parse = True
+                if int_value < -1 or int_value >= self.num_classes:
+                    failed_parse = True
+        if failed_parse:
             raise ValueError(f"Invalid string class label {value}")
         return int_value
 
@@ -851,11 +851,7 @@ class ClassLabel:
             if not 0 <= v < self.num_classes:
                 raise ValueError(f"Invalid integer class label {v:d}")
 
-        if self._int2str:
-            output = [self._int2str[int(v)] for v in values]
-        else:
-            # No names provided, return str(values)
-            output = [str(v) for v in values]
+        output = [self._int2str[int(v)] for v in values]
         return output if return_list else output[0]
 
     def encode_example(self, example_data):
@@ -1196,6 +1192,24 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
         return require_decoding(feature.feature)
     else:
         return hasattr(feature, "decode_example") and (feature.decode if not ignore_decode_attribute else True)
+
+
+def require_cast_storage(feature: FeatureType) -> bool:
+    """Check if a (possibly nested) feature requires storage casting.
+
+    Args:
+        feature (FeatureType): the feature type to be checked
+    Returns:
+        :obj:`bool`
+    """
+    if isinstance(feature, dict):
+        return any(require_decoding(f) for f in feature.values())
+    elif isinstance(feature, (list, tuple)):
+        return require_decoding(feature[0])
+    elif isinstance(feature, Sequence):
+        return require_decoding(feature.feature)
+    else:
+        return hasattr(feature, "cast_storage")
 
 
 class Features(dict):
