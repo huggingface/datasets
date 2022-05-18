@@ -106,7 +106,9 @@ def _make_builder_configs():
         """,
         url="https://www.openslr.org/19/",
         download_urls={
-            "train": [_DL_URL + os.path.join("TEDLIUM_release2", "train.tar.gz")],
+            "train": [_DL_URL + os.path.join("TEDLIUM_release2", "train_1.tar.gz"),
+                      _DL_URL + os.path.join("TEDLIUM_release2", "train_2.tar.gz"),
+                      _DL_URL + os.path.join("TEDLIUM_release2", "train_3.tar.gz")],
             "validation": [_DL_URL + os.path.join("TEDLIUM_release2", "dev.tar.gz")],
             "test": [_DL_URL + os.path.join("TEDLIUM_release2", "test.tar.gz")],
         },
@@ -198,7 +200,10 @@ def _make_builder_configs():
             """,
         url="https://www.openslr.org/51/",
         download_urls={
-            "train": [_DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train.tar.gz")],
+            "train": [_DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_1.tar.gz"),
+                      _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_2.tar.gz"),
+                      _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_3.tar.gz"),
+                      _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_4.tar.gz")],
             "validation": [_DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "dev.tar.gz")],
             "test": [_DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "test.tar.gz")],
         },
