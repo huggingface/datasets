@@ -259,14 +259,13 @@ class TedLium(datasets.GeneratorBasedBuilder):
         if local_extracted_archive:
             for local_archive in local_extracted_archive:
                 # The stm directory houses the speaker and transcription information in .stm format
-                stm_dir = os.path.join(local_archive, split_path, "stm")
-                # The sph directory houses the audio files in .sph format
-                sph_dir = os.path.join(local_archive, split_path, "sph")
-                stm_files = [os.path.join(stm_dir, f) for f in os.listdir(stm_dir) if f.endswith(".stm")]
+                split_dir = os.path.join(local_archive, split_path)
+                stm_files = [os.path.join(split_dir, f) for f in os.listdir(split_dir) if f.endswith(".stm")]
+                import ipdb; ipdb.set_trace()
                 for file in stm_files:
                     # the .sph speaker file almost always has the same file name as the .stm file
                     speaker_file = Path(file).stem
-                    audio_file = os.path.join(sph_dir, speaker_file + ".sph")
+                    audio_file = os.path.join(split_dir, speaker_file + ".sph")
                     segment, sampling_rate = sf.read(audio_file, dtype=np.int16)
                     with open(file) as f:
                         for line in f:
@@ -276,7 +275,7 @@ class TedLium(datasets.GeneratorBasedBuilder):
                             if speaker_file != fn:
                                 # handle the case where the stm file does not have the same file name as the transcript
                                 speaker_file = fn
-                                audio_file = os.path.join(sph_dir, speaker_file + ".sph")
+                                audio_file = os.path.join(split_dir, speaker_file + ".sph")
                                 segment, sampling_rate = sf.read(audio_file, dtype=np.int16)
                             samples = _extract_audio_segment(segment, int(channel), float(start), float(end))
                             key = "-".join([speaker, start, end, label])
