@@ -195,6 +195,7 @@ Licensed under Creative Commons BY-NC-ND 3.0 (http://creativecommons.org/license
 
 ### Citation Information
 
+Release 1:
 ```
 @inproceedings{rousseau2012tedlium,
   title={TED-LIUM: an Automatic Speech Recognition dedicated corpus},
@@ -202,5 +203,32 @@ Licensed under Creative Commons BY-NC-ND 3.0 (http://creativecommons.org/license
   booktitle={Conference on Language Resources and Evaluation (LREC)},
   pages={125--129},
   year={2012}
+}
+```
+
+Release 2:
+```
+@inproceedings{rousseau2014enhancing,
+  title={Enhancing the TED-LIUM corpus with selected data for language modeling and more TED talks.},
+  author={Rousseau, Anthony and Del{\'e}glise, Paul and Esteve, Yannick and others},
+  booktitle={LREC},
+  pages={3935--3939},
+  year={2014}
+}
+```
+
+Release 3:
+```
+@inproceedings{hernandez2018ted,
+  author="Hernandez, Fran{\c{c}}ois
+  and Nguyen, Vincent
+  and Ghannay, Sahar
+  and Tomashenko, Natalia
+  and Est{\`e}ve, Yannick",
+  title="TED-LIUM 3: Twice as Much Data and Corpus Repartition for Experiments on Speaker Adaptation",
+  booktitle="Speech and Computer",
+  year="2018",
+  publisher="Springer International Publishing",
+  pages="198--208",
 }
 ```
