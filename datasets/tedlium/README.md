@@ -84,20 +84,20 @@ The audio and transcriptions are in English, as per the TED talks at http://www.
 
 ### Data Instances
 ```
-{'audio': {'path': '/home/sanchitgandhi/cache/downloads/extracted/6e3655f9e735ae3c467deed1df788e0dabd671c1f3e2e386e30aa3b571bd9761/TEDLIUM_release1/train/stm/PaulaScher_2008P.stm', 
+{'audio': {'path': '/home/sanchitgandhi/cache/downloads/extracted/6e3655f9e735ae3c467deed1df788e0dabd671c1f3e2e386e30aa3b571bd9761/TEDLIUM_release1/train/sph/PaulaScher_2008P.sph', 
   'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346,
           0.00091553,  0.00085449], dtype=float32),
   'sampling_rate': 16000},
 'text': '{COUGH} but <sil> i was so {COUGH} utterly unqualified for(2) this project and {NOISE} so utterly ridiculous {SMACK} and ignored the brief {SMACK} <sil>', 
 'speaker_id': 'PaulaScher_2008P', 
 'gender': 'female', 
-'file': '/home/sanchitgandhi/cache/downloads/extracted/6e3655f9e735ae3c467deed1df788e0dabd671c1f3e2e386e30aa3b571bd9761/TEDLIUM_release1/train/stm/PaulaScher_2008P.stm', 
+'file': '/home/sanchitgandhi/cache/downloads/extracted/6e3655f9e735ae3c467deed1df788e0dabd671c1f3e2e386e30aa3b571bd9761/TEDLIUM_release1/train/sph/PaulaScher_2008P.sph', 
 'id': 'PaulaScher_2008P-1003.35-1011.16-<o,f0,female>'}
 ```
 ### Data Fields
 
 - audio: A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `dataset[0]["audio"]` should **always** be preferred over `dataset["audio"][0]`. 
-- file: A path to the downloaded audio file in .sth format.
+- file: A path to the downloaded audio file in .sph format.
 - text: the transcription of the audio file.
 - gender: the gender of the speaker. One of: male, female or N/A.
 - id: unique id of the data sample.
@@ -106,7 +106,7 @@ The audio and transcriptions are in English, as per the TED talks at http://www.
 ### Data Splits
 There are three releases for the TED-LIUM corpus, progressively increasing the number of transcribed speech training data from 118 hours (Release 1), to 207 hours (Release 2), to 452 hours (Release 3).
 
-Release 1 (default config):
+Release 1:
 - 774 audio talks and automatically aligned transcriptions.
 - Contains 118 hours of speech audio data.
 - Homepage: https://www.openslr.org/7/
@@ -126,6 +126,10 @@ Release 3:
 - Selected monolingual data for language modeling from WMT12 publicly available corpora: these files come from the TED-LIUM 2 release, but have been modified to produce a tokenization more relevant for English language.
 - Homepage: https://www.openslr.org/51/
 
+Release 3 contains two different corpus distributions:
+- The ‘legacy’ one, on which the dev and test datasets are the same as in TED-LIUM 2 (and TED-LIUM 1).
+- The ‘speaker adaptation’ one, specially designed for experiments on speaker adaptation.
+
 Each release is split into a training, validation and test set:
 
 | Split      | Release 1 | Release 2 | Release 3 |
@@ -139,13 +143,13 @@ Each release is split into a training, validation and test set:
 
 ### Curation Rationale
 
-TED-LIUM was built during [The International Workshop on Spoken Language Trans- lation (IWSLT) 2011 Evaluation Campaign](https://aclanthology.org/2011.iwslt-evaluation.1/), an annual workshop focused on the automatic translation of public talks and included tracks for speech recognition, speech translation, text translation, and system combination. The corpus was entered 
+TED-LIUM was built during [The International Workshop on Spoken Language Trans- lation (IWSLT) 2011 Evaluation Campaign](https://aclanthology.org/2011.iwslt-evaluation.1/), an annual workshop focused on the automatic translation of public talks and included tracks for speech recognition, speech translation, text translation, and system combination.
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-The data was obtained from publicly available TED talks at http://www.ted.com. Proper alignments between the speech and the transcribed text were generated using an in-house speaker segmentation and clustering tool (LIUM_SpkDiarization). Speech disfluencies (e.g. repetitions, hesitations, false starts) were treated in the following way: the repetitions were transcribed, the hesitations were mapped to a specific filler word and the false starts were not taken into account. For full details on the data collection and processing, refer to the [TED-LIUM paper](https://aclanthology.org/L12-1405/).
+The data was obtained from publicly available TED talks at http://www.ted.com. Proper alignments between the speech and the transcribed text were generated using an in-house speaker segmentation and clustering tool (_LIUM_SpkDiarization_). Speech disfluencies (e.g. repetitions, hesitations, false starts) were treated in the following way: repetitions were transcribed, hesitations mapped to a specific filler word, and false starts not taken into account. For full details on the data collection and processing, refer to the [TED-LIUM paper](https://aclanthology.org/L12-1405/).
 
 #### Who are the source language producers?
 
