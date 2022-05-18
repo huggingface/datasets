@@ -35,8 +35,7 @@ task_categories:
 task_ids:
 - text-classification-other-hope-speech-classification
 paperswithcode_id: hopeedi
-pretty_name: 'HopeEDI: A Multilingual Hope Speech Detection Dataset for Equality,
-  Diversity, and Inclusion'
+pretty_name: 'HopeEDI: A Multilingual Hope Speech Detection Dataset for Equality, Diversity, and Inclusion'
 ---
 
 # Dataset Card for [Dataset Name]
