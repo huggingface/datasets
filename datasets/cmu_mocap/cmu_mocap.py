@@ -34,7 +34,7 @@ _LICENSE = "This data is free for use in research projects. You may include this
 
 
 _URLS = {
-    "asf/amc": "http://mocap.cs.cmu.edu/allasfamc.zip",
+    "asf-amc": "http://mocap.cs.cmu.edu/allasfamc.zip",
     "c3d": [
         "http://mocap.cs.cmu.edu/allc3d_0.zip",
         "http://mocap.cs.cmu.edu/allc3d_1a.zip",
@@ -104,7 +104,6 @@ class CmuMocapConfig(datasets.BuilderConfig):
 
     def __init__(
         self,
-        format="asf/amc",
         **kwargs,
     ):
         """BuilderConfig for MetaShift.
@@ -112,14 +111,36 @@ class CmuMocapConfig(datasets.BuilderConfig):
         Args:
             **kwargs: keyword arguments forwarded to super.
         """
-        super(CmuMocapConfig, self).__init__(**kwargs)
-        self.format = format
+        super(CmuMocapConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class CmuMocap(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
-        CmuMocapConfig(name="cmu_mocap", version=datasets.Version("1.0.0")),
+        CmuMocapConfig(
+            name="asf-amc",
+            description="""\
+            The ASF file (Acclaim Skeleton File) is a skeleton file . AMC files (Acclaim Motion Capture data) are the motion files.
+            """,
+        ),
+        CmuMocapConfig(
+            name="c3d",
+            description="""\
+            The C3D format stores 3D coordinate information, analog data and associated information used in 3D motion data capture and subsequent analysis operations.
+            """,
+        ),
+        CmuMocapConfig(
+            name="mpg",
+            description="""\
+            The MPG format is a common video file that uses a digital video format standardized by the Moving Picture Experts Group (MPEG).
+          """,
+        ),
+        CmuMocapConfig(
+            name="avi",
+            description="""\
+            The AVI (Audio Video Interleave) format has been the long standing format to save and deliver movies and other video files.
+            """,
+        ),
     ]
 
     BUILDER_CONFIG_CLASS = CmuMocapConfig
@@ -142,36 +163,26 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
             "descriptions": datasets.Sequence(datasets.Value("string")),
         }
 
-        if self.config.format == "asf/amc":
+        if self.config.name == "asf-amc":
             features.update(
                 {
-                    "amc_files": datasets.Sequence(datasets.Value("string")),
-                    "asf_file": datasets.Value("string"),
+                    "motions": {
+                        "amc_files" : datasets.Sequence(datasets.Value("string")),
+                        "skeleton_file": datasets.Value("string"),
+                    }
                 }
             )
-        elif self.config.format == "c3d":
+        else:
             features.update(
                 {
-                    "c3d_files": datasets.Sequence(datasets.Value("string")),
-                }
-            )
-        elif self.config.format == "mpg":
-            features.update(
-                {
-                    "mpg_files": datasets.Sequence(datasets.Value("string")),
-                }
-            )
-        elif self.config.format == "avi":
-            features.update(
-                {
-                    "avi_files": datasets.Sequence(datasets.Value("string")),
+                    "motions": datasets.Sequence(datasets.Value("string")),
                 }
             )
 
         return features
 
     def _get_data_path(self, data_dir):
-        if self.config.format == "asf/amc":
+        if self.config.name == "asf-amc":
             data_path = os.path.join(data_dir, "all_asfamc", "subjects")
         else:
             data_path = os.path.join(data_dir, "subjects")
@@ -179,7 +190,7 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
         return data_path
 
     def _split_generators(self, dl_manager):
-        urls = _URLS[self.config.format]
+        urls = _URLS[self.config.name]
         metadata_path = dl_manager.download(_METADATA_URL)
         data_dir = dl_manager.download_and_extract(urls)
         data_path = self._get_data_path(data_dir)
@@ -231,17 +242,17 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
             subject_id = int(subject)
             subject_path = os.path.join(data_path, subject, "")
 
-            if self.config.format == "asf/amc":
+            if self.config.name == "asf-amc":
                 asf_file = os.path.join(subject_path, subject + ".asf")
                 files = glob.glob(subject_path + "*.amc")
 
-            if self.config.format == "c3d":
+            if self.config.name == "c3d":
                 files = glob.glob(subject_path + "*.c3d")
 
-            if self.config.format == "mpg":
+            if self.config.name == "mpg":
                 files = glob.glob(subject_path + "*.mpg")
 
-            if self.config.format == "avi":
+            if self.config.name == "avi":
                 files = glob.glob(subject_path + "*.avi")
 
             categories, subcategories, descriptions = self._get_category_subcategory_info(files, subject_id_to_details)
@@ -253,34 +264,19 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
                 "descriptions": descriptions,
             }
 
-            if self.config.format == "asf/amc":
-                features.update(
-                    {
+            if self.config.name == "asf-amc":
+                features.update({
+                    "motions": {
                         "amc_files": files,
-                        "asf_file": asf_file,
+                        "skeleton_file": asf_file,
                     }
+                }
                 )
-
-            if self.config.format == "c3d":
-                features.update(
-                    {
-                        "c3d_files": files,
-                    }
-                )
-
-            if self.config.format == "mpg":
-                features.update(
-                    {
-                        "mpg_files": files,
-                    }
-                )
-
-            if self.config.format == "avi":
-                features.update(
-                    {
-                        "avi_files": files,
-                    }
-                )
+            else:
+                features.update({
+                    "motions": files,
+                })
+                
 
             yield idx, features
             idx += 1
