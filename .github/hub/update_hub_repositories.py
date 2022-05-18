@@ -105,17 +105,6 @@ def check_authorizations(user_info: dict):
         )
 
 
-def apply_hacks_for_moon_landing(dataset_repo_path: Path):
-    if (dataset_repo_path / "README.md").is_file():
-        with (dataset_repo_path / "README.md").open() as f:
-            readme_content = f.read()
-        if readme_content.count("---\n") > 1:
-            _, tags, content = readme_content.split("---\n", 2)
-            tags = tags.replace("\nlicense:", "\nlicenses:").replace(".", "-").replace("$", "%")
-            with (dataset_repo_path / "README.md").open("w") as f:
-                f.write("---\n".join(["", tags, content]))
-
-
 class update_main:
     def __init__(
         self,
