@@ -99,7 +99,7 @@ See [BIG-bench organized by keywords](https://github.com/google/BIG-bench/blob/m
 
 For tasks specifically targeting low-resource languages, see the table below:
 
-Task Name  | Languages |
+Task Name | Languages |
 --|--|
 Conlang Translation Problems | English, German, Finnish, Abma, Apinayé, Inapuri, Ndebele, Palauan|
 Kannada Riddles | Kannada|
