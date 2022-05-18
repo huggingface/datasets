@@ -39,9 +39,9 @@ tnhc v.1.0 (6/25/19 : a total of 47 documents, 756,478 lines, 13,361,142 charact
 """
 
 _URLs = {
-    "tlcv1.0": "https://github.com/jitkapat/thailitcorpus/releases/download/v.1.0/tlc_v.1.0.tar.gz",
-    "tlcv2.0": "https://github.com/jitkapat/thailitcorpus/releases/download/v.2.0/tlc_v.2.0.tar.gz",
-    "tnhcv1.0": "https://github.com/jitkapat/thailitcorpus/releases/download/v.1.0/tnhc_v.1.0.tar.gz",
+    "tlcv1_0": "https://github.com/jitkapat/thailitcorpus/releases/download/v.1.0/tlc_v.1.0.tar.gz",
+    "tlcv2_0": "https://github.com/jitkapat/thailitcorpus/releases/download/v.2.0/tlc_v.2.0.tar.gz",
+    "tnhcv1_0": "https://github.com/jitkapat/thailitcorpus/releases/download/v.1.0/tnhc_v.1.0.tar.gz",
 }
 _FILENAMES = {
     "tlcv1_0": "นิราศอิเหนา.json",
