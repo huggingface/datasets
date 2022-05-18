@@ -68,9 +68,9 @@ def _make_builder_configs():
         """,
         url="https://www.openslr.org/7/",
         download_urls={
-            "train": _DL_URL + os.path.join("TEDLIUM_release1", "train.tar.gz"),
-            "validation": _DL_URL + os.path.join("TEDLIUM_release1", "dev.tar.gz"),
-            "test": _DL_URL + os.path.join("TEDLIUM_release1", "test.tar.gz"),
+            "train": [_DL_URL + os.path.join("TEDLIUM_release1", "train.tar.gz")],
+            "validation": [_DL_URL + os.path.join("TEDLIUM_release1", "dev.tar.gz")],
+            "test": [_DL_URL + os.path.join("TEDLIUM_release1", "test.tar.gz")],
         },
         split_paths=[
             (datasets.Split.TRAIN, "train"),
@@ -106,9 +106,9 @@ def _make_builder_configs():
         """,
         url="https://www.openslr.org/19/",
         download_urls={
-            "train": _DL_URL + os.path.join("TEDLIUM_release2", "train.tar.gz"),
-            "validation": _DL_URL + os.path.join("TEDLIUM_release2", "dev.tar.gz"),
-            "test": _DL_URL + os.path.join("TEDLIUM_release2", "test.tar.gz"),
+            "train": [_DL_URL + os.path.join("TEDLIUM_release2", "train.tar.gz")],
+            "validation": [_DL_URL + os.path.join("TEDLIUM_release2", "dev.tar.gz")],
+            "test": [_DL_URL + os.path.join("TEDLIUM_release2", "test.tar.gz")],
         },
         split_paths=[
             (datasets.Split.TRAIN, "train"),
@@ -158,9 +158,14 @@ def _make_builder_configs():
         """,
         url="https://www.openslr.org/51/",
         download_urls={
-            "train": _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "train.tar.gz"),
-            "validation": _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "dev.tar.gz"),
-            "test": _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "test.tar.gz"),
+            "train": [
+                _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "train_1.tar.gz"),
+                _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "train_2.tar.gz"),
+                _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "train_3.tar.gz"),
+                _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "train_4.tar.gz"),
+            ],
+            "validation": [_DL_URL + os.path.join("TEDLIUM_release3", "legacy", "dev.tar.gz")],
+            "test": [_DL_URL + os.path.join("TEDLIUM_release3", "legacy", "test.tar.gz")],
         },
         split_paths=[
             (datasets.Split.TRAIN, "train"),
@@ -193,9 +198,9 @@ def _make_builder_configs():
             """,
         url="https://www.openslr.org/51/",
         download_urls={
-            "train": _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train.tar.gz"),
-            "validation": _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "dev.tar.gz"),
-            "test": _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "test.tar.gz"),
+            "train": [_DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train.tar.gz")],
+            "validation": [_DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "dev.tar.gz")],
+            "test": [_DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "test.tar.gz")],
         },
         split_paths=[
             (datasets.Split.TRAIN, "train"),
@@ -242,7 +247,7 @@ class TedLium(datasets.GeneratorBasedBuilder):
         splits = []
         for split, path in self.config.split_paths:
             kwargs = {
-                "filepath": dl_manager.iter_archive(archive_path[split]),
+                "filepath": [dl_manager.iter_archive(sharded_path) for sharded_path in archive_path[split]],
                 "local_extracted_archive": local_extracted_archive.get(split),
                 "split_path": path,
             }
@@ -252,92 +257,94 @@ class TedLium(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, local_extracted_archive, split_path):
         """Generate examples from a TED-LIUM stm file."""
         if local_extracted_archive:
-            # The stm directory houses the speaker and transcription information in .stm format
-            stm_dir = os.path.join(local_extracted_archive, split_path, "stm")
-            # The sph directory houses the audio files in .sph format
-            sph_dir = os.path.join(local_extracted_archive, split_path, "sph")
-            stm_files = [os.path.join(stm_dir, f) for f in os.listdir(stm_dir) if f.endswith(".stm")]
-            for file in stm_files:
-                # the .sph speaker file almost always has the same file name as the .stm file
-                speaker_file = Path(file).stem
-                audio_file = os.path.join(sph_dir, speaker_file + ".sph")
-                segment, sampling_rate = sf.read(audio_file, dtype=np.int16)
-                with open(file) as f:
-                    for line in f:
-                        line = line.strip()
-                        fn, channel, speaker, start, end, label, transcript = line.split(" ", 6)
-                        transcript = _maybe_trim_suffix(transcript)
-                        if speaker_file != fn:
-                            # handle the case where the stm file does not have the same file name as the transcript
-                            speaker_file = fn
-                            audio_file = os.path.join(sph_dir, speaker_file + ".sph")
-                            segment, sampling_rate = sf.read(audio_file, dtype=np.int16)
-                        samples = _extract_audio_segment(segment, int(channel), float(start), float(end))
-                        key = "-".join([speaker, start, end, label])
-                        example = {
-                            "audio": {"path": audio_file, "array": samples, "sampling_rate": sampling_rate},
-                            "text": transcript,
-                            "speaker_id": speaker,
-                            "gender": _parse_gender(label),
-                            "file": audio_file,
-                            "id": key,
-                        }
-                        yield key, example
+            for local_archive in local_extracted_archive:
+                # The stm directory houses the speaker and transcription information in .stm format
+                stm_dir = os.path.join(local_archive, split_path, "stm")
+                # The sph directory houses the audio files in .sph format
+                sph_dir = os.path.join(local_archive, split_path, "sph")
+                stm_files = [os.path.join(stm_dir, f) for f in os.listdir(stm_dir) if f.endswith(".stm")]
+                for file in stm_files:
+                    # the .sph speaker file almost always has the same file name as the .stm file
+                    speaker_file = Path(file).stem
+                    audio_file = os.path.join(sph_dir, speaker_file + ".sph")
+                    segment, sampling_rate = sf.read(audio_file, dtype=np.int16)
+                    with open(file) as f:
+                        for line in f:
+                            line = line.strip()
+                            fn, channel, speaker, start, end, label, transcript = line.split(" ", 6)
+                            transcript = _maybe_trim_suffix(transcript)
+                            if speaker_file != fn:
+                                # handle the case where the stm file does not have the same file name as the transcript
+                                speaker_file = fn
+                                audio_file = os.path.join(sph_dir, speaker_file + ".sph")
+                                segment, sampling_rate = sf.read(audio_file, dtype=np.int16)
+                            samples = _extract_audio_segment(segment, int(channel), float(start), float(end))
+                            key = "-".join([speaker, start, end, label])
+                            example = {
+                                "audio": {"path": audio_file, "array": samples, "sampling_rate": sampling_rate},
+                                "text": transcript,
+                                "speaker_id": speaker,
+                                "gender": _parse_gender(label),
+                                "file": audio_file,
+                                "id": key,
+                            }
+                            yield key, example
 
         else:
             audio_data = {}
             transcripts = defaultdict(list)
-            for path, f in filepath:
-                if path.endswith(".sph"):
-                    # get the speaker id
-                    fn = path.split("/")[-1].strip(".sph")
-                    # read the audio data from raw byte form and add key-value pair to dict
-                    audio_data[fn] = sf.read(BytesIO(f.read()), dtype=np.int16)
-                elif path.endswith(".stm"):
-                    for line in f:
-                        if line:
-                            line = line.decode("utf-8").strip()
-                            fn, channel, speaker, start, end, label, transcript = line.split(" ", 6)
-                            transcript = _maybe_trim_suffix(transcript)
-                            audio_file = path.replace("stm", "sph")
-                            key = "-".join([speaker, start, end, label])
-                            # append metadata information to the dict of transcripts for the associated speaker
-                            transcripts[fn].append(
-                                {
-                                    "text": transcript,
-                                    "speaker_id": speaker,
-                                    "gender": _parse_gender(label),
-                                    "file": audio_file,
-                                    "id": key,
-                                    "start": start,
-                                    "end": end,
-                                    "channel": channel,
-                                    "fn": fn,
-                                }
-                            )
+            for file in filepath:
+                for path, f in file:
+                    if path.endswith(".sph"):
+                        # get the speaker id
+                        fn = path.split("/")[-1].strip(".sph")
+                        # read the audio data from raw byte form and add key-value pair to dict
+                        audio_data[fn] = sf.read(BytesIO(f.read()), dtype=np.int16)
+                    elif path.endswith(".stm"):
+                        for line in f:
+                            if line:
+                                line = line.decode("utf-8").strip()
+                                fn, channel, speaker, start, end, label, transcript = line.split(" ", 6)
+                                transcript = _maybe_trim_suffix(transcript)
+                                audio_file = path.replace("stm", "sph")
+                                key = "-".join([speaker, start, end, label])
+                                # append metadata information to the dict of transcripts for the associated speaker
+                                transcripts[fn].append(
+                                    {
+                                        "text": transcript,
+                                        "speaker_id": speaker,
+                                        "gender": _parse_gender(label),
+                                        "file": audio_file,
+                                        "id": key,
+                                        "start": start,
+                                        "end": end,
+                                        "channel": channel,
+                                        "fn": fn,
+                                    }
+                                )
 
-                if audio_data and audio_data.keys() == transcripts.keys():
-                    for fn, speaker in transcripts.items():
-                        for transcript in speaker:
-                            segment, sampling_rate = audio_data[transcript["fn"]]
-                            samples = _extract_audio_segment(
-                                segment,
-                                int(transcript["channel"]),
-                                float(transcript["start"]),
-                                float(transcript["end"]),
-                            )
-                            audio = {"path": transcript["file"], "array": samples, "sampling_rate": sampling_rate}
-                            key = transcript["id"]
-                            yield key, {
-                                "audio": audio,
-                                "text": transcript["text"],
-                                "speaker_id": transcript["speaker_id"],
-                                "gender": transcript["gender"],
-                                "file": transcript["file"],
-                                "id": transcript["id"],
-                            }
-                    audio_data = {}
-                    transcripts = defaultdict(list)
+                    if audio_data and audio_data.keys() == transcripts.keys():
+                        for fn, speaker in transcripts.items():
+                            for transcript in speaker:
+                                segment, sampling_rate = audio_data[transcript["fn"]]
+                                samples = _extract_audio_segment(
+                                    segment,
+                                    int(transcript["channel"]),
+                                    float(transcript["start"]),
+                                    float(transcript["end"]),
+                                )
+                                audio = {"path": transcript["file"], "array": samples, "sampling_rate": sampling_rate}
+                                key = transcript["id"]
+                                yield key, {
+                                    "audio": audio,
+                                    "text": transcript["text"],
+                                    "speaker_id": transcript["speaker_id"],
+                                    "gender": transcript["gender"],
+                                    "file": transcript["file"],
+                                    "id": transcript["id"],
+                                }
+                        audio_data = {}
+                        transcripts = defaultdict(list)
 
 
 def _maybe_trim_suffix(transcript):
