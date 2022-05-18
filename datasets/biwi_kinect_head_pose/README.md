@@ -9,7 +9,7 @@ licenses:
 - other
 multilinguality:
 - monolingual
-pretty_name: Biwi Kinect Head Pose
+pretty_name: Biwi Kinect Head Pose Database
 size_categories:
 - 10K<n<100K
 source_datasets:
