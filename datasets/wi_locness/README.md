@@ -6,10 +6,8 @@ language_creators:
 languages:
 - en
 licenses:
-  wi:
-  - other-wi-license
-  locness:
-  - other-locness-license
+- other-locness-license
+- other-wi-license
 multilinguality:
 - monolingual
 - other-language-learner
@@ -23,8 +21,11 @@ task_ids:
 - text2text-generation-other-grammatical-error-correction
 paperswithcode_id: locness-corpus
 pretty_name:
-  wi: Cambridge English Write & Improve
-  locness: LOCNESS
+configs:
+- locness
+- locness: LOCNES
+- wi
+- wi: Cambridge English Write & Improv
 ---
 
 # Dataset Card for Cambridge English Write & Improve + LOCNESS Dataset

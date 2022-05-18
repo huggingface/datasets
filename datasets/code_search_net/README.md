@@ -10,20 +10,9 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-  all:
-  - 1M<n<10M
-  go:
-  - 100K<n<1M
-  java:
-  - 100K<n<1M
-  javascript:
-  - 100K<n<1M
-  php:
-  - 100K<n<1M
-  python:
-  - 100K<n<1M
-  ruby:
-  - 10K<n<100K
+- 100K<n<1M
+- 10K<n<100K
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -34,6 +23,14 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: codesearchnet
 pretty_name: CodeSearchNet
+configs:
+- all
+- go
+- java
+- javascript
+- php
+- python
+- ruby
 ---
 
 # Dataset Card for CodeSearchNet corpus

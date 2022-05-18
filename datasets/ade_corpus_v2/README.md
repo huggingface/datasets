@@ -10,28 +10,17 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  Ade_corpus_v2_classification:
-  - 10K<n<100K
-  Ade_corpus_v2_drug_ade_relation:
-  - 1K<n<10K
-  Ade_corpus_v2_drug_dosage_relation:
-  - n<1K
+- 10K<n<100K
+- 1K<n<10K
+- n<1K
 source_datasets:
 - original
 task_categories:
-  Ade_corpus_v2_classification:
-  - text-classification
-  Ade_corpus_v2_drug_ade_relation:
-  - token-classification
-  Ade_corpus_v2_drug_dosage_relation:
-  - token-classification
+- text-classification
+- token-classification
 task_ids:
-  Ade_corpus_v2_classification:
-  - fact-checking
-  Ade_corpus_v2_drug_ade_relation:
-  - coreference-resolution
-  Ade_corpus_v2_drug_dosage_relation:
-  - coreference-resolution
+- coreference-resolution
+- fact-checking
 paperswithcode_id: null
 pretty_name: Adverse Drug Reaction Data v2
 train-eval-index:
@@ -82,6 +71,10 @@ train-eval-index:
       name: Recall weighted
       args:
         average: weighted
+configs:
+- Ade_corpus_v2_classification
+- Ade_corpus_v2_drug_ade_relation
+- Ade_corpus_v2_drug_dosage_relation
 ---
 
 # Dataset Card for Adverse Drug Reaction Data v2

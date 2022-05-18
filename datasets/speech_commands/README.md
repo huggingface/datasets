@@ -11,16 +11,17 @@ multilinguality:
 - monolingual
 pretty_name: SpeechCommands
 size_categories:
-  v0.01:
-    - 10K<n<100K
-  v0.02:
-    - 100K<n<1M
 source_datasets:
 - original
 task_categories:
 - audio-classification
 task_ids:
 - keyword-spotting
+configs:
+-   - 100K<n<1
+-   - 10K<n<100
+- v0.01
+- v0.02
 ---
 
 # Dataset Card for SpeechCommands

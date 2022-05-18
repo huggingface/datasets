@@ -4,26 +4,16 @@ annotations_creators:
 language_creators:
 - expert-generated
 languages:
-  am:
-  - am
-  ha:
-  - ha
-  ig:
-  - ig
-  rw:
-  - rw
-  lg:
-  - lg
-  luo:
-  - luo
-  pcm:
-  - pcm
-  sw:
-  - sw
-  wo:
-  - wo
-  yo:
-  - yo
+- am
+- ha
+- ig
+- lg
+- luo
+- pcm
+- rw
+- sw
+- wo
+- yo
 
 licenses:
 - unknown
@@ -39,6 +29,17 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: MasakhaNER
+configs:
+- am
+- ha
+- ig
+- lg
+- luo
+- pcm
+- rw
+- sw
+- wo
+- yo
 ---
 
 # Dataset Card for MasakhaNER

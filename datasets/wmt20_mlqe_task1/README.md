@@ -6,27 +6,14 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  en-de:
-  - en
-  - de
-  en-zh:
-  - en
-  - zh
-  et-en:
-  - et
-  - en
-  ne-en:
-  - ne
-  - en
-  ro-en:
-  - ro
-  - en
-  si-en:
-  - si
-  - en
-  ru-en:
-  - en
-  - ru
+- de
+- en
+- et
+- ne
+- ro
+- ru
+- si
+- zh
 licenses:
 - unknown
 multilinguality:
@@ -40,6 +27,14 @@ task_categories:
 - translation
 task_ids: []
 paperswithcode_id: null
+configs:
+- en-de
+- en-zh
+- et-en
+- ne-en
+- ro-en
+- ru-en
+- si-en
 ---
 
 # Dataset Card Creation Guide
