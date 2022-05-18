@@ -167,7 +167,7 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
             features.update(
                 {
                     "motions": {
-                        "amc_files" : datasets.Sequence(datasets.Value("string")),
+                        "amc_files": datasets.Sequence(datasets.Value("string")),
                         "skeleton_file": datasets.Value("string"),
                     }
                 }
@@ -265,18 +265,20 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
             }
 
             if self.config.name == "asf-amc":
-                features.update({
-                    "motions": {
-                        "amc_files": files,
-                        "skeleton_file": asf_file,
+                features.update(
+                    {
+                        "motions": {
+                            "amc_files": files,
+                            "skeleton_file": asf_file,
+                        }
                     }
-                }
                 )
             else:
-                features.update({
-                    "motions": files,
-                })
-                
+                features.update(
+                    {
+                        "motions": files,
+                    }
+                )
 
             yield idx, features
             idx += 1
