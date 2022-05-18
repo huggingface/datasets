@@ -450,32 +450,6 @@ class DatasetMetadata:
         else:
             return train_eval_index, None
 
-    def get_metadata_by_config_name(self, name: str) -> "DatasetMetadata":
-        metadata_dict = asdict(self)
-        config_name_hit = []
-        has_multi_configs = []
-        result_dict = {}
-        for tag_key, tag_value in metadata_dict.items():
-            if isinstance(tag_value, str) or isinstance(tag_value, list):
-                result_dict[tag_key] = tag_value
-            elif isinstance(tag_value, dict):
-                has_multi_configs.append(tag_key)
-                for config_name, value in tag_value.items():
-                    if config_name == name:
-                        result_dict[tag_key] = value
-                        config_name_hit.append(tag_key)
-
-        if len(has_multi_configs) > 0 and has_multi_configs != config_name_hit:
-            raise TypeError(
-                f"The following tags have multiple configs: {has_multi_configs} but the config `{name}`  was found only in: {config_name_hit}."
-            )
-        if config_name_hit == 0:
-            logger.warning(
-                "No matching config names found in the metadata, using the common values to create metadata."
-            )
-
-        return DatasetMetadata(**result_dict)
-
 
 # In general the allowed YAML keys are the fields of the DatasetMetadata dataclass.
 # However it is not the case certain fields like train_eval_index,
