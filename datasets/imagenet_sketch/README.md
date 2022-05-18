@@ -81,7 +81,7 @@ A sample from the training set is provided below:
 ```
 {
     'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=400x530 at 0x7FB2EF5D4A90>,
-    'labels': 320
+    'label': 320
 }
 ```
 
@@ -90,13 +90,13 @@ A sample from the training set is provided below:
 The data instances have the following fields:
 
 - `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`.
-- `labels`: an `int` classification label. -1 for `test` set as the labels are missing.
+- `label`: an `int` classification label.
 
-The labels are indexed based on a sorted list of synset ids such as `n07565083` which we automatically map to original class names. The original dataset is divided into folders based on these synset ids. To get a mapping from original synset names, use the file [LOC_synset_mapping.txt](https://www.kaggle.com/competitions/imagenet-object-localization-challenge/data?select=LOC_synset_mapping.txt) available on Kaggle challenge page. You can also use `dataset_instance.features["labels"].int2str` function to get the class for a particular label index.
+The labels are indexed based on a sorted list of synset ids such as `n07565083` which we automatically map to original class names. The original dataset is divided into folders based on these synset ids. To get a mapping from original synset names, use the file [LOC_synset_mapping.txt](https://www.kaggle.com/competitions/imagenet-object-localization-challenge/data?select=LOC_synset_mapping.txt) available on Kaggle challenge page. You can also use `dataset_instance.features["label"].int2str` function to get the class for a particular label index.
 
 <details>
   <summary>
-  Click here to see the full list of ImageNet class labels mapping:
+  Click here to see the full list of ImageNet class label mapping:
   </summary>
 
   |id|Class|

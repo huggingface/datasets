@@ -43,7 +43,7 @@ but different classes. For some classes, there are less than 50 images after man
 augment the data set by flipping and rotating the images.
 """
 
-_URL = "https://drive.google.com/uc?id=1Mj0i5HBthqH1p_yeXzsg22gZduvgoNeA"
+_URL = "https://huggingface.co/datasets/nateraw/imagenet-sketch-data/resolve/main/ImageNet-Sketch.zip"
 
 
 class ImageNetSketch(datasets.GeneratorBasedBuilder):
@@ -55,13 +55,13 @@ class ImageNetSketch(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "image": datasets.Image(),
-                    "labels": datasets.features.ClassLabel(names=list(IMAGENET2012_CLASSES.values())),
+                    "label": datasets.features.ClassLabel(names=list(IMAGENET2012_CLASSES.values())),
                 }
             ),
-            supervised_keys=("image", "labels"),
+            supervised_keys=("image", "label"),
             homepage=_HOMEPAGE,
             citation=_CITATION,
-            task_templates=[ImageClassification(image_column="image", label_column="labels")],
+            task_templates=[ImageClassification(image_column="image", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):
@@ -82,5 +82,5 @@ class ImageNetSketch(datasets.GeneratorBasedBuilder):
             if file_name.endswith(".JPEG"):
                 yield i, {
                     "image": path,
-                    "labels": IMAGENET2012_CLASSES[os.path.basename(os.path.dirname(path)).lower()],
+                    "label": IMAGENET2012_CLASSES[os.path.basename(os.path.dirname(path)).lower()],
                 }
