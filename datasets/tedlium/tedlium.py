@@ -27,16 +27,18 @@ import datasets
 from datasets.tasks import AutomaticSpeechRecognition
 
 
+_DL_URL = "https://huggingface.co/datasets/LIUM/tedlium/resolve/main/"
+
 _LICENSE = "licensed under Creative Commons BY-NC-ND 3.0 (http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en)"
 
 
 class TedliumReleaseConfig(datasets.BuilderConfig):
     """BuilderConfig for a release of the TED-LIUM dataset."""
 
-    def __init__(self, *, url, download_url, split_paths, citation, **kwargs):
+    def __init__(self, *, url, download_urls, split_paths, citation, **kwargs):
         super(TedliumReleaseConfig, self).__init__(version=datasets.Version("1.0.1"), **kwargs)
         self.url = url
-        self.download_url = download_url
+        self.download_urls = download_urls
         # List of split, path pairs containing the relative path within the
         # extracted tarball to the data for each split.
         self.split_paths = split_paths
@@ -65,11 +67,15 @@ def _make_builder_configs():
         }
         """,
         url="https://www.openslr.org/7/",
-        download_url="http://www.openslr.org/resources/7/TEDLIUM_release1.tar.gz",
+        download_urls={
+            "train": _DL_URL + os.path.join("TEDLIUM_release1", "train.tar.gz"),
+            "validation": _DL_URL + os.path.join("TEDLIUM_release1", "dev.tar.gz"),
+            "test": _DL_URL + os.path.join("TEDLIUM_release1", "test.tar.gz"),
+        },
         split_paths=[
-            (datasets.Split.TRAIN, os.path.join("TEDLIUM_release1", "train")),
-            (datasets.Split.VALIDATION, os.path.join("TEDLIUM_release1", "dev")),
-            (datasets.Split.TEST, os.path.join("TEDLIUM_release1", "test")),
+            (datasets.Split.TRAIN, "train"),
+            (datasets.Split.VALIDATION, "dev"),
+            (datasets.Split.TEST, "test"),
         ],
     )
 
@@ -99,11 +105,15 @@ def _make_builder_configs():
         }
         """,
         url="https://www.openslr.org/19/",
-        download_url="http://www.openslr.org/resources/19/TEDLIUM_release2.tar.gz",
+        download_urls={
+            "train": _DL_URL + os.path.join("TEDLIUM_release2", "train.tar.gz"),
+            "validation": _DL_URL + os.path.join("TEDLIUM_release2", "dev.tar.gz"),
+            "test": _DL_URL + os.path.join("TEDLIUM_release2", "test.tar.gz"),
+        },
         split_paths=[
-            (datasets.Split.TRAIN, os.path.join("TEDLIUM_release2", "train")),
-            (datasets.Split.VALIDATION, os.path.join("TEDLIUM_release2", "dev")),
-            (datasets.Split.TEST, os.path.join("TEDLIUM_release2", "test")),
+            (datasets.Split.TRAIN, "train"),
+            (datasets.Split.VALIDATION, "dev"),
+            (datasets.Split.TEST, "test"),
         ],
     )
 
@@ -111,7 +121,8 @@ def _make_builder_configs():
         name="release3",
         description="""\
         This is the TED-LIUM corpus release 3, licensed under Creative Commons
-        BY-NC-ND 3.0.
+        BY-NC-ND 3.0. This is the 'legacy' version of the corpus, in which the dev and test datasets are the same as in
+        TED-LIUM 2 (and TED-LIUM 1).
 
         All talks and text are property of TED Conferences LLC.
 
@@ -126,7 +137,7 @@ def _make_builder_configs():
         - 452 hours of audio
         - 2351 aligned automatic transcripts in STM format
         - TEDLIUM 2 dev and test data: 19 TED talks in SPH format with
-          corresponding manual transcriptions (cf. 'legacy' distribution below).
+          corresponding manual transcriptions.
         - Dictionary with pronunciations (159848 entries), same file as the one
           included in TED-LIUM 2
         - Selected monolingual data for language modeling from WMT12 publicly
@@ -134,11 +145,6 @@ def _make_builder_configs():
           have been modified to get a tokenization more relevant for English
           language
 
-        Two corpus distributions:
-        - the legacy one, on which the dev and test datasets are the same as in
-          TED-LIUM 2 (and TED-LIUM 1).
-        - the 'speaker adaptation' one, especially designed for experiments on
-          speaker adaptation.
         """,
         citation="""\
         @inproceedings{hernandez2018tedlium3,
@@ -151,18 +157,54 @@ def _make_builder_configs():
         }
         """,
         url="https://www.openslr.org/51/",
-        download_url="http://www.openslr.org/resources/51/TEDLIUM_release-3.tgz",
+        download_urls={
+            "train": _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "train.tar.gz"),
+            "validation": _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "dev.tar.gz"),
+            "test": _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "test.tar.gz"),
+        },
         split_paths=[
-            (datasets.Split.VALIDATION, os.path.join("TEDLIUM_release-3", "legacy", "dev")),
-            (datasets.Split.TEST, os.path.join("TEDLIUM_release-3", "legacy", "test")),
-            # The legacy/train directory contains symlinks to "data",
-            # which are skipped by extraction (see above).
-            # Work around this by manually dereferencing the links here.
-            (datasets.Split.TRAIN, os.path.join("TEDLIUM_release-3", "data")),
+            (datasets.Split.TRAIN, "train"),
+            (datasets.Split.VALIDATION, "dev"),
+            (datasets.Split.TEST, "test"),
         ],
     )
 
-    return [release1, release2, release3]
+    release3_speaker_adaptation = TedliumReleaseConfig(
+        name="release3-speaker-adaptation",
+        description="""\
+            This is the TED-LIUM corpus release 3, licensed under Creative Commons
+            BY-NC-ND 3.0. This is the 'speaker adaptation' version of the corpus, specially designed for experiments on
+            speaker adaptation.
+
+            All talks and text are property of TED Conferences LLC.
+
+            This new TED-LIUM release was made through a collaboration between the
+            Ubiqus company and the LIUM (University of Le Mans, France)
+            """,
+        citation="""\
+            @inproceedings{hernandez2018tedlium3,
+              title={TED-LIUM 3: twice as much data and corpus repartition for experiments on speaker adaptation},
+              author={Hernandez, Fran{\\c{c}}ois and Nguyen, Vincent and Ghannay, Sahar and Tomashenko, Natalia and Est{\\`e}ve, Yannick},
+              booktitle={International Conference on Speech and Computer},
+              pages={198--208},
+              year={2018},
+              organization={Springer}
+            }
+            """,
+        url="https://www.openslr.org/51/",
+        download_urls={
+            "train": _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train.tar.gz"),
+            "validation": _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "dev.tar.gz"),
+            "test": _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "test.tar.gz"),
+        },
+        split_paths=[
+            (datasets.Split.TRAIN, "train"),
+            (datasets.Split.VALIDATION, "dev"),
+            (datasets.Split.TEST, "test"),
+        ],
+    )
+
+    return [release1, release2, release3, release3_speaker_adaptation]
 
 
 class TedLium(datasets.GeneratorBasedBuilder):
@@ -194,21 +236,20 @@ class TedLium(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        archive_path = dl_manager.download(self.config.download_url)
+        archive_path = dl_manager.download(self.config.download_urls)
         # (Optional) In non-streaming mode, we can extract the archive locally to have actual local audio files:
         local_extracted_archive = dl_manager.extract(archive_path) if not dl_manager.is_streaming else {}
         splits = []
         for split, path in self.config.split_paths:
             kwargs = {
-                "filepath": dl_manager.iter_archive(archive_path),
-                "local_extracted_archive": local_extracted_archive,
-                "split": split,
+                "filepath": dl_manager.iter_archive(archive_path[split]),
+                "local_extracted_archive": local_extracted_archive.get(split),
                 "split_path": path,
             }
             splits.append(datasets.SplitGenerator(name=split, gen_kwargs=kwargs))
         return splits
 
-    def _generate_examples(self, filepath, local_extracted_archive, split, split_path):
+    def _generate_examples(self, filepath, local_extracted_archive, split_path):
         """Generate examples from a TED-LIUM stm file."""
         if local_extracted_archive:
             # The stm directory houses the speaker and transcription information in .stm format
@@ -244,38 +285,36 @@ class TedLium(datasets.GeneratorBasedBuilder):
                         yield key, example
 
         else:
-            key = 0
             audio_data = {}
             transcripts = defaultdict(list)
             for path, f in filepath:
-                if path.split("/")[1] == split:
-                    if path.endswith(".sph"):
-                        # get the speaker id
-                        fn = path.split("/")[-1].strip(".sph")
-                        # read the audio data from raw byte form and add key-value pair to dict
-                        audio_data[fn] = sf.read(BytesIO(f.read()), dtype=np.int16)
-                    elif path.endswith(".stm"):
-                        for line in f:
-                            if line:
-                                line = line.decode("utf-8").strip()
-                                fn, channel, speaker, start, end, label, transcript = line.split(" ", 6)
-                                transcript = _maybe_trim_suffix(transcript)
-                                audio_file = path.replace("stm", "sph")
-                                id_key = "-".join([speaker, start, end, label])
-                                # append metadata information to the dict of transcripts for the associated speaker
-                                transcripts[fn].append(
-                                    {
-                                        "text": transcript,
-                                        "speaker_id": speaker,
-                                        "gender": _parse_gender(label),
-                                        "file": audio_file,
-                                        "id": id_key,
-                                        "start": start,
-                                        "end": end,
-                                        "channel": channel,
-                                        "fn": fn,
-                                    }
-                                )
+                if path.endswith(".sph"):
+                    # get the speaker id
+                    fn = path.split("/")[-1].strip(".sph")
+                    # read the audio data from raw byte form and add key-value pair to dict
+                    audio_data[fn] = sf.read(BytesIO(f.read()), dtype=np.int16)
+                elif path.endswith(".stm"):
+                    for line in f:
+                        if line:
+                            line = line.decode("utf-8").strip()
+                            fn, channel, speaker, start, end, label, transcript = line.split(" ", 6)
+                            transcript = _maybe_trim_suffix(transcript)
+                            audio_file = path.replace("stm", "sph")
+                            key = "-".join([speaker, start, end, label])
+                            # append metadata information to the dict of transcripts for the associated speaker
+                            transcripts[fn].append(
+                                {
+                                    "text": transcript,
+                                    "speaker_id": speaker,
+                                    "gender": _parse_gender(label),
+                                    "file": audio_file,
+                                    "id": key,
+                                    "start": start,
+                                    "end": end,
+                                    "channel": channel,
+                                    "fn": fn,
+                                }
+                            )
 
                 if audio_data and audio_data.keys() == transcripts.keys():
                     for fn, speaker in transcripts.items():
@@ -288,6 +327,7 @@ class TedLium(datasets.GeneratorBasedBuilder):
                                 float(transcript["end"]),
                             )
                             audio = {"path": transcript["file"], "array": samples, "sampling_rate": sampling_rate}
+                            key = transcript["id"]
                             yield key, {
                                 "audio": audio,
                                 "text": transcript["text"],
@@ -296,7 +336,6 @@ class TedLium(datasets.GeneratorBasedBuilder):
                                 "file": transcript["file"],
                                 "id": transcript["id"],
                             }
-                            key += 1
                     audio_data = {}
                     transcripts = defaultdict(list)
 
