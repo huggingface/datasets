@@ -61,12 +61,14 @@ task_ids:
 
 ImageNet-Sketch data set consists of 50000 images, 50 images for each of the 1000 ImageNet classes. We construct the data set with Google Image queries "sketch of __", where __ is the standard class name. We only search within the "black and white" color scheme. We initially query 100 images for every class, and then manually clean the pulled images by deleting the irrelevant images and images that are for similar but different classes. For some classes, there are less than 50 images after manually cleaning, and then we augment the data set by flipping and rotating the images.
 
-The scripts used to conduct query and image cleaning can be found in [the GitHub repository](https://github.com/HaohanWang/ImageNet-Sketch).
+The scripts used to conduct queries and clean images can be found in [the GitHub repository](https://github.com/HaohanWang/ImageNet-Sketch).
 
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `image_classification`: The goal of this task is to classify a given image into one of 1000 ImageNet classes. The leaderboard is available [here](https://github.com/HaohanWang/ImageNet-Sketch#imagenet-sketch-leaderboard).
+
+The goal of the leaderboard is to evaluate the out-of-domain classification performance of vision models trained on ImageNet. The evaluation metrics used in the leaderboard are top-1 accuracy and top-5 accuracy.
 
 ### Languages
 
@@ -1161,15 +1163,22 @@ The same as in [ImageNet](https://huggingface.co/datasets/imagenet-1k#who-are-th
 
 ### Discussion of Biases
 
-[More Information Needed]
+The biases are inherited from ImageNet. More information about the process can be found [here](https://huggingface.co/datasets/imagenet-1k#discussion-of-biases).
 
 ### Other Known Limitations
 
-[More Information Needed]
+1. Since most of the images were collected from internet, keep in mind that some images in ImageNet-Sketch might be subject to copyrights.
 
 ## Additional Information
 
 ### Dataset Curators
+
+Authors of [Learning Robust Global Representations by Penalizing Local Predictive Power](https://arxiv.org/abs/1905.13549v2):
+
+- Haohan Wang
+- Songwei Ge
+- Eric P. Xing
+- Zachary C. Lipton
 
 The dataset was curated using the scripts found in the [GitHub repository](https://github.com/HaohanWang/ImageNet-Sketch).
 
