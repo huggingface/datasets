@@ -63,7 +63,7 @@ Note : The dataset has subjects numbered upto 144 [here](http://mocap.cs.cmu.edu
 
 The dataset contains motions in the following formats :
 
-- asf/amc : The ASF file (Acclaim Skeleton File) is a skeleton file . AMC files (Acclaim Motion Capture data) are the motion files. Most of the time a single skeleton works for many different motions and rather than storing the same skeleton in each of the motion files, thus for each subject there is one ASF file along with AMC files for each motion.
+- asf-amc : The ASF file (Acclaim Skeleton File) is a skeleton file . AMC files (Acclaim Motion Capture data) are the motion files. Most of the time a single skeleton works for many different motions and rather than storing the same skeleton in each of the motion files, thus for each subject there is one ASF file along with AMC files for each motion.
 
 The AMC/ASF files can be parsed using [AMCParser library](https://github.com/CalciferZh/AMCParser). You can check the Usage section in this libary for more information.
 
@@ -94,11 +94,13 @@ A sample from the CMU MoCap dataset is provided below:
     'categories': ['Physical Activities & Sports', 'Locomotion', 'Locomotion', 'Locomotion'], 
     'subcategories': ['martial arts', 'walking', 'walking', 'walking'], 
     'descriptions': ['tai chi', 'walk', 'walk', 'walk'], 
-    'amc_files': ['~/all_asfamc/subjects/12/12_04.amc', '~/all_asfamc/subjects/12/12_01.amc', '~/all_asfamc/subjects/12/12_03.amc', '~/all_asfamc/subjects/12/12_02.amc'], 
-    'asf_file': '~/all_asfamc/subjects/12/12.asf',
+    'motions': {
+        'amc_files': ['~/all_asfamc/subjects/12/12_04.amc', '~/all_asfamc/subjects/12/12_01.amc', '~/all_asfamc/subjects/12/12_03.amc', '~/all_asfamc/subjects/12/12_02.amc'], 
+        'skeleton_file': '~/all_asfamc/subjects/12/12.asf',
+    }
 }
 ```
-Depending on the file format, 'files' field would change. Check the Data Fields section for more information.
+Depending on the file format, 'motions' field would change. Check the Data Fields section for more information.
 
 ### Data Fields
 
@@ -109,12 +111,18 @@ The following fields are common for all file formats of the dataset.
 - `subcategories`: A list containing the subcategory names of all trials.
 - `descriptions`: A list containing the descriptions of all trials.
 
-According to the file format, we have the following fields:
-- `amc_files`, `c3d_files`, `mpg_files` , `avi_files` : A list containing the path to all files.
+The c3d, mpg and avi formats have: 
+- `motions` : A list containing the path to all motion files.
 
 The "asf/amc" config has an additional field :
+- `motions`: {
+        `amc_files`: A list containing the path to all motion files, 
+        `skeleton_file`: path to the ASF file,
+    }
 
-- `asf_file`: ASF file is the skeleton file, in the ASF file a base pose is defined for the skeleton that is the starting point for the motion data. More info can be found [here](https://research.cs.wisc.edu/graphics/Courses/cs-838-1999/Jeff/ASF-AMC.html).
+    It is a dictionary containing the motion files and skeleton file.
+
+ASF file is the skeleton file, in the ASF file a base pose is defined for the skeleton that is the starting point for the motion data. More info can be found [here](https://research.cs.wisc.edu/graphics/Courses/cs-838-1999/Jeff/ASF-AMC.html).
 
 
 ### Data Splits
