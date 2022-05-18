@@ -22,7 +22,6 @@ import json
 import re
 
 import apache_beam as beam
-
 import datasets
 
 
@@ -51,7 +50,7 @@ _DOWNLOAD_URLS = {
     "validation": ["%s/dev/nq-dev-%02d.jsonl.gz" % (_BASE_DOWNLOAD_URL, i) for i in range(5)],
 }
 
-_VERSION = datasets.Version("0.0.3")
+_VERSION = datasets.Version("0.0.4")
 
 
 class NaturalQuestions(datasets.BeamBasedBuilder):
@@ -81,6 +80,15 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
                         "text": datasets.Value("string"),
                         "tokens": datasets.features.Sequence(datasets.Value("string")),
                     },
+                    "long_answer_candidates": datasets.features.Sequence(
+                        {
+                            "start_token": datasets.Value("int64"),
+                            "end_token": datasets.Value("int64"),
+                            "start_byte": datasets.Value("int64"),
+                            "end_byte": datasets.Value("int64"),
+                            "top_level": datasets.Value("bool"),
+                        }
+                    ),
                     "annotations": datasets.features.Sequence(
                         {
                             "id": datasets.Value("string"),
@@ -183,6 +191,7 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
                         ],
                     },
                     "question": {"text": ex_json["question_text"], "tokens": ex_json["question_tokens"]},
+                    "long_answer_candidates": [lac_json for lac_json in ex_json["long_answer_candidates"]],
                     "annotations": [_parse_annotation(an_json) for an_json in ex_json["annotations"]],
                 },
             )
