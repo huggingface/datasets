@@ -14,14 +14,14 @@ pretty_name: ImageNet-Sketch
 size_categories:
 - 10K<n<100K
 source_datasets:
-- original
+- extended|imagenet-1k
 task_categories:
 - image-classification
 task_ids:
 - multi-class-image-classification
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for ImageNet-Sketch
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -52,16 +52,16 @@ task_ids:
 
 - **Homepage:** https://github.com/HaohanWang/ImageNet-Sketch
 - **Repository:** https://github.com/HaohanWang/ImageNet-Sketch
-- **Paper:** https://arxiv.org/abs/1905.13549v2
-- **Leaderboard:** https://paperswithcode.com/sota/domain-generalization-on-imagenet-sketch
-- **Point of Contact:**
+- **Paper:** [Learning Robust Global Representations by Penalizing Local Predictive Power](https://arxiv.org/abs/1905.13549v2)
+- **Leaderboard:** https://github.com/HaohanWang/ImageNet-Sketch#imagenet-sketch-leaderboard
+- **Point of Contact:** [Haohan Wang](mailto:haohanw@andrew.cmu.edu)
 - **Size of downloaded dataset files:** 7.59 GB
 
 ### Dataset Summary
 
 ImageNet-Sketch data set consists of 50000 images, 50 images for each of the 1000 ImageNet classes. We construct the data set with Google Image queries "sketch of __", where __ is the standard class name. We only search within the "black and white" color scheme. We initially query 100 images for every class, and then manually clean the pulled images by deleting the irrelevant images and images that are for similar but different classes. For some classes, there are less than 50 images after manually cleaning, and then we augment the data set by flipping and rotating the images.
 
-This github repository consists of the scripts we used to conduct query and clean images.
+The scripts used to conduct query and image cleaning can be found in [the GitHub repository](https://github.com/HaohanWang/ImageNet-Sketch).
 
 
 ### Supported Tasks and Leaderboards
@@ -1114,27 +1114,40 @@ The labels are indexed based on a sorted list of synset ids such as `n07565083` 
 
 ### Curation Rationale
 
-[More Information Needed]
+From the paper:
+> Inspired by the Sketch data of (Li et al., 2017a) with seven classes, and several other Sketch datasets,
+such as the Sketchy dataset (Sangkloy et al., 2016) with 125 classes and the Quick Draw! dataset
+(QuickDraw, 2018) with 345 classes, and motivated by absence of a large-scale sketch dataset fitting
+the shape and size of popular image classification benchmarks, we construct the ImageNet-Sketch
+data set for evaluating the out-of-domain classification performance of vision models trained on
+ImageNet.
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+The initial data collection and normalization is inherited from ImageNet. More information on it can be found [here](https://huggingface.co/datasets/imagenet-1k#initial-data-collection-and-normalization).
+
+Additional preprocessing from the paper:
+> We construct the data set with Google Image queries “sketch of ”, where is the
+standard class name. We only search within the “black and white” color scheme. We initially query
+100 images for every class, and then manually clean the pulled images by deleting the irrelevant
+images and images that are for similar but different classes. For some classes, there are less than 50
+images after manually cleaning, and then we augment the data set by flipping and rotating the images.
 
 #### Who are the source language producers?
 
-[More Information Needed]
+The source language is inherited from ImageNet. More information on the source language produces can be found [here](https://huggingface.co/datasets/imagenet-1k#who-are-the-source-language-producers).
 
 ### Annotations
 
 #### Annotation process
 
-[More Information Needed]
+The annotations are inherited from ImageNet. More information about the process can be found [here](https://huggingface.co/datasets/imagenet-1k#annotation-process).
 
 #### Who are the annotators?
 
-[More Information Needed]
+The same as in [ImageNet](https://huggingface.co/datasets/imagenet-1k#who-are-the-annotators).
 
 ### Personal and Sensitive Information
 
