@@ -240,20 +240,20 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
         idx = 0
         for subject in subject_dirs:
             subject_id = int(subject)
-            subject_path = os.path.join(data_path, subject, "")
+            subject_path = os.path.join(data_path, subject)
 
             if self.config.name == "asf-amc":
                 asf_file = os.path.join(subject_path, subject + ".asf")
-                files = glob.glob(subject_path + "*.amc")
+                files = glob.glob(os.path.join(subject_path, "*.amc"))
 
             if self.config.name == "c3d":
-                files = glob.glob(subject_path + "*.c3d")
+                files = glob.glob(os.path.join(subject_path, "*.c3d"))
 
             if self.config.name == "mpg":
-                files = glob.glob(subject_path + "*.mpg")
+                files = glob.glob(os.path.join(subject_path, "*.mpg"))
 
             if self.config.name == "avi":
-                files = glob.glob(subject_path + "*.avi")
+                files = glob.glob(os.path.join(subject_path, "*.avi"))
 
             categories, subcategories, descriptions = self._get_category_subcategory_info(files, subject_id_to_details)
 
