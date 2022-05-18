@@ -20,7 +20,7 @@ import pytest
 
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.utils.logging import get_logger
-from datasets.utils.metadata import DatasetMetadata
+from datasets.utils.metadata import DatasetMetadata, yaml_block_from_readme
 from datasets.utils.readme import ReadMe
 
 from .utils import slow
@@ -46,12 +46,13 @@ def get_changed_datasets(repo_path: Path) -> List[Path]:
 
 
 def get_all_datasets(repo_path: Path) -> List[Path]:
-    dataset_names = [path.parts[-1] for path in (repo_path / "datasets").iterdir()]
+    dataset_names = [path.parts[-1] for path in (repo_path / "datasets").iterdir() if path.is_dir()]
     return [dataset_name for dataset_name in dataset_names if dataset_name not in _PACKAGED_DATASETS_MODULES]
 
 
 @pytest.mark.parametrize("dataset_name", get_changed_datasets(repo_path))
 def test_changed_dataset_card(dataset_name):
+    """Validate the content of the dataset cards that were changed"""
     card_path = repo_path / "datasets" / dataset_name / "README.md"
     assert card_path.exists()
     error_messages = []
@@ -80,9 +81,23 @@ def test_changed_dataset_card(dataset_name):
         raise ValueError("\n".join(error_messages))
 
 
+@pytest.mark.parametrize("dataset_name", get_all_datasets(repo_path))
+def test_dataset_card_yaml_structure(dataset_name):
+    """
+    Just check that the dataset cards have valid YAML.
+    It doesn't validate the content.
+    """
+    card_path = repo_path / "datasets" / dataset_name / "README.md"
+    assert card_path.exists()
+    yaml_string = yaml_block_from_readme(card_path)
+    metadata_dict = DatasetMetadata._metadata_dict_from_yaml_string(yaml_string)
+    assert len(metadata_dict) > 0
+
+
 @slow
 @pytest.mark.parametrize("dataset_name", get_all_datasets(repo_path))
 def test_dataset_card(dataset_name):
+    """Validate the content of the dataset cards"""
     card_path = repo_path / "datasets" / dataset_name / "README.md"
     assert card_path.exists()
     error_messages = []
