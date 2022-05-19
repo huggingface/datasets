@@ -287,7 +287,7 @@ class TedLium(datasets.GeneratorBasedBuilder):
                                 speaker_file = fn
                                 audio_file = os.path.join(split_dir, speaker_file + ".sph")
                                 segment, sampling_rate = sf.read(audio_file, dtype=np.int16)
-                            samples = _extract_audio_segment(segment, int(channel), float(start), float(end))
+                            samples = _extract_audio_segment(segment, sampling_rate, float(start), float(end))
                             key = "-".join([speaker, start, end, label])
                             example = {
                                 "audio": {"path": audio_file, "array": samples, "sampling_rate": sampling_rate},
@@ -368,13 +368,12 @@ def _maybe_trim_suffix(transcript):
     return transcript
 
 
-def _extract_audio_segment(segment, channel, start_sec, end_sec):
+def _extract_audio_segment(segment, sampling_rate, start_sec, end_sec):
     """Extracts segment of audio samples (as an ndarray) from the given segment."""
     # The dataset only contains mono audio.
-    assert channel == 1
-    start_ms = int(start_sec * 1000)
-    end_ms = int(end_sec * 1000)
-    samples = segment[start_ms:end_ms]
+    start_sample = int(start_sec * sampling_rate)
+    end_sample = min(int(end_sec * sampling_rate), segment.shape[0])
+    samples = segment[start_sample:end_sample]
     return samples
 
 
