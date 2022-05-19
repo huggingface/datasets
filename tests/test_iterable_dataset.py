@@ -37,8 +37,8 @@ SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"  # has dataset script
 def generate_examples_fn(**kwargs):
     kwargs = kwargs.copy()
     n = kwargs.pop("n", DEFAULT_N_EXAMPLES)
-    filepaths = kwargs.pop("filepaths", [DEFAULT_FILEPATH])
-    for filepath in filepaths:
+    filepaths = kwargs.pop("filepaths", None)
+    for filepath in filepaths or [DEFAULT_FILEPATH]:
         if filepaths is not None:
             kwargs["filepath"] = filepath
         for i in range(n):

@@ -20,14 +20,7 @@ from .utils.streaming_download_manager import (
     xopen,
     xpandas_read_csv,
     xpandas_read_excel,
-    xpathglob,
-    xpathjoin,
-    xpathname,
-    xpathopen,
-    xpathparent,
-    xpathrglob,
-    xpathstem,
-    xpathsuffix,
+    xPath,
     xrelpath,
     xsio_loadmat,
     xsplit,
@@ -92,15 +85,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     patch_submodule(module, "os.path.isfile", wrap_auth(xisfile)).start()
     patch_submodule(module, "os.path.getsize", wrap_auth(xgetsize)).start()
     if hasattr(module, "Path"):
-        patch.object(module.Path, "joinpath", xpathjoin).start()
-        patch.object(module.Path, "__truediv__", xpathjoin).start()
-        patch.object(module.Path, "open", wrap_auth(xpathopen)).start()
-        patch.object(module.Path, "glob", wrap_auth(xpathglob)).start()
-        patch.object(module.Path, "rglob", wrap_auth(xpathrglob)).start()
-        patch.object(module.Path, "parent", property(fget=xpathparent)).start()
-        patch.object(module.Path, "name", property(fget=xpathname)).start()
-        patch.object(module.Path, "stem", property(fget=xpathstem)).start()
-        patch.object(module.Path, "suffix", property(fget=xpathsuffix)).start()
+        patch_submodule(module, "Path", xPath).start()
     patch_submodule(module, "pd.read_csv", wrap_auth(xpandas_read_csv), attrs=["__version__"]).start()
     patch_submodule(module, "pd.read_excel", xpandas_read_excel, attrs=["__version__"]).start()
     patch_submodule(module, "sio.loadmat", wrap_auth(xsio_loadmat), attrs=["__version__"]).start()
