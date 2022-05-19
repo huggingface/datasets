@@ -5,7 +5,6 @@ import os
 import pickle
 import re
 import tempfile
-import unittest
 from functools import partial
 from pathlib import Path
 from unittest import TestCase
@@ -17,7 +16,6 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 from absl.testing import parameterized
-from sklearn.model_selection import train_test_split
 
 import datasets.arrow_dataset
 from datasets import concatenate_datasets, interleave_datasets, load_from_disk
