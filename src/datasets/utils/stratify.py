@@ -51,7 +51,7 @@ def approximate_mode(class_counts, n_draws, rng):
     return floored.astype(np.int)
 
 
-def stratified_shuffle_split_generate_indices(y, stratify, n_train, n_test, rng, n_splits=10):
+def stratified_shuffle_split_generate_indices(y, n_train, n_test, rng, n_splits=10):
     """
 
     Provides train/test indices to split data in train/test sets.
@@ -78,12 +78,7 @@ def stratified_shuffle_split_generate_indices(y, stratify, n_train, n_test, rng,
     n_classes = classes.shape[0]
     class_counts = np.bincount(y_indices)
     if np.min(class_counts) < 2:
-        raise ValueError(
-            f"The least populated class in {stratify} column has only 1"
-            " member, which is too few. The minimum"
-            " number of groups for any class cannot"
-            " be less than 2."
-        )
+        raise ValueError("Minimum class count error")
     if n_train < n_classes:
         raise ValueError(
             "The train_size = %d should be greater or " "equal to the number of classes = %d" % (n_train, n_classes)
