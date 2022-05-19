@@ -46,6 +46,8 @@ _TXT_DOWNLOAD_URL = "https://unicode.org/udhr/assemblies/udhr_txt.zip"
 class UDHN(datasets.GeneratorBasedBuilder):
     """Universal Declaration of Human Rights"""
 
+    VERSION = datasets.Version("1.2022.0519")
+
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
