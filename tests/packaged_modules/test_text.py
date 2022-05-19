@@ -26,10 +26,10 @@ def text_file(tmp_path):
 
 
 @pytest.fixture
-def text_file_with_image(tmp_path, image_path):
+def text_file_with_image(tmp_path, image_file):
     filename = tmp_path / "text_with_image.txt"
     with open(filename, "w", encoding="utf-8") as f:
-        f.write(image_path)
+        f.write(image_file)
     return str(filename)
 
 

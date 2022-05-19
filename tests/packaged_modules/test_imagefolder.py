@@ -18,9 +18,9 @@ def cache_dir(tmp_path):
 
 
 @pytest.fixture
-def image_file_with_metadata(tmp_path, image_path):
+def image_file_with_metadata(tmp_path, image_file):
     image_filename = tmp_path / "image_rgb.jpg"
-    shutil.copyfile(image_path, image_filename)
+    shutil.copyfile(image_file, image_filename)
     image_metadata_filename = tmp_path / "metadata.jsonl"
     image_metadata = textwrap.dedent(
         """\

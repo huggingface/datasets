@@ -41,12 +41,12 @@ def malformed_csv_file(tmp_path):
 
 
 @pytest.fixture
-def csv_file_with_image(tmp_path, image_path):
+def csv_file_with_image(tmp_path, image_file):
     filename = tmp_path / "csv_with_image.csv"
     data = textwrap.dedent(
         f"""\
         image
-        {image_path}
+        {image_file}
         """
     )
     with open(filename, "w") as f:
