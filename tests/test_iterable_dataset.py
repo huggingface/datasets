@@ -4,6 +4,7 @@ from itertools import chain, islice
 import numpy as np
 import pytest
 
+from datasets import load_dataset
 from datasets.combine import interleave_datasets
 from datasets.features import ClassLabel, Features, Value
 from datasets.info import DatasetInfo
@@ -30,11 +31,14 @@ from .utils import is_rng_equal, require_torch
 DEFAULT_N_EXAMPLES = 20
 DEFAULT_FILEPATH = "file.txt"
 
+SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"  # has dataset script
+
 
 def generate_examples_fn(**kwargs):
+    kwargs = kwargs.copy()
     n = kwargs.pop("n", DEFAULT_N_EXAMPLES)
-    filepaths = kwargs.pop("filepaths", None)
-    for filepath in filepaths or [DEFAULT_FILEPATH]:
+    filepaths = kwargs.pop("filepaths", [DEFAULT_FILEPATH])
+    for filepath in filepaths:
         if filepaths is not None:
             kwargs["filepath"] = filepath
         for i in range(n):
@@ -528,8 +532,38 @@ def test_iterable_dataset_torch_dataloader_parallel():
 
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
     dataset = iterable_dataset(ex_iterable).with_format("torch")
-    dataloader = DataLoader(dataset, num_workers=2)
-    assert len(list(dataloader)) == len(list(ex_iterable))
+    dataloader = DataLoader(dataset, num_workers=2, batch_size=None)
+    result = list(dataloader)
+    expected = [example for _, example in ex_iterable]
+    assert len(result) == len(expected)
+    assert set(str(x) for x in result) == set(str(x) for x in expected)
+
+
+@require_torch
+@pytest.mark.parametrize("n_shards, num_workers", [(2, 1), (2, 2), (3, 2), (2, 3)])
+def test_sharded_iterable_dataset_torch_dataloader_parallel(n_shards, num_workers):
+    from torch.utils.data import DataLoader
+
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}.txt" for i in range(n_shards)]})
+    dataset = iterable_dataset(ex_iterable).with_format("torch")
+    dataloader = DataLoader(dataset, batch_size=None, num_workers=num_workers)
+    result = list(dataloader)
+    expected = [example for _, example in ex_iterable]
+    assert len(result) == len(expected)
+    assert set(str(x) for x in result) == set(str(x) for x in expected)
+
+
+@require_torch
+@pytest.mark.parametrize("num_workers", [1, 2])
+def test_iterable_dataset_from_hub_torch_dataloader_parallel(num_workers, tmp_path):
+    from torch.utils.data import DataLoader
+
+    dataset = load_dataset(
+        SAMPLE_DATASET_IDENTIFIER, cache_dir=str(tmp_path), streaming=True, split="train"
+    ).with_format("torch")
+    dataloader = DataLoader(dataset, batch_size=None, num_workers=num_workers)
+    result = list(dataloader)
+    assert len(result) == 2
 
 
 def test_iterable_dataset_info():

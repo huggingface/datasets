@@ -20,13 +20,7 @@ from typing import Dict, List, Mapping, Optional, Sequence, Union
 import huggingface_hub
 
 from .info import DatasetInfo
-from .load import (
-    dataset_module_factory,
-    extend_dataset_builder_for_streaming,
-    import_main_class,
-    load_dataset_builder,
-    metric_module_factory,
-)
+from .load import dataset_module_factory, import_main_class, load_dataset_builder, metric_module_factory
 from .utils import DownloadConfig
 from .utils.download_manager import DownloadMode
 from .utils.logging import get_logger
@@ -268,7 +262,6 @@ def get_dataset_config_info(
         use_auth_token=use_auth_token,
         **config_kwargs,
     )
-    extend_dataset_builder_for_streaming(builder, use_auth_token=use_auth_token)
     info = builder.info
     if info.splits is None:
         try:

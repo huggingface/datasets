@@ -46,22 +46,22 @@ class _BaseExamplesIterable:
 
     def __iter__(self):
         """An examples iterable should yield tuples (example_key, example) of type (int/str, dict)"""
-        raise NotImplementedError()
+        raise NotImplementedError(f"{type(self)} doesn't implement __iter__ yet")
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "_BaseExamplesIterable":
         """
         Either shuffle the shards/sources of the dataset, or propagate the shuffling to the underlying iterable.
         If the order of the shards must stay fixed (when using .skip or .take for example), then this method returns self.
         """
-        raise NotImplementedError()
+        raise NotImplementedError(f"{type(self)} doesn't implement shuffle_data_sources yet")
 
     def shard_data_sources(self, shard_idx: int) -> "_BaseExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
-        raise NotImplementedError()
+        raise NotImplementedError(f"{type(self)} doesn't implement shard_data_sources yet")
 
     @property
     def n_shards(self) -> int:
-        raise NotImplementedError()
+        raise NotImplementedError(f"{type(self)} doesn't implement n_shards yet")
 
 
 def _shuffle_kwargs(rng: np.random.Generator, kwargs: dict) -> dict:
@@ -85,7 +85,7 @@ def _shuffle_kwargs(rng: np.random.Generator, kwargs: dict) -> dict:
 
 def _shard_kwargs(shard_idx: int, kwargs: dict) -> dict:
     """Return a copy of the input kwargs but with only one shard"""
-    return {key: value[shard_idx] if isinstance(value, list) else value for key, value in kwargs.items}
+    return {key: [value[shard_idx]] if isinstance(value, list) else value for key, value in kwargs.items()}
 
 
 class ExamplesIterable(_BaseExamplesIterable):
@@ -101,7 +101,7 @@ class ExamplesIterable(_BaseExamplesIterable):
 
     def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
         """Keep only the requested shard."""
-        kwargs_with_requested_data_source = _shuffle_kwargs(shard_idx, self.kwargs)
+        kwargs_with_requested_data_source = _shard_kwargs(shard_idx, self.kwargs)
         yield from self.generate_examples_fn(**kwargs_with_requested_data_source)
 
     @property

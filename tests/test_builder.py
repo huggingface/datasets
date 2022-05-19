@@ -1,6 +1,8 @@
+import importlib
 import os
 import tempfile
 import types
+from multiprocessing import Process
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
@@ -12,10 +14,12 @@ from multiprocess.pool import Pool
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_writer import ArrowWriter
 from datasets.builder import BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
-from datasets.dataset_dict import DatasetDict
+from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.features import Features, Value
 from datasets.info import DatasetInfo, PostProcessedInfo
+from datasets.iterable_dataset import IterableDataset
 from datasets.splits import Split, SplitDict, SplitGenerator, SplitInfo
+from datasets.streaming import xjoin
 from datasets.utils.download_manager import DownloadMode
 
 from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_faiss
@@ -126,6 +130,12 @@ def _run_concurrent_download_and_prepare(tmp_dir):
     dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
     dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.REUSE_DATASET_IF_EXISTS)
     return dummy_builder
+
+
+def check_streaming(builder):
+    builders_module = importlib.import_module(builder.__module__)
+    assert builders_module._patched_for_streaming
+    assert builders_module.os.path.join is xjoin
 
 
 class BuilderTest(TestCase):
@@ -777,3 +787,29 @@ def test_custom_writer_batch_size(tmp_path, writer_batch_size, default_writer_ba
     dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD)
     dataset = dummy_builder.as_dataset("train")
     assert len(dataset.data[0].chunks) == expected_chunks
+
+
+def test_builder_as_streaming_dataset(tmp_path):
+    dummy_builder = DummyGeneratorBasedBuilder(cache_dir=str(tmp_path))
+    check_streaming(dummy_builder)
+    dsets = dummy_builder.as_streaming_dataset()
+    assert isinstance(dsets, IterableDatasetDict)
+    assert isinstance(dsets["train"], IterableDataset)
+    assert len(list(dsets["train"])) == 100
+    dset = dummy_builder.as_streaming_dataset(split="train")
+    assert isinstance(dset, IterableDataset)
+    assert len(list(dset)) == 100
+
+
+def _run_test_builder_streaming_works_in_subprocesses(builder):
+    check_streaming(builder)
+    dset = builder.as_streaming_dataset(split="train")
+    assert isinstance(dset, IterableDataset)
+    assert len(list(dset)) == 100
+
+
+def test_builder_streaming_works_in_subprocess(tmp_path):
+    dummy_builder = DummyGeneratorBasedBuilder(cache_dir=str(tmp_path))
+    p = Process(target=_run_test_builder_streaming_works_in_subprocesses, args=(dummy_builder,))
+    p.start()
+    p.join()

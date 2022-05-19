@@ -45,6 +45,7 @@ from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
+from .streaming import extend_dataset_builder_for_streaming
 from .utils import logging
 from .utils.download_manager import DownloadManager, DownloadMode
 from .utils.file_utils import DownloadConfig, cached_path, is_remote_url
@@ -310,6 +311,17 @@ class DatasetBuilder:
 
         # Record infos even if verify_infos=False; used by "datasets-cli test" to generate dataset_infos.json
         self._record_infos = False
+
+        # Enable streaming (e.g. it patches "open" to work with remote files)
+        extend_dataset_builder_for_streaming(self)
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, d):
+        self.__dict__ = d
+        # Re-enable streaming, since patched functions are not kept when pickling
+        extend_dataset_builder_for_streaming(self)
 
     # Must be set for datasets that use 'data_dir' functionality - the ones
     # that require users to do additional steps to download the data
