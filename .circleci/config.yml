@@ -47,6 +47,7 @@ jobs:
                 conda init powershell
                 conda update conda
                 conda create -n py37 python=3.7 pytorch --yes
+                git config --system core.longpaths true
             - run: |
                 conda activate py37
                 pip install .[tests]
