@@ -847,7 +847,7 @@ class ClassLabel:
             values = [values]
             return_list = False
 
-        output = [self._strvalue2int(value) for value in values]
+        output = [self._strval2int(value) for value in values]
         return output if return_list else output[0]
 
     def _strval2int(self, value: str):

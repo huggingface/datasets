@@ -70,6 +70,7 @@ class Text(datasets.ArrowBasedBuilder):
             return pa_table.cast(pa.schema({"text": pa.string()}))
 
     def _generate_tables(self, files):
+        pa_table_names = list(self.config.features) if self.config.features is not None else ["text"]
         for file_idx, file in enumerate(files):
             # open in text mode, by default translates universal newlines ("\n", "\r\n" and "\r") into "\n"
             with open(file, encoding=self.config.encoding) as f:
@@ -84,7 +85,7 @@ class Text(datasets.ArrowBasedBuilder):
                         batch = StringIO(batch).readlines()
                         if not self.config.keep_linebreaks:
                             batch = [line.rstrip("\n") for line in batch]
-                        pa_table = pa.Table.from_arrays([pa.array(batch)], names=["text"])
+                        pa_table = pa.Table.from_arrays([pa.array(batch)], names=pa_table_names)
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
@@ -100,7 +101,7 @@ class Text(datasets.ArrowBasedBuilder):
                         batch += f.readline()  # finish current line
                         batch = batch.split("\n\n")
                         pa_table = pa.Table.from_arrays(
-                            [pa.array([example for example in batch[:-1] if example])], names=["text"]
+                            [pa.array([example for example in batch[:-1] if example])], names=pa_table_names
                         )
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
@@ -110,5 +111,5 @@ class Text(datasets.ArrowBasedBuilder):
                         batch = batch[-1]
                 elif self.config.sample_by == "document":
                     text = f.read()
-                    pa_table = pa.Table.from_arrays([pa.array([text])], names=["text"])
+                    pa_table = pa.Table.from_arrays([pa.array([text])], names=pa_table_names)
                     yield file_idx, self._cast_table(pa_table)
