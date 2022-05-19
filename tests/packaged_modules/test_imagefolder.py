@@ -1,4 +1,3 @@
-import os
 import shutil
 import textwrap
 
@@ -19,14 +18,9 @@ def cache_dir(tmp_path):
 
 
 @pytest.fixture
-def image_file():
-    return os.path.join(os.path.dirname(__file__), "..", "features", "data", "test_image_rgb.jpg")
-
-
-@pytest.fixture
-def image_file_with_metadata(tmp_path, image_file):
+def image_file_with_metadata(tmp_path, image_path):
     image_filename = tmp_path / "image_rgb.jpg"
-    shutil.copyfile(image_file, image_filename)
+    shutil.copyfile(image_path, image_filename)
     image_metadata_filename = tmp_path / "metadata.jsonl"
     image_metadata = textwrap.dedent(
         """\
