@@ -1296,7 +1296,7 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
         return hasattr(feature, "decode_example") and (feature.decode if not ignore_decode_attribute else True)
 
 
-def require_cast_storage(feature: FeatureType) -> bool:
+def require_storage_cast(feature: FeatureType) -> bool:
     """Check if a (possibly nested) feature requires storage casting.
 
     Args:
@@ -1305,11 +1305,11 @@ def require_cast_storage(feature: FeatureType) -> bool:
         :obj:`bool`
     """
     if isinstance(feature, dict):
-        return any(require_decoding(f) for f in feature.values())
+        return any(require_storage_cast(f) for f in feature.values())
     elif isinstance(feature, (list, tuple)):
-        return require_decoding(feature[0])
+        return require_storage_cast(feature[0])
     elif isinstance(feature, Sequence):
-        return require_decoding(feature.feature)
+        return require_storage_cast(feature.feature)
     else:
         return hasattr(feature, "cast_storage")
 

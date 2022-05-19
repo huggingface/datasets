@@ -7,7 +7,7 @@ import pyarrow as pa
 import pyarrow.json as paj
 
 import datasets
-from datasets.features.features import require_cast_storage
+from datasets.features.features import require_storage_cast
 from datasets.table import table_cast
 from datasets.utils.file_utils import readline
 
@@ -68,7 +68,7 @@ class Json(datasets.ArrowBasedBuilder):
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.config.features is not None:
             schema = self.config.schema
-            if all(not require_cast_storage(feature) for feature in self.config.features.values()):
+            if all(not require_storage_cast(feature) for feature in self.config.features.values()):
                 # cheaper cast
                 pa_table = pa.Table.from_arrays([pa_table[field.name] for field in schema], schema=schema)
             else:

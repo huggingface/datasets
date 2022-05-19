@@ -7,7 +7,7 @@ from typing_extensions import Literal
 
 import datasets
 import datasets.config
-from datasets.features.features import require_cast_storage
+from datasets.features.features import require_storage_cast
 from datasets.table import table_cast
 
 
@@ -155,7 +155,7 @@ class Csv(datasets.ArrowBasedBuilder):
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.config.features is not None:
             schema = self.config.schema
-            if all(not require_cast_storage(feature) for feature in self.config.features.values()):
+            if all(not require_storage_cast(feature) for feature in self.config.features.values()):
                 # cheaper cast
                 pa_table = pa.Table.from_arrays([pa_table[field.name] for field in schema], schema=schema)
             else:
@@ -168,7 +168,7 @@ class Csv(datasets.ArrowBasedBuilder):
         # dtype allows reading an int column as str
         dtype = (
             {
-                name: dtype.to_pandas_dtype() if not require_cast_storage(feature) else object
+                name: dtype.to_pandas_dtype() if not require_storage_cast(feature) else object
                 for name, dtype, feature in zip(schema.names, schema.types, self.config.features.values())
             }
             if schema
