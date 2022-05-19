@@ -20,7 +20,7 @@ import pytest
 
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.utils.logging import get_logger
-from datasets.utils.metadata import DatasetMetadata, yaml_block_from_readme
+from datasets.utils.metadata import DatasetMetadata, validate_metadata_type, yaml_block_from_readme
 from datasets.utils.readme import ReadMe
 
 from .utils import slow
@@ -92,6 +92,7 @@ def test_dataset_card_yaml_structure(dataset_name):
     yaml_string = yaml_block_from_readme(card_path)
     metadata_dict = DatasetMetadata._metadata_dict_from_yaml_string(yaml_string)
     assert len(metadata_dict) > 0
+    validate_metadata_type(metadata_dict)
 
 
 @slow

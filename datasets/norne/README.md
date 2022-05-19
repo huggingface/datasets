@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-- false
+- "no"
 licenses:
 - other-national-library-of-norway
 multilinguality:

@@ -10,16 +10,16 @@ licenses:
 multilinguality:
 - monolingual
 pretty_name: SpeechCommands
-size_categories:
 source_datasets:
 - original
 task_categories:
 - audio-classification
 task_ids:
 - keyword-spotting
+size_categories:
+- 100K<n<1M
+- 10K<n<100
 configs:
--   - 100K<n<1
--   - 10K<n<100
 - v0.01
 - v0.02
 ---

@@ -20,12 +20,10 @@ task_categories:
 task_ids:
 - text2text-generation-other-grammatical-error-correction
 paperswithcode_id: locness-corpus
-pretty_name:
+pretty_name: Cambridge English Write & Improve + LOCNESS
 configs:
 - locness
-- locness: LOCNES
 - wi
-- wi: Cambridge English Write & Improv
 ---
 
 # Dataset Card for Cambridge English Write & Improve + LOCNESS Dataset
