@@ -850,7 +850,7 @@ class ClassLabel:
         output = [self._strvalue2int(value) for value in values]
         return output if return_list else output[0]
 
-    def _strvalue2int(self, value: str):
+    def _strval2int(self, value: str):
         failed_parse = False
         value = str(value)
         # first attempt - raw string value
@@ -928,7 +928,7 @@ class ClassLabel:
                 )
         elif isinstance(storage, pa.StringArray):
             storage = pa.array(
-                [self._strvalue2int(label) if label is not None else None for label in storage.to_pylist()]
+                [self._strval2int(label) if label is not None else None for label in storage.to_pylist()]
             )
         return array_cast(storage, self.pa_type)
 
