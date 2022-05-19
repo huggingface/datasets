@@ -222,7 +222,7 @@ def test_mapped_examples_iterable(n, func, batch_size):
         (3, lambda x: {k: v * 2 for k, v in x.items()}, 1),  # make a duplicate of each example
     ],
 )
-def test_mapped_examples_iterable_drop_last_batch(generate_examples_fn, n, func, batch_size):
+def test_mapped_examples_iterable_drop_last_batch(n, func, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size, drop_last_batch=True

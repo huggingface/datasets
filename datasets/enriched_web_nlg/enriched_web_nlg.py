@@ -20,7 +20,6 @@ import os
 import xml.etree.cElementTree as ET
 from collections import defaultdict
 from glob import glob
-from os.path import join as pjoin
 
 import datasets
 
@@ -230,7 +229,7 @@ class EnrichedWebNlg(datasets.GeneratorBasedBuilder):
 
         id_ = 0
         for xml_location in filedirs:
-            for xml_file in sorted(glob(pjoin(xml_location, "*.xml"))):
+            for xml_file in sorted(glob(os.path.join(xml_location, "*.xml"))):
                 for exple_dict in xml_file_to_examples(xml_file, self.config.name):
                     id_ += 1
                     yield id_, exple_dict

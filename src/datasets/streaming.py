@@ -2,7 +2,6 @@ import importlib
 import inspect
 from functools import wraps
 from typing import TYPE_CHECKING, Optional, Union
-from unittest.mock import patch
 
 from .utils.logging import get_logger
 from .utils.patching import patch_submodule

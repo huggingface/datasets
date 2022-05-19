@@ -530,7 +530,7 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
             yield "::".join([f"{fs.protocol}://{dirpath}"] + rest_hops), dirnames, filenames
 
 
-class xPath(Path):
+class xPath(type(Path())):
     def glob(self, pattern, use_auth_token: Optional[Union[str, bool]] = None):
         """Glob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
@@ -575,6 +575,7 @@ class xPath(Path):
         """
         return self.glob("**/" + pattern, **kwargs)
 
+    @property
     def parent(self) -> "xPath":
         """Name function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
@@ -586,6 +587,7 @@ class xPath(Path):
         """
         return type(self)(xdirname(_as_posix(self)))
 
+    @property
     def name(self) -> PurePosixPath:
         """Name function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
@@ -597,6 +599,7 @@ class xPath(Path):
         """
         return PurePosixPath(_as_posix(self).split("::")[0]).name
 
+    @property
     def stem(self) -> PurePosixPath:
         """Stem function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
@@ -608,6 +611,7 @@ class xPath(Path):
         """
         return PurePosixPath(_as_posix(self).split("::")[0]).stem
 
+    @property
     def suffix(self) -> PurePosixPath:
         """Suffix function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
