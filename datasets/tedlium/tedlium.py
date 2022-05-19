@@ -109,7 +109,6 @@ def _make_builder_configs():
             "train": [
                 _DL_URL + os.path.join("TEDLIUM_release2", "train_1.tar.gz"),
                 _DL_URL + os.path.join("TEDLIUM_release2", "train_2.tar.gz"),
-                _DL_URL + os.path.join("TEDLIUM_release2", "train_3.tar.gz"),
             ],
             "validation": [_DL_URL + os.path.join("TEDLIUM_release2", "dev.tar.gz")],
             "test": [_DL_URL + os.path.join("TEDLIUM_release2", "test.tar.gz")],
@@ -165,9 +164,6 @@ def _make_builder_configs():
             "train": [
                 _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "train_1.tar.gz"),
                 _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "train_2.tar.gz"),
-                _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "train_3.tar.gz"),
-                _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "train_4.tar.gz"),
-                _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "train_5.tar.gz"),
             ],
             "validation": [_DL_URL + os.path.join("TEDLIUM_release3", "legacy", "dev.tar.gz")],
             "test": [_DL_URL + os.path.join("TEDLIUM_release3", "legacy", "test.tar.gz")],
@@ -206,9 +202,6 @@ def _make_builder_configs():
             "train": [
                 _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_1.tar.gz"),
                 _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_2.tar.gz"),
-                _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_3.tar.gz"),
-                _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_4.tar.gz"),
-                _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_5.tar.gz"),
             ],
             "validation": [_DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "dev.tar.gz")],
             "test": [_DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "test.tar.gz")],
