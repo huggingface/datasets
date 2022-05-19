@@ -106,9 +106,11 @@ def _make_builder_configs():
         """,
         url="https://www.openslr.org/19/",
         download_urls={
-            "train": [_DL_URL + os.path.join("TEDLIUM_release2", "train_1.tar.gz"),
-                      _DL_URL + os.path.join("TEDLIUM_release2", "train_2.tar.gz"),
-                      _DL_URL + os.path.join("TEDLIUM_release2", "train_3.tar.gz")],
+            "train": [
+                _DL_URL + os.path.join("TEDLIUM_release2", "train_1.tar.gz"),
+                _DL_URL + os.path.join("TEDLIUM_release2", "train_2.tar.gz"),
+                _DL_URL + os.path.join("TEDLIUM_release2", "train_3.tar.gz"),
+            ],
             "validation": [_DL_URL + os.path.join("TEDLIUM_release2", "dev.tar.gz")],
             "test": [_DL_URL + os.path.join("TEDLIUM_release2", "test.tar.gz")],
         },
@@ -165,6 +167,7 @@ def _make_builder_configs():
                 _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "train_2.tar.gz"),
                 _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "train_3.tar.gz"),
                 _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "train_4.tar.gz"),
+                _DL_URL + os.path.join("TEDLIUM_release3", "legacy", "train_5.tar.gz"),
             ],
             "validation": [_DL_URL + os.path.join("TEDLIUM_release3", "legacy", "dev.tar.gz")],
             "test": [_DL_URL + os.path.join("TEDLIUM_release3", "legacy", "test.tar.gz")],
@@ -200,10 +203,13 @@ def _make_builder_configs():
             """,
         url="https://www.openslr.org/51/",
         download_urls={
-            "train": [_DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_1.tar.gz"),
-                      _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_2.tar.gz"),
-                      _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_3.tar.gz"),
-                      _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_4.tar.gz")],
+            "train": [
+                _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_1.tar.gz"),
+                _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_2.tar.gz"),
+                _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_3.tar.gz"),
+                _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_4.tar.gz"),
+                _DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "train_5.tar.gz"),
+            ],
             "validation": [_DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "dev.tar.gz")],
             "test": [_DL_URL + os.path.join("TEDLIUM_release3", "speaker-adaptation", "test.tar.gz")],
         },
@@ -266,7 +272,6 @@ class TedLium(datasets.GeneratorBasedBuilder):
                 # The stm directory houses the speaker and transcription information in .stm format
                 split_dir = os.path.join(local_archive, split_path)
                 stm_files = [os.path.join(split_dir, f) for f in os.listdir(split_dir) if f.endswith(".stm")]
-                import ipdb; ipdb.set_trace()
                 for file in stm_files:
                     # the .sph speaker file almost always has the same file name as the .stm file
                     speaker_file = Path(file).stem
