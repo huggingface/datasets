@@ -18,8 +18,8 @@ size_categories:
 source_datasets: []
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
+- text-scoring
 - sentiment-classification
 - sentiment-scoring
 paperswithcode_id: sst

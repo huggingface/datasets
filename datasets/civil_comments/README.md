@@ -66,8 +66,6 @@ dataset is released under CC0, as is the underlying comment text.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

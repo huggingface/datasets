@@ -15,12 +15,14 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- sequence-modeling
+- conversational
+- text-generation
+- fill-mask
 task_ids:
-- conditional-text-generation-other-dialogue-generation
+- dialogue-generation
 - dialogue-modeling
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: null
 ---
 

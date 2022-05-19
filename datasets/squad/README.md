@@ -20,6 +20,21 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: squad
+train-eval-index:
+- config: plain_text
+  task: question-answering
+  task_id: extractive_question_answering
+  splits:
+    train_split: train
+    eval_split: validation
+  col_mapping:
+    question: question
+    context: context
+    answers.text: answers.text
+    answers.answer_start: answers.answer_start
+  metrics:
+    - type: squad
+      name: SQuAD
 ---
 
 # Dataset Card for "squad"
@@ -71,8 +86,6 @@ Stanford Question Answering Dataset (SQuAD) is a reading comprehension dataset, 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

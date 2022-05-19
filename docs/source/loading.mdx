@@ -5,6 +5,7 @@ You have already seen how to load a dataset from the Hugging Face Hub. But datas
 This guide will show you how to load a dataset from:
 
 - The Hub without a dataset loading script
+- Local loading script
 - Local files
 - In-memory data
 - Offline
@@ -69,6 +70,18 @@ Specify a custom split with the `split` parameter:
 >>> c4_validation = load_dataset("allenai/c4", data_files=data_files, split="validation")
 ```
 
+## Local loading script
+
+You may have a 🤗 Datasets loading script locally on your computer. You can load this dataset by passing to [`load_dataset`] one of the following paths:
+
+- The local path to the loading script file.
+- The local path to the directory containing the loading script file (only if the script file has the same name as the directory).
+
+```py
+>>> dataset = load_dataset("path/to/local/loading_script/loading_script.py", split="train")
+>>> dataset = load_dataset("path/to/local/loading_script", split="train")  # equivalent because the file has the same name as the directory
+```
+
 ## Local and remote files
 
 🤗 Datasets can be loaded from local files stored on your computer, and also from remote files. The datasets are most likely stored as a `csv`, `json`, `txt` or `parquet` file. The [`load_dataset`] method is able to load each of these file types.
@@ -97,7 +110,7 @@ If you have more than one CSV file:
 You can also map the training and test splits to specific CSV files:
 
 ```py
->>> dataset = load_dataset('csv', data_files={'train': ['my_train_file_1.csv', 'my_train_file_2.csv'] 'test': 'my_test_file.csv'})
+>>> dataset = load_dataset('csv', data_files={'train': ['my_train_file_1.csv', 'my_train_file_2.csv'], 'test': 'my_test_file.csv'})
 ```
 
 To load remote CSV files via HTTP, you can pass the URLs:

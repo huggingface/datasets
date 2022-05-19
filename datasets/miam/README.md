@@ -23,28 +23,34 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 - text-classification
 task_ids:
   dihana:
   - dialogue-modeling
   - language-modeling
+  - masked-language-modeling
   - text-classification-other-dialogue-act-classification
   ilisten:
   - dialogue-modeling
   - language-modeling
+  - masked-language-modeling
   - text-classification-other-dialogue-act-classification
   loria:
   - dialogue-modeling
   - language-modeling
+  - masked-language-modeling
   - text-classification-other-dialogue-act-classification
   maptask:
   - dialogue-modeling
   - language-modeling
+  - masked-language-modeling
   - text-classification-other-dialogue-act-classification
   vm2:
   - dialogue-modeling
   - language-modeling
+  - masked-language-modeling
   - text-classification-other-dialogue-act-classification
 paperswithcode_id: null
 pretty_name: MIAM

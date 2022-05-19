@@ -56,8 +56,6 @@ The dataset is split into 29808 train questions, 6894 dev questions and 3003 tes
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

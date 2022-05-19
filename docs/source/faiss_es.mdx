@@ -46,13 +46,20 @@ FAISS retrieves documents based on the similarity of their vector representation
 '_that_ serious? It is not serious at all. It’s simply a fantasy to amuse\r\n'
 ```
 
-5. When you are done querying, save the index on disk with [`Dataset.save_faiss_index`]:
+5. You can access the index with [`Dataset.get_index`] and use it for special operations, e.g. query it using `range_search`:
+
+```py
+>>> faiss_index = ds_with_embeddings.get_index('embeddings').faiss_index
+>>> limits, distances, indices = faiss_index.range_search(x=question_embedding.reshape(1, -1), thresh=0.95)
+```
+
+6. When you are done querying, save the index on disk with [`Dataset.save_faiss_index`]:
 
 ```py
 >>> ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
 ```
 
-6. Reload it at a later time with [`Dataset.load_faiss_index`]:
+7. Reload it at a later time with [`Dataset.load_faiss_index`]:
 
 ```py
 >>> ds = load_dataset('crime_and_punish', split='train[:100]')

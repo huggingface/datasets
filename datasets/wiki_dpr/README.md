@@ -9,10 +9,12 @@ licenses:
 - cc-by-sa-3.0
 - gfdl-1.3-or-later
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 - other-text-search
 task_ids:
 - language-modeling
+- masked-language-modeling
 - other-neural-search
 source_datasets:
 - original
@@ -78,8 +80,6 @@ The wikipedia dump is the one from Dec. 20, 2018.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

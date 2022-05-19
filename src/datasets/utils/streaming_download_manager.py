@@ -100,7 +100,7 @@ def xjoin(a, *p):
         >>> xjoin("zip://folder1::https://host.com/archive.zip", "file.txt")
         zip://folder1/file.txt::https://host.com/archive.zip
     """
-    a, *b = a.split("::")
+    a, *b = str(a).split("::")
     if is_local_path(a):
         a = Path(a, *p).as_posix()
     else:
@@ -127,7 +127,7 @@ def xdirname(a):
         >>> xdirname("zip://folder1/file.txt::https://host.com/archive.zip")
         zip://folder1::https://host.com/archive.zip
     """
-    a, *b = a.split("::")
+    a, *b = str(a).split("::")
     if is_local_path(a):
         a = os.path.dirname(Path(a).as_posix())
     else:
@@ -158,11 +158,38 @@ def xbasename(a):
         >>> xbasename("zip://folder1/file.txt::https://host.com/archive.zip")
         file.txt
     """
-    a, *b = a.split("::")
+    a, *b = str(a).split("::")
     if is_local_path(a):
         return os.path.basename(Path(a).as_posix())
     else:
         return posixpath.basename(a)
+
+
+def xsplit(a):
+    """
+    This function extends os.path.split to support the "::" hop separator. It supports both paths and urls.
+
+    A shorthand, particularly useful where you have multiple hops, is to “chain” the URLs with the special separator "::".
+    This is used to access files inside a zip file over http for example.
+
+    Let's say you have a zip file at https://host.com/archive.zip, and you want to access the file inside the zip file at /folder1/file.txt.
+    Then you can just chain the url this way:
+
+        zip://folder1/file.txt::https://host.com/archive.zip
+
+    The xsplit function allows you to apply the xsplit on the first path of the chain.
+
+    Example::
+
+        >>> xsplit("zip://folder1/file.txt::https://host.com/archive.zip")
+        ('zip://folder1::https://host.com/archive.zip', 'file.txt')
+    """
+    a, *b = str(a).split("::")
+    if is_local_path(a):
+        return os.path.split(Path(a).as_posix())
+    else:
+        a, tail = posixpath.split(a)
+        return "::".join([a + "//" if a.endswith(":") else a] + b), tail
 
 
 def xsplitext(a):
@@ -184,7 +211,7 @@ def xsplitext(a):
         >>> xsplitext("zip://folder1/file.txt::https://host.com/archive.zip")
         ('zip://folder1/file::https://host.com/archive.zip', '.txt')
     """
-    a, *b = a.split("::")
+    a, *b = str(a).split("::")
     if is_local_path(a):
         return os.path.splitext(Path(a).as_posix())
     else:
@@ -201,7 +228,7 @@ def xisfile(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
     Returns:
         :obj:`bool`
     """
-    main_hop, *rest_hops = path.split("::")
+    main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
         return os.path.isfile(path)
     else:
@@ -224,7 +251,7 @@ def xgetsize(path, use_auth_token: Optional[Union[str, bool]] = None) -> int:
     Returns:
         :obj:`int`, optional
     """
-    main_hop, *rest_hops = path.split("::")
+    main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
         return os.path.getsize(path)
     else:
@@ -252,7 +279,7 @@ def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
     Returns:
         :obj:`bool`
     """
-    main_hop, *rest_hops = path.split("::")
+    main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
         return os.path.isdir(path)
     else:
@@ -276,11 +303,11 @@ def xrelpath(path, start=None):
     Returns:
         :obj:`str`
     """
-    main_hop, *rest_hops = path.split("::")
+    main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
         return os.path.relpath(main_hop, start=start) if start else os.path.relpath(main_hop)
     else:
-        return posixpath.relpath(main_hop, start=start.split("::")[0]) if start else os.path.relpath(main_hop)
+        return posixpath.relpath(main_hop, start=str(start).split("::")[0]) if start else os.path.relpath(main_hop)
 
 
 def _as_posix(path: Path):
@@ -334,9 +361,8 @@ def _add_retries_to_file_obj_read_method(file_obj):
 
 def _get_extraction_protocol_with_magic_number(f) -> Optional[str]:
     """read the magic number from a file-like object and return the compression protocol"""
-    prev_loc = f.loc
     magic_number = f.read(MAGIC_NUMBER_MAX_LENGTH)
-    f.seek(prev_loc)
+    f.seek(0)
     for i in range(MAGIC_NUMBER_MAX_LENGTH):
         compression = MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL.get(magic_number[: MAGIC_NUMBER_MAX_LENGTH - i])
         if compression is not None:  # TODO(QL): raise an error for .tar.gz files as in _get_extraction_protocol
@@ -441,7 +467,7 @@ def xlistdir(path: str, use_auth_token: Optional[Union[str, bool]] = None) -> Li
     Returns:
         :obj:`list` of :obj:`str`
     """
-    main_hop, *rest_hops = path.split("::")
+    main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
         return os.listdir(path)
     else:
@@ -481,7 +507,7 @@ def xglob(urlpath, *, recursive=False, use_auth_token: Optional[Union[str, bool]
     Returns:
         :obj:`list` of :obj:`str`
     """
-    main_hop, *rest_hops = urlpath.split("::")
+    main_hop, *rest_hops = str(urlpath).split("::")
     if is_local_path(main_hop):
         return glob.glob(main_hop, recursive=recursive)
     else:
@@ -607,7 +633,7 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
     Yields:
         :obj:`tuple`: 3-tuple (dirpath, dirnames, filenames).
     """
-    main_hop, *rest_hops = urlpath.split("::")
+    main_hop, *rest_hops = str(urlpath).split("::")
     if is_local_path(main_hop):
         return os.walk(main_hop)
     else:
@@ -764,6 +790,22 @@ class StreamingDownloadManager:
         return self._data_dir
 
     def download(self, url_or_urls):
+        """Download given url(s).
+
+        Args:
+            url_or_urls: url or `list`/`dict` of urls to download and extract. Each
+                url is a `str`.
+
+        Returns:
+            downloaded_path(s): `str`, The downloaded paths matching the given input
+                url_or_urls.
+
+        Example:
+
+        ```py
+        >>> downloaded_files = dl_manager.download('https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz')
+        ```
+        """
         url_or_urls = map_nested(self._download, url_or_urls, map_tuple=True)
         return url_or_urls
 
@@ -775,6 +817,25 @@ class StreamingDownloadManager:
         return urlpath
 
     def extract(self, path_or_paths):
+        """Extract given path(s).
+
+        Args:
+            path_or_paths: path or `list`/`dict` of path of file to extract. Each
+                path is a `str`.
+            num_proc: Use multi-processing if `num_proc` > 1 and the length of
+                `path_or_paths` is larger than `num_proc`
+
+        Returns:
+            extracted_path(s): `str`, The extracted paths matching the given input
+                path_or_paths.
+
+        Example:
+
+        ```py
+        >>> downloaded_files = dl_manager.download('https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz')
+        >>> extracted_files = dl_manager.extract(downloaded_files)
+        ```
+        """
         urlpaths = map_nested(self._extract, path_or_paths, map_tuple=True)
         return urlpaths
 
@@ -797,6 +858,21 @@ class StreamingDownloadManager:
             return f"{protocol}://::{urlpath}"
 
     def download_and_extract(self, url_or_urls):
+        """Download and extract given url_or_urls.
+
+        Is roughly equivalent to:
+
+        ```
+        extracted_paths = dl_manager.extract(dl_manager.download(url_or_urls))
+        ```
+
+        Args:
+            url_or_urls: url or `list`/`dict` of urls to download and extract. Each
+                url is a `str`.
+
+        Returns:
+            extracted_path(s): `str`, extracted paths of given URL(s).
+        """
         return self.extract(self.download(url_or_urls))
 
     def iter_archive(self, urlpath_or_buf: Union[str, io.BufferedReader]) -> Iterable[Tuple]:
@@ -808,6 +884,13 @@ class StreamingDownloadManager:
         Yields:
             :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
                 File object is opened in binary mode.
+
+        Example:
+
+        ```py
+        >>> archive = dl_manager.download('https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz')
+        >>> files = dl_manager.iter_archive(archive)
+        ```
         """
 
         if hasattr(urlpath_or_buf, "read"):
@@ -823,5 +906,12 @@ class StreamingDownloadManager:
 
         Yields:
             str: File URL path.
+
+        Example:
+
+        ```py
+        >>> files = dl_manager.download_and_extract('https://huggingface.co/datasets/beans/resolve/main/data/train.zip')
+        >>> files = dl_manager.iter_files(files)
+        ```
         """
         return FilesIterable.from_urlpaths(urlpaths, use_auth_token=self.download_config.use_auth_token)

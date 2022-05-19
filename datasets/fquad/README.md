@@ -80,8 +80,6 @@ This dataset is exclusively in French, with context data from Wikipedia and ques
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

@@ -14,11 +14,24 @@ size_categories:
 source_datasets:
 - extended|conll2003
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: conll
 pretty_name: CoNLL++
+train-eval-index:
+- config: conllpp
+  task: token-classification
+  task_id: entity_extraction
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    tokens: tokens
+    ner_tags: tags
+  metrics:
+    - type: seqeval
+      name: seqeval
 ---
 
 # Dataset Card for "conllpp"
@@ -78,8 +91,6 @@ correction on the test set for example, is:
 [More Information Needed]
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

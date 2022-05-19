@@ -28,10 +28,11 @@ source_datasets:
 - extended|squad
 task_categories:
 - text-retrieval
-- text-scoring
+- text-classification
 task_ids:
 - fact-checking-retrieval
-- text-scoring-other-probing
+- text-classification-other-probing
+- text-scoring
 paperswithcode_id: lama
 ---
 

@@ -28,10 +28,9 @@ source_datasets:
 - extended|cnn_dailymail
 - original
 task_categories:
-- conditional-text-generation
+- translation
 - text-classification
 task_ids:
-- machine-translation
 - multi-class-classification
 - multi-label-classification
 - summarization
@@ -93,8 +92,6 @@ These highlight existing biases which motivate the use of a multi-lingual datase
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

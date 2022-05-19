@@ -16,10 +16,10 @@ size_categories:
 source_datasets:
 - extended|eli5
 task_categories:
-- question-answering
+- text2text-generation
 task_ids:
 - abstractive-qa
-- open-domain-qa
+- open-domain-abstractive-qa
 ---
 
 # Dataset Card for ELI5-Category
@@ -61,7 +61,7 @@ The ELI5-Category dataset is a smaller but newer and categorized version of the 
 
 ### Supported Tasks and Leaderboards
 
-- `abstractive-qa`, `open-domain-qa`: The dataset can be used to train a model for Open Domain Long Form Question Answering. An LFQA model is presented with a non-factoid and asked to retrieve relevant information from a knowledge source (such as [Wikipedia](https://www.wikipedia.org/)), then use it to generate a multi-sentence answer. 
+- `abstractive-qa`, `open-domain-abstractive-qa`: The dataset can be used to train a model for Open Domain Long Form Question Answering. An LFQA model is presented with a non-factoid and asked to retrieve relevant information from a knowledge source (such as [Wikipedia](https://www.wikipedia.org/)), then use it to generate a multi-sentence answer. 
 
 ### Languages
 

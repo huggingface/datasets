@@ -75,8 +75,6 @@ NQ to be a more realistic and challenging task than prior QA datasets.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

@@ -75,8 +75,6 @@ A new dataset of 7,787 genuine grade-school level, multiple-choice science quest
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### ARC-Challenge

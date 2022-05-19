@@ -15,10 +15,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 - text-classification
 task_ids:
 - language-modeling
+- masked-language-modeling
 - sentiment-classification
 paperswithcode_id: dbrd
 ---
@@ -63,7 +65,7 @@ The DBRD (pronounced *dee-bird*) dataset contains over 110k book reviews of whic
 
 ### Supported Tasks and Leaderboards
 
-- `sequence-modeling`: The dataset can be used to train a model for sequence modeling, more specifically language modeling.
+- `text-generation`: The dataset can be used to train a model for sequence modeling, more specifically language modeling.
 - `text-classification`: The dataset can be used to train a model for text classification, more specifically sentiment classification, using the provided positive/negative sentiment polarity labels.
 
 ### Languages

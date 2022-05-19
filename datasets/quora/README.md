@@ -55,8 +55,6 @@ The Quora dataset is composed of question pairs, and the task is to determine if
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

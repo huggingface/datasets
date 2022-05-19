@@ -52,11 +52,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: https://competitions.codalab.org/competitions/17751**
+- **Homepage:** https://competitions.codalab.org/competitions/17751
 - **Repository:**
-- **Paper: http://saifmohammad.com/WebDocs/semeval2018-task1.pdf**
+- **Paper:** http://saifmohammad.com/WebDocs/semeval2018-task1.pdf
 - **Leaderboard:**
-- **Point of Contact: https://www.saifmohammad.com/**
+- **Point of Contact:** https://www.saifmohammad.com/
 
 ### Dataset Summary
 
