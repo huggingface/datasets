@@ -235,7 +235,8 @@ class TensorflowDatasetMixin:
                 lists of samples into a batch.
             collate_fn_args (:obj:`Dict`): A `dict` of keyword arguments to be passed to the
                 `collate_fn`.
-            batch_size (:obj:`int`): The size of batches loaded from the dataset. Used for shape inference.
+            batch_size (:obj:`int`, optional): The size of batches loaded from the dataset. Used for shape inference.
+                Can be None, which indicates that batch sizes can be variable.
 
         Returns:
             :obj:`dict`: Dict mapping column names to tf.Tensorspec objects
