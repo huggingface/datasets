@@ -30,8 +30,8 @@ train-eval-index:
   col_mapping:
     question: question
     context: context
-    answers.text: answers.text
-    answers.answer_start: answers.answer_start
+    answers_text: answers.text
+    answers_start: answers.answer_start
   metrics:
     - type: cuad
       name: CUAD
