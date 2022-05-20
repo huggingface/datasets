@@ -79,7 +79,7 @@ REQUIRED_PKGS = [
     # for fast hashing
     "xxhash",
     # for better multiprocessing
-    "multiprocess<=0.70.9",  # tmp pin: see https://github.com/huggingface/datasets/issues/4379
+    "multiprocess",
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
     "importlib_metadata;python_version<'3.8'",
     # to save datasets locally or on any filesystem
