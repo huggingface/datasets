@@ -130,7 +130,8 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
                         "filepath": os.path.join(filepath, split_name),
                         "split": split_name,
                     },
-                ) for split, split_name in split_names.items()
+                )
+                for split, split_name in split_names.items()
             ]
         elif self.config.name == "channel_two":
             filepath = os.path.join(filepath, "channel-two")
