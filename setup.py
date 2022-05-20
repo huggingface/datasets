@@ -116,7 +116,7 @@ TESTS_REQUIRE = [
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam>=2.26.0",
+    "apache-beam==2.39.0rc2",
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElastictSearch()
     "aiobotocore==1.4.2",  # to be compatible with boto3==1.17.106 - both have strong dependencies on botocore
     "boto3==1.17.106",  # to be compatible with aiobotocore==1.4.2 - both have strong dependencies on botocore
@@ -145,7 +145,7 @@ TESTS_REQUIRE = [
     "zstandard",
     "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz",
     "sentencepiece",  # bigbench requires t5 which requires seqio which requires sentencepiece
-    "sacremoses",
+    #"sacremoses",
     # metrics dependencies
     "bert_score>=0.3.6",
     "rouge_score",
