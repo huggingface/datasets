@@ -4,10 +4,8 @@ annotations_creators:
 language_creators:
 - expert-generated
 languages:
-  en:
-  - en
-  es:
-  - es
+- en
+- es
 licenses:
 - mit
 multilinguality:
@@ -22,6 +20,9 @@ task_ids:
 - multiple-choice-qa
 paperswithcode_id: headqa
 pretty_name: HEAD-QA
+configs:
+- en
+- es
 ---
 
 # Dataset Card for HEAD-QA

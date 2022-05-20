@@ -15,12 +15,8 @@ multilinguality:
 - multilingual
 pretty_name: British Library Books Genre
 size_categories:
-  title_genre_classifiction:
-  - 1K<n<10K
-  annotated_raw:
-  - 1K<n<10K
-  raw:
-  - 10K<n<100K
+- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -32,6 +28,10 @@ task_ids:
 - multi-label-classification
 - language-modeling
 - masked-language-modeling
+configs:
+- annotated_raw
+- raw
+- title_genre_classifiction
 ---
 
 # Dataset Card for blbooksgenre

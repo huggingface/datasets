@@ -4,16 +4,9 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  en-es:
-  - en
-  - es
-  en-pt:
-  - en
-  - pt
-  en-pt-es:
-  - en
-  - pt
-  - es
+- en
+- es
+- pt
 licenses:
 - unknown
 multilinguality:
@@ -27,6 +20,10 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: SciELO
+configs:
+- en-es
+- en-pt
+- en-pt-es
 ---
 
 # Dataset Card for SciELO

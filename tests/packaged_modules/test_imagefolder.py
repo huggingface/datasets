@@ -39,6 +39,23 @@ def image_file_with_metadata(tmp_path, image_file):
 
 
 @pytest.fixture
+def image_files_with_metadata_that_misses_one_image(tmp_path, image_file):
+    image_filename = tmp_path / "image_rgb.jpg"
+    shutil.copyfile(image_file, image_filename)
+    image_filename2 = tmp_path / "image_rgb2.jpg"
+    shutil.copyfile(image_file, image_filename2)
+    image_metadata_filename = tmp_path / "metadata.jsonl"
+    image_metadata = textwrap.dedent(
+        """\
+        {"file_name": "image_rgb.jpg", "caption": "Nice image"}
+        """
+    )
+    with open(image_metadata_filename, "w", encoding="utf-8") as f:
+        f.write(image_metadata)
+    return str(image_filename), str(image_filename2), str(image_metadata_filename)
+
+
+@pytest.fixture
 def data_files_with_one_split_and_metadata(tmp_path, image_file):
     data_dir = tmp_path / "imagefolder_data_dir_with_metadata"
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -172,21 +189,69 @@ def test_generate_examples_drop_labels(image_file, drop_labels):
 def test_generate_examples_drop_metadata(image_file_with_metadata, drop_metadata):
     image_file, image_metadata_file = image_file_with_metadata
     if not drop_metadata:
-        features = Features({"image": Image(), "label": Value("string"), "caption": Value("string")})
+        features = Features({"image": Image(), "caption": Value("string")})
     else:
-        features = Features({"image": Image(), "label": Value("string")})
+        features = Features({"image": Image()})
     imagefolder = ImageFolder(drop_metadata=drop_metadata, features=features)
     generator = imagefolder._generate_examples(
         [(image_file, image_file)], {"train": [(image_metadata_file, image_metadata_file)]}, "train"
     )
     if not drop_metadata:
         assert all(
-            example.keys() == {"image", "label", "caption"} and all(val is not None for val in example.values())
+            example.keys() == {"image", "caption"} and all(val is not None for val in example.values())
             for _, example in generator
         )
     else:
         assert all(
-            example.keys() == {"image", "label"} and all(val is not None for val in example.values())
+            example.keys() == {"image"} and all(val is not None for val in example.values())
+            for _, example in generator
+        )
+
+
+@require_pil
+@pytest.mark.parametrize("drop_metadata", [True, False])
+def test_generate_examples_with_metadata_in_wrong_location(image_file, image_file_with_metadata, drop_metadata):
+    _, image_metadata_file = image_file_with_metadata
+    if not drop_metadata:
+        features = Features({"image": Image(), "caption": Value("string")})
+    else:
+        features = Features({"image": Image()})
+    imagefolder = ImageFolder(drop_metadata=drop_metadata, features=features)
+    generator = imagefolder._generate_examples(
+        [(image_file, image_file)], {"train": [(image_metadata_file, image_metadata_file)]}, "train"
+    )
+    if not drop_metadata:
+        with pytest.raises(ValueError):
+            list(generator)
+    else:
+        assert all(
+            example.keys() == {"image"} and all(val is not None for val in example.values())
+            for _, example in generator
+        )
+
+
+@require_pil
+@pytest.mark.parametrize("drop_metadata", [True, False])
+def test_generate_examples_with_metadata_that_misses_one_image(
+    image_files_with_metadata_that_misses_one_image, drop_metadata
+):
+    image_file, image_file2, image_metadata_file = image_files_with_metadata_that_misses_one_image
+    if not drop_metadata:
+        features = Features({"image": Image(), "caption": Value("string")})
+    else:
+        features = Features({"image": Image()})
+    imagefolder = ImageFolder(drop_metadata=drop_metadata, features=features)
+    generator = imagefolder._generate_examples(
+        [(image_file, image_file), (image_file2, image_file2)],
+        {"train": [(image_metadata_file, image_metadata_file)]},
+        "train",
+    )
+    if not drop_metadata:
+        with pytest.raises(ValueError):
+            list(generator)
+    else:
+        assert all(
+            example.keys() == {"image"} and all(val is not None for val in example.values())
             for _, example in generator
         )
 

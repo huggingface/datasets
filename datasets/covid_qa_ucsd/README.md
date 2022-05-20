@@ -5,19 +5,15 @@ language_creators:
 - expert-generated
 - found
 languages:
-  en:
-  - en
-  zh:
-  - zh
+- en
+- zh
 licenses:
 - unknown
 multilinguality:
 - monolingual
 size_categories:
-  en:
-  - n<1K
-  zh:
-  - 1K<n<10K
+- 1K<n<10K
+- n<1K
 source_datasets:
 - original
 task_categories:
@@ -26,6 +22,9 @@ task_ids:
 - closed-domain-qa
 paperswithcode_id: null
 pretty_name: CovidQaUcsd
+configs:
+- en
+- zh
 ---
 
 # Dataset Card for [Dataset Name]

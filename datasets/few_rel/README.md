@@ -11,10 +11,8 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  default:
-  - 10K<n<100K
-  pid2name:
-  - n<1K
+- 10K<n<100K
+- n<1K
 source_datasets:
 - original
 task_categories:
@@ -23,6 +21,9 @@ task_ids:
 - other-other-relation-extraction
 paperswithcode_id: fewrel
 pretty_name: Few-Shot Relation Classification Dataset
+configs:
+- default
+- pid2name
 ---
 
 # Dataset Card for few_rel
