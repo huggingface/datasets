@@ -14,16 +14,8 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-  de:
-  - 100K<n<1M
-  es:
-  - 100K<n<1M
-  fr:
-  - 100K<n<1M
-  ru:
-  - 10K<n<100K
-  tu:
-  - 100K<n<1M
+- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - extended|cnn_dailymail
 - original
@@ -37,6 +29,12 @@ task_ids:
 - topic-classification
 paperswithcode_id: mlsum
 pretty_name: MLSUM
+configs:
+- de
+- es
+- fr
+- ru
+- tu
 ---
 
 # Dataset Card for MLSUM

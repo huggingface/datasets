@@ -10,83 +10,18 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  emoji:
-  - 100K<n<1M
-  emotion:
-  - 1K<n<10K
-  hate:
-  - 10K<n<100K
-  irony:
-  - 1K<n<10K
-  offensive:
-  - 10K<n<100K
-  sentiment:
-  - 10K<n<100K
-  stance_abortion:
-  - n<1K
-  stance_atheism:
-  - n<1K
-  stance_climate:
-  - n<1K
-  stance_feminist:
-  - n<1K
-  stance_hillary:
-  - n<1K
+- 100K<n<1M
+- 10K<n<100K
+- 1K<n<10K
+- n<1K
 source_datasets:
-  emoji:
-  - extended|other-tweet-datasets
-  emotion:
-  - extended|other-tweet-datasets
-  hate:
-  - extended|other-tweet-datasets
-  irony:
-  - extended|other-tweet-datasets
-  offensive:
-  - extended|other-tweet-datasets
-  sentiment:
-  - extended|other-tweet-datasets
-  stance_abortion:
-  - extended|other-tweet-datasets
-  stance_atheism:
-  - extended|other-tweet-datasets
-  stance_climate:
-  - extended|other-tweet-datasets
-  stance_feminist:
-  - extended|other-tweet-datasets
-  stance_hillary:
-  - extended|other-tweet-datasets
+- extended|other-tweet-datasets
 task_categories:
 - text-classification
 task_ids:
-  emoji:
-  - multi-class-classification
-  emotion:
-  - multi-class-classification
-  - sentiment-classification
-  hate:
-  - intent-classification
-  irony:
-  - multi-class-classification
-  offensive:
-  - intent-classification
-  sentiment:
-  - multi-class-classification
-  - sentiment-classification
-  stance_abortion:
-  - intent-classification
-  - multi-class-classification
-  stance_atheism:
-  - intent-classification
-  - multi-class-classification
-  stance_climate:
-  - intent-classification
-  - multi-class-classification
-  stance_feminist:
-  - intent-classification
-  - multi-class-classification
-  stance_hillary:
-  - intent-classification
-  - multi-class-classification
+- intent-classification
+- multi-class-classification
+- sentiment-classification
 paperswithcode_id: tweeteval
 pretty_name: TweetEval
 train-eval-index:
@@ -306,6 +241,18 @@ train-eval-index:
       name: Recall weighted
       args:
         average: weighted
+configs:
+- emoji
+- emotion
+- hate
+- irony
+- offensive
+- sentiment
+- stance_abortion
+- stance_atheism
+- stance_climate
+- stance_feminist
+- stance_hillary
 ---
 
 # Dataset Card for tweet_eval

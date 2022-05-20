@@ -10,10 +10,8 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  raw:
-  - 100K<n<1M
-  simplified:
-  - 10K<n<100K
+- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -24,6 +22,9 @@ task_ids:
 - text-classification-other-emotion
 paperswithcode_id: goemotions
 pretty_name: GoEmotions
+configs:
+- raw
+- simplified
 ---
 
 # Dataset Card for GoEmotions

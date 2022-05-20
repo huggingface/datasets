@@ -1,285 +1,81 @@
 ---
 annotations_creators:
-  mlqa:
-  - crowdsourced
-  nc:
-  - machine-generated
-  ner:
-  - expert-generated
-  - found
-  ntg:
-  - machine-generated
-  paws-x:
-  - expert-generated
-  pos:
-  - expert-generated
-  - found
-  qadsm:
-  - machine-generated
-  qam:
-  - machine-generated
-  qg:
-  - machine-generated
-  wpr:
-  - machine-generated
-  xnli:
-  - machine-generated
+- crowdsourced
+- expert-generated
+- found
+- machine-generated
 language_creators:
-  mlqa:
-  - found
-  nc:
-  - found
-  ner:
-  - crowdsourced
-  - expert-generated
-  ntg:
-  - machine-generated
-  paws-x:
-  - expert-generated
-  pos:
-  - crowdsourced
-  - expert-generated
-  qadsm:
-  - found
-  qam:
-  - found
-  qg:
-  - machine-generated
-  wpr:
-  - found
-  xnli:
-  - crowdsourced
-  - expert-generated
+- crowdsourced
+- expert-generated
+- found
+- machine-generated
 languages:
-  mlqa:
-  - ar
-  - de
-  - en
-  - es
-  - hi
-  - vi
-  - zh
-  nc:
-  - en
-  - de
-  - es
-  - fr
-  - ru
-  ner:
-  - de
-  - en
-  - es
-  - nl
-  ntg:
-  - en
-  - de
-  - es
-  - fr
-  - ru
-  paws-x:
-  - en
-  - de
-  - es
-  - fr
-  pos:
-  - ar
-  - bg
-  - de
-  - el
-  - en
-  - es
-  - fr
-  - hi
-  - it
-  - nl
-  - pl
-  - ru
-  - th
-  - tr
-  - ur
-  - vi
-  - zh
-  qadsm:
-  - en
-  - de
-  - fr
-  qam:
-  - en
-  - de
-  - fr
-  qg:
-  - en
-  - de
-  - fr
-  - pt
-  - it
-  - zh
-  wpr:
-  - en
-  - de
-  - fr
-  - es
-  - it
-  - pt
-  - zh
-  xnli:
-  - ar
-  - bg
-  - de
-  - el
-  - en
-  - es
-  - fr
-  - hi
-  - ru
-  - sw
-  - th
-  - tr
-  - ur
-  - vi
-  - zh
+- ar
+- bg
+- de
+- el
+- en
+- es
+- fr
+- hi
+- it
+- nl
+- pl
+- pt
+- ru
+- sw
+- th
+- tr
+- ur
+- vi
+- zh
 licenses:
-  mlqa:
-  - cc-by-sa-4.0
-  nc:
-  - unknown
-  ner:
-  - unknown
-  ntg:
-  - unknown
-  paws-x:
-  - unknown
-  pos:
-  - other-Licence Universal Dependencies v2.5
-  qadsm:
-  - unknown
-  qam:
-  - unknown
-  qg:
-  - unknown
-  wpr:
-  - unknown
-  xnli:
-  - cc-by-nc-4.0
+- cc-by-nc-4.0
+- cc-by-sa-4.0
+- other-Licence Universal Dependencies v2.5
+- unknown
 multilinguality:
-  mlqa:
-  - multilingual
-  nc:
-  - multilingual
-  ner:
-  - multilingual
-  ntg:
-  - multilingual
-  paws-x:
-  - multilingual
-  pos:
-  - multilingual
-  qadsm:
-  - multilingual
-  qam:
-  - multilingual
-  qg:
-  - multilingual
-  wpr:
-  - multilingual
-  xnli:
-  - multilingual
-  - translation
+- multilingual
+- translation
 size_categories:
-  mlqa:
-  - 100K<n<1M
-  nc:
-  - 100K<n<1M
-  ner:
-  - 10K<n<100K
-  ntg:
-  - 100K<n<1M
-  paws-x:
-  - 10K<n<100K
-  pos:
-  - 10K<n<100K
-  qadsm:
-  - 100K<n<1M
-  qam:
-  - 100K<n<1M
-  qg:
-  - 100K<n<1M
-  wpr:
-  - 100K<n<1M
-  xnli:
-  - 100K<n<1M
+- 100K<n<1M
+- 10K<n<100K
 source_datasets:
-  mlqa:
-  - extended|squad
-  nc:
-  - original
-  ner:
-  - extended|conll2003
-  ntg:
-  - original
-  paws-x:
-  - original
-  pos:
-  - original
-  qadsm:
-  - original
-  qam:
-  - original
-  qg:
-  - original
-  wpr:
-  - original
-  xnli:
-  - extended|xnli
+- extended|conll2003
+- extended|squad
+- extended|xnli
+- original
 task_categories:
-  mlqa:
-  - question-answering
-  nc:
-  - text-classification
-  ner:
-  - token-classification
-  ntg:
-  - summarization
-  paws-x:
-  - text-classification
-  pos:
-  - token-classification
-  qadsm:
-  - text-classification
-  qam:
-  - text-classification
-  qg:
-  - text2text-generation
-  wpr:
-  - text-classification
-  xnli:
-  - text-classification
+- question-answering
+- summarization
+- text-classification
+- text2text-generation
+- token-classification
 task_ids:
-  mlqa:
-  - extractive-qa
-  - open-domain-qa
-  nc:
-  - topic-classification
-  ner:
-  - named-entity-recognition
-  ntg:
-  - news-articles-headline-generation
-  paws-x:
-  - text-classification-other-paraphrase-identification
-  pos:
-  - parsing
-  qadsm:
-  - acceptability-classification
-  qam:
-  - acceptability-classification
-  qg:
-  - text2text-generation-other-question-answering
-  wpr:
-  - acceptability-classification
-  xnli:
-  - natural-language-inference
+- acceptability-classification
+- extractive-qa
+- named-entity-recognition
+- natural-language-inference
+- news-articles-headline-generation
+- open-domain-qa
+- parsing
+- text-classification-other-paraphrase-identification
+- text2text-generation-other-question-answering
+- topic-classification
 paperswithcode_id: null
 pretty_name: XGLUE
+configs:
+- mlqa
+- nc
+- ner
+- ntg
+- paws-x
+- pos
+- qadsm
+- qam
+- qg
+- wpr
+- xnli
 ---
 
 # Dataset Card for XGLUE

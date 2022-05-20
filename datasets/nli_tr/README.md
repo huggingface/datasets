@@ -6,13 +6,11 @@ language_creators:
 languages:
 - tr
 licenses:
-  snli_tr:
-  - cc-by-4.0
-  multinli_tr:
-  - cc-by-3.0
-  - cc-by-sa-3.0-at
-  - mit
-  - other-Open Portion of the American National Corpus
+- cc-by-3.0
+- cc-by-4.0
+- cc-by-sa-3.0-at
+- mit
+- other-Open Portion of the American National Corpus
 multilinguality:
 - monolingual
 size_categories:
@@ -28,6 +26,9 @@ task_ids:
 - semantic-similarity-scoring
 paperswithcode_id: nli-tr
 pretty_name: Natural Language Inference in Turkish
+configs:
+- multinli_tr
+- snli_tr
 ---
 
 # Dataset Card for "nli_tr"
