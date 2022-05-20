@@ -56,8 +56,6 @@ from multiprocess import Pool, RLock
 from requests import HTTPError
 from tqdm.auto import tqdm
 
-import datasets
-
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
@@ -3469,7 +3467,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if stratify_by_column is not None:
                 if stratify_by_column not in self.features.keys():
                     raise ValueError(f"Key {stratify_by_column} not found in {self.features.keys()}")
-                if not isinstance(self.features[stratify_by_column], datasets.ClassLabel):
+                if not isinstance(self.features[stratify_by_column], ClassLabel):
                     raise ValueError(
                         f"Stratifying by column is only supported for {ClassLabel.__name__} column, and column {stratify_by_column} is {type(self.features[stratify_by_column]).__name__}."
                     )
