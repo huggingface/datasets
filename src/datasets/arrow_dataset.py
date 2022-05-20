@@ -42,7 +42,6 @@ from typing import (
     Iterator,
     List,
     Optional,
-    Sequence,
     Tuple,
     Union,
     overload,
@@ -61,7 +60,7 @@ from tqdm.auto import tqdm
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import Audio, ClassLabel, Features, Image, Value
+from .features import Audio, ClassLabel, Features, Image, Sequence, Value
 from .features.features import FeatureType, decode_nested_example, pandas_types_mapper, require_decoding
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
@@ -312,13 +311,13 @@ class TensorflowDatasetMixin:
 
     def to_tf_dataset(
         self,
-        columns: Optional[Union[str, Sequence[str]]] = None,
+        columns: Optional[Union[str, List[str]]] = None,
         batch_size: int = 8,
         shuffle: bool = True,
         collate_fn: Optional[Callable] = None,
         drop_remainder: Optional[bool] = None,
         collate_fn_args: Optional[Dict[str, Any]] = None,
-        label_cols: Optional[Union[str, Sequence[str]]] = None,
+        label_cols: Optional[Union[str, List[str]]] = None,
         prefetch: bool = True,
     ):
         """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
