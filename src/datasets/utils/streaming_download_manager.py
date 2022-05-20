@@ -752,7 +752,7 @@ class FilesIterable(_IterableFromGenerator):
             urlpaths = [urlpaths]
         for urlpath in urlpaths:
             if xisfile(urlpath, use_auth_token=use_auth_token):
-                if xbasename(dirpath).startswith((".", "__")):
+                if xbasename(urlpath).startswith((".", "__")):
                     # skipping hidden files
                     return
                 yield urlpath
