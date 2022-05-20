@@ -14,7 +14,7 @@ source_datasets:
 size_categories:
 - 10K<n<100K
 licenses:
-- CC-BY-SA-4.0
+- cc-by-sa-4.0
 paperswithcode_id: null
 pretty_name: GoogleWellformedQuery
 ---
