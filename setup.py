@@ -67,7 +67,7 @@ REQUIRED_PKGS = [
     # Minimum 6.0.0 to support wrap_array which is needed for ArrayND features
     "pyarrow>=6.0.0",
     # For smart caching dataset processing
-    "dill",
+    "dill<=0.3.1.1",  # tmp pin: see https://github.com/huggingface/datasets/issues/4379
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
@@ -79,7 +79,7 @@ REQUIRED_PKGS = [
     # for fast hashing
     "xxhash",
     # for better multiprocessing
-    "multiprocess",
+    "multiprocess<=0.70.9",  # tmp pin: see https://github.com/huggingface/datasets/issues/4379
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
     "importlib_metadata;python_version<'3.8'",
     # to save datasets locally or on any filesystem
