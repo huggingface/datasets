@@ -295,7 +295,7 @@ class DatasetBuilder:
         self._cache_downloaded_dir = (
             path_join(self._cache_dir_root, config.DOWNLOADED_DATASETS_DIR)
             if cache_dir
-            else config.DOWNLOADED_DATASETS_PATH
+            else str(config.DOWNLOADED_DATASETS_PATH)
         )
         self._cache_downloaded_dir = (
             self._cache_downloaded_dir
