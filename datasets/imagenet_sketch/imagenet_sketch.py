@@ -43,7 +43,7 @@ but different classes. For some classes, there are less than 50 images after man
 augment the data set by flipping and rotating the images.
 """
 
-_URL = "https://huggingface.co/datasets/nateraw/imagenet-sketch-data/resolve/main/ImageNet-Sketch.zip"
+_URL = "https://huggingface.co/datasets/imagenet_sketch/resolve/main/data/ImageNet-Sketch.zip"
 
 
 class ImageNetSketch(datasets.GeneratorBasedBuilder):
