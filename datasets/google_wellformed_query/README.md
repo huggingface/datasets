@@ -21,7 +21,7 @@ language_creators:
 - found
 ---
 
-# Dataset Card
+# Dataset Card for Google Query-wellformedness Dataset
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
