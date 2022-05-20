@@ -9,8 +9,6 @@ languages:
 - en
 annotations_creators:
 - crowdsourced
-language_creators:
-- found
 source_datasets:
 - extended
 size_categories:
@@ -20,6 +18,7 @@ licenses:
 paperswithcode_id: null
 pretty_name: GoogleWellformedQuery
 language_creators: 
+- found
 ---
 
 # Dataset Card
