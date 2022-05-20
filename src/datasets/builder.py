@@ -287,7 +287,7 @@ class DatasetBuilder:
             self.info.features = features
 
         # prepare data dirs
-        self._cache_dir_root = str(cache_dir) if cache_dir else config.HF_DATASETS_CACHE
+        self._cache_dir_root = str(cache_dir or config.HF_DATASETS_CACHE)
         self._cache_dir_root = (
             self._cache_dir_root if is_remote_url(self._cache_dir_root) else os.path.expanduser(self._cache_dir_root)
         )
