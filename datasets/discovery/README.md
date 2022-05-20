@@ -10,10 +10,8 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  discovery:
-  - 1M<n<10M
-  discoverysmall:
-  - 10K<n<100K
+- 10K<n<100K
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -22,6 +20,9 @@ task_ids:
 - text-classification-other-discourse-marker-prediction
 paperswithcode_id: discovery
 pretty_name: Discovery
+configs:
+- discovery
+- discoverysmall
 ---
 
 

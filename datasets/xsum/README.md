@@ -7,6 +7,19 @@ task_categories:
 - summarization
 task_ids:
 - news-articles-summarization
+train-eval-index:
+- config: default
+  task: summarization
+  task_id: summarization
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    document: text
+    summary: target
+  metrics:
+    - type: rouge
+      name: Rouge
 ---
 
 # Dataset Card for "xsum"

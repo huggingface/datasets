@@ -10,10 +10,8 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  ollie_lemmagrep:
-  - 10M<n<100M
-  ollie_patterned:
-  - 1M<n<10M
+- 10M<n<100M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -22,6 +20,9 @@ task_ids:
 - relation-extraction
 paperswithcode_id: null
 pretty_name: Ollie
+configs:
+- ollie_lemmagrep
+- ollie_patterned
 ---
 
 # Dataset Card for Ollie

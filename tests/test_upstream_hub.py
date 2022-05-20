@@ -101,6 +101,20 @@ class TestPushToHub(TestCase):
         finally:
             self.cleanup_repo(ds_name)
 
+    def test_push_dataset_dict_to_hub_datasets_with_different_features(self):
+        ds_train = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_test = Dataset.from_dict({"x": [True, False, True], "y": ["a", "b", "c"]})
+
+        local_ds = DatasetDict({"train": ds_train, "test": ds_test})
+
+        ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
+        try:
+            with self.assertRaises(ValueError):
+                local_ds.push_to_hub(ds_name.split("/")[-1], token=self._token)
+        except AssertionError:
+            self.cleanup_repo(ds_name)
+            raise
+
     def test_push_dataset_dict_to_hub_private(self):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
@@ -189,10 +203,14 @@ class TestPushToHub(TestCase):
                     f.write("Bogus file")
 
                 self._api.upload_file(
-                    str(path), path_in_repo="datafile.txt", repo_id=ds_name, repo_type="dataset", token=self._token
+                    path_or_fileobj=str(path),
+                    path_in_repo="datafile.txt",
+                    repo_id=ds_name,
+                    repo_type="dataset",
+                    token=self._token,
                 )
 
-            local_ds.push_to_hub(ds_name, token=self._token, shard_size=500 << 5)
+            local_ds.push_to_hub(ds_name, token=self._token, max_shard_size=500 << 5)
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
@@ -222,7 +240,7 @@ class TestPushToHub(TestCase):
         # Push to hub two times, but the second time with fewer files.
         # Verify that the new files contain the correct dataset and that non-necessary files have been deleted.
         try:
-            local_ds.push_to_hub(ds_name, token=self._token, shard_size=500 << 5)
+            local_ds.push_to_hub(ds_name, token=self._token, max_shard_size=500 << 5)
 
             with tempfile.TemporaryDirectory() as tmp:
                 # Add a file starting with "data" to ensure it doesn't get deleted.
@@ -231,7 +249,11 @@ class TestPushToHub(TestCase):
                     f.write("Bogus file")
 
                 self._api.upload_file(
-                    str(path), path_in_repo="datafile.txt", repo_id=ds_name, repo_type="dataset", token=self._token
+                    path_or_fileobj=str(path),
+                    path_in_repo="datafile.txt",
+                    repo_id=ds_name,
+                    repo_type="dataset",
+                    token=self._token,
                 )
 
             local_ds.push_to_hub(ds_name, token=self._token)

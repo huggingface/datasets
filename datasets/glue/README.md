@@ -14,58 +14,60 @@ size_categories:
 source_datasets:
 - unknown
 task_categories:
-  ax:
-  - text-classification
-  cola:
-  - text-classification
-  mnli:
-  - text-classification
-  mnli_matched:
-  - text-classification
-  mnli_mismatched:
-  - text-classification
-  mrpc:
-  - text-classification
-  qnli:
-  - text-classification
-  qqp:
-  - text-classification
-  rte:
-  - text-classification
-  sst2:
-  - text-classification
-  stsb:
-  - text-classification
-  wnli:
-  - text-classification
+- text-classification
 task_ids:
-  ax:
-  - natural-language-inference
-  cola:
-  - acceptability-classification
-  mnli:
-  - natural-language-inference
-  mnli_matched:
-  - natural-language-inference
-  mnli_mismatched:
-  - natural-language-inference
-  mrpc:
-  - text-classification-other-paraphrase-identification
-  qnli:
-  - text-classification-other-qa-nli
-  qqp:
-  - text-classification-other-paraphrase-identification
-  rte:
-  - natural-language-inference
-  sst2:
-  - sentiment-classification
-  stsb:
-  - text-scoring
-  - semantic-similarity-scoring
-  wnli:
-  - text-classification-other-coreference-nli
+- acceptability-classification
+- natural-language-inference
+- semantic-similarity-scoring
+- sentiment-classification
+- text-classification-other-coreference-nli
+- text-classification-other-paraphrase-identification
+- text-classification-other-qa-nli
+- text-scoring
 paperswithcode_id: glue
 pretty_name: GLUE (General Language Understanding Evaluation benchmark)
+train-eval-index:
+- config: sst2
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    sentence: text
+    label: target
+  metrics:
+    - type: glue
+      name: GLUE
+      config:
+        sst2
+- config: cola
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    sentence: text
+    label: target
+  metrics:
+    - type: glue
+      name: GLUE
+      config:
+        cola
+configs:
+- ax
+- cola
+- mnli
+- mnli_matched
+- mnli_mismatched
+- mrpc
+- qnli
+- qqp
+- rte
+- sst2
+- stsb
+- wnli
 ---
 
 # Dataset Card for GLUE

@@ -20,12 +20,9 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  conceptnet5:
-  - 10M<n<100M
-  omcs_sentences_free:
-  - 100K<n<1M
-  omcs_sentences_more:
-  - 1M<n<10M
+- 100K<n<1M
+- 10M<n<100M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -34,6 +31,10 @@ task_ids:
 - multi-class-classification
 paperswithcode_id: conceptnet
 pretty_name: Conceptnet5
+configs:
+- conceptnet5
+- omcs_sentences_free
+- omcs_sentences_more
 ---
 
 # Dataset Card for Conceptnet5

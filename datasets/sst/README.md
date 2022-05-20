@@ -5,17 +5,15 @@ language_creators:
 - found
 languages:
 - en
-licenses: []
+licenses:
+- unknown
 multilinguality:
 - monolingual
 size_categories:
-  default:
-  - 10K<n<100K
-  dictionary:
-  - 100K<n<1M
-  ptb:
-  - 10K<n<100K
-source_datasets: []
+- 100K<n<1M
+- 10K<n<100K
+source_datasets:
+- original
 task_categories:
 - text-classification
 task_ids:
@@ -24,6 +22,10 @@ task_ids:
 - sentiment-scoring
 paperswithcode_id: sst
 pretty_name: Stanford Sentiment Treebank
+configs:
+- default
+- dictionary
+- ptb
 ---
 
 # Dataset Card for sst

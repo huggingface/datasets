@@ -35,7 +35,15 @@ class DatasetDict(dict):
     def _check_values_type(self):
         for dataset in self.values():
             if not isinstance(dataset, Dataset):
-                raise TypeError(f"Values in `DatasetDict` should of type `Dataset` but got type '{type(dataset)}'")
+                raise TypeError(f"Values in `DatasetDict` should be of type `Dataset` but got type '{type(dataset)}'")
+
+    def _check_values_features(self):
+        items = list(self.items())
+        for item_a, item_b in zip(items[:-1], items[1:]):
+            if item_a[1].features != item_b[1].features:
+                raise ValueError(
+                    f"All datasets in `DatasetDict` should have the same features but features for '{item_a[0]}' and '{item_b[0]}' don't match: {item_a[1].features} != {item_b[1].features}"
+                )
 
     def __getitem__(self, k) -> Dataset:
         if isinstance(k, (str, NamedSplit)) or len(self) == 0:
@@ -1330,6 +1338,7 @@ class DatasetDict(dict):
             max_shard_size = shard_size
 
         self._check_values_type()
+        self._check_values_features()
         total_uploaded_size = 0
         total_dataset_nbytes = 0
         info_to_dump: DatasetInfo = next(iter(self.values())).info.copy()
