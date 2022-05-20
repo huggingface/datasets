@@ -717,7 +717,7 @@ class ArchiveIterable(_IterableFromGenerator):
                 continue
             if file_path is None:
                 continue
-            if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
+            if os.path.basename(file_path).startswith((".", "__")):
                 # skipping hidden files
                 continue
             file_obj = stream.extractfile(tarinfo)
@@ -752,10 +752,24 @@ class FilesIterable(_IterableFromGenerator):
             urlpaths = [urlpaths]
         for urlpath in urlpaths:
             if xisfile(urlpath, use_auth_token=use_auth_token):
+                if xbasename(dirpath).startswith((".", "__")):
+                    # skipping hidden files
+                    return
                 yield urlpath
             else:
-                for dirpath, _, filenames in xwalk(urlpath, use_auth_token=use_auth_token):
+                for dirpath, dirnames, filenames in xwalk(urlpath, use_auth_token=use_auth_token):
+                    for i, dirname in enumerate(dirnames):
+                        if dirname.startswith((".", "__")):
+                            # skipping hidden directories; prune the search
+                            # (only works for local paths as fsspec's walk doesn't support the in-place modification)
+                            del dirnames[i]
+                    if xbasename(dirpath).startswith((".", "__")):
+                        # skipping hidden directories
+                        continue
                     for filename in filenames:
+                        if filename.startswith((".", "__")):
+                            # skipping hidden files
+                            continue
                         yield xjoin(dirpath, filename)
 
     @classmethod

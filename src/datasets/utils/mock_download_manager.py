@@ -211,7 +211,7 @@ class MockDownloadManager:
     def iter_archive(self, path):
         path = Path(path)
         for file_path in path.rglob("*"):
-            if file_path.is_file() and not file_path.name.startswith(".") and not file_path.name.startswith("__"):
+            if file_path.is_file() and not file_path.name.startswith((".", "__")):
                 yield file_path.relative_to(path).as_posix(), file_path.open("rb")
 
     def iter_files(self, paths):
@@ -219,8 +219,14 @@ class MockDownloadManager:
             paths = [paths]
         for path in paths:
             if os.path.isfile(path):
+                if os.path.basename(path).startswith((".", "__")):
+                    return
                 yield path
             else:
                 for dirpath, _, filenames in os.walk(path):
+                    if os.path.basename(dirpath).startswith((".", "__")):
+                        continue
                     for filename in filenames:
+                        if filename.startswith((".", "__")):
+                            continue
                         yield os.path.join(dirpath, filename)
