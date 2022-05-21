@@ -19,6 +19,7 @@ from typing import Dict, List, Mapping, Optional, Sequence, Union
 
 import huggingface_hub
 
+from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager
 from .info import DatasetInfo
@@ -29,7 +30,6 @@ from .load import (
     load_dataset_builder,
     metric_module_factory,
 )
-from .utils.file_utils import DownloadConfig
 from .utils.logging import get_logger
 from .utils.version import Version
 

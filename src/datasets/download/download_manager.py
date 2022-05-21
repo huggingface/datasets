@@ -24,9 +24,9 @@ from functools import partial
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
 from datasets import config
+from datasets.download.download_config import DownloadConfig
 from datasets.utils.deprecation_utils import DeprecatedEnum
 from datasets.utils.file_utils import (
-    DownloadConfig,
     cached_path,
     get_from_cache,
     hash_url_to_filename,

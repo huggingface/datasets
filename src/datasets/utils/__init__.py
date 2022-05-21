@@ -17,13 +17,11 @@
 """Util import."""
 
 __all__ = [
-    "DownloadConfig",
     "Version",
     "disable_progress_bar",
     "enable_progress_bar",
     "is_progress_bar_enabled",
 ]
 
-from .file_utils import DownloadConfig
 from .logging import disable_progress_bar, enable_progress_bar, is_progress_bar_enabled
 from .version import Version

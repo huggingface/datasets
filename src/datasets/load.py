@@ -43,6 +43,7 @@ from .data_files import (
     sanitize_patterns,
 )
 from .dataset_dict import DatasetDict, IterableDatasetDict
+from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager, xglob, xjoin
 from .features import Features
@@ -55,7 +56,6 @@ from .splits import Split
 from .streaming import extend_module_for_streaming
 from .tasks import TaskTemplate
 from .utils.file_utils import (
-    DownloadConfig,
     OfflineModeIsEnabled,
     _raise_if_offline_mode_is_enabled,
     cached_path,

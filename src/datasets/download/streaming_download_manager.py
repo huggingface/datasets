@@ -16,7 +16,7 @@ import fsspec
 from aiohttp.client_exceptions import ClientError
 
 from datasets import config
-from datasets.download.download_manager import DownloadConfig, map_nested
+from datasets.download.download_config import DownloadConfig
 from datasets.filesystems import COMPRESSION_FILESYSTEMS
 from datasets.utils.file_utils import (
     get_authentication_headers_for_url,
@@ -27,6 +27,7 @@ from datasets.utils.file_utils import (
     url_or_path_join,
 )
 from datasets.utils.logging import get_logger
+from datasets.utils.py_utils import map_nested
 
 
 logger = get_logger(__name__)

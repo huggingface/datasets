@@ -39,6 +39,7 @@ from .arrow_reader import (
 from .arrow_writer import ArrowWriter, BeamWriter
 from .data_files import DataFilesDict, sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
+from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadManager, DownloadMode
 from .download.mock_download_manager import MockDownloadManager
 from .download.streaming_download_manager import StreamingDownloadManager
@@ -49,7 +50,7 @@ from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examp
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils import logging
-from .utils.file_utils import DownloadConfig, cached_path, is_remote_url
+from .utils.file_utils import cached_path, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
 from .utils.py_utils import (
