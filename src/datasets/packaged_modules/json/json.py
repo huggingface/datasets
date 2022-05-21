@@ -7,7 +7,6 @@ import pyarrow as pa
 import pyarrow.json as paj
 
 import datasets
-from datasets.features.features import require_storage_cast
 from datasets.table import table_cast
 from datasets.utils.file_utils import readline
 
@@ -25,10 +24,6 @@ class JsonConfig(datasets.BuilderConfig):
     block_size: Optional[int] = None  # deprecated
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
-
-    @property
-    def schema(self):
-        return self.features.arrow_schema if self.features is not None else None
 
 
 class Json(datasets.ArrowBasedBuilder):
@@ -67,13 +62,9 @@ class Json(datasets.ArrowBasedBuilder):
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.config.features is not None:
-            schema = self.config.schema
-            if all(not require_storage_cast(feature) for feature in self.config.features.values()):
-                # cheaper cast
-                pa_table = pa.Table.from_arrays([pa_table[field.name] for field in schema], schema=schema)
-            else:
-                # more expensive cast; allows str <-> int/float or str to Audio for example
-                pa_table = table_cast(pa_table, schema)
+            # more expensive cast to support nested structures with keys in a different order
+            # allows str <-> int/float or str to Audio for example
+            pa_table = table_cast(pa_table, self.config.features.arrow_schema)
         return pa_table
 
     def _generate_tables(self, files):

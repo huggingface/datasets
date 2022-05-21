@@ -15,10 +15,6 @@ class PandasConfig(datasets.BuilderConfig):
 
     features: Optional[datasets.Features] = None
 
-    @property
-    def schema(self):
-        return self.features.arrow_schema if self.features is not None else None
-
 
 class Pandas(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = PandasConfig
@@ -45,7 +41,7 @@ class Pandas(datasets.ArrowBasedBuilder):
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.config.features is not None:
-            schema = self.config.schema
+            schema = self.config.features.arrow_schema
             if all(not require_storage_cast(feature) for feature in self.config.features.values()):
                 # cheaper cast
                 pa_table = pa.Table.from_arrays([pa_table[field.name] for field in schema], schema=schema)

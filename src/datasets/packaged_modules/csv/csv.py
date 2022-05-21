@@ -69,10 +69,6 @@ class CsvConfig(datasets.BuilderConfig):
             self.names = self.column_names
 
     @property
-    def schema(self):
-        return self.features.arrow_schema if self.features is not None else None
-
-    @property
     def read_csv_kwargs(self):
         read_csv_kwargs = dict(
             sep=self.sep,
@@ -154,7 +150,7 @@ class Csv(datasets.ArrowBasedBuilder):
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.config.features is not None:
-            schema = self.config.schema
+            schema = self.config.features.arrow_schema
             if all(not require_storage_cast(feature) for feature in self.config.features.values()):
                 # cheaper cast
                 pa_table = pa.Table.from_arrays([pa_table[field.name] for field in schema], schema=schema)
@@ -164,14 +160,14 @@ class Csv(datasets.ArrowBasedBuilder):
         return pa_table
 
     def _generate_tables(self, files):
-        schema = self.config.schema
+        schema = self.config.features.arrow_schema if self.config.features else None
         # dtype allows reading an int column as str
         dtype = (
             {
                 name: dtype.to_pandas_dtype() if not require_storage_cast(feature) else object
                 for name, dtype, feature in zip(schema.names, schema.types, self.config.features.values())
             }
-            if schema
+            if schema is not None
             else None
         )
         for file_idx, file in enumerate(files):
