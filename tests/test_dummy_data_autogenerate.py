@@ -9,7 +9,7 @@ from datasets.commands.dummy_data import DummyDataGeneratorDownloadManager, Mock
 from datasets.features import Features, Value
 from datasets.info import DatasetInfo
 from datasets.splits import Split, SplitGenerator
-from datasets.utils.download_manager import DownloadConfig
+from datasets.utils.file_utils import DownloadConfig
 from datasets.utils.version import Version
 
 

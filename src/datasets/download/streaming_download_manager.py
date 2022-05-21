@@ -15,10 +15,10 @@ from xml.etree import ElementTree as ET
 import fsspec
 from aiohttp.client_exceptions import ClientError
 
-from .. import config
-from ..filesystems import COMPRESSION_FILESYSTEMS
-from .download_manager import DownloadConfig, map_nested
-from .file_utils import (
+from datasets import config
+from datasets.download.download_manager import DownloadConfig, map_nested
+from datasets.filesystems import COMPRESSION_FILESYSTEMS
+from datasets.utils.file_utils import (
     get_authentication_headers_for_url,
     http_head,
     is_local_path,
@@ -26,7 +26,7 @@ from .file_utils import (
     is_remote_url,
     url_or_path_join,
 )
-from .logging import get_logger
+from datasets.utils.logging import get_logger
 
 
 logger = get_logger(__name__)
@@ -782,7 +782,7 @@ class StreamingDownloadManager:
     ):
         self._dataset_name = dataset_name
         self._data_dir = data_dir
-        self._base_path = base_path or os.path.abspath(".")
+        self._base_path = base_path or os.path.abspath("../utils")
         self.download_config = download_config or DownloadConfig()
 
     @property

@@ -3,9 +3,7 @@ from functools import wraps
 from typing import Optional, Union
 from unittest.mock import patch
 
-from .utils.logging import get_logger
-from .utils.patching import patch_submodule
-from .utils.streaming_download_manager import (
+from .download.streaming_download_manager import (
     xbasename,
     xdirname,
     xet_parse,
@@ -32,6 +30,8 @@ from .utils.streaming_download_manager import (
     xsplitext,
     xwalk,
 )
+from .utils.logging import get_logger
+from .utils.patching import patch_submodule
 
 
 logger = get_logger(__name__)

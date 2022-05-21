@@ -24,11 +24,11 @@ from unittest import TestCase
 from absl.testing import parameterized
 
 from datasets.builder import BuilderConfig, DatasetBuilder
+from datasets.download.download_manager import DownloadMode
 from datasets.features import ClassLabel, Features, Value
 from datasets.load import dataset_module_factory, import_main_class, load_dataset
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.search import _has_faiss
-from datasets.utils.download_manager import DownloadMode
 from datasets.utils.file_utils import DownloadConfig, cached_path, is_remote_url
 from datasets.utils.logging import get_logger
 from datasets.utils.mock_download_manager import MockDownloadManager

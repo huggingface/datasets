@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from datasets.utils.download_manager import DownloadManager
+from datasets.download.download_manager import DownloadManager
 from datasets.utils.file_utils import DownloadConfig, hash_url_to_filename
 
 

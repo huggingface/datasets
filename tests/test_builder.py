@@ -13,10 +13,10 @@ from datasets.arrow_dataset import Dataset
 from datasets.arrow_writer import ArrowWriter
 from datasets.builder import BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from datasets.dataset_dict import DatasetDict
+from datasets.download.download_manager import DownloadMode
 from datasets.features import Features, Value
 from datasets.info import DatasetInfo, PostProcessedInfo
 from datasets.splits import Split, SplitDict, SplitGenerator, SplitInfo
-from datasets.utils.download_manager import DownloadMode
 
 from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_faiss
 

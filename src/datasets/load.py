@@ -43,6 +43,8 @@ from .data_files import (
     sanitize_patterns,
 )
 from .dataset_dict import DatasetDict, IterableDatasetDict
+from .download.download_manager import DownloadMode
+from .download.streaming_download_manager import StreamingDownloadManager, xglob, xjoin
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .info import DatasetInfo, DatasetInfosDict
@@ -52,7 +54,6 @@ from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, 
 from .splits import Split
 from .streaming import extend_module_for_streaming
 from .tasks import TaskTemplate
-from .utils.download_manager import DownloadMode
 from .utils.file_utils import (
     DownloadConfig,
     OfflineModeIsEnabled,
@@ -69,7 +70,6 @@ from .utils.file_utils import (
 from .utils.filelock import FileLock
 from .utils.info_utils import is_small_dataset
 from .utils.logging import get_logger
-from .utils.streaming_download_manager import StreamingDownloadManager, xglob, xjoin
 from .utils.version import Version
 
 

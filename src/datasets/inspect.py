@@ -19,6 +19,8 @@ from typing import Dict, List, Mapping, Optional, Sequence, Union
 
 import huggingface_hub
 
+from .download.download_manager import DownloadMode
+from .download.streaming_download_manager import StreamingDownloadManager
 from .info import DatasetInfo
 from .load import (
     dataset_module_factory,
@@ -27,10 +29,8 @@ from .load import (
     load_dataset_builder,
     metric_module_factory,
 )
-from .utils import DownloadConfig
-from .utils.download_manager import DownloadMode
+from .utils.file_utils import DownloadConfig
 from .utils.logging import get_logger
-from .utils.streaming_download_manager import StreamingDownloadManager
 from .utils.version import Version
 
 

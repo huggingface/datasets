@@ -23,9 +23,9 @@ from datetime import datetime
 from functools import partial
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
-from .. import config
-from .deprecation_utils import DeprecatedEnum
-from .file_utils import (
+from datasets import config
+from datasets.utils.deprecation_utils import DeprecatedEnum
+from datasets.utils.file_utils import (
     DownloadConfig,
     cached_path,
     get_from_cache,
@@ -33,9 +33,9 @@ from .file_utils import (
     is_relative_path,
     url_or_path_join,
 )
-from .info_utils import get_size_checksum_dict
-from .logging import get_logger, is_progress_bar_enabled
-from .py_utils import NestedDataStructure, map_nested, size_str
+from datasets.utils.info_utils import get_size_checksum_dict
+from datasets.utils.logging import get_logger, is_progress_bar_enabled
+from datasets.utils.py_utils import NestedDataStructure, map_nested, size_str
 
 
 logger = get_logger(__name__)
@@ -163,7 +163,7 @@ class DownloadManager:
         """
         self._dataset_name = dataset_name
         self._data_dir = data_dir
-        self._base_path = base_path or os.path.abspath(".")
+        self._base_path = base_path or os.path.abspath("../utils")
         # To record what is being used: {url: {num_bytes: int, checksum: str}}
         self._recorded_sizes_checksums: Dict[str, Dict[str, Optional[Union[int, str]]]] = {}
         self.record_checksums = record_checksums
