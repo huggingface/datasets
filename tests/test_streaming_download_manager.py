@@ -142,7 +142,7 @@ class DummyTestFS(AbstractFileSystem):
 def mock_fsspec(monkeypatch):
     dummy_registry = datasets.download.streaming_download_manager.fsspec.registry.target.copy()
     dummy_registry["mock"] = DummyTestFS
-    monkeypatch.setattr("datasets.utils.streaming_download_manager.fsspec.registry.target", dummy_registry)
+    monkeypatch.setattr("datasets.download.streaming_download_manager.fsspec.registry.target", dummy_registry)
 
 
 def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
