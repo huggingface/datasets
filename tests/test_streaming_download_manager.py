@@ -593,9 +593,7 @@ def test_streaming_dl_manager_download_and_extract_no_extraction(urlpath):
 def test_streaming_dl_manager_extract(text_gz_path, text_path):
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.extract(text_gz_path)
-    path = os.path.basename(text_gz_path)
-    path = path[: path.rindex(".")]
-    assert output_path == f"gzip://{path}::{text_gz_path}"
+    assert output_path == f"gzip://::{text_gz_path}"
     fsspec_open_file = xopen(output_path, encoding="utf-8")
     with fsspec_open_file as f, open(text_path, encoding="utf-8") as expected_file:
         assert f.read() == expected_file.read()
@@ -604,9 +602,7 @@ def test_streaming_dl_manager_extract(text_gz_path, text_path):
 def test_streaming_dl_manager_download_and_extract_with_extraction(text_gz_path, text_path):
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.download_and_extract(text_gz_path)
-    path = os.path.basename(text_gz_path)
-    path = path[: path.rindex(".")]
-    assert output_path == f"gzip://{path}::{text_gz_path}"
+    assert output_path == f"gzip://::{text_gz_path}"
     fsspec_open_file = xopen(output_path, encoding="utf-8")
     with fsspec_open_file as f, open(text_path, encoding="utf-8") as expected_file:
         assert f.read() == expected_file.read()
@@ -633,9 +629,7 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
     input_path = str(input_paths[compression_fs_class.protocol])
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.extract(input_path)
-    path = os.path.basename(input_path)
-    path = path[: path.rindex(".")]
-    assert output_path == f"{compression_fs_class.protocol}://{path}::{input_path}"
+    assert output_path == f"{compression_fs_class.protocol}://::{input_path}"
     fsspec_open_file = xopen(output_path, encoding="utf-8")
     with fsspec_open_file as f, open(text_file, encoding="utf-8") as expected_file:
         assert f.read() == expected_file.read()
@@ -644,7 +638,7 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
 @pytest.mark.parametrize(
     "urlpath, expected_protocol",
     [
-        ("zip://train-00000.json.gz::https://foo.bar/data.zip", "gzip"),
+        ("zip://train-00000.json.gz::https://foo.bar/data.zip?export=download", "gzip"),
         ("https://foo.bar/train.json.gz?dl=1", "gzip"),
         ("http://opus.nlpl.eu/download.php?f=Bianet/v1/moses/en-ku.txt.zip", "zip"),
         ("https://github.com/user/what-time-is-it/blob/master/gutenberg_time_phrases.zip?raw=true", "zip"),
@@ -653,7 +647,7 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
         ("https://zenodo.org/record/2787612/files/SICK.zip?download=1", "zip"),
     ],
 )
-def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected_protocol):
+def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):
     assert _get_extraction_protocol(urlpath) == expected_protocol
 
 
@@ -664,8 +658,8 @@ def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected
         (TEST_GG_DRIVE_ZIPPED_URL, "zip"),
     ],
 )
-@slow  # otherwise it spams google drive and the CI gets banned
-def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):
+@slow  # otherwise it spams Google Drive and the CI gets banned
+def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected_protocol):
     assert _get_extraction_protocol(urlpath) == expected_protocol
 
 
