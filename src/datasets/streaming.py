@@ -49,7 +49,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
       - `pathlib.Path.joinpath` and `pathlib.Path.__truediv__` (called when using the "/" operator)
 
     The patched functions are replaced with custom functions defined to work with the
-    :class:`~utils.streaming_download_manager.StreamingDownloadManager`.
+    :class:`~download.streaming_download_manager.StreamingDownloadManager`.
 
     Args:
         module_path: Path to the module to be extended.
