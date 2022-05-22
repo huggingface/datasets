@@ -75,6 +75,7 @@ You can use [py-c3d library](https://c3d.readthedocs.io/en/stable/) for reading 
 
 You can use a video loader library such as [decord](https://github.com/dmlc/decord) to load and process these files.
 
+
 ### Supported Tasks and Leaderboards
 
 [More Information Needed]
@@ -132,6 +133,15 @@ If you consider the "asf/amc" format of the dataset, there are a total of :
 - 112 subjects/examples
 - Total number of trials(.amc files) in the dataset are 2514.
 - There are 112 asf files for each subject.
+
+Note :- 
+Each format contains the following rows :
+- asf-amc : num_rows - 112,
+- c3d :  num_rows - 109,
+- mpg : num_rows - 53,
+- avi : num_rows - 106.
+
+These are based on the download links provided on the [CMU MoCap Website](http://mocap.cs.cmu.edu/faqs.php), it seems like all links are not provided for the mpg format.
 
 ## Dataset Creation
 
