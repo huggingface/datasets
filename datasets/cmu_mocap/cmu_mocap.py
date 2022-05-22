@@ -181,25 +181,30 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
 
         return features
 
-    def _get_data_path(self, data_dir):
+    def _get_data_paths(self, data_dir):
         if self.config.name == "asf-amc":
-            data_path = os.path.join(data_dir, "all_asfamc", "subjects")
+            data_paths = [os.path.join(data_dir, "all_asfamc", "subjects")]
+        elif self.config.name == "avi":
+            data_paths = [os.path.join(data_dir, "subjects")]
         else:
-            data_path = os.path.join(data_dir, "subjects")
+            data_paths = []
+            for path in data_dir:
+                data_path = os.path.join(path, "subjects")
+                data_paths.append(data_path)
 
-        return data_path
+        return data_paths
 
     def _split_generators(self, dl_manager):
         urls = _URLS[self.config.name]
         metadata_path = dl_manager.download(_METADATA_URL)
         data_dir = dl_manager.download_and_extract(urls)
-        data_path = self._get_data_path(data_dir)
+        data_paths = self._get_data_paths(data_dir)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "data_path": data_path,
+                    "data_paths": data_paths,
                     "metadata_path": metadata_path,
                     "split": "train",
                 },
@@ -230,20 +235,30 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
 
         return [categories, subcategories, descriptions]
 
-    def _generate_examples(self, data_path, metadata_path, split):
+    @staticmethod
+    def _get_subject_paths(data_paths):
+        def listdir_fullpath(d):
+            return [os.path.join(d, f) for f in os.listdir(d)]
 
-        subject_dirs = os.listdir(data_path)
+        subject_paths = []
+        for data_path in data_paths:
+            subject_paths.extend(listdir_fullpath(data_path))
+
+        return subject_paths
+
+    def _generate_examples(self, data_paths, metadata_path, split):
+
+        subject_paths = self._get_subject_paths(data_paths)
 
         with open(metadata_path, encoding="utf-8") as f:
             subject_id_to_details = json.load(f)
 
         idx = 0
-        for subject in subject_dirs:
-            subject_id = int(subject)
-            subject_path = os.path.join(data_path, subject)
+        for subject_path in subject_paths:
+            subject_id = int(os.path.basename(subject_path))
 
             if self.config.name == "asf-amc":
-                asf_file = os.path.join(subject_path, subject + ".asf")
+                asf_file = os.path.join(subject_path, str(subject_id) + ".asf")
                 files = glob.glob(os.path.join(subject_path, "*.amc"))
 
             if self.config.name == "c3d":
