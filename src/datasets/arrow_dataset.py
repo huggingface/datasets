@@ -292,7 +292,10 @@ class TensorflowDatasetMixin:
                 np_dtype = np.unicode_
                 tf_dtype = tf.string
             else:
-                raise RuntimeError(f"Unrecognized array dtype {np_arrays[0].dtype}!")
+                raise RuntimeError(
+                    f"Unrecognized array dtype {np_arrays[0].dtype}. \n"
+                    "Nested types and image/audio types are not supported yet."
+                )
             shapes = [array.shape for array in np_arrays]
             static_shape = []
             for dim in range(len(shapes[0])):
