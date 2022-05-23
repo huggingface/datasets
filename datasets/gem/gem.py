@@ -1170,8 +1170,8 @@ class Gem(datasets.GeneratorBasedBuilder):
                             "highlighted_cells": result["highlighted_cells"],
                             "example_id": str(result["example_id"]),
                             "overlap_subset": str(result["overlap_subset"]),
+                            "sentence_annotations": [] if split == "test" else result["sentence_annotations"],
                         }
-                        response["sentence_annotations"] = [] if split == "test" else result["sentence_annotations"]
                         response["references"] = [
                             sentence["final_sentence"] for sentence in response["sentence_annotations"]
                         ]
