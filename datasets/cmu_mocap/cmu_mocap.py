@@ -255,10 +255,11 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
 
         idx = 0
         for subject_path in subject_paths:
-            subject_id = int(os.path.basename(subject_path))
+            subject = os.path.basename(subject_path)
+            subject_id = int(subject)
 
             if self.config.name == "asf-amc":
-                asf_file = os.path.join(subject_path, str(subject_id) + ".asf")
+                asf_file = os.path.join(subject_path, subject + ".asf")
                 files = glob.glob(os.path.join(subject_path, "*.amc"))
 
             if self.config.name == "c3d":
