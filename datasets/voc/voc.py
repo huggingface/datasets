@@ -98,7 +98,7 @@ class VocConfig(datasets.BuilderConfig):
 
 def _get_example_objects(annon_filepath):
     """Function to get all the objects from the annotation XML file."""
-    with open(annon_filepath, "r") as f:
+    with open(annon_filepath, "r", encoding="utf-8") as f:
         root = xml.etree.ElementTree.parse(f).getroot()
 
         # Disable pytype to avoid attribute-error due to find returning
@@ -199,7 +199,7 @@ class Voc(datasets.GeneratorBasedBuilder):
             data_path, os.path.normpath("VOCdevkit/VOC{}/ImageSets/Main/{}.txt".format(self.config.year, set_name))
         )
         load_annotations = self.config.has_test_annotations or set_name != "test"
-        with open(set_filepath, "r") as f:
+        with open(set_filepath, "r", encoding="utf-8") as f:
             for line in f:
                 image_id = line.strip()
                 example = self._generate_example(data_path, image_id, load_annotations)
