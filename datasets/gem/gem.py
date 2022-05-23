@@ -193,7 +193,7 @@ _URLs = {
         "challenge_set": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_challenge_sets/schema_guided_dialog.zip",
     },
     "totto": {
-        "data": "https://storage.googleapis.com/totto/totto_data.zip",
+        "data": "https://storage.googleapis.com/totto-public/totto_data.zip",
         "challenge_set": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_challenge_sets/totto.zip",
     },
     "web_nlg_en": {
