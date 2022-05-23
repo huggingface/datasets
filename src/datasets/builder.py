@@ -248,7 +248,7 @@ class DatasetBuilder:
 
         """
         # DatasetBuilder name
-        self.name: str = camelcase_to_snakecase(self.__class__.__name__)
+        self.name: str = camelcase_to_snakecase(self.__module__.split(".")[-1])
         self.hash: Optional[str] = hash
         self.base_path = base_path
         self.use_auth_token = use_auth_token
