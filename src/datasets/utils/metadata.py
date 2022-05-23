@@ -112,7 +112,6 @@ def tagset_validator(
 
 
 def validate_type(value: Any, expected_type: Type):
-    import pdb;pdb.set_trace()
     error_string = ""
     NoneType = type(None)
     if expected_type is NoneType:
@@ -187,7 +186,6 @@ def validate_type(value: Any, expected_type: Type):
 
 
 def validate_metadata_type(metadata_dict: dict):
-    import pdb;pdb.set_trace()
     field_types = {field.name: field.type for field in fields(DatasetMetadata)}
 
     typing_errors = {}
@@ -231,7 +229,6 @@ class DatasetMetadata:
     _ALLOWED_YAML_KEYS: ClassVar[set] = set()  # populated later
 
     def validate(self):
-        import pdb;pdb.set_trace()
         validate_metadata_type(metadata_dict=vars(self))
 
         self.annotations_creators, annotations_creators_errors = self.validate_annotations_creators(

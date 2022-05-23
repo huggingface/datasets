@@ -28,8 +28,6 @@ source_datasets:
 - original
 task_categories:
 - fill-mask
-- summarization
-- table-to-text
 - tabular-to-text
 - text-generation
 - text2text-generation
@@ -38,7 +36,8 @@ task_ids:
 - other-concepts-to-text
 - other-intent-to-text
 - rdf-to-text
-- news-articles-summarization
+- summarization
+- table-to-text
 - text-simplification
 - text2text-generation-other-meaning-representation-to-text
 paperswithcode_id: gem
