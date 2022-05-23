@@ -5,6 +5,10 @@ from collections import Counter
 from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, Type, Union
+try:  # Python >= 3.8
+    from typing import get_args
+except ImportError:
+    get_args = lambda x: x.__args__
 
 
 # loading package files: https://stackoverflow.com/a/20885799
@@ -132,7 +136,7 @@ def validate_type(value: Any, expected_type: Type):
     # Add more `elif` statements if primitive type checking is needed
     else:
         expected_type_name = str(expected_type).split(".", 1)[-1].split("[")[0]  # typing.List[str] -> List
-        expected_type_args = expected_type.__args__
+        expected_type_args = get_args(expected_type)
 
         if expected_type_name == "Union":
             for type_arg in expected_type_args:
@@ -161,7 +165,7 @@ def validate_type(value: Any, expected_type: Type):
             if expected_type_name == "Dict":
                 if not isinstance(value, dict):
                     return f"Expected `{expected_type}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
-                if expected_type_args != Dict.__args__:  # if we specified types for keys and values
+                if expected_type_args != get_args(Dict):  # if we specified types for keys and values
                     key_type, value_type = expected_type_args
                     key_error_string = ""
                     value_error_string = ""
@@ -174,7 +178,7 @@ def validate_type(value: Any, expected_type: Type):
             else:  # `List`/`Tuple`
                 if not isinstance(value, (list, tuple)):
                     return f"Expected `{expected_type}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
-                if expected_type_args != List.__args__:  # if we specified types for the items in the list
+                if expected_type_args != get_args(List):  # if we specified types for the items in the list
                     value_type = expected_type_args[0]
                     value_error_string = ""
                     for v in value:
