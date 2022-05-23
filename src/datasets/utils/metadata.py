@@ -10,7 +10,9 @@ from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, Type, U
 try:  # Python >= 3.8
     from typing import get_args
 except ImportError:
-    get_args = lambda x: x.__args__
+
+    def get_args(tp):
+        return tp.__args__
 
 
 # loading package files: https://stackoverflow.com/a/20885799
