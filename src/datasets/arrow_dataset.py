@@ -312,8 +312,8 @@ class TensorflowDatasetMixin:
 
     def to_tf_dataset(
         self,
+        batch_size: int,
         columns: Optional[Union[str, List[str]]] = None,
-        batch_size: int = 8,
         shuffle: bool = True,
         collate_fn: Optional[Callable] = None,
         drop_remainder: Optional[bool] = None,
@@ -424,6 +424,9 @@ class TensorflowDatasetMixin:
         # endregion
 
         # region Compute dataset signature and verify columns
+        # If drop_remainder is True then all batches will have the same size, so this can be included in the
+        # output shape. If drop_remainder is False then batch size can be variable, so that dimension should
+        # be listed as None
         output_signature, columns_to_np_types = dataset._get_output_signature(
             dataset,
             collate_fn=collate_fn,
