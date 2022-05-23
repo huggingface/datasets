@@ -290,11 +290,11 @@ _URLs = {
 # Add Asset files
 _URLs["wiki_auto_asset_turk"][
     "test_asset_orig"
-] = "https://github.com/facebookresearch/asset/raw/master/dataset/asset.test.orig"
+] = "https://github.com/facebookresearch/asset/raw/main/dataset/asset.test.orig"
 for i in range(10):
     _URLs["wiki_auto_asset_turk"][
         f"test_asset_{i}"
-    ] = f"https://github.com/facebookresearch/asset/raw/master/dataset/asset.test.simp.{i}"
+    ] = f"https://github.com/facebookresearch/asset/raw/main/dataset/asset.test.simp.{i}"
 
 _SGD_ACTS = [
     "AFFIRM",
