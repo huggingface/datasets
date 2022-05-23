@@ -71,6 +71,7 @@ def test_changed_dataset_card(dataset_name):
         )
     try:
         metadata = DatasetMetadata.from_readme(card_path)
+        import pdb;pdb.set_trace()
         metadata.validate()
     except Exception as metadata_error:
         error_messages.append(
