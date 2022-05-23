@@ -325,7 +325,9 @@ class TensorflowDatasetMixin:
         prefetch: bool = True,
     ):
         """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
-        the Dataset, and is suitable for passing to methods like model.fit() or model.predict().
+        the Dataset, and is suitable for passing to methods like model.fit() or model.predict(). The dataset will yield
+        dicts for both inputs and labels unless the dict would contain only a single key, in which case a raw
+        tf.Tensor is yielded instead.
 
         Args:
             batch_size (:obj:`int`): Size of batches to load from the dataset.
