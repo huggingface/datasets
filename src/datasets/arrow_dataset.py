@@ -342,7 +342,7 @@ class TensorflowDatasetMixin:
             collate_fn_args (:obj:`Dict`, optional): An optional `dict` of keyword arguments to be passed to the
                 `collate_fn`.
             label_cols (:obj:`List[str]` or :obj:`str`, default ``None``): Dataset column(s) to load as
-                labels. Note that many models compute loss internally rather than letting Keras do it, in which case it
+                labels. Note that many models compute loss internally rather than letting Keras do it, in which case
                 passing the labels here is optional, as long as they're in the input `columns`.
             prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
