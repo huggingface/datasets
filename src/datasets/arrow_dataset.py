@@ -333,7 +333,7 @@ class TensorflowDatasetMixin:
             batch_size (:obj:`int`): Size of batches to load from the dataset.
             columns (:obj:`List[str]` or :obj:`str`, optional): Dataset column(s) to load in the tf.data.Dataset. Column
              names that are created by the `collate_fn` and that do not exist in the original dataset can be used.
-            shuffle(:obj:`bool`, default to `True`): Shuffle the dataset order when loading. Recommended True for training, False for
+            shuffle(:obj:`bool`, default to `False`): Shuffle the dataset order when loading. Recommended True for training, False for
                 validation/evaluation.
             drop_remainder(:obj:`bool`, default ``None``): Drop the last incomplete batch when loading. If not provided,
                 defaults to the same setting as shuffle.
