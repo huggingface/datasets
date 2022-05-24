@@ -688,7 +688,7 @@ else:  # config.DILL_VERSION >= version.parse("0.3.5")
         if not dill._dill._locate_function(obj, pickler):
             dill._dill.log.info("F1: %s" % obj)
             _recurse = getattr(pickler, "_recurse", None)
-            _byref = getattr(pickler, "_byref", None)
+            # _byref = getattr(pickler, "_byref", None)  # TODO: not used
             _postproc = getattr(pickler, "_postproc", None)
             _main_modified = getattr(pickler, "_main_modified", None)
             _original_main = getattr(pickler, "_original_main", dill._dill.__builtin__)  # 'None'
