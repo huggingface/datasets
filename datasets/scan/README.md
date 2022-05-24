@@ -8,33 +8,10 @@ languages:
 licenses:
 - other-bsd
 multilinguality:
-  - monolingual
+- monolingual
 pretty_name: SCAN
 size_categories:
-  simple:
-  - 10K<n<100K
-  addprim_jump:
-  - 10K<n<100K
-  addprim_turn_left:
-  - 10K<n<100K
-  filler_num0:
-  - 10K<n<100K
-  filler_num1:
-  - 10K<n<100K
-  filler_num2:
-  - 10K<n<100K
-  filler_num3:
-  - 10K<n<100K
-  length:
-  - 10K<n<100K
-  template_around_right:
-  - 10K<n<100K
-  template_jump_around_right:
-  - 10K<n<100K
-  template_opposite_right:
-  - 10K<n<100K
-  template_right:
-  - 10K<n<100K
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -42,6 +19,19 @@ task_categories:
 task_ids:
 - other-multi-turn
 paperswithcode_id: scan
+configs:
+- addprim_jump
+- addprim_turn_left
+- filler_num0
+- filler_num1
+- filler_num2
+- filler_num3
+- length
+- simple
+- template_around_right
+- template_jump_around_right
+- template_opposite_right
+- template_right
 ---
 
 # Dataset Card for "scan"

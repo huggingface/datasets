@@ -6,12 +6,9 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  en-de:
-  - en
-  - de
-  en-zh:
-  - en
-  - zh
+- de
+- en
+- zh
 licenses:
 - unknown
 multilinguality:
@@ -26,6 +23,9 @@ task_categories:
 task_ids:
 - text-classification-other-translation-quality-estimation
 paperswithcode_id: null
+configs:
+- en-de
+- en-zh
 ---
 
 # Dataset Card for WMT20 - MultiLingual Quality Estimation (MLQE) Task2

@@ -101,6 +101,20 @@ class TestPushToHub(TestCase):
         finally:
             self.cleanup_repo(ds_name)
 
+    def test_push_dataset_dict_to_hub_datasets_with_different_features(self):
+        ds_train = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_test = Dataset.from_dict({"x": [True, False, True], "y": ["a", "b", "c"]})
+
+        local_ds = DatasetDict({"train": ds_train, "test": ds_test})
+
+        ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
+        try:
+            with self.assertRaises(ValueError):
+                local_ds.push_to_hub(ds_name.split("/")[-1], token=self._token)
+        except AssertionError:
+            self.cleanup_repo(ds_name)
+            raise
+
     def test_push_dataset_dict_to_hub_private(self):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 

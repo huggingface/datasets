@@ -34,26 +34,9 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-  bg-ga:
-  - 100K<n<1M
-  bg-hr:
-  - 100K<n<1M
-  bg-sh:
-  - 1M<n<10M
-  es-ga:
-  - 100K<n<1M
-  fi-ga:
-  - 100K<n<1M
-  ga-nl:
-  - 100K<n<1M
-  ga-sh:
-  - 10K<n<100K
-  hr-sk:
-  - 100K<n<1M
-  hr-sv:
-  - 100K<n<1M
-  mt-sh:
-  - 1M<n<10M
+- 100K<n<1M
+- 10K<n<100K
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -61,6 +44,17 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: OpusDgt
+configs:
+- bg-ga
+- bg-hr
+- bg-sh
+- es-ga
+- fi-ga
+- ga-nl
+- ga-sh
+- hr-sk
+- hr-sv
+- mt-sh
 ---
 
 # Dataset Card Creation Guide

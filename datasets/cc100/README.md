@@ -125,10 +125,8 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-  am:
-  - 1M<n<10M
-  sr:
-  - 10M<n<100M
+- 10M<n<100M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -139,6 +137,9 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: cc100
 pretty_name: CC100
+configs:
+- am
+- sr
 ---
 
 # Dataset Card for CC100
