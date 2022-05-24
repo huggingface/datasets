@@ -71,7 +71,9 @@ English
 
 ### Data Instances
 
-[More Information Needed]
+```
+{'rating': 0.2, 'content': 'The European Union includes how many ?'}
+```
 
 ### Data Fields
 
