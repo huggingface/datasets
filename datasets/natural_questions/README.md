@@ -116,11 +116,11 @@ The data fields are the same among all splits.
     - `text`: a `string` feature.
   - `yes_no_answer`: a classification label, with possible values including `NO` (0), `YES` (1).
   - `long_answer_candidates`: a dictionary feature containing:
-   - `start_token`: a `int64` feature.
-   - `end_token`: a `int64` feature.
-   - `start_byte`: a `int64` feature.
-   - `end_byte`: a `int64` feature.
-   - `top_level`: a `bool` feature.
+    - `start_token`: a `int64` feature.
+    - `end_token`: a `int64` feature.
+    - `start_byte`: a `int64` feature.
+    - `end_byte`: a `int64` feature.
+    - `top_level`: a `bool` feature.
 
 ### Data Splits
 
