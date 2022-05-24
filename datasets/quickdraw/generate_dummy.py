@@ -112,14 +112,34 @@ _NAMES = [name for line in _NAMES.strip().splitlines() for name in line.strip().
 #     with open(os.path.join("dummy", "preprocessed_simplified_drawings", f"{name}.bin").replace(" ", "+"), "wb") as f:
 #         f.write(line)
 
+import io
 import os
+import zipfile
 
 import numpy as np
 
 
-line = np.arange(28 * 28).reshape(1, 28, 28)
+# line = np.arange(28 * 28).reshape(1, 28, 28)
+# for i, name in enumerate(_NAMES):
+#     if i > 1:
+#         line = np.array([])
+#     with open(os.path.join("dummy", "preprocessed_bitmaps", f"{name}.npy").replace(" ", "+"), "wb") as f:
+#         np.save(f, line)
+
+
+line = np.arange(2 * 5 * 3).reshape(2, 5, 3)
 for i, name in enumerate(_NAMES):
+    # np.savez_compressed(buffer, train=line, valid=line, test=line)
     if i > 1:
         line = np.array([])
-    with open(os.path.join("dummy", "preprocessed_bitmaps", f"{name}.npy").replace(" ", "+"), "wb") as f:
-        np.save(f, line)
+    buffer = io.BytesIO()
+    np.save(buffer, line, allow_pickle=True)
+    # f.write(buffer.getvalue())
+    data = buffer.getvalue()
+    dir_ = os.path.join("dummy", "sketch_rnn_full", f"{name}.full.npz").replace(" ", "+")
+    os.makedirs(dir_)
+    for split in ["train", "valid", "test"]:
+        np.save(os.path.join(dir_, split), line, allow_pickle=True)
+    # with zipfile.ZipFile(os.path.join("dummy", "sketch_rnn", f"{name}.npz").replace(" ", "+"), "w", zipfile.ZIP_DEFLATED) as zip_:
+    # for split in ["train", "valid", "test"]:
+    # zip_.writestr(f"{split}.npy", data)

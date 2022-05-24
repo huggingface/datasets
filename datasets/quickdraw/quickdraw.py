@@ -14,6 +14,7 @@
 # limitations under the License.
 """Quickdraw dataset"""
 
+import io
 import json
 import os
 import struct
@@ -21,7 +22,6 @@ import textwrap
 from datetime import datetime
 
 import numpy as np
-import io
 
 import datasets
 from datasets.tasks import ImageClassification
@@ -321,7 +321,7 @@ class Quickdraw(datasets.GeneratorBasedBuilder):
             idx = 0
             for label, file in files.items():
                 with open(os.path.join(file, f"{split}.npy"), "rb") as f:
-                    # read entire file since f.seek is not supported in the streaming mode 
+                    # read entire file since f.seek is not supported in the streaming mode
                     drawings = np.load(io.BytesIO(f.read()), encoding="latin1", allow_pickle=True)
                     for drawing in drawings:
                         yield idx, {
