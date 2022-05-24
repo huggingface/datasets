@@ -3949,60 +3949,63 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shards = shards_with_embedded_external_files(shards)
 
         files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
-        files = [file for file in files if file.startswith("data/")]
+        data_files = [file for file in files if file.startswith("data/")]
 
-        def path_in_repo(_index):
-            return f"data/{split}-{_index:05d}-of-{num_shards:05d}.parquet"
-
-        # Only delete file shards that don't currently exist. Others will be overwritten if the content is different
-        # or will be left intact is the content is identical.
-        def should_delete_file(file_name):
-            file_to_overwrite = file_name in [path_in_repo(i) for i in range(num_shards)]
-            file_from_same_split = file_name.startswith(f"data/{split}-")
-
-            return file_from_same_split and not file_to_overwrite
-
-        file_shards_to_delete = [file for file in files if should_delete_file(file)]
-
-        def delete_file(file):
-            api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
-
-        if len(file_shards_to_delete):
-            for file in logging.tqdm(
-                file_shards_to_delete,
-                desc="Deleting unused files from dataset repository",
-                total=len(file_shards_to_delete),
-                disable=not logging.is_progress_bar_enabled(),
-            ):
-                delete_file(file)
+        def path_in_repo(_index, shard):
+            return f"data/{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
 
         uploaded_size = 0
+        shards_path_in_repo = []
         for index, shard in logging.tqdm(
             enumerate(shards),
             desc="Pushing dataset shards to the dataset hub",
             total=num_shards,
             disable=not logging.is_progress_bar_enabled(),
         ):
-            buffer = BytesIO()
-            shard.to_parquet(buffer)
-            uploaded_size += buffer.tell()
-            _retry(
-                api.upload_file,
-                func_kwargs=dict(
-                    path_or_fileobj=buffer.getvalue(),
-                    path_in_repo=path_in_repo(index),
-                    repo_id=repo_id,
-                    token=token,
-                    repo_type="dataset",
-                    revision=branch,
-                    identical_ok=True,
-                ),
-                exceptions=HTTPError,
-                status_codes=[504],
-                base_wait_time=2.0,
-                max_retries=5,
-                max_wait_time=20.0,
-            )
+            shard_path_in_repo = path_in_repo(index, shard)
+            # Upload a shard only if it doesn't already exist in the repository
+            if shard_path_in_repo not in data_files:
+                buffer = BytesIO()
+                shard.to_parquet(buffer)
+                uploaded_size += buffer.tell()
+                _retry(
+                    api.upload_file,
+                    func_kwargs=dict(
+                        path_or_fileobj=buffer.getvalue(),
+                        path_in_repo=shard_path_in_repo,
+                        repo_id=repo_id,
+                        token=token,
+                        repo_type="dataset",
+                        revision=branch,
+                        identical_ok=False,
+                    ),
+                    exceptions=HTTPError,
+                    status_codes=[504],
+                    base_wait_time=2.0,
+                    max_retries=5,
+                    max_wait_time=20.0,
+                )
+            shards_path_in_repo.append(shard_path_in_repo)
+
+        # Cleanup to remove unused files
+        data_files_to_delete = [
+            data_file
+            for data_file in data_files
+            if data_file.startswith(f"data/{split}-") and data_file not in shards_path_in_repo
+        ]
+
+        def delete_file(file):
+            api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
+
+        if len(data_files_to_delete):
+            for data_file in logging.tqdm(
+                data_files_to_delete,
+                desc="Deleting unused files from dataset repository",
+                total=len(data_files_to_delete),
+                disable=not logging.is_progress_bar_enabled(),
+            ):
+                delete_file(data_file)
+
         return repo_id, split, uploaded_size, dataset_nbytes
 
     def push_to_hub(
