@@ -134,12 +134,14 @@ class BuilderTest(TestCase):
             dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
             dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD)
             self.assertTrue(
-                os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dummy_builder-train.arrow"))
+                os.path.exists(
+                    os.path.join(tmp_dir, dummy_builder.name, "dummy", "0.0.0", f"{dummy_builder.name}-train.arrow")
+                )
             )
             self.assertDictEqual(dummy_builder.info.features, Features({"text": Value("string")}))
             self.assertEqual(dummy_builder.info.splits["train"].num_examples, 100)
             self.assertTrue(
-                os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dataset_info.json"))
+                os.path.exists(os.path.join(tmp_dir, dummy_builder.name, "dummy", "0.0.0", "dataset_info.json"))
             )
 
     def test_download_and_prepare_checksum_computation(self):
@@ -172,13 +174,17 @@ class BuilderTest(TestCase):
                 for dummy_builder in dummy_builders:
                     self.assertTrue(
                         os.path.exists(
-                            os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dummy_builder-train.arrow")
+                            os.path.join(
+                                tmp_dir, dummy_builder.name, "dummy", "0.0.0", f"{dummy_builder.name}-train.arrow"
+                            )
                         )
                     )
                     self.assertDictEqual(dummy_builder.info.features, Features({"text": Value("string")}))
                     self.assertEqual(dummy_builder.info.splits["train"].num_examples, 100)
                     self.assertTrue(
-                        os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dataset_info.json"))
+                        os.path.exists(
+                            os.path.join(tmp_dir, dummy_builder.name, "dummy", "0.0.0", "dataset_info.json")
+                        )
                     )
 
     def test_download_and_prepare_with_base_path(self):
@@ -210,10 +216,10 @@ class BuilderTest(TestCase):
                 os.path.exists(
                     os.path.join(
                         tmp_dir,
-                        "dummy_builder_with_download",
+                        dummy_builder.name,
                         "dummy",
                         "0.0.0",
-                        "dummy_builder_with_download-train.arrow",
+                        f"{dummy_builder.name}-train.arrow",
                     )
                 )
             )
@@ -243,7 +249,7 @@ class BuilderTest(TestCase):
 
             for split in dummy_builder.info.splits:
                 with ArrowWriter(
-                    path=os.path.join(dummy_builder.cache_dir, f"dummy_builder-{split}.arrow"),
+                    path=os.path.join(dummy_builder.cache_dir, f"{dummy_builder.name}-{split}.arrow"),
                     features=Features({"text": Value("string")}),
                 ) as writer:
                     writer.write_batch({"text": ["foo"] * 10})
@@ -313,7 +319,7 @@ class BuilderTest(TestCase):
 
             for split in dummy_builder.info.splits:
                 with ArrowWriter(
-                    path=os.path.join(dummy_builder.cache_dir, f"dummy_builder-{split}.arrow"),
+                    path=os.path.join(dummy_builder.cache_dir, f"{dummy_builder.name}-{split}.arrow"),
                     features=Features({"text": Value("string")}),
                 ) as writer:
                     writer.write_batch({"text": ["foo"] * 10})
@@ -381,7 +387,7 @@ class BuilderTest(TestCase):
 
             for split in dummy_builder.info.splits:
                 with ArrowWriter(
-                    path=os.path.join(dummy_builder.cache_dir, f"dummy_builder-{split}.arrow"),
+                    path=os.path.join(dummy_builder.cache_dir, f"{dummy_builder.name}-{split}.arrow"),
                     features=Features({"text": Value("string")}),
                 ) as writer:
                     writer.write_batch({"text": ["foo"] * 10})
@@ -446,7 +452,9 @@ class BuilderTest(TestCase):
             dummy_builder._post_processing_resources = types.MethodType(_post_processing_resources, dummy_builder)
             dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD)
             self.assertTrue(
-                os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dummy_builder-train.arrow"))
+                os.path.exists(
+                    os.path.join(tmp_dir, dummy_builder.name, "dummy", "0.0.0", f"{dummy_builder.name}-train.arrow")
+                )
             )
             self.assertDictEqual(dummy_builder.info.features, Features({"text": Value("string")}))
             self.assertDictEqual(
@@ -455,7 +463,7 @@ class BuilderTest(TestCase):
             )
             self.assertEqual(dummy_builder.info.splits["train"].num_examples, 100)
             self.assertTrue(
-                os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dataset_info.json"))
+                os.path.exists(os.path.join(tmp_dir, dummy_builder.name, "dummy", "0.0.0", "dataset_info.json"))
             )
 
         def _post_process(self, dataset, resources_paths):
@@ -466,13 +474,15 @@ class BuilderTest(TestCase):
             dummy_builder._post_process = types.MethodType(_post_process, dummy_builder)
             dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD)
             self.assertTrue(
-                os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dummy_builder-train.arrow"))
+                os.path.exists(
+                    os.path.join(tmp_dir, dummy_builder.name, "dummy", "0.0.0", f"{dummy_builder.name}-train.arrow")
+                )
             )
             self.assertDictEqual(dummy_builder.info.features, Features({"text": Value("string")}))
             self.assertIsNone(dummy_builder.info.post_processed)
             self.assertEqual(dummy_builder.info.splits["train"].num_examples, 100)
             self.assertTrue(
-                os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dataset_info.json"))
+                os.path.exists(os.path.join(tmp_dir, dummy_builder.name, "dummy", "0.0.0", "dataset_info.json"))
             )
 
         def _post_process(self, dataset, resources_paths):
@@ -495,13 +505,15 @@ class BuilderTest(TestCase):
             dummy_builder._post_processing_resources = types.MethodType(_post_processing_resources, dummy_builder)
             dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD)
             self.assertTrue(
-                os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dummy_builder-train.arrow"))
+                os.path.exists(
+                    os.path.join(tmp_dir, dummy_builder.name, "dummy", "0.0.0", f"{dummy_builder.name}-train.arrow")
+                )
             )
             self.assertDictEqual(dummy_builder.info.features, Features({"text": Value("string")}))
             self.assertIsNone(dummy_builder.info.post_processed)
             self.assertEqual(dummy_builder.info.splits["train"].num_examples, 100)
             self.assertTrue(
-                os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dataset_info.json"))
+                os.path.exists(os.path.join(tmp_dir, dummy_builder.name, "dummy", "0.0.0", "dataset_info.json"))
             )
 
     def test_error_download_and_prepare(self):
@@ -527,19 +539,17 @@ class BuilderTest(TestCase):
                 os.path.exists(
                     os.path.join(
                         tmp_dir,
-                        "dummy_generator_based_builder",
+                        dummy_builder.name,
                         "dummy",
                         "0.0.0",
-                        "dummy_generator_based_builder-train.arrow",
+                        f"{dummy_builder.name}-train.arrow",
                     )
                 )
             )
             self.assertDictEqual(dummy_builder.info.features, Features({"text": Value("string")}))
             self.assertEqual(dummy_builder.info.splits["train"].num_examples, 100)
             self.assertTrue(
-                os.path.exists(
-                    os.path.join(tmp_dir, "dummy_generator_based_builder", "dummy", "0.0.0", "dataset_info.json")
-                )
+                os.path.exists(os.path.join(tmp_dir, dummy_builder.name, "dummy", "0.0.0", "dataset_info.json"))
             )
 
         # Test that duplicated keys are ignored if ignore_verifications is True
@@ -564,7 +574,7 @@ class BuilderTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy", data_dir=None, data_files=None)
             relative_cache_dir_parts = Path(dummy_builder._relative_data_dir()).parts
-            self.assertEqual(relative_cache_dir_parts, ("dummy_generator_based_builder", "dummy", "0.0.0"))
+            self.assertEqual(relative_cache_dir_parts, (dummy_builder.name, "dummy", "0.0.0"))
 
     def test_cache_dir_for_data_files(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -730,7 +740,7 @@ def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_leng
 
     for info_split in dummy_builder.info.splits:
         with ArrowWriter(
-            path=os.path.join(dummy_builder.cache_dir, f"dummy_builder-{info_split}.arrow"),
+            path=os.path.join(dummy_builder.cache_dir, f"{dummy_builder.name}-{info_split}.arrow"),
             features=Features({"text": Value("string")}),
         ) as writer:
             writer.write_batch({"text": ["foo"] * 10})
