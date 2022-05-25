@@ -247,7 +247,6 @@ class TensorflowDatasetMixin:
         else:
             raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
-        # region Argument handling
         if len(dataset) == 0:
             raise ValueError("Unable to get the output signature because the dataset is empty.")
         if batch_size is None:
@@ -255,9 +254,7 @@ class TensorflowDatasetMixin:
         else:
             batch_size = min(len(dataset), batch_size)
             test_batch_size = batch_size
-        # endregion
 
-        # region Generate test batches
         test_batches = []
         for _ in range(num_test_batches):
             indices = sample(range(len(dataset)), test_batch_size)
@@ -265,9 +262,7 @@ class TensorflowDatasetMixin:
             test_batch = [{key: value[i] for key, value in test_batch.items()} for i in range(test_batch_size)]
             test_batch = collate_fn(test_batch, **collate_fn_args)
             test_batches.append(test_batch)
-        # endregion
 
-        # region Identify static shapes and dtypes from batches
         tf_columns_to_signatures = {}
         np_columns_to_dtypes = {}
         for column in test_batches[0].keys():
@@ -309,7 +304,6 @@ class TensorflowDatasetMixin:
                     static_shape.append(None)
             tf_columns_to_signatures[column] = tf.TensorSpec(shape=static_shape, dtype=tf_dtype)
             np_columns_to_dtypes[column] = np_dtype
-        # endregion
 
         return tf_columns_to_signatures, np_columns_to_dtypes
 
@@ -362,7 +356,6 @@ class TensorflowDatasetMixin:
         ... )
         ```
         """
-        # region Pre-checks and warnings
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
@@ -375,9 +368,7 @@ class TensorflowDatasetMixin:
                 "try using a TPU VM or, if your data can fit in memory, loading it into memory as a dict of "
                 "Tensors instead of streaming with to_tf_dataset()."
             )
-        # endregion
 
-        # region Argument and default value handling
         if collate_fn is None:
             # Set a very simple default collator that just stacks things together
             collate_fn = minimal_tf_collate_fn
@@ -400,9 +391,6 @@ class TensorflowDatasetMixin:
         else:
             cols_to_retain = None  # Indicates keeping all non-numerical columns
             columns = []
-        # endregion
-
-        # region Set dataset format and drop unwanted
 
         if self.format["type"] != "custom":
             dataset = self.with_format("numpy")
@@ -423,9 +411,6 @@ class TensorflowDatasetMixin:
         # If the user hasn't specified columns, give them all columns. This may break some data collators if columns
         # are non-numeric!
 
-        # endregion
-
-        # region Compute dataset signature and verify columns
         # If drop_remainder is True then all batches will have the same size, so this can be included in the
         # output shape. If drop_remainder is False then batch size can be variable, so that dimension should
         # be listed as None
@@ -435,9 +420,7 @@ class TensorflowDatasetMixin:
             collate_fn_args=collate_fn_args,
             batch_size=batch_size if drop_remainder else None,
         )
-        # endregion
 
-        # region Initial dataset creation
         def np_get_batch(indices):
             batch = dataset[indices]
             actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
@@ -468,16 +451,12 @@ class TensorflowDatasetMixin:
             tf_dataset = tf_dataset.shuffle(len(dataset))
 
         tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder).map(fetch_function)
-        # endregion
 
-        # region Add shape information
         def ensure_shapes(input_dict):
             return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
 
         tf_dataset = tf_dataset.map(ensure_shapes)
-        # endregion
 
-        # region Split features and labels
         if label_cols:
 
             def split_features_and_labels(input_batch):
@@ -495,21 +474,16 @@ class TensorflowDatasetMixin:
         # TODO(Matt, QL): deprecate returning the dict content when there's only one key
         elif isinstance(tf_dataset.element_spec, dict) and len(tf_dataset.element_spec) == 1:
             tf_dataset = tf_dataset.map(lambda x: list(x.values())[0])
-        # endregion
 
-        # region Add prefetch
         if prefetch:
             tf_dataset = tf_dataset.prefetch(tf.data.experimental.AUTOTUNE)
-        # endregion
 
-        # region Cleanup on close
         # Remove a reference to the open Arrow file on delete
         def cleanup_callback(ref):
             dataset.__del__()
             self._TF_DATASET_REFS.remove(ref)
 
         self._TF_DATASET_REFS.add(weakref.ref(tf_dataset, cleanup_callback))
-        # endregion
 
         return tf_dataset
 
