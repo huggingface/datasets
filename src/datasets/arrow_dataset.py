@@ -492,6 +492,7 @@ class TensorflowDatasetMixin:
 
             tf_dataset = tf_dataset.map(split_features_and_labels)
 
+        # TODO(Matt, QL): deprecate returning the dict content when there's only one key
         elif isinstance(tf_dataset.element_spec, dict) and len(tf_dataset.element_spec) == 1:
             tf_dataset = tf_dataset.map(lambda x: list(x.values())[0])
         # endregion
