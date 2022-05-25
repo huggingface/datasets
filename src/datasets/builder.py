@@ -20,7 +20,6 @@ import contextlib
 import copy
 import inspect
 import os
-import posixpath
 import shutil
 import textwrap
 import urllib
@@ -60,7 +59,7 @@ from .utils.py_utils import (
     size_str,
     temporary_assignment,
 )
-from .utils.streaming_download_manager import StreamingDownloadManager
+from .utils.streaming_download_manager import StreamingDownloadManager, xjoin
 
 
 logger = logging.get_logger(__name__)
@@ -287,20 +286,11 @@ class DatasetBuilder:
             self.info.features = features
 
         # prepare data dirs
-        self._cache_dir_root = str(cache_dir or config.HF_DATASETS_CACHE)
-        self._cache_dir_root = (
-            self._cache_dir_root if is_remote_url(self._cache_dir_root) else os.path.expanduser(self._cache_dir_root)
-        )
-        path_join = posixpath.join if is_remote_url(self._cache_dir_root) else os.path.join
+        self._cache_dir_root = os.path.expanduser(cache_dir or config.HF_DATASETS_CACHE)
         self._cache_downloaded_dir = (
-            path_join(self._cache_dir_root, config.DOWNLOADED_DATASETS_DIR)
+            xjoin(self._cache_dir_root, config.DOWNLOADED_DATASETS_DIR)
             if cache_dir
-            else str(config.DOWNLOADED_DATASETS_PATH)
-        )
-        self._cache_downloaded_dir = (
-            self._cache_downloaded_dir
-            if is_remote_url(self._cache_downloaded_dir)
-            else os.path.expanduser(self._cache_downloaded_dir)
+            else config.DOWNLOADED_DATASETS_PATH
         )
         self._cache_dir = self._build_cache_dir()
         if not is_remote_url(self._cache_dir_root):
@@ -450,7 +440,7 @@ class DatasetBuilder:
     def cache_dir(self):
         return self._cache_dir
 
-    def _relative_data_dir(self, with_version=True, with_hash=True, is_local=True) -> str:
+    def _relative_data_dir(self, with_version=True, with_hash=True) -> str:
         """Relative path of this dataset in cache_dir:
         Will be:
             self.name/self.config.version/self.hash/
@@ -462,26 +452,19 @@ class DatasetBuilder:
         builder_data_dir = self.name if namespace is None else f"{namespace}___{self.name}"
         builder_config = self.config
         hash = self.hash
-        path_join = os.path.join if is_local else posixpath.join
         if builder_config:
             # use the enriched name instead of the name to make it unique
-            builder_data_dir = path_join(builder_data_dir, self.config_id)
+            builder_data_dir = xjoin(builder_data_dir, self.config_id)
         if with_version:
-            builder_data_dir = path_join(builder_data_dir, str(self.config.version))
+            builder_data_dir = xjoin(builder_data_dir, str(self.config.version))
         if with_hash and hash and isinstance(hash, str):
-            builder_data_dir = path_join(builder_data_dir, hash)
+            builder_data_dir = xjoin(builder_data_dir, hash)
         return builder_data_dir
 
     def _build_cache_dir(self):
         """Return the data directory for the current version."""
-        is_local = not is_remote_url(self._cache_dir_root)
-        path_join = os.path.join if is_local else posixpath.join
-        builder_data_dir = path_join(
-            self._cache_dir_root, self._relative_data_dir(with_version=False, is_local=is_local)
-        )
-        version_data_dir = path_join(
-            self._cache_dir_root, self._relative_data_dir(with_version=True, is_local=is_local)
-        )
+        builder_data_dir = xjoin(self._cache_dir_root, self._relative_data_dir(with_version=False))
+        version_data_dir = xjoin(self._cache_dir_root, self._relative_data_dir(with_version=True))
 
         def _other_versions_on_disk():
             """Returns previous versions on disk."""
