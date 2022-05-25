@@ -356,3 +356,9 @@ def test_fingerprint_when_transform_version_changes():
     fingeprint_2 = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
 
     assert len({fingeprint_no_version, fingeprint_1, fingeprint_2}) == 3
+
+
+def test_dependency_on_dill():
+    # AttributeError: module 'dill._dill' has no attribute 'stack'
+    hasher = Hasher()
+    hasher.update(lambda x: x)
