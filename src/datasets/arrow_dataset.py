@@ -413,6 +413,7 @@ class TensorflowDatasetMixin:
             # are not in the list of requested columns, because the collator may rename them
             # This might work better if moved to a method attached to our transformers Model objects, but doing so
             # could break backward compatibility
+            # TODO(Matt, QL): deprecate the retention of label_ids and label
             unwanted_columns = [
                 col
                 for col in dataset.features.keys()
