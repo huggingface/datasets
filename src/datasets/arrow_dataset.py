@@ -3283,7 +3283,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If int, represents the absolute number of train samples.
                 If None, the value is automatically set to the complement of the test size.
             shuffle (:obj:`bool`, optional, default `True`): Whether or not to shuffle the data before splitting.
-            stratify_by_column (:obj:`str`, optional, default `None`):The column name of labels to be used to perform stratified split of data.
+            stratify_by_column (:obj:`str`, optional, default `None`): The column name of labels to be used to perform stratified split of data.
             seed (:obj:`int`, optional): A seed to initialize the default BitGenerator if ``generator=None``.
                 If None, then fresh, unpredictable entropy will be pulled from the OS.
                 If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
