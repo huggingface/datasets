@@ -2336,22 +2336,19 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(batch.dtype.name, "int64")
         # Test that requesting label_cols works as expected
         with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-            tf_dataset = dset.to_tf_dataset(
-                columns="col_1", label_cols=["col_2", "col_3"], batch_size=4
-            )
+            tf_dataset = dset.to_tf_dataset(columns="col_1", label_cols=["col_2", "col_3"], batch_size=4)
             batch = next(iter(tf_dataset))
             self.assertEqual(len(batch), 2)
             self.assertEqual(set(batch[1].keys()), {"col_2", "col_3"})
             self.assertEqual(batch[0].dtype.name, "int64")
-            self.assertEqual(batch[0].shape.as_list(), [4])
-            self.assertEqual(batch[1]["col_2"].shape.as_list(), [4])
-            self.assertEqual(batch[1]["col_3"].shape.as_list(), [4])
+            # Assert data comes out as expected and isn't shuffled
+            self.assertEqual(batch[0].numpy().tolist(), [3, 2, 1, 0])
+            self.assertEqual(batch[1]["col_2"].numpy().tolist(), [b"a", b"b", b"c", b"d"])
+            self.assertEqual(batch[1]["col_3"].numpy().tolist(), [0, 1, 0, 1])
         # Check that incomplete batches are dropped if requested
         with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
             tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=3)
-            tf_dataset_with_drop = dset.to_tf_dataset(
-                columns="col_1", batch_size=3, drop_remainder=True
-            )
+            tf_dataset_with_drop = dset.to_tf_dataset(columns="col_1", batch_size=3, drop_remainder=True)
             self.assertEqual(len(tf_dataset), 2)  # One batch of 3 and one batch of 1
             self.assertEqual(len(tf_dataset_with_drop), 1)  # Incomplete batch of 1 is dropped
         del tf_dataset  # For correct cleanup
