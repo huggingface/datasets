@@ -783,7 +783,7 @@ class StreamingDownloadManager:
     ):
         self._dataset_name = dataset_name
         self._data_dir = data_dir
-        self._base_path = base_path or os.path.abspath("../utils")
+        self._base_path = base_path or os.path.abspath(".")
         self.download_config = download_config or DownloadConfig()
 
     @property

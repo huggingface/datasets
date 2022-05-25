@@ -157,7 +157,7 @@ class DownloadManager:
         """
         self._dataset_name = dataset_name
         self._data_dir = data_dir
-        self._base_path = base_path or os.path.abspath("../utils")
+        self._base_path = base_path or os.path.abspath(".")
         # To record what is being used: {url: {num_bytes: int, checksum: str}}
         self._recorded_sizes_checksums: Dict[str, Dict[str, Optional[Union[int, str]]]] = {}
         self.record_checksums = record_checksums
