@@ -319,7 +319,7 @@ class TensorflowDatasetMixin:
         columns: Optional[Union[str, List[str]]] = None,
         shuffle: bool = False,
         collate_fn: Optional[Callable] = None,
-        drop_remainder: Optional[bool] = None,
+        drop_remainder: bool = False,
         collate_fn_args: Optional[Dict[str, Any]] = None,
         label_cols: Optional[Union[str, List[str]]] = None,
         prefetch: bool = True,
@@ -335,8 +335,8 @@ class TensorflowDatasetMixin:
              names that are created by the `collate_fn` and that do not exist in the original dataset can be used.
             shuffle(:obj:`bool`, default to `False`): Shuffle the dataset order when loading. Recommended True for training, False for
                 validation/evaluation.
-            drop_remainder(:obj:`bool`, default ``None``): Drop the last incomplete batch when loading. If not provided,
-                defaults to the same setting as shuffle.
+            drop_remainder(:obj:`bool`, default ``False``): Drop the last incomplete batch when loading. Ensures
+                that all batches yielded by the dataset will have the same length on the batch dimension.
             collate_fn(:obj:`Callable`, optional): A function or callable object (such as a `DataCollator`) that will collate
                 lists of samples into a batch.
             collate_fn_args (:obj:`Dict`, optional): An optional `dict` of keyword arguments to be passed to the
@@ -400,9 +400,6 @@ class TensorflowDatasetMixin:
         else:
             cols_to_retain = None  # Indicates keeping all non-numerical columns
             columns = []
-        if drop_remainder is None:
-            # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
-            drop_remainder = shuffle
         # endregion
 
         # region Set dataset format and drop unwanted
