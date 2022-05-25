@@ -15,10 +15,9 @@ from xml.etree import ElementTree as ET
 import fsspec
 from aiohttp.client_exceptions import ClientError
 
-from datasets import config
-from datasets.download.download_config import DownloadConfig
-from datasets.filesystems import COMPRESSION_FILESYSTEMS
-from datasets.utils.file_utils import (
+from .. import config
+from ..filesystems import COMPRESSION_FILESYSTEMS
+from ..utils.file_utils import (
     get_authentication_headers_for_url,
     http_head,
     is_local_path,
@@ -26,8 +25,9 @@ from datasets.utils.file_utils import (
     is_remote_url,
     url_or_path_join,
 )
-from datasets.utils.logging import get_logger
-from datasets.utils.py_utils import map_nested
+from ..utils.logging import get_logger
+from ..utils.py_utils import map_nested
+from .download_config import DownloadConfig
 
 
 logger = get_logger(__name__)

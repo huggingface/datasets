@@ -23,19 +23,13 @@ from datetime import datetime
 from functools import partial
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
-from datasets import config
-from datasets.download.download_config import DownloadConfig
-from datasets.utils.deprecation_utils import DeprecatedEnum
-from datasets.utils.file_utils import (
-    cached_path,
-    get_from_cache,
-    hash_url_to_filename,
-    is_relative_path,
-    url_or_path_join,
-)
-from datasets.utils.info_utils import get_size_checksum_dict
-from datasets.utils.logging import get_logger, is_progress_bar_enabled
-from datasets.utils.py_utils import NestedDataStructure, map_nested, size_str
+from .. import config
+from ..utils.deprecation_utils import DeprecatedEnum
+from ..utils.file_utils import cached_path, get_from_cache, hash_url_to_filename, is_relative_path, url_or_path_join
+from ..utils.info_utils import get_size_checksum_dict
+from ..utils.logging import get_logger, is_progress_bar_enabled
+from ..utils.py_utils import NestedDataStructure, map_nested, size_str
+from .download_config import DownloadConfig
 
 
 logger = get_logger(__name__)
