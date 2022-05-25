@@ -286,7 +286,8 @@ class DatasetBuilder:
         if features is not None:
             self.info.features = features
 
-        # prepare data dirs
+        # Prepare data dirs:
+        # cache_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
         self._cache_dir_root = str(cache_dir or config.HF_DATASETS_CACHE)
         self._cache_dir_root = (
             self._cache_dir_root if is_remote_url(self._cache_dir_root) else os.path.expanduser(self._cache_dir_root)
@@ -593,6 +594,7 @@ class DatasetBuilder:
         is_local = not is_remote_url(self._cache_dir_root)
         if is_local:
             lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
+        # File locking only with local paths; no file locking on GCS or S3
         with FileLock(lock_path) if is_local else contextlib.nullcontext():
             if is_local:
                 data_exists = os.path.exists(self._cache_dir)
