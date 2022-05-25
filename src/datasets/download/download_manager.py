@@ -187,7 +187,7 @@ class DownloadManager:
         Returns:
             `str` or `list[str]` or `dict[str, str]`
         """
-        from .beam_utils import upload_local_to_remote
+        from ..utils.beam_utils import upload_local_to_remote
 
         remote_dir = pipeline._options.get_all_options().get("temp_location")
         if remote_dir is None:
