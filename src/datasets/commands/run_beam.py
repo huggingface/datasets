@@ -7,8 +7,9 @@ from typing import List
 from datasets import config
 from datasets.builder import DatasetBuilder
 from datasets.commands import BaseDatasetsCLICommand
+from datasets.download.download_config import DownloadConfig
+from datasets.download.download_manager import DownloadMode
 from datasets.load import dataset_module_factory, import_main_class
-from datasets.utils.download_manager import DownloadConfig, DownloadMode
 
 
 def run_beam_command_factory(args, **kwargs):

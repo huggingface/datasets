@@ -25,18 +25,12 @@ from functools import partial
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
 from .. import config
-from .deprecation_utils import DeprecatedEnum
-from .file_utils import (
-    DownloadConfig,
-    cached_path,
-    get_from_cache,
-    hash_url_to_filename,
-    is_relative_path,
-    url_or_path_join,
-)
-from .info_utils import get_size_checksum_dict
-from .logging import get_logger, is_progress_bar_enabled
-from .py_utils import NestedDataStructure, map_nested, size_str
+from ..utils.deprecation_utils import DeprecatedEnum
+from ..utils.file_utils import cached_path, get_from_cache, hash_url_to_filename, is_relative_path, url_or_path_join
+from ..utils.info_utils import get_size_checksum_dict
+from ..utils.logging import get_logger, is_progress_bar_enabled
+from ..utils.py_utils import NestedDataStructure, map_nested, size_str
+from .download_config import DownloadConfig
 
 
 logger = get_logger(__name__)
@@ -193,7 +187,7 @@ class DownloadManager:
         Returns:
             `str` or `list[str]` or `dict[str, str]`
         """
-        from .beam_utils import upload_local_to_remote
+        from ..utils.beam_utils import upload_local_to_remote
 
         remote_dir = pipeline._options.get_all_options().get("temp_location")
         if remote_dir is None:

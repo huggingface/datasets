@@ -18,6 +18,7 @@ from datasets.arrow_dataset import Dataset
 from datasets.builder import DatasetBuilder
 from datasets.data_files import DataFilesDict
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
+from datasets.download.download_config import DownloadConfig
 from datasets.features import Features, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
@@ -34,7 +35,7 @@ from datasets.load import (
     infer_module_for_data_files,
     infer_module_for_data_files_in_archives,
 )
-from datasets.utils.file_utils import DownloadConfig, is_remote_url
+from datasets.utils.file_utils import is_remote_url
 
 from .utils import (
     OfflineSimulationMode,
