@@ -1,3 +1,4 @@
+import fnmatch
 import os
 import tempfile
 import time
@@ -38,14 +39,6 @@ def with_staging_testing(func):
 class TestPushToHub(TestCase):
     _api = HfApi(endpoint=ENDPOINT_STAGING)
 
-    def assertFilesMatch(self, files, expected_files):
-        data_files = [f[: f.rindex("-")] for f in files if f.startswith("data/")]
-        expected_data_files = [f[: f.rindex("-")] for f in expected_files if f.startswith("data/")]
-        non_data_files = [f for f in files if not f.startswith("data/")]
-        non_expected_data_files = [f for f in expected_files if not f.startswith("data/")]
-        self.assertEqual(non_data_files, non_expected_data_files)
-        self.assertEqual(data_files, expected_data_files)
-
     def cleanup_repo(self, ds_name):
         organization, name = ds_name.split("/")
         delete_repo(hf_api=self._api, name=name, organization=organization, token=self._token, repo_type="dataset")
@@ -85,8 +78,13 @@ class TestPushToHub(TestCase):
 
             # Ensure that there is a single file on the repository that has the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
-            self.assertFilesMatch(
-                files, [".gitattributes", "data/train-00000-of-00001-<FINGERPRINT>.parquet", "dataset_infos.json"]
+            self.assertTrue(
+                all(
+                    fnmatch.fnmatch(file, expected_file)
+                    for file, expected_file in zip(
+                        files, [".gitattributes", "data/train-00000-of-00001-*.parquet", "dataset_infos.json"]
+                    )
+                )
             )
         finally:
             self.cleanup_repo(ds_name)
@@ -107,8 +105,13 @@ class TestPushToHub(TestCase):
 
             # Ensure that there is a single file on the repository that has the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
-            self.assertFilesMatch(
-                files, [".gitattributes", "data/train-00000-of-00001-<FINGERPRINT>.parquet", "dataset_infos.json"]
+            self.assertTrue(
+                all(
+                    fnmatch.fnmatch(file, expected_file)
+                    for file, expected_file in zip(
+                        files, [".gitattributes", "data/train-00000-of-00001-*.parquet", "dataset_infos.json"]
+                    )
+                )
             )
         finally:
             self.cleanup_repo(ds_name)
@@ -143,8 +146,13 @@ class TestPushToHub(TestCase):
 
             # Ensure that there is a single file on the repository that has the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            self.assertFilesMatch(
-                files, [".gitattributes", "data/train-00000-of-00001-<FINGERPRINT>.parquet", "dataset_infos.json"]
+            self.assertTrue(
+                all(
+                    fnmatch.fnmatch(file, expected_file)
+                    for file, expected_file in zip(
+                        files, [".gitattributes", "data/train-00000-of-00001-*.parquet", "dataset_infos.json"]
+                    )
+                )
             )
         finally:
             self.cleanup_repo(ds_name)
@@ -165,8 +173,13 @@ class TestPushToHub(TestCase):
 
             # Ensure that there is a single file on the repository that has the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            self.assertFilesMatch(
-                files, [".gitattributes", "data/train-00000-of-00001-<FINGERPRINT>.parquet", "dataset_infos.json"]
+            self.assertTrue(
+                all(
+                    fnmatch.fnmatch(file, expected_file)
+                    for file, expected_file in zip(
+                        files, [".gitattributes", "data/train-00000-of-00001-*.parquet", "dataset_infos.json"]
+                    )
+                )
             )
         finally:
             self.cleanup_repo(ds_name)
@@ -187,14 +200,19 @@ class TestPushToHub(TestCase):
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            self.assertFilesMatch(
-                files,
-                [
-                    ".gitattributes",
-                    "data/train-00000-of-00002-<FINGERPRINT>.parquet",
-                    "data/train-00001-of-00002-<FINGERPRINT>.parquet",
-                    "dataset_infos.json",
-                ],
+            self.assertTrue(
+                all(
+                    fnmatch.fnmatch(file, expected_file)
+                    for file, expected_file in zip(
+                        files,
+                        [
+                            ".gitattributes",
+                            "data/train-00000-of-00002-*.parquet",
+                            "data/train-00001-of-00002-*.parquet",
+                            "dataset_infos.json",
+                        ],
+                    )
+                )
             )
         finally:
             self.cleanup_repo(ds_name)
@@ -230,16 +248,22 @@ class TestPushToHub(TestCase):
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            self.assertFilesMatch(
-                files,
-                [
-                    ".gitattributes",
-                    "data/random-00000-of-00001-<FINGERPRINT>.parquet",
-                    "data/train-00000-of-00002-<FINGERPRINT>.parquet",
-                    "data/train-00001-of-00002-<FINGERPRINT>.parquet",
-                    "datafile.txt",
-                    "dataset_infos.json",
-                ],
+
+            self.assertTrue(
+                all(
+                    fnmatch.fnmatch(file, expected_file)
+                    for file, expected_file in zip(
+                        files,
+                        [
+                            ".gitattributes",
+                            "data/random-00000-of-00001-*.parquet",
+                            "data/train-00000-of-00002-*.parquet",
+                            "data/train-00001-of-00002-*.parquet",
+                            "datafile.txt",
+                            "dataset_infos.json",
+                        ],
+                    )
+                )
             )
 
             self._api.delete_file("datafile.txt", repo_id=ds_name, repo_type="dataset", token=self._token)
@@ -276,15 +300,21 @@ class TestPushToHub(TestCase):
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            self.assertFilesMatch(
-                files,
-                [
-                    ".gitattributes",
-                    "data/random-00000-of-00001-<FINGERPRINT>.parquet",
-                    "data/train-00000-of-00001-<FINGERPRINT>.parquet",
-                    "datafile.txt",
-                    "dataset_infos.json",
-                ],
+
+            self.assertTrue(
+                all(
+                    fnmatch.fnmatch(file, expected_file)
+                    for file, expected_file in zip(
+                        files,
+                        [
+                            ".gitattributes",
+                            "data/random-00000-of-00001-*.parquet",
+                            "data/train-00000-of-00001-*.parquet",
+                            "datafile.txt",
+                            "dataset_infos.json",
+                        ],
+                    )
+                )
             )
 
             # Keeping the "datafile.txt" breaks the load_dataset to think it's a text-based dataset
