@@ -26,11 +26,11 @@ from . import config
 from .arrow_dataset import Dataset
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
+from .download.download_config import DownloadConfig
+from .download.download_manager import DownloadManager
 from .features import Features
 from .info import DatasetInfo, MetricInfo
 from .naming import camelcase_to_snakecase
-from .utils.download_manager import DownloadManager
-from .utils.file_utils import DownloadConfig
 from .utils.filelock import BaseFileLock, FileLock, Timeout
 from .utils.logging import get_logger
 from .utils.py_utils import copyfunc, temp_seed

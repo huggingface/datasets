@@ -17,8 +17,7 @@ from aiohttp.client_exceptions import ClientError
 
 from .. import config
 from ..filesystems import COMPRESSION_FILESYSTEMS
-from .download_manager import DownloadConfig, map_nested
-from .file_utils import (
+from ..utils.file_utils import (
     get_authentication_headers_for_url,
     http_head,
     is_local_path,
@@ -26,7 +25,9 @@ from .file_utils import (
     is_remote_url,
     url_or_path_join,
 )
-from .logging import get_logger
+from ..utils.logging import get_logger
+from ..utils.py_utils import map_nested
+from .download_config import DownloadConfig
 
 
 logger = get_logger(__name__)
