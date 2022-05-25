@@ -1431,6 +1431,15 @@ def load_metric(
 
     Returns:
         `datasets.Metric`
+
+    Example:
+
+    ```py
+    >>> from datasets import load_metric
+    >>> accuracy = load_metric('accuracy')
+    >>> accuracy.compute(references=[1, 0], predictions=[1, 1])
+    {'accuracy': 0.5}
+    ```
     """
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     metric_module = metric_module_factory(
@@ -1522,6 +1531,15 @@ def load_dataset_builder(
     Returns:
         :class:`DatasetBuilder`
 
+    Example:
+
+    ```py
+    >>> from datasets import load_dataset_builder
+    >>> ds_builder = load_dataset_builder('rotten_tomatoes')
+    >>> ds_builder.info.features
+    {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+     'text': Value(dtype='string', id=None)}
+    ```
     """
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     if use_auth_token is not None:
@@ -1690,6 +1708,48 @@ def load_dataset(
         - if `split` is not None: the dataset requested,
         - if `split` is None, a ``datasets.streaming.IterableDatasetDict`` with each split.
 
+    Example:
+
+    Load a dataset from the Hugging Face Hub:
+
+    ```py
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset('rotten_tomatoes', split='train')
+
+    # Map data files to splits
+    >>> data_files = {'train': 'train.csv', 'test': 'test.csv'}
+    >>> ds = load_dataset('namespace/your_dataset_name', data_files=data_files)
+    ```
+
+    Load a local dataset:
+
+    ```py
+    # Load a CSV file
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset('csv', data_files='path/to/local/my_dataset.csv')
+
+    # Load a JSON file
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset('json', data_files='path/to/local/my_dataset.json')
+
+    # Load from a local loading script
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset('path/to/local/loading_script/loading_script.py', split='train')
+    ```
+
+    Load an [`~datasets.IterableDataset`]:
+
+    ```py
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset('rotten_tomatoes', split='train', streaming=True)
+    ```
+
+    Load an image dataset with the `ImageFolder` dataset builder:
+
+    ```py
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset('imagefolder', data_dir='/path/to/images', split='train')
+    ```
     """
     if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():
         raise ValueError(
@@ -1770,6 +1830,13 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
         :class:`Dataset` or :class:`DatasetDict`:
         - If `dataset_path` is a path of a dataset directory: the dataset requested.
         - If `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
+
+    Example:
+
+    ```py
+    >>> from datasets import load_from_disk
+    >>> ds = load_from_disk('path/to/dataset/directory')
+    ```
     """
     # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
     if is_remote_filesystem(fs):
