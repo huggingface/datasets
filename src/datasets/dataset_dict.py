@@ -35,7 +35,15 @@ class DatasetDict(dict):
     def _check_values_type(self):
         for dataset in self.values():
             if not isinstance(dataset, Dataset):
-                raise TypeError(f"Values in `DatasetDict` should of type `Dataset` but got type '{type(dataset)}'")
+                raise TypeError(f"Values in `DatasetDict` should be of type `Dataset` but got type '{type(dataset)}'")
+
+    def _check_values_features(self):
+        items = list(self.items())
+        for item_a, item_b in zip(items[:-1], items[1:]):
+            if item_a[1].features != item_b[1].features:
+                raise ValueError(
+                    f"All datasets in `DatasetDict` should have the same features but features for '{item_a[0]}' and '{item_b[0]}' don't match: {item_a[1].features} != {item_b[1].features}"
+                )
 
     def __getitem__(self, k) -> Dataset:
         if isinstance(k, (str, NamedSplit)) or len(self) == 0:
@@ -963,7 +971,7 @@ class DatasetDict(dict):
                 If None, then fresh, unpredictable entropy will be pulled from the OS.
                 If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
                 You can provide one :obj:`seed` per dataset in the dataset dictionary.
-            seed (Optional `int`): A seed to initialize the default BitGenerator if ``generator=None``. Alias for seeds (the seed argument has priority over seeds if both arguments are provided).
+            seed (Optional `int`): A seed to initialize the default BitGenerator if ``generator=None``. Alias for seeds (a `ValueError` is raised if both are provided).
             generators (Optional `Dict[str, np.random.Generator]`): Numpy random Generator to use to compute the permutation of the dataset rows.
                 If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
                 You have to provide one :obj:`generator` per dataset in the dataset dictionary.
@@ -1330,6 +1338,7 @@ class DatasetDict(dict):
             max_shard_size = shard_size
 
         self._check_values_type()
+        self._check_values_features()
         total_uploaded_size = 0
         total_dataset_nbytes = 0
         info_to_dump: DatasetInfo = next(iter(self.values())).info.copy()

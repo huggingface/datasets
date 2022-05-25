@@ -18,15 +18,16 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
-  PAWS-X:
-  - intent-classification
-  XNLI:
-  - semantic-similarity-classification
-  CLS:
-  - sentiment-classification
-  WSD-V:
-  - text-classification-other-Word Sense Disambiguation for Verbs
+- intent-classification
+- semantic-similarity-classification
+- sentiment-classification
+- text-classification-other-Word Sense Disambiguation for Verbs
 paperswithcode_id: null
+configs:
+- CLS
+- PAWS-X
+- WSD-V
+- XNLI
 ---
 
 # Dataset Card for FLUE
