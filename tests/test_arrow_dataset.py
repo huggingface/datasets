@@ -11,6 +11,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import numpy as np
+import numpy.testing as npt
 import pandas as pd
 import pyarrow as pa
 import pytest
@@ -3553,3 +3554,69 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.map(lambda x: {"new_column": 0}, remove_columns=dset.column_names) as dset:
                 self.assertDictEqual(dset.features, features_after_map)
+
+
+class StratifiedTest(TestCase):
+    def test_errors_train_test_split_stratify(self):
+        ys = [
+            np.array([0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2]),
+            np.array([0, 1, 1, 1, 2, 2, 2, 3, 3, 3]),
+            np.array([0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2] * 2),
+            np.array([0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5]),
+            np.array([0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5]),
+        ]
+        for i in range(len(ys)):
+            features = Features({"text": Value("int64"), "label": ClassLabel(len(np.unique(ys[i])))})
+            data = {"text": np.ones(len(ys[i])), "label": ys[i]}
+            d1 = Dataset.from_dict(data, features=features)
+
+            # For checking stratify_by_column exist as key in self.features.keys()
+            if i == 0:
+                self.assertRaises(ValueError, d1.train_test_split, 0.33, stratify_by_column="labl")
+
+            # For checking minimum class count error
+            elif i == 1:
+                self.assertRaises(ValueError, d1.train_test_split, 0.33, stratify_by_column="label")
+
+            # For check typeof label as ClassLabel type
+            elif i == 2:
+                d1 = Dataset.from_dict(data)
+                self.assertRaises(ValueError, d1.train_test_split, 0.33, stratify_by_column="label")
+
+            # For checking test_size should be greater than or equal to number of classes
+            elif i == 3:
+                self.assertRaises(ValueError, d1.train_test_split, 0.30, stratify_by_column="label")
+
+            # For checking train_size should be greater than or equal to number of classes
+            elif i == 4:
+                self.assertRaises(ValueError, d1.train_test_split, 0.60, stratify_by_column="label")
+
+    def test_train_test_split_startify(self):
+        ys = [
+            np.array([0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2]),
+            np.array([0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3]),
+            np.array([0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2] * 2),
+            np.array([0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3]),
+            np.array([0] * 800 + [1] * 50),
+        ]
+        for y in ys:
+            features = Features({"text": Value("int64"), "label": ClassLabel(len(np.unique(y)))})
+            data = {"text": np.ones(len(y)), "label": y}
+            d1 = Dataset.from_dict(data, features=features)
+            d1 = d1.train_test_split(test_size=0.33, stratify_by_column="label")
+            y = np.asanyarray(y)  # To make it indexable for y[train]
+            test_size = np.ceil(0.33 * len(y))
+            train_size = len(y) - test_size
+            npt.assert_array_equal(np.unique(d1["train"]["label"]), np.unique(d1["test"]["label"]))
+
+            # checking classes proportion
+            p_train = np.bincount(np.unique(d1["train"]["label"], return_inverse=True)[1]) / float(
+                len(d1["train"]["label"])
+            )
+            p_test = np.bincount(np.unique(d1["test"]["label"], return_inverse=True)[1]) / float(
+                len(d1["test"]["label"])
+            )
+            npt.assert_array_almost_equal(p_train, p_test, 1)
+            assert len(d1["train"]["text"]) + len(d1["test"]["text"]) == y.size
+            assert len(d1["train"]["text"]) == train_size
+            assert len(d1["test"]["text"]) == test_size
