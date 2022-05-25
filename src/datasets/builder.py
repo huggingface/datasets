@@ -39,18 +39,20 @@ from .arrow_reader import (
 from .arrow_writer import ArrowWriter, BeamWriter
 from .data_files import DataFilesDict, sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
+from .download.download_config import DownloadConfig
+from .download.download_manager import DownloadManager, DownloadMode
+from .download.mock_download_manager import MockDownloadManager
+from .download.streaming_download_manager import StreamingDownloadManager
 from .features import Features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
-from .naming import camelcase_to_snakecase, filename_prefix_for_split
+from .naming import camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator
 from .utils import logging
-from .utils.download_manager import DownloadManager, DownloadMode
-from .utils.file_utils import DownloadConfig, cached_path, is_remote_url
+from .utils.file_utils import cached_path, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
-from .utils.mock_download_manager import MockDownloadManager
 from .utils.py_utils import (
     classproperty,
     has_sufficient_disk_space,
@@ -59,7 +61,6 @@ from .utils.py_utils import (
     size_str,
     temporary_assignment,
 )
-from .utils.streaming_download_manager import StreamingDownloadManager
 
 
 logger = logging.get_logger(__name__)
@@ -248,7 +249,7 @@ class DatasetBuilder:
 
         """
         # DatasetBuilder name
-        self.name: str = camelcase_to_snakecase(self.__class__.__name__)
+        self.name: str = camelcase_to_snakecase(self.__module__.split(".")[-1])
         self.hash: Optional[str] = hash
         self.base_path = base_path
         self.use_auth_token = use_auth_token
@@ -1229,11 +1230,11 @@ class BeamBasedBuilder(DatasetBuilder):
     # BeamBasedBuilder does not have dummy data for tests yet
     test_dummy_data = False
 
-    def __init__(self, *args, **kwargs):
-        self._beam_runner = kwargs.pop("beam_runner", None)
-        self._beam_options = kwargs.pop("beam_options", None)
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, beam_runner=None, beam_options=None, **kwargs):
+        self._beam_runner = beam_runner
+        self._beam_options = beam_options
         self._beam_writers = {}  # {split: beam_writer} mapping.
+        super().__init__(*args, **kwargs)
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
         # Pass `pipeline` into `_split_generators()` from `prepare_split_kwargs` if
@@ -1254,29 +1255,31 @@ class BeamBasedBuilder(DatasetBuilder):
         `_split_generators`. The examples from the PCollection will be
         encoded and written to disk.
 
+        <Tip warning={true}>
         Warning: When running in a distributed setup, make sure that the data
         which will be read (download_dir, manual_dir,...) and written (cache_dir)
         can be accessed by the workers jobs. The data should be located in a
         shared filesystem, like GCS.
+        </Tip>
 
-        Example::
+        Args:
+            pipeline ([`utils.beam_utils.BeamPipeline`]): Apache Beam pipeline.
+            **kwargs: Arguments forwarded from the SplitGenerator.gen_kwargs.
+
+        Returns:
+            `beam.PCollection`: Apache Beam PCollection containing the
+                example to send to `self.info.features.encode_example(...)`.
+
+        Example:
 
         ```
-        def _build_pcollection(pipeline, extracted_dir):
+        def _build_pcollection(pipeline, extracted_dir=None):
             return (
                     pipeline
                     | beam.Create(gfile.io.listdir(extracted_dir))
                     | beam.Map(_process_file)
             )
         ```
-
-        Args:
-            pipeline: `beam.Pipeline`, root Beam pipeline
-            **kwargs: Arguments forwarded from the SplitGenerator.gen_kwargs
-
-        Returns:
-            pcollection: `PCollection`, an Apache Beam PCollection containing the
-                example to send to `self.info.features.encode_example(...)`.
         """
         raise NotImplementedError()
 
@@ -1348,11 +1351,8 @@ class BeamBasedBuilder(DatasetBuilder):
     def _prepare_split(self, split_generator, pipeline):
         import apache_beam as beam
 
-        split_name = split_generator.split_info.name
-        output_prefix = filename_prefix_for_split(self.name, split_name)
-        output_prefix = os.path.join(self._cache_dir, output_prefix)
-
         # To write examples to disk:
+        split_name = split_generator.split_info.name
         fname = f"{self.name}-{split_name}.arrow"
         fpath = os.path.join(self._cache_dir, fname)
         beam_writer = BeamWriter(

@@ -7,8 +7,9 @@ from typing import List
 from datasets import config
 from datasets.builder import DatasetBuilder
 from datasets.commands import BaseDatasetsCLICommand
+from datasets.download.download_config import DownloadConfig
+from datasets.download.download_manager import DownloadMode
 from datasets.load import dataset_module_factory, import_main_class
-from datasets.utils.download_manager import DownloadConfig, DownloadMode
 
 
 def run_beam_command_factory(args, **kwargs):
@@ -29,13 +30,14 @@ def run_beam_command_factory(args, **kwargs):
 class RunBeamCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
-        run_beam_parser = parser.add_parser("run_beam", help="Run a Beam dataset processing pipeline.")
-        run_beam_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
+        run_beam_parser = parser.add_parser("run_beam", help="Run a Beam dataset processing pipeline")
+        run_beam_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
+        run_beam_parser.add_argument("--name", type=str, default=None, help="Dataset config name")
         run_beam_parser.add_argument(
             "--cache_dir",
             type=str,
             default=None,
-            help="Cache directory where the datasets are stored.",
+            help="Cache directory where the datasets are stored",
         )
         run_beam_parser.add_argument(
             "--beam_pipeline_options",
@@ -47,7 +49,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
             "--data_dir",
             type=str,
             default=None,
-            help="Can be used to specify a manual directory to get the files from.",
+            help="Can be used to specify a manual directory to get the files from",
         )
         run_beam_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
         run_beam_parser.add_argument("--save_infos", action="store_true", help="Save the dataset infos file")
@@ -55,7 +57,6 @@ class RunBeamCommand(BaseDatasetsCLICommand):
             "--ignore_verifications", action="store_true", help="Run the test without checksums and splits checks"
         )
         run_beam_parser.add_argument("--force_redownload", action="store_true", help="Force dataset redownload")
-        run_beam_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
         run_beam_parser.set_defaults(func=run_beam_command_factory)
 
     def __init__(
