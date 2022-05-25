@@ -21,9 +21,9 @@ import urllib.parse
 from pathlib import Path
 from typing import Callable, List, Optional, Union
 
-from .file_utils import cached_path, hf_github_url
-from .logging import get_logger
-from .version import Version
+from ..utils.file_utils import cached_path, hf_github_url
+from ..utils.logging import get_logger
+from ..utils.version import Version
 
 
 logger = get_logger(__name__)

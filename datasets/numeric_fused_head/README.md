@@ -1,10 +1,8 @@
 ---
 annotations_creators:
-  identification:
-  - expert-generated
-  - machine-generated
-  resolution:
-  - crowdsourced
+- crowdsourced
+- expert-generated
+- machine-generated
 language_creators:
 - found
 languages:
@@ -14,10 +12,8 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  identification:
-  - 100K<n<1M
-  resolution:
-  - 1K<n<10K
+- 100K<n<1M
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -26,6 +22,9 @@ task_ids:
 - token-classification-other-fused-head-identification
 paperswithcode_id: numeric-fused-head
 pretty_name: Numeric Fused Heads
+configs:
+- identification
+- resolution
 ---
 
 # Dataset Card for Numeric Fused Heads

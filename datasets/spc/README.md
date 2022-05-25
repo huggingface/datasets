@@ -4,15 +4,10 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  af-en:
-  - af
-  - en
-  el-en:
-  - el
-  - en
-  en-zh:
-  - en
-  - zh
+- af
+- el
+- en
+- zh
 licenses:
 - unknown
 multilinguality:
@@ -26,6 +21,10 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: spc
+configs:
+- af-en
+- el-en
+- en-zh
 ---
 
 # Dataset Card Creation Guide
