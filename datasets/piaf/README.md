@@ -5,6 +5,7 @@ language_creators:
 - crowdsourced
 languages:
 - fr-FR
+- fr
 licenses:
 - mit
 multilinguality:
