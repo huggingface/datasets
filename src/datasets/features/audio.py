@@ -45,7 +45,7 @@ class Audio:
             channels.
         decode (:obj:`bool`, default ``True``): Whether to decode the audio data. If `False`,
             returns the underlying dictionary in the format {"path": audio_path, "bytes": audio_bytes}.
-    
+
     Example:
 
     ```py
