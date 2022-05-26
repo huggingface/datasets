@@ -636,7 +636,7 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
     """
     main_hop, *rest_hops = str(urlpath).split("::")
     if is_local_path(main_hop):
-        return os.walk(main_hop)
+        yield from os.walk(main_hop)
     else:
         # walking inside a zip in a private repo requires authentication
         if rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
