@@ -122,7 +122,8 @@ def _resolve_single_pattern_locally(
     matched_paths = [
         Path(filepath).resolve()
         for filepath in glob_iter
-        if filepath.name not in data_files_ignore and not any(part.startswith((".", "__")) for part in filepath.parts)
+        if filepath.name not in data_files_ignore
+        and not any(part.startswith((".", "__")) for part in filepath.parts[1:])
     ]
     if allowed_extensions is not None:
         out = [
