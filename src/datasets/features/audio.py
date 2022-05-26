@@ -3,8 +3,10 @@ from dataclasses import dataclass, field
 from io import BytesIO
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
 
+import numpy as np
 import pyarrow as pa
 from packaging import version
+from scipy.io import wavfile
 
 from .. import config
 from ..download.streaming_download_manager import xopen
@@ -43,7 +45,7 @@ class Audio:
             channels.
         decode (:obj:`bool`, default ``True``): Whether to decode the audio data. If `False`,
             returns the underlying dictionary in the format {"path": audio_path, "bytes": audio_bytes}.
-
+    
     Example:
 
     ```py
@@ -92,7 +94,23 @@ class Audio:
             return {"bytes": buffer.getvalue(), "path": None}
         elif value.get("path") is not None and os.path.isfile(value["path"]):
             # we set "bytes": None to not duplicate the data if they're already available locally
-            return {"bytes": None, "path": value.get("path")}
+            if value.get("path").endswith("pcm"):
+                # "PCM" is only have byte RAW-Audio data style.
+                if value.get("sampling_rate") is None:
+                    # At least, If you want to convert "PCM-byte" to "WAV-byte", you have to know sampling rate
+                    raise KeyError("If you want to use pcm, you have to know your 'sampling_rate'!")
+                if value.get("bytes"):
+                    # If we already had PCM-byte, we don`t have to make "read file, make bytes" (just use it!)
+                    # I used fairseq's using PCM data (FileAudioDataset)
+                    bytes_value = np.frombuffer(value["bytes"], dtype=np.int16).astype(np.float32) / 32767
+                else:
+                    bytes_value = np.memmap(value["path"], dtype="h", mode="r").astype(np.float32) / 32767
+
+                buffer = BytesIO(bytes())
+                wavfile.write(buffer, value["sampling_rate"], bytes_value)
+                return {"bytes": buffer.getvalue(), "path": value.get("path")}
+            else:
+                return {"bytes": None, "path": value.get("path")}
         elif value.get("bytes") is not None or value.get("path") is not None:
             # store the audio bytes, and path is used to infer the audio format using the file extension
             return {"bytes": value.get("bytes"), "path": value.get("path")}
@@ -131,6 +149,8 @@ class Audio:
                 array, sampling_rate = self._decode_non_mp3_path_like(
                     path, "opus", token_per_repo_id=token_per_repo_id
                 )
+        elif path is not None and path.endswith("pcm"):
+            sampling_rate, array = wavfile.read(file)
         else:
             if file:
                 array, sampling_rate = self._decode_non_mp3_file_like(file)
