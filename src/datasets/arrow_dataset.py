@@ -1606,6 +1606,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._data = dataset._data.drop(column_names)
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
+        dataset.set_format(dataset._format_type, list(dataset._info.features.keys()), [])
         return dataset
 
     @transmit_tasks
