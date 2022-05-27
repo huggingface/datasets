@@ -756,3 +756,66 @@ def test_custom_writer_batch_size(tmp_path, writer_batch_size, default_writer_ba
     builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD)
     dataset = builder.as_dataset("train")
     assert len(dataset.data[0].chunks) == expected_chunks
+
+
+class DummyBuilderWithVersion(GeneratorBasedBuilder):
+    VERSION = "2.0.0"
+
+    def _info(self):
+        return DatasetInfo(features=Features({"text": Value("string")}))
+
+    def _split_generators(self, dl_manager):
+        pass
+
+    def _generate_examples(self):
+        pass
+
+
+class DummyBuilderWithBuilderConfigs(GeneratorBasedBuilder):
+    BUILDER_CONFIGS = [BuilderConfig(name="custom", version="2.0.0")]
+
+    def _info(self):
+        return DatasetInfo(features=Features({"text": Value("string")}))
+
+    def _split_generators(self, dl_manager):
+        pass
+
+    def _generate_examples(self):
+        pass
+
+
+class CustomBuilderConfig(BuilderConfig):
+    def __init__(self, date=None, language=None, version="2.0.0", **kwargs):
+        name = f"{date}.{language}"
+        super().__init__(name=name, version=version, **kwargs)
+        self.date = date
+        self.language = language
+
+
+class DummyBuilderWithCustomBuilderConfigs(GeneratorBasedBuilder):
+    BUILDER_CONFIGS = [CustomBuilderConfig(date="20220501", language="en")]
+    BUILDER_CONFIG_CLASS = CustomBuilderConfig
+
+    def _info(self):
+        return DatasetInfo(features=Features({"text": Value("string")}))
+
+    def _split_generators(self, dl_manager):
+        pass
+
+    def _generate_examples(self):
+        pass
+
+
+@pytest.mark.parametrize(
+    "builder_class, kwargs",
+    [
+        (DummyBuilderWithVersion, {}),
+        (DummyBuilderWithBuilderConfigs, dict(name="custom")),
+        (DummyBuilderWithCustomBuilderConfigs, dict(name="20220501.en")),
+        (DummyBuilderWithCustomBuilderConfigs, dict(date="20220501", language="ca")),
+    ],
+)
+def test_builder_config_version(builder_class, kwargs, tmp_path):
+    cache_dir = str(tmp_path)
+    builder = builder_class(cache_dir=cache_dir, **kwargs)
+    assert builder.config.version == "2.0.0"
