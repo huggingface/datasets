@@ -302,7 +302,7 @@ class DummyDataCommand(BaseDatasetsCLICommand):
                     version = builder_config.version
                     name = builder_config.name
 
-                dataset_builder = builder_cls(name=name, hash=dataset_module.hash, cache_dir=tmp_dir)
+                dataset_builder = builder_cls(config_name=name, hash=dataset_module.hash, cache_dir=tmp_dir)
                 mock_dl_manager = MockDownloadManager(
                     dataset_name=self._dataset_name,
                     config=builder_config,

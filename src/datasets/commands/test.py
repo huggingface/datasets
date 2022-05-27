@@ -105,7 +105,7 @@ class TestCommand(BaseDatasetsCLICommand):
         def get_builders() -> Generator[DatasetBuilder, None, None]:
             if self._all_configs and builder_cls.BUILDER_CONFIGS:
                 for i, config in enumerate(builder_cls.BUILDER_CONFIGS):
-                    if "name" in module.builder_kwargs:
+                    if "config_name" in module.builder_kwargs:
                         yield builder_cls(
                             cache_dir=self._cache_dir,
                             data_dir=self._data_dir,
@@ -113,17 +113,17 @@ class TestCommand(BaseDatasetsCLICommand):
                         )
                     else:
                         yield builder_cls(
-                            name=config.name,
+                            config_name=config.name,
                             cache_dir=self._cache_dir,
                             data_dir=self._data_dir,
                             **module.builder_kwargs,
                         )
             else:
-                if "name" in module.builder_kwargs:
+                if "config_name" in module.builder_kwargs:
                     yield builder_cls(cache_dir=self._cache_dir, data_dir=self._data_dir, **module.builder_kwargs)
                 else:
                     yield builder_cls(
-                        name=name, cache_dir=self._cache_dir, data_dir=self._data_dir, **module.builder_kwargs
+                        config_name=name, cache_dir=self._cache_dir, data_dir=self._data_dir, **module.builder_kwargs
                     )
 
         for j, builder in enumerate(get_builders()):

@@ -103,7 +103,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
             for builder_config in builder_cls.BUILDER_CONFIGS:
                 builders.append(
                     builder_cls(
-                        name=builder_config.name,
+                        config_name=builder_config.name,
                         data_dir=self._data_dir,
                         hash=dataset_module.hash,
                         beam_options=beam_options,
@@ -114,7 +114,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
         else:
             builders.append(
                 builder_cls(
-                    name=name,
+                    config_name=name,
                     data_dir=self._data_dir,
                     beam_options=beam_options,
                     cache_dir=self._cache_dir,
