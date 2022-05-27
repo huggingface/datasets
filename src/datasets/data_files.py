@@ -24,7 +24,7 @@ class Url(str):
     pass
 
 
-SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"
+SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
 
 DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
     str(Split.TRAIN): ["**train*"],

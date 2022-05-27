@@ -19,6 +19,16 @@ task_categories:
 - image-classification
 task_ids:
 - multi-class-image-classification
+extra_gated_prompt: |
+  By clicking on “Access repository” below, you also agree to ImageNet Terms of Access:
+  [RESEARCHER_FULLNAME] (the "Researcher") has requested permission to use the ImageNet database (the "Database") at Princeton University and Stanford University. In exchange for such permission, Researcher hereby agrees to the following terms and conditions:
+  1. Researcher shall use the Database only for non-commercial research and educational purposes.
+  2. Princeton University, Stanford University and Hugging Face make no representations or warranties regarding the Database, including but not limited to warranties of non-infringement or fitness for a particular purpose.
+  3. Researcher accepts full responsibility for his or her use of the Database and shall defend and indemnify the ImageNet team, Princeton University, Stanford University and Hugging Face, including their employees, Trustees, officers and agents, against any and all claims arising from Researcher's use of the Database, including but not limited to Researcher's use of any copies of copyrighted images that he or she may create from the Database.
+  4. Researcher may provide research associates and colleagues with access to the Database provided that they first agree to be bound by these terms and conditions.
+  5. Princeton University, Stanford University and Hugging Face reserve the right to terminate Researcher's access to the Database at any time.
+  6. If Researcher is employed by a for-profit, commercial entity, Researcher's employer shall also be bound by these terms and conditions, and Researcher hereby represents that he or she is fully authorized to enter into this agreement on behalf of such employer.
+  7. The law of the State of New Jersey shall apply to all disputes under this agreement.
 ---
 
 # Dataset Card for ImageNet
@@ -58,13 +68,6 @@ task_ids:
 ### Dataset Summary
 
 ILSVRC 2012, commonly known as 'ImageNet' is an image dataset organized according to the WordNet hierarchy. Each meaningful concept in WordNet, possibly described by multiple words or word phrases, is called a "synonym set" or "synset". There are more than 100,000 synsets in WordNet, majority of them are nouns (80,000+). ImageNet aims to provide on average 1000 images to illustrate each synset. Images of each concept are quality-controlled and human-annotated.
-
-🛑 This dataset requires **manual download** of the ImageNet data tar file (which is about **155GB** in size) [imagenet_object_localization_patched2019.tar.gz](https://www.kaggle.com/competitions/imagenet-object-localization-challenge/data?select=imagenet_object_localization_patched2019.tar.gz) and point datasets library to it by:
-
-```python
-from datasets import load_dataset
-dataset = load_dataset("imagenet-1k", data_dir="/path/to/imagenet_object_localization_patched2019.tar.gz")
-```
 
 💡 This dataset provides access to ImageNet (ILSVRC) 2012 which is the most commonly used **subset** of ImageNet. This dataset spans 1000 object classes and contains 1,281,167 training images, 50,000 validation images and 100,000 test images. The version also has the [patch](https://drive.google.com/file/d/16RYnHpVOW0XKCsn3G3S9GTHUyoV2-4WX/view) which fixes some of the corrupted test set images already applied. For full ImageNet dataset presented in [[2]](https://ieeexplore.ieee.org/abstract/document/5206848), please check the download section of the [main website](https://image-net.org/download-images.php).
 

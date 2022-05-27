@@ -20,6 +20,19 @@ task_ids:
 - part-of-speech-tagging
 paperswithcode_id: conll-2003
 pretty_name: CoNLL-2003
+train-eval-index:
+- config: conll2003
+  task: token-classification
+  task_id: entity_extraction
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    tokens: tokens
+    ner_tags: tags
+  metrics:
+    - type: seqeval
+      name: seqeval
 ---
 
 # Dataset Card for "conll2003"

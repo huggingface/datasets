@@ -7,8 +7,8 @@ from typing import Generator
 import datasets.config
 from datasets.builder import DatasetBuilder
 from datasets.commands import BaseDatasetsCLICommand
+from datasets.download.download_manager import DownloadMode
 from datasets.load import dataset_module_factory, import_main_class
-from datasets.utils.download_manager import DownloadMode
 from datasets.utils.filelock import logger as fl_logger
 from datasets.utils.logging import ERROR, get_logger
 

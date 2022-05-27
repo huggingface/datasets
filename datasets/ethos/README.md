@@ -17,15 +17,14 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
-  binary:
-  - sentiment-classification
-  - text-classification-other-Hate Speech Detection
-  multilabel:
-  - multi-label-classification
-  - sentiment-classification
-  - text-classification-other-Hate Speech Detection
+- multi-label-classification
+- sentiment-classification
+- text-classification-other-Hate Speech Detection
 paperswithcode_id: ethos
 pretty_name: onlinE haTe speecH detectiOn dataSet
+configs:
+- binary
+- multilabel
 ---
 
 # Dataset Card for Ethos

@@ -11,41 +11,23 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  CN:
-  - 100K<n<1M
-  NE:
-  - 100K<n<1M
-  P:
-  - 100K<n<1M
-  V:
-  - 100K<n<1M
-  raw:
-  - n<1K
+- 100K<n<1M
+- n<1K
 source_datasets:
 - original
 task_categories:
-  CN:
-  - question-answering
-  NE:
-  - question-answering
-  P:
-  - question-answering
-  V:
-  - question-answering
-  raw:
-  - other
+- other
+- question-answering
 task_ids:
-  CN:
-  - multiple-choice-qa
-  NE:
-  - multiple-choice-qa
-  P:
-  - multiple-choice-qa
-  V:
-  - multiple-choice-qa
-  raw:
-  - other-other-raw-dataset
+- multiple-choice-qa
+- other-other-raw-dataset
 paperswithcode_id: cbt
+configs:
+- CN
+- NE
+- P
+- V
+- raw
 ---
 
 # Dataset Card for CBT

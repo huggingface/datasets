@@ -93,6 +93,5 @@ class MultiNews(datasets.GeneratorBasedBuilder):
                     # tokens "\n" are being replaced with "NEWLINE_CHAR". Here restore
                     # the natural newline token to avoid special vocab "NEWLINE_CHAR".
                     _DOCUMENT: src_line.strip().replace("NEWLINE_CHAR", "\n"),
-                    # Remove the starting token "- " for every target sequence.
-                    _SUMMARY: tgt_line.strip().lstrip("- "),
+                    _SUMMARY: tgt_line.strip(),
                 }

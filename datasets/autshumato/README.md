@@ -4,39 +4,17 @@ annotations_creators:
 language_creators:
 - expert-generated
 languages:
-  autshumato-en-ts-manual:
-  - en
-  - ts
-  autshumato-en-tn:
-  - en
-  - tn
-  autshumato-en-ts:
-  - en
-  - ts
-  autshumato-en-zu:
-  - en
-  - zu
-  autshumato-tn:
-  - tn
-  autshumato-ts:
-  - ts
+- en
+- tn
+- ts
+- zu
 licenses:
 - cc-by-2.5
 multilinguality:
 - multilingual
 size_categories:
-  autshumato-en-tn:
-  - 100K<n<1M
-  autshumato-en-ts:
-  - 100K<n<1M
-  autshumato-en-ts-manual:
-  - 10K<n<100K
-  autshumato-en-zu:
-  - 10K<n<100K
-  autshumato-tn:
-  - 10K<n<100K
-  autshumato-ts:
-  - 10K<n<100K
+- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -44,6 +22,13 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: autshumato
+configs:
+- autshumato-en-tn
+- autshumato-en-ts
+- autshumato-en-ts-manual
+- autshumato-en-zu
+- autshumato-tn
+- autshumato-ts
 ---
 
 # Dataset Card Creation Guide

@@ -17,6 +17,7 @@
 
 import contextlib
 import copy
+import itertools
 import json
 import os
 import shutil
@@ -59,6 +60,7 @@ from tqdm.auto import tqdm
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
+from .download.streaming_download_manager import xgetsize
 from .features import Audio, ClassLabel, Features, Image, Sequence, Value
 from .features.features import FeatureType, _ArrayXD, decode_nested_example, pandas_types_mapper, require_decoding
 from .filesystems import extract_path_from_uri, is_remote_filesystem
@@ -91,7 +93,7 @@ from .utils._hf_hub_fixes import create_repo
 from .utils.file_utils import _retry, estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import convert_file_size_to_int, temporary_assignment, unique_values
-from .utils.streaming_download_manager import xgetsize
+from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.typing import PathLike
 
 
@@ -3254,6 +3256,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         test_size: Union[float, int, None] = None,
         train_size: Union[float, int, None] = None,
         shuffle: bool = True,
+        stratify_by_column: Optional[str] = None,
         seed: Optional[int] = None,
         generator: Optional[np.random.Generator] = None,
         keep_in_memory: bool = False,
@@ -3280,6 +3283,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If int, represents the absolute number of train samples.
                 If None, the value is automatically set to the complement of the test size.
             shuffle (:obj:`bool`, optional, default `True`): Whether or not to shuffle the data before splitting.
+            stratify_by_column (:obj:`str`, optional, default `None`): The column name of labels to be used to perform stratified split of data.
             seed (:obj:`int`, optional): A seed to initialize the default BitGenerator if ``generator=None``.
                 If None, then fresh, unpredictable entropy will be pulled from the OS.
                 If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
@@ -3319,6 +3323,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # set a seed
         >>> ds = ds.train_test_split(test_size=0.2, seed=42)
+
+        # stratified split
+        >>> ds = load_dataset("imdb",split="train")
+        Dataset({
+            features: ['text', 'label'],
+            num_rows: 25000
+        })
+        >>> ds = ds.train_test_split(test_size=0.2, stratify_by_column="label")
+        DatasetDict({
+            train: Dataset({
+                features: ['text', 'label'],
+                num_rows: 20000
+            })
+            test: Dataset({
+                features: ['text', 'label'],
+                num_rows: 5000
+            })
+        })
         ```
         """
         from .dataset_dict import DatasetDict  # import here because of circular dependency
@@ -3436,15 +3458,42 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         ),
                     }
                 )
-
         if not shuffle:
+            if stratify_by_column is not None:
+                raise ValueError("Stratified train/test split is not implemented for `shuffle=False`")
             train_indices = np.arange(n_train)
             test_indices = np.arange(n_train, n_train + n_test)
         else:
+            # stratified partition
+            if stratify_by_column is not None:
+                if stratify_by_column not in self.features.keys():
+                    raise ValueError(f"Key {stratify_by_column} not found in {self.features.keys()}")
+                if not isinstance(self.features[stratify_by_column], ClassLabel):
+                    raise ValueError(
+                        f"Stratifying by column is only supported for {ClassLabel.__name__} column, and column {stratify_by_column} is {type(self.features[stratify_by_column]).__name__}."
+                    )
+                try:
+                    train_indices, test_indices = next(
+                        stratified_shuffle_split_generate_indices(
+                            self.with_format("numpy")[stratify_by_column], n_train, n_test, rng=generator
+                        )
+                    )
+                except Exception as error:
+                    if str(error) == "Minimum class count error":
+                        raise ValueError(
+                            f"The least populated class in {stratify_by_column} column has only 1"
+                            " member, which is too few. The minimum"
+                            " number of groups for any class cannot"
+                            " be less than 2."
+                        )
+                    else:
+                        raise error
+
             # random partition
-            permutation = generator.permutation(len(self))
-            test_indices = permutation[:n_test]
-            train_indices = permutation[n_test : (n_test + n_train)]
+            else:
+                permutation = generator.permutation(len(self))
+                test_indices = permutation[:n_test]
+                train_indices = permutation[n_test : (n_test + n_train)]
 
         train_split = self.select(
             indices=train_indices,
@@ -3949,60 +3998,69 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shards = shards_with_embedded_external_files(shards)
 
         files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
-        files = [file for file in files if file.startswith("data/")]
+        data_files = [file for file in files if file.startswith("data/")]
 
-        def path_in_repo(_index):
-            return f"data/{split}-{_index:05d}-of-{num_shards:05d}.parquet"
+        def path_in_repo(_index, shard):
+            return f"data/{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
 
-        # Only delete file shards that don't currently exist. Others will be overwritten if the content is different
-        # or will be left intact is the content is identical.
-        def should_delete_file(file_name):
-            file_to_overwrite = file_name in [path_in_repo(i) for i in range(num_shards)]
-            file_from_same_split = file_name.startswith(f"data/{split}-")
-
-            return file_from_same_split and not file_to_overwrite
-
-        file_shards_to_delete = [file for file in files if should_delete_file(file)]
-
-        def delete_file(file):
-            api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
-
-        if len(file_shards_to_delete):
-            for file in logging.tqdm(
-                file_shards_to_delete,
-                desc="Deleting unused files from dataset repository",
-                total=len(file_shards_to_delete),
-                disable=not logging.is_progress_bar_enabled(),
-            ):
-                delete_file(file)
+        shards_iter = iter(shards)
+        first_shard = next(shards_iter)
+        first_shard_path_in_repo = path_in_repo(0, first_shard)
+        if first_shard_path_in_repo in data_files:
+            logger.warning("Resuming upload of dataset shards")
 
         uploaded_size = 0
+        shards_path_in_repo = []
         for index, shard in logging.tqdm(
-            enumerate(shards),
+            enumerate(itertools.chain([first_shard], shards_iter)),
             desc="Pushing dataset shards to the dataset hub",
             total=num_shards,
             disable=not logging.is_progress_bar_enabled(),
         ):
-            buffer = BytesIO()
-            shard.to_parquet(buffer)
-            uploaded_size += buffer.tell()
-            _retry(
-                api.upload_file,
-                func_kwargs=dict(
-                    path_or_fileobj=buffer.getvalue(),
-                    path_in_repo=path_in_repo(index),
-                    repo_id=repo_id,
-                    token=token,
-                    repo_type="dataset",
-                    revision=branch,
-                    identical_ok=True,
-                ),
-                exceptions=HTTPError,
-                status_codes=[504],
-                base_wait_time=2.0,
-                max_retries=5,
-                max_wait_time=20.0,
-            )
+            shard_path_in_repo = path_in_repo(index, shard)
+            # Upload a shard only if it doesn't already exist in the repository
+            if shard_path_in_repo not in data_files:
+                buffer = BytesIO()
+                shard.to_parquet(buffer)
+                uploaded_size += buffer.tell()
+                _retry(
+                    api.upload_file,
+                    func_kwargs=dict(
+                        path_or_fileobj=buffer.getvalue(),
+                        path_in_repo=shard_path_in_repo,
+                        repo_id=repo_id,
+                        token=token,
+                        repo_type="dataset",
+                        revision=branch,
+                        identical_ok=False,
+                    ),
+                    exceptions=HTTPError,
+                    status_codes=[504],
+                    base_wait_time=2.0,
+                    max_retries=5,
+                    max_wait_time=20.0,
+                )
+            shards_path_in_repo.append(shard_path_in_repo)
+
+        # Cleanup to remove unused files
+        data_files_to_delete = [
+            data_file
+            for data_file in data_files
+            if data_file.startswith(f"data/{split}-") and data_file not in shards_path_in_repo
+        ]
+
+        def delete_file(file):
+            api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
+
+        if len(data_files_to_delete):
+            for data_file in logging.tqdm(
+                data_files_to_delete,
+                desc="Deleting unused files from dataset repository",
+                total=len(data_files_to_delete),
+                disable=not logging.is_progress_bar_enabled(),
+            ):
+                delete_file(data_file)
+
         return repo_id, split, uploaded_size, dataset_nbytes
 
     def push_to_hub(
