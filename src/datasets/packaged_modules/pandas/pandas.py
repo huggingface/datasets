@@ -5,7 +5,6 @@ import pandas as pd
 import pyarrow as pa
 
 import datasets
-from datasets.features.features import require_storage_cast
 from datasets.table import table_cast
 
 
@@ -41,13 +40,9 @@ class Pandas(datasets.ArrowBasedBuilder):
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.config.features is not None:
-            schema = self.config.features.arrow_schema
-            if all(not require_storage_cast(feature) for feature in self.config.features.values()):
-                # cheaper cast
-                pa_table = pa.Table.from_arrays([pa_table[field.name] for field in schema], schema=schema)
-            else:
-                # more expensive cast; allows str <-> int/float or str to Audio for example
-                pa_table = table_cast(pa_table, schema)
+            # more expensive cast to support nested features with keys in a different order
+            # allows str <-> int/float or str to Audio for example
+            pa_table = table_cast(pa_table, self.config.features.arrow_schema)
         return pa_table
 
     def _generate_tables(self, files):
