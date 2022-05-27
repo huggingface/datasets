@@ -211,7 +211,7 @@ class DatasetBuilder:
     def __init__(
         self,
         cache_dir: Optional[str] = None,
-        name: Optional[str] = None,
+        config_name: Optional[str] = None,
         hash: Optional[str] = None,
         base_path: Optional[str] = None,
         info: Optional[DatasetInfo] = None,
@@ -228,8 +228,8 @@ class DatasetBuilder:
 
         Args:
             cache_dir: `str`, directory to read/write data. Defaults to "~/datasets".
-            name: `str` name, optional configuration for the dataset that affects the data generated on disk. Different
-                `builder_config`s will have their own subdirectories and versions.
+            config_name: `str` name, optional configuration for the dataset that affects the data generated on disk.
+                Different `builder_config`s will have their own subdirectories and versions.
                 If not provided it uses the default configuration, if it exists.
             hash: a hash specific to the dataset code. Used to update the caching directory when the dataset loading
                 script code is updated (to avoid reusing old data).
@@ -269,7 +269,7 @@ class DatasetBuilder:
         if data_dir is not None:
             config_kwargs["data_dir"] = data_dir
         self.config, self.config_id = self._create_builder_config(
-            name,
+            config_name,
             custom_features=features,
             **config_kwargs,
         )
