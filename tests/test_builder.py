@@ -123,7 +123,7 @@ class DummyBuilderWithManualDownload(DummyBuilderWithMultipleConfigs):
 
 
 def _run_concurrent_download_and_prepare(tmp_dir):
-    builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
+    builder = DummyBuilder(cache_dir=tmp_dir, config_name="dummy")
     builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.REUSE_DATASET_IF_EXISTS)
     return builder
 
