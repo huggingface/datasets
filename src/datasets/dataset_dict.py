@@ -1347,7 +1347,7 @@ class DatasetDict(dict):
         for split in self.keys():
             logger.warning(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
-            repo_id, split, uploaded_size, dataset_nbytes = self[split]._push_parquet_shards_to_hub(
+            repo_id, split, uploaded_size, dataset_nbytes, _, _ = self[split]._push_parquet_shards_to_hub(
                 repo_id,
                 split=split,
                 private=private,
