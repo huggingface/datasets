@@ -810,9 +810,9 @@ class DummyBuilderWithCustomBuilderConfigs(GeneratorBasedBuilder):
     "builder_class, kwargs",
     [
         (DummyBuilderWithVersion, {}),
-        (DummyBuilderWithBuilderConfigs, dict(name="custom")),
-        (DummyBuilderWithCustomBuilderConfigs, dict(name="20220501.en")),
-        (DummyBuilderWithCustomBuilderConfigs, dict(date="20220501", language="ca")),
+        (DummyBuilderWithBuilderConfigs, {"name": "custom"}),
+        (DummyBuilderWithCustomBuilderConfigs, {"name": "20220501.en"}),
+        (DummyBuilderWithCustomBuilderConfigs, {"date": "20220501", "language": "ca"}),
     ],
 )
 def test_builder_config_version(builder_class, kwargs, tmp_path):
