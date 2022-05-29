@@ -111,16 +111,13 @@ The following fields are common for all file formats of the dataset.
 - `subcategories`: A list containing the subcategory names of all trials.
 - `descriptions`: A list containing the descriptions of all trials.
 
-The c3d, mpg and avi formats have: 
-- `motions` : A list containing the path to all motion files.
+The subject's motion trials in the `asf-amc` format are represented as follows:
+- `motions`:
+  - `asf`: A list containing the paths to all ASF motion files
+  - `amc`:  A list containing the paths to all AMC motion files
 
-The "asf/amc" config has an additional field :
-- `motions`: {
-        `amc_files`: A list containing the path to all motion files, 
-        `skeleton_file`: path to the ASF file,
-    }
-
-    It is a dictionary containing the motion files and skeleton file.
+In the `c3d`, `mpg` and `avi` formats, this field has the following structure:-
+- `motions`: A list containing the path to all motion files.
 
 ASF file is the skeleton file, in the ASF file a base pose is defined for the skeleton that is the starting point for the motion data. More info can be found [here](https://research.cs.wisc.edu/graphics/Courses/cs-838-1999/Jeff/ASF-AMC.html).
 
