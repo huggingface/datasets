@@ -65,6 +65,8 @@ The dataset contains motions in the following formats :
 
 - `asf-amc` : The ASF file (Acclaim Skeleton File) is a skeleton file. AMC files (Acclaim Motion Capture data) are the motion files. Most of the time a single skeleton works for many different motions and rather than storing the same skeleton in each of the motion files, thus for each subject there is one ASF file along with AMC files for each motion.
 
+ASF file is the skeleton file, in the ASF file a base pose is defined for the skeleton that is the starting point for the motion data. More info can be found [here](https://research.cs.wisc.edu/graphics/Courses/cs-838-1999/Jeff/ASF-AMC.html).
+
 The AMC/ASF files can be parsed using [AMCParser library](https://github.com/CalciferZh/AMCParser). You can check the Usage section in this library for more information.
 
 - `c3d`: The C3D format stores 3D coordinate information, analog data and associated information used in 3D motion data capture and subsequent analysis operations. 
@@ -121,8 +123,6 @@ The "asf/amc" config has an additional field :
     }
 
     It is a dictionary containing the motion files and skeleton file.
-
-ASF file is the skeleton file, in the ASF file a base pose is defined for the skeleton that is the starting point for the motion data. More info can be found [here](https://research.cs.wisc.edu/graphics/Courses/cs-838-1999/Jeff/ASF-AMC.html).
 
 
 ### Data Splits
