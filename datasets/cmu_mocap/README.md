@@ -146,9 +146,9 @@ These are based on the download links provided on the [CMU MoCap Website](http:/
 
 From the [CMU MoCap Info](http://mocap.cs.cmu.edu/info.php) page:
 > The mocap lab contains 12 Vicon infrared MX-40 cameras, each of which is capable of recording 120 Hz with images of 4 megapixel resolution. The cameras are placed around a rectangular area, of approximately 3m x 8m, in the center of the room. Only motions that take place in this rectangle can be captured. If motion of human hands is being captured, more detail is required and the cameras are moved closer to capture a smaller space with higher resolution. To capture something, small grey markers are placed on it. Humans wear a black jumpsuit and have 41 markers taped on. The Vicon cameras see the markers in infra-red. The images that the various cameras pick up are triangulated to get 3D data.
-
+>
 This 3D data can be used in two ways by you:
-
+>
 - Marker positions You can be handed a file of 3D marker positions, a .c3d . This file is relatively clean - i.e., Marker "A" should be labeled Marker "A" throughout the motion. But it is your responsibility to figure out what "A" means and how it relates to the other markers.
 - Skeleton movement Data will be handed to you as either a .vsk/.v pair or .asf/.amc pair (more on that later). The former element of the pair describes the skeleton and its joints: their connections, lengths, degrees of freedom (free, ball and socket, 2 hinges, hinge, rigid), and mathematical transformations. The latter element of the pair contains the movement data. Notes: If a subject/object was captured in multiple clips, you will be handed several .v's or .amc's. Also, something like a hamburger turner, if that's what you're capturing, can have a "skeleton" - even if it's one bone long.
 
