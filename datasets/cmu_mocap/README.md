@@ -69,14 +69,81 @@ ASF file is the skeleton file, in the ASF file a base pose is defined for the sk
 
 The AMC/ASF files can be parsed using [AMCParser library](https://github.com/CalciferZh/AMCParser). You can check the Usage section in this library for more information.
 
+Here is some sample preprocessing code:
+```python
+from datasets import load_dataset
+
+cmu_mocap = load_dataset("./datasets/cmu_mocap", "asf-amc")
+def process_motions(ex):
+    motions = ex['motions']['amc']
+    skeleton_file = ex['motions']['asf']
+
+    print(f"Motions : {motions}")
+    print(f"Skeleton_file : {skeleton_file}")
+    # Using the AMCParser library,
+    # sample code snippet from https://github.com/CalciferZh/AMCParser  
+    joints = parse_asf(skeleton_file)
+    parsed_motions = []
+    for motion in motions:
+        parsed_motions = parse_amc(motion)
+        parsed_motions.append(parsed_motions)
+    ...
+    ...
+
+cmu_mocap = cmu_mocap.map(process_motions)
+```
+
 - `c3d`: The C3D format stores 3D coordinate information, analog data and associated information used in 3D motion data capture and subsequent analysis operations. 
 
 You can use [py-c3d library](https://c3d.readthedocs.io/en/stable/) for reading and writing C3D binary files.
+
+Here is some sample preprocessing code:
+```python
+from datasets import load_dataset
+import c3d
+
+cmu_mocap = load_dataset("./datasets/cmu_mocap", "c3d")
+ 
+def process_motions(ex):
+    motions = ex['motions']
+
+    # Using the py-c3d library, 
+    # sample code to process c3d motion
+    for motion in motions:
+        reader = c3d.Reader(open(motion, 'rb'))
+        for i, points, analog in reader.read_frames():
+            print('frame {}: point {}, analog {}'.format(i, points.shape, analog.shape))
+    
+    ...
+    ...
+cmu_mocap = cmu_mocap.map(process_motions)
+
+```
+
 
 - `avi` and `mpg`: AVI (Audio Video Interleave) has been the long-standing format to save and deliver movies and other video files. An MPG file is a common video file that uses a digital video format standardized by the Moving Picture Experts Group (MPEG)
 
 You can use a video loader library such as [decord](https://github.com/dmlc/decord) to load and process these files.
 
+Here is some sample preprocessing code for the `avi` format, similarly can be used for `mpg` as well.
+```python
+from datasets import load_dataset
+from decord import VideoReader
+ 
+cmu_mocap = load_dataset("./datasets/cmu_mocap", "avi")
+ 
+def process_motions(ex):
+    motions = ex['motions']
+    # Using the decord library
+    for motion in motions:
+        vr = VideoReader(motion)
+        print("Video frames: ", len(vr))
+        ...
+    ...
+    ...
+
+cmu_mocap = cmu_mocap.map(process_motions)
+```
 
 ### Supported Tasks and Leaderboards
 
@@ -115,8 +182,8 @@ The following fields are common for all file formats of the dataset.
 
 The subject's motion trials in the `asf-amc` format are represented as follows:
 - `motions`:
-  - `asf`: A list containing the paths to all ASF motion files
-  - `amc`:  A list containing the paths to all AMC motion files
+  - `asf`: A string containing the path to the ASF skeleton file.
+  - `amc`:  A list containing the paths to all AMC motion files.
 
 In the `c3d`, `mpg` and `avi` formats, this field has the following structure:-
 - `motions`: A list containing the path to all motion files.
