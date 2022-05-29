@@ -226,7 +226,7 @@ From the [CMU MoCap Info](http://mocap.cs.cmu.edu/info.php) page:
 
 ### Dataset Curators
 
-[Needs More Information]
+Jessica K. Hodgins
 
 ### Licensing Information
 
