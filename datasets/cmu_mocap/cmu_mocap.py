@@ -145,6 +145,7 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIG_CLASS = CmuMocapConfig
     DEFAULT_CONFIG_NAME = "asf-amc"
+
     def _info(self):
 
         return datasets.DatasetInfo(
@@ -167,8 +168,8 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
             features.update(
                 {
                     "motions": {
-                        "amc_files": datasets.Sequence(datasets.Value("string")),
-                        "skeleton_file": datasets.Value("string"),
+                        "amc": datasets.Sequence(datasets.Value("string")),
+                        "asf": datasets.Value("string"),
                     }
                 }
             )
@@ -284,8 +285,8 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
                 features.update(
                     {
                         "motions": {
-                            "amc_files": files,
-                            "skeleton_file": asf_file,
+                            "amc": files,
+                            "asf": asf_file,
                         }
                     }
                 )
