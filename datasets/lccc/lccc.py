@@ -70,7 +70,7 @@ class LCCC(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
-                "dialog": datasets.Value("string"),
+                "dialog": [datasets.Value("string")],
             }
         )
         return datasets.DatasetInfo(
