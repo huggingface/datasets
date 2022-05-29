@@ -144,7 +144,7 @@ class CmuMocap(datasets.GeneratorBasedBuilder):
     ]
 
     BUILDER_CONFIG_CLASS = CmuMocapConfig
-
+    DEFAULT_CONFIG_NAME = "asf-amc"
     def _info(self):
 
         return datasets.DatasetInfo(
