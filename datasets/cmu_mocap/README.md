@@ -57,7 +57,7 @@ paperswithcode_id: mocap
 
 The CMU Graphics Lab Motion Capture Database is a dataset containing motion capture recordings of people performing different actions such as walking, jumping, dancing etc. The actions have been performed by over 110 subjects. There are a total of over 2500 trials in 6 categories and 23 subcategories.
 
-Note : The dataset has subjects numbered upto 144 [here](http://mocap.cs.cmu.edu/subjects.php) but some of the subject numbers are missing, so the total examples are around 112.
+> **Note**: The dataset has subjects numbered up to 144 [here](http://mocap.cs.cmu.edu/subjects.php), but some of the subject numbers are missing, so the total number of examples is 112.
 
 ### Dataset Preprocessing
 
