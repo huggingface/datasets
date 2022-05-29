@@ -101,7 +101,6 @@ A sample from the CMU MoCap dataset is provided below:
     }
 }
 ```
-Depending on the file format, 'motions' field would change. Check the Data Fields section for more information.
 
 ### Data Fields
 
