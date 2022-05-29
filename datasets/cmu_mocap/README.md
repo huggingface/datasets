@@ -128,17 +128,9 @@ ASF file is the skeleton file, in the ASF file a base pose is defined for the sk
 ### Data Splits
 
 All the data is contained in training set. 
-If you consider the "asf/amc" format of the dataset, there are a total of :
-- 112 subjects/examples
-- Total number of trials(.amc files) in the dataset are 2514.
-- There are 112 asf files for each subject.
 
-Note :- 
-Each format contains the following rows :
-- asf-amc : num_rows - 112,
-- c3d :  num_rows - 109,
-- mpg : num_rows - 53,
-- avi : num_rows - 106.
+Not all subjects were converted from the initial `asf-amc` format to the destination formats, so depending on the format, the number of examples varies:
+<MARKDOWN TABLE>
 
 These are based on the download links provided on the [CMU MoCap Website](http://mocap.cs.cmu.edu/faqs.php), it seems like all links are not provided for the mpg format.
 
