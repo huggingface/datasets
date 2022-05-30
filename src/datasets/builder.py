@@ -24,6 +24,7 @@ import posixpath
 import shutil
 import textwrap
 import urllib
+import warnings
 from dataclasses import dataclass
 from functools import partial
 from typing import Dict, Mapping, Optional, Tuple, Union
@@ -220,6 +221,7 @@ class DatasetBuilder:
         repo_id: Optional[str] = None,
         data_files: Optional[Union[str, list, dict, DataFilesDict]] = None,
         data_dir: Optional[str] = None,
+        name="deprecated",
         **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
@@ -247,8 +249,15 @@ class DatasetBuilder:
             data_dir: `str`, for builders that require manual download. It must be the path to the local directory containing
                 the manually downloaded data.
             config_kwargs: will override the defaults kwargs in config
+            name: Deprecated. Use 'config_name' instead.
 
         """
+        if name != "deprecated":
+            warnings.warn(
+                "Parameter 'name' was renamed to 'config_name' in version 2.3.0 and will be removed in 3.0.0.",
+                category=FutureWarning,
+            )
+            config_name = name
         # DatasetBuilder name
         self.name: str = camelcase_to_snakecase(self.__module__.split(".")[-1])
         self.hash: Optional[str] = hash
