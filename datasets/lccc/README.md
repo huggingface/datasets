@@ -9,8 +9,7 @@ licenses:
 - mit
 multilinguality:
 - monolingual
-pretty_name: 
-- lccc
+pretty_name: LCCC
 size_categories:
 - 10M<n<100M
 source_datasets:
@@ -52,10 +51,10 @@ task_ids:
     - [Dataset Curators](#dataset-curators)
     - [Licensing Information](#licensing-information)
     - [Citation Information](#citation-information)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/thu-coai/CDial-GPT
 - **Repository:** https://github.com/thu-coai/CDial-GPT
 - **Paper:** https://arxiv.org/abs/2008.03946
 
@@ -80,13 +79,13 @@ LCCC中的对话是中文的
 
 ### Data Instances
 
-["火锅 我 在 重庆 成都 吃 了 七八 顿 火锅", "哈哈哈哈 ！ 那 我 的 嘴巴 可能 要 烂掉 ！", "不会 的 就是 好 油腻"]
+{
+    "dialog": ["火锅 我 在 重庆 成都 吃 了 七八 顿 火锅", "哈哈哈哈 ！ 那 我 的 嘴巴 可能 要 烂掉 ！", "不会 的 就是 好 油腻"]
+}
 
 ### Data Fields
 
-Each line is a list of utterances that consist a dialogue.
-Note that the LCCC dataset provided in our original Github page is in json format,
-however, we are providing LCCC in jsonl format here.
+- `dialog` (list of strings): List of utterances consisting of a dialogue.
 
 ### Data Splits
 
@@ -94,7 +93,7 @@ We do not provide the offical split for LCCC-large.
 But we provide a split for LCCC-base:
 
 |train|valid|test|
-|:---:|:---:|:---:|
+|---:|---:|---:|
 |6,820,506 | 20,000 | 10,000|
 
 ## Dataset Creation
@@ -153,4 +152,14 @@ But we provide a split for LCCC-base:
 
 ### Citation Information
 
-[Needs More Information]
+@inproceedings{wang2020chinese,
+  title={A Large-Scale Chinese Short-Text Conversation Dataset},
+  author={Wang, Yida and Ke, Pei and Zheng, Yinhe and Huang, Kaili and Jiang, Yong and Zhu, Xiaoyan and Huang, Minlie},
+  booktitle={NLPCC},
+  year={2020},
+  url={https://arxiv.org/abs/2008.03946}
+}
+
+### Contributions
+
+Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.
