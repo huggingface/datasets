@@ -9,7 +9,8 @@ licenses:
 - mit
 multilinguality:
 - monolingual
-pretty_name: LCCC
+paperswithcode_id: lccc
+pretty_name: "LCCC: Large-scale Cleaned Chinese Conversation corpus"
 size_categories:
 - 10M<n<100M
 source_datasets:
@@ -152,6 +153,7 @@ But we provide a split for LCCC-base:
 
 ### Citation Information
 
+```
 @inproceedings{wang2020chinese,
   title={A Large-Scale Chinese Short-Text Conversation Dataset},
   author={Wang, Yida and Ke, Pei and Zheng, Yinhe and Huang, Kaili and Jiang, Yong and Zhu, Xiaoyan and Huang, Minlie},
@@ -159,7 +161,8 @@ But we provide a split for LCCC-base:
   year={2020},
   url={https://arxiv.org/abs/2008.03946}
 }
+```
 
 ### Contributions
 
-Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.
+Thanks to [@github-username](https://github.com/silverriver) for adding this dataset.
