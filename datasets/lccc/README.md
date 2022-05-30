@@ -22,10 +22,10 @@ task_ids:
 - dialogue-response-retrieval
 ---
 
-# Dataset Card for lccc_large
+# Dataset Card for LCCC
 
 ## Table of Contents
-- [Dataset Card for lccc_large](#dataset-card-for-lccc_large)
+- [Dataset Card for LCCC](#dataset-card-for-lccc)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
@@ -61,9 +61,9 @@ task_ids:
 
 ### Dataset Summary
 
-lccc: Large-scale Cleaned Chinese Conversation corpus (LCCC) is a large Chinese dialogue corpus originate from Chinese social medias. A rigorous data cleaning pipeline is designed to ensure the quality of the corpus. This pipeline involves a set of rules and several classifier-based filters. Noises such as offensive or sensitive words, special symbols, emojis, grammatically incorrect sentences, and incoherent conversations are filtered.
+LCCC: Large-scale Cleaned Chinese Conversation corpus (LCCC) is a large Chinese dialogue corpus originate from Chinese social medias. A rigorous data cleaning pipeline is designed to ensure the quality of the corpus. This pipeline involves a set of rules and several classifier-based filters. Noises such as offensive or sensitive words, special symbols, emojis, grammatically incorrect sentences, and incoherent conversations are filtered.
 
-lccc是一套来自于中文社交媒体的对话数据，我们设计了一套严格的数据过滤流程来确保该数据集中对话数据的质量。 这一数据过滤流程中包括一系列手工规则以及若干基于机器学习算法所构建的分类器。 我们所过滤掉的噪声包括：脏字脏词、特殊字符、颜表情、语法不通的语句、上下文不相关的对话等。
+LCCC是一套来自于中文社交媒体的对话数据，我们设计了一套严格的数据过滤流程来确保该数据集中对话数据的质量。 这一数据过滤流程中包括一系列手工规则以及若干基于机器学习算法所构建的分类器。 我们所过滤掉的噪声包括：脏字脏词、特殊字符、颜表情、语法不通的语句、上下文不相关的对话等。
 
 ### Supported Tasks and Leaderboards
 
