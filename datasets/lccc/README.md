@@ -164,4 +164,4 @@ But we provide a split for LCCC-base:
 
 ### Contributions
 
-Thanks to [@github-username](https://github.com/silverriver) for adding this dataset.
+Thanks to [Yinhe Zheng](https://github.com/silverriver) for adding this dataset.
