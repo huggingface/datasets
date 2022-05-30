@@ -503,6 +503,7 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 fingerprint = dset._fingerprint
                 with dset.remove_columns(column_names="col_1") as new_dset:
+                    # TODO: I think tests are failing
                     self.assertListEqual(new_dset._format_columns, ["col_2", "col_3"])
                     self.assertEqual(new_dset.num_columns, 2)
                     self.assertListEqual(list(new_dset.column_names), ["col_2", "col_3"])
