@@ -19,7 +19,6 @@ task_categories:
 - conversational
 task_ids:
 - dialogue-generation
-- dialogue-response-retrieval
 ---
 
 # Dataset Card for LCCC
