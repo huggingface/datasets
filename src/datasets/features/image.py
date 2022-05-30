@@ -41,6 +41,20 @@ class Image:
     Args:
         decode (:obj:`bool`, default ``True``): Whether to decode the image data. If `False`,
             returns the underlying dictionary in the format {"path": image_path, "bytes": image_bytes}.
+
+    Examples:
+
+    ```py
+    >>> from datasets import load_dataset, Image
+    >>> ds = load_dataset("beans", split="train")
+    >>> ds.features["image"]
+    Image(decode=True, id=None)
+    >>> ds[0]["image"]
+    <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=500x500 at 0x15E52E7F0>
+    >>> ds = ds.cast_column('image', Image(decode=False))
+    {'bytes': None,
+     'path': '/root/.cache/huggingface/datasets/downloads/extracted/b0a21163f78769a2cf11f58dfc767fb458fc7cea5c05dccc0144a2c0f0bc1292/train/healthy/healthy_train.85.jpg'}
+    ```
     """
 
     decode: bool = True

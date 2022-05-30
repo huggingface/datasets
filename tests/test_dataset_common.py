@@ -136,10 +136,7 @@ class DatasetTester:
                     logger.info("Skip tests for this dataset for now")
                     return
 
-                if config is not None:
-                    version = config.version
-                else:
-                    version = dataset_builder.VERSION
+                version = config.version if config else dataset_builder.config.version
 
                 def check_if_url_is_valid(url):
                     if is_remote_url(url) and "\\" in url:
