@@ -426,7 +426,8 @@ Each subset simply consists in a train set. We provide the number of examples fo
 BSD "Revised" license (see (https://help.launchpad.net/Legal#Translations_copyright)[https://help.launchpad.net/Legal#Translations_copyright])
 
 ### Citation Information
-```
+
+```bibtex
 @InProceedings{TIEDEMANN12.463,
   author = {J{\"o}rg Tiedemann},
   title = {Parallel Data, Tools and Interfaces in OPUS},
@@ -440,7 +441,8 @@ BSD "Revised" license (see (https://help.launchpad.net/Legal#Translations_copyri
   isbn = {978-2-9517408-7-7},
   language = {english}
  }
-``
+```
+
 ### Contributions
 
 Thanks to [@rkc007](https://github.com/rkc007) for adding this dataset.
