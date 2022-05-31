@@ -17,6 +17,7 @@
 
 import contextlib
 import copy
+import itertools
 import json
 import os
 import shutil
@@ -3956,7 +3957,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if isinstance(feature, (Audio, Image)):
                     for x in array.to_pylist():
                         if x is not None and x["bytes"] is None and x["path"] is not None:
-                            size = xgetsize(x["path"], use_auth_token=token)
+                            size = xgetsize(x["path"])
                             extra_nbytes += size
                     extra_nbytes -= array.field("path").nbytes
 
@@ -4005,10 +4006,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         def path_in_repo(_index, shard):
             return f"data/{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
 
+        shards_iter = iter(shards)
+        first_shard = next(shards_iter)
+        first_shard_path_in_repo = path_in_repo(0, first_shard)
+        if first_shard_path_in_repo in data_files and num_shards < len(data_files):
+            logger.warning("Resuming upload of the dataset shards.")
+
         uploaded_size = 0
         shards_path_in_repo = []
         for index, shard in logging.tqdm(
-            enumerate(shards),
+            enumerate(itertools.chain([first_shard], shards_iter)),
             desc="Pushing dataset shards to the dataset hub",
             total=num_shards,
             disable=not logging.is_progress_bar_enabled(),
@@ -4044,7 +4051,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for data_file in data_files
             if data_file.startswith(f"data/{split}-") and data_file not in shards_path_in_repo
         ]
-        deleted_size = sum(xgetsize(data_file, use_auth_token=token) for data_file in data_files_to_delete)
+        deleted_size = sum(xgetsize(hf_hub_url(data_file)) for data_file in data_files_to_delete)
 
         def delete_file(file):
             api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
