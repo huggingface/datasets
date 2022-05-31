@@ -4051,7 +4051,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for data_file in data_files
             if data_file.startswith(f"data/{split}-") and data_file not in shards_path_in_repo
         ]
-        deleted_size = sum(xgetsize(hf_hub_url(data_file)) for data_file in data_files_to_delete)
+        deleted_size = sum(xgetsize(hf_hub_url(repo_id, data_file)) for data_file in data_files_to_delete)
 
         def delete_file(file):
             api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
