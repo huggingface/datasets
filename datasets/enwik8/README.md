@@ -47,7 +47,7 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://deepai.org/dataset/enwik8
+- **Homepage:** https://cs.fit.edu/~mmahoney/compression/textdata.html
 - **Repository:** [Needs More Information]
 - **Paper:** [Needs More Information]
 - **Leaderboard:** [Needs More Information]
