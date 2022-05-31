@@ -135,16 +135,17 @@ class MSLR2022(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, data_dir, split):
         inputs_filepath = os.path.join(data_dir, f"{split}-inputs.csv")
-        inputs_df = pd.read_csv(inputs_filepath, index_col=0)
+        # At least one element in ReviewID is not a string, so explicitly cast it as such
+        inputs_df = pd.read_csv(inputs_filepath, index_col=0, dtype={"ReviewID": "string"})
 
         # Only the train and dev splits have targets
         if split != "test":
             targets_filepath = os.path.join(data_dir, f"{split}-targets.csv")
-            targets_df = pd.read_csv(targets_filepath, index_col=0)
+            targets_df = pd.read_csv(targets_filepath, index_col=0, dtype={"ReviewID": "string"})
             # Only MS^2 has the *-reviews-info.csv files, and only for the train and dev splits.
             if self.config.name == "ms2":
                 reviews_info_filepath = os.path.join(data_dir, f"{split}-reviews-info.csv")
-                reviews_info_df = pd.read_csv(reviews_info_filepath, index_col=0)
+                reviews_info_df = pd.read_csv(reviews_info_filepath, index_col=0, dtype={"ReviewID": "string"})
 
         for review_id in inputs_df.ReviewID.unique():
             inputs = inputs_df[inputs_df.ReviewID == review_id]
