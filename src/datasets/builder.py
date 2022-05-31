@@ -233,6 +233,9 @@ class DatasetBuilder:
             config_name: `str` name, optional configuration for the dataset that affects the data generated on disk.
                 Different `builder_config`s will have their own subdirectories and versions.
                 If not provided it uses the default configuration, if it exists.
+                <Added version="2.3.0">
+                `name` was renamed to `config_name`.
+                </Added>
             hash: a hash specific to the dataset code. Used to update the caching directory when the dataset loading
                 script code is updated (to avoid reusing old data).
                 The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``
@@ -249,8 +252,10 @@ class DatasetBuilder:
             data_dir: `str`, for builders that require manual download. It must be the path to the local directory containing
                 the manually downloaded data.
             config_kwargs: will override the defaults kwargs in config
-            name: Deprecated. Use 'config_name' instead.
-
+            name: Configuration name for the dataset.
+                <Deprecated version="2.3.0">
+                Use 'config_name' instead.
+                </Deprecated>
         """
         if name != "deprecated":
             warnings.warn(
