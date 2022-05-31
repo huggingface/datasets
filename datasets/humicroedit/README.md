@@ -15,18 +15,16 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-  subtask-1:
-  - text-classification
-  subtask-2:
-  - text-classification
+- text-classification
 task_ids:
-  subtask-1:
-  - text-scoring
-  - text-classification-other-funniness-score-prediction
-  subtask-2:
-  - text-classification-other-funnier-headline-identification
+- text-classification-other-funnier-headline-identification
+- text-classification-other-funniness-score-prediction
+- text-scoring
 paperswithcode_id: humicroedit
 pretty_name: Humicroedit
+configs:
+- subtask-1
+- subtask-2
 ---
 
 # Dataset Card for [Dataset Name]

@@ -67,7 +67,7 @@ REQUIRED_PKGS = [
     # Minimum 6.0.0 to support wrap_array which is needed for ArrayND features
     "pyarrow>=6.0.0",
     # For smart caching dataset processing
-    "dill",
+    "dill<0.3.6",  # tmp pin until 0.3.6 release: see https://github.com/huggingface/datasets/pull/4397
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
@@ -146,14 +146,15 @@ TESTS_REQUIRE = [
     "zstandard",
     # metrics dependencies
     "bert_score>=0.3.6",
+    "jiwer",
+    "mauve-text",
     "rouge_score",
     "sacrebleu",
-    "scipy",
-    "seqeval",
+    "sacremoses",
     "scikit-learn",
-    "jiwer",
+    "scipy",
     "sentencepiece",  # for bleurt
-    "mauve-text",
+    "seqeval",
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
@@ -197,7 +198,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.2.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.2.3.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

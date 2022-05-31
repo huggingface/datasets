@@ -341,6 +341,24 @@ def test_array_xd_with_none():
     assert np.isnan(arr[1])  # a single np.nan value - np.all not needed
 
 
+@pytest.mark.parametrize(
+    "data, feature, expected",
+    [
+        (np.zeros((2, 2)), None, [[0.0, 0.0], [0.0, 0.0]]),
+        (np.zeros((2, 3)), datasets.Array2D(shape=(2, 3), dtype="float32"), [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+        ([np.zeros(2)], datasets.Array2D(shape=(1, 2), dtype="float32"), [[0.0, 0.0]]),
+        (
+            [np.zeros((2, 3))],
+            datasets.Array3D(shape=(1, 2, 3), dtype="float32"),
+            [[[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]],
+        ),
+    ],
+)
+def test_array_xd_with_np(data, feature, expected):
+    ds = datasets.Dataset.from_dict({"col": [data]}, features=datasets.Features({"col": feature}) if feature else None)
+    assert ds[0]["col"] == expected
+
+
 @pytest.mark.parametrize("with_none", [False, True])
 def test_dataset_map(with_none):
     ds = datasets.Dataset.from_dict({"path": ["path1", "path2"]})

@@ -5,10 +5,8 @@ language_creators:
 - expert-generated
 - found
 languages:
-  en:
-  - en
-  zh:
-  - zh
+- en
+- zh
 licenses:
 - unknown
 multilinguality:
@@ -23,6 +21,9 @@ task_ids:
 - closed-domain-qa
 paperswithcode_id: null
 pretty_name: MedDialog
+configs:
+- en
+- zh
 ---
 
 # Dataset Card for MedDialog
