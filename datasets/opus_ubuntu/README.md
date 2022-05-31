@@ -12,7 +12,7 @@ languages:
 - an
 - ang
 - ar
-- ar_SY
+- ar-SY
 - ary
 - as
 - ast
@@ -25,7 +25,7 @@ languages:
 - bg
 - bho
 - bn
-- bn_IN
+- bn-IN
 - bo
 - br
 - brx
@@ -45,48 +45,48 @@ languages:
 - cy
 - da
 - de
-- de_AT
-- de_DE
+- de-AT
+- de-DE
 - dsb
 - dv
 - dz
 - el
 - en
-- en_AU
-- en_CA
-- en_GB
-- en_NZ
-- en_US
+- en-AU
+- en-CA
+- en-GB
+- en-NZ
+- en-US
 - eo
 - es
-- es_AR
-- es_CL
-- es_CO
-- es_CR
-- es_DO
-- es_EC
-- es_ES
-- es_GT
-- es_HN
-- es_MX
-- es_NI
-- es_PA
-- es_PE
-- es_PR
-- es_SV
-- es_UY
-- es_VE
+- es-AR
+- es-CL
+- es-CO
+- es-CR
+- es-DO
+- es-EC
+- es-ES
+- es-GT
+- es-HN
+- es-MX
+- es-NI
+- es-PA
+- es-PE
+- es-PR
+- es-SV
+- es-UY
+- es-VE
 - et
 - eu
 - fa
-- fa_AF
+- fa-AF
 - ff
 - fi
 - fil
 - fo
 - fr
-- fr_CA
-- fr_FR
+- fr-CA
+- fr-FR
 - frm
 - frp
 - fur
@@ -154,7 +154,6 @@ languages:
 - mk
 - ml
 - mn
-- mo
 - mr
 - ms
 - mt
@@ -167,13 +166,12 @@ languages:
 - ne
 - nhn
 - nl
-- nl_NL
+- nl-NL
 - nn
-- n/o
+- "no"
 - nso
 - ny
 - oc
-- oj
 - om
 - or
 - os
@@ -185,8 +183,8 @@ languages:
 - pmy
 - ps
 - pt
-- pt_BR
-- pt_PT
+- pt-BR
+- pt-PT
 - qu
 - rm
 - ro
@@ -216,7 +214,7 @@ languages:
 - syr
 - szl
 - ta
-- ta_LK
+- ta-LK
 - te
 - tet
 - tg
@@ -244,9 +242,9 @@ languages:
 - yi
 - yo
 - zh
-- zh_CN
-- zh_HK
-- zh_TW
+- zh-CN
+- zh-HK
+- zh-TW
 - zu
 - zza
 licenses:
@@ -263,7 +261,7 @@ task_categories:
 - translation
 task_ids: []
 paperswithcode_id: null
-pretty_name: OpusUbuntu
+pretty_name: Opus Ubuntu
 configs:
 - as-bs
 - az-cs
@@ -277,7 +275,7 @@ configs:
 - bs-szl
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Opus Ubuntu
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -348,11 +346,26 @@ Example instance:
 
 ### Data Fields
 
-[More Information Needed]
+Each instance has two fields:
+- **id**: the id of the example
+- **translation**: a dictionary containing translated texts in two languages.
 
 ### Data Splits
 
-[More Information Needed]
+Each subset simply consists in a train set. We provide the number of examples for certain language pairs:
+
+|          |   train |
+|:---------|--------:|
+| as-bs    |    8583 |
+| az-cs    |     293 |
+| bg-de    |     184 |
+| br-es_PR |     125 |
+| bn-ga    |    7324 |
+| br-hi    |   15551 |
+| br-la    |     527 |
+| bs-szl   |     646 |
+| br-uz    |    1416 |
+| br-yi    |    2799 |
 
 ## Dataset Creation
 
