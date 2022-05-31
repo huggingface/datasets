@@ -128,8 +128,8 @@ class DatasetTester:
 
                 # create config and dataset
                 dataset_builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
-                name = config.name if config is not None else None
-                dataset_builder = dataset_builder_cls(name=name, cache_dir=processed_temp_dir)
+                config_name = config.name if config is not None else None
+                dataset_builder = dataset_builder_cls(config_name=config_name, cache_dir=processed_temp_dir)
 
                 # TODO: skip Beam datasets and datasets that lack dummy data for now
                 if not dataset_builder.test_dummy_data:
@@ -237,9 +237,9 @@ class LocalDatasetTest(parameterized.TestCase):
 
     def test_builder_class(self, dataset_name):
         builder_cls = self.dataset_tester.load_builder_class(dataset_name, is_local=True)
-        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
+        config_name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
-            builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
+            builder = builder_cls(config_name=config_name, cache_dir=tmp_cache_dir)
             self.assertIsInstance(builder, DatasetBuilder)
 
     def test_builder_configs(self, dataset_name):
@@ -259,10 +259,10 @@ class LocalDatasetTest(parameterized.TestCase):
         path = "./datasets/" + dataset_name
         dataset_module = dataset_module_factory(path, download_config=DownloadConfig(local_files_only=True))
         builder_cls = import_main_class(dataset_module.module_path)
-        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
+        config_name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as temp_cache_dir:
             dataset = load_dataset(
-                path, name=name, cache_dir=temp_cache_dir, download_mode=DownloadMode.FORCE_REDOWNLOAD
+                path, name=config_name, cache_dir=temp_cache_dir, download_mode=DownloadMode.FORCE_REDOWNLOAD
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
@@ -276,10 +276,10 @@ class LocalDatasetTest(parameterized.TestCase):
         config_names = (
             [config.name for config in builder_cls.BUILDER_CONFIGS] if len(builder_cls.BUILDER_CONFIGS) > 0 else [None]
         )
-        for name in config_names:
+        for config_name in config_names:
             with tempfile.TemporaryDirectory() as temp_cache_dir:
                 dataset = load_dataset(
-                    path, name=name, cache_dir=temp_cache_dir, download_mode=DownloadMode.FORCE_REDOWNLOAD
+                    path, name=config_name, cache_dir=temp_cache_dir, download_mode=DownloadMode.FORCE_REDOWNLOAD
                 )
                 for split in dataset.keys():
                     self.assertTrue(len(dataset[split]) > 0)
@@ -307,9 +307,9 @@ class PackagedDatasetTest(parameterized.TestCase):
 
     def test_builder_class(self, dataset_name):
         builder_cls = self.dataset_tester.load_builder_class(dataset_name)
-        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
+        config_name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
-            builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
+            builder = builder_cls(config_name=config_name, cache_dir=tmp_cache_dir)
             self.assertIsInstance(builder, DatasetBuilder)
 
     def test_builder_configs(self, dataset_name):

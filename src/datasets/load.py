@@ -792,15 +792,15 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "name": os.path.basename(self.path),
+            "config_name": os.path.basename(self.path),
             "base_path": self.path,
             **builder_kwargs,
         }
         if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
-                builder_kwargs["name"] = next(iter(dataset_infos))
-                builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["name"]])
+            builder_kwargs["config_name"] = next(iter(dataset_infos))
+            builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["config_name"]])
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
@@ -901,7 +901,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "name": self.name.replace("/", "--"),
+            "config_name": self.name.replace("/", "--"),
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
             "repo_id": self.name,
             **builder_kwargs,
@@ -916,8 +916,8 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
-                builder_kwargs["name"] = next(iter(dataset_infos))
-                builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["name"]])
+            builder_kwargs["config_name"] = next(iter(dataset_infos))
+            builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["config_name"]])
         except FileNotFoundError:
             pass
         return DatasetModule(module_path, hash, builder_kwargs)
@@ -1558,7 +1558,7 @@ def load_dataset_builder(
     builder_cls = import_main_class(dataset_module.module_path)
     builder_kwargs = dataset_module.builder_kwargs
     data_files = builder_kwargs.pop("data_files", data_files)
-    name = builder_kwargs.pop("name", name)
+    config_name = builder_kwargs.pop("config_name", name)
     hash = builder_kwargs.pop("hash")
 
     if path in _PACKAGED_DATASETS_MODULES and data_files is None:
@@ -1573,7 +1573,7 @@ def load_dataset_builder(
     # Instantiate the dataset builder
     builder_instance: DatasetBuilder = builder_cls(
         cache_dir=cache_dir,
-        name=name,
+        config_name=config_name,
         data_dir=data_dir,
         data_files=data_files,
         hash=hash,
