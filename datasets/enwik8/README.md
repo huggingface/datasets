@@ -154,10 +154,10 @@ The data fields are the same among all sets.
 
 [Needs More Information]
 
-### Contributions
-
-[Needs More Information]
-
 ### Citation Information
 
 Dataset is not part of a publication, and can therefore not be cited.
+
+### Contributions
+
+Thanks to [@HallerPatrick](https://github.com/HallerPatrick) for adding this dataset.
