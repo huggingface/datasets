@@ -254,26 +254,9 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-  as-bs:
-  - 1K<n<10K
-  az-cs:
-  - n<1K
-  bg-de:
-  - n<1K
-  bn-ga:
-  - 1K<n<10K
-  br-es_PR:
-  - n<1K
-  br-hi:
-  - 10K<n<100K
-  br-la:
-  - n<1K
-  br-uz:
-  - 1K<n<10K
-  br-yi:
-  - 1K<n<10K
-  bs-szl:
-  - n<1K
+- 10K<n<100K
+- 1K<n<10K
+- n<1K
 source_datasets:
 - original
 task_categories:
@@ -281,6 +264,17 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: OpusUbuntu
+configs:
+- as-bs
+- az-cs
+- bg-de
+- bn-ga
+- br-es_PR
+- br-hi
+- br-la
+- br-uz
+- br-yi
+- bs-szl
 ---
 
 # Dataset Card Creation Guide

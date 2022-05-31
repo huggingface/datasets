@@ -20,6 +20,7 @@ import contextlib
 import copy
 import inspect
 import os
+import posixpath
 import shutil
 import textwrap
 import urllib
@@ -39,18 +40,20 @@ from .arrow_reader import (
 from .arrow_writer import ArrowWriter, BeamWriter
 from .data_files import DataFilesDict, sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
+from .download.download_config import DownloadConfig
+from .download.download_manager import DownloadManager, DownloadMode
+from .download.mock_download_manager import MockDownloadManager
+from .download.streaming_download_manager import StreamingDownloadManager
 from .features import Features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
-from .naming import camelcase_to_snakecase, filename_prefix_for_split
+from .naming import camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator
 from .utils import logging
-from .utils.download_manager import DownloadManager, DownloadMode
-from .utils.file_utils import DownloadConfig, cached_path, is_remote_url
+from .utils.file_utils import cached_path, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
-from .utils.mock_download_manager import MockDownloadManager
 from .utils.py_utils import (
     classproperty,
     has_sufficient_disk_space,
@@ -59,7 +62,6 @@ from .utils.py_utils import (
     size_str,
     temporary_assignment,
 )
-from .utils.streaming_download_manager import StreamingDownloadManager
 
 
 logger = logging.get_logger(__name__)
@@ -93,7 +95,7 @@ class BuilderConfig:
     """
 
     name: str = "default"
-    version: Optional[Union[str, utils.Version]] = "0.0.0"
+    version: Optional[Union[utils.Version, str]] = utils.Version("0.0.0")
     data_dir: Optional[str] = None
     data_files: Optional[DataFilesDict] = None
     description: Optional[str] = None
@@ -191,8 +193,8 @@ class DatasetBuilder:
     pre-defined set of configurations in :meth:`datasets.DatasetBuilder.builder_configs`.
     """
 
-    # Default version.
-    VERSION = utils.Version("0.0.0")
+    # Default version
+    VERSION = None  # Default version set in BuilderConfig
 
     # Class for the builder config.
     BUILDER_CONFIG_CLASS = BuilderConfig
@@ -248,7 +250,7 @@ class DatasetBuilder:
 
         """
         # DatasetBuilder name
-        self.name: str = camelcase_to_snakecase(self.__class__.__name__)
+        self.name: str = camelcase_to_snakecase(self.__module__.split(".")[-1])
         self.hash: Optional[str] = hash
         self.base_path = base_path
         self.use_auth_token = use_auth_token
@@ -285,25 +287,37 @@ class DatasetBuilder:
         if features is not None:
             self.info.features = features
 
-        # prepare data dirs
-        self._cache_dir_root = os.path.expanduser(cache_dir or config.HF_DATASETS_CACHE)
+        # Prepare data dirs:
+        # cache_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
+        self._cache_dir_root = str(cache_dir or config.HF_DATASETS_CACHE)
+        self._cache_dir_root = (
+            self._cache_dir_root if is_remote_url(self._cache_dir_root) else os.path.expanduser(self._cache_dir_root)
+        )
+        path_join = posixpath.join if is_remote_url(self._cache_dir_root) else os.path.join
         self._cache_downloaded_dir = (
-            os.path.join(cache_dir, config.DOWNLOADED_DATASETS_DIR) if cache_dir else config.DOWNLOADED_DATASETS_PATH
+            path_join(self._cache_dir_root, config.DOWNLOADED_DATASETS_DIR)
+            if cache_dir
+            else str(config.DOWNLOADED_DATASETS_PATH)
+        )
+        self._cache_downloaded_dir = (
+            self._cache_downloaded_dir
+            if is_remote_url(self._cache_downloaded_dir)
+            else os.path.expanduser(self._cache_downloaded_dir)
         )
         self._cache_dir = self._build_cache_dir()
         if not is_remote_url(self._cache_dir_root):
             os.makedirs(self._cache_dir_root, exist_ok=True)
-        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(lock_path):
-            if os.path.exists(self._cache_dir):  # check if data exist
-                if len(os.listdir(self._cache_dir)) > 0:
-                    logger.info("Overwrite dataset info from restored data version.")
-                    self.info = DatasetInfo.from_directory(self._cache_dir)
-                else:  # dir exists but no data, remove the empty dir as data aren't available anymore
-                    logger.warning(
-                        f"Old caching folder {self._cache_dir} for dataset {self.name} exists but not data were found. Removing it. "
-                    )
-                    os.rmdir(self._cache_dir)
+            lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
+            with FileLock(lock_path):
+                if os.path.exists(self._cache_dir):  # check if data exist
+                    if len(os.listdir(self._cache_dir)) > 0:
+                        logger.info("Overwrite dataset info from restored data version.")
+                        self.info = DatasetInfo.from_directory(self._cache_dir)
+                    else:  # dir exists but no data, remove the empty dir as data aren't available anymore
+                        logger.warning(
+                            f"Old caching folder {self._cache_dir} for dataset {self.name} exists but not data were found. Removing it. "
+                        )
+                        os.rmdir(self._cache_dir)
 
         # Set download manager
         self.dl_manager = None
@@ -438,7 +452,7 @@ class DatasetBuilder:
     def cache_dir(self):
         return self._cache_dir
 
-    def _relative_data_dir(self, with_version=True, with_hash=True) -> str:
+    def _relative_data_dir(self, with_version=True, with_hash=True, is_local=True) -> str:
         """Relative path of this dataset in cache_dir:
         Will be:
             self.name/self.config.version/self.hash/
@@ -450,19 +464,26 @@ class DatasetBuilder:
         builder_data_dir = self.name if namespace is None else f"{namespace}___{self.name}"
         builder_config = self.config
         hash = self.hash
+        path_join = os.path.join if is_local else posixpath.join
         if builder_config:
             # use the enriched name instead of the name to make it unique
-            builder_data_dir = os.path.join(builder_data_dir, self.config_id)
+            builder_data_dir = path_join(builder_data_dir, self.config_id)
         if with_version:
-            builder_data_dir = os.path.join(builder_data_dir, str(self.config.version))
+            builder_data_dir = path_join(builder_data_dir, str(self.config.version))
         if with_hash and hash and isinstance(hash, str):
-            builder_data_dir = os.path.join(builder_data_dir, hash)
+            builder_data_dir = path_join(builder_data_dir, hash)
         return builder_data_dir
 
     def _build_cache_dir(self):
         """Return the data directory for the current version."""
-        builder_data_dir = os.path.join(self._cache_dir_root, self._relative_data_dir(with_version=False))
-        version_data_dir = os.path.join(self._cache_dir_root, self._relative_data_dir(with_version=True))
+        is_local = not is_remote_url(self._cache_dir_root)
+        path_join = os.path.join if is_local else posixpath.join
+        builder_data_dir = path_join(
+            self._cache_dir_root, self._relative_data_dir(with_version=False, is_local=is_local)
+        )
+        version_data_dir = path_join(
+            self._cache_dir_root, self._relative_data_dir(with_version=True, is_local=is_local)
+        )
 
         def _other_versions_on_disk():
             """Returns previous versions on disk."""
@@ -479,16 +500,17 @@ class DatasetBuilder:
             return version_dirnames
 
         # Check and warn if other versions exist on disk
-        version_dirs = _other_versions_on_disk()
-        if version_dirs:
-            other_version = version_dirs[0][0]
-            if other_version != self.config.version:
-                warn_msg = (
-                    f"Found a different version {str(other_version)} of dataset {self.name} in "
-                    f"cache_dir {self._cache_dir_root}. Using currently defined version "
-                    f"{str(self.config.version)}."
-                )
-                logger.warning(warn_msg)
+        if not is_remote_url(builder_data_dir):
+            version_dirs = _other_versions_on_disk()
+            if version_dirs:
+                other_version = version_dirs[0][0]
+                if other_version != self.config.version:
+                    warn_msg = (
+                        f"Found a different version {str(other_version)} of dataset {self.name} in "
+                        f"cache_dir {self._cache_dir_root}. Using currently defined version "
+                        f"{str(self.config.version)}."
+                    )
+                    logger.warning(warn_msg)
 
         return version_data_dir
 
@@ -570,18 +592,22 @@ class DatasetBuilder:
         self.dl_manager = dl_manager
 
         # Prevent parallel disk operations
-        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(lock_path):
-            data_exists = os.path.exists(self._cache_dir)
-            if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
-                logger.warning(f"Reusing dataset {self.name} ({self._cache_dir})")
-                # We need to update the info in case some splits were added in the meantime
-                # for example when calling load_dataset from multiple workers.
-                self.info = self._load_info()
-                self.download_post_processing_resources(dl_manager)
-                return
+        is_local = not is_remote_url(self._cache_dir_root)
+        if is_local:
+            lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
+        # File locking only with local paths; no file locking on GCS or S3
+        with FileLock(lock_path) if is_local else contextlib.nullcontext():
+            if is_local:
+                data_exists = os.path.exists(self._cache_dir)
+                if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
+                    logger.warning(f"Reusing dataset {self.name} ({self._cache_dir})")
+                    # We need to update the info in case some splits were added in the meantime
+                    # for example when calling load_dataset from multiple workers.
+                    self.info = self._load_info()
+                    self.download_post_processing_resources(dl_manager)
+                    return
             logger.info(f"Generating dataset {self.name} ({self._cache_dir})")
-            if not is_remote_url(self._cache_dir_root):  # if cache dir is local, check for available space
+            if is_local:  # if cache dir is local, check for available space
                 if not has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
                     raise OSError(
                         f"Not enough disk space. Needed: {size_str(self.info.size_in_bytes or 0)} (download: {size_str(self.info.download_size or 0)}, generated: {size_str(self.info.dataset_size or 0)}, post-processed: {size_str(self.info.post_processing_size or 0)})"
@@ -1203,7 +1229,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         generator = self._generate_tables(**split_generator.gen_kwargs)
         with ArrowWriter(features=self.info.features, path=fpath) as writer:
             for key, table in logging.tqdm(
-                generator, unit=" tables", leave=False, disable=True  # not logging.is_progress_bar_enabled()
+                generator, unit=" tables", leave=False, disable=(not logging.is_progress_bar_enabled())
             ):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
@@ -1229,11 +1255,11 @@ class BeamBasedBuilder(DatasetBuilder):
     # BeamBasedBuilder does not have dummy data for tests yet
     test_dummy_data = False
 
-    def __init__(self, *args, **kwargs):
-        self._beam_runner = kwargs.pop("beam_runner", None)
-        self._beam_options = kwargs.pop("beam_options", None)
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, beam_runner=None, beam_options=None, **kwargs):
+        self._beam_runner = beam_runner
+        self._beam_options = beam_options
         self._beam_writers = {}  # {split: beam_writer} mapping.
+        super().__init__(*args, **kwargs)
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
         # Pass `pipeline` into `_split_generators()` from `prepare_split_kwargs` if
@@ -1254,29 +1280,31 @@ class BeamBasedBuilder(DatasetBuilder):
         `_split_generators`. The examples from the PCollection will be
         encoded and written to disk.
 
+        <Tip warning={true}>
         Warning: When running in a distributed setup, make sure that the data
         which will be read (download_dir, manual_dir,...) and written (cache_dir)
         can be accessed by the workers jobs. The data should be located in a
         shared filesystem, like GCS.
+        </Tip>
 
-        Example::
+        Args:
+            pipeline ([`utils.beam_utils.BeamPipeline`]): Apache Beam pipeline.
+            **kwargs: Arguments forwarded from the SplitGenerator.gen_kwargs.
+
+        Returns:
+            `beam.PCollection`: Apache Beam PCollection containing the
+                example to send to `self.info.features.encode_example(...)`.
+
+        Example:
 
         ```
-        def _build_pcollection(pipeline, extracted_dir):
+        def _build_pcollection(pipeline, extracted_dir=None):
             return (
                     pipeline
                     | beam.Create(gfile.io.listdir(extracted_dir))
                     | beam.Map(_process_file)
             )
         ```
-
-        Args:
-            pipeline: `beam.Pipeline`, root Beam pipeline
-            **kwargs: Arguments forwarded from the SplitGenerator.gen_kwargs
-
-        Returns:
-            pcollection: `PCollection`, an Apache Beam PCollection containing the
-                example to send to `self.info.features.encode_example(...)`.
         """
         raise NotImplementedError()
 
@@ -1348,11 +1376,8 @@ class BeamBasedBuilder(DatasetBuilder):
     def _prepare_split(self, split_generator, pipeline):
         import apache_beam as beam
 
-        split_name = split_generator.split_info.name
-        output_prefix = filename_prefix_for_split(self.name, split_name)
-        output_prefix = os.path.join(self._cache_dir, output_prefix)
-
         # To write examples to disk:
+        split_name = split_generator.split_info.name
         fname = f"{self.name}-{split_name}.arrow"
         fpath = os.path.join(self._cache_dir, fname)
         beam_writer = BeamWriter(

@@ -14,12 +14,14 @@ source_datasets:
 size_categories:
 - 10K<n<100K
 licenses:
-- CC-BY-SA-4.0
+- cc-by-sa-4.0
 paperswithcode_id: null
 pretty_name: GoogleWellformedQuery
+language_creators: 
+- found
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Google Query-wellformedness Dataset
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -69,7 +71,9 @@ English
 
 ### Data Instances
 
-[More Information Needed]
+```
+{'rating': 0.2, 'content': 'The European Union includes how many ?'}
+```
 
 ### Data Fields
 

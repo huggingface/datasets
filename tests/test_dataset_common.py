@@ -24,14 +24,15 @@ from unittest import TestCase
 from absl.testing import parameterized
 
 from datasets.builder import BuilderConfig, DatasetBuilder
+from datasets.download.download_config import DownloadConfig
+from datasets.download.download_manager import DownloadMode
+from datasets.download.mock_download_manager import MockDownloadManager
 from datasets.features import ClassLabel, Features, Value
 from datasets.load import dataset_module_factory, import_main_class, load_dataset
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.search import _has_faiss
-from datasets.utils.download_manager import DownloadMode
-from datasets.utils.file_utils import DownloadConfig, cached_path, is_remote_url
+from datasets.utils.file_utils import cached_path, is_remote_url
 from datasets.utils.logging import get_logger
-from datasets.utils.mock_download_manager import MockDownloadManager
 
 from .utils import OfflineSimulationMode, for_all_test_methods, local, offline, packaged, slow
 
@@ -135,10 +136,7 @@ class DatasetTester:
                     logger.info("Skip tests for this dataset for now")
                     return
 
-                if config is not None:
-                    version = config.version
-                else:
-                    version = dataset_builder.VERSION
+                version = config.version if config else dataset_builder.config.version
 
                 def check_if_url_is_valid(url):
                     if is_remote_url(url) and "\\" in url:

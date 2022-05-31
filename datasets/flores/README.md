@@ -5,12 +5,9 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  neen:
-  - en
-  - ne
-  sien:
-  - en
-  - si
+- en
+- ne
+- si
 licenses:
 - cc-by-4.0
 multilinguality:
@@ -31,6 +28,9 @@ task_categories:
 - translation
 task_ids: []
 paperswithcode_id: flores
+configs:
+- neen
+- sien
 ---
 
 # Dataset Card for "flores"

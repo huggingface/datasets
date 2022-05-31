@@ -17,7 +17,7 @@
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
-__version__ = "2.2.2.dev0"
+__version__ = "2.2.3.dev0"
 
 import pyarrow
 from packaging import version
@@ -39,6 +39,7 @@ from .arrow_reader import ReadInstruction
 from .builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from .combine import interleave_datasets
 from .dataset_dict import DatasetDict, IterableDatasetDict
+from .download import *
 from .features import *
 from .fingerprint import disable_caching, enable_caching, is_caching_enabled, set_caching_enabled
 from .info import DatasetInfo, MetricInfo

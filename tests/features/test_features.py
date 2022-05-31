@@ -284,7 +284,7 @@ def test_classlabel_str2int():
     classlabel = ClassLabel(names=names)
     for label in names:
         assert classlabel.str2int(label) == names.index(label)
-    with pytest.raises(KeyError):
+    with pytest.raises(ValueError):
         classlabel.str2int("__bad_label_name__")
     with pytest.raises(ValueError):
         classlabel.str2int(1)

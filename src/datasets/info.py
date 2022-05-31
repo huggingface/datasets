@@ -353,6 +353,14 @@ class MetricInfo:
         """Write `MetricInfo` as JSON to `metric_info_dir`.
         Also save the license separately in LICENCE.
         If `pretty_print` is True, the JSON will be pretty-printed with the indent level of 4.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_metric
+        >>> metric = load_metric("accuracy")
+        >>> metric.info.write_to_directory("/path/to/directory/")
+        ```
         """
         with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "w", encoding="utf-8") as f:
             json.dump(asdict(self), f, indent=4 if pretty_print else None)
@@ -368,6 +376,13 @@ class MetricInfo:
         Args:
             metric_info_dir: `str` The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
+
+        Example:
+
+        ```py
+        >>> from datasets import MetricInfo
+        >>> metric_info = MetricInfo.from_directory("/path/to/directory/")
+        ```
         """
         logger.info(f"Loading Metric info from {metric_info_dir}")
         if not metric_info_dir:
