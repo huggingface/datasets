@@ -1229,7 +1229,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         generator = self._generate_tables(**split_generator.gen_kwargs)
         with ArrowWriter(features=self.info.features, path=fpath) as writer:
             for key, table in logging.tqdm(
-                generator, unit=" tables", leave=False, disable=True  # not logging.is_progress_bar_enabled()
+                generator, unit=" tables", leave=False, disable=(not logging.is_progress_bar_enabled())
             ):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
