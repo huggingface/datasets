@@ -15,9 +15,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- token-classification
+- fill-mask
+- text-generation
 task_ids:
-- token-classification-other-acronym-identification
+- language-modeling
+- masked-language-modeling
 ---
 
 # Dataset Card for enwik8
