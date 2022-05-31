@@ -2692,10 +2692,10 @@ def test_dataset_add_column(column, expected_dtype, in_memory, transform, datase
 @pytest.mark.parametrize(
     "item",
     [
-        {"col_1": "4", "col_2": 4, "col_3": 4.0},
-        {"col_1": "4", "col_2": "4", "col_3": "4"},
-        {"col_1": 4, "col_2": 4, "col_3": 4},
-        {"col_1": 4.0, "col_2": 4.0, "col_3": 4.0},
+        {"col_1": "2", "col_2": 2, "col_3": 2.0},
+        {"col_1": "2", "col_2": "2", "col_3": "2"},
+        {"col_1": 2, "col_2": 2, "col_3": 2},
+        {"col_1": 2.0, "col_2": 2.0, "col_3": 2.0},
     ],
 )
 def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path, transform):

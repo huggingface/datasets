@@ -131,7 +131,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
         # Iterating the contents of the data to extract the relevant information
         wav_paths = sorted(Path(data_dir).glob(f"**/{split.upper()}/**/*.wav"))
         wav_paths = wav_paths if wav_paths else sorted(Path(data_dir).glob(f"**/{split.upper()}/**/*.WAV"))
-        for wav_path in wav_paths:
+        for key, wav_path in enumerate(wav_paths):
 
             # extract transcript
             txt_path = with_case_insensitive_suffix(wav_path, ".txt")
@@ -179,7 +179,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
                 "id": id_,
             }
 
-            yield id_, example
+            yield key, example
 
 
 def with_case_insensitive_suffix(path: Path, suffix: str):
