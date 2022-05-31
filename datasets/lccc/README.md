@@ -79,9 +79,11 @@ LCCC中的对话是中文的
 
 ### Data Instances
 
+```json
 {
     "dialog": ["火锅 我 在 重庆 成都 吃 了 七八 顿 火锅", "哈哈哈哈 ！ 那 我 的 嘴巴 可能 要 烂掉 ！", "不会 的 就是 好 油腻"]
 }
+```
 
 ### Data Fields
 
@@ -148,11 +150,31 @@ But we provide a split for LCCC-base:
 
 ### Licensing Information
 
-[Needs More Information]
+MIT License
+
+Copyright (c) 2020 lemon234071
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ### Citation Information
 
-```
+```bibtex
 @inproceedings{wang2020chinese,
   title={A Large-Scale Chinese Short-Text Conversation Dataset},
   author={Wang, Yida and Ke, Pei and Zheng, Yinhe and Huang, Kaili and Jiang, Yong and Zhu, Xiaoyan and Huang, Minlie},
