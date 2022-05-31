@@ -178,21 +178,6 @@ class BuilderConfig:
 
 
 class DatasetBuilder:
-    """Abstract base class for all datasets.
-
-    `DatasetBuilder` has 3 key methods:
-
-        - :meth:`datasets.DatasetBuilder.info`: Documents the dataset, including feature
-          names, types, and shapes, version, splits, citation, etc.
-        - :meth:`datasets.DatasetBuilder.download_and_prepare`: Downloads the source data
-          and writes it to disk.
-        - :meth:`datasets.DatasetBuilder.as_dataset`: Generates a `Dataset`.
-
-    **Configuration**: Some `DatasetBuilder`s expose multiple variants of the
-    dataset by defining a `datasets.BuilderConfig` subclass and accepting a
-    config object (or name) on construction. Configurable datasets expose a
-    pre-defined set of configurations in :meth:`datasets.DatasetBuilder.builder_configs`.
-    """
 
     # Default version
     VERSION = None  # Default version set in BuilderConfig
@@ -224,9 +209,20 @@ class DatasetBuilder:
         name="deprecated",
         **config_kwargs,
     ):
-        """Constructs a DatasetBuilder.
+        """Abstract base class for all datasets.
 
-        Callers must pass arguments as keyword arguments.
+        `DatasetBuilder` has 3 key methods:
+
+            - :meth:`datasets.DatasetBuilder.info`: Documents the dataset, including feature
+              names, types, and shapes, version, splits, citation, etc.
+            - :meth:`datasets.DatasetBuilder.download_and_prepare`: Downloads the source data
+              and writes it to disk.
+            - :meth:`datasets.DatasetBuilder.as_dataset`: Generates a `Dataset`.
+
+        **Configuration**: Some `DatasetBuilder`s expose multiple variants of the
+        dataset by defining a `datasets.BuilderConfig` subclass and accepting a
+        config object (or name) on construction. Configurable datasets expose a
+        pre-defined set of configurations in :meth:`datasets.DatasetBuilder.builder_configs`.
 
         Args:
             cache_dir: `str`, directory to read/write data. Defaults to "~/datasets".
