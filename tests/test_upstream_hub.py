@@ -449,7 +449,7 @@ class TestPushToHub(TestCase):
         finally:
             self.cleanup_repo(ds_name)
 
-    def test_push_to_dataset_skip_identical_files(self):
+    def test_push_dataset_to_hub_skip_identical_files(self):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
         ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
         try:
@@ -474,6 +474,20 @@ class TestPushToHub(TestCase):
             self.assertListEqual(ds.column_names, hub_ds.column_names)
             self.assertListEqual(list(ds.features.keys()), list(hub_ds.features.keys()))
             self.assertDictEqual(ds.features, hub_ds.features)
+        finally:
+            self.cleanup_repo(ds_name)
+
+    def test_push_dataset_to_hub_multiple_splits_one_by_one(self):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
+        try:
+            ds.push_to_hub(ds_name, split="train", token=self._token)
+            ds.push_to_hub(ds_name, split="test", token=self._token)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+            self.assertListEqual(sorted(hub_ds), ["test", "train"])
+            self.assertListEqual(ds.column_names, hub_ds["train"].column_names)
+            self.assertListEqual(list(ds.features.keys()), list(hub_ds["train"].features.keys()))
+            self.assertDictEqual(ds.features, hub_ds["train"].features)
         finally:
             self.cleanup_repo(ds_name)
 
