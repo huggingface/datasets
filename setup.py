@@ -146,14 +146,15 @@ TESTS_REQUIRE = [
     "zstandard",
     # metrics dependencies
     "bert_score>=0.3.6",
+    "jiwer",
+    "mauve-text",
     "rouge_score",
     "sacrebleu",
-    "scipy",
-    "seqeval",
+    "sacremoses",
     "scikit-learn",
-    "jiwer",
+    "scipy",
     "sentencepiece",  # for bleurt
-    "mauve-text",
+    "seqeval",
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
