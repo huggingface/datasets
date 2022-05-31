@@ -178,6 +178,50 @@ class BuilderConfig:
 
 
 class DatasetBuilder:
+    """Abstract base class for all datasets.
+
+    `DatasetBuilder` has 3 key methods:
+
+        - :meth:`datasets.DatasetBuilder.info`: Documents the dataset, including feature
+          names, types, and shapes, version, splits, citation, etc.
+        - :meth:`datasets.DatasetBuilder.download_and_prepare`: Downloads the source data
+          and writes it to disk.
+        - :meth:`datasets.DatasetBuilder.as_dataset`: Generates a `Dataset`.
+
+    **Configuration**: Some `DatasetBuilder`s expose multiple variants of the
+    dataset by defining a `datasets.BuilderConfig` subclass and accepting a
+    config object (or name) on construction. Configurable datasets expose a
+    pre-defined set of configurations in :meth:`datasets.DatasetBuilder.builder_configs`.
+
+    Args:
+        cache_dir: `str`, directory to read/write data. Defaults to "~/datasets".
+        config_name: `str` name, optional configuration for the dataset that affects the data generated on disk.
+            Different `builder_config`s will have their own subdirectories and versions.
+            If not provided it uses the default configuration, if it exists.
+            <Added version="2.3.0">
+            `name` was renamed to `config_name`.
+            </Added>
+        hash: a hash specific to the dataset code. Used to update the caching directory when the dataset loading
+            script code is updated (to avoid reusing old data).
+            The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``
+        base_path: `str`, base path for relative paths that are used to download files. This can be a remote url.
+        features: `Features`, optional features that will be used to read/write the dataset
+            It can be used to changed the :obj:`datasets.Features` description of a dataset for example.
+        use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
+            for remote files on the Datasets Hub. If True, will get token from ``"~/.huggingface"``.
+        repo_id: `str`, used to separate builders with the same name but not coming from the same namespace.
+            For example to separate repo_id "squad" from repo_id "lhoestq/squad".
+            In this case, the builder name would be "lhoestq___squad".
+        data_files: for builders like "csv" or "json" that need the user to specify data files. They can be either
+            local or remote files. For convenience you can use a DataFilesDict.
+        data_dir: `str`, for builders that require manual download. It must be the path to the local directory containing
+            the manually downloaded data.
+        config_kwargs: will override the defaults kwargs in config
+        name: Configuration name for the dataset.
+            <Deprecated version="2.3.0">
+            Use 'config_name' instead.
+            </Deprecated>
+    """
 
     # Default version
     VERSION = None  # Default version set in BuilderConfig
@@ -209,50 +253,6 @@ class DatasetBuilder:
         name="deprecated",
         **config_kwargs,
     ):
-        """Abstract base class for all datasets.
-
-        `DatasetBuilder` has 3 key methods:
-
-            - :meth:`datasets.DatasetBuilder.info`: Documents the dataset, including feature
-              names, types, and shapes, version, splits, citation, etc.
-            - :meth:`datasets.DatasetBuilder.download_and_prepare`: Downloads the source data
-              and writes it to disk.
-            - :meth:`datasets.DatasetBuilder.as_dataset`: Generates a `Dataset`.
-
-        **Configuration**: Some `DatasetBuilder`s expose multiple variants of the
-        dataset by defining a `datasets.BuilderConfig` subclass and accepting a
-        config object (or name) on construction. Configurable datasets expose a
-        pre-defined set of configurations in :meth:`datasets.DatasetBuilder.builder_configs`.
-
-        Args:
-            cache_dir: `str`, directory to read/write data. Defaults to "~/datasets".
-            config_name: `str` name, optional configuration for the dataset that affects the data generated on disk.
-                Different `builder_config`s will have their own subdirectories and versions.
-                If not provided it uses the default configuration, if it exists.
-                <Added version="2.3.0">
-                `name` was renamed to `config_name`.
-                </Added>
-            hash: a hash specific to the dataset code. Used to update the caching directory when the dataset loading
-                script code is updated (to avoid reusing old data).
-                The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``
-            base_path: `str`, base path for relative paths that are used to download files. This can be a remote url.
-            features: `Features`, optional features that will be used to read/write the dataset
-                It can be used to changed the :obj:`datasets.Features` description of a dataset for example.
-            use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
-                for remote files on the Datasets Hub. If True, will get token from ``"~/.huggingface"``.
-            repo_id: `str`, used to separate builders with the same name but not coming from the same namespace.
-                For example to separate repo_id "squad" from repo_id "lhoestq/squad".
-                In this case, the builder name would be "lhoestq___squad".
-            data_files: for builders like "csv" or "json" that need the user to specify data files. They can be either
-                local or remote files. For convenience you can use a DataFilesDict.
-            data_dir: `str`, for builders that require manual download. It must be the path to the local directory containing
-                the manually downloaded data.
-            config_kwargs: will override the defaults kwargs in config
-            name: Configuration name for the dataset.
-                <Deprecated version="2.3.0">
-                Use 'config_name' instead.
-                </Deprecated>
-        """
         if name != "deprecated":
             warnings.warn(
                 "Parameter 'name' was renamed to 'config_name' in version 2.3.0 and will be removed in 3.0.0.",
