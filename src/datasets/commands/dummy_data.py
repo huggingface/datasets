@@ -134,7 +134,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                             first_lines.append(line)
                         dst_file.write("".join(first_lines).strip())
                 return 1
-            elif '.csv' in dst_path_extensions:
+            elif ".csv" in dst_path_extensions:
                 Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
                 input_csv = pd.read_csv(src_path, encoding=encoding)
                 first_lines = input_csv[:n_lines]
