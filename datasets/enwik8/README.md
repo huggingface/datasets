@@ -9,7 +9,7 @@ licenses:
 - mit
 multilinguality:
 - monolingual
-pretty_name: enwik8 - Wikipedia based
+pretty_name: enwik8
 size_categories:
 - 10K<n<100K
 source_datasets:
