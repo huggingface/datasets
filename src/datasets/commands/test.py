@@ -97,7 +97,7 @@ class TestCommand(BaseDatasetsCLICommand):
         if self._name is not None and self._all_configs:
             print("Both parameters `config` and `all_configs` can't be used at once.")
             exit(1)
-        path, name = self._dataset, self._name
+        path, config_name = self._dataset, self._name
         module = dataset_module_factory(path)
         builder_cls = import_main_class(module.module_path)
         n_builders = len(builder_cls.BUILDER_CONFIGS) if self._all_configs and builder_cls.BUILDER_CONFIGS else 1
@@ -123,7 +123,10 @@ class TestCommand(BaseDatasetsCLICommand):
                     yield builder_cls(cache_dir=self._cache_dir, data_dir=self._data_dir, **module.builder_kwargs)
                 else:
                     yield builder_cls(
-                        config_name=name, cache_dir=self._cache_dir, data_dir=self._data_dir, **module.builder_kwargs
+                        config_name=config_name,
+                        cache_dir=self._cache_dir,
+                        data_dir=self._data_dir,
+                        **module.builder_kwargs,
                     )
 
         for j, builder in enumerate(get_builders()):

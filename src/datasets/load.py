@@ -1558,7 +1558,7 @@ def load_dataset_builder(
     builder_cls = import_main_class(dataset_module.module_path)
     builder_kwargs = dataset_module.builder_kwargs
     data_files = builder_kwargs.pop("data_files", data_files)
-    name = builder_kwargs.pop("config_name", name)
+    config_name = builder_kwargs.pop("config_name", name)
     hash = builder_kwargs.pop("hash")
 
     if path in _PACKAGED_DATASETS_MODULES and data_files is None:
@@ -1573,7 +1573,7 @@ def load_dataset_builder(
     # Instantiate the dataset builder
     builder_instance: DatasetBuilder = builder_cls(
         cache_dir=cache_dir,
-        config_name=name,
+        config_name=config_name,
         data_dir=data_dir,
         data_files=data_files,
         hash=hash,

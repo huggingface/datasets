@@ -128,8 +128,8 @@ class DatasetTester:
 
                 # create config and dataset
                 dataset_builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
-                name = config.name if config is not None else None
-                dataset_builder = dataset_builder_cls(config_name=name, cache_dir=processed_temp_dir)
+                config_name = config.name if config is not None else None
+                dataset_builder = dataset_builder_cls(config_name=config_name, cache_dir=processed_temp_dir)
 
                 # TODO: skip Beam datasets and datasets that lack dummy data for now
                 if not dataset_builder.test_dummy_data:
