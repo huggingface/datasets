@@ -129,7 +129,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, split, data_dir):
         """Generate examples from TIMIT archive_path based on the test/train csv information."""
         # Iterating the contents of the data to extract the relevant information
-        for id_, wav_path in enumerate(sorted(Path(data_dir).glob(f"**/{split.upper()}/**/*.WAV"))):
+        for key, wav_path in enumerate(sorted(Path(data_dir).glob(f"**/{split.upper()}/**/*.WAV"))):
 
             # extract transcript
             with open(wav_path.with_suffix(".TXT"), encoding="utf-8") as op:
@@ -160,6 +160,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
             dialect_region = wav_path.parents[1].name
             sentence_type = wav_path.name[0:2]
             speaker_id = wav_path.parents[0].name[1:]
+            id_ = wav_path.stem
 
             example = {
                 "file": str(wav_path),
@@ -170,7 +171,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
                 "dialect_region": dialect_region,
                 "sentence_type": sentence_type,
                 "speaker_id": speaker_id,
-                "id": wav_path.stem,
+                "id": id_,
             }
 
-            yield id_, example
+            yield key, example
