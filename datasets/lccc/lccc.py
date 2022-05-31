@@ -98,7 +98,6 @@ class LCCC(datasets.GeneratorBasedBuilder):
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
                         "filepath": os.path.join(downloaded_data),
-                        "split": "train",
                     },
                 )
             ]
@@ -108,24 +107,22 @@ class LCCC(datasets.GeneratorBasedBuilder):
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
                         "filepath": os.path.join(downloaded_data["train"]),
-                        "split": "train",
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    gen_kwargs={"filepath": os.path.join(downloaded_data["test"]), "split": "test"},
+                    gen_kwargs={"filepath": os.path.join(downloaded_data["test"])},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
                         "filepath": os.path.join(downloaded_data["valid"]),
-                        "split": "dev",
                     },
                 ),
             ]
 
     # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath):
         with open(filepath, encoding="utf-8") as f:
             for key, row in enumerate(f):
                 row = row.strip()
