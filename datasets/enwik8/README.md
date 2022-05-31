@@ -57,7 +57,7 @@ task_ids:
 
 ### Dataset Summary
 
-The enwik8 datasset is based on Wikipedia and is typically used to measure a model's ability to compress data.
+The enwik8 datasset is based on Wikipedia and is typically used to measure a model's ability to compress data. The data come from a Wikipedia dump from 2006.
 
 ### Supported Tasks and Leaderboards
 
