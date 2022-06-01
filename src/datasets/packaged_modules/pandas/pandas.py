@@ -17,6 +17,7 @@ class Pandas(datasets.ArrowBasedBuilder):
             files = data_files
             if isinstance(files, str):
                 files = [files]
+            # Use `dl_manager.iter_files` to skip hidden files in an extracted archive
             return [
                 datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_files(files)})
             ]
@@ -24,6 +25,7 @@ class Pandas(datasets.ArrowBasedBuilder):
         for split_name, files in data_files.items():
             if isinstance(files, str):
                 files = [files]
+            # Use `dl_manager.iter_files` to skip hidden files in an extracted archive
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": dl_manager.iter_files(files)}))
         return splits
 
