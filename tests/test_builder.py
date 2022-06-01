@@ -15,7 +15,6 @@ from datasets.arrow_dataset import Dataset
 from datasets.arrow_writer import ArrowWriter
 from datasets.builder import BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
-from datasets.dataset_dict import DatasetDict
 from datasets.download.download_manager import DownloadMode
 from datasets.features import Features, Value
 from datasets.info import DatasetInfo, PostProcessedInfo
