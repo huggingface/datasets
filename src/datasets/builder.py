@@ -220,7 +220,7 @@ class DatasetBuilder:
             For builders that require manual download, it must be the path to the local directory containing the
             manually downloaded data.
         name (`str`): Deprecated. Use `config_name` instead.
-        **config_kwargs: Keyword arguments to be passed to the [`BuilderConfig`].
+        config_kwargs: Keyword arguments to be passed to the [`BuilderConfig`].
     """
 
     # Default version
