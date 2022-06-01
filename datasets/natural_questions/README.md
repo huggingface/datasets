@@ -85,33 +85,37 @@ An example of 'train' looks as follows. This is a toy example.
 ```
 
 "example_id": 797803103760793766,
-"question_text": "who founded google",
-"question_tokens": ["who", "founded", "google"],
-"document_url": "http://www.wikipedia.org/Google",
-"document_html": "<html><body><h1>Google Inc.</h1><p>Google was founded in 1998 By:<ul><li>Larry</li><li>Sergey</li></ul></p></body></html>",
-"document_tokens":[
-  { "token": "<h1>", "start_byte": 12, "end_byte": 16, "html_token": True },
-  { "token": "Google", "start_byte": 16, "end_byte": 22, "html_token": False },
-  { "token": "inc", "start_byte": 23, "end_byte": 26, "html_token": False },
-  { "token": ".", "start_byte": 26, "end_byte": 27, "html_token": False },
-  { "token": "</h1>", "start_byte": 27, "end_byte": 32, "html_token": True },
-  { "token": "<p>", "start_byte": 32, "end_byte": 35, "html_token": True },
-  { "token": "Google", "start_byte": 35, "end_byte": 41, "html_token": False },
-  { "token": "was", "start_byte": 42, "end_byte": 45, "html_token": False },
-  { "token": "founded", "start_byte": 46, "end_byte": 53, "html_token": False },
-  { "Token": "in", "start_byte": 54, "end_byte": 56, "html_token": False },
-  { "token": "1998", "start_byte": 57, "end_byte": 61, "html_token": False },
-  { "token": "by", "start_byte": 62, "end_byte": 64, "html_token": False },
-  { "token": ":", "start_byte": 64, "end_byte": 65, "html_token": False },
-  { "token": "<ul>", "start_byte": 65, "end_byte": 69, "html_token": True },
-  { "token": "<li>", "start_byte": 69, "end_byte": 73, "html_token": True },
-  { "token": "Larry", "start_byte": 73, "end_byte": 78, "html_token": False },
-  { "token": "</li>", "start_byte": 78, "end_byte": 83, "html_token": True },
-  { "token": "<li>", "start_byte": 83, "end_byte": 87, "html_token": True },
-  { "token": "Sergey", "start_byte": 87, "end_byte": 92, "html_token": False },
-  { "token": "</li>", "start_byte": 92, "end_byte": 97, "html_token": True },
-  { "token": "</ul>", "start_byte": 97, "end_byte": 102, "html_token": True },
-  { "token": "</p>", "start_byte": 102, "end_byte": 106, "html_token": True }
+"question" :{
+  "text": "who founded google",
+  "tokens": ["who", "founded", "google"]
+},
+"document": {
+  "url": "http://www.wikipedia.org/Google",
+  "html": "<html><body><h1>Google Inc.</h1><p>Google was founded in 1998 By:<ul><li>Larry</li><li>Sergey</li></ul></p></body></html>",
+  "title": Google
+  "document_tokens":[
+    { "token": "<h1>", "start_byte": 12, "end_byte": 16, "is_html": True },
+    { "token": "Google", "start_byte": 16, "end_byte": 22, "is_html": False },
+    { "token": "inc", "start_byte": 23, "end_byte": 26, "is_html": False },
+    { "token": ".", "start_byte": 26, "end_byte": 27, "is_html": False },
+    { "token": "</h1>", "start_byte": 27, "end_byte": 32, "is_html": True },
+    { "token": "<p>", "start_byte": 32, "end_byte": 35, "is_html": True },
+    { "token": "Google", "start_byte": 35, "end_byte": 41, "is_html": False },
+    { "token": "was", "start_byte": 42, "end_byte": 45, "is_html": False },
+    { "token": "founded", "start_byte": 46, "end_byte": 53, "is_html": False },
+    { "Token": "in", "start_byte": 54, "end_byte": 56, "is_html": False },
+    { "token": "1998", "start_byte": 57, "end_byte": 61, "is_html": False },
+    { "token": "by", "start_byte": 62, "end_byte": 64, "is_html": False },
+    { "token": ":", "start_byte": 64, "end_byte": 65, "is_html": False },
+    { "token": "<ul>", "start_byte": 65, "end_byte": 69, "is_html": True },
+    { "token": "<li>", "start_byte": 69, "end_byte": 73, "is_html": True },
+    { "token": "Larry", "start_byte": 73, "end_byte": 78, "is_html": False },
+    { "token": "</li>", "start_byte": 78, "end_byte": 83, "is_html": True },
+    { "token": "<li>", "start_byte": 83, "end_byte": 87, "is_html": True },
+    { "token": "Sergey", "start_byte": 87, "end_byte": 92, "is_html": False },
+    { "token": "</li>", "start_byte": 92, "end_byte": 97, "is_html": True },
+    { "token": "</ul>", "start_byte": 97, "end_byte": 102, "is_html": True },
+    { "token": "</p>", "start_byte": 102, "end_byte": 106, "is_html": True }
 ],
 "long_answer_candidates": [
   { "start_byte": 32, "end_byte": 106, "start_token": 5, "end_token": 22, "top_level": True },
@@ -136,16 +140,24 @@ The data fields are the same among all splits.
 
 #### default
 - `id`: a `string` feature.
-- `title`: a `string` feature.
-- `url`: a `string` feature.
-- `html`: a `string` feature.
-- `tokens`: a dictionary feature containing:
-  - `token`: a `string` feature.
-  - `is_html`: a `bool` feature.
+- `document` a dictionary feature containing:
+  - `title`: a `string` feature.
+  - `url`: a `string` feature.
+  - `html`: a `string` feature.
+  - `tokens`: a dictionary feature containing:
+    - `token`: a `string` feature.
+    - `is_html`: a `bool` feature.
+    - `start_byte`: a `int64` feature.
+    - `end_byte`: a `int64` feature.
+- `question`: a dictionary feature containing:
+  - `text`: a `string` feature.
+  - `tokens`: a `list` of `string` features.
+- `long_answer_candidates`: a dictionary feature containing:
+  - `start_token`: a `int64` feature.
+  - `end_token`: a `int64` feature.
   - `start_byte`: a `int64` feature.
   - `end_byte`: a `int64` feature.
-- `text`: a `string` feature.
-- `tokens`: a `list` of `string` features.
+  - `top_level`: a `bool` feature.
 - `annotations`: a dictionary feature containing:
   - `id`: a `string` feature.
   - `long_answers`: a dictionary feature containing:
@@ -161,12 +173,6 @@ The data fields are the same among all splits.
     - `end_byte`: a `int64` feature.
     - `text`: a `string` feature.
   - `yes_no_answer`: a classification label, with possible values including `NO` (0), `YES` (1).
-  - `long_answer_candidates`: a dictionary feature containing:
-    - `start_token`: a `int64` feature.
-    - `end_token`: a `int64` feature.
-    - `start_byte`: a `int64` feature.
-    - `end_byte`: a `int64` feature.
-    - `top_level`: a `bool` feature.
 
 ### Data Splits
 
