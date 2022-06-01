@@ -181,7 +181,7 @@ class DatasetBuilder:
     """Abstract base class for all datasets.
 
     Args:
-        cache_dir: `str`, directory to read/write data. Defaults to "~/datasets".
+        cache_dir (`str`): Directory to read/write data. Defaults to "~/datasets".
     """
 
     # Default version
