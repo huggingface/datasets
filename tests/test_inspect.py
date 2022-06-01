@@ -14,18 +14,18 @@ from datasets import (
 
 @pytest.mark.parametrize("path", ["paws", "csv"])
 def test_inspect_dataset(path, tmp_path):
-    inspect_dataset(path, tmp_path / path)
+    inspect_dataset(path, tmp_path)
     script_name = path + ".py"
-    assert script_name in os.listdir(tmp_path / path)
-    assert "__pycache__" not in os.listdir(tmp_path / path)
+    assert script_name in os.listdir(tmp_path)
+    assert "__pycache__" not in os.listdir(tmp_path)
 
 
 @pytest.mark.parametrize("path", ["accuracy"])
 def test_inspect_metric(path, tmp_path):
-    inspect_metric(path, tmp_path / path)
+    inspect_metric(path, tmp_path)
     script_name = path + ".py"
-    assert script_name in os.listdir(tmp_path / path)
-    assert "__pycache__" not in os.listdir(tmp_path / path)
+    assert script_name in os.listdir(tmp_path)
+    assert "__pycache__" not in os.listdir(tmp_path)
 
 
 @pytest.mark.parametrize(
