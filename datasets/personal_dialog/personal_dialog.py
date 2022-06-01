@@ -52,11 +52,11 @@ _HOMEPAGE = "https://github.com/silverriver/PersonalDilaog"
 _LICENSE = "MIT"
 
 _URLS = {
-    "train": "https://huggingface.co/datasets/silver/personal_dialog/resolve/main/dialogues_train.jsonl.gz",
     "valid": [
         "https://huggingface.co/datasets/silver/personal_dialog/resolve/main/dev_biased.jsonl.gz",
         "https://huggingface.co/datasets/silver/personal_dialog/resolve/main/dev_random.jsonl.gz",
     ],
+    "train": "https://huggingface.co/datasets/silver/personal_dialog/resolve/main/dialogues_train.jsonl.gz",
     "test": [
         "https://huggingface.co/datasets/silver/personal_dialog/resolve/main/test_biased.jsonl.gz",
         "https://huggingface.co/datasets/silver/personal_dialog/resolve/main/test_random.jsonl.gz",
