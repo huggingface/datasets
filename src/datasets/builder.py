@@ -182,16 +182,16 @@ class DatasetBuilder:
 
     `DatasetBuilder` has 3 key methods:
 
-        - :meth:`datasets.DatasetBuilder.info`: Documents the dataset, including feature
+        - [`DatasetBuilder.info`]: Documents the dataset, including feature
           names, types, and shapes, version, splits, citation, etc.
-        - :meth:`datasets.DatasetBuilder.download_and_prepare`: Downloads the source data
+        - [`DatasetBuilder.download_and_prepare`]: Downloads the source data
           and writes it to disk.
-        - :meth:`datasets.DatasetBuilder.as_dataset`: Generates a `Dataset`.
+        - [`DatasetBuilder.as_dataset`]: Generates a [`Dataset`].
 
     **Configuration**: Some `DatasetBuilder`s expose multiple variants of the
-    dataset by defining a `datasets.BuilderConfig` subclass and accepting a
+    dataset by defining a [`BuilderConfig`] subclass and accepting a
     config object (or name) on construction. Configurable datasets expose a
-    pre-defined set of configurations in :meth:`datasets.DatasetBuilder.builder_configs`.
+    pre-defined set of configurations in [`datasets.DatasetBuilder.builder_configs`].
 
     Args:
         cache_dir (`str`, *optional*): Directory to cache data. Defaults to ``"~/.cache/huggingface/datasets"``.
