@@ -192,6 +192,9 @@ class DatasetBuilder:
     dataset by defining a `datasets.BuilderConfig` subclass and accepting a
     config object (or name) on construction. Configurable datasets expose a
     pre-defined set of configurations in :meth:`datasets.DatasetBuilder.builder_configs`.
+
+    Args:
+        cache_dir (`str`): Directory to read/write data. Defaults to "~/datasets".
     """
 
     # Default version
