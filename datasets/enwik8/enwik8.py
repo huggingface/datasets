@@ -87,9 +87,5 @@ class Enwik8(datasets.GeneratorBasedBuilder):
             if self.config.name.endswith("raw"):
                 yield 0, {"text": f.read()}
             else:
-                lines = f.readlines()
-                for key, line in enumerate(lines):
-                    if line.strip():
-                        yield key, {"text": line}
-                    else:
-                        yield key, {"text": ""}
+                for key, line in enumerate(f):
+                    yield key, {"text": line.strip()}
