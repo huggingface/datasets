@@ -81,12 +81,15 @@ jobs:
     check_code_quality:
         working_directory: ~/datasets
         docker:
-            - image: circleci/python:3.6
+            - image: cimg/python:3.6
         resource_class: medium
         parallelism: 1
         steps:
             - checkout
-            - run: sudo pip install .[quality]
+            - run: pip install --upgrade pip
+            - run: python -m venv venv
+            - run: source venv/bin/activate
+            - run: pip install .[quality]
             - run: black --check --line-length 119 --target-version py36 tests src benchmarks datasets metrics
             - run: isort --check-only tests src benchmarks datasets metrics
             - run: flake8 tests src benchmarks datasets metrics

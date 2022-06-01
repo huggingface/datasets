@@ -21,9 +21,9 @@ import urllib.parse
 from pathlib import Path
 from typing import Callable, List, Optional, Union
 
-from .file_utils import cached_path, hf_github_url
-from .logging import get_logger
-from .version import Version
+from ..utils.file_utils import cached_path, hf_github_url
+from ..utils.logging import get_logger
+from ..utils.version import Version
 
 
 logger = get_logger(__name__)
@@ -211,7 +211,7 @@ class MockDownloadManager:
     def iter_archive(self, path):
         path = Path(path)
         for file_path in path.rglob("*"):
-            if file_path.is_file() and not file_path.name.startswith(".") and not file_path.name.startswith("__"):
+            if file_path.is_file() and not file_path.name.startswith((".", "__")):
                 yield file_path.relative_to(path).as_posix(), file_path.open("rb")
 
     def iter_files(self, paths):
@@ -219,8 +219,14 @@ class MockDownloadManager:
             paths = [paths]
         for path in paths:
             if os.path.isfile(path):
+                if os.path.basename(path).startswith((".", "__")):
+                    return
                 yield path
             else:
                 for dirpath, _, filenames in os.walk(path):
+                    if os.path.basename(dirpath).startswith((".", "__")):
+                        continue
                     for filename in filenames:
+                        if filename.startswith((".", "__")):
+                            continue
                         yield os.path.join(dirpath, filename)

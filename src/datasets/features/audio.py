@@ -7,9 +7,9 @@ import pyarrow as pa
 from packaging import version
 
 from .. import config
+from ..download.streaming_download_manager import xopen
 from ..table import array_cast
 from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
-from ..utils.streaming_download_manager import xopen
 
 
 if TYPE_CHECKING:
@@ -43,6 +43,19 @@ class Audio:
             channels.
         decode (:obj:`bool`, default ``True``): Whether to decode the audio data. If `False`,
             returns the underlying dictionary in the format {"path": audio_path, "bytes": audio_bytes}.
+
+    Example:
+
+    ```py
+    >>> from datasets import load_dataset, Audio
+    >>> ds = load_dataset("PolyAI/minds14", name="en-US", split="train")
+    >>> ds = ds.cast_column("audio", Audio(sampling_rate=16000))
+    >>> ds[0]["audio"]
+    {'array': array([ 2.3443763e-05,  2.1729663e-04,  2.2145823e-04, ...,
+         3.8356509e-05, -7.3497440e-06, -2.1754686e-05], dtype=float32),
+     'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav',
+     'sampling_rate': 16000}
+    ```
     """
 
     sampling_rate: Optional[int] = None

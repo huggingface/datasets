@@ -5,7 +5,8 @@ language_creators:
 - expert-generated
 languages:
 - ar
-licenses: []
+licenses:
+- unknown
 multilinguality:
 - monolingual
 size_categories:
