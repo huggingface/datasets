@@ -483,3 +483,26 @@ def zip_image_path(image_file, tmp_path_factory):
         f.write(image_file, arcname=os.path.basename(image_file))
         f.write(image_file, arcname=os.path.basename(image_file).replace(".jpg", "2.jpg"))
     return path
+
+
+@pytest.fixture(scope="session")
+def data_dir_with_hidden_files(tmp_path_factory):
+    data_dir = tmp_path_factory.mktemp("data_dir")
+
+    (data_dir / "subdir").mkdir()
+    with open(data_dir / "subdir" / "train.txt", "w") as f:
+        f.write("foo\n" * 10)
+    with open(data_dir / "subdir" / "test.txt", "w") as f:
+        f.write("bar\n" * 10)
+    # hidden file
+    with open(data_dir / "subdir" / ".test.txt", "w") as f:
+        f.write("bar\n" * 10)
+
+    # hidden directory
+    (data_dir / ".subdir").mkdir()
+    with open(data_dir / ".subdir" / "train.txt", "w") as f:
+        f.write("foo\n" * 10)
+    with open(data_dir / ".subdir" / "test.txt", "w") as f:
+        f.write("bar\n" * 10)
+
+    return data_dir
