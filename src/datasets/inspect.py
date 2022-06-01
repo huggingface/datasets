@@ -22,7 +22,9 @@ from pathlib import PurePath
 from typing import Dict, List, Mapping, Optional, Sequence, Union
 
 import huggingface_hub
+from packaging import version
 
+from . import config
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager
@@ -36,6 +38,7 @@ from .load import (
 )
 from .utils.file_utils import relative_to_absolute_path
 from .utils.logging import get_logger
+from .utils.patching import patch_submodule
 from .utils.version import Version
 
 
@@ -124,7 +127,23 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
     dataset_module = dataset_module_factory(path, download_config=download_config, **download_kwargs)
     builder_cls = import_main_class(dataset_module.module_path, dataset=True)
     module_source_path = inspect.getsourcefile(builder_cls)
-    shutil.copytree(os.path.dirname(module_source_path), local_path, ignore=shutil.ignore_patterns("__pycache__"))
+    if config.PY_VERSION >= version.parse("3.8"):
+        shutil.copytree(
+            os.path.dirname(module_source_path),
+            local_path,
+            ignore=shutil.ignore_patterns("__pycache__"),
+            dirs_exist_ok=True,
+        )
+    else:
+        # in python < 3.8, `shutil.copytree` doesn't expose `dirs_exist_ok` and
+        # fails if a destination directory already exists
+        def os_makedirs_dirs_exist_ok_True(name, mode=0o777, exist_ok=False):
+            os.makedirs(name, mode, exist_ok=True)
+
+        with patch_submodule(shutil, "os.makedirs", os_makedirs_dirs_exist_ok_True):
+            shutil.copytree(
+                os.path.dirname(module_source_path), local_path, ignore=shutil.ignore_patterns("__pycache__")
+            )
     local_path = relative_to_absolute_path(local_path)
     print(
         f"The processing script for dataset {path} can be inspected at {local_path}. "
@@ -151,7 +170,23 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
     metric_module = metric_module_factory(path, download_config=download_config, **download_kwargs)
     builder_cls = import_main_class(metric_module.module_path, dataset=False)
     module_source_path = inspect.getsourcefile(builder_cls)
-    shutil.copytree(os.path.dirname(module_source_path), local_path, ignore=shutil.ignore_patterns("__pycache__"))
+    if config.PY_VERSION >= version.parse("3.8"):
+        shutil.copytree(
+            os.path.dirname(module_source_path),
+            local_path,
+            ignore=shutil.ignore_patterns("__pycache__"),
+            dirs_exist_ok=True,
+        )
+    else:
+        # in python < 3.8, `shutil.copytree` doesn't expose `dirs_exist_ok` and
+        # fails if a destination directory already exists
+        def os_makedirs_dirs_exist_ok_True(name, mode=0o777, exist_ok=False):
+            os.makedirs(name, mode, exist_ok=True)
+
+        with patch_submodule(shutil, "os.makedirs", os_makedirs_dirs_exist_ok_True):
+            shutil.copytree(
+                os.path.dirname(module_source_path), local_path, ignore=shutil.ignore_patterns("__pycache__")
+            )
     local_path = relative_to_absolute_path(local_path)
     print(
         f"The processing scripts for metric {path} can be inspected at {local_path}. "
