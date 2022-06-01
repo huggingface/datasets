@@ -19,6 +19,7 @@ For the programatic tasks, please use the BIG-Bench API on github.com/google/BIG
 
 from typing import Optional
 
+from bigbench.api import json_task
 import bigbench.api.util as bb_utils  # From: "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz"
 import bigbench.bbseqio.bigbench_bridge as bbb
 from bigbench.bbseqio import bigbench_json_paths as bb_json_paths
@@ -210,6 +211,7 @@ class Bigbench(datasets.GeneratorBasedBuilder):
                     max_examples=self.config.max_examples,
                     json_util=json_util,
                     min_validation_examples=MIN_VALIDATION_EXAMPLES,
+                    format_fn=json_task.default_format_fn,
                 )
                 ds_list = [ds_fn(split)]
             elif self.config.subtask_name is not None:
@@ -222,6 +224,7 @@ class Bigbench(datasets.GeneratorBasedBuilder):
                     max_examples=self.config.max_examples,
                     json_util=json_util,
                     min_validation_examples=min_validation_examples_per_subtask,
+                    format_fn=json_task.default_format_fn,
                 )
                 ds_list = [ds_fn(split)]
             else:
@@ -239,6 +242,7 @@ class Bigbench(datasets.GeneratorBasedBuilder):
                         max_examples=div_or_none(self.config.max_examples, num_subtasks),
                         json_util=json_util,
                         min_validation_examples=min_validation_examples_per_subtask,
+                        format_fn=json_task.default_format_fn,
                     )
                     ds_list.append(ds_fn(split))
         except ValueError as value_error:
