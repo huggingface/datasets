@@ -83,55 +83,57 @@ en
 
 An example of 'train' looks as follows. This is a toy example.
 ```
-
-"example_id": 797803103760793766,
-"question" :{
-  "text": "who founded google",
-  "tokens": ["who", "founded", "google"]
-},
-"document": {
-  "url": "http://www.wikipedia.org/Google",
-  "html": "<html><body><h1>Google Inc.</h1><p>Google was founded in 1998 By:<ul><li>Larry</li><li>Sergey</li></ul></p></body></html>",
-  "title": Google
-  "document_tokens":[
-    { "token": "<h1>", "start_byte": 12, "end_byte": 16, "is_html": True },
-    { "token": "Google", "start_byte": 16, "end_byte": 22, "is_html": False },
-    { "token": "inc", "start_byte": 23, "end_byte": 26, "is_html": False },
-    { "token": ".", "start_byte": 26, "end_byte": 27, "is_html": False },
-    { "token": "</h1>", "start_byte": 27, "end_byte": 32, "is_html": True },
-    { "token": "<p>", "start_byte": 32, "end_byte": 35, "is_html": True },
-    { "token": "Google", "start_byte": 35, "end_byte": 41, "is_html": False },
-    { "token": "was", "start_byte": 42, "end_byte": 45, "is_html": False },
-    { "token": "founded", "start_byte": 46, "end_byte": 53, "is_html": False },
-    { "Token": "in", "start_byte": 54, "end_byte": 56, "is_html": False },
-    { "token": "1998", "start_byte": 57, "end_byte": 61, "is_html": False },
-    { "token": "by", "start_byte": 62, "end_byte": 64, "is_html": False },
-    { "token": ":", "start_byte": 64, "end_byte": 65, "is_html": False },
-    { "token": "<ul>", "start_byte": 65, "end_byte": 69, "is_html": True },
-    { "token": "<li>", "start_byte": 69, "end_byte": 73, "is_html": True },
-    { "token": "Larry", "start_byte": 73, "end_byte": 78, "is_html": False },
-    { "token": "</li>", "start_byte": 78, "end_byte": 83, "is_html": True },
-    { "token": "<li>", "start_byte": 83, "end_byte": 87, "is_html": True },
-    { "token": "Sergey", "start_byte": 87, "end_byte": 92, "is_html": False },
-    { "token": "</li>", "start_byte": 92, "end_byte": 97, "is_html": True },
-    { "token": "</ul>", "start_byte": 97, "end_byte": 102, "is_html": True },
-    { "token": "</p>", "start_byte": 102, "end_byte": 106, "is_html": True }
-],
-"long_answer_candidates": [
-  { "start_byte": 32, "end_byte": 106, "start_token": 5, "end_token": 22, "top_level": True },
-  { "start_byte": 65, "end_byte": 102, "start_token": 13, "end_token": 21, "top_level": False },
-  { "start_byte": 69, "end_byte": 83, "start_token": 14, "end_token": 17, "top_level": False },
-  { "start_byte": 83, "end_byte": 92, "start_token": 17, "end_token": 20 , "top_level": False }
-],
-"annotations": [{
-  "long_answer": { "start_byte": 32, "end_byte": 106, "start_token": 5, "end_token": 22, "candidate_index": 0 },
-  "short_answers": [
-    {"start_byte": 73, "end_byte": 78, "start_token": 15, "end_token": 16},
-    {"start_byte": 87, "end_byte": 92, "start_token": 18, "end_token": 19}
+{
+  "id": "797803103760793766",
+  "document": {
+    "title": "Google",
+    "url": "http://www.wikipedia.org/Google",
+    "html": "<html><body><h1>Google Inc.</h1><p>Google was founded in 1998 By:<ul><li>Larry</li><li>Sergey</li></ul></p></body></html>",
+    "tokens":[
+      {"token": "<h1>", "start_byte": 12, "end_byte": 16, "is_html": True},
+      {"token": "Google", "start_byte": 16, "end_byte": 22, "is_html": False},
+      {"token": "inc", "start_byte": 23, "end_byte": 26, "is_html": False},
+      {"token": ".", "start_byte": 26, "end_byte": 27, "is_html": False},
+      {"token": "</h1>", "start_byte": 27, "end_byte": 32, "is_html": True},
+      {"token": "<p>", "start_byte": 32, "end_byte": 35, "is_html": True},
+      {"token": "Google", "start_byte": 35, "end_byte": 41, "is_html": False},
+      {"token": "was", "start_byte": 42, "end_byte": 45, "is_html": False},
+      {"token": "founded", "start_byte": 46, "end_byte": 53, "is_html": False},
+      {"token": "in", "start_byte": 54, "end_byte": 56, "is_html": False},
+      {"token": "1998", "start_byte": 57, "end_byte": 61, "is_html": False},
+      {"token": "by", "start_byte": 62, "end_byte": 64, "is_html": False},
+      {"token": ":", "start_byte": 64, "end_byte": 65, "is_html": False},
+      {"token": "<ul>", "start_byte": 65, "end_byte": 69, "is_html": True},
+      {"token": "<li>", "start_byte": 69, "end_byte": 73, "is_html": True},
+      {"token": "Larry", "start_byte": 73, "end_byte": 78, "is_html": False},
+      {"token": "</li>", "start_byte": 78, "end_byte": 83, "is_html": True},
+      {"token": "<li>", "start_byte": 83, "end_byte": 87, "is_html": True},
+      {"token": "Sergey", "start_byte": 87, "end_byte": 92, "is_html": False},
+      {"token": "</li>", "start_byte": 92, "end_byte": 97, "is_html": True},
+      {"token": "</ul>", "start_byte": 97, "end_byte": 102, "is_html": True},
+      {"token": "</p>", "start_byte": 102, "end_byte": 106, "is_html": True}
+    ],
+  },
+  "question" :{
+    "text": "who founded google",
+    "tokens": ["who", "founded", "google"]
+  },
+  "long_answer_candidates": [
+    {"start_byte": 32, "end_byte": 106, "start_token": 5, "end_token": 22, "top_level": True},
+    {"start_byte": 65, "end_byte": 102, "start_token": 13, "end_token": 21, "top_level": False},
+    {"start_byte": 69, "end_byte": 83, "start_token": 14, "end_token": 17, "top_level": False},
+    {"start_byte": 83, "end_byte": 92, "start_token": 17, "end_token": 20 , "top_level": False}
   ],
-  "yes_no_answer": "NONE"
-}]
-
+  "annotations": [{
+    "id": "6782080525527814293",
+    "long_answer": {"start_byte": 32, "end_byte": 106, "start_token": 5, "end_token": 22, "candidate_index": 0},
+    "short_answers": [
+      {"start_byte": 73, "end_byte": 78, "start_token": 15, "end_token": 16, "text": "Larry"},
+      {"start_byte": 87, "end_byte": 92, "start_token": 18, "end_token": 19, "text": "Sergey"}
+    ],
+    "yes_no_answer": -1
+  }]
+}
 ```
 
 ### Data Fields
