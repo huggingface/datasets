@@ -331,7 +331,7 @@ class TedLium(datasets.GeneratorBasedBuilder):
                                 segment, sampling_rate = audio_data[transcript["fn"]]
                                 samples = _extract_audio_segment(
                                     segment,
-                                    int(transcript["channel"]),
+                                    sampling_rate,
                                     float(transcript["start"]),
                                     float(transcript["end"]),
                                 )
