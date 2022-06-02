@@ -94,7 +94,7 @@ class Audio:
             return {"bytes": buffer.getvalue(), "path": None}
         elif value.get("path") is not None and os.path.isfile(value["path"]):
             # we set "bytes": None to not duplicate the data if they're already available locally
-            if value.get("path").endswith("pcm"):
+            if value["path"].endswith("pcm"):
                 # "PCM" is only have byte RAW-Audio data style.
                 if value.get("sampling_rate") is None:
                     # At least, If you want to convert "PCM-byte" to "WAV-byte", you have to know sampling rate
