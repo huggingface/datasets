@@ -102,19 +102,21 @@ def list_metrics(with_community_metrics=True, with_details=False):
 
 
 def inspect_dataset(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
-    r"""
+    """
     Allow inspection/modification of a dataset script by copying on local drive at local_path.
 
     Args:
-        path (``str``): path to the dataset processing script with the dataset builder. Can be either:
+        path (`str`): Path to the dataset processing script with the dataset builder. Can be either:
 
-            - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
-                e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
-                e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
-        local_path (``str``): path to the local folder to copy the datset script to.
-        download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
-        **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
+            - a local path to processing script or the directory containing the script (if the script has the same name
+                as the directory),
+                e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`list_datasets`])
+                e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``.
+        local_path (`str`): Path to the local folder to copy the dataset script to.
+        download_config ([`DownloadConfig`], *optional*): Specific download configuration parameters.
+        **download_kwargs (additional keyword arguments): Optional arguments for [`DownloadConfig`] which will override
+            the attributes of `download_config` if supplied.
     """
     dataset_module = dataset_module_factory(
         path, download_config=download_config, force_local_path=local_path, **download_kwargs
