@@ -129,7 +129,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, split, data_dir):
         """Generate examples from TIMIT archive_path based on the test/train csv information."""
         # Iterating the contents of the data to extract the relevant information
-        wav_paths = sorted(Path(data_dir).glob(f"**/{split.upper()}/**/*.wav"))
+        wav_paths = sorted(Path(data_dir).glob(f"**/{split}/**/*.wav"))
         wav_paths = wav_paths if wav_paths else sorted(Path(data_dir).glob(f"**/{split.upper()}/**/*.WAV"))
         for key, wav_path in enumerate(wav_paths):
 
