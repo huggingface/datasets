@@ -98,7 +98,7 @@ class Audio:
                 # "PCM" only has raw audio bytes
                 if value.get("sampling_rate") is None:
                     # At least, If you want to convert "PCM-byte" to "WAV-byte", you have to know sampling rate
-                    raise KeyError("If you want to use pcm, you have to know your 'sampling_rate'!")
+                    raise KeyError("To use PCM files, please specify a 'sampling_rate' in addition to the 'path'.")
                 if value.get("bytes"):
                     # If we already had PCM-byte, we don`t have to make "read file, make bytes" (just use it!)
                     # I used fairseq's using PCM data (FileAudioDataset)
