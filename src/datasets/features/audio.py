@@ -101,7 +101,6 @@ class Audio:
                     raise KeyError("To use PCM files, please specify a 'sampling_rate' in addition to the 'path'.")
                 if value.get("bytes"):
                     # If we already had PCM-byte, we don`t have to make "read file, make bytes" (just use it!)
-                    # I used fairseq's using PCM data (FileAudioDataset)
                     bytes_value = np.frombuffer(value["bytes"], dtype=np.int16).astype(np.float32) / 32767
                 else:
                     bytes_value = np.memmap(value["path"], dtype="h", mode="r").astype(np.float32) / 32767
