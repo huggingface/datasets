@@ -35,9 +35,9 @@
 
 - **Homepage:** https://github.com/allenai/mslr-shared-task
 - **Repository:** https://github.com/allenai/mslr-shared-task
-- **Paper:** [Needs More Information]
-- **Leaderboard:** [Needs More Information]
-- **Point of Contact:** [Needs More Information]
+- **Paper:** https://aclanthology.org/2021.emnlp-main.594
+- **Leaderboard:** https://github.com/allenai/mslr-shared-task#leaderboard
+- **Point of Contact:** https://github.com/allenai/mslr-shared-task#contact-us
 
 ### Dataset Summary
 
