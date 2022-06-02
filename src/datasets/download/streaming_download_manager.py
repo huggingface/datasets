@@ -658,7 +658,7 @@ def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, boo
     if hasattr(filepath_or_buffer, "read"):
         return pd.read_csv(filepath_or_buffer, **kwargs)
     else:
-        return pd.read_csv(xopen(filepath_or_buffer, use_auth_token=use_auth_token), **kwargs)
+        return pd.read_csv(xopen(filepath_or_buffer, "rb", use_auth_token=use_auth_token), **kwargs)
 
 
 def xpandas_read_excel(filepath_or_buffer, **kwargs):

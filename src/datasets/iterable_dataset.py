@@ -577,7 +577,7 @@ class IterableDataset(DatasetInfoMixin):
             # we encode the example for ClassLabel feature types for example
             encoded_example = self.features.encode_example(example)
             # Decode example for Audio feature, e.g.
-            decoded_example = self.features.decode_example(encoded_example)
+            decoded_example = self.features.decode_example(encoded_example, token_per_repo_id=self._token_per_repo_id)
             return decoded_example
         else:
             return example

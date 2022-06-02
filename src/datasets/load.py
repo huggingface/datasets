@@ -1664,10 +1664,7 @@ def load_dataset(
 
     # Return iterable dataset in case of streaming
     if streaming:
-        return builder_instance.as_streaming_dataset(
-            split=split,
-            use_auth_token=use_auth_token,
-        )
+        return builder_instance.as_streaming_dataset(split=split)
 
     # Some datasets are already processed on the HF google storage
     # Don't try downloading from google storage for the packaged datasets as text, json, csv or pandas

@@ -137,11 +137,14 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
 
     Returns:
         Dict[str, str]: dictionary of variable -> value, retrieved from the input using the pattern
+
+    Raises:
+        ValueError: if the string doesn't match the pattern
     """
     regex = re.sub(r"{(.+?)}", r"(?P<_\1>.+)", pattern)
     result = re.search(regex, string)
     if result is None:
-        raise ValueError(f"Pattern {pattern} doesn't match {string}")
+        raise ValueError(f"String {string} doesn't match the pattern {pattern}")
     values = list(result.groups())
     keys = re.findall(r"{(.+?)}", pattern)
     _dict = dict(zip(keys, values))

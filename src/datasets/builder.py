@@ -988,14 +988,13 @@ class DatasetBuilder:
         self,
         split: Optional[str] = None,
         base_path: Optional[str] = None,
-        use_auth_token: Optional[str] = None,
     ) -> Union[Dict[str, IterableDataset], IterableDataset]:
         if not isinstance(self, (GeneratorBasedBuilder, ArrowBasedBuilder)):
             raise ValueError(f"Builder {self.name} is not streamable.")
 
         dl_manager = StreamingDownloadManager(
             base_path=base_path or self.base_path,
-            download_config=DownloadConfig(use_auth_token=use_auth_token),
+            download_config=DownloadConfig(use_auth_token=self.use_auth_token),
             dataset_name=self.name,
             data_dir=self.config.data_dir,
         )

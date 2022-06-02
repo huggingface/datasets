@@ -1,3 +1,5 @@
+from importlib import import_module
+
 from .logging import get_logger
 
 
@@ -39,19 +41,44 @@ class patch_submodule:
         self.target = target
         self.new = new
         self.key = target.split(".")[0]
-        self.original = getattr(obj, self.key, None)
+        self.original = {}
         self.attrs = attrs or []
 
     def __enter__(self):
-        *submodules, attr = self.target.split(".")
-        current = self.obj
-        for key in submodules:
-            setattr(current, key, _PatchedModuleObj(getattr(current, key, None), attrs=self.attrs))
-            current = getattr(current, key)
-        setattr(current, attr, self.new)
+        *submodules, target_attr = self.target.split(".")
+        # Patch modules
+        # e.g. to patch "os.path.join" we need to patch "os" and "os.path"
+        for i in range(len(submodules)):
+            submodule = import_module(".".join(submodules[: i + 1]))
+            for attr in self.obj.__dir__():
+                if getattr(self.obj, attr) is submodule:
+                    self.original[attr] = getattr(self.obj, attr)
+                    # patch at top level
+                    setattr(self.obj, attr, _PatchedModuleObj(submodule, attrs=self.attrs))
+                    patched = getattr(self.obj, attr)
+                    # construct lower levels patches
+                    for key in submodules[i + 1 :]:
+                        setattr(patched, key, _PatchedModuleObj(getattr(patched, key, None), attrs=self.attrs))
+                        patched = getattr(patched, key)
+                    # finally set the target attribute
+                    setattr(patched, target_attr, self.new)
+        # Patch attribute itself
+        # e.g. to patch "os.path.join" we may also need to patch "join"
+        # itself if it was imported as "from os.path import join"
+        # It can also be a builtin object
+        attr_value = (
+            getattr(import_module(".".join(submodules)), target_attr)
+            if submodules
+            else globals()["__builtins__"][target_attr]
+        )
+        for attr in self.obj.__dir__():
+            if getattr(self.obj, attr) is attr_value:
+                self.original[attr] = getattr(self.obj, attr)
+                setattr(self.obj, attr, self.new)
 
     def __exit__(self, *exc_info):
-        setattr(self.obj, self.key, self.original)
+        for attr in list(self.original):
+            setattr(self.obj, attr, self.original.pop(attr))
 
     def start(self):
         """Activate a patch."""

@@ -56,6 +56,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
 
     module = importlib.import_module(module_path)
 
+    # TODO(QL): always update the module to add subsequent new authentication
     if hasattr(module, "_patched_for_streaming") and module._patched_for_streaming:
         return
 
@@ -83,14 +84,12 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     patch_submodule(module, "os.path.isdir", wrap_auth(xisdir)).start()
     patch_submodule(module, "os.path.isfile", wrap_auth(xisfile)).start()
     patch_submodule(module, "os.path.getsize", wrap_auth(xgetsize)).start()
-    if hasattr(module, "Path"):
-        patch_submodule(module, "Path", xPath).start()
-    patch_submodule(module, "pd.read_csv", wrap_auth(xpandas_read_csv), attrs=["__version__"]).start()
-    patch_submodule(module, "pd.read_excel", xpandas_read_excel, attrs=["__version__"]).start()
-    patch_submodule(module, "sio.loadmat", wrap_auth(xsio_loadmat), attrs=["__version__"]).start()
-    # xml.etree.ElementTree
-    for submodule in ["ElementTree", "ET"]:
-        patch_submodule(module, f"{submodule}.parse", wrap_auth(xet_parse)).start()
+    patch_submodule(module, "pathlib.Path", xPath).start()
+    # file readers
+    patch_submodule(module, "pandas.read_csv", wrap_auth(xpandas_read_csv), attrs=["__version__"]).start()
+    patch_submodule(module, "pandas.read_excel", xpandas_read_excel, attrs=["__version__"]).start()
+    patch_submodule(module, "scipy.io.loadmat", wrap_auth(xsio_loadmat), attrs=["__version__"]).start()
+    patch_submodule(module, "xml.etree.ElementTree.parse", wrap_auth(xet_parse)).start()
     module._patched_for_streaming = True
 
 
