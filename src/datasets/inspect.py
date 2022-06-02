@@ -114,7 +114,8 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         local_path (`str`): Path to the local folder to copy the dataset script to.
         download_config ([`DownloadConfig`], *optional*): Specific download configuration parameters.
-        **download_kwargs: Optional attributes for [`DownloadConfig`] which will override the attributes in `download_config` if supplied.
+        **download_kwargs (additional keyword arguments): Optional attributes for [`DownloadConfig`] which will override
+            the attributes in `download_config` if supplied.
     """
     dataset_module = dataset_module_factory(
         path, download_config=download_config, force_local_path=local_path, **download_kwargs
