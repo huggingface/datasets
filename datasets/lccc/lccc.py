@@ -101,7 +101,7 @@ class LCCC(datasets.GeneratorBasedBuilder):
                     },
                 )
             ]
-        if self.config.name == "base":
+        elif self.config.name == "base":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
@@ -126,8 +126,7 @@ class LCCC(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for key, row in enumerate(f):
                 row = row.strip()
-                if len(row) == 0:
-                    continue
-                yield key, {
-                    "dialog": json.loads(row),
-                }
+                if row:
+                    yield key, {
+                        "dialog": json.loads(row),
+                    }
