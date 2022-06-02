@@ -108,14 +108,15 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
     Args:
         path (`str`): Path to the dataset processing script with the dataset builder. Can be either:
 
-            - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
-                e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
-                e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
+            - a local path to processing script or the directory containing the script (if the script has the same name
+                as the directory),
+                e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`list_datasets`])
+                e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``.
         local_path (`str`): Path to the local folder to copy the dataset script to.
         download_config ([`DownloadConfig`], *optional*): Specific download configuration parameters.
-        **download_kwargs (additional keyword arguments): Optional attributes for [`DownloadConfig`] which will override
-            the attributes in `download_config` if supplied.
+        **download_kwargs (additional keyword arguments): Optional arguments for [`DownloadConfig`] which will override
+            the attributes of `download_config` if supplied.
     """
     dataset_module = dataset_module_factory(
         path, download_config=download_config, force_local_path=local_path, **download_kwargs
