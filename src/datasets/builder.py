@@ -191,7 +191,7 @@ class DatasetBuilder:
     **Configuration**: Some `DatasetBuilder`s expose multiple variants of the
     dataset by defining a [`BuilderConfig`] subclass and accepting a
     config object (or name) on construction. Configurable datasets expose a
-    pre-defined set of configurations in [`datasets.DatasetBuilder.builder_configs`].
+    pre-defined set of configurations in [`DatasetBuilder.builder_configs`].
 
     Args:
         cache_dir (`str`, *optional*): Directory to cache data. Defaults to ``"~/.cache/huggingface/datasets"``.
@@ -204,7 +204,7 @@ class DatasetBuilder:
             The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``.
         base_path (`str`, *optional*): Base path for relative paths that are used to download files.
             This can be a remote URL.
-        features ([`~datasets.Features`], *optional*): Features types to use with this dataset.
+        features ([`Features`], *optional*): Features types to use with this dataset.
             It can be used to change the Features types of a dataset, for example.
         use_auth_token (`str` or `bool`, *optional*): String or boolean to use as Bearer token for remote files on the
             Datasets Hub. If `True`, will get token from ``"~/.huggingface"``.
@@ -220,7 +220,9 @@ class DatasetBuilder:
             For builders that require manual download, it must be the path to the local directory containing the
             manually downloaded data.
         name (`str`): Deprecated. Use `config_name` instead.
-        config_kwargs: Keyword arguments to be passed to the [`BuilderConfig`].
+        **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the corresponding builder
+            configuration class, set on the class attribute [`DatasetBuilder.BUILDER_CONFIG_CLASS`]. The builder
+            configuration class is [`BuilderConfig`] or a subclass of it.
     """
 
     # Default version
