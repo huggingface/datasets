@@ -125,8 +125,29 @@ Please refer to the following papers for details about dataset curation:
 
 ### Licensing Information
 
-[Needs More Information]
+Licensing information can be found [here](https://github.com/allenai/mslr-shared-task/blob/main/LICENSE).
 
 ### Citation Information
 
-[Needs More Information]
+**DeYoung, Jay, Iz Beltagy, Madeleine van Zuylen, Bailey Kuehl and Lucy Lu Wang. "MS2: A Dataset for Multi-Document Summarization of Medical Studies." EMNLP (2021).**
+
+```bibtex
+@inproceedings{DeYoung2021MS2MS,
+  title={MSˆ2: Multi-Document Summarization of Medical Studies},
+  author={Jay DeYoung and Iz Beltagy and Madeleine van Zuylen and Bailey Kuehl and Lucy Lu Wang},
+  booktitle={EMNLP},
+  year={2021}
+}
+```
+
+**Byron C. Wallace, Sayantani Saha, Frank Soboczenski, and Iain James Marshall. (2020). "Generating (factual?) narrative summaries of RCTs: Experiments with neural multi-document summarization." AMIA Annual Symposium.**
+
+```bibtex
+@article{Wallace2020GeneratingN,
+  title={Generating (Factual?) Narrative Summaries of RCTs: Experiments with Neural Multi-Document Summarization},
+  author={Byron C. Wallace and Sayantani Saha and Frank Soboczenski and Iain James Marshall},
+  journal={AMIA Annual Symposium},
+  year={2020},
+  volume={abs/2008.11293}
+}
+```
