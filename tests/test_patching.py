@@ -74,6 +74,8 @@ def test_patch_submodule_builtin():
     assert _test_patching.open is open
 
     mock = "__test_patch_submodule_builtin_mock__"
+    # _test_patching has "open" in its globals
+    assert _test_patching.open is open
     with patch_submodule(_test_patching, "open", mock):
         assert _test_patching.open is mock
 
@@ -89,6 +91,17 @@ def test_patch_submodule_missing():
         pass
 
 
+def test_patch_submodule_missing_builtin():
+    # builtin should always be mocked even if they're not in the globals
+    # in case they're loaded at one point
+    mock = "__test_patch_submodule_missing_builtin_mock__"
+    # _test_patching doesn't have "len" in its globals
+    assert getattr(_test_patching, "len", None) is None
+    with patch_submodule(_test_patching, "len", mock):
+        assert _test_patching.len is mock
+    assert _test_patching.len is len
+
+
 def test_patch_submodule_start_and_stop():
     mock = "__test_patch_submodule_start_and_stop_mock__"
     patch = patch_submodule(_test_patching, "open", mock)
@@ -97,3 +110,35 @@ def test_patch_submodule_start_and_stop():
     assert _test_patching.open is mock
     patch.stop()
     assert _test_patching.open is open
+
+
+def test_patch_submodule_successive():
+    from os import rename as original_rename
+    from os.path import dirname as original_dirname
+    from os.path import join as original_join
+
+    mock_join = "__test_patch_submodule_successive_join__"
+    mock_dirname = "__test_patch_submodule_successive_dirname__"
+    mock_rename = "__test_patch_submodule_successive_rename__"
+    assert _test_patching.os.path.join is original_join
+    assert _test_patching.os.path.dirname is original_dirname
+    assert _test_patching.os.rename is original_rename
+
+    with patch_submodule(_test_patching, "os.path.join", mock_join):
+        with patch_submodule(_test_patching, "os.rename", mock_rename):
+            with patch_submodule(_test_patching, "os.path.dirname", mock_dirname):
+                assert _test_patching.os.path.join is mock_join
+                assert _test_patching.os.path.dirname is mock_dirname
+                assert _test_patching.os.rename is mock_rename
+
+    # try another order
+    with patch_submodule(_test_patching, "os.rename", mock_rename):
+        with patch_submodule(_test_patching, "os.path.join", mock_join):
+            with patch_submodule(_test_patching, "os.path.dirname", mock_dirname):
+                assert _test_patching.os.path.join is mock_join
+                assert _test_patching.os.path.dirname is mock_dirname
+                assert _test_patching.os.rename is mock_rename
+
+    assert _test_patching.os.path.join is original_join
+    assert _test_patching.os.path.dirname is original_dirname
+    assert _test_patching.os.rename is original_rename

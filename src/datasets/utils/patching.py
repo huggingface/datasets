@@ -15,6 +15,7 @@ class _PatchedModuleObj:
             for key in module.__dict__:
                 if key in attrs or not key.startswith("__"):
                     setattr(self, key, getattr(module, key))
+        self._original_module = module._original_module if isinstance(module, _PatchedModuleObj) else module
 
 
 class patch_submodule:
@@ -46,15 +47,19 @@ class patch_submodule:
 
     def __enter__(self):
         *submodules, target_attr = self.target.split(".")
-        # Patch modules
-        # e.g. to patch "os.path.join" we need to patch "os" and "os.path"
+        # Patch modules:
+        # it's used to patch attributes of submodules like "os.path.join";
+        # in this case we need to patch "os" and "os.path"
         for i in range(len(submodules)):
             submodule = import_module(".".join(submodules[: i + 1]))
             for attr in self.obj.__dir__():
-                if getattr(self.obj, attr) is submodule:
-                    self.original[attr] = getattr(self.obj, attr)
+                obj_attr = getattr(self.obj, attr)
+                if obj_attr is submodule or (
+                    (isinstance(obj_attr, _PatchedModuleObj) and obj_attr._original_module is submodule)
+                ):
+                    self.original[attr] = obj_attr
                     # patch at top level
-                    setattr(self.obj, attr, _PatchedModuleObj(submodule, attrs=self.attrs))
+                    setattr(self.obj, attr, _PatchedModuleObj(obj_attr, attrs=self.attrs))
                     patched = getattr(self.obj, attr)
                     # construct lower levels patches
                     for key in submodules[i + 1 :]:
@@ -62,19 +67,21 @@ class patch_submodule:
                         patched = getattr(patched, key)
                     # finally set the target attribute
                     setattr(patched, target_attr, self.new)
-        # Patch attribute itself
-        # e.g. to patch "os.path.join" we may also need to patch "join"
-        # itself if it was imported as "from os.path import join"
-        # It can also be a builtin object
-        attr_value = (
-            getattr(import_module(".".join(submodules)), target_attr)
-            if submodules
-            else globals()["__builtins__"][target_attr]
-        )
-        for attr in self.obj.__dir__():
-            if getattr(self.obj, attr) is attr_value:
-                self.original[attr] = getattr(self.obj, attr)
-                setattr(self.obj, attr, self.new)
+        # Patch attribute itself:
+        # it's used for builtins like "open",
+        # and also to patch "os.path.join" we may also need to patch "join"
+        # itself if it was imported as "from os.path import join".
+        if submodules:  # if it's an attribute of a submodule
+            attr_value = getattr(import_module(".".join(submodules)), target_attr)
+            for attr in self.obj.__dir__():
+                if getattr(self.obj, attr) is attr_value:
+                    self.original[attr] = getattr(self.obj, attr)
+                    setattr(self.obj, attr, self.new)
+        elif target_attr in globals()["__builtins__"]:  # if it'a s builtin
+            self.original[target_attr] = globals()["__builtins__"][target_attr]
+            setattr(self.obj, target_attr, self.new)
+        else:
+            raise RuntimeError(f"Tried to patch attribute {target_attr} instead of a submodule.")
 
     def __exit__(self, *exc_info):
         for attr in list(self.original):
