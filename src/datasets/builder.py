@@ -199,6 +199,9 @@ class DatasetBuilder:
             It affects the data generated on disk: different configurations will have their own subdirectories and
             versions.
             If not provided, the default configuration is used (if it exists).
+            <Added version="2.3.0">
+            `name` was renamed to `config_name`.
+            </Added>
         hash (`str`, *optional*): Hash specific to the dataset code. Used to update the caching directory when the
             dataset loading script code is updated (to avoid reusing old data).
             The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``.
@@ -219,7 +222,10 @@ class DatasetBuilder:
             ``os.path.join(data_dir, "**")`` as `data_files`.
             For builders that require manual download, it must be the path to the local directory containing the
             manually downloaded data.
-        name (`str`): Deprecated. Use `config_name` instead.
+        name (`str`): Configuration name for the dataset.
+            <Deprecated version="2.3.0">
+            Use `config_name` instead.
+            </Deprecated>
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the corresponding builder
             configuration class, set on the class attribute [`DatasetBuilder.BUILDER_CONFIG_CLASS`]. The builder
             configuration class is [`BuilderConfig`] or a subclass of it.
