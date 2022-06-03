@@ -166,7 +166,7 @@ class Quickdraw(datasets.GeneratorBasedBuilder):
             version=VERSION,
             description=textwrap.dedent(
                 """\
-                This dataset was used for training the Sketch-RNN model from the paper https://arxiv.org/abs/1704.03477. 
+                This dataset was used for training the Sketch-RNN model from the paper https://arxiv.org/abs/1704.03477.
                 In this dataset, 75K samples (70K Training, 2.5K Validation, 2.5K Test) has been randomly selected from each category,
                 processed with RDP line simplification with an epsilon parameter of 2.0
                 """
