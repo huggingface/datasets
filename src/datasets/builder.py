@@ -230,7 +230,7 @@ class DatasetBuilder:
             <Deprecated version="2.3.0">
 
             Use `config_name` instead.
-            
+
             </Deprecated>
 
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the corresponding builder
