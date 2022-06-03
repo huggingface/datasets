@@ -201,7 +201,9 @@ class DatasetBuilder:
             If not provided, the default configuration is used (if it exists).
 
             <Added version="2.3.0">
+
             `name` was renamed to `config_name`.
+
             </Added>
         hash (`str`, *optional*): Hash specific to the dataset code. Used to update the caching directory when the
             dataset loading script code is updated (to avoid reusing old data).
@@ -226,7 +228,9 @@ class DatasetBuilder:
         name (`str`): Configuration name for the dataset.
 
             <Deprecated version="2.3.0">
+
             Use `config_name` instead.
+            
             </Deprecated>
 
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the corresponding builder
