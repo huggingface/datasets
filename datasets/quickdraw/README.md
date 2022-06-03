@@ -166,6 +166,7 @@ The `sketch_rnn_full` configuration stores the data in the format suitable for i
   <summary>
   Click here to see the full class labels mapping:
   </summary>
+
   |id|class|
   |---|---|
   |0|aircraft carrier|
@@ -513,6 +514,7 @@ The `sketch_rnn_full` configuration stores the data in the format suitable for i
   |342|yoga|
   |343|zebra|
   |344|zigzag|
+
 </details>
 
 #### `sketch_rnn` and `sketch_rnn_full`
@@ -520,21 +522,91 @@ The `sketch_rnn_full` configuration stores the data in the format suitable for i
 - `word`: Category the player was prompted to draw.
 - `drawing`: An array of strokes. Strokes are represented as 3-tuples consisting of x-offset, y-offset, and a binary variable which is 1 if the pen is lifted between this position and the next, and 0 otherwise.
 
+<details>
+  <summary>
+  Click here to see the code for visualizing drawings in Jupyter Notebook or Google Colab:
+  </summary>
+
+  ```python
+  import numpy as np
+  import svgwrite  # pip install svgwrite
+  from IPython.display import SVG, display
+
+  def draw_strokes(drawing, factor=0.045):
+    """Displays vector drawing as SVG.
+
+    Args:
+      drawing: a list of strokes represented as 3-tuples
+      factor: scaling factor. The smaller the scaling factor, the bigger the SVG picture and vice versa.
+
+    """
+    def get_bounds(data, factor):
+      """Return bounds of data."""
+      min_x = 0
+      max_x = 0
+      min_y = 0
+      max_y = 0
+
+      abs_x = 0
+      abs_y = 0
+      for i in range(len(data)):
+        x = float(data[i, 0]) / factor
+        y = float(data[i, 1]) / factor
+        abs_x += x
+        abs_y += y
+        min_x = min(min_x, abs_x)
+        min_y = min(min_y, abs_y)
+        max_x = max(max_x, abs_x)
+        max_y = max(max_y, abs_y)
+
+      return (min_x, max_x, min_y, max_y)
+
+    data = np.array(drawing)
+    min_x, max_x, min_y, max_y = get_bounds(data, factor)
+    dims = (50 + max_x - min_x, 50 + max_y - min_y)
+    dwg = svgwrite.Drawing(size=dims)
+    dwg.add(dwg.rect(insert=(0, 0), size=dims,fill='white'))
+    lift_pen = 1
+    abs_x = 25 - min_x
+    abs_y = 25 - min_y
+    p = "M%s,%s " % (abs_x, abs_y)
+    command = "m"
+    for i in range(len(data)):
+      if (lift_pen == 1):
+        command = "m"
+      elif (command != "l"):
+        command = "l"
+      else:
+        command = ""
+      x = float(data[i,0])/factor
+      y = float(data[i,1])/factor
+      lift_pen = data[i, 2]
+      p += command+str(x)+","+str(y)+" "
+    the_color = "black"
+    stroke_width = 1
+    dwg.add(dwg.path(p).stroke(the_color,stroke_width).fill("none"))
+    display(SVG(dwg.tostring()))
+  ```
+
+</details>
+
+
 > **Note**: Sketch-RNN takes for input strokes represented as 5-tuples with drawings padded to a common maximum length and prefixed by the special start token `[0, 0, 1, 0, 0]`. The 5-tuple representation consists of x-offset, y-offset, and p_1, p_2, p_3, a binary one-hot vector of 3 possible pen states: pen down, pen up, end of sketch. More precisely, the first two elements are the offset distance in the x and y directions of the pen from the previous point. The last 3 elements represents a binary one-hot vector of 3 possible states. The first pen state, p1, indicates that the pen is currently touching the paper, and that a line will be drawn connecting the next point with the current point. The second pen state, p2, indicates that the pen will be lifted from the paper after the current point, and that no line will be drawn next. The final pen state, p3, indicates that the drawing has ended, and subsequent points, including the current point, will not be rendered.
 ><details>
 >  <summary>
 >  Click here to see the code for converting drawings to Sketch-RNN input format:
 >  </summary>
+>
 >  ```python
 >  def to_sketch_rnn_format(drawing, max_len):
 >    """Converts a drawing to Sketch-RNN input format.
 >
 >    Args:
->        drawing: a list of strokes represented as 3-tuples
->        max_len: maximum common length of all drawings
+>      drawing: a list of strokes represented as 3-tuples
+>      max_len: maximum common length of all drawings
 >
 >    Returns:
->        NumPy array 
+>      NumPy array
 >    """
 >    drawing = np.array(drawing)
 >    result = np.zeros((max_len, 5), dtype=float)
@@ -548,9 +620,14 @@ The `sketch_rnn_full` configuration stores the data in the format suitable for i
 >    result = np.vstack([[0, 0, 1, 0, 0], result])
 >    return result
 >  ```
+>
 ></details>
 
 ### Data Splits
+
+In the configurations `raw`, `preprocessed_simplified_drawings` and `preprocessed_bitamps` (default configuration), all the data is contained in the training set, which has 50426266 examples.
+
+`sketch_rnn` and `sketch_rnn_full` have the data split into training, validation and test split. In the `sketch_rnn` configuration, 75K samples (70K Training, 2.5K Validation, 2.5K Test) have been randomly selected from each category. Therefore, the training set contains 24150000 examples, the validation set 862500 examples and the test set 862500 examples. The `sketch_rnn_full` configuration has the full (training) data for each category, which leads to the training set having 43988874 examples, the validation set 862500 and the test set 862500 examples.
 
 ## Dataset Creation
 
@@ -566,17 +643,25 @@ From the GitHub repository:
 
 #### Initial Data Collection and Normalization
 
+This dataset contains vector drawings obtained from [Quick, Draw!](https://quickdraw.withgoogle.com/), an online game where the players are asked to draw objects belonging to a particular object class in less than 20 seconds.
+
 #### Who are the source language producers?
+
+The participants in the [Quick, Draw!](https://quickdraw.withgoogle.com/) game.
 
 ### Annotations
 
 #### Annotation process
 
+The annotations are machine-generated and match the category the player was prompted to draw.
+
 #### Who are the annotators?
+
+The annotations are machine-generated.
 
 ### Personal and Sensitive Information
 
-[More Information Needed]
+Some sketches are known to be problematic (see https://github.com/googlecreativelab/quickdraw-dataset/issues/74 and https://github.com/googlecreativelab/quickdraw-dataset/issues/18).
 
 ## Considerations for Using the Data
 
@@ -594,7 +679,7 @@ From the GitHub repository:
 
 ### Dataset Curators
 
-Jonas Jongejan.
+Jonas Jongejan, Henry Rowley, Takashi Kawashima, Jongmin Kim and Nick Fox-Gieg.
 
 ### Licensing Information
 
