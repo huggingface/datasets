@@ -861,7 +861,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features (:class:`Features`, optional): Dataset features.
             cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
-            **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
+            **kwargs (additional keyword arguments): Keyword arguments to be passed to :meth:`pandas.read_csv`.
 
         Returns:
             :class:`Dataset`
@@ -898,7 +898,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             field (:obj:`str`, optional): Field name of the JSON file where the dataset is contained in.
-            **kwargs: Keyword arguments to be passed to :class:`JsonConfig`.
+            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`JsonConfig`.
 
         Returns:
             :class:`Dataset`
@@ -943,7 +943,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             columns (:obj:`List[str]`, optional): If not None, only these columns will be read from the file.
                 A column name may be a prefix of a nested field, e.g. 'a' will select
                 'a.b', 'a.c', and 'a.d.e'.
-            **kwargs: Keyword arguments to be passed to :class:`ParquetConfig`.
+            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`ParquetConfig`.
 
         Returns:
             :class:`Dataset`
@@ -984,7 +984,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features (:class:`Features`, optional): Dataset features.
             cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
-            **kwargs: Keyword arguments to be passed to :class:`TextConfig`.
+            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`TextConfig`.
 
         Returns:
             :class:`Dataset`
@@ -3774,7 +3774,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 - ``"columns"``: dict like ``{column -> {index -> value}}``
                 - ``"values"``: just the values array
                 - ``"table"``: dict like ``{"schema": {schema}, "data": {data}}``
-            **to_json_kwargs: Parameters to pass to pandas's `pandas.DataFrame.to_json
+            **to_json_kwargs (additional keyword arguments): Parameters to pass to pandas's `pandas.DataFrame.to_json
                 <https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html>`_.
 
         Returns:
