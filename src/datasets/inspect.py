@@ -141,7 +141,7 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         local_path (``str``): path to the local folder to copy the datset script to.
         download_config (Optional ``datasets.DownloadConfig``): specific download configuration parameters.
-        **download_kwargs(additional keyword arguments): optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
+        **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
     metric_module = metric_module_factory(
         path, download_config=download_config, force_local_path=local_path, **download_kwargs
@@ -182,7 +182,7 @@ def get_dataset_infos(
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
-        config_kwargs: optional attributes for builder class which will override the attributes if supplied.
+        **config_kwargs (additional keyword arguments): optional attributes for builder class which will override the attributes if supplied.
 
     Example:
 
@@ -247,7 +247,7 @@ def get_dataset_config_names(
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default the datasets and metrics are stored inside the `datasets_modules` module.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
-        download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied,
+        **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override the attributes in download_config if supplied,
             for example ``use_auth_token``
 
     Example:
@@ -314,7 +314,7 @@ def get_dataset_config_info(
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
-        config_kwargs: optional attributes for builder class which will override the attributes if supplied.
+        **config_kwargs (additional keyword arguments): optional attributes for builder class which will override the attributes if supplied.
 
     """
     builder = load_dataset_builder(
@@ -376,7 +376,7 @@ def get_dataset_split_names(
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
-        config_kwargs: optional attributes for builder class which will override the attributes if supplied.
+        **config_kwargs (additional keyword arguments): optional attributes for builder class which will override the attributes if supplied.
 
     Example:
 

@@ -465,7 +465,7 @@ class DatasetDict(dict):
             columns (:obj:`List[str]`, optional): columns to format in the output
                 None means ``__getitem__`` returns all columns (default)
             output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
-            format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+            **format_kwargs (additional keyword arguments): keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         self._check_values_type()
         old_format_type = {k: dataset._format_type for k, dataset in self.items()}
@@ -497,7 +497,7 @@ class DatasetDict(dict):
             columns (:obj:`List[str]`, optional): columns to format in the output.
                 None means ``__getitem__`` returns all columns (default).
             output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
-            format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+            **format_kwargs (additional keyword arguments): keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
 
         It is possible to call ``map`` after calling ``set_format``. Since ``map`` may add new columns, then the list of formatted columns
         gets updated. In this case, if you apply ``map`` on a dataset to add a new column, then this column will be formatted:
@@ -601,7 +601,7 @@ class DatasetDict(dict):
             columns (:obj:`List[str]`, optional): columns to format in the output
                 None means ``__getitem__`` returns all columns (default)
             output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
-            format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+            **format_kwargs (additional keyword arguments): keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
 
         Example:
 

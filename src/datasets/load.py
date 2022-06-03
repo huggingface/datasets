@@ -1150,7 +1150,8 @@ def dataset_module_factory(
         data_dir (:obj:`str`, optional): Directory with the data files. Used only if `data_files` is not specified,
             in which case it's equal to passing `os.path.join(data_dir, "**")` as `data_files`.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
-        download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
+        **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
+            the attributes in download_config if supplied.
 
     Returns:
         DatasetModule
@@ -1323,8 +1324,9 @@ def metric_module_factory(
             Used to inspect or modify the script folder.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
-            By default the datasets and metrics are stored inside the `datasets_modules` module.
-        download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
+            By default, the datasets and metrics are stored inside the `datasets_modules` module.
+        **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
+            the attributes in download_config if supplied.
 
     Returns:
         MetricModule
@@ -1526,6 +1528,8 @@ def load_dataset_builder(
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
+        **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig`
+            and used in the :class:`DatasetBuilder`.
 
     Returns:
         :class:`DatasetBuilder`
@@ -1695,7 +1699,8 @@ def load_dataset(
             Note that streaming works for datasets that use data formats that support being iterated over like txt, csv, jsonl for example.
             Json files may be downloaded completely. Also streaming from remote zip or gzip files is supported but other compressed formats
             like rar and xz are not yet supported. The tgz format doesn't allow streaming.
-        **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
+        **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig`
+            and used in the :class:`DatasetBuilder`.
 
     Returns:
         :class:`Dataset` or :class:`DatasetDict`:

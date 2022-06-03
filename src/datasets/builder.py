@@ -566,6 +566,7 @@ class DatasetBuilder:
                 If not specified, the value of the `base_path` attribute (`self.base_path`) will be used instead.
             use_auth_token (:obj:`Union[str, bool]`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
                 If True, will get token from ~/.huggingface.
+            **download_and_prepare_kwargs (additional keyword arguments): Keyword arguments.
 
         Example:
 
@@ -1138,7 +1139,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         disk.
 
         Args:
-            **kwargs: `dict`, Arguments forwarded from the SplitGenerator.gen_kwargs
+            **kwargs (additional keyword arguments): Arguments forwarded from the SplitGenerator.gen_kwargs
 
         Yields:
             key: `str` or `int`, a unique deterministic example identification key.
@@ -1216,7 +1217,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         disk.
 
         Args:
-            **kwargs: `dict`, Arguments forwarded from the SplitGenerator.gen_kwargs
+            **kwargs (additional keyword arguments): Arguments forwarded from the SplitGenerator.gen_kwargs
 
         Yields:
             key: `str` or `int`, a unique deterministic example identification key.
@@ -1301,7 +1302,7 @@ class BeamBasedBuilder(DatasetBuilder):
 
         Args:
             pipeline ([`utils.beam_utils.BeamPipeline`]): Apache Beam pipeline.
-            **kwargs: Arguments forwarded from the SplitGenerator.gen_kwargs.
+            **kwargs (additional keyword arguments): Arguments forwarded from the SplitGenerator.gen_kwargs.
 
         Returns:
             `beam.PCollection`: Apache Beam PCollection containing the
