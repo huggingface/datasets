@@ -140,8 +140,8 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
             - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         local_path (``str``): path to the local folder to copy the datset script to.
-        download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
-        **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
+        download_config (Optional ``datasets.DownloadConfig``): specific download configuration parameters.
+        **download_kwargs(additional keyword arguments): optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
     metric_module = metric_module_factory(
         path, download_config=download_config, force_local_path=local_path, **download_kwargs
