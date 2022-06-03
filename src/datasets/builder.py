@@ -199,6 +199,7 @@ class DatasetBuilder:
             It affects the data generated on disk: different configurations will have their own subdirectories and
             versions.
             If not provided, the default configuration is used (if it exists).
+
             <Added version="2.3.0">
             `name` was renamed to `config_name`.
             </Added>
@@ -223,9 +224,11 @@ class DatasetBuilder:
             For builders that require manual download, it must be the path to the local directory containing the
             manually downloaded data.
         name (`str`): Configuration name for the dataset.
+
             <Deprecated version="2.3.0">
             Use `config_name` instead.
             </Deprecated>
+
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the corresponding builder
             configuration class, set on the class attribute [`DatasetBuilder.BUILDER_CONFIG_CLASS`]. The builder
             configuration class is [`BuilderConfig`] or a subclass of it.
