@@ -1510,7 +1510,6 @@ def load_dataset_builder(
               -> load the dataset builder from the dataset script in the dataset repository
               e.g. ``glue``, ``squad``, ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
 
-
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration. If specified for the generic builders (csv, text etc.) or the Hub datasets and `data_files` is None,
             the behavior is equal to passing `os.path.join(data_dir, **)` as `data_files` to reference all the files in a directory.
