@@ -202,7 +202,7 @@ class DatasetBuilder:
 
             <Added version="2.3.0">
 
-            `name` was renamed to `config_name`.
+            Parameter `name` was renamed to `config_name`.
 
             </Added>
         hash (`str`, *optional*): Hash specific to the dataset code. Used to update the caching directory when the
