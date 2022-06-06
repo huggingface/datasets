@@ -9,7 +9,7 @@ licenses:
 - other-inherited-from-flickr
 multilinguality:
 - monolingual
-pretty_name: voc
+pretty_name: PASCAL Visual Object Classes (VOC)
 size_categories:
 - 10K<n<100K
 source_datasets:
@@ -20,7 +20,7 @@ task_ids:
 - other-object-detection
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for PASCAL Visual Object Classes (VOC)
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)

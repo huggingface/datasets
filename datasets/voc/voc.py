@@ -180,23 +180,23 @@ class Voc(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         paths = dl_manager.download_and_extract(
-            {k: os.path.join(_VOC_DATA_URL, v) for k, v in self.config.filenames.items()}
+            {k: _VOC_DATA_URL + v  for k, v in self.config.filenames.items()}
         )
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs=dict(data_path=paths["test"], set_name="test")
+                name=datasets.Split.TEST, gen_kwargs={"data_path": paths["test"], "set_name": "test"}
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs=dict(data_path=paths["trainval"], set_name="train")
+                name=datasets.Split.TRAIN, gen_kwargs={"data_path": paths["trainval"], "set_name": "train"}
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs=dict(data_path=paths["trainval"], set_name="val")
+                name=datasets.Split.VALIDATION, gen_kwargs={"data_path": paths["trainval"], "set_name": "val"}
             ),
         ]
 
     def _generate_examples(self, data_path, set_name):
         set_filepath = os.path.join(
-            data_path, os.path.normpath("VOCdevkit/VOC{}/ImageSets/Main/{}.txt".format(self.config.year, set_name))
+            data_path, "VOCdevkit", "VOC" + self.config.year, "ImageSets", "Main", set_name + ".txt")
         )
         load_annotations = self.config.has_test_annotations or set_name != "test"
         with open(set_filepath, "r", encoding="utf-8") as f:
@@ -207,10 +207,10 @@ class Voc(datasets.GeneratorBasedBuilder):
 
     def _generate_example(self, data_path, image_id, load_annotations):
         image_filepath = os.path.join(
-            data_path, os.path.normpath("VOCdevkit/VOC{}/JPEGImages/{}.jpg".format(self.config.year, image_id))
+            data_path, "VOCdevkit", "VOC" + self.config.year, "JPEGImages", image_id + ".jpg")
         )
         annon_filepath = os.path.join(
-            data_path, os.path.normpath("VOCdevkit/VOC{}/Annotations/{}.xml".format(self.config.year, image_id))
+            data_path, "VOCdevkit", "VOC" + self.config.year, "Annotations", image_id + ".xml")
         )
         if load_annotations:
             objects = list(_get_example_objects(annon_filepath))
