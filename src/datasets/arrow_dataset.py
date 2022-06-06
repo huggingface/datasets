@@ -4168,12 +4168,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if split in repo_info.splits:
                     repo_info.download_size -= deleted_size
                     repo_info.dataset_size -= repo_info.splits[split].num_bytes
-                    repo_info.size_in_bytes -= deleted_size + repo_info.splits[split].num_bytes
 
                 repo_info.download_checksums = None
-                repo_info.download_size = repo_info.download_size + uploaded_size
-                repo_info.dataset_size = repo_info.download_size + dataset_nbytes
-                repo_info.size_in_bytes = repo_info.size_in_bytes + uploaded_size + dataset_nbytes
+                repo_info.download_size += uploaded_size
+                repo_info.dataset_size += dataset_nbytes
+                repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
                 repo_info.splits[split] = SplitInfo(
                     split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
                 )
