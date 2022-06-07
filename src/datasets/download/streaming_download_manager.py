@@ -658,8 +658,12 @@ def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, boo
     import pandas as pd
 
     if hasattr(filepath_or_buffer, "read"):
+        if kwargs.get("compression", "infer") == "infer":
+            kwargs["compression"] = _get_extraction_protocol_with_magic_number(filepath_or_buffer)
         return pd.read_csv(filepath_or_buffer, **kwargs)
     else:
+        if kwargs.get("compression", "infer") == "infer":
+            kwargs["compression"] = _get_extraction_protocol(filepath_or_buffer, use_auth_token=use_auth_token)
         return pd.read_csv(xopen(filepath_or_buffer, "rb", use_auth_token=use_auth_token), **kwargs)
 
 
