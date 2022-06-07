@@ -1,0 +1,80 @@
+# Using Datasets with TensorFlow
+
+## Tensors
+
+### Dataset format
+
+By default, datasets return regular Python objects: integers, floats, strings, lists, etc.
+
+To get TensorFlow tensors instead, you can set the format of the dataset to "tf":
+
+```py
+>>> from datasets import Dataset
+>>> data = [[1, 2],[3, 4]]
+>>> ds = Dataset.from_dict({"data": [[1, 2],[3, 4]]})
+>>> ds = ds.with_format("tf")
+>>> ds[0]
+{'data': <tf.Tensor: shape=(2,), dtype=int64, numpy=array([1, 2])>}
+>>> ds[:2]
+{'data': <tf.Tensor: shape=(2, 2), dtype=int64, numpy=
+array([[1, 2],
+       [3, 4]])>}
+```
+
+## Data loading
+
+### Interoperability with tf.data
+
+Although you can load individual samples and batches just by indexing into your dataset, this won't work if you want
+to use Keras methods like `fit()` and `predict()`. You could write a generator function that shuffles and loads batches
+from your dataset and `fit()` on that, but that sounds like a lot of unnecessary work. Instead, we recommend converting
+your dataset to a `tf.data.Dataset` using the `to_tf_dataset()` method.
+
+The `tf.data.Dataset`` class covers a wide range of use-cases - it is often created from Tensors in memory, or using a load function to read files on disc
+or external storage. The dataset can be transformed arbitrarily with the `map()` method, or methods like `batch()`
+and `shuffle()` can be used to create a dataset that's ready for training. These methods do not modify the stored data
+in any way - instead, the methods build a data pipeline graph that will be executed when the dataset is iterated over,
+usually during model training or inference. This is different from the `map()` method of Hugging Face `Dataset` objects,
+which runs the map function immediately and saves the new or changed columns.
+
+Since the entire data preprocessing pipeline can be compiled in a `tf.data.Dataset`, this approach allows for massively
+parallel, asynchronous data loading and training. However, the requirement for graph compilation can be a limitation,
+particularly for HuggingFace tokenizers, which are usually not (yet!) compilable as part of a TF graph. As a result, for NLP
+tasks we usually advise pre-processing the dataset as a Hugging Face dataset, where arbitrary Python functions can be
+used, and then converting to `tf.data.Dataset` afterwards using `to_tf_dataset()` to get a batched dataset ready for
+training. To see examples of this approach, please see the example scripts(link) or notebooks(link) for `transformers`.
+
+### Using `to_tf_dataset()`
+
+Using `to_tf_dataset()` is straightforward. Once your dataset is preprocessed and ready, simply call it like so:
+
+```py
+>>> from datasets import Dataset
+>>> data = {"inputs": [[1, 2],[3, 4]], "labels": [0, 1]}
+>>> ds = Dataset.from_dict(data)
+>>> tf_ds = ds.to_tf_dataset(
+            columns=["inputs"],
+            label_cols=["labels"],
+            batch_size=2,
+            shuffle=True
+            )
+```
+
+The returned `tf_ds` object here is now fully ready to train on, and can be passed directly to `model.fit()`!
+
+For a full description of the arguments, please see the `to_tf_dataset()` documentation(link). In many cases,
+you will also need to add a `collate_fn` to your call. This is a function that takes multiple elements of the dataset
+and combines them into a single batch. When all elements have the same length, the built-in default collator will
+suffice, but for more complex tasks a custom collator may be necessary. In particular, many NLP tasks have samples
+with varying sequence lengths which will require a collator that can pad batches correctly. (Link to transformers
+collators or examples here?)
+
+### Caveats and limitations
+
+Right now, `to_tf_dataset()` focuses on making "ready-to-use" datasets with batching and data collation applied.
+However, particularly for computer vision tasks, we realize that it would often be preferable to convert a
+Hugging Face `Dataset` to an unbatched, unmodified `tf.data.Dataset` and then perform batching/shuffling using `tf.data`
+methods. We're actively working on adding this feature and making it performant, so watch this space!
+
+
+
