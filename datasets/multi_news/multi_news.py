@@ -16,9 +16,6 @@
 # Lint as: python3
 """Multi-News dataset."""
 
-
-import os
-
 import datasets
 
 
@@ -45,18 +42,18 @@ There are two features:
 """
 
 _URLs = {
-    "train": {
-        "src": "https://drive.google.com/uc?export=download&id=1wHAWDOwOoQWSj7HYpyJ3Aeud8WhhaJ7P",
-        "tgt": "https://drive.google.com/uc?export=download&id=1QVgswwhVTkd3VLCzajK6eVkcrSWEK6kq",
-    },
-    "val": {
-        "src": "https://drive.google.com/uc?export=download&id=1p_u9_jpz3Zbj0EL05QFX6wvJAahmOn6h",
-        "tgt": "https://drive.google.com/uc?export=download&id=1Y1lBbBU5Q0aJMqLhYEOdEtTqQ85XnRRM",
-    },
-    "test": {
-        "src": "https://drive.google.com/uc?export=download&id=1-n_6fj-1nM7sWtBSNkQCSfl5Rb3zPVfr",
-        "tgt": "https://drive.google.com/uc?export=download&id=1CX_YcgQ3WwNC1fXBpMfwMXFPCqsd9Lbp",
-    },
+    "train": [
+        "https://drive.google.com/uc?export=download&id=1wHAWDOwOoQWSj7HYpyJ3Aeud8WhhaJ7P",
+        "https://drive.google.com/uc?export=download&id=1QVgswwhVTkd3VLCzajK6eVkcrSWEK6kq",
+    ],
+    "val": [
+        "https://drive.google.com/uc?export=download&id=1p_u9_jpz3Zbj0EL05QFX6wvJAahmOn6h",
+        "https://drive.google.com/uc?export=download&id=1Y1lBbBU5Q0aJMqLhYEOdEtTqQ85XnRRM",
+    ],
+    "test": [
+        "https://drive.google.com/uc?export=download&id=1-n_6fj-1nM7sWtBSNkQCSfl5Rb3zPVfr",
+        "https://drive.google.com/uc?export=download&id=1CX_YcgQ3WwNC1fXBpMfwMXFPCqsd9Lbp",
+    ],
 }
 
 _DOCUMENT = "document"
@@ -83,15 +80,15 @@ class MultiNews(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"src_file": files["train"]["src"], "tgt_file": files["train"]["tgt"]},
+                gen_kwargs={"src_file": files["train"][0], "tgt_file": files["train"][1]},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"src_file": files["val"]["src"], "tgt_file": files["val"]["tgt"]},
+                gen_kwargs={"src_file": files["val"][0], "tgt_file": files["val"][1]},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"src_file": files["test"]["src"], "tgt_file": files["test"]["tgt"]},
+                gen_kwargs={"src_file": files["test"][0], "tgt_file": files["test"][1]},
             ),
         ]
 
