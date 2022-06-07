@@ -13,7 +13,7 @@ pretty_name: TruthfulQA
 size_categories:
 - n<1K
 source_datasets:
-- found
+- original
 task_categories:
 - multiple-choice
 - text-generation
@@ -28,27 +28,38 @@ paperswithcode_id: truthfulqa
 # Dataset Card for truthful_qa
 
 ## Table of Contents
-- [Dataset Description](#dataset-description)
-  - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
-  - [Languages](#languages)
-- [Dataset Structure](#dataset-structure)
-  - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
-- [Dataset Creation](#dataset-creation)
-  - [Curation Rationale](#curation-rationale)
-  - [Source Data](#source-data)
-  - [Annotations](#annotations)
-  - [Personal and Sensitive Information](#personal-and-sensitive-information)
-- [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Impact of Dataset](#social-impact-of-dataset)
-  - [Discussion of Biases](#discussion-of-biases)
-  - [Other Known Limitations](#other-known-limitations)
-- [Additional Information](#additional-information)
-  - [Dataset Curators](#dataset-curators)
-  - [Licensing Information](#licensing-information)
-  - [Citation Information](#citation-information)
+- [Dataset Card for truthful_qa](#dataset-card-for-truthful_qa)
+  - [Table of Contents](#table-of-contents)
+  - [Dataset Description](#dataset-description)
+    - [Dataset Summary](#dataset-summary)
+    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+    - [Languages](#languages)
+  - [Dataset Structure](#dataset-structure)
+    - [Data Instances](#data-instances)
+      - [generation](#generation)
+      - [multiple_choice](#multiple_choice)
+    - [Data Fields](#data-fields)
+      - [generation](#generation-1)
+      - [multiple_choice](#multiple_choice-1)
+    - [Data Splits](#data-splits)
+  - [Dataset Creation](#dataset-creation)
+    - [Curation Rationale](#curation-rationale)
+    - [Source Data](#source-data)
+      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
+      - [Who are the source language producers?](#who-are-the-source-language-producers)
+    - [Annotations](#annotations)
+      - [Annotation process](#annotation-process)
+      - [Who are the annotators?](#who-are-the-annotators)
+    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Considerations for Using the Data](#considerations-for-using-the-data)
+    - [Social Impact of Dataset](#social-impact-of-dataset)
+    - [Discussion of Biases](#discussion-of-biases)
+    - [Other Known Limitations](#other-known-limitations)
+  - [Additional Information](#additional-information)
+    - [Dataset Curators](#dataset-curators)
+    - [Licensing Information](#licensing-information)
+    - [Citation Information](#citation-information)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 
