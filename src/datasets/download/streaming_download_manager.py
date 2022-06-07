@@ -421,6 +421,8 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     # required for `xopen(str(Path(...)))` to work
     file = _as_posix(PurePath(file))
     main_hop, *rest_hops = file.split("::")
+    if is_local_path(main_hop):
+        return open(file, mode, *args, **kwargs)
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
         file, new_kwargs = _prepare_http_url_kwargs(file, use_auth_token=use_auth_token)
@@ -658,7 +660,8 @@ def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, boo
     if hasattr(filepath_or_buffer, "read"):
         return pd.read_csv(filepath_or_buffer, **kwargs)
     else:
-        return pd.read_csv(xopen(filepath_or_buffer, "rb", use_auth_token=use_auth_token), **kwargs)
+        with xopen(filepath_or_buffer, "rb", use_auth_token=use_auth_token) as f:
+            return pd.read_csv(f, **kwargs)
 
 
 def xpandas_read_excel(filepath_or_buffer, **kwargs):
