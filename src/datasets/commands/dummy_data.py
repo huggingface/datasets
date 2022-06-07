@@ -295,8 +295,8 @@ class DummyDataCommand(BaseDatasetsCLICommand):
         auto_generate_results = []
         with tempfile.TemporaryDirectory() as tmp_dir:
             for builder_config in builder_configs:
-                name = builder_config.name if builder_config else None
-                dataset_builder = builder_cls(name=name, hash=dataset_module.hash, cache_dir=tmp_dir)
+                config_name = builder_config.name if builder_config else None
+                dataset_builder = builder_cls(config_name=config_name, hash=dataset_module.hash, cache_dir=tmp_dir)
                 version = builder_config.version if builder_config else dataset_builder.config.version
                 mock_dl_manager = MockDownloadManager(
                     dataset_name=self._dataset_name,

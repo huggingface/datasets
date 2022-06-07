@@ -24,6 +24,7 @@ import posixpath
 import shutil
 import textwrap
 import urllib
+import warnings
 from dataclasses import dataclass
 from functools import partial
 from typing import Dict, Mapping, Optional, Tuple, Union
@@ -181,16 +182,47 @@ class DatasetBuilder:
 
     `DatasetBuilder` has 3 key methods:
 
-        - :meth:`datasets.DatasetBuilder.info`: Documents the dataset, including feature
+        - [`DatasetBuilder.info`]: Documents the dataset, including feature
           names, types, and shapes, version, splits, citation, etc.
-        - :meth:`datasets.DatasetBuilder.download_and_prepare`: Downloads the source data
+        - [`DatasetBuilder.download_and_prepare`]: Downloads the source data
           and writes it to disk.
-        - :meth:`datasets.DatasetBuilder.as_dataset`: Generates a `Dataset`.
+        - [`DatasetBuilder.as_dataset`]: Generates a [`Dataset`].
 
     **Configuration**: Some `DatasetBuilder`s expose multiple variants of the
-    dataset by defining a `datasets.BuilderConfig` subclass and accepting a
+    dataset by defining a [`BuilderConfig`] subclass and accepting a
     config object (or name) on construction. Configurable datasets expose a
-    pre-defined set of configurations in :meth:`datasets.DatasetBuilder.builder_configs`.
+    pre-defined set of configurations in [`DatasetBuilder.builder_configs`].
+
+    Args:
+        cache_dir (`str`, *optional*): Directory to cache data. Defaults to ``"~/.cache/huggingface/datasets"``.
+        config_name (`str`, *optional*): Name of the dataset configuration.
+            It affects the data generated on disk: different configurations will have their own subdirectories and
+            versions.
+            If not provided, the default configuration is used (if it exists).
+        hash (`str`, *optional*): Hash specific to the dataset code. Used to update the caching directory when the
+            dataset loading script code is updated (to avoid reusing old data).
+            The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``.
+        base_path (`str`, *optional*): Base path for relative paths that are used to download files.
+            This can be a remote URL.
+        features ([`Features`], *optional*): Features types to use with this dataset.
+            It can be used to change the Features types of a dataset, for example.
+        use_auth_token (`str` or `bool`, *optional*): String or boolean to use as Bearer token for remote files on the
+            Datasets Hub. If `True`, will get token from ``"~/.huggingface"``.
+        repo_id (`str`, *optional*): ID of the dataset repository.
+            Used to distinguish builders with the same name but not coming from the same namespace, for example "squad"
+            and "lhoestq/squad" repo IDs. In the latter, the builder name would be "lhoestq___squad".
+        data_files (`str` or `Sequence` or `Mapping`, *optional*): Path(s) to source data file(s).
+            For builders like "csv" or "json" that need the user to specify data files. They can be either
+            local or remote files. For convenience, you can use a DataFilesDict.
+        data_dir (`str`, *optional*): Path to directory containing source data file(s).
+            Use only if `data_files` is not passed, in which case it is equivalent to passing
+            ``os.path.join(data_dir, "**")`` as `data_files`.
+            For builders that require manual download, it must be the path to the local directory containing the
+            manually downloaded data.
+        name (`str`): Deprecated. Use `config_name` instead.
+        **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the corresponding builder
+            configuration class, set on the class attribute [`DatasetBuilder.BUILDER_CONFIG_CLASS`]. The builder
+            configuration class is [`BuilderConfig`] or a subclass of it.
     """
 
     # Default version
@@ -211,7 +243,7 @@ class DatasetBuilder:
     def __init__(
         self,
         cache_dir: Optional[str] = None,
-        name: Optional[str] = None,
+        config_name: Optional[str] = None,
         hash: Optional[str] = None,
         base_path: Optional[str] = None,
         info: Optional[DatasetInfo] = None,
@@ -220,35 +252,15 @@ class DatasetBuilder:
         repo_id: Optional[str] = None,
         data_files: Optional[Union[str, list, dict, DataFilesDict]] = None,
         data_dir: Optional[str] = None,
+        name="deprecated",
         **config_kwargs,
     ):
-        """Constructs a DatasetBuilder.
-
-        Callers must pass arguments as keyword arguments.
-
-        Args:
-            cache_dir: `str`, directory to read/write data. Defaults to "~/datasets".
-            name: `str` name, optional configuration for the dataset that affects the data generated on disk. Different
-                `builder_config`s will have their own subdirectories and versions.
-                If not provided it uses the default configuration, if it exists.
-            hash: a hash specific to the dataset code. Used to update the caching directory when the dataset loading
-                script code is updated (to avoid reusing old data).
-                The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``
-            base_path: `str`, base path for relative paths that are used to download files. This can be a remote url.
-            features: `Features`, optional features that will be used to read/write the dataset
-                It can be used to changed the :obj:`datasets.Features` description of a dataset for example.
-            use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
-                for remote files on the Datasets Hub. If True, will get token from ``"~/.huggingface"``.
-            repo_id: `str`, used to separate builders with the same name but not coming from the same namespace.
-                For example to separate repo_id "squad" from repo_id "lhoestq/squad".
-                In this case, the builder name would be "lhoestq___squad".
-            data_files: for builders like "csv" or "json" that need the user to specify data files. They can be either
-                local or remote files. For convenience you can use a DataFilesDict.
-            data_dir: `str`, for builders that require manual download. It must be the path to the local directory containing
-                the manually downloaded data.
-            config_kwargs: will override the defaults kwargs in config
-
-        """
+        if name != "deprecated":
+            warnings.warn(
+                "Parameter 'name' was renamed to 'config_name' in version 2.3.0 and will be removed in 3.0.0.",
+                category=FutureWarning,
+            )
+            config_name = name
         # DatasetBuilder name
         self.name: str = camelcase_to_snakecase(self.__module__.split(".")[-1])
         self.hash: Optional[str] = hash
@@ -269,7 +281,7 @@ class DatasetBuilder:
         if data_dir is not None:
             config_kwargs["data_dir"] = data_dir
         self.config, self.config_id = self._create_builder_config(
-            name,
+            config_name,
             custom_features=features,
             **config_kwargs,
         )
@@ -554,6 +566,7 @@ class DatasetBuilder:
                 If not specified, the value of the `base_path` attribute (`self.base_path`) will be used instead.
             use_auth_token (:obj:`Union[str, bool]`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
                 If True, will get token from ~/.huggingface.
+            **download_and_prepare_kwargs (additional keyword arguments): Keyword arguments.
 
         Example:
 
@@ -1126,7 +1139,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         disk.
 
         Args:
-            **kwargs: `dict`, Arguments forwarded from the SplitGenerator.gen_kwargs
+            **kwargs (additional keyword arguments): Arguments forwarded from the SplitGenerator.gen_kwargs
 
         Yields:
             key: `str` or `int`, a unique deterministic example identification key.
@@ -1204,7 +1217,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         disk.
 
         Args:
-            **kwargs: `dict`, Arguments forwarded from the SplitGenerator.gen_kwargs
+            **kwargs (additional keyword arguments): Arguments forwarded from the SplitGenerator.gen_kwargs
 
         Yields:
             key: `str` or `int`, a unique deterministic example identification key.
@@ -1289,7 +1302,7 @@ class BeamBasedBuilder(DatasetBuilder):
 
         Args:
             pipeline ([`utils.beam_utils.BeamPipeline`]): Apache Beam pipeline.
-            **kwargs: Arguments forwarded from the SplitGenerator.gen_kwargs.
+            **kwargs (additional keyword arguments): Arguments forwarded from the SplitGenerator.gen_kwargs.
 
         Returns:
             `beam.PCollection`: Apache Beam PCollection containing the

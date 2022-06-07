@@ -750,3 +750,10 @@ def test_iter_archive_file(tar_nested_jsonl_path):
             _test_jsonl(subpath, subfile)
     assert num_tar == 1
     assert num_jsonl == 2
+
+
+def test_iter_files(data_dir_with_hidden_files):
+    dl_manager = StreamingDownloadManager()
+    for num_file, file in enumerate(dl_manager.iter_files(data_dir_with_hidden_files), start=1):
+        pass
+    assert num_file == 2

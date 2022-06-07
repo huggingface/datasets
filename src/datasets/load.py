@@ -792,15 +792,15 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "name": os.path.basename(self.path),
+            "config_name": os.path.basename(self.path),
             "base_path": self.path,
             **builder_kwargs,
         }
         if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
-                builder_kwargs["name"] = next(iter(dataset_infos))
-                builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["name"]])
+            builder_kwargs["config_name"] = next(iter(dataset_infos))
+            builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["config_name"]])
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
@@ -901,7 +901,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "name": self.name.replace("/", "--"),
+            "config_name": self.name.replace("/", "--"),
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
             "repo_id": self.name,
             **builder_kwargs,
@@ -916,8 +916,8 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
-                builder_kwargs["name"] = next(iter(dataset_infos))
-                builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["name"]])
+            builder_kwargs["config_name"] = next(iter(dataset_infos))
+            builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["config_name"]])
         except FileNotFoundError:
             pass
         return DatasetModule(module_path, hash, builder_kwargs)
@@ -1147,7 +1147,8 @@ def dataset_module_factory(
         data_dir (:obj:`str`, optional): Directory with the data files. Used only if `data_files` is not specified,
             in which case it's equal to passing `os.path.join(data_dir, "**")` as `data_files`.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
-        download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
+        **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
+            the attributes in download_config if supplied.
 
     Returns:
         DatasetModule
@@ -1317,8 +1318,9 @@ def metric_module_factory(
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
-            By default the datasets and metrics are stored inside the `datasets_modules` module.
-        download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
+            By default, the datasets and metrics are stored inside the `datasets_modules` module.
+        **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
+            the attributes in download_config if supplied.
 
     Returns:
         MetricModule
@@ -1504,7 +1506,6 @@ def load_dataset_builder(
               -> load the dataset builder from the dataset script in the dataset repository
               e.g. ``glue``, ``squad``, ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
 
-
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration. If specified for the generic builders (csv, text etc.) or the Hub datasets and `data_files` is None,
             the behavior is equal to passing `os.path.join(data_dir, **)` as `data_files` to reference all the files in a directory.
@@ -1521,6 +1522,8 @@ def load_dataset_builder(
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
+        **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig`
+            and used in the :class:`DatasetBuilder`.
 
     Returns:
         :class:`DatasetBuilder`
@@ -1552,7 +1555,7 @@ def load_dataset_builder(
     builder_cls = import_main_class(dataset_module.module_path)
     builder_kwargs = dataset_module.builder_kwargs
     data_files = builder_kwargs.pop("data_files", data_files)
-    name = builder_kwargs.pop("name", name)
+    config_name = builder_kwargs.pop("config_name", name)
     hash = builder_kwargs.pop("hash")
 
     if path in _PACKAGED_DATASETS_MODULES and data_files is None:
@@ -1567,7 +1570,7 @@ def load_dataset_builder(
     # Instantiate the dataset builder
     builder_instance: DatasetBuilder = builder_cls(
         cache_dir=cache_dir,
-        name=name,
+        config_name=config_name,
         data_dir=data_dir,
         data_files=data_files,
         hash=hash,
@@ -1690,7 +1693,8 @@ def load_dataset(
             Note that streaming works for datasets that use data formats that support being iterated over like txt, csv, jsonl for example.
             Json files may be downloaded completely. Also streaming from remote zip or gzip files is supported but other compressed formats
             like rar and xz are not yet supported. The tgz format doesn't allow streaming.
-        **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
+        **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig`
+            and used in the :class:`DatasetBuilder`.
 
     Returns:
         :class:`Dataset` or :class:`DatasetDict`:

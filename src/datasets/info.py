@@ -110,7 +110,7 @@ class DatasetInfo:
         dataset_size (int, optional): The combined size in bytes of the Arrow tables for all splits.
         size_in_bytes (int, optional): The combined size in bytes of all files associated with the dataset (downloaded files + Arrow files).
         task_templates (List[TaskTemplate], optional): The task templates to prepare the dataset for during training and evaluation. Each template casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
-        **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
+        **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
     """
 
     # Set in the dataset scripts
