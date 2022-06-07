@@ -759,7 +759,7 @@ class FilesIterable(_IterableFromGenerator):
                 yield urlpath
             else:
                 for dirpath, dirnames, filenames in xwalk(urlpath, use_auth_token=use_auth_token):
-                    for i, dirname in enumerate(dirnames):
+                    for i, dirname in enumerate(dirnames[:]):
                         if dirname.startswith((".", "__")):
                             # skipping hidden directories; prune the search
                             # (only works for local paths as fsspec's walk doesn't support the in-place modification)

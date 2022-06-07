@@ -128,7 +128,7 @@ class FilesIterable(_IterableFromGenerator):
                 yield urlpath
             else:
                 for dirpath, dirnames, filenames in os.walk(urlpath):
-                    for i, dirname in enumerate(dirnames):
+                    for i, dirname in enumerate(dirnames[:]):
                         if dirname.startswith((".", "__")):
                             # skipping hidden directories; prune the search
                             del dirnames[i]

@@ -130,7 +130,7 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
     for dirpath, dirnames, filenames in os.walk(module_source_dirpath):
         dst_dirpath = os.path.join(local_path, os.path.relpath(dirpath, module_source_dirpath))
         os.makedirs(dst_dirpath, exist_ok=True)
-        for i, dirname in enumerate(dirnames):
+        for i, dirname in enumerate(dirnames[:]):
             if dirname == "__pycache__":
                 del dirnames[i]
             for filename in filenames:
@@ -166,7 +166,7 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
     for dirpath, dirnames, filenames in os.walk(module_source_dirpath):
         dst_dirpath = os.path.join(local_path, os.path.relpath(dirpath, module_source_dirpath))
         os.makedirs(dst_dirpath, exist_ok=True)
-        for i, dirname in enumerate(dirnames):
+        for i, dirname in enumerate(dirnames[:]):
             if dirname == "__pycache__":
                 del dirnames[i]
             for filename in filenames:
