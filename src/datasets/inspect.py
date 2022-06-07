@@ -22,9 +22,7 @@ from pathlib import PurePath
 from typing import Dict, List, Mapping, Optional, Sequence, Union
 
 import huggingface_hub
-from packaging import version
 
-from . import config
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager
@@ -38,7 +36,6 @@ from .load import (
 )
 from .utils.file_utils import relative_to_absolute_path
 from .utils.logging import get_logger
-from .utils.patching import patch_submodule
 from .utils.version import Version
 
 
@@ -127,27 +124,20 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
     dataset_module = dataset_module_factory(path, download_config=download_config, **download_kwargs)
     builder_cls = import_main_class(dataset_module.module_path, dataset=True)
     module_source_path = inspect.getsourcefile(builder_cls)
-    if config.PY_VERSION >= version.parse("3.8"):
-        shutil.copytree(
-            os.path.dirname(module_source_path),
-            local_path,
-            ignore=shutil.ignore_patterns("__pycache__"),
-            dirs_exist_ok=True,
-        )
-    else:
-        # in python < 3.8, `shutil.copytree` doesn't expose `dirs_exist_ok` and
-        # fails if a destination directory already exists
-        def os_makedirs_dirs_exist_ok_True(name, mode=0o777, exist_ok=False):
-            os.makedirs(name, mode, exist_ok=True)
-
-        with patch_submodule(shutil, "os.makedirs", os_makedirs_dirs_exist_ok_True):
-            shutil.copytree(
-                os.path.dirname(module_source_path), local_path, ignore=shutil.ignore_patterns("__pycache__")
-            )
+    module_source_dirpath = os.path.dirname(module_source_path)
+    for dirpath, dirnames, filenames in os.walk(module_source_dirpath):
+        dst_dirpath = os.path.join(local_path, os.path.relpath(dirpath, module_source_dirpath))
+        os.makedirs(dst_dirpath, exist_ok=True)
+        for i, dirname in enumerate(dirnames):
+            if dirname == "__pycache__":
+                del dirnames[i]
+            for filename in filenames:
+                shutil.copy2(os.path.join(dirpath, filename), os.path.join(dst_dirpath, filename))
+        shutil.copystat(dirpath, dst_dirpath)
     local_path = relative_to_absolute_path(local_path)
     print(
         f"The processing script for dataset {path} can be inspected at {local_path}. "
-        f"The main class is in {os.path.dirname(module_source_path)}. "
+        f"The main class is in {module_source_dirpath}. "
         f'You can modify this processing script and use it with `datasets.load_dataset("{PurePath(local_path).as_posix()}")`.'
     )
 
@@ -170,27 +160,20 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
     metric_module = metric_module_factory(path, download_config=download_config, **download_kwargs)
     builder_cls = import_main_class(metric_module.module_path, dataset=False)
     module_source_path = inspect.getsourcefile(builder_cls)
-    if config.PY_VERSION >= version.parse("3.8"):
-        shutil.copytree(
-            os.path.dirname(module_source_path),
-            local_path,
-            ignore=shutil.ignore_patterns("__pycache__"),
-            dirs_exist_ok=True,
-        )
-    else:
-        # in python < 3.8, `shutil.copytree` doesn't expose `dirs_exist_ok` and
-        # fails if a destination directory already exists
-        def os_makedirs_dirs_exist_ok_True(name, mode=0o777, exist_ok=False):
-            os.makedirs(name, mode, exist_ok=True)
-
-        with patch_submodule(shutil, "os.makedirs", os_makedirs_dirs_exist_ok_True):
-            shutil.copytree(
-                os.path.dirname(module_source_path), local_path, ignore=shutil.ignore_patterns("__pycache__")
-            )
+    module_source_dirpath = os.path.dirname(module_source_path)
+    for dirpath, dirnames, filenames in os.walk(module_source_dirpath):
+        dst_dirpath = os.path.join(local_path, os.path.relpath(dirpath, module_source_dirpath))
+        os.makedirs(dst_dirpath, exist_ok=True)
+        for i, dirname in enumerate(dirnames):
+            if dirname == "__pycache__":
+                del dirnames[i]
+            for filename in filenames:
+                shutil.copy2(os.path.join(dirpath, filename), os.path.join(dst_dirpath, filename))
+        shutil.copystat(dirpath, dst_dirpath)
     local_path = relative_to_absolute_path(local_path)
     print(
         f"The processing scripts for metric {path} can be inspected at {local_path}. "
-        f"The main class is in {os.path.dirname(module_source_path)}. "
+        f"The main class is in {module_source_dirpath}. "
         f'You can modify this processing scripts and use it with `datasets.load_metric("{PurePath(local_path).as_posix()}")`.'
     )
 
