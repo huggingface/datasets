@@ -1,8 +1,8 @@
 ---
 annotations_creators:
-- other
+- no-annotation
 language_creators:
-- other
+- found
 languages:
 - zh
 licenses:
