@@ -4159,7 +4159,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 repo_info = DatasetInfo.from_dict(dataset_infos[next(iter(dataset_infos))])
             logger.warning("Updating downloaded metadata with the new split.")
 
-            if not repo_info.splits or list(repo_info.splits) != [split]:
+            if repo_info.splits and list(repo_info.splits) != [split]:
                 if self.features != repo_info.features:
                     raise ValueError(
                         f"Features of the new split don't match the features of the existing splits on the hub: {self.features} != {repo_info.features}"
