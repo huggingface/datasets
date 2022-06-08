@@ -130,11 +130,12 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
     for dirpath, dirnames, filenames in os.walk(module_source_dirpath):
         dst_dirpath = os.path.join(local_path, os.path.relpath(dirpath, module_source_dirpath))
         os.makedirs(dst_dirpath, exist_ok=True)
+        # skipping hidden directories; prune the search
         for i, dirname in enumerate(dirnames[:]):
-            if dirname == "__pycache__":
+            if dirname.startswith((".", "__")):
                 del dirnames[i]
-            for filename in filenames:
-                shutil.copy2(os.path.join(dirpath, filename), os.path.join(dst_dirpath, filename))
+        for filename in filenames:
+            shutil.copy2(os.path.join(dirpath, filename), os.path.join(dst_dirpath, filename))
         shutil.copystat(dirpath, dst_dirpath)
     local_path = relative_to_absolute_path(local_path)
     print(
@@ -166,11 +167,12 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
     for dirpath, dirnames, filenames in os.walk(module_source_dirpath):
         dst_dirpath = os.path.join(local_path, os.path.relpath(dirpath, module_source_dirpath))
         os.makedirs(dst_dirpath, exist_ok=True)
+        # skipping hidden directories; prune the search
         for i, dirname in enumerate(dirnames[:]):
-            if dirname == "__pycache__":
+            if dirname.startswith((".", "__")):
                 del dirnames[i]
-            for filename in filenames:
-                shutil.copy2(os.path.join(dirpath, filename), os.path.join(dst_dirpath, filename))
+        for filename in filenames:
+            shutil.copy2(os.path.join(dirpath, filename), os.path.join(dst_dirpath, filename))
         shutil.copystat(dirpath, dst_dirpath)
     local_path = relative_to_absolute_path(local_path)
     print(
