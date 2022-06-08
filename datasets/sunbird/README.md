@@ -64,7 +64,8 @@ en-lgg - English to Lugbara
 
 ### Data Instances
 
-[More Information Needed]
+{'translation': {'en': 'The president will support the club where they are lacking.',
+  'lug': 'Pulezidenti ajja kuyamba ttiimu we zitubidde.'}}
 
 ### Data Fields
 
