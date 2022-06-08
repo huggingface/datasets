@@ -1,6 +1,6 @@
 # Installation
 
-Before you start, you will need to setup your environment and install the appropriate packages. 🤗 Datasets is tested on **Python 3.6+**.
+Before you start, you will need to setup your environment and install the appropriate packages. 🤗 Datasets is tested on **Python 3.7+**.
 
 <Tip>
 

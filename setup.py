@@ -55,7 +55,6 @@ To create the package for pypi.
    Then push the change with a message 'set dev version'
 """
 
-import os
 
 from setuptools import find_packages, setup
 
@@ -74,8 +73,6 @@ REQUIRED_PKGS = [
     "requests>=2.19.0",
     # progress bars in download and scripts
     "tqdm>=4.62.1",
-    # dataclasses for Python versions that don't have it
-    "dataclasses;python_version<'3.7'",
     # for fast hashing
     "xxhash",
     # for better multiprocessing
@@ -162,8 +159,6 @@ TESTS_REQUIRE = [
     "texttable>=1.6.3",
     "Werkzeug>=1.0.1",
     "six~=1.15.0",
-    # metadata validation
-    "importlib_resources;python_version<'3.7'",
 ]
 
 TESTS_REQUIRE.extend(VISION_REQURE)
@@ -211,6 +206,7 @@ setup(
     packages=find_packages("src"),
     package_data={"datasets": ["py.typed", "scripts/templates/*"], "datasets.utils.resources": ["*.json", "*.yaml"]},
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
+    python_requires=">=3.7.0",
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
     classifiers=[
@@ -221,7 +217,6 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
