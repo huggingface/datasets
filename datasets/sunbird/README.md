@@ -6,7 +6,7 @@ YAML tags:
 # Dataset Card for [Sunbird AI Parallel Text MT Dataset]
 
 ## Table of Contents
-- [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
+- [Dataset Card for Sunbird](#dataset-card-for-sunbird)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
