@@ -23,7 +23,6 @@ import itertools
 import os
 import pickle
 import re
-import sys
 import types
 from contextlib import contextmanager
 from io import BytesIO as StringIO
@@ -418,19 +417,6 @@ class Pickler(dill.Pickler):
     """Same Pickler as the one from dill, but improved for notebooks and shells"""
 
     dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
-
-    def save_global(self, obj, name=None):
-        if sys.version_info[:2] < (3, 7) and _CloudPickleTypeHintFix._is_parametrized_type_hint(
-            obj
-        ):  # noqa  # pragma: no branch
-            # Parametrized typing constructs in Python < 3.7 are not compatible
-            # with type checks and ``isinstance`` semantics. For this reason,
-            # it is easier to detect them using a duck-typing-based check
-            # (``_is_parametrized_type_hint``) than to populate the Pickler's
-            # dispatch with type-specific savers.
-            _CloudPickleTypeHintFix._save_parametrized_type_hint(self, obj)
-        else:
-            dill.Pickler.save_global(self, obj, name=name)
 
     def memoize(self, obj):
         # don't memoize strings since two identical strings can have different python ids
