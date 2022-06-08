@@ -20,8 +20,10 @@
 __version__ = "2.2.3.dev0"
 
 import platform
+
 import pyarrow
 from packaging import version
+
 
 if version.parse(platform.python_version()) < version.parse("3.7"):
     raise ImportWarning(
