@@ -3,7 +3,7 @@ YAML tags:
 - copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
 ---
 
-# Dataset Card for [Sunbird AI Parallel Text MT Dataset]
+# Dataset Card for Sunbird AI Parallel Text MT Dataset
 
 ## Table of Contents
 - [Dataset Card for Sunbird](#dataset-card-for-sunbird)
