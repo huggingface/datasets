@@ -14,9 +14,6 @@ languages:
 - agr
 - aii
 - ajg
-- ak
-- ak-akuapem
-- ak-asante
 - als
 - alt
 - am
@@ -120,6 +117,7 @@ languages:
 - evn
 - fa
 - fa-AF
+- fat
 - fi
 - fj
 - fkv
@@ -406,6 +404,8 @@ languages:
 - ts
 - tsz
 - tt
+- tw-akuapem
+- tw-asante
 - ty
 - tyv
 - tzh
