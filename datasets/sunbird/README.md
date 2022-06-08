@@ -37,11 +37,11 @@ YAML tags:
 
 ## Dataset Description
 
-- **Homepage: sunbird.ai**
-- **Repository: https://github.com/SunbirdAI/ug-language-parallel-text-dataset**
+- **Homepage:** sunbird.ai
+- **Repository:** https://github.com/SunbirdAI/ug-language-parallel-text-dataset
 - **Paper:**
 - **Leaderboard:**
-- **Point of Contact: sunbird.ai**
+- **Point of Contact:** sunbird.ai
 
 ### Dataset Summary
 
