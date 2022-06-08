@@ -62,6 +62,23 @@ en-lgg - English to Lugbara
 
 ## Dataset Structure
 
+For luganda;
+
+DatasetDict({
+    test: Dataset({
+        features: ['translation'],
+        num_rows: 4126
+    })
+    train: Dataset({
+        features: ['translation'],
+        num_rows: 16754
+    })
+    validation: Dataset({
+        features: ['translation'],
+        num_rows: 4126
+    })
+})
+
 ### Data Instances
 
 {'translation': {'en': 'The president will support the club where they are lacking.',
