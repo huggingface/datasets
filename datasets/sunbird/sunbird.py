@@ -29,7 +29,12 @@ Parallel train/test/eval dataset for low-resource machine translation Ugandan La
 """
 
 _CITATION = """\
-        TO ADD: Sunbird citation
+  @inproceedings{akera2022machine,
+  title={Machine Translation For African Languages: Community Creation Of Datasets And Models In Uganda},
+  author={Akera, Benjamin and Mukiibi, Jonathan and Naggayi, Lydia Sanyu and Babirye, Claire and Owomugisha, Isaac and Nsumba, Solomon and Nakatumba-Nabende, Joyce and Bainomugisha, Engineer and Mwebaze, Ernest and Quinn, John},
+  booktitle={3rd Workshop on African Natural Language Processing},
+  year={2022}
+}
 """
 
 _VERSION = "4.0.0"
