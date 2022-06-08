@@ -612,7 +612,7 @@ The [Unicode license](https://www.unicode.org/license.txt) applies to these tran
 
 ### Citation Information
 
-[More Information Needed]
+United Nations. (1998). The Universal Declaration of Human Rights, 1948-1998. New York: United Nations Dept. of Public Information.
 
 ### Contributions
 
