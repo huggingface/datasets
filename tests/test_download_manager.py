@@ -4,8 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from datasets.utils.download_manager import DownloadManager
-from datasets.utils.file_utils import DownloadConfig, hash_url_to_filename
+from datasets.download.download_config import DownloadConfig
+from datasets.download.download_manager import DownloadManager
+from datasets.utils.file_utils import hash_url_to_filename
 
 
 URL = "http://www.mocksite.com/file1.txt"
@@ -135,3 +136,10 @@ def test_iter_archive_file(tar_nested_jsonl_path):
             _test_jsonl(subpath, subfile)
     assert num_tar == 1
     assert num_jsonl == 2
+
+
+def test_iter_files(data_dir_with_hidden_files):
+    dl_manager = DownloadManager()
+    for num_file, file in enumerate(dl_manager.iter_files(data_dir_with_hidden_files), start=1):
+        pass
+    assert num_file == 2

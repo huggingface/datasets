@@ -11,6 +11,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import numpy as np
+import numpy.testing as npt
 import pandas as pd
 import pyarrow as pa
 import pytest
@@ -2304,61 +2305,55 @@ class BaseDatasetTest(TestCase):
 
     @require_tf
     def test_tf_dataset_conversion(self, in_memory):
-        def tf_default_data_collator(features):
-            """This is the tf_default_data_collator from transformers, copied so we avoid depending on that library."""
-            import numpy as np
-            import tensorflow as tf
-
-            first = features[0]
-            batch = {}
-
-            # Special handling for labels.
-            # Ensure that tensor is created with the correct type
-            # (it should be automatically the case, but let's make sure of it.)
-            if "label" in first and first["label"] is not None:
-                if isinstance(first["label"], tf.Tensor):
-                    dtype = tf.int64 if first["label"].dtype.is_integer() else tf.float32
-                elif isinstance(first["label"], np.ndarray):
-                    dtype = tf.int64 if np.issubdtype(first["label"].dtype, np.integer) else tf.float32
-                elif isinstance(first["label"], (tuple, list)):
-                    dtype = tf.int64 if isinstance(first["label"][0], int) else tf.float32
-                else:
-                    dtype = tf.int64 if isinstance(first["label"], int) else tf.float32
-                batch["labels"] = tf.convert_to_tensor([f["label"] for f in features], dtype=dtype)
-            elif "label_ids" in first and first["label_ids"] is not None:
-                if isinstance(first["label_ids"], tf.Tensor):
-                    batch["labels"] = tf.stack([f["label_ids"] for f in features])
-                else:
-                    dtype = tf.int64 if type(first["label_ids"][0]) is int else tf.float32
-                    batch["labels"] = tf.convert_to_tensor([f["label_ids"] for f in features], dtype=dtype)
-
-            # Handling of all other possible keys.
-            # Again, we will use the first element to figure out which key/values are not None for this model.
-            for k, v in first.items():
-                if k not in ("label", "label_ids") and v is not None and not isinstance(v, str):
-                    if isinstance(v, (tf.Tensor, np.ndarray)):
-                        batch[k] = tf.stack([f[k] for f in features])
-                    else:
-                        batch[k] = tf.convert_to_tensor([f[k] for f in features])
-
-            return batch
-
         tmp_dir = tempfile.TemporaryDirectory()
         with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
-            tf_dataset = dset.to_tf_dataset(
-                columns="col_3", batch_size=4, shuffle=False, dummy_labels=False, collate_fn=tf_default_data_collator
-            )
+            tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=4)
             batch = next(iter(tf_dataset))
             self.assertEqual(batch.shape.as_list(), [4, 4])
             self.assertEqual(batch.dtype.name, "int64")
         with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-            tf_dataset = dset.to_tf_dataset(
-                columns="col_1", batch_size=4, shuffle=False, dummy_labels=False, collate_fn=tf_default_data_collator
-            )
+            tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=4)
             batch = next(iter(tf_dataset))
             self.assertEqual(batch.shape.as_list(), [4])
             self.assertEqual(batch.dtype.name, "int64")
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            # Check that it works with all default options (except batch_size because the dummy dataset only has 4)
+            tf_dataset = dset.to_tf_dataset(batch_size=4)
+            batch = next(iter(tf_dataset))
+            self.assertEqual(batch["col_1"].shape.as_list(), [4])
+            self.assertEqual(batch["col_2"].shape.as_list(), [4])
+            self.assertEqual(batch["col_1"].dtype.name, "int64")
+            self.assertEqual(batch["col_2"].dtype.name, "string")  # Assert that we're converting strings properly
         del tf_dataset  # For correct cleanup
+
+    @require_tf
+    def test_tf_dataset_options(self, in_memory):
+        tmp_dir = tempfile.TemporaryDirectory()
+        # Test that batch_size option works as expected
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
+            tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=2)
+            batch = next(iter(tf_dataset))
+            self.assertEqual(batch.shape.as_list(), [2, 4])
+            self.assertEqual(batch.dtype.name, "int64")
+        # Test that requesting label_cols works as expected
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            tf_dataset = dset.to_tf_dataset(columns="col_1", label_cols=["col_2", "col_3"], batch_size=4)
+            batch = next(iter(tf_dataset))
+            self.assertEqual(len(batch), 2)
+            self.assertEqual(set(batch[1].keys()), {"col_2", "col_3"})
+            self.assertEqual(batch[0].dtype.name, "int64")
+            # Assert data comes out as expected and isn't shuffled
+            self.assertEqual(batch[0].numpy().tolist(), [3, 2, 1, 0])
+            self.assertEqual(batch[1]["col_2"].numpy().tolist(), [b"a", b"b", b"c", b"d"])
+            self.assertEqual(batch[1]["col_3"].numpy().tolist(), [0, 1, 0, 1])
+        # Check that incomplete batches are dropped if requested
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=3)
+            tf_dataset_with_drop = dset.to_tf_dataset(columns="col_1", batch_size=3, drop_remainder=True)
+            self.assertEqual(len(tf_dataset), 2)  # One batch of 3 and one batch of 1
+            self.assertEqual(len(tf_dataset_with_drop), 1)  # Incomplete batch of 1 is dropped
+        del tf_dataset  # For correct cleanup
+        del tf_dataset_with_drop
 
 
 class MiscellaneousDatasetTest(TestCase):
@@ -2691,10 +2686,10 @@ def test_dataset_add_column(column, expected_dtype, in_memory, transform, datase
 @pytest.mark.parametrize(
     "item",
     [
-        {"col_1": "4", "col_2": 4, "col_3": 4.0},
-        {"col_1": "4", "col_2": "4", "col_3": "4"},
-        {"col_1": 4, "col_2": 4, "col_3": 4},
-        {"col_1": 4.0, "col_2": 4.0, "col_3": 4.0},
+        {"col_1": "2", "col_2": 2, "col_3": 2.0},
+        {"col_1": "2", "col_2": "2", "col_3": "2"},
+        {"col_1": 2, "col_2": 2, "col_3": 2},
+        {"col_1": 2.0, "col_2": 2.0, "col_3": 2.0},
     ],
 )
 def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path, transform):
@@ -3553,3 +3548,69 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.map(lambda x: {"new_column": 0}, remove_columns=dset.column_names) as dset:
                 self.assertDictEqual(dset.features, features_after_map)
+
+
+class StratifiedTest(TestCase):
+    def test_errors_train_test_split_stratify(self):
+        ys = [
+            np.array([0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2]),
+            np.array([0, 1, 1, 1, 2, 2, 2, 3, 3, 3]),
+            np.array([0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2] * 2),
+            np.array([0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5]),
+            np.array([0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5]),
+        ]
+        for i in range(len(ys)):
+            features = Features({"text": Value("int64"), "label": ClassLabel(len(np.unique(ys[i])))})
+            data = {"text": np.ones(len(ys[i])), "label": ys[i]}
+            d1 = Dataset.from_dict(data, features=features)
+
+            # For checking stratify_by_column exist as key in self.features.keys()
+            if i == 0:
+                self.assertRaises(ValueError, d1.train_test_split, 0.33, stratify_by_column="labl")
+
+            # For checking minimum class count error
+            elif i == 1:
+                self.assertRaises(ValueError, d1.train_test_split, 0.33, stratify_by_column="label")
+
+            # For check typeof label as ClassLabel type
+            elif i == 2:
+                d1 = Dataset.from_dict(data)
+                self.assertRaises(ValueError, d1.train_test_split, 0.33, stratify_by_column="label")
+
+            # For checking test_size should be greater than or equal to number of classes
+            elif i == 3:
+                self.assertRaises(ValueError, d1.train_test_split, 0.30, stratify_by_column="label")
+
+            # For checking train_size should be greater than or equal to number of classes
+            elif i == 4:
+                self.assertRaises(ValueError, d1.train_test_split, 0.60, stratify_by_column="label")
+
+    def test_train_test_split_startify(self):
+        ys = [
+            np.array([0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2]),
+            np.array([0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3]),
+            np.array([0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2] * 2),
+            np.array([0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3]),
+            np.array([0] * 800 + [1] * 50),
+        ]
+        for y in ys:
+            features = Features({"text": Value("int64"), "label": ClassLabel(len(np.unique(y)))})
+            data = {"text": np.ones(len(y)), "label": y}
+            d1 = Dataset.from_dict(data, features=features)
+            d1 = d1.train_test_split(test_size=0.33, stratify_by_column="label")
+            y = np.asanyarray(y)  # To make it indexable for y[train]
+            test_size = np.ceil(0.33 * len(y))
+            train_size = len(y) - test_size
+            npt.assert_array_equal(np.unique(d1["train"]["label"]), np.unique(d1["test"]["label"]))
+
+            # checking classes proportion
+            p_train = np.bincount(np.unique(d1["train"]["label"], return_inverse=True)[1]) / float(
+                len(d1["train"]["label"])
+            )
+            p_test = np.bincount(np.unique(d1["test"]["label"], return_inverse=True)[1]) / float(
+                len(d1["test"]["label"])
+            )
+            npt.assert_array_almost_equal(p_train, p_test, 1)
+            assert len(d1["train"]["text"]) + len(d1["test"]["text"]) == y.size
+            assert len(d1["train"]["text"]) == train_size
+            assert len(d1["test"]["text"]) == test_size
