@@ -17,6 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - semantic-similarity-classification
+paperswithcode_id: null
+pretty_name: MedicalQuestionsPairs
 ---
 
 # Dataset Card for [medical_questions_pairs]
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -85,10 +87,10 @@ The dataset contains dr_id, question_1, question_2, label. 11 different doctors 
 
 The dataset as of now consists of only one split(train) but can be split seperately based on the requirement
 
-|                             | Tain   | 
-| -----                       | ------ | 
-| Non similar Question Pairs  | 1524   |
-| Similar Question Pairs      | 1524   |
+|                            | train |
+|----------------------------|------:|
+| Non similar Question Pairs |  1524 |
+| Similar Question Pairs     |  1524 |
 
 ## Dataset Creation
 Doctors with a list of 1524 patient-asked questions randomly sampled from the publicly available crawl of [HealthTap](https://github.com/durakkerem/Medical-Question-Answer-Datasets). Each question results in one similar and one different pair through the following instructions provided to the labelers:

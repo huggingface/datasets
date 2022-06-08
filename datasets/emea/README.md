@@ -31,26 +31,33 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-- n>1M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: null
+pretty_name: EMEA
+configs:
+- bg-el
+- cs-et
+- de-mt
+- es-lt
+- fr-sk
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for EMEA
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -94,16 +101,33 @@ E.g.
 
 ### Data Instances
 
-Here are some examples of questions and facts:
+Here is an example of the `en-nl` configuration:
 
+```
+{'id': '4',
+ 'translation': {'en': 'EPAR summary for the public',
+  'nl': 'EPAR-samenvatting voor het publiek'}}
+```
 
 ### Data Fields
 
-[More Information Needed]
+The data fields are:
+
+- id: id of the sentence pair
+- translation: a dictionary of the form {lang1: text_in_lang1, lang2: text_in_lang2}
 
 ### Data Splits
 
-[More Information Needed]
+Sizes of some language pairs:
+
+|   name   |train|
+|----------|----:|
+|bg-el|1044065|
+|cs-et|1053164|
+|de-mt|1000532|
+|fr-sk|1062753|
+|es-lt|1051370|
+
 
 ## Dataset Creation
 
@@ -165,7 +189,21 @@ Here are some examples of questions and facts:
 
 ### Citation Information
 
-[More Information Needed]
+```bibtex
+@InProceedings{TIEDEMANN12.463,
+  author = {J{\"o}rg Tiedemann},
+  title = {Parallel Data, Tools and Interfaces in OPUS},
+  booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
+  year = {2012},
+  month = {may},
+  date = {23-25},
+  address = {Istanbul, Turkey},
+  editor = {Nicoletta Calzolari (Conference Chair) and Khalid Choukri and Thierry Declerck and Mehmet Ugur Dogan and Bente Maegaard and Joseph Mariani and Jan Odijk and Stelios Piperidis},
+  publisher = {European Language Resources Association (ELRA)},
+  isbn = {978-2-9517408-7-7},
+  language = {english}
+}
+```
 
 ### Contributions
 

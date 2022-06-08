@@ -128,9 +128,7 @@ class CovidQaUcsd(datasets.GeneratorBasedBuilder):
 
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
-                "{} does not exist. Make sure the file is present in the directory specified in the data_dir specified in the input {} `datasets.load_dataset('covid_qa_ucsd', 'en', data_dir=...)`. Manual download instructions: {})".format(
-                    path_to_manual_file, dl_manager.manual_dir, self.manual_download_instructions
-                )
+                f"{path_to_manual_file} does not exist. Make sure the file is present in the directory specified in the data_dir specified in the input {dl_manager.manual_dir} `datasets.load_dataset('covid_qa_ucsd', 'en', data_dir=...)`. Manual download instructions: {self.manual_download_instructions})"
             )
 
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": path_to_manual_file})]

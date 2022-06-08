@@ -5,27 +5,27 @@ language_creators:
 - crowdsourced
 - expert-generated
 languages:
-- "fr"
-- "de"
-- "es"
-- "ca"
-- "it"
-- "ru"
-- "zh-CN"
-- "pt"
-- "fa"
-- "et"
-- "mn"
-- "nl"
-- "tr"
-- "ar"
-- "sv-SE"
-- "lv"
-- "sl"
-- "ta"
-- "ja"
-- "id"
-- "cy"
+- fr
+- de
+- es
+- ca
+- it
+- ru
+- zh-CN
+- pt
+- fa
+- et
+- mn
+- nl
+- tr
+- ar
+- sv-SE
+- lv
+- sl
+- ta
+- ja
+- id
+- cy
 licenses:
 - cc-by-nc-4.0
 multilinguality:
@@ -35,9 +35,10 @@ size_categories:
 source_datasets:
 - extended|other-common-voice
 task_categories:
-- other
-task_ids:
-- other-other-speech-translation
+- automatic-speech-recognition
+task_ids: []
+paperswithcode_id: null
+pretty_name: CoVoST 2
 ---
 
 # Dataset Card for covost2
@@ -45,12 +46,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -97,6 +98,9 @@ A typical data point comprises the path to the audio file, usually called `file`
 ```
 {'client_id': 'd277a1f3904ae00b09b73122b87674e7c2c78e08120721f37b5577013ead08d1ea0c053ca5b5c2fb948df2c81f27179aef2c741057a17249205d251a8fe0e658',
  'file': '/home/suraj/projects/fairseq_s2t/covst/dataset/en/clips/common_voice_en_18540003.mp3',
+ 'audio': {'path': '/home/suraj/projects/fairseq_s2t/covst/dataset/en/clips/common_voice_en_18540003.mp3',
+		   'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32),
+		   'sampling_rate': 48000},
  'id': 'common_voice_en_18540003',
  'sentence': 'When water is scarce, avoid wasting it.',
  'translation': 'Wenn Wasser knapp ist, verschwenden Sie es nicht.'}
@@ -105,6 +109,8 @@ A typical data point comprises the path to the audio file, usually called `file`
 ### Data Fields
 
 - file: A path to the downloaded audio file in .mp3 format.
+
+- audio: A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `dataset[0]["audio"]` should **always** be preferred over `dataset["audio"][0]`.
 
 - sentence: The transcription of the audio file in source language.
 
@@ -182,7 +188,7 @@ A typical data point comprises the path to the audio file, usually called `file`
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset.
 
 ## Considerations for Using the Data
 
@@ -206,7 +212,7 @@ A typical data point comprises the path to the audio file, usually called `file`
 
 ### Licensing Information
 
-cc-by-nc-4.0
+[CC BY-NC 4.0](https://github.com/facebookresearch/covost/blob/main/LICENSE)
 
 ### Citation Information
 

@@ -14,41 +14,38 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
+paperswithcode_id: linnaeus
+pretty_name: LINNAEUS
 ---
 
 # Dataset Card for [Dataset Name]
 
 ## Table of Contents
-- [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
-  - [Table of Contents](#table-of-contents)
-  - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
-      - [Who are the source language producers?](#who-are-the-source-language-producers)
-    - [Annotations](#annotations)
-      - [Annotation process](#annotation-process)
-      - [Who are the annotators?](#who-are-the-annotators)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -60,21 +57,27 @@ task_ids:
 
 ### Dataset Summary
 
-[More Information Needed]
+LINNAEUS is a general-purpose dictionary matching software, capable of processing multiple types of document formats in the biomedical domain (MEDLINE, PMC, BMC, OTMI, text, etc.). It can produce multiple types of output (XML, HTML, tab-separated-value file, or save to a database). It also contains methods for acting as a server (including load balancing across several servers), allowing clients to request matching over a network. A package with files for recognizing and identifying species names is available for LINNAEUS, showing 94% recall and 97% precision compared to LINNAEUS-species-corpus.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+This dataset is used for species Named Entity Recognition.
 
 ### Languages
 
-[More Information Needed]
+The dataset is in English.
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+An example from the dataset is:
+
+```
+{'id': '2',
+'tokens': ['Scp160p', 'is', 'a', '160', 'kDa', 'protein', 'in', 'the', 'yeast', 'Saccharomyces', 'cerevisiae', 'that', 'contains', '14', 'repeats', 'of', 'the', 'hnRNP', 'K', '-', 'homology', '(', 'KH', ')', 'domain', ',', 'and', 'demonstrates', 'significant', 'sequence', 'homology', 'to', 'a', 'family', 'of', 'proteins', 'collectively', 'known', 'as', 'vigilins', '.'],
+'ner_tags': [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
+```
 
 ### Data Fields
 
@@ -84,7 +87,10 @@ task_ids:
 
 ### Data Splits
 
-[More Information Needed]
+
+|   name   |train|validation|test|
+|----------|----:|---------:|---:|
+| linnaeus |11936|      4079|7143|
 
 ## Dataset Creation
 
@@ -142,7 +148,22 @@ task_ids:
 
 ### Citation Information
 
-[More Information Needed]
+```bibtex
+@article{Gerner2010,
+abstract = {The task of recognizing and identifying species names in biomedical literature has recently been regarded as critical for a number of applications in text and data mining, including gene name recognition, species-specific document retrieval, and semantic enrichment of biomedical articles.},
+author = {Gerner, Martin and Nenadic, Goran and Bergman, Casey M},
+doi = {10.1186/1471-2105-11-85},
+issn = {1471-2105},
+journal = {BMC Bioinformatics},
+number = {1},
+pages = {85},
+title = {{LINNAEUS: A species name identification system for biomedical literature}},
+url = {https://doi.org/10.1186/1471-2105-11-85},
+volume = {11},
+year = {2010}
+}
+```
+
 ### Contributions
 
 Thanks to [@edugp](https://github.com/edugp) for adding this dataset.

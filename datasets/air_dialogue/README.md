@@ -1,4 +1,5 @@
 ---
+pretty_name: AirDialogue
 annotations_creators:
 - human-annotated
 language_creators:
@@ -14,12 +15,15 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- sequence-modeling
+- conversational
+- text-generation
+- fill-mask
 task_ids:
-- conditional-text-generation-other-dialogue-generation
+- dialogue-generation
 - dialogue-modeling
 - language-modeling
+- masked-language-modeling
+paperswithcode_id: null
 ---
 
 # Dataset Card for air_dialogue
@@ -27,12 +31,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

@@ -3,7 +3,7 @@ import re
 import shutil
 from argparse import ArgumentParser, Namespace
 
-from datasets.commands import BaseTransformersCLICommand
+from datasets.commands import BaseDatasetsCLICommand
 from datasets.utils.logging import get_logger
 
 
@@ -42,22 +42,24 @@ TO_CONVERT = [
 def convert_command_factory(args: Namespace):
     """
     Factory function used to convert a model TF 1.0 checkpoint in a PyTorch checkpoint.
-    :return: ServeCommand
+
+    Returns: ConvertCommand
     """
     return ConvertCommand(args.tfds_path, args.datasets_directory)
 
 
-class ConvertCommand(BaseTransformersCLICommand):
+class ConvertCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
         """
-        Register this command to argparse so it's available for the transformer-cli
-        :param parser: Root parser to register command-specific arguments
-        :return:
+        Register this command to argparse so it's available for the datasets-cli
+
+        Args:
+            parser: Root parser to register command-specific arguments
         """
         train_parser = parser.add_parser(
             "convert",
-            help="CLI tool to convert a (nlp) TensorFlow-Dataset in a HuggingFace-NLP dataset.",
+            help="Convert a TensorFlow Datasets dataset to a HuggingFace Datasets dataset.",
         )
         train_parser.add_argument(
             "--tfds_path",
@@ -66,7 +68,7 @@ class ConvertCommand(BaseTransformersCLICommand):
             help="Path to a TensorFlow Datasets folder to convert or a single tfds file to convert.",
         )
         train_parser.add_argument(
-            "--datasets_directory", type=str, required=True, help="Path to the HuggingFace NLP folder."
+            "--datasets_directory", type=str, required=True, help="Path to the HuggingFace Datasets folder."
         )
         train_parser.set_defaults(func=convert_command_factory)
 
@@ -86,7 +88,7 @@ class ConvertCommand(BaseTransformersCLICommand):
 
         abs_datasets_path = os.path.abspath(self._datasets_directory)
 
-        self._logger.info("Converting datasets from %s to %s", abs_tfds_path, abs_datasets_path)
+        self._logger.info(f"Converting datasets from {abs_tfds_path} to {abs_datasets_path}")
 
         utils_files = []
         with_manual_update = []
@@ -98,7 +100,7 @@ class ConvertCommand(BaseTransformersCLICommand):
             file_names = [os.path.basename(self._tfds_path)]
 
         for f_name in file_names:
-            self._logger.info("Looking at file %s", f_name)
+            self._logger.info(f"Looking at file {f_name}")
             input_file = os.path.join(abs_tfds_path, f_name)
             output_file = os.path.join(abs_datasets_path, f_name)
 
@@ -106,7 +108,7 @@ class ConvertCommand(BaseTransformersCLICommand):
                 self._logger.info("Skipping file")
                 continue
 
-            with open(input_file, "r", encoding="utf-8") as f:
+            with open(input_file, encoding="utf-8") as f:
                 lines = f.readlines()
 
             out_lines = []
@@ -151,9 +153,8 @@ class ConvertCommand(BaseTransformersCLICommand):
                     out_line = "from . import " + match.group(1)
 
                 # Check we have not forget anything
-                assert (
-                    "tf." not in out_line and "tfds." not in out_line and "tensorflow_datasets" not in out_line
-                ), f"Error converting {out_line.strip()}"
+                if "tf." in out_line or "tfds." in out_line or "tensorflow_datasets" in out_line:
+                    raise ValueError(f"Error converting {out_line.strip()}")
 
                 if "GeneratorBasedBuilder" in out_line or "BeamBasedBuilder" in out_line:
                     is_builder = True
@@ -165,7 +166,7 @@ class ConvertCommand(BaseTransformersCLICommand):
                 output_dir = os.path.join(abs_datasets_path, dir_name)
                 output_file = os.path.join(output_dir, f_name)
                 os.makedirs(output_dir, exist_ok=True)
-                self._logger.info("Adding directory %s", output_dir)
+                self._logger.info(f"Adding directory {output_dir}")
                 imports_to_builder_map.update({imp: output_dir for imp in tfds_imports})
             else:
                 # Utilities will be moved at the end
@@ -176,13 +177,13 @@ class ConvertCommand(BaseTransformersCLICommand):
 
             with open(output_file, "w", encoding="utf-8") as f:
                 f.writelines(out_lines)
-            self._logger.info("Converted in %s", output_file)
+            self._logger.info(f"Converted in {output_file}")
 
         for utils_file in utils_files:
             try:
                 f_name = os.path.basename(utils_file)
                 dest_folder = imports_to_builder_map[f_name.replace(".py", "")]
-                self._logger.info("Moving %s to %s", utils_file, dest_folder)
+                self._logger.info(f"Moving {dest_folder} to {utils_file}")
                 shutil.copy(utils_file, dest_folder)
             except KeyError:
                 self._logger.error(f"Cannot find destination folder for {utils_file}. Please copy manually.")

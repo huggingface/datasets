@@ -18,6 +18,8 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 - open-domain-qa
+paperswithcode_id: qa-srl
+pretty_name: QA-SRL
 ---
 
 # Dataset Card for QA-SRL
@@ -25,7 +27,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)

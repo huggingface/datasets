@@ -17,6 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - multi-label-classification
+paperswithcode_id: null
+pretty_name: Fake News English
 ---
 
 # Dataset Card for Fake News English
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -46,11 +48,11 @@ task_ids:
   - [Contributions](#contributions)
 
 ## Dataset Description
-- **Homepage: https://dl.acm.org/doi/10.1145/3201064.3201100** 
-- **Repository: https://github.com/jgolbeck/fakenews/**
-- **Paper: https://doi.org/10.1145/3201064.3201100**
+- **Homepage:** https://dl.acm.org/doi/10.1145/3201064.3201100**
+- **Repository:** https://github.com/jgolbeck/fakenews/
+- **Paper:** https://doi.org/10.1145/3201064.3201100
 - **Leaderboard:**
-- **Point of Contact: Jennifer Golbeck (http://www.jengolbeck.com)**
+- **Point of Contact:** Jennifer Golbeck (http://www.jengolbeck.com)
 
 ### Dataset Summary
 This dataset contains URLs of news articles classified as either fake or satire. The articles classified as fake also have the URL of a rebutting article.

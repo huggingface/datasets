@@ -4,82 +4,46 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  german_insertions:
-  - de
-  german_deletions:
-  - de
-  english_insertions:
-  - en
-  english_deletions:
-  - en
-  spanish_insertions:
-  - es
-  spanish_deletions:
-  - es
-  french_insertions:
-  - fr
-  french_deletions:
-  - fr
-  italian_insertions:
-  - it
-  italian_deletions:
-  - it
-  japanese_insertions:
-  - jp
-  japanese_deletions:
-  - jp
-  russian_insertions:
-  - ru
-  russian_deletions:
-  - ru
-  chinese_insertions:
-  - zh
-  chinese_deletions:
-  - zh
+- de
+- en
+- es
+- fr
+- it
+- jp
+- ru
+- zh
 licenses:
 - cc-by-sa-4.0
 multilinguality:
 - multilingual
 size_categories:
-  chinese_deletions:
-  - 100K<n<1M
-  chinese_insertions:
-  - 100K<n<1M
-  english_deletions:
-  - 1M<n<10M
-  english_insertions:
-  - 10M<n<100M
-  french_deletions:
-  - 1M<n<10M
-  french_insertions:
-  - 1M<n<10M
-  german_deletions:
-  - 1M<n<10M
-  german_insertions:
-  - 1M<n<10M
-  italian_deletions:
-  - 100K<n<1M
-  italian_insertions:
-  - 1M<n<10M
-  japanese_deletions:
-  - 1M<n<10M
-  japanese_insertions:
-  - 1M<n<10M
-  russian_deletions:
-  - 100K<n<1M
-  russian_insertions:
-  - 1M<n<10M
-  spanish_deletions:
-  - 100K<n<1M
-  spanish_insertions:
-  - 1M<n<10M
+- 100K<n<1M
+- 10M<n<100M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- explanation-generation
 - summarization
+task_ids: []
+paperswithcode_id: wikiatomicedits
+pretty_name: WikiAtomicEdits
+configs:
+- chinese_deletions
+- chinese_insertions
+- english_deletions
+- english_insertions
+- french_deletions
+- french_insertions
+- german_deletions
+- german_insertions
+- italian_deletions
+- italian_insertions
+- japanese_deletions
+- japanese_insertions
+- russian_deletions
+- russian_insertions
+- spanish_deletions
+- spanish_insertions
 ---
 
 # Dataset Card Creation Guide
@@ -87,12 +51,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

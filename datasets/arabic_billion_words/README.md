@@ -6,36 +6,34 @@ language_creators:
 languages:
 - ar
 licenses:
-- unkown
+- unknown
 multilinguality:
 - monolingual
 size_categories:
-  Alittihad:
-  - 10K<n<100K
-  Almasryalyoum:
-  - 1K<n<10K
-  Almustaqbal:
-  - 10K<n<100K
-  Alqabas:
-  - 10K<n<100K
-  Echoroukonline:
-  - 10K<n<100K
-  Ryiadh:
-  - 10K<n<100K
-  Sabanews:
-  - 10K<n<100K
-  SaudiYoum:
-  - 10K<n<100K
-  Techreen:
-  - 10K<n<100K
-  Youm7:
-  - 10K<n<100K
+- 100K<n<1M
+- 10K<n<100K
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
+paperswithcode_id: null
+pretty_name: Arabic Billion Words
+configs:
+- Alittihad
+- Almasryalyoum
+- Almustaqbal
+- Alqabas
+- Echoroukonline
+- Ryiadh
+- Sabanews
+- SaudiYoum
+- Techreen
+- Youm7
 ---
 
 # Dataset Card for Arabic Billion Words Corpus
@@ -43,12 +41,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -91,7 +89,18 @@ Arabic
 
 ### Data Instances
 
-[More Information Needed]
+This is an example of the "Almasryalyoum" configuration subset:
+```python
+{
+  "url": "http://today.almasryalyoum.com/printerfriendly.aspx?ArticleID=61300",
+  "head_line": "رئيس وزراء المجر: عنصرية جماهير أوجبيست جلبت العار للبلاد",
+  "date": "19/5/2007",
+  "text": """قال متحدث باسم الحكومة المجرية: إن رئيس الوزراء فيرنك جيوركساني رحب بقرار اتحاد كرة القدم المجري بخصم ثلاث نقاط من نادي أوجبيست بسبب السلوك العنصري الذي صدر من جماهيره.
+وعاقب الاتحاد المجري فريق أوجبيست بعد أن سخرت جماهيره من إبراهيم سيديبي مهاجم فريق ديبرينسين الأسود أثناء مباراة الفريقين أوائل مايو الجاري.
+يذكر أن الاتحاد فرض أيضا غرامة مالية قدرها 20 ألف دولار علي أوجبيست في عام 2005 بعد أن رددت جماهيره شعارات معادية للسامية خلال مباراة بالدوري المجري.
+وأوضح جيوركساني في خطاب إلي إيستفان كيستليكي رئيس الاتحاد المجري لكرة القدم، أن هذا السلوك العنصري من الجماهير «جلب العار لكرة القدم وللمجر». يذكر أن المجر بها مجموعة من مشجعي كرة القدم المشاغبين «الهوليجانز»، وشارك الكثير منهم في أعمال شغب معادية للحكومة في العام الماضي.""",
+}
+```
 
 ### Data Fields
 
@@ -103,7 +112,20 @@ The data fields are:
 
 ### Data Splits
 
-[More Information Needed]
+There is only one "training" split for all configuration subsets, containing the following number of examples:
+
+|                | Number of examples |
+|:---------------|-------------------:|
+| Alittihad      |             349342 |
+| Almasryalyoum  |             291723 |
+| Almustaqbal    |             446873 |
+| Alqabas        |             817274 |
+| Echoroukonline |             139732 |
+| Ryiadh         |             858188 |
+| Sabanews       |              92149 |
+| SaudiYoum      |             888068 |
+| Techreen       |             314597 |
+| Youm7          |            1172136 |
 
 ## Dataset Creation
 
@@ -172,4 +194,4 @@ The data fields are:
 
 ### Contributions
 
-Thanks to [@zaidalyafeai](https://github.com/zaidalyafeai) for adding this dataset.
+Thanks to [@zaidalyafeai](https://github.com/zaidalyafeai) and [@albertvillanova](https://github.com/albertvillanova) for adding this dataset.

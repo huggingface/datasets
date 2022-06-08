@@ -15,43 +15,45 @@ source_datasets:
 - original
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
+- text-scoring
 - sentiment-classification
 - sentiment-scoring
+paperswithcode_id: null
+pretty_name: OCLAR
 ---
 
 # Dataset Card for OCLAR
 
 ## Table of Contents
-
 - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-instances)
-    - [Data Splits](#data-instances)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-    - [Annotations](#annotations)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
 - **Homepage:** [OCLAR homepage](http://archive.ics.uci.edu/ml/datasets/Opinion+Corpus+for+Lebanese+Arabic+Reviews+%28OCLAR%29#)
 - **Paper:** [paper link](https://www.semanticscholar.org/paper/Sentiment-Classifier%3A-Logistic-Regression-for-in-Omari-Al-Hajj/9319f4d9e8b3b7bfd0d214314911c071ba7ce1a0)
-- **Point of Contact:** Marwan Al Omari <marwanalomari '@' yahoo.com>
+- **Point of Contact:** [Marwan Al Omari](marwanalomari@yahoo.com)
 
 ### Dataset Summary
 

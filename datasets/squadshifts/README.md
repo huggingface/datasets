@@ -1,4 +1,8 @@
 ---
+languages:
+- en
+paperswithcode_id: squad-shifts
+pretty_name: SQuAD-shifts
 ---
 
 # Dataset Card for "squadshifts"
@@ -6,12 +10,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -42,7 +46,7 @@
 SquadShifts consists of four new test sets for the Stanford Question Answering Dataset (SQuAD) from four different domains: Wikipedia articles, New York \
 Times articles, Reddit comments, and Amazon product reviews. Each dataset was generated using the same data generating pipeline, Amazon Mechanical Turk interface, and data cleaning code as the original SQuAD v1.1 dataset. The "new-wikipedia" dataset measures overfitting on the original SQuAD v1.1 dataset.  The "new-york-times", "reddit", and "amazon" datasets measure robustness to natural distribution shifts. We encourage SQuAD model developers to also evaluate their methods on these new datasets!
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -51,8 +55,6 @@ Times articles, Reddit comments, and Amazon product reviews. Each dataset was ge
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -176,7 +178,7 @@ The data fields are the same among all splits.
   - `text`: a `string` feature.
   - `answer_start`: a `int32` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 |  name  |test |
 |--------|----:|
@@ -193,9 +195,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

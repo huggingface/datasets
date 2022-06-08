@@ -1,4 +1,266 @@
 ---
+annotations_creators:
+- found
+language_creators:
+- found
+languages:
+- af
+- ar
+- bg
+- bn
+- de
+- el
+- en
+- es
+- et
+- eu
+- fa
+- fa-IR
+- fi
+- fr
+- he
+- hi
+- hu
+- id
+- it
+- ja
+- jv
+- ka
+- kk
+- ko
+- ml
+- mr
+- ms
+- my
+- nl
+- pt
+- ru
+- sw
+- ta
+- te
+- th
+- tl
+- tr
+- ur
+- vi
+- yo
+- zh
+licenses:
+- apache-2.0
+- cc-by-4.0
+- cc-by-2.0
+- cc-by-sa-4.0
+- other-Licence Universal Dependencies v2.5
+- cc-by-nc-4.0
+multilinguality:
+- multilingual
+- translation
+pretty_name: XTREME
+size_categories:
+- n<1K
+- 1K<n<10K
+- 10K<n<100K
+- 100K<n<1M
+source_datasets:
+- extended|xnli
+- extended|paws-x
+- extended|wikiann
+- extended|xquad
+- extended|mlqa
+- extended|tydiqa
+- extended|tatoeba
+- extended|squad
+task_categories:
+- multiple-choice
+- question-answering
+- token-classification
+- text-classification
+- text-retrieval
+- token-classification
+task_ids:
+- multiple-choice-qa
+- extractive-qa
+- open-domain-qa
+- natural-language-inference
+- text-classification-other-paraphrase-identification
+- text-retrieval-other-parallel-sentence-retrieval
+- named-entity-recognition
+- part-of-speech-tagging
+paperswithcode_id: xtreme
+configs:
+- MLQA.ar.ar
+- MLQA.ar.de
+- MLQA.ar.en
+- MLQA.ar.es
+- MLQA.ar.hi
+- MLQA.ar.vi
+- MLQA.ar.zh
+- MLQA.de.ar
+- MLQA.de.de
+- MLQA.de.en
+- MLQA.de.es
+- MLQA.de.hi
+- MLQA.de.vi
+- MLQA.de.zh
+- MLQA.en.ar
+- MLQA.en.de
+- MLQA.en.en
+- MLQA.en.es
+- MLQA.en.hi
+- MLQA.en.vi
+- MLQA.en.zh
+- MLQA.es.ar
+- MLQA.es.de
+- MLQA.es.en
+- MLQA.es.es
+- MLQA.es.hi
+- MLQA.es.vi
+- MLQA.es.zh
+- MLQA.hi.ar
+- MLQA.hi.de
+- MLQA.hi.en
+- MLQA.hi.es
+- MLQA.hi.hi
+- MLQA.hi.vi
+- MLQA.hi.zh
+- MLQA.vi.ar
+- MLQA.vi.de
+- MLQA.vi.en
+- MLQA.vi.es
+- MLQA.vi.hi
+- MLQA.vi.vi
+- MLQA.vi.zh
+- MLQA.zh.ar
+- MLQA.zh.de
+- MLQA.zh.en
+- MLQA.zh.es
+- MLQA.zh.hi
+- MLQA.zh.vi
+- MLQA.zh.zh
+- PAN-X.af
+- PAN-X.ar
+- PAN-X.bg
+- PAN-X.bn
+- PAN-X.de
+- PAN-X.el
+- PAN-X.en
+- PAN-X.es
+- PAN-X.et
+- PAN-X.eu
+- PAN-X.fa
+- PAN-X.fi
+- PAN-X.fr
+- PAN-X.he
+- PAN-X.hi
+- PAN-X.hu
+- PAN-X.id
+- PAN-X.it
+- PAN-X.ja
+- PAN-X.jv
+- PAN-X.ka
+- PAN-X.kk
+- PAN-X.ko
+- PAN-X.ml
+- PAN-X.mr
+- PAN-X.ms
+- PAN-X.my
+- PAN-X.nl
+- PAN-X.pt
+- PAN-X.ru
+- PAN-X.sw
+- PAN-X.ta
+- PAN-X.te
+- PAN-X.th
+- PAN-X.tl
+- PAN-X.tr
+- PAN-X.ur
+- PAN-X.vi
+- PAN-X.yo
+- PAN-X.zh
+- PAWS-X.de
+- PAWS-X.en
+- PAWS-X.es
+- PAWS-X.fr
+- PAWS-X.ja
+- PAWS-X.ko
+- PAWS-X.zh
+- SQuAD
+- XNLI
+- XQuAD
+- bucc18.de
+- bucc18.fr
+- bucc18.ru
+- bucc18.zh
+- tatoeba.afr
+- tatoeba.ara
+- tatoeba.ben
+- tatoeba.bul
+- tatoeba.cmn
+- tatoeba.deu
+- tatoeba.ell
+- tatoeba.est
+- tatoeba.eus
+- tatoeba.fin
+- tatoeba.fra
+- tatoeba.heb
+- tatoeba.hin
+- tatoeba.hun
+- tatoeba.ind
+- tatoeba.ita
+- tatoeba.jav
+- tatoeba.jpn
+- tatoeba.kat
+- tatoeba.kaz
+- tatoeba.kor
+- tatoeba.mal
+- tatoeba.mar
+- tatoeba.nld
+- tatoeba.pes
+- tatoeba.por
+- tatoeba.rus
+- tatoeba.spa
+- tatoeba.swh
+- tatoeba.tam
+- tatoeba.tel
+- tatoeba.tgl
+- tatoeba.tha
+- tatoeba.tur
+- tatoeba.urd
+- tatoeba.vie
+- tydiqa
+- udpos.Afrikans
+- udpos.Arabic
+- udpos.Basque
+- udpos.Bulgarian
+- udpos.Chinese
+- udpos.Dutch
+- udpos.English
+- udpos.Estonian
+- udpos.Finnish
+- udpos.French
+- udpos.German
+- udpos.Greek
+- udpos.Hebrew
+- udpos.Hindi
+- udpos.Hungarian
+- udpos.Indonesian
+- udpos.Italian
+- udpos.Japanese
+- udpos.Kazakh
+- udpos.Korean
+- udpos.Marathi
+- udpos.Persian
+- udpos.Portuguese
+- udpos.Russian
+- udpos.Spanish
+- udpos.Tagalog
+- udpos.Tamil
+- udpos.Telugu
+- udpos.Thai
+- udpos.Turkish
+- udpos.Urdu
+- udpos.Vietnamese
+- udpos.Yoruba
 ---
 
 # Dataset Card for "xtreme"
@@ -6,12 +268,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -55,7 +317,7 @@ and availability of training data. Among these are many under-studied languages,
 (spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the
 Niger-Congo languages Swahili and Yoruba, spoken in Africa.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -64,8 +326,6 @@ Niger-Congo languages Swahili and Yoruba, spoken in Africa.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -173,7 +433,7 @@ The data fields are the same among all splits.
   - `answer_start`: a `int32` feature.
   - `text`: a `string` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 |   name   |validation|test|
 |----------|---------:|---:|
@@ -191,9 +451,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

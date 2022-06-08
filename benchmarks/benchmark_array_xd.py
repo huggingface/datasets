@@ -2,11 +2,10 @@ import json
 import os
 import tempfile
 
-from utils import generate_examples, get_duration
-
 import datasets
 from datasets.arrow_writer import ArrowWriter
 from datasets.features import Array2D
+from utils import generate_examples, get_duration
 
 
 SHAPE_TEST_1 = (30, 487)

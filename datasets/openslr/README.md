@@ -1,66 +1,39 @@
 ---
+pretty_name: OpenSLR
 annotations_creators:
 - found
 language_creators:
 - found
 languages:
-  SLR32:
-  - af
-  - st
-  - tn
-  - xh
-  SLR35:
-  - jv
-  SLR36:
-  - su
-  SLR41:
-  - jv
-  SLR42:
-  - km
-  SLR43:
-  - ne
-  SLR44:
-  - su
-  SLR52:
-  - si
-  SLR53:
-  - bn
-  SLR54:
-  - ne
-  SLR63:
-  - ml
-  SLR64:
-  - mr
-  SLR65:
-  - ta
-  SLR66:
-  - te
-  SLR69:
-  - ca
-  SLR70:
-  - ng
-  SLR71:
-  - cl
-  SLR72:
-  - co
-  SLR73:
-  - pe
-  SLR74:
-  - pr
-  SLR75:
-  - ve
-  SLR76:
-  - eu
-  SLR77:
-  - gl
-  SLR78:
-  - gu
-  SLR79:
-  - kn
-  SLR80:
-  - my
-  SLR86:
-  - yo
+- af
+- bn
+- ca
+- en-GB
+- en-IE
+- en-NG
+- es-CL
+- es-CO
+- es-PE
+- es-PR
+- eu
+- gl
+- gu
+- jv
+- km
+- kn
+- ml
+- mr
+- my
+- ne
+- si
+- st
+- su
+- ta
+- te
+- tn
+- ve
+- xh
+- yo
 licenses:
 - cc-by-sa-4.0
 multilinguality:
@@ -70,9 +43,38 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
-task_ids:
-- other-other-automatic-speech-recognition
+- automatic-speech-recognition
+task_ids: []
+paperswithcode_id: null
+configs:
+- SLR32
+- SLR35
+- SLR36
+- SLR41
+- SLR42
+- SLR43
+- SLR44
+- SLR52
+- SLR53
+- SLR54
+- SLR63
+- SLR64
+- SLR65
+- SLR66
+- SLR69
+- SLR70
+- SLR71
+- SLR72
+- SLR73
+- SLR74
+- SLR75
+- SLR76
+- SLR77
+- SLR78
+- SLR79
+- SLR80
+- SLR83
+- SLR86
 ---
 
 # Dataset Card for openslr
@@ -80,12 +82,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -357,8 +359,8 @@ https://github.com/google/language-resources#license for license information.
 
 Copyright 2018, 2019 Google, Inc.
 
-#### SLR72: Crowdsourced high-quality Columbian Spanish speech data set
-This data set contains transcribed high-quality audio of Columbian Spanish sentences recorded by volunteers. The data set 
+#### SLR72: Crowdsourced high-quality Colombian Spanish speech data set
+This data set contains transcribed high-quality audio of Colombian Spanish sentences recorded by volunteers. The data set 
 consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
 the transcription of audio in the file.
 
@@ -492,6 +494,19 @@ https://github.com/google/language-resources#license for license information.
 
 Copyright 2018, 2019 Google, Inc.
 
+#### SLR83: Crowdsourced high-quality UK and Ireland English Dialect speech data set
+This data set contains transcribed high-quality audio of English sentences recorded by volunteers speaking different dialects of the language.
+The data set consists of wave files, and a TSV file (line_index.tsv). The file line_index.csv contains a line id, an anonymized FileID and the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+The recordings from the Welsh English speakers were collected in collaboration with Cardiff University.
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/83/LICENSE) file and https://github.com/google/language-resources#license for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
 #### SLR86: Crowdsourced high-quality  multi-speaker speech data set
 This data set contains transcribed high-quality audio of  sentences recorded by volunteers. The data set 
 consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
@@ -527,19 +542,58 @@ A typical data point comprises the path to the audio file, called path and its s
 ```
 {
   'path': '/home/cahya/.cache/huggingface/datasets/downloads/extracted/4d9cf915efc21110199074da4d492566dee6097068b07a680f670fcec9176e62/su_id_female/wavs/suf_00297_00037352660.wav'
+  'audio': {'path': '/home/cahya/.cache/huggingface/datasets/downloads/extracted/4d9cf915efc21110199074da4d492566dee6097068b07a680f670fcec9176e62/su_id_female/wavs/suf_00297_00037352660.wav',
+	  'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346,
+			  0.00091553,  0.00085449], dtype=float32),
+	  'sampling_rate': 16000},
   'sentence': 'Panonton ting haruleng ningali Kelly Clarkson keur nyanyi di tipi',
 }
 ```
 
 ### Data Fields
 
-path: The path to the audio file
-
-sentence: The sentence the user was prompted to speak
+- `path`: The path to the audio file.
+- `audio`: A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling
+  rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and
+  resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might
+  take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column,
+  *i.e.* `dataset[0]["audio"]` should **always** be preferred over `dataset["audio"][0]`.
+- `sentence`: The sentence the user was prompted to speak.
 
 ### Data Splits
 
-The speech material has only train dataset.
+There is only one "train" split for all configurations and the number of examples are:
+
+|       |   Number of examples |
+|:------|---------------------:|
+| SLR41 |                 5822 |
+| SLR42 |                 2906 |
+| SLR43 |                 2064 |
+| SLR44 |                 4213 |
+| SLR63 |                 4126 |
+| SLR64 |                 1569 |
+| SLR65 |                 4284 |
+| SLR66 |                 4448 |
+| SLR69 |                 4240 |
+| SLR35 |               185076 |
+| SLR36 |               219156 |
+| SLR70 |                 3359 |
+| SLR71 |                 4374 |
+| SLR72 |                 4903 |
+| SLR73 |                 5447 |
+| SLR74 |                  617 |
+| SLR75 |                 3357 |
+| SLR76 |                 7136 |
+| SLR77 |                 5587 |
+| SLR78 |                 4272 |
+| SLR79 |                 4400 |
+| SLR80 |                 2530 |
+| SLR86 |                 3583 |
+| SLR32 |                 9821 |
+| SLR52 |               185293 |
+| SLR53 |               218703 |
+| SLR54 |               157905 |
+| SLR83 |                17877 |
 
 ## Dataset Creation
 
@@ -569,7 +623,7 @@ The speech material has only train dataset.
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset.
 
 ## Considerations for Using the Data
 
@@ -593,7 +647,8 @@ The speech material has only train dataset.
 
 ### Licensing Information
 
-[More Information Needed] 
+Each dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License ([CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/legalcode)).
+See https://github.com/google/language-resources#license or the resource page on [OpenSLR](https://openslr.org/resources.php) for more information.
 
 ### Citation Information
 #### SLR32

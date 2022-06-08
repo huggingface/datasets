@@ -14,41 +14,37 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- news-articles-summarization
+paperswithcode_id: cnn-daily-mail-1
+pretty_name: CNN / Daily Mail
 ---
 # Dataset Card for CNN Dailymail Dataset
 
 ## Table of Contents
-- [Dataset Card for CNN Dailymail Dataset](#dataset-card-for-cnn-dailymail-dataset)
-  - [Table of Contents](#table-of-contents)
-  - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
-      - [Who are the source language producers?](#who-are-the-source-language-producers)
-    - [Annotations](#annotations)
-      - [Annotation process](#annotation-process)
-      - [Who are the annotators?](#who-are-the-annotators)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
-    - [Contributions](#contributions)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -60,7 +56,7 @@ task_ids:
 
 ### Dataset Summary
 
-The CNN / DailyMail Dataset is an English-language dataset containing just over 300k unique news aticles as written by journalists at CNN and the Daily Mail. The current version supports both extractive and abstractive summarization, though the original version was created for machine reading and comprehension and abstractive question answering. 
+The CNN / DailyMail Dataset is an English-language dataset containing just over 300k unique news articles as written by journalists at CNN and the Daily Mail. The current version supports both extractive and abstractive summarization, though the original version was created for machine reading and comprehension and abstractive question answering. 
 
 ### Supported Tasks and Leaderboards
 

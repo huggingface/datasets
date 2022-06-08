@@ -17,39 +17,35 @@ task_categories:
 - question-answering
 task_ids:
 - open-domain-qa
+paperswithcode_id: gooaq
+pretty_name: 'GooAQ: Open Question Answering with Diverse Answer Types'
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for GooAQ
 
 ## Table of Contents
-- [Dataset Card Creation Guide](#dataset-card-creation-guide)
-  - [Table of Contents](#table-of-contents)
-  - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
-      - [Who are the source language producers?](#who-are-the-source-language-producers)
-    - [Annotations](#annotations)
-      - [Annotation process](#annotation-process)
-      - [Who are the annotators?](#who-are-the-annotators)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
-    - [Contributions](#contributions)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -113,11 +109,14 @@ Here is the dominant types in the current dataset:
 
 ### Data Splits
 
-This dataset is split into train set. Number of samples in train set is given below:
+Number of samples in train/validation/test set are given below:
 
-|                            | Train  |
-| -----                      | ------ |
-| Gooaq                      | 5030530|
+| Split      | Number of samples |
+|------------|-------------------|
+| Train      | 3112679           |
+| Validation | 2500              |
+| Test       | 2500              |
+
 
 ## Dataset Creation
 

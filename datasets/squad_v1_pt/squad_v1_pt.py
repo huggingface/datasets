@@ -4,6 +4,7 @@
 import json
 
 import datasets
+from datasets.tasks import QuestionAnsweringExtractive
 
 
 # TODO(squad_v1_pt): BibTeX citation
@@ -67,6 +68,11 @@ class SquadV1Pt(datasets.GeneratorBasedBuilder):
             # Homepage of the dataset for documentation
             homepage="https://github.com/nunorc/squad-v1.1-pt",
             citation=_CITATION,
+            task_templates=[
+                QuestionAnsweringExtractive(
+                    question_column="question", context_column="context", answers_column="answers"
+                )
+            ],
         )
 
     def _split_generators(self, dl_manager):

@@ -1,4 +1,5 @@
 ---
+pretty_name: FLUE
 annotations_creators:
 - crowdsourced
 - machine-generated
@@ -17,14 +18,16 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
-  PAWS-X:
-  - intent-classification
-  XNLI:
-  - semantic-similarity-classification
-  CLS:
-  - sentiment-classification
-  WSD-V:
-  - text-classification-other-Word Sense Disambiguation for Verbs
+- intent-classification
+- semantic-similarity-classification
+- sentiment-classification
+- text-classification-other-Word Sense Disambiguation for Verbs
+paperswithcode_id: null
+configs:
+- CLS
+- PAWS-X
+- WSD-V
+- XNLI
 ---
 
 # Dataset Card for FLUE
@@ -32,25 +35,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
-  - [Text Classification (CLS)](#text-classification-(cls))
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-instances)
-    - [Data Splits](#data-instances)
-  - [Paraphrasing (PAWS-X)](#paraphrasing-(paws-x))
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-instances)
-    - [Data Splits](#data-instances)
-  - [Natural Language Inference (XNLI)](#natural-language-inference-(xnli))
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-instances)
-    - [Data Splits](#data-instances)
-  - [Word Sense Disambiguation for Verbs (WSD-V)](#word-sense-disambiguation-for-verbs-(wsd-v))
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-instances)
-    - [Data Splits](#data-instances)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

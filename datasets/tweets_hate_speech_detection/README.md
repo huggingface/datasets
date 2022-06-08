@@ -17,19 +17,61 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+paperswithcode_id: null
+pretty_name: Tweets Hate Speech Detection
+train-eval-index:
+- config: default
+  task: text-classification
+  task_id: binary_classification
+  splits:
+    train_split: train
+  col_mapping:
+    tweet: text
+    label: target
+    metrics:
+      - type: accuracy
+        name: Accuracy
+      - type: f1
+        name: F1 binary
+        args:
+          average: binary
+      - type: precision
+        name: Precision macro
+        args:
+          average: macro
+      - type: precision
+        name: Precision micro
+        args:
+          average: micro
+      - type: precision
+        name: Precision weighted
+        args:
+          average: weighted
+      - type: recall
+        name: Recall macro
+        args:
+          average: macro
+      - type: recall
+        name: Recall micro
+        args:
+          average: micro
+      - type: recall
+        name: Recall weighted
+        args:
+          average: weighted
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Tweets Hate Speech Detection
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -47,11 +89,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: [Home](https://github.com/sharmaroshan/Twitter-Sentiment-Analysis)
-- **Repository:[Repo](https://github.com/sharmaroshan/Twitter-Sentiment-Analysis/blob/master/train_tweet.csv)
-- **Paper:
+- **Homepage:** [Home](https://github.com/sharmaroshan/Twitter-Sentiment-Analysis)
+- **Repository:** [Repo](https://github.com/sharmaroshan/Twitter-Sentiment-Analysis/blob/master/train_tweet.csv)
+- **Paper:**
 - **Leaderboard:**
-- **Point of Contact:[Darshan Gandhi](darshangandhi1151@gmail.com)
+- **Point of Contact:** [Darshan Gandhi](darshangandhi1151@gmail.com)
 
 ### Dataset Summary
 
@@ -64,7 +106,7 @@ Formally, given a training sample of tweets and labels, where label ‘1’ deno
 [More Information Needed]
 
 ### Languages
-The tweets are primarily in English Language
+The tweets are primarily in English Language.
 
 ## Dataset Structure
 
@@ -80,11 +122,11 @@ The dataset contains a label denoting is the tweet a hate speech or not
 
 ### Data Fields
 
-* label : 1 - it is a hate specch, 0 - not a hate speech 
-* tweet: content of the tweet as a string
+* label : 1 - it is a hate speech, 0 - not a hate speech.
+* tweet: content of the tweet as a string.
 
 ### Data Splits
- 
+
 The data contains training data with :31962 entries
 
 ## Dataset Creation
@@ -97,7 +139,7 @@ The data contains training data with :31962 entries
 
 #### Initial Data Collection and Normalization
 
-Crowdsourced from tweets of users 
+Crowdsourced from tweets of users
 
 #### Who are the source language producers?
 
@@ -107,11 +149,11 @@ Cwodsourced from twitter
 
 #### Annotation process
 
-The data has been precprocessed and a model has been trained to assign the relevant label to the tweet 
+The data has been precprocessed and a model has been trained to assign the relevant label to the tweet
 
 #### Who are the annotators?
 
-The data has been provided by Roshan Sharma 
+The data has been provided by Roshan Sharma
 
 ### Personal and Sensitive Information
 
@@ -121,7 +163,7 @@ The data has been provided by Roshan Sharma
 
 ### Social Impact of Dataset
 
-With the help of this dataset, one can understand more about the human sentiments and also analye the situations when a particular person intends to make use of   hatred/racist comments 
+With the help of this dataset, one can understand more about the human sentiments and also analye the situations when a particular person intends to make use of   hatred/racist comments
 
 ### Discussion of Biases
 
@@ -138,7 +180,7 @@ The data could be cleaned up further for additional purposes such as applying a 
 
 ### Dataset Curators
 
-Roshan Sharma 
+Roshan Sharma
 
 ### Licensing Information
 

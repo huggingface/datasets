@@ -1,4 +1,8 @@
 ---
+languages:
+- en
+paperswithcode_id: null
+pretty_name: jeopardy
 ---
 
 # Dataset Card for "jeopardy"
@@ -6,12 +10,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -53,7 +57,7 @@ Note: Tiebreaker questions do happen but they're very rare (like once every 20 y
 'show_number' : int of show number, e.g '4680'
 'air_date' : string of the show air date in format YYYY-MM-DD
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -62,8 +66,6 @@ Note: Tiebreaker questions do happen but they're very rare (like once every 20 y
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -99,7 +101,7 @@ The data fields are the same among all splits.
 - `round`: a `string` feature.
 - `show_number`: a `int32` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 | name  |train |
 |-------|-----:|
@@ -113,9 +115,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

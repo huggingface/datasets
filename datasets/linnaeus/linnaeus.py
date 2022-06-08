@@ -42,7 +42,7 @@ A novel corpus of full-text documents manually annotated for species mentions.
 """
 
 _HOMEPAGE = "http://linnaeus.sourceforge.net/"
-_URL = "https://drive.google.com/u/0/uc?id=1OletxmPYNkz2ltOr9pyT0b0iBtUWxslh&export=download/"
+_URL = "https://drive.google.com/u/0/uc?id=1OletxmPYNkz2ltOr9pyT0b0iBtUWxslh&export=download"
 _BIOBERT_NER_DATASET_DIRECTORY = "linnaeus"
 _TRAINING_FILE = "train.tsv"
 _DEV_FILE = "devel.tsv"

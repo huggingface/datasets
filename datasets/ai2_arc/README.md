@@ -1,4 +1,25 @@
 ---
+annotations_creators:
+- found
+language_creators:
+- found
+languages:
+- en-US
+licenses:
+- cc-by-sa-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- open-domain-qa
+- multiple-choice-qa
+paperswithcode_id: null
+pretty_name: Ai2Arc
 ---
 
 # Dataset Card for "ai2_arc"
@@ -6,12 +27,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -44,7 +65,7 @@ A new dataset of 7,787 genuine grade-school level, multiple-choice science quest
  only questions answered incorrectly by both a retrieval-based algorithm and a word co-occurrence algorithm. We are also
  including a corpus of over 14 million science sentences relevant to the task, and an implementation of three neural baseline models for this dataset. We pose ARC as a challenge to the community.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -53,8 +74,6 @@ A new dataset of 7,787 genuine grade-school level, multiple-choice science quest
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -116,7 +135,7 @@ The data fields are the same among all splits.
   - `label`: a `string` feature.
 - `answerKey`: a `string` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 |    name     |train|validation|test|
 |-------------|----:|---------:|---:|
@@ -131,9 +150,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

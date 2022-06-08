@@ -17,6 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-sarcasm-detection
+paperswithcode_id: null
+pretty_name: Korean Sarcasm Detection
 ---
 
 # Dataset Card for Korean Sarcasm Detection
@@ -24,7 +26,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -47,9 +49,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: [Korean Sarcasm Detection](https://github.com/SpellOnYou/korean-sarcasm)**
-- **Repository: [Korean Sarcasm Detection](https://github.com/SpellOnYou/korean-sarcasm)**
-- **Point of Contact: [Dionne Kim](jiwon.kim.096@gmail.com)**
+- **Homepage:** [Korean Sarcasm Detection](https://github.com/SpellOnYou/korean-sarcasm)
+- **Repository:** [Korean Sarcasm Detection](https://github.com/SpellOnYou/korean-sarcasm)
+- **Point of Contact:** [Dionne Kim](jiwon.kim.096@gmail.com)
 
 ### Dataset Summary
 

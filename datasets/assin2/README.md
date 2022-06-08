@@ -15,10 +15,12 @@ source_datasets:
 - original
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
+- text-scoring
 - natural-language-inference
 - semantic-similarity-scoring
+paperswithcode_id: assin2
+pretty_name: ASSIN 2
 ---
 
 # Dataset Card for ASSIN 2
@@ -26,7 +28,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)

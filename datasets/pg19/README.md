@@ -1,4 +1,8 @@
 ---
+languages:
+- en
+paperswithcode_id: pg-19
+pretty_name: PG-19
 ---
 
 # Dataset Card for "pg19"
@@ -6,12 +10,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -50,7 +54,7 @@ Unlike prior benchmarks, we do not constrain the vocabulary size --- i.e. mappin
 To compare models we propose to continue measuring the word-level perplexity, by calculating the total likelihood of the dataset (via any chosen subword vocabulary or character-based scheme) divided by the number of tokens --- specified below in the dataset statistics table.
 One could use this dataset for benchmarking long-range language models, or use it to pre-train for other natural language processing tasks which require long-range reasoning, such as LAMBADA or NarrativeQA. We would not recommend using this dataset to train a general-purpose language model, e.g. for applications to a production-system dialogue agent, due to the dated linguistic style of old texts and the inherent biases present in historical writing.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -59,8 +63,6 @@ One could use this dataset for benchmarking long-range language models, or use i
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -92,7 +94,7 @@ The data fields are the same among all splits.
 - `url`: a `string` feature.
 - `text`: a `string` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 | name  |train|validation|test|
 |-------|----:|---------:|---:|
@@ -106,9 +108,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

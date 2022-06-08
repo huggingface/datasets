@@ -16,9 +16,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: hindencorp
+pretty_name: HindEnCorp
 ---
 
 # Dataset Card for HindEnCorp
@@ -26,12 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -49,9 +50,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:https://lindat.mff.cuni.cz/repository/xmlui/handle/11858/00-097C-0000-0023-625F-0**
-- **Repository:https://lindat.mff.cuni.cz/repository/xmlui/**
-- **Paper:http://www.lrec-conf.org/proceedings/lrec2014/pdf/835_Paper.pdf**
+- **Homepage:** https://lindat.mff.cuni.cz/repository/xmlui/handle/11858/00-097C-0000-0023-625F-0
+- **Repository:** https://lindat.mff.cuni.cz/repository/xmlui/
+- **Paper:** http://www.lrec-conf.org/proceedings/lrec2014/pdf/835_Paper.pdf
 - **Leaderboard:**
 - **Point of Contact:**
 
@@ -156,7 +157,7 @@ the 1st part of data TIDES was originally col- lected for the DARPA-TIDES surpri
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

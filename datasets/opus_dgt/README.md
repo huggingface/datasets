@@ -34,32 +34,27 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-  bg-ga:
-  - 100K<n<1M
-  bg-hr:
-  - 100K<n<1M
-  bg-sh:
-  - 1M<n<10M
-  es-ga:
-  - 100K<n<1M
-  fi-ga:
-  - 100K<n<1M
-  ga-nl:
-  - 100K<n<1M
-  ga-sh:
-  - 10K<n<100K
-  hr-sk:
-  - 100K<n<1M
-  hr-sv:
-  - 100K<n<1M
-  mt-sh:
-  - 1M<n<10M
+- 100K<n<1M
+- 10K<n<100K
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: null
+pretty_name: OpusDgt
+configs:
+- bg-ga
+- bg-hr
+- bg-sh
+- es-ga
+- fi-ga
+- ga-nl
+- ga-sh
+- hr-sk
+- hr-sv
+- mt-sh
 ---
 
 # Dataset Card Creation Guide
@@ -67,12 +62,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

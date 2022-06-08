@@ -14,9 +14,13 @@ size_categories:
 source_datasets:
 - extended|other-ROC-stories
 task_categories:
-- sequence-modeling
-task_ids:
-- sequence-modeling-other-common-sense-inference
+- text-generation
+- fill-mask
+- text-generation
+- fill-mask
+- text-generation-other-common-sense-inference
+paperswithcode_id: glucose
+pretty_name: GLUCOSE
 ---
 
 # Dataset Card for [Dataset Name]
@@ -24,12 +28,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -49,7 +53,7 @@ task_ids:
 
 - **[Repository](https://github.com/TevenLeScao/glucose)**
 - **[Paper](https://arxiv.org/abs/2009.07758)**
-- **Point of Contact: [glucose@elementalcognition.com](mailto:glucose@elementalcognition.com)**
+- **Point of Contact:** [glucose@elementalcognition.com](mailto:glucose@elementalcognition.com)
 
 ### Dataset Summary
 

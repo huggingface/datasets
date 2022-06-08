@@ -4,90 +4,14 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  de-en_GB:
-  - de
-  - en_GB
-  de-es:
-  - de
-  - es
-  de-fr:
-  - de
-  - fr
-  de-ja:
-  - de
-  - ja
-  de-ru:
-  - de
-  - ru
-  de-sv:
-  - de
-  - sv
-  de-zh_CN:
-  - de
-  - zh_CN
-  en_GB-es:
-  - en_GB
-  - es
-  en_GB-fr:
-  - en_GB
-  - fr
-  en_GB-ja:
-  - en_GB
-  - ja
-  en_GB-ru:
-  - en_GB
-  - ru
-  en_GB-sv:
-  - en_GB
-  - sv
-  en_GB-zh_CN:
-  - en_GB
-  - zh_CN
-  es-fr:
-  - es
-  - fr
-  es-ja:
-  - es
-  - ja
-  es-ru:
-  - es
-  - ru
-  es-sv:
-  - es
-  - sv
-  es-zh_CN:
-  - es
-  - zh_CN
-  fr-ja:
-  - fr
-  - ja
-  fr-ru:
-  - fr
-  - ru
-  fr-sv:
-  - fr
-  - sv
-  fr-zh_CN:
-  - fr
-  - zh_CN
-  ja-ru:
-  - ja
-  - ru
-  ja-sv:
-  - ja
-  - sv
-  ja-zh_CN:
-  - ja
-  - zh_CN
-  ru-sv:
-  - ru
-  - sv
-  ru-zh_CN:
-  - ru
-  - zh_CN
-  sv-zh_CN:
-  - sv
-  - zh_CN
+- de
+- en_GB
+- es
+- fr
+- ja
+- ru
+- sv
+- zh_CN
 licenses:
 - unknown
 multilinguality:
@@ -97,9 +21,39 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: null
+pretty_name: OpusOpenoffice
+configs:
+- de-en_GB
+- de-es
+- de-fr
+- de-ja
+- de-ru
+- de-sv
+- de-zh_CN
+- en_GB-es
+- en_GB-fr
+- en_GB-ja
+- en_GB-ru
+- en_GB-sv
+- en_GB-zh_CN
+- es-fr
+- es-ja
+- es-ru
+- es-sv
+- es-zh_CN
+- fr-ja
+- fr-ru
+- fr-sv
+- fr-zh_CN
+- ja-ru
+- ja-sv
+- ja-zh_CN
+- ru-sv
+- ru-zh_CN
+- sv-zh_CN
 ---
 
 # Dataset Card for [Dataset Name]
@@ -107,12 +61,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

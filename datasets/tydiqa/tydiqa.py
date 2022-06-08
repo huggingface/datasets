@@ -5,6 +5,7 @@ import json
 import textwrap
 
 import datasets
+from datasets.tasks import QuestionAnsweringExtractive
 
 
 # TODO(tydiqa): BibTeX citation
@@ -151,6 +152,11 @@ class Tydiqa(datasets.GeneratorBasedBuilder):
                 supervised_keys=None,
                 homepage="https://github.com/google-research-datasets/tydiqa",
                 citation=_CITATION,
+                task_templates=[
+                    QuestionAnsweringExtractive(
+                        question_column="question", context_column="context", answers_column="answers"
+                    )
+                ],
             )
 
     def _split_generators(self, dl_manager):

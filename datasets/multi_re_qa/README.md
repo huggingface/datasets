@@ -12,60 +12,49 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  BioASQ:
-  - 10K<n<100K
-  DuoRC:
-  - 1K<n<10K
-  HotpotQA:
-  - 100K<n<1M
-  NaturalQuestions:
-  - 100K<n<1M
-  RelationExtraction:
-  - 1K<n<10K
-  SQuAD:
-  - 100K<n<1M
-  SearchQA:
-  - 1M<n<10M
-  TextbookQA:
-  - 10K<n<100K
-  TriviaQA:
-  - 1M<n<10M
+- 100K<n<1M
+- 10K<n<100K
+- 1K<n<10K
+- 1M<n<10M
 source_datasets:
-  BioASQ:
-  - extended|other-BioASQ
-  DuoRC:
-  - extended|other-DuoRC
-  HotpotQA:
-  - extended|other-HotpotQA
-  NaturalQuestions:
-  - extended|other-Natural-Questions
-  RelationExtraction:
-  - extended|other-Relation-Extraction
-  SQuAD:
-  - extended|other-SQuAD
-  SearchQA:
-  - extended|other-SearchQA
-  TextbookQA:
-  - extended|other-TextbookQA
-  TriviaQA:
-  - extended|other-TriviaQA
+- extended|other-BioASQ
+- extended|other-DuoRC
+- extended|other-HotpotQA
+- extended|other-Natural-Questions
+- extended|other-Relation-Extraction
+- extended|other-SQuAD
+- extended|other-SearchQA
+- extended|other-TextbookQA
+- extended|other-TriviaQA
 task_categories:
 - question-answering
 task_ids:
 - extractive-qa
 - open-domain-qa
+paperswithcode_id: multireqa
+pretty_name: MultiReQA
+configs:
+- BioASQ
+- DuoRC
+- HotpotQA
+- NaturalQuestions
+- RelationExtraction
+- SQuAD
+- SearchQA
+- TextbookQA
+- TriviaQA
 ---
 # Dataset Card for MultiReQA
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

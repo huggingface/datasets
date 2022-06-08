@@ -1,4 +1,8 @@
 ---
+languages:
+- en
+paperswithcode_id: hotpotqa
+pretty_name: HotpotQA
 ---
 
 # Dataset Card for "hotpot_qa"
@@ -6,12 +10,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -41,7 +45,7 @@
 
 HotpotQA is a new dataset with 113k  Wikipedia-based question-answer  pairs with  four  key  features:  (1)  the  questions  require finding and reasoning over multiple supporting  documents  to  answer;  (2)  the  questions  are  diverse  and  not  constrained  to  any pre-existing  knowledge  bases  or  knowledge schemas;  (3)  we  provide  sentence-level  supporting facts required for reasoning, allowingQA systems to reason with strong supervisionand explain the predictions; (4) we offer a new type  of  factoid  comparison  questions  to  testQA  systems’  ability  to  extract  relevant  facts and perform necessary comparison.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -50,8 +54,6 @@ HotpotQA is a new dataset with 113k  Wikipedia-based question-answer  pairs with
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -135,7 +137,7 @@ The data fields are the same among all splits.
   - `title`: a `string` feature.
   - `sentences`: a `list` of `string` features.
 
-### Data Splits Sample Size
+### Data Splits
 
 #### distractor
 
@@ -157,9 +159,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

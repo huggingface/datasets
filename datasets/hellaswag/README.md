@@ -1,4 +1,8 @@
 ---
+languages:
+- en
+paperswithcode_id: hellaswag
+pretty_name: HellaSwag
 ---
 
 # Dataset Card for "hellaswag"
@@ -6,12 +10,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -30,8 +34,8 @@
 ## Dataset Description
 
 - **Homepage:** [https://rowanzellers.com/hellaswag/](https://rowanzellers.com/hellaswag/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** [https://github.com/rowanz/hellaswag/](https://github.com/rowanz/hellaswag/)
+- **Paper:** [HellaSwag: Can a Machine Really Finish Your Sentence?](https://aclanthology.org/P19-1472.pdf)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 68.18 MB
 - **Size of the generated dataset:** 62.29 MB
@@ -39,7 +43,7 @@
 
 ### Dataset Summary
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -48,8 +52,6 @@
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -93,7 +95,7 @@ The data fields are the same among all splits.
 - `split_type`: a `string` feature.
 - `label`: a `string` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 | name  |train|validation|test |
 |-------|----:|---------:|----:|
@@ -107,9 +109,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -139,7 +153,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+MIT https://github.com/rowanz/hellaswag/blob/master/LICENSE
 
 ### Citation Information
 

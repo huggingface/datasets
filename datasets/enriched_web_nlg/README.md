@@ -4,10 +4,8 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-  de:
-  - de
-  en:
-  - en
+- de
+- en
 licenses:
 - cc-by-sa-4.0
 multilinguality:
@@ -17,36 +15,41 @@ size_categories:
 source_datasets:
 - extended|other-web-nlg
 task_categories:
-- conditional-text-generation
+- tabular-to-text
 task_ids:
-- other-stuctured-to-text
+- rdf-to-text
+paperswithcode_id: null
+pretty_name: Enriched WebNLG
+configs:
+- de
+- en
 ---
 
 # Dataset Card for WebNLG
 
 ## Table of Contents
-
 - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-instances)
-    - [Data Splits](#data-instances)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-    - [Annotations](#annotations)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -62,7 +65,7 @@ DBpedia triples shown in (a), the aim is to generate a text such as (b). It is a
 
 ### Supported Tasks and Leaderboards
 
-The dataset supports a `other-structured-to-text` task which requires a model takes a set of RDF (Resource Description
+The dataset supports a `other-rdf-to-text` task which requires a model takes a set of RDF (Resource Description
 Format) triples from a database (DBpedia) of the form (subject, property, object) as input and write out a natural
 language sentence expressing the information contained in the triples.
 

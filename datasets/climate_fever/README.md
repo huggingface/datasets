@@ -18,11 +18,14 @@ source_datasets:
 task_categories:
 - text-classification
 - text-retrieval
-- text-scoring
 task_ids:
+- text-scoring
 - fact-checking
 - fact-checking-retrieval
 - semantic-similarity-scoring
+- multi-input-text-classification
+paperswithcode_id: climate-fever
+pretty_name: ClimateFever
 ---
 
 # Dataset Card for ClimateFever
@@ -30,12 +33,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -79,7 +82,7 @@ The text in the dataset is in English, as found in real-world claims about clima
 {
   "claim_id": "0",
   "claim": "Global warming is driving polar bears toward extinction",
-  "claim_label": 1,  # "SUPPORTS"
+  "claim_label": 0,  # "SUPPORTS"
   "evidences": [
     {
      "evidence_id": "Extinction risk from global warming:170",
@@ -97,7 +100,7 @@ The text in the dataset is in English, as found in real-world claims about clima
     },
     {
      "evidence_id": "Global warming:14",
-     "evidence_label": 1,  # "SUPPORTS"
+     "evidence_label": 0,  # "SUPPORTS"
      "article": "Global warming",
      "evidence": "Environmental impacts include the extinction or relocation of many species as their ecosystems change, most immediately the environments of coral reefs, mountains, and the Arctic.",
      "entropy": 0.0,
@@ -125,7 +128,7 @@ The text in the dataset is in English, as found in real-world claims about clima
     },
     {
      "evidence_id": "Habitat destruction:61",
-     "evidence_label": 1,  # "SUPPORTS"
+     "evidence_label": 0,  # "SUPPORTS"
      "article": "Habitat destruction",
      "evidence": "Rising global temperatures, caused by the greenhouse effect, contribute to habitat destruction, endangering various species, such as the polar bear.",
      "entropy": 0.0,
@@ -159,10 +162,10 @@ The text in the dataset is in English, as found in real-world claims about clima
 
 - `claim_id`: a `string` feature, unique claim identifier.
 - `claim`: a `string` feature, claim text.
-- `claim_label`: a `int` feature, overall label assigned to claim (based on evidence majority vote). The label correspond to 0: "refutes", 1: "supports" and 2: "not enough info"
+- `claim_label`: a `int` feature, overall label assigned to claim (based on evidence majority vote). The label correspond to 0: "supports", 1: "refutes", 2: "not enough info" and 3: "disputed".
 - `evidences`: a list of evidences with fields:
  - `evidence_id`: a `string` feature,  unique evidence identifier.
- - `evidence_label`: a `int` feature, micro-verdict label. The label correspond to 0: "refutes", 1: "supports" and 2: "not enough info"
+ - `evidence_label`: a `int` feature, micro-verdict label. The label correspond to 0: "supports", 1: "refutes" and 2: "not enough info".
  - `article`: a `string` feature, title of source article (Wikipedia page).
  - `evidence`: a `string` feature, evidence sentence.
  - `entropy`: a `float32` feature, entropy reflecting uncertainty of `evidence_label`.

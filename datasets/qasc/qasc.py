@@ -2,7 +2,6 @@
 
 
 import json
-import os
 
 import datasets
 
@@ -66,49 +65,59 @@ class Qasc(datasets.GeneratorBasedBuilder):
         # TODO(qasc): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        dl_dir = dl_manager.download_and_extract(_URl)
-        data_dir = os.path.join(dl_dir, "QASC_Dataset")
+        archive = dl_manager.download(_URl)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "train.jsonl")},
+                gen_kwargs={
+                    "filepath": "/".join(["QASC_Dataset", "train.jsonl"]),
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "test.jsonl")},
+                gen_kwargs={
+                    "filepath": "/".join(["QASC_Dataset", "test.jsonl"]),
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "dev.jsonl")},
+                gen_kwargs={
+                    "filepath": "/".join(["QASC_Dataset", "dev.jsonl"]),
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
         ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, filepath, files):
         """Yields examples."""
         # TODO(qasc): Yields (key, example) tuples from the dataset
-        with open(filepath, encoding="utf-8") as f:
-            for row in f:
-                data = json.loads(row)
-                answerkey = data.get("answerKey", "")
-                id_ = data["id"]
-                question = data["question"]["stem"]
-                choices = data["question"]["choices"]
-                text_choices = [choice["text"] for choice in choices]
-                label_choices = [choice["label"] for choice in choices]
-                fact1 = data.get("fact1", "")
-                fact2 = data.get("fact2", "")
-                combined_fact = data.get("combinedfact", "")
-                formatted_question = data.get("formatted_question", "")
-                yield id_, {
-                    "id": id_,
-                    "answerKey": answerkey,
-                    "question": question,
-                    "choices": {"text": text_choices, "label": label_choices},
-                    "fact1": fact1,
-                    "fact2": fact2,
-                    "combinedfact": combined_fact,
-                    "formatted_question": formatted_question,
-                }
+        for path, f in files:
+            if path == filepath:
+                for row in f:
+                    data = json.loads(row.decode("utf-8"))
+                    answerkey = data.get("answerKey", "")
+                    id_ = data["id"]
+                    question = data["question"]["stem"]
+                    choices = data["question"]["choices"]
+                    text_choices = [choice["text"] for choice in choices]
+                    label_choices = [choice["label"] for choice in choices]
+                    fact1 = data.get("fact1", "")
+                    fact2 = data.get("fact2", "")
+                    combined_fact = data.get("combinedfact", "")
+                    formatted_question = data.get("formatted_question", "")
+                    yield id_, {
+                        "id": id_,
+                        "answerKey": answerkey,
+                        "question": question,
+                        "choices": {"text": text_choices, "label": label_choices},
+                        "fact1": fact1,
+                        "fact2": fact2,
+                        "combinedfact": combined_fact,
+                        "formatted_question": formatted_question,
+                    }
+                break

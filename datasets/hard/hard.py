@@ -20,6 +20,7 @@
 import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -85,6 +86,7 @@ class Hard(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/elnagara/HARD-Arabic-Dataset",
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="text", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):

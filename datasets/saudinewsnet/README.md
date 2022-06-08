@@ -14,9 +14,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
+paperswithcode_id: null
+pretty_name: saudinewsnet
 ---
 
 # Dataset Card for "saudinewsnet"
@@ -24,12 +28,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -76,7 +80,7 @@ The dataset currently contains **31,030** Arabic articles (with a total number o
 - [Arreyadi](http://www.arreyadi.com.sa/) (133 articles)
 - [Arreyadiyah](http://www.arreyadiyah.com/) (52 articles)
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -85,8 +89,6 @@ The dataset currently contains **31,030** Arabic articles (with a total number o
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -121,7 +123,7 @@ The data fields are the same among all splits.
 - **`author`** (str): The author of the article. Contains missing values that were replaced with an empty string.
 - **`content`** (str): The content of the article.
 
-### Data Splits Sample Size
+### Data Splits
 
 | name  |train|
 |-------|----:|

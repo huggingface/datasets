@@ -1,4 +1,6 @@
 ---
+paperswithcode_id: clue
+pretty_name: Chinese Language Understanding Evaluation Benchmark
 ---
 
 # Dataset Card for "clue"
@@ -6,12 +8,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,7 +45,7 @@ CLUE, A Chinese Language Understanding Evaluation Benchmark
 (https://www.cluebenchmarks.com/) is a collection of resources for training,
 evaluating, and analyzing Chinese language understanding systems.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -52,8 +54,6 @@ evaluating, and analyzing Chinese language understanding systems.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -94,9 +94,9 @@ This example was too long and was cropped:
 
 #### chid
 
-- **Size of downloaded dataset files:** 127.15 MB
-- **Size of the generated dataset:** 259.71 MB
-- **Total amount of disk used:** 386.86 MB
+- **Size of downloaded dataset files:** 132.75 MB
+- **Size of the generated dataset:** 261.38 MB
+- **Total amount of disk used:** 394.13 MB
 
 An example of 'train' looks as follows.
 ```
@@ -115,9 +115,9 @@ This example was too long and was cropped:
 
 #### cluewsc2020
 
-- **Size of downloaded dataset files:** 0.08 MB
-- **Size of the generated dataset:** 0.41 MB
-- **Total amount of disk used:** 0.49 MB
+- **Size of downloaded dataset files:** 0.27 MB
+- **Size of the generated dataset:** 0.98 MB
+- **Total amount of disk used:** 1.23 MB
 
 An example of 'train' looks as follows.
 ```
@@ -190,7 +190,7 @@ The data fields are the same among all splits.
 - `label`: a classification label, with possible values including `neutral` (0), `entailment` (1), `contradiction` (2).
 - `idx`: a `int32` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 |   name    |train |validation|test |
 |-----------|-----:|---------:|----:|
@@ -208,9 +208,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

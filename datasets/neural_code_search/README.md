@@ -1,4 +1,5 @@
 ---
+pretty_name: Neural Code Search
 annotations_creators:
 - expert-generated
 language_creators:
@@ -10,19 +11,18 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  evaluation_dataset:
-  - n<1K
-  search_corpus:
-  - 1M<n<10M
+- 1M<n<10M
+- n<1K
 source_datasets:
 - original
 task_categories:
 - question-answering
 task_ids:
-  evaluation_dataset:
-  - extractive-qa
-  search_corpus:
-  - extractive-qa
+- extractive-qa
+paperswithcode_id: neural-code-search-evaluation-dataset
+configs:
+- evaluation_dataset
+- search_corpus
 ---
 
 # Dataset Card for Neural Code Search
@@ -30,12 +30,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -146,7 +146,7 @@ The most popular Android repositories on GitHub (ranked by the number of stars) 
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

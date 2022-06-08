@@ -236,7 +236,7 @@ class SemEval_2020Task_11(datasets.GeneratorBasedBuilder):
         with open(tc_labels_template, encoding="utf-8") as f:
             tc_labels_test = f.readlines()
 
-        tc_labels_test = [l.rstrip("\n").split("\t") for l in tc_labels_test]
+        tc_labels_test = [line.rstrip("\n").split("\t") for line in tc_labels_test]
 
         tc_test_template = defaultdict(lambda: [])
 

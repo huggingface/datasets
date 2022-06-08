@@ -18,22 +18,25 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
-- semantic-similarity-scoring
+- natural-language-inference
+- multi-input-text-classification
+paperswithcode_id: multinli
+pretty_name: Multi-Genre Natural Language Inference
 ---
 
-# Dataset Card for "multi_nli"
+# Dataset Card for Multi-Genre Natural Language Inference (MultiNLI)
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -68,7 +71,7 @@ that covers a range of genres of spoken and written text, and supports a
 distinctive cross-genre generalization evaluation. The corpus served as the
 basis for the shared task of the RepEval 2017 Workshop at EMNLP in Copenhagen.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -111,9 +114,9 @@ The data fields are the same among all splits.
 - `{premise,hypothesis} parse`: Each sentence as parsed by the Stanford PCFG Parser 3.5.2
 - `{premise,hypothesis} binary parse`: parses in unlabeled binary-branching format
 - `genre`: a `string` feature.
-- `label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2)
+- `label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2). Dataset instances which don't have any gold label are marked with -1 label. Make sure you filter them before starting the training using `datasets.Dataset.filter`.
 
-### Data Splits Sample Size
+### Data Splits
 
 |train |validation_matched|validation_mismatched|
 |-----:|-----------------:|--------------------:|
@@ -127,11 +130,23 @@ They constructed MultiNLI so as to make it possible to explicitly evaluate model
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
 They created each sentence pair by selecting a premise sentence from a preexisting text source and asked a human annotator to compose a novel sentence to pair with it as a hypothesis.
+
+#### Who are the source language producers?
+
+[More Information Needed]
 
 ### Annotations
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
+
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
@@ -159,7 +174,7 @@ They created each sentence pair by selecting a premise sentence from a preexisti
 
 ### Licensing Information
 
-The majority of the corpus is released under the OANC’s license, which allows all content to be freely used, modi- fied, and shared under permissive terms. The data in the FICTION section falls under several per- missive licenses; Seven Swords is available under a Creative Commons Share-Alike 3.0 Unported License, and with the explicit permission of the author, Living History and Password Incorrect are available under Creative Commons Attribution 3.0 Unported Licenses; the remaining works of fiction are in the public domain in the United States (but may be licensed differently elsewhere).
+The majority of the corpus is released under the OANC’s license, which allows all content to be freely used, modified, and shared under permissive terms. The data in the FICTION section falls under several permissive licenses; Seven Swords is available under a Creative Commons Share-Alike 3.0 Unported License, and with the explicit permission of the author, Living History and Password Incorrect are available under Creative Commons Attribution 3.0 Unported Licenses; the remaining works of fiction are in the public domain in the United States (but may be licensed differently elsewhere).
 
 ### Citation Information
 

@@ -1,0 +1,64 @@
+# Loading methods
+
+Methods for listing and loading datasets and metrics:
+
+## Datasets
+
+[[autodoc]] datasets.list_datasets
+
+[[autodoc]] datasets.load_dataset
+
+[[autodoc]] datasets.load_from_disk
+
+[[autodoc]] datasets.load_dataset_builder
+
+[[autodoc]] datasets.get_dataset_config_names
+
+[[autodoc]] datasets.get_dataset_infos
+
+[[autodoc]] datasets.get_dataset_split_names
+
+[[autodoc]] datasets.inspect_dataset
+
+## Metrics
+
+[[autodoc]] datasets.list_metrics
+
+[[autodoc]] datasets.load_metric
+
+[[autodoc]] datasets.inspect_metric
+
+## From files
+
+Configurations used to load data files.
+They are used when loading local files or a dataset repository:
+
+- local files: `load_dataset("parquet", data_dir="path/to/data/dir")`
+- dataset repository: `load_dataset("allenai/c4")`
+
+You can pass arguments to `load_dataset` to configure data loading.
+For example you can specify the `sep` parameter to define the [`~datasets.packaged_modules.csv.CsvConfig`] that is used to load the data:
+
+```python
+load_dataset("csv", data_dir="path/to/data/dir", sep="\t")
+```
+
+### Text
+
+[[autodoc]] datasets.packaged_modules.text.TextConfig
+
+### CSV
+
+[[autodoc]] datasets.packaged_modules.csv.CsvConfig
+
+### JSON
+
+[[autodoc]] datasets.packaged_modules.json.JsonConfig
+
+### Parquet
+
+[[autodoc]] datasets.packaged_modules.parquet.ParquetConfig
+
+### Images
+
+[[autodoc]] datasets.packaged_modules.imagefolder.ImageFolderConfig

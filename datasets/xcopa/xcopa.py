@@ -2,12 +2,12 @@
 
 
 import json
-import os
 
 import datasets
 
 
-# TODO(xcopa): BibTeX citation
+_HOMEPAGE = "https://github.com/cambridgeltl/xcopa"
+
 _CITATION = """\
   @article{ponti2020xcopa,
   title={{XCOPA: A} Multilingual Dataset for Causal Commonsense Reasoning},
@@ -26,7 +26,6 @@ _CITATION = """\
 }
 """
 
-# TODO(xcopa):
 _DESCRIPTION = """\
   XCOPA: A Multilingual Dataset for Causal Commonsense Reasoning
 The Cross-lingual Choice of Plausible Alternatives dataset is a benchmark to evaluate the ability of machine learning models to transfer commonsense reasoning across
@@ -36,45 +35,34 @@ creation of XCOPA and the implementation of the baselines are available in the p
 """
 
 _LANG = ["et", "ht", "it", "id", "qu", "sw", "zh", "ta", "th", "tr", "vi"]
-
-_URL = "https://github.com/cambridgeltl/xcopa/archive/master.zip"
-
-
-class XcopaConfig(datasets.BuilderConfig):
-    """BuilderConfig for Break"""
-
-    def __init__(self, **kwargs):
-        """
-
-        Args:
-            data_dir: directory for the given language dataset
-            **kwargs: keyword arguments forwarded to super.
-        """
-        super(XcopaConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+_URL = "https://raw.githubusercontent.com/cambridgeltl/xcopa/master/{subdir}/{language}/{split}.{language}.jsonl"
+_VERSION = datasets.Version("1.1.0", "Minor fixes to the 'question' values in Italian")
 
 
 class Xcopa(datasets.GeneratorBasedBuilder):
-    """TODO(xcopa): Short description of my dataset."""
-
-    # TODO(xcopa): Set up version.
-    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
-        XcopaConfig(
+        datasets.BuilderConfig(
             name=lang,
-            description="Xcopa language {}".format(lang),
+            description=f"Xcopa language {lang}",
+            version=_VERSION,
         )
         for lang in _LANG
     ]
+    BUILDER_CONFIGS += [
+        datasets.BuilderConfig(
+            name=f"translation-{lang}",
+            description=f"Xcopa English translation for language {lang}",
+            version=_VERSION,
+        )
+        for lang in _LANG
+        if lang != "qu"
+    ]
 
     def _info(self):
-        # TODO(xcopa): Specifies the datasets.DatasetInfo object
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION + self.config.description,
-            # datasets.features.FeatureConnectors
             features=datasets.Features(
                 {
-                    # These are the features of your dataset like images, labels ...
                     "premise": datasets.Value("string"),
                     "choice1": datasets.Value("string"),
                     "choice2": datasets.Value("string"),
@@ -84,39 +72,29 @@ class Xcopa(datasets.GeneratorBasedBuilder):
                     "changed": datasets.Value("bool"),
                 }
             ),
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
-            supervised_keys=None,
-            # Homepage of the dataset for documentation
-            homepage="https://github.com/cambridgeltl/xcopa",
+            homepage=_HOMEPAGE,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO(xcopa): Downloads the data and defines the splits
-        # dl_manager is a datasets.download.DownloadManager that can be used to
-        # download and extract URLs
-        dl_dir = dl_manager.download_and_extract(_URL)
-
-        data_dir = os.path.join(dl_dir, "xcopa-master", "data", self.config.name)
+        *translation_prefix, language = self.config.name.split("-")
+        data_subdir = "data" if not translation_prefix else "data-gmt"
+        splits = {datasets.Split.VALIDATION: "val", datasets.Split.TEST: "test"}
+        data_urls = {
+            split: _URL.format(subdir=data_subdir, language=language, split=splits[split]) for split in splits
+        }
+        dl_paths = dl_manager.download(data_urls)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "test." + self.config.name + ".jsonl")},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "val." + self.config.name + ".jsonl")},
-            ),
+                name=split,
+                gen_kwargs={"filepath": dl_paths[split]},
+            )
+            for split in splits
         ]
 
     def _generate_examples(self, filepath):
         """Yields examples."""
-        # TODO(xcopa): Yields (key, example) tuples from the dataset
         with open(filepath, encoding="utf-8") as f:
             for row in f:
                 data = json.loads(row)

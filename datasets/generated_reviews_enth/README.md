@@ -16,25 +16,26 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- transkation
 - text-classification
 task_ids:
-- machine-translation
 - multi-class-classification
 - semantic-similarity-classification
+paperswithcode_id: null
+pretty_name: generated_reviews_enth
 ---
 
-# Dataset Card for `generated_reviews_enth`
+# Dataset Card for generated_reviews_enth
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -64,7 +65,7 @@ task_ids:
 
 ### Supported Tasks and Leaderboards
 
-English-to-Thai translation quality esitmation (binary label) is the intended use. Other uses include machine translation and sentiment analysis.
+English-to-Thai translation quality estimation (binary label) is the intended use. Other uses include machine translation and sentiment analysis.
 
 ### Languages
 

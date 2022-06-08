@@ -1,4 +1,5 @@
 ---
+pretty_name: LibriSpeech
 annotations_creators:
 - expert-generated
 language_creators:
@@ -10,14 +11,16 @@ licenses:
 - cc-by-4.0
 multilinguality:
 - monolingual
+paperswithcode_id: librispeech-1
 size_categories:
 - 100K<n<1M
 source_datasets:
 - original
 task_categories:
-- other
+- automatic-speech-recognition
+- audio-classification
 task_ids:
-- other-other-automatic speech recognition
+- speaker-identification
 ---
 
 # Dataset Card for librispeech_asr
@@ -25,12 +28,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -51,7 +54,7 @@ task_ids:
 - **Homepage:** [LibriSpeech ASR corpus](http://www.openslr.org/12)
 - **Repository:** [Needs More Information]
 - **Paper:** [LibriSpeech: An ASR Corpus Based On Public Domain Audio Books](https://www.danielpovey.com/files/2015_icassp_librispeech.pdf)
-- **Leaderboard:** [Paperswithcode Leaderboard](https://paperswithcode.com/sota/speech-recognition-on-librispeech-test-other)
+- **Leaderboard:** [The 🤗 Speech Bench](https://huggingface.co/spaces/huggingface/hf-speech-bench)
 - **Point of Contact:** [Daniel Povey](mailto:dpovey@gmail.com)
 
 ### Dataset Summary
@@ -60,7 +63,7 @@ LibriSpeech is a corpus of approximately 1000 hours of 16kHz read English speech
 
 ### Supported Tasks and Leaderboards
 
-- `automatic-speech-recognition`, `speaker-identification`: The dataset can be used to train a model for Automatic Speech Recognition (ASR). The model is presented with an audio file and asked to transcribe the audio file to written text. The most common evaluation metric is the word error rate (WER). The task has an active leaderboard which can be found at https://paperswithcode.com/sota/speech-recognition-on-librispeech-test-clean and ranks models based on their WER.
+- `automatic-speech-recognition`, `audio-speaker-identification`: The dataset can be used to train a model for Automatic Speech Recognition (ASR). The model is presented with an audio file and asked to transcribe the audio file to written text. The most common evaluation metric is the word error rate (WER). The task has an active Hugging Face leaderboard which can be found at https://huggingface.co/spaces/huggingface/hf-speech-bench. The leaderboard ranks models uploaded to the Hub based on their WER. An external leaderboard at https://paperswithcode.com/sota/speech-recognition-on-librispeech-test-clean ranks the latest models from research and academia.
 
 ### Languages
 
@@ -78,6 +81,10 @@ A typical data point comprises the path to the audio file, usually called `file`
 ```
 {'chapter_id': 141231,
  'file': '/home/patrick/.cache/huggingface/datasets/downloads/extracted/b7ded9969e09942ab65313e691e6fc2e12066192ee8527e21d634aca128afbe2/dev_clean/1272/141231/1272-141231-0000.flac',
+  'audio': {'path': '/home/patrick/.cache/huggingface/datasets/downloads/extracted/b7ded9969e09942ab65313e691e6fc2e12066192ee8527e21d634aca128afbe2/dev_clean/1272/141231/1272-141231-0000.flac',
+  'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346,
+          0.00091553,  0.00085449], dtype=float32),
+  'sampling_rate': 16000},
  'id': '1272-141231-0000',
  'speaker_id': 1272,
  'text': 'A MAN SAID TO THE UNIVERSE SIR I EXIST'}
@@ -87,6 +94,8 @@ A typical data point comprises the path to the audio file, usually called `file`
 ### Data Fields
 
 - file: A path to the downloaded audio file in .flac format.
+
+- audio: A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `dataset[0]["audio"]` should **always** be preferred over `dataset["audio"][0]`.
 
 - text: the transcription of the audio file.
 
@@ -152,7 +161,7 @@ For "other", the data is split into train, validation, and test set. The train s
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset.
 
 ## Considerations for Using the Data
 
@@ -176,11 +185,20 @@ The dataset was initially created by Vassil Panayotov, Guoguo Chen, Daniel Povey
 
 ### Licensing Information
 
-CC BY 4.0
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
 ### Citation Information
 
-[Needs More Information]
+```
+@inproceedings{panayotov2015librispeech,
+  title={Librispeech: an ASR corpus based on public domain audio books},
+  author={Panayotov, Vassil and Chen, Guoguo and Povey, Daniel and Khudanpur, Sanjeev},
+  booktitle={Acoustics, Speech and Signal Processing (ICASSP), 2015 IEEE International Conference on},
+  pages={5206--5210},
+  year={2015},
+  organization={IEEE}
+}
+```
 
 ### Contributions
 

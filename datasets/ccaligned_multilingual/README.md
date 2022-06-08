@@ -6,7 +6,7 @@ language_creators:
 languages:
 - af
 - ak
-- am   
+- am
 - ar
 - as
 - ay
@@ -16,99 +16,99 @@ languages:
 - bm
 - bn
 - br
-- bs   
+- bs
 - ca
-- cb
+- ckb
 - cs
-- cx   
+- ceb
 - cy
-- de   
+- de
 - dv
 - el
-- eo   
-- es   
+- eo
+- es
 - fa
 - ff
 - fi
 - fo
-- fr   
-- fy   
+- fr
+- fy
 - ga
 - gl
 - gn
-- gu   
+- gu
 - he
 - hi
 - hr
 - hu
 - id
-- ig   
+- ig
 - is
-- it   
+- it
 - iu
 - ja
 - ka
-- kg   
+- kg
 - kk
-- km   
-- kn   
+- km
+- kn
 - ko
-- ku   
-- ky   
-- la   
+- ku
+- ky
+- la
 - lg
 - li
 - ln
-- lo   
+- lo
 - lt
 - lv
-- mg   
-- mi   
+- mg
+- mi
 - mk
-- ml   
-- mn   
-- mr   
+- ml
+- mn
+- mr
 - ms
 - mt
-- my   
 - my
-- ne   
+- my
+- ne
 - nl
-- no
-- ns
-- ny   
+- 'no'
+- nso
+- ny
 - om
 - or
-- pa   
+- pa
 - pl
-- ps   
+- ps
 - pt
-- qa   
-- qd   
+- shn
+- kac
 - rm
 - ro
-- ru   
+- ru
 - rw
 - sc
-- sd   
+- sd
 - se
-- si   
+- si
 - sk
 - sl
-- sn   
-- so   
+- sn
+- so
 - sq
 - sr
 - ss
 - st
-- su   
+- su
 - sv
 - sw
-- sy
-- sz
+- syc
+- szl
 - ta
-- te   
-- tg   
+- te
+- tg
 - th
 - ti
 - tl
@@ -116,7 +116,7 @@ languages:
 - tr
 - ts
 - tt
-- tz   
+- zgh
 - ug
 - uk
 - ur
@@ -124,14 +124,14 @@ languages:
 - ve
 - vi
 - wo
-- wy
-- xh   
-- yi   
-- yo   
+- war
+- xh
+- yi
+- yo
 - zh
 - zh
-- zu   
-- zz
+- zu
+- zza
 licenses:
 - unknown
 multilinguality:
@@ -141,13 +141,16 @@ size_categories:
 - 1K<n<10K
 - 10K<n<100K
 - 100K<n<1M
-- n>1M
+- 1M<n<10M
+- 10M<n<100M
 source_datasets:
 - original
 task_categories:
 - other
 task_ids:
 - other-other-translation
+paperswithcode_id: ccaligned
+pretty_name: CCAligned
 ---
 
 # Dataset Card for ccaligned_multilingual
@@ -155,12 +158,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -243,7 +246,16 @@ For `sentences` type:
 
 ### Data Splits
 
-[Needs More Information]
+Split sizes of some small configurations:
+
+|   name   |train|
+|----------|----:|
+|documents-zz_TR|41|
+|sentences-zz_TR|34|
+|documents-tz_MA|4|
+|sentences-tz_MA|33|
+|documents-ak_GH|249|
+|sentences-ak_GH|478|
 
 ## Dataset Creation
 
@@ -273,7 +285,7 @@ For `sentences` type:
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset.
 
 ## Considerations for Using the Data
 

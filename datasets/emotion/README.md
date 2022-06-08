@@ -1,4 +1,74 @@
 ---
+pretty_name: Emotion
+annotations_creators:
+- machine-generated
+language_creators:
+- machine-generated
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- multi-class-classification
+- text-classification-other-emotion-classification
+paperswithcode_id: emotion
+train-eval-index:
+- config: default
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    text: text
+    label: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 macro
+      args:
+        average: macro
+    - type: f1
+      name: F1 micro
+      args:
+        average: micro
+    - type: f1
+      name: F1 weighted
+      args:
+        average: weighted
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
 ---
 
 # Dataset Card for "emotion"
@@ -6,12 +76,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -41,7 +111,7 @@
 
 Emotion is a dataset of English Twitter messages with six basic emotions: anger, fear, joy, love, sadness, and surprise. For more detailed information please refer to the paper.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -50,8 +120,6 @@ Emotion is a dataset of English Twitter messages with six basic emotions: anger,
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -86,18 +154,18 @@ The data fields are the same among all splits.
 
 #### default
 - `text`: a `string` feature.
-- `label`: a classification label, with possible values including `sadness` (0), `joy` (1), `love` (2), `anger` (3), `fear` (4).
+- `label`: a classification label, with possible values including `sadness` (0), `joy` (1), `love` (2), `anger` (3), `fear` (4), `surprise` (5).
 
 #### emotion
 - `text`: a `string` feature.
 - `label`: a `string` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
-| name  |train|validation|test|
-|-------|----:|---------:|---:|
-|default|16000|      2000|2000|
-|emotion|16000|      2000|2000|
+| name    | train | validation | test |
+| ------- | ----: | ---------: | ---: |
+| default | 16000 |       2000 | 2000 |
+| emotion | 16000 |       2000 | 2000 |
 
 ## Dataset Creation
 
@@ -107,9 +175,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

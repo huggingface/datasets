@@ -15,24 +15,26 @@ source_datasets:
 - extended|net-activities-captions
 - original
 task_categories:
-- structure-prediction
+- token-classification
 - text-classification
 task_ids:
 - multi-class-classification
 - named-entity-recognition
+paperswithcode_id: limit
+pretty_name: LiMiT
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for LiMiT
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -107,9 +109,9 @@ Example of one instance in the dataset
 
 The dataset is split into a `train`, and `test` split with the following sizes:
 
-|                            | Tain   | Valid |
-| -----                      | ------ | ----- |
-| Number of examples         | 23559  | 1000  |
+|                            | train | validation |
+| -----                      |------:|-----------:|
+| Number of examples         | 23559 |       1000 |
 
 ## Dataset Creation
 

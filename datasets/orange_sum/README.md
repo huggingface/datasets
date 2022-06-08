@@ -1,4 +1,5 @@
 ---
+pretty_name: OrangeSum
 annotations_creators:
 - found
 language_creators:
@@ -14,9 +15,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- news-articles-headline-generation
+- news-articles-summarization
+paperswithcode_id: orangesum
 ---
 
 # Dataset Card for OrangeSum
@@ -24,12 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -90,10 +93,10 @@ Example:
 
 The data is split into a training, validation and test in both configuration.
 
-|          | Tain   | Valid | Test |
-| -----    | ------ | ----- | ---- |
-| Abstract | 21400  |  1500 | 1500 |
-| Title    | 30658  |  1500 | 1500 |
+|          | train | validation | test |
+|----------|------:|-----------:|-----:|
+| Abstract | 21400 |       1500 | 1500 |
+| Title    | 30658 |       1500 | 1500 |
 
 ## Dataset Creation
 

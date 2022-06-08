@@ -3,7 +3,6 @@ using evidence from the cited abstracts."""
 
 
 import json
-import os
 
 import datasets
 
@@ -89,14 +88,18 @@ class Scifact(datasets.GeneratorBasedBuilder):
         # TODO(scifact): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        dl_dir = dl_manager.download_and_extract(_URL)
+        archive = dl_manager.download(_URL)
 
         if self.config.name == "corpus":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": os.path.join(dl_dir, "data", "corpus.jsonl"), "split": "train"},
+                    gen_kwargs={
+                        "filepath": "data/corpus.jsonl",
+                        "split": "train",
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
             ]
         else:
@@ -104,62 +107,76 @@ class Scifact(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": os.path.join(dl_dir, "data", "claims_train.jsonl"), "split": "train"},
+                    gen_kwargs={
+                        "filepath": "data/claims_train.jsonl",
+                        "split": "train",
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": os.path.join(dl_dir, "data", "claims_test.jsonl"), "split": "test"},
+                    gen_kwargs={
+                        "filepath": "data/claims_test.jsonl",
+                        "split": "test",
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": os.path.join(dl_dir, "data", "claims_dev.jsonl"), "split": "dev"},
+                    gen_kwargs={
+                        "filepath": "data/claims_dev.jsonl",
+                        "split": "dev",
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
             ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath, split, files):
         """Yields examples."""
         # TODO(scifact): Yields (key, example) tuples from the dataset
-        with open(filepath, encoding="utf-8") as f:
-            for id_, row in enumerate(f):
-                data = json.loads(row)
-                if self.config.name == "corpus":
-                    yield id_, {
-                        "doc_id": int(data["doc_id"]),
-                        "title": data["title"],
-                        "abstract": data["abstract"],
-                        "structured": data["structured"],
-                    }
-                else:
-                    if split == "test":
+        for path, f in files:
+            if path == filepath:
+                for id_, row in enumerate(f):
+                    data = json.loads(row.decode("utf-8"))
+                    if self.config.name == "corpus":
                         yield id_, {
-                            "id": data["id"],
-                            "claim": data["claim"],
-                            "evidence_doc_id": "",
-                            "evidence_label": "",
-                            "evidence_sentences": [],
-                            "cited_doc_ids": [],
+                            "doc_id": int(data["doc_id"]),
+                            "title": data["title"],
+                            "abstract": data["abstract"],
+                            "structured": data["structured"],
                         }
                     else:
-                        evidences = data["evidence"]
-                        if evidences:
-                            for id1, doc_id in enumerate(evidences):
-                                for id2, evidence in enumerate(evidences[doc_id]):
-                                    yield str(id_) + "_" + str(id1) + "_" + str(id2), {
-                                        "id": data["id"],
-                                        "claim": data["claim"],
-                                        "evidence_doc_id": doc_id,
-                                        "evidence_label": evidence["label"],
-                                        "evidence_sentences": evidence["sentences"],
-                                        "cited_doc_ids": data.get("cited_doc_ids", []),
-                                    }
-                        else:
+                        if split == "test":
                             yield id_, {
                                 "id": data["id"],
                                 "claim": data["claim"],
                                 "evidence_doc_id": "",
                                 "evidence_label": "",
                                 "evidence_sentences": [],
-                                "cited_doc_ids": data.get("cited_doc_ids", []),
+                                "cited_doc_ids": [],
                             }
+                        else:
+                            evidences = data["evidence"]
+                            if evidences:
+                                for id1, doc_id in enumerate(evidences):
+                                    for id2, evidence in enumerate(evidences[doc_id]):
+                                        yield str(id_) + "_" + str(id1) + "_" + str(id2), {
+                                            "id": data["id"],
+                                            "claim": data["claim"],
+                                            "evidence_doc_id": doc_id,
+                                            "evidence_label": evidence["label"],
+                                            "evidence_sentences": evidence["sentences"],
+                                            "cited_doc_ids": data.get("cited_doc_ids", []),
+                                        }
+                            else:
+                                yield id_, {
+                                    "id": data["id"],
+                                    "claim": data["claim"],
+                                    "evidence_doc_id": "",
+                                    "evidence_label": "",
+                                    "evidence_sentences": [],
+                                    "cited_doc_ids": data.get("cited_doc_ids", []),
+                                }
+                break

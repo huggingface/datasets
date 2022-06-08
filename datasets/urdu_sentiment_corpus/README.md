@@ -1,36 +1,37 @@
 ---
 annotations_creators:
-  - expert-generated
+- expert-generated
 language_creators:
-  - crowdsourced
+- crowdsourced
 languages:
-  - ur
+- ur
 licenses:
-  - unknown
+- unknown
 multilinguality:
-  - monolingual
+- monolingual
 size_categories:
-  - 1K<n<10K
+- 1K<n<10K
 source_datasets:
-  - original
+- original
 task_categories:
-  - text-classification
+- text-classification
 task_ids:
-  - sentiment-classification
+- sentiment-classification
+paperswithcode_id: urdu-sentiment-corpus
+pretty_name: Urdu Sentiment Corpus (USC)
 ---
 
 # Dataset Card for Urdu Sentiment Corpus (USC)
 
 ## Table of Contents
-
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

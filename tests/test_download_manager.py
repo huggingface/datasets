@@ -4,8 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from datasets.utils.download_manager import DownloadManager
-from datasets.utils.file_utils import DownloadConfig, hash_url_to_filename
+from datasets.download.download_config import DownloadConfig
+from datasets.download.download_manager import DownloadManager
+from datasets.utils.file_utils import hash_url_to_filename
 
 
 URL = "http://www.mocksite.com/file1.txt"
@@ -111,3 +112,34 @@ def test_download_manager_extract(paths_type, xz_file, text_file):
             extracted_file_content = extracted_path.read_text()
             expected_file_content = text_file.read_text()
             assert extracted_file_content == expected_file_content
+
+
+def _test_jsonl(path, file):
+    assert path.endswith(".jsonl")
+    for num_items, line in enumerate(file, start=1):
+        item = json.loads(line.decode("utf-8"))
+        assert item.keys() == {"col_1", "col_2", "col_3"}
+    assert num_items == 4
+
+
+def test_iter_archive_path(tar_jsonl_path):
+    dl_manager = DownloadManager()
+    for num_jsonl, (path, file) in enumerate(dl_manager.iter_archive(tar_jsonl_path), start=1):
+        _test_jsonl(path, file)
+    assert num_jsonl == 2
+
+
+def test_iter_archive_file(tar_nested_jsonl_path):
+    dl_manager = DownloadManager()
+    for num_tar, (path, file) in enumerate(dl_manager.iter_archive(tar_nested_jsonl_path), start=1):
+        for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
+            _test_jsonl(subpath, subfile)
+    assert num_tar == 1
+    assert num_jsonl == 2
+
+
+def test_iter_files(data_dir_with_hidden_files):
+    dl_manager = DownloadManager()
+    for num_file, file in enumerate(dl_manager.iter_files(data_dir_with_hidden_files), start=1):
+        pass
+    assert num_file == 2

@@ -14,9 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- conditional-text-generation-other-dialogue-generation
+- conversational
+task_ids: []
+paperswithcode_id: negotiation-dialogues-dataset
+pretty_name: Deal or No Deal Negotiator
 ---
 
 
@@ -25,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -84,10 +85,10 @@ The text in the dataset is in English
 
 ### Data Splits
 
-|           | Tain   | Valid | Test |
-| -----     | ------ | ----- | ---- |
-| dialogues |  10095 |  1087 | 1052 |
-| self_play |   8172 |  NA   | NA   |
+|            | train | validation | test |
+|------------|------:|-----------:|-----:|
+| dialogues  | 10095 |       1087 | 1052 |
+| self_play  |  8172 |         NA |   NA |
 
 ## Dataset Creation
 

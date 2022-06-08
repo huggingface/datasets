@@ -145,33 +145,19 @@ class Biomrc(datasets.GeneratorBasedBuilder):
         setting = "" if self.config.biomrc_setting == "A" else "_B"
         if self.config.biomrc_version == "large":
             urls_to_download = {
-                "train": "https://archive.org/download/biomrc_dataset/biomrc_large/dataset_train{}.json.gz".format(
-                    setting
-                ),
-                "val": "https://archive.org/download/biomrc_dataset/biomrc_large/dataset_val{}.json.gz".format(
-                    setting
-                ),
-                "test": "https://archive.org/download/biomrc_dataset/biomrc_large/dataset_test{}.json.gz".format(
-                    setting
-                ),
+                "train": f"https://archive.org/download/biomrc_dataset/biomrc_large/dataset_train{setting}.json.gz",
+                "val": f"https://archive.org/download/biomrc_dataset/biomrc_large/dataset_val{setting}.json.gz",
+                "test": f"https://archive.org/download/biomrc_dataset/biomrc_large/dataset_test{setting}.json.gz",
             }
         elif self.config.biomrc_version == "small":
             urls_to_download = {
-                "train": "https://archive.org/download/biomrc_dataset/biomrc_small/dataset_train_small{}.json.gz".format(
-                    setting
-                ),
-                "val": "https://archive.org/download/biomrc_dataset/biomrc_small/dataset_val_small{}.json.gz".format(
-                    setting
-                ),
-                "test": "https://archive.org/download/biomrc_dataset/biomrc_small/dataset_test_small{}.json.gz".format(
-                    setting
-                ),
+                "train": f"https://archive.org/download/biomrc_dataset/biomrc_small/dataset_train_small{setting}.json.gz",
+                "val": f"https://archive.org/download/biomrc_dataset/biomrc_small/dataset_val_small{setting}.json.gz",
+                "test": f"https://archive.org/download/biomrc_dataset/biomrc_small/dataset_test_small{setting}.json.gz",
             }
         else:
             urls_to_download = {
-                "test": "https://archive.org/download/biomrc_dataset/biomrc_tiny/dataset_tiny{}.json.gz".format(
-                    setting
-                )
+                "test": f"https://archive.org/download/biomrc_dataset/biomrc_tiny/dataset_tiny{setting}.json.gz"
             }
 
         downloaded_files = dl_manager.download_and_extract(urls_to_download)

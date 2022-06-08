@@ -18,6 +18,8 @@ task_categories:
 - text-classification
 task_ids:
 - multi-class-classification
+paperswithcode_id: dengue
+pretty_name: Dengue Dataset in Filipino
 ---
 
 # Dataset Card for Dengue Dataset in Filipino
@@ -25,12 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -48,11 +50,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: [Dengue Dataset in Filipino homepage](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)**
-- **Repository: [Dengue Dataset in Filipino repository](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)**
-- **Paper: [IEEE paper](https://ieeexplore.ieee.org/document/8459963)**
+- **Homepage:** [Dengue Dataset in Filipino homepage](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
+- **Repository:** [Dengue Dataset in Filipino repository](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
+- **Paper:** [IEEE paper](https://ieeexplore.ieee.org/document/8459963)
 - **Leaderboard:**
-- **Point of Contact: [Jan Christian Cruz](mailto:jan_christian_cruz@dlsu.edu.ph)**
+- **Point of Contact:** [Jan Christian Cruz](mailto:jan_christian_cruz@dlsu.edu.ph)
 
 ### Dataset Summary
 

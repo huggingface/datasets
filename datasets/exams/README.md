@@ -1,256 +1,70 @@
 ---
+pretty_name: EXAMS
 annotations_creators:
 - found
 language_creators:
 - found
 languages:
-  alignments:
-  - ar
-  - bg
-  - de
-  - es
-  - fr
-  - hr
-  - hu
-  - it
-  - lt
-  - mk
-  - pl
-  - pt
-  - sq
-  - sr
-  - tr
-  - vi
-  crosslingual_bg:
-  - bg
-  crosslingual_hr:
-  - hr
-  crosslingual_hu:
-  - hu
-  crosslingual_it:
-  - it
-  crosslingual_mk:
-  - mk
-  crosslingual_pl:
-  - pl
-  crosslingual_pt:
-  - pt
-  crosslingual_sq:
-  - sq
-  crosslingual_sr:
-  - sr
-  crosslingual_test:
-  - ar
-  - bg
-  - de
-  - es
-  - fr
-  - hr
-  - hu
-  - it
-  - lt
-  - mk
-  - pl
-  - pt
-  - sq
-  - sr
-  - tr
-  - vi
-  crosslingual_tr:
-  - tr
-  crosslingual_vi:
-  - vi
-  crosslingual_with_para_bg:
-  - bg
-  crosslingual_with_para_hr:
-  - hr
-  crosslingual_with_para_hu:
-  - hu
-  crosslingual_with_para_it:
-  - it
-  crosslingual_with_para_mk:
-  - mk
-  crosslingual_with_para_pl:
-  - pl
-  crosslingual_with_para_pt:
-  - pt
-  crosslingual_with_para_sq:
-  - sq
-  crosslingual_with_para_sr:
-  - sr
-  crosslingual_with_para_test:
-  - ar
-  - bg
-  - de
-  - es
-  - fr
-  - hr
-  - hu
-  - it
-  - lt
-  - mk
-  - pl
-  - pt
-  - sq
-  - sr
-  - tr
-  - vi
-  crosslingual_with_para_tr:
-  - tr
-  crosslingual_with_para_vi:
-  - vi
-  multilingual:
-  - ar
-  - bg
-  - de
-  - es
-  - fr
-  - hr
-  - hu
-  - it
-  - lt
-  - mk
-  - pl
-  - pt
-  - sq
-  - sr
-  - tr
-  - vi
-  multilingual_with_para:
-  - ar
-  - bg
-  - de
-  - es
-  - fr
-  - hr
-  - hu
-  - it
-  - lt
-  - mk
-  - pl
-  - pt
-  - sq
-  - sr
-  - tr
-  - vi
+- ar
+- bg
+- de
+- es
+- fr
+- hr
+- hu
+- it
+- lt
+- mk
+- pl
+- pt
+- sq
+- sr
+- tr
+- vi
 licenses:
 - cc-by-sa-4.0
 multilinguality:
-  alignments:
-  - multilingual
-  crosslingual_bg:
-  - monolingual
-  crosslingual_hr:
-  - monolingual
-  crosslingual_hu:
-  - monolingual
-  crosslingual_it:
-  - monolingual
-  crosslingual_mk:
-  - monolingual
-  crosslingual_pl:
-  - monolingual
-  crosslingual_pt:
-  - monolingual
-  crosslingual_sq:
-  - monolingual
-  crosslingual_sr:
-  - monolingual
-  crosslingual_test:
-  - multilingual
-  crosslingual_tr:
-  - monolingual
-  crosslingual_vi:
-  - monolingual
-  crosslingual_with_para_bg:
-  - monolingual
-  crosslingual_with_para_hr:
-  - monolingual
-  crosslingual_with_para_hu:
-  - monolingual
-  crosslingual_with_para_it:
-  - monolingual
-  crosslingual_with_para_mk:
-  - monolingual
-  crosslingual_with_para_pl:
-  - monolingual
-  crosslingual_with_para_pt:
-  - monolingual
-  crosslingual_with_para_sq:
-  - monolingual
-  crosslingual_with_para_sr:
-  - monolingual
-  crosslingual_with_para_test:
-  - multilingual
-  crosslingual_with_para_tr:
-  - monolingual
-  crosslingual_with_para_vi:
-  - monolingual
-  multilingual:
-  - multilingual
-  multilingual_with_para:
-  - multilingual
+- monolingual
+- multilingual
 size_categories:
-  alignments:
-  - 10K<n<100K
-  crosslingual_bg:
-  - 1K<n<10K
-  crosslingual_hr:
-  - 1K<n<10K
-  crosslingual_hu:
-  - 1K<n<10K
-  crosslingual_it:
-  - 1K<n<10K
-  crosslingual_mk:
-  - 1K<n<10K
-  crosslingual_pl:
-  - 1K<n<10K
-  crosslingual_pt:
-  - n<1K
-  crosslingual_sq:
-  - 1K<n<10K
-  crosslingual_sr:
-  - 1K<n<10K
-  crosslingual_test:
-  - 10K<n<100K
-  crosslingual_tr:
-  - 1K<n<10K
-  crosslingual_vi:
-  - 1K<n<10K
-  crosslingual_with_para_bg:
-  - 1K<n<10K
-  crosslingual_with_para_hr:
-  - 1K<n<10K
-  crosslingual_with_para_hu:
-  - 1K<n<10K
-  crosslingual_with_para_it:
-  - 1K<n<10K
-  crosslingual_with_para_mk:
-  - 1K<n<10K
-  crosslingual_with_para_pl:
-  - 1K<n<10K
-  crosslingual_with_para_pt:
-  - n<1K
-  crosslingual_with_para_sq:
-  - 1K<n<10K
-  crosslingual_with_para_sr:
-  - 1K<n<10K
-  crosslingual_with_para_test:
-  - 10K<n<100K
-  crosslingual_with_para_tr:
-  - 1K<n<10K
-  crosslingual_with_para_vi:
-  - 1K<n<10K
-  multilingual:
-  - 10K<n<100K
-  multilingual_with_para:
-  - 10K<n<100K
+- 10K<n<100K
+- 1K<n<10K
+- n<1K
 source_datasets:
 - original
 task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
+paperswithcode_id: exams
+configs:
+- alignments
+- crosslingual_bg
+- crosslingual_hr
+- crosslingual_hu
+- crosslingual_it
+- crosslingual_mk
+- crosslingual_pl
+- crosslingual_pt
+- crosslingual_sq
+- crosslingual_sr
+- crosslingual_test
+- crosslingual_tr
+- crosslingual_vi
+- crosslingual_with_para_bg
+- crosslingual_with_para_hr
+- crosslingual_with_para_hu
+- crosslingual_with_para_it
+- crosslingual_with_para_mk
+- crosslingual_with_para_pl
+- crosslingual_with_para_pt
+- crosslingual_with_para_sq
+- crosslingual_with_para_sr
+- crosslingual_with_para_test
+- crosslingual_with_para_tr
+- crosslingual_with_para_vi
+- multilingual
+- multilingual_with_para
 ---
 
 # Dataset Card for [Dataset Name]
@@ -258,12 +72,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

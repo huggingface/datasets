@@ -21,6 +21,7 @@ import csv
 import os
 
 import datasets
+from datasets.tasks import AutomaticSpeechRecognition
 
 
 _CITATION = """\
@@ -73,6 +74,7 @@ class LJSpeech(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
+                    "audio": datasets.Audio(sampling_rate=22050),
                     "file": datasets.Value("string"),
                     "text": datasets.Value("string"),
                     "normalized_text": datasets.Value("string"),
@@ -81,12 +83,13 @@ class LJSpeech(datasets.GeneratorBasedBuilder):
             supervised_keys=("file", "text"),
             homepage=_URL,
             citation=_CITATION,
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="text")],
         )
 
     def _split_generators(self, dl_manager):
         root_path = dl_manager.download_and_extract(_DL_URL)
-        root_path = os.path.join(root_path, "LJSpeech-1.1/")
-        wav_path = os.path.join(root_path, "wavs/")
+        root_path = os.path.join(root_path, "LJSpeech-1.1")
+        wav_path = os.path.join(root_path, "wavs")
         csv_path = os.path.join(root_path, "metadata.csv")
 
         return [
@@ -106,6 +109,7 @@ class LJSpeech(datasets.GeneratorBasedBuilder):
                 example = {
                     "id": uid,
                     "file": os.path.join(wav_path, filename),
+                    "audio": os.path.join(wav_path, filename),
                     "text": text,
                     "normalized_text": norm_text,
                 }

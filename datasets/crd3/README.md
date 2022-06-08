@@ -1,4 +1,26 @@
 ---
+pretty_name: CRD3 (Critical Role Dungeons and Dragons Dataset)
+annotations_creators:
+- no-annotation
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- cc-by-sa-4.0
+multilinguality:
+- monolingual
+source_datasets:
+- original
+task_categories:
+- summarization
+- text-generation
+- fill-mask
+task_ids:
+- dialogue-modeling
+size_categories:
+- 10K<n<100K
+paperswithcode_id: crd3
 ---
 
 # Dataset Card for "crd3"
@@ -6,12 +28,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -29,9 +51,9 @@
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/RevanthRameshkumar/CRD3](https://github.com/RevanthRameshkumar/CRD3)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Homepage:** [CRD3 homepage](https://github.com/RevanthRameshkumar/CRD3)
+- **Repository:** [CRD3 repository](https://github.com/RevanthRameshkumar/CRD3)
+- **Paper:** [Storytelling with Dialogue: A Critical Role Dungeons and Dragons Dataset](https://www.aclweb.org/anthology/2020.acl-main.459/)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 279.93 MB
 - **Size of the generated dataset:** 4020.33 MB
@@ -46,17 +68,14 @@ abstractive summaries collected from the Fandom wiki. The dataset is linguistica
 collaboration and spoken interaction. For each dialogue, there are a large number of turns, multiple abstractive summaries with varying levels of detail,
 and semantic ties to the previous dialogues.
 
-### Supported Tasks
-
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+### Supported Tasks and Leaderboards
+`summarization`: The dataset can be used to train a model for abstractive summarization. A [fast abstractive summarization-RL](https://github.com/ChenRocks/fast_abs_rl) model was presented as a baseline, which achieves ROUGE-L-F1 of 25.18.
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The text in the dataset is in English, as spoken by actors on The Critical Role show, which is a weekly unscripted, live-stream of a fixed group of people playing Dungeons and Dragons, a popular role-playing game.
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -97,29 +116,43 @@ The data fields are the same among all splits.
   - `names`: a `string` feature.
   - `utterances`: a `string` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 | name  | train |validation| test  |
 |-------|------:|---------:|------:|
-|default|2942362|   2942362|2942362|
+|default|26,232|   3,470|4,541|
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Dialogue understanding and abstractive summarization remain both important and challenging problems for computational linguistics. Current paradigms in summarization modeling have specific failures in capturing semantics and pragmatics, content selection, rewriting, and evaluation in the domain of long, story-telling dialogue. CRD3 offers a linguistically rich dataset to explore these domains.
 
 ### Source Data
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+#### Initial Data Collection and Normalization
+
+Dungeons and Dragons is a popular roleplaying game that is driven by structured storytelling. Critical Role is an unscripted, live-streamed show where a fixed group of people play Dungeons and Dragons. This dataset consists of 159 episodes of the show, where the episodes are transcribed. Inconsistencies (e.g. spelling of speaker names) were manually resolved.
+
+The abstractive summaries were collected from the [Critical Role Fandom wiki](https://criticalrole.fandom.com/)
+
+#### Who are the source language producers?
+
+The language producers are actors on The Critical Role show, which is a weekly unscripted, live-stream of a fixed group of people playing Dungeons and Dragons, a popular role-playing game.
 
 ### Annotations
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+#### Annotation process
+
+[N/A]
+
+#### Who are the annotators?
+
+[N/A]
 
 ### Personal and Sensitive Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[N/A]
 
 ## Considerations for Using the Data
 
@@ -139,11 +172,11 @@ The data fields are the same among all splits.
 
 ### Dataset Curators
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+CRTranscript provided transcripts of the show; contributors of the Critical Role Wiki provided the abstractive summaries.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+This work is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License][cc-by-sa-4.0]., as corresponding to the Critical Role Wiki https://criticalrole.fandom.com/
 
 ### Citation Information
 

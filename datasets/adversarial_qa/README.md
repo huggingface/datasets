@@ -18,6 +18,8 @@ task_categories:
 task_ids:
 - extractive-qa
 - open-domain-qa
+paperswithcode_id: adversarialqa
+pretty_name: adversarialQA
 ---
 
 # Dataset Card for adversarialQA
@@ -25,12 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -138,7 +140,9 @@ Data is provided in the same format as SQuAD 1.1. An example is shown below:
 - title: the title of the Wikipedia page from which the context is sourced
 - context: the context/passage
 - id: a string identifier for each question
-- answers: a list of all provided answers (one per question in our case, but multiple may exist in SQuAD) with an `answer_start` field which is the character index of the start of the answer span, and a `text` field which is the answer text
+- answers: a list of all provided answers (one per question in our case, but multiple may exist in SQuAD) with an `answer_start` field which is the character index of the start of the answer span, and a `text` field which is the answer text.
+
+Note that no answers are provided in the test set. Indeed, this dataset is part of the DynaBench benchmark, for which you can submit your predictions on the [website](https://dynabench.org/tasks/2#1).
 
 ### Data Splits
 

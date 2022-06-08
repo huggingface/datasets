@@ -69,7 +69,7 @@ languages:
 - ne
 - nhg
 - nl
-- no
+- 'no'
 - ojb
 - pck
 - pes
@@ -115,9 +115,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: null
+pretty_name: BiblePara
 ---
 
 # Dataset Card Creation Guide
@@ -125,12 +126,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

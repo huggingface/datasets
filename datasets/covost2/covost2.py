@@ -87,10 +87,7 @@ class Covost2(datasets.GeneratorBasedBuilder):
 
     @property
     def manual_download_instructions(self):
-        return """\
-        You should download the Common Voice v4 dataset from https://commonvoice.mozilla.org/en/datasets.
-        and unpack it to a path `{COVOST_ROOT}/{SOURCE_LANG_ID}` and then pass the `{COVOST_ROOT}` path as `data_dir`
-        via `datasets.load_dataset('covost2', data_dir="path/to/covost_root")`
+        return f"""Please download the Common Voice Corpus 4 in {self.config.name.split('_')[0]} from https://commonvoice.mozilla.org/en/datasets and unpack it with `tar xvzf {self.config.name.split('_')[0]}.tar`. Make sure to pass the path to the directory in which you unpacked the downloaded file as `data_dir`: `datasets.load_dataset('covost2', data_dir="path/to/dir")`
         """
 
     def _info(self):
@@ -99,6 +96,7 @@ class Covost2(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 client_id=datasets.Value("string"),
                 file=datasets.Value("string"),
+                audio=datasets.Audio(sampling_rate=16_000),
                 sentence=datasets.Value("string"),
                 translation=datasets.Value("string"),
                 id=datasets.Value("string"),
@@ -110,29 +108,27 @@ class Covost2(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         data_root = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-        source_lang, target_lang = self.config.name.split("_")
-        source_path = os.path.join(data_root, source_lang)
 
-        if not os.path.exists(source_path):
+        source_lang, target_lang = self.config.name.split("_")
+
+        if not os.path.exists(data_root):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via "
-                "`datasets.load_dataset('covost2', data_dir=...)` that includes files uncompressed files from the "
-                "COVOST2 archive. Manual download instructions: {}".format(
-                    data_root, self.manual_download_instructions
-                )
+                f"You are trying to load the {self.config.name} speech translation dataset. "
+                f"It is required that you manually download the input speech data {source_lang}. "
+                f"Manual download instructions: {self.manual_download_instructions}"
             )
 
         covost_url = COVOST_URL_TEMPLATE.format(src_lang=source_lang, tgt_lang=target_lang)
         extracted_path = dl_manager.download_and_extract(covost_url)
 
         covost_tsv_path = os.path.join(extracted_path, f"covost_v2.{source_lang}_{target_lang}.tsv")
-        cv_tsv_path = os.path.join(source_path, "validated.tsv")
+        cv_tsv_path = os.path.join(data_root, "validated.tsv")
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "source_path": source_path,
+                    "source_path": data_root,
                     "covost_tsv_path": covost_tsv_path,
                     "cv_tsv_path": cv_tsv_path,
                     "split": "train",
@@ -141,7 +137,7 @@ class Covost2(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "source_path": source_path,
+                    "source_path": data_root,
                     "covost_tsv_path": covost_tsv_path,
                     "cv_tsv_path": cv_tsv_path,
                     "split": "dev",
@@ -150,7 +146,7 @@ class Covost2(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "source_path": source_path,
+                    "source_path": data_root,
                     "covost_tsv_path": covost_tsv_path,
                     "cv_tsv_path": cv_tsv_path,
                     "split": "test",
@@ -181,6 +177,7 @@ class Covost2(datasets.GeneratorBasedBuilder):
                 "sentence": row["sentence"],
                 "translation": row["translation"],
                 "file": os.path.join(source_path, "clips", row["path"]),
+                "audio": os.path.join(source_path, "clips", row["path"]),
             }
 
     def _load_df_from_tsv(self, path):

@@ -14,10 +14,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
-- structure-prediction-other-relation-prediction
+- token-classification-other-relation-prediction
+paperswithcode_id: null
+pretty_name: eHealth-KD
 ---
 
 # Dataset Card for eHealth-KD
@@ -25,12 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -221,7 +223,7 @@ electronic health documents could be machine-readable from a semantic point of v
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

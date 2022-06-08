@@ -27,7 +27,7 @@ Note: Tiebreaker questions do happen but they're very rare (like once every 20 y
 'air_date' : string of the show air date in format YYYY-MM-DD
 """
 _URL = "https://www.reddit.com/r/datasets/comments/1uyd0t/200000_jeopardy_questions_in_a_json_file/"
-_DATA_URL = "http://skeeto.s3.amazonaws.com/share/JEOPARDY_QUESTIONS1.json.gz"
+_DATA_URL = "https://drive.google.com/uc?export=download&id=0BwT5wj_P7BKXb2hfM3d2RHU1ckE"
 _DATA_FILE = "JEOPARDY_QUESTIONS1.json"
 
 

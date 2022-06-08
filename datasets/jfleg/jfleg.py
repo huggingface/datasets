@@ -129,16 +129,14 @@ class Jfleg(datasets.GeneratorBasedBuilder):
 
         corrections = []
         for n in range(0, 4):
-            correction_file = filepath["ref{n}".format(n=n)]
+            correction_file = filepath[f"ref{n}"]
             with open(correction_file, encoding="utf-8") as f:
                 correction_sentences = f.read().split("\n")
                 num_correction = len(correction_sentences)
 
                 assert len(correction_sentences) == len(
                     source_sentences
-                ), "Sizes do not match: {ns} vs {nr} for {sf} vs {cf}.".format(
-                    ns=num_source, nr=num_correction, sf=source_file, cf=correction_file
-                )
+                ), f"Sizes do not match: {num_source} vs {num_correction} for {source_file} vs {correction_file}."
                 corrections.append(correction_sentences)
 
         corrected_sentences = list(zip(*corrections))

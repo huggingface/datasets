@@ -9,15 +9,29 @@ licenses:
 - other-public-domain
 multilinguality:
 - monolingual
+paperswithcode_id: ljspeech
+pretty_name: LJ Speech
 size_categories:
 - 10K<n<100K
 source_datasets:
 - original
 task_categories:
-- other
-task_ids:
-- other-other-automatic-speech-recognition
-- other-other-text-to-speech
+- automatic-speech-recognition
+task_ids: []
+train-eval-index:
+- config: main
+  task: automatic-speech-recognition
+  task_id: speech_recognition
+  splits:
+    train_split: train
+  col_mapping:
+    file: path
+    text: text
+  metrics:
+    - type: wer
+      name: WER
+    - type: cer
+      name: CER
 ---
 
 # Dataset Card for lj_speech
@@ -25,12 +39,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -62,29 +76,33 @@ The texts were published between 1884 and 1964, and are in the public domain. Th
 
 ### Supported Tasks and Leaderboards
 
-The dataset can be used to train a model for Automatic Speech Recognition (ASR) or Text-to-Speech (TTS). 
-- `other:automatic-speech-recognition`: An ASR model is presented with an audio file and asked to transcribe the audio file to written text. 
-The most common ASR evaluation metric is the word error rate (WER). 
-- `other:text-to-speech`: A TTS model is given a written text in natural language and asked to generate a speech audio file. 
-A reasonable evaluation metric is the mean opinion score (MOS) of audio quality. 
+The dataset can be used to train a model for Automatic Speech Recognition (ASR) or Text-to-Speech (TTS).
+- `other:automatic-speech-recognition`: An ASR model is presented with an audio file and asked to transcribe the audio file to written text.
+The most common ASR evaluation metric is the word error rate (WER).
+- `other:text-to-speech`: A TTS model is given a written text in natural language and asked to generate a speech audio file.
+A reasonable evaluation metric is the mean opinion score (MOS) of audio quality.
 The dataset has an active leaderboard which can be found at https://paperswithcode.com/sota/text-to-speech-synthesis-on-ljspeech
 
 ### Languages
 
-The transcriptions and audio are in English. 
+The transcriptions and audio are in English.
 
 ## Dataset Structure
 
 ### Data Instances
 
-A data point comprises the path to the audio file, called `file` and its transcription, called `text`. 
+A data point comprises the path to the audio file, called `file` and its transcription, called `text`.
 A normalized version of the text is also provided.
 
 ```
 {
-    'id': 'LJ002-0026', 
-    'file': '/datasets/downloads/extracted/05bfe561f096e4c52667e3639af495226afe4e5d08763f2d76d069e7a453c543/LJSpeech-1.1/wavs/LJ002-0026.wav', 
-    'text': 'in the three years between 1813 and 1816,' 
+    'id': 'LJ002-0026',
+    'file': '/datasets/downloads/extracted/05bfe561f096e4c52667e3639af495226afe4e5d08763f2d76d069e7a453c543/LJSpeech-1.1/wavs/LJ002-0026.wav',
+	'audio': {'path': '/datasets/downloads/extracted/05bfe561f096e4c52667e3639af495226afe4e5d08763f2d76d069e7a453c543/LJSpeech-1.1/wavs/LJ002-0026.wav',
+	  'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346,
+			  0.00091553,  0.00085449], dtype=float32),
+	  'sampling_rate': 22050},
+    'text': 'in the three years between 1813 and 1816,'
     'normalized_text': 'in the three years between eighteen thirteen and eighteen sixteen,',
 }
 ```
@@ -96,6 +114,8 @@ Each audio file is a single-channel 16-bit PCM WAV with a sample rate of 22050 H
 - id: unique id of the data sample.
 
 - file: a path to the downloaded audio file in .wav format.
+
+- audio: A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `dataset[0]["audio"]` should **always** be preferred over `dataset["audio"][0]`.
 
 - text: the transcription of the audio file.
 
@@ -176,11 +196,11 @@ Some details about normalization:
 
 #### Who are the annotators?
 
-Recordings by Linda Johnson from LibriVox. Alignment and annotation by Keith Ito. 
+Recordings by Linda Johnson from LibriVox. Alignment and annotation by Keith Ito.
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset.
 
 ## Considerations for Using the Data
 

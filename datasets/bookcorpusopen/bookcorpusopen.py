@@ -17,9 +17,8 @@
 """The BookCorpus dataset based on Shawn Presser's work https://github.com/soskek/bookcorpus/issues/27 """
 
 
-import glob
 import os
-import pathlib
+from fnmatch import fnmatch
 
 import datasets
 
@@ -48,7 +47,8 @@ _CITATION = """\
 }
 """
 _PROJECT_URL = "https://github.com/soskek/bookcorpus/issues/27"
-_DOWNLOAD_URL = "https://the-eye.eu/public/AI/pile_preliminary_components/books1.tar.gz"
+_HOST_URL = "https://mystic.the-eye.eu"  # Before: "https://the-eye.eu"
+_DOWNLOAD_URL = f"{_HOST_URL}/public/AI/pile_preliminary_components/books1.tar.gz"
 
 
 class BookCorpusOpenConfig(datasets.BuilderConfig):
@@ -64,6 +64,8 @@ class BookCorpusOpenConfig(datasets.BuilderConfig):
 
 class BookCorpusOpen(datasets.GeneratorBasedBuilder):
     """BookCorpus dataset."""
+
+    DEFAULT_WRITER_BATCH_SIZE = 256  # documents are full books and are quite heavy
 
     BUILDER_CONFIGS = [
         BookCorpusOpenConfig(
@@ -87,19 +89,18 @@ class BookCorpusOpen(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        arch_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
+        archive = dl_manager.download(_DOWNLOAD_URL)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"directory": arch_path}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"book_files": dl_manager.iter_archive(archive)}
+            ),
         ]
 
-    def _generate_examples(self, directory):
-        glob_target = os.path.join(directory, "**/*.epub.txt")
-        book_files = glob.glob(glob_target, recursive=True)
-        book_files = sorted(book_files)
+    def _generate_examples(self, book_files):
         _id = 0
-        for book_file_path in book_files:
-            path = pathlib.PurePath(book_file_path)
-            with open(book_file_path, mode="r", encoding="utf-8") as f:
-                yield _id, {"title": str(path.name), "text": f.read()},
+        for book_file_path, f in book_files:
+            name = os.path.basename(book_file_path)
+            if fnmatch(name, "*.epub.txt"):
+                yield _id, {"title": name, "text": f.read().decode("utf-8")},
                 _id += 1

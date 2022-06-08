@@ -1,16 +1,14 @@
 ---
+pretty_name: WMT20 - MultiLingual Quality Estimation (MLQE) Task2
 annotations_creators:
 - expert-generated
 - machine-generated
 language_creators:
 - found
 languages:
-  en-de:
-  - en
-  - de
-  en-zh:
-  - en
-  - zh
+- de
+- en
+- zh
 licenses:
 - unknown
 multilinguality:
@@ -20,22 +18,28 @@ size_categories:
 source_datasets:
 - extended|wikipedia
 task_categories:
-- conditional-text-generation
+- translation
+- text-classification
 task_ids:
-- machine-translation
+- text-classification-other-translation-quality-estimation
+paperswithcode_id: null
+configs:
+- en-de
+- en-zh
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for WMT20 - MultiLingual Quality Estimation (MLQE) Task2
 
 ## Table of Contents
+
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

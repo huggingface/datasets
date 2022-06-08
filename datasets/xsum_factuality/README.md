@@ -14,9 +14,11 @@ size_categories:
 source_datasets:
 - extended|other-xsum
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- summarization-other-hallucinations
+paperswithcode_id: null
+pretty_name: XSum Hallucination Annotations
 ---
 
 # Dataset Card for XSum Hallucination Annotations
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -139,10 +141,10 @@ The `is_factual` column has NULL value for some entries which have been replaced
 
 There is only a single split for both the Faithfulness annotations dataset and Factuality annotations dataset.
 
-|                          | Tain  |
-| ------------------------ | ----- |
+|                          | train |
+|--------------------------|------:|
 | Faithfulness annotations | 11185 |
-| Factuality annotations   | 5597  |
+| Factuality annotations   |  5597 |
 
 ## Dataset Creation
 

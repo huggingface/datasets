@@ -1,72 +1,11 @@
 ---
 annotations_creators:
-  aidayago2:
-  - crowdsourced
-  - found
-  - machine-generated
-  cweb:
-  - crowdsourced
-  - found
-  - machine-generated
-  eli5:
-  - crowdsourced
-  - found
-  fever:
-  - crowdsourced
-  - found
-  - machine-generated
-  hotpotqa:
-  - crowdsourced
-  - found
-  - machine-generated
-  nq:
-  - crowdsourced
-  - found
-  - machine-generated
-  structured_zeroshot:
-  - crowdsourced
-  - found
-  - machine-generated
-  trex:
-  - crowdsourced
-  - found
-  - machine-generated
-  triviaqa_support_only:
-  - crowdsourced
-  - found
-  - machine-generated
-  wned:
-  - crowdsourced
-  - found
-  - machine-generated
-  wow:
-  - crowdsourced
-  - found
-  - machine-generated
+- crowdsourced
+- found
+- machine-generated
 language_creators:
-  aidayago2:
-  - crowdsourced
-  cweb:
-  - crowdsourced
-  eli5:
-  - found
-  fever:
-  - crowdsourced
-  hotpotqa:
-  - crowdsourced
-  - found
-  nq:
-  - found
-  structured_zeroshot:
-  - crowdsourced
-  trex:
-  - crowdsourced
-  triviaqa_support_only:
-  - found
-  wned:
-  - crowdsourced
-  wow:
-  - crowdsourced
+- crowdsourced
+- found
 languages:
 - en
 licenses:
@@ -74,132 +13,54 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  aidayago2:
-  - 10K<n<100K
-  cweb:
-  - 10K<n<100K
-  eli5:
-  - 100K<n<1M
-  fever:
-  - 100K<n<1M
-  hotpotqa:
-  - 100K<n<1M
-  nq:
-  - 10K<n<100K
-  structured_zeroshot:
-  - 100K<n<1M
-  trex:
-  - 1M<n<10M
-  triviaqa_support_only:
-  - 10K<n<100K
-  wned:
-  - 1K<n<10K
-  wow:
-  - 100K<n<1M
+- 100K<n<1M
+- 10K<n<100K
+- 1K<n<10K
+- 1M<n<10M
 source_datasets:
-  aidayago2:
-  - extended|other-aidayago
-  - original
-  cweb:
-  - extended|other-wned-cweb
-  - original
-  eli5:
-  - extended|other-hotpotqa
-  - original
-  fever:
-  - extended|other-fever
-  - original
-  hotpotqa:
-  - extended|other-hotpotqa
-  - original
-  nq:
-  - extended|natural_questions
-  - original
-  structured_zeroshot:
-  - extended|other-zero-shot-re
-  - original
-  trex:
-  - extended|other-trex
-  - original
-  triviaqa_support_only:
-  - extended|other-triviaqa
-  - original
-  wned:
-  - extended|other-wned-wiki
-  - original
-  wow:
-  - extended|other-wizardsofwikipedia
-  - original
+- extended|natural_questions
+- extended|other-aidayago
+- extended|other-fever
+- extended|other-hotpotqa
+- extended|other-trex
+- extended|other-triviaqa
+- extended|other-wizardsofwikipedia
+- extended|other-wned-cweb
+- extended|other-wned-wiki
+- extended|other-zero-shot-re
+- original
 task_categories:
-  aidayago2:
-  - text-retrieval
-  cweb:
-  - text-retrieval
-  eli5:
-  - question-answering
-  - text-retrieval
-  fever:
-  - text-classification
-  - text-retrieval
-  hotpotqa:
-  - question-answering
-  - text-retrieval
-  nq:
-  - question-answering
-  - text-retrieval
-  structured_zeroshot:
-  - sequence-modeling
-  - text-retrieval
-  trex:
-  - sequence-modeling
-  - text-retrieval
-  triviaqa_support_only:
-  - question-answering
-  - text-retrieval
-  wned:
-  - text-retrieval
-  wow:
-  - sequence-modeling
-  - text-retrieval
+- fill-mask
+- question-answering
+- text-classification
+- text-generation
+- text-retrieval
+- text2text-generation
 task_ids:
-  aidayago2:
-  - document-retrieval
-  - entity-linking-retrieval
-  cweb:
-  - document-retrieval
-  - entity-linking-retrieval
-  eli5:
-  - abstractive-qa
-  - document-retrieval
-  - open-domain-qa
-  fever:
-  - document-retrieval
-  - fact-checking
-  - fact-checking-retrieval
-  hotpotqa:
-  - document-retrieval
-  - extractive-qa
-  - open-domain-qa
-  nq:
-  - document-retrieval
-  - extractive-qa
-  - open-domain-qa
-  structured_zeroshot:
-  - document-retrieval
-  - slot-filling
-  trex:
-  - document-retrieval
-  - slot-filling
-  triviaqa_support_only:
-  - document-retrieval
-  - extractive-qa
-  - open-domain-qa
-  wned:
-  - document-retrieval
-  - entity-linking-retrieval
-  wow:
-  - dialogue-modeling
-  - document-retrieval
+- abstractive-qa
+- dialogue-modeling
+- document-retrieval
+- entity-linking-retrieval
+- extractive-qa
+- fact-checking
+- fact-checking-retrieval
+- open-domain-abstractive-qa
+- open-domain-qa
+- slot-filling
+paperswithcode_id: kilt
+pretty_name: KILT
+configs:
+- aidayago2
+- cweb
+- eli5
+- fever
+- hotpotqa
+- nq
+- structured_zeroshot
+- trex
+- triviaqa_support_only
+- wned
+- wow
 ---
 
 # Dataset Card for KILT
@@ -207,12 +68,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -268,10 +129,17 @@ trivia_qa = load_dataset('trivia_qa', 'unfiltered.nocontext')
 
 # The KILT IDs can then be mapped to the TriviaQA questions with:
 triviaqa_map = {}
+
+def add_missing_data(x, trivia_qa_subset, triviaqa_map):
+    i = triviaqa_map[x['id']]
+    x['input'] = trivia_qa_subset[i]['question']
+    x['output']['original_answer'] = trivia_qa_subset[i]['answer']['value']
+    return x
+    
 for k in ['train', 'validation', 'test']:
     triviaqa_map = dict([(q_id, i) for i, q_id in enumerate(trivia_qa[k]['question_id'])])
     kilt_triviaqa[k] = kilt_triviaqa[k].filter(lambda x: x['id'] in triviaqa_map)
-    kilt_triviaqa[k] = kilt_triviaqa[k].map(lambda x: {'input': trivia_qa[k][triviaqa_map[x['id']]]['question']})
+    kilt_triviaqa[k] = kilt_triviaqa[k].map(add_missing_data, fn_kwargs=dict(trivia_qa_subset=trivia_qa[k], triviaqa_map=triviaqa_map))
 ```
 
 ### Supported Tasks and Leaderboards
@@ -405,7 +273,22 @@ Examples from all configurations have the following features:
 
 ### Data Splits
 
-[Needs More Information]
+The configurations have the following splits:
+
+|             | Train       | Validation  | Test        |
+| ----------- | ----------- | ----------- | ----------- |
+| triviaqa    | 61844         | 5359  | 6586  |
+| fever       | 104966        | 10444         | 10100         |
+| aidayago2   | 18395         | 4784  | 4463  |
+| wned   | | 3396 | 3376 |
+| cweb   | | 5599 | 5543 |
+| trex   | 2284168       | 5000  | 5000  |
+| structured_zeroshot    | 147909        | 3724  | 4966  |
+| nq     | 87372         | 2837  | 1444  |
+| hotpotqa       | 88869         | 5600  | 5569  |
+| eli5   | 272634        | 1507  | 600   |
+| wow    | 94577         | 3058  | 2944  |
+
 
 ## Dataset Creation
 
@@ -463,7 +346,41 @@ Examples from all configurations have the following features:
 
 ### Citation Information
 
-[Needs More Information]
+Cite as:
+```
+@inproceedings{kilt_tasks,
+  author    = {Fabio Petroni and
+               Aleksandra Piktus and
+               Angela Fan and
+               Patrick S. H. Lewis and
+               Majid Yazdani and
+               Nicola De Cao and
+               James Thorne and
+               Yacine Jernite and
+               Vladimir Karpukhin and
+               Jean Maillard and
+               Vassilis Plachouras and
+               Tim Rockt{\"{a}}schel and
+               Sebastian Riedel},
+  editor    = {Kristina Toutanova and
+               Anna Rumshisky and
+               Luke Zettlemoyer and
+               Dilek Hakkani{-}T{\"{u}}r and
+               Iz Beltagy and
+               Steven Bethard and
+               Ryan Cotterell and
+               Tanmoy Chakraborty and
+               Yichao Zhou},
+  title     = {{KILT:} a Benchmark for Knowledge Intensive Language Tasks},
+  booktitle = {Proceedings of the 2021 Conference of the North American Chapter of
+               the Association for Computational Linguistics: Human Language Technologies,
+               {NAACL-HLT} 2021, Online, June 6-11, 2021},
+  pages     = {2523--2544},
+  publisher = {Association for Computational Linguistics},
+  year      = {2021},
+  url       = {https://www.aclweb.org/anthology/2021.naacl-main.200/}
+}
+```
 
 ### Contributions
 

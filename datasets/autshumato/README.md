@@ -4,45 +4,31 @@ annotations_creators:
 language_creators:
 - expert-generated
 languages:
-  autshumato-en-ts-manual:
-  - en
-  - ts
-  autshumato-en-tn:
-  - en
-  - tn
-  autshumato-en-ts:
-  - en
-  - ts
-  autshumato-en-zu:
-  - en
-  - zu
-  autshumato-tn:
-  - tn
-  autshumato-ts:
-  - ts
+- en
+- tn
+- ts
+- zu
 licenses:
 - cc-by-2.5
 multilinguality:
 - multilingual
 size_categories:
-  autshumato-en-tn:
-  - 100K<n<1M
-  autshumato-en-ts:
-  - 100K<n<1M
-  autshumato-en-ts-manual:
-  - 10K<n<100K
-  autshumato-en-zu:
-  - 10K<n<100K
-  autshumato-tn:
-  - 10K<n<100K
-  autshumato-ts:
-  - 10K<n<100K
+- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: null
+pretty_name: autshumato
+configs:
+- autshumato-en-tn
+- autshumato-en-ts
+- autshumato-en-ts-manual
+- autshumato-en-zu
+- autshumato-tn
+- autshumato-ts
 ---
 
 # Dataset Card Creation Guide
@@ -50,12 +36,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

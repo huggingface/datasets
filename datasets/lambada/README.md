@@ -1,8 +1,8 @@
 ---
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
-- conditional-text-generation-other-long-range-dependency
+- text2text-generation-other-long-range-dependency
 multilinguality:
 - monolingual
 languages:
@@ -17,6 +17,8 @@ size_categories:
 - 10K<n<100K
 licenses:
 - cc-by-4.0
+paperswithcode_id: lambada
+pretty_name: LAMBADA
 ---
 
 # Dataset Card for LAMBADA
@@ -24,12 +26,12 @@ licenses:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

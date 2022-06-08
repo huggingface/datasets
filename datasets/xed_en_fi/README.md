@@ -11,14 +11,8 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-  en_annotated:
-  - 10K<n<100K
-  en_neutral:
-  - 1K<n<10K
-  fi_annotated:
-  - 10K<n<100K
-  fi_neutral:
-  - 10K<n<100K
+- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - extended|other-OpenSubtitles2016
 task_categories:
@@ -28,6 +22,13 @@ task_ids:
 - multi-class-classification
 - multi-label-classification
 - sentiment-classification
+paperswithcode_id: xed
+pretty_name: XedEnglishFinnish
+configs:
+- en_annotated
+- en_neutral
+- fi_annotated
+- fi_neutral
 ---
 
 # Dataset Card for xed_english_finnish
@@ -35,12 +36,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

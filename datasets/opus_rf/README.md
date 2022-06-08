@@ -4,36 +4,11 @@ annotations_creators:
 language_creators:
 - expert-generated
 languages:
-  de-en:
-  - de
-  - en
-  de-es:
-  - de
-  - es
-  de-fr:
-  - de
-  - fr
-  de-sv:
-  - de
-  - sv
-  en-es:
-  - en
-  - es
-  en-fr:
-  - en
-  - fr
-  en-sv:
-  - en
-  - sv
-  es-fr:
-  - es
-  - fr
-  es-sv:
-  - es
-  - sv
-  fr-sv:
-  - fr
-  - sv
+- de
+- en
+- es
+- fr
+- sv
 licenses:
 - unknown
 multilinguality:
@@ -43,9 +18,21 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: null
+pretty_name: OpusRf
+configs:
+- de-en
+- de-es
+- de-fr
+- de-sv
+- en-es
+- en-fr
+- en-sv
+- es-fr
+- es-sv
+- fr-sv
 ---
 
 # Dataset Card for [Dataset Name]
@@ -53,7 +40,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -76,11 +63,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: http://opus.nlpl.eu/RF.php**
-- **Repository: NA**
-- **Paper: http://www.lrec-conf.org/proceedings/lrec2012/pdf/463_Paper.pdf**
-- **Leaderboard: [More Information Needed]**
-- **Point of Contact: [More Information Needed]**
+- **Homepage:** http://opus.nlpl.eu/RF.php
+- **Repository:**
+- **Paper:** http://www.lrec-conf.org/proceedings/lrec2012/pdf/463_Paper.pdf
+- **Leaderboard:** [More Information Needed]
+- **Point of Contact:** [More Information Needed]
 
 ### Dataset Summary
 

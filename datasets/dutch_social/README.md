@@ -19,6 +19,8 @@ task_categories:
 task_ids:
 - sentiment-classification
 - multi-label-classification
+paperswithcode_id: null
+pretty_name: Dutch Social Media Collection
 ---
 
 # Dataset Card for Dutch Social Media Collection
@@ -26,12 +28,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -49,11 +51,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:[Dutch Social Media Collection](http://datasets.coronawhy.org/dataset.xhtml?persistentId=doi:10.5072/FK2/MTPTL7)**
-- **Repository: **
-- **Paper:*(in-progress)* https://doi.org/10.5072/FK2/MTPTL7**
+- **Homepage:** [Dutch Social Media Collection](http://datasets.coronawhy.org/dataset.xhtml?persistentId=doi:10.5072/FK2/MTPTL7)
+- **Repository:**
+- **Paper:** *(in-progress)* https://doi.org/10.5072/FK2/MTPTL7
 - **Leaderboard:**
-- **Point of Contact: [Aakash Gupta](mailto:aakashg80@gmail.com)**
+- **Point of Contact:** [Aakash Gupta](mailto:aakashg80@gmail.com)
 
 ### Dataset Summary
 
@@ -186,7 +188,7 @@ As of writing this data card no anonymization has been carried out on the tweets
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

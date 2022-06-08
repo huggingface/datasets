@@ -17,10 +17,10 @@
 """Librispeech automatic speech recognition dataset."""
 
 
-import glob
 import os
 
 import datasets
+from datasets.tasks import AutomaticSpeechRecognition
 
 
 _CITATION = """\
@@ -38,26 +38,11 @@ _DESCRIPTION = """\
 LibriSpeech is a corpus of approximately 1000 hours of read English speech with sampling rate of 16 kHz,
 prepared by Vassil Panayotov with the assistance of Daniel Povey. The data is derived from read
 audiobooks from the LibriVox project, and has been carefully segmented and aligned.87
-
-Note that in order to limit the required storage for preparing this dataset, the audio
-is stored in the .flac format and is not converted to a float32 array. To convert, the audio
-file to a float32 array, please make use of the `.map()` function as follows:
-
-
-```python
-import soundfile as sf
-
-def map_to_array(batch):
-    speech_array, _ = sf.read(batch["file"])
-    batch["speech"] = speech_array
-    return batch
-
-dataset = dataset.map(map_to_array, remove_columns=["file"])
-```
 """
 
 _URL = "http://www.openslr.org/12"
 _DL_URL = "http://www.openslr.org/resources/12/"
+
 
 _DL_URLS = {
     "clean": {
@@ -70,6 +55,15 @@ _DL_URLS = {
         "test": _DL_URL + "test-other.tar.gz",
         "dev": _DL_URL + "dev-other.tar.gz",
         "train.500": _DL_URL + "train-other-500.tar.gz",
+    },
+    "all": {
+        "dev.clean": _DL_URL + "dev-clean.tar.gz",
+        "dev.other": _DL_URL + "dev-other.tar.gz",
+        "test.clean": _DL_URL + "test-clean.tar.gz",
+        "test.other": _DL_URL + "test-other.tar.gz",
+        "train.clean.100": _DL_URL + "train-clean-100.tar.gz",
+        "train.clean.360": _DL_URL + "train-clean-360.tar.gz",
+        "train.other.500": _DL_URL + "train-other-500.tar.gz",
     },
 }
 
@@ -92,9 +86,12 @@ class LibrispeechASRConfig(datasets.BuilderConfig):
 class LibrispeechASR(datasets.GeneratorBasedBuilder):
     """Librispeech dataset."""
 
+    DEFAULT_WRITER_BATCH_SIZE = 256
+    DEFAULT_CONFIG_NAME = "all"
     BUILDER_CONFIGS = [
         LibrispeechASRConfig(name="clean", description="'Clean' speech."),
         LibrispeechASRConfig(name="other", description="'Other', more challenging, speech."),
+        LibrispeechASRConfig(name="all", description="Combined clean and other dataset."),
     ]
 
     def _info(self):
@@ -103,6 +100,7 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
+                    "audio": datasets.Audio(sampling_rate=16_000),
                     "text": datasets.Value("string"),
                     "speaker_id": datasets.Value("int64"),
                     "chapter_id": datasets.Value("int64"),
@@ -112,42 +110,170 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
             supervised_keys=("file", "text"),
             homepage=_URL,
             citation=_CITATION,
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="text")],
         )
 
     def _split_generators(self, dl_manager):
-        archive_path = dl_manager.download_and_extract(_DL_URLS[self.config.name])
+        archive_path = dl_manager.download(_DL_URLS[self.config.name])
+        # (Optional) In non-streaming mode, we can extract the archive locally to have actual local audio files:
+        local_extracted_archive = dl_manager.extract(archive_path) if not dl_manager.is_streaming else {}
 
         if self.config.name == "clean":
             train_splits = [
-                datasets.SplitGenerator(name="train.100", gen_kwargs={"archive_path": archive_path["train.100"]}),
-                datasets.SplitGenerator(name="train.360", gen_kwargs={"archive_path": archive_path["train.360"]}),
+                datasets.SplitGenerator(
+                    name="train.100",
+                    gen_kwargs={
+                        "local_extracted_archive": local_extracted_archive.get("train.100"),
+                        "files": dl_manager.iter_archive(archive_path["train.100"]),
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name="train.360",
+                    gen_kwargs={
+                        "local_extracted_archive": local_extracted_archive.get("train.360"),
+                        "files": dl_manager.iter_archive(archive_path["train.360"]),
+                    },
+                ),
+            ]
+            dev_splits = [
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        "local_extracted_archive": local_extracted_archive.get("dev"),
+                        "files": dl_manager.iter_archive(archive_path["dev"]),
+                    },
+                )
+            ]
+            test_splits = [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "local_extracted_archive": local_extracted_archive.get("test"),
+                        "files": dl_manager.iter_archive(archive_path["test"]),
+                    },
+                )
             ]
         elif self.config.name == "other":
             train_splits = [
-                datasets.SplitGenerator(name="train.500", gen_kwargs={"archive_path": archive_path["train.500"]}),
+                datasets.SplitGenerator(
+                    name="train.500",
+                    gen_kwargs={
+                        "local_extracted_archive": local_extracted_archive.get("train.500"),
+                        "files": dl_manager.iter_archive(archive_path["train.500"]),
+                    },
+                )
+            ]
+            dev_splits = [
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        "local_extracted_archive": local_extracted_archive.get("dev"),
+                        "files": dl_manager.iter_archive(archive_path["dev"]),
+                    },
+                )
+            ]
+            test_splits = [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "local_extracted_archive": local_extracted_archive.get("test"),
+                        "files": dl_manager.iter_archive(archive_path["test"]),
+                    },
+                )
+            ]
+        elif self.config.name == "all":
+            train_splits = [
+                datasets.SplitGenerator(
+                    name="train.clean.100",
+                    gen_kwargs={
+                        "local_extracted_archive": local_extracted_archive.get("train.clean.100"),
+                        "files": dl_manager.iter_archive(archive_path["train.clean.100"]),
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name="train.clean.360",
+                    gen_kwargs={
+                        "local_extracted_archive": local_extracted_archive.get("train.clean.360"),
+                        "files": dl_manager.iter_archive(archive_path["train.clean.360"]),
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name="train.other.500",
+                    gen_kwargs={
+                        "local_extracted_archive": local_extracted_archive.get("train.other.500"),
+                        "files": dl_manager.iter_archive(archive_path["train.other.500"]),
+                    },
+                ),
+            ]
+            dev_splits = [
+                datasets.SplitGenerator(
+                    name="validation.clean",
+                    gen_kwargs={
+                        "local_extracted_archive": local_extracted_archive.get("validation.clean"),
+                        "files": dl_manager.iter_archive(archive_path["dev.clean"]),
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name="validation.other",
+                    gen_kwargs={
+                        "local_extracted_archive": local_extracted_archive.get("validation.other"),
+                        "files": dl_manager.iter_archive(archive_path["dev.other"]),
+                    },
+                ),
+            ]
+            test_splits = [
+                datasets.SplitGenerator(
+                    name="test.clean",
+                    gen_kwargs={
+                        "local_extracted_archive": local_extracted_archive.get("test.clean"),
+                        "files": dl_manager.iter_archive(archive_path["test.clean"]),
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name="test.other",
+                    gen_kwargs={
+                        "local_extracted_archive": local_extracted_archive.get("test.other"),
+                        "files": dl_manager.iter_archive(archive_path["test.other"]),
+                    },
+                ),
             ]
 
-        return train_splits + [
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"archive_path": archive_path["dev"]}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"archive_path": archive_path["test"]}),
-        ]
+        return train_splits + dev_splits + test_splits
 
-    def _generate_examples(self, archive_path):
-        """Generate examples from a Librispeech archive_path."""
-        transcripts_glob = os.path.join(archive_path, "LibriSpeech", "*/*/*/*.txt")
-        for transcript_file in sorted(glob.glob(transcripts_glob)):
-            path = os.path.dirname(transcript_file)
-            with open(os.path.join(path, transcript_file), "r", encoding="utf-8") as f:
+    def _generate_examples(self, files, local_extracted_archive):
+        """Generate examples from a LibriSpeech archive_path."""
+        key = 0
+        audio_data = {}
+        transcripts = []
+        for path, f in files:
+            if path.endswith(".flac"):
+                id_ = path.split("/")[-1][: -len(".flac")]
+                audio_data[id_] = f.read()
+            elif path.endswith(".trans.txt"):
                 for line in f:
-                    line = line.strip()
-                    key, transcript = line.split(" ", 1)
-                    audio_file = f"{key}.flac"
-                    speaker_id, chapter_id = [int(el) for el in key.split("-")[:2]]
-                    example = {
-                        "id": key,
-                        "speaker_id": speaker_id,
-                        "chapter_id": chapter_id,
-                        "file": os.path.join(path, audio_file),
-                        "text": transcript,
-                    }
-                    yield key, example
+                    if line:
+                        line = line.decode("utf-8").strip()
+                        id_, transcript = line.split(" ", 1)
+                        audio_file = f"{id_}.flac"
+                        speaker_id, chapter_id = [int(el) for el in id_.split("-")[:2]]
+                        audio_file = (
+                            os.path.join(local_extracted_archive, audio_file)
+                            if local_extracted_archive
+                            else audio_file
+                        )
+                        transcripts.append(
+                            {
+                                "id": id_,
+                                "speaker_id": speaker_id,
+                                "chapter_id": chapter_id,
+                                "file": audio_file,
+                                "text": transcript,
+                            }
+                        )
+            if audio_data and len(audio_data) == len(transcripts):
+                for transcript in transcripts:
+                    audio = {"path": transcript["file"], "bytes": audio_data[transcript["id"]]}
+                    yield key, {"audio": audio, **transcript}
+                    key += 1
+                audio_data = {}
+                transcripts = []

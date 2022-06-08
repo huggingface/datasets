@@ -1,5 +1,6 @@
 ---
-annotations_creators: []
+annotations_creators: 
+- crowdsourced
 language_creators:
 - crowdsourced
 languages:
@@ -13,9 +14,12 @@ size_categories:
 source_datasets:
 - extended|other-sts-b
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
+- text-scoring
 - semantic-similarity-scoring
+paperswithcode_id: null
+pretty_name: RO-STS
 ---
 
 # Dataset Card for RO-STS
@@ -23,12 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -50,7 +54,7 @@ task_ids:
 - **Repository:** [GitHub](https://github.com/dumitrescustefan/RO-STS)
 - **Paper:** [Needs More Information]
 - **Leaderboard:** [Needs More Information]
-- **Point of Contact:** dumitrescu.stefan@gmail.com
+- **Point of Contact:** [email](dumitrescu.stefan@gmail.com)
 
 ### Dataset Summary
 

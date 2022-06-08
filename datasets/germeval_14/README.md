@@ -1,4 +1,6 @@
 ---
+paperswithcode_id: null
+pretty_name: GermEval14
 ---
 
 # Dataset Card for "germeval_14"
@@ -6,12 +8,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -41,7 +43,7 @@
 
 The GermEval 2014 NER Shared Task builds on a new dataset with German Named Entity annotation with the following properties:    - The data was sampled from German Wikipedia and News Corpora as a collection of citations.    - The dataset covers over 31,000 sentences corresponding to over 590,000 tokens.    - The NER annotation uses the NoSta-D guidelines, which extend the Tübingen Treebank guidelines,      using four main NER categories with sub-structure, and annotating embeddings among NEs      such as [ORG FC Kickers [LOC Darmstadt]].
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -50,8 +52,6 @@ The GermEval 2014 NER Shared Task builds on a new dataset with German Named Enti
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -85,7 +85,7 @@ The data fields are the same among all splits.
 - `ner_tags`: a `list` of classification labels, with possible values including `O` (0), `B-LOC` (1), `I-LOC` (2), `B-LOCderiv` (3), `I-LOCderiv` (4).
 - `nested_ner_tags`: a `list` of classification labels, with possible values including `O` (0), `B-LOC` (1), `I-LOC` (2), `B-LOCderiv` (3), `I-LOCderiv` (4).
 
-### Data Splits Sample Size
+### Data Splits
 
 |   name    |train|validation|test|
 |-----------|----:|---------:|---:|
@@ -99,9 +99,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

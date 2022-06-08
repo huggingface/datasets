@@ -1,4 +1,29 @@
 ---
+annotations_creators:
+- no-annotation
+language_creators:
+- crowdsourced
+pretty_name: Wiki-DPR
+paperswithcode_id: null
+licenses:
+- cc-by-sa-3.0
+- gfdl-1.3-or-later
+task_categories:
+- text-generation
+- fill-mask
+- other-text-search
+task_ids:
+- language-modeling
+- masked-language-modeling
+- other-neural-search
+source_datasets:
+- original
+multilinguality:
+- multilingual
+size_categories:
+- 10M<n<100M
+languages:
+- en
 ---
 
 # Dataset Card for "wiki_dpr"
@@ -6,12 +31,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -43,7 +68,10 @@ This is the wikipedia split used to evaluate the Dense Passage Retrieval (DPR) m
 It contains 21M passages from wikipedia along with their DPR embeddings.
 The wikipedia articles were split into multiple, disjoint text blocks of 100 words as passages.
 
-### Supported Tasks
+The wikipedia dump is the one from Dec. 20, 2018.
+
+
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -53,9 +81,9 @@ The wikipedia articles were split into multiple, disjoint text blocks of 100 wor
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
+
+Each instance contains a paragraph of at most 100 words, as well as the title of the wikipedia page it comes from, and the DPR embedding (a 768-d vector).
 
 #### psgs_w100.multiset.compressed
 
@@ -67,12 +95,20 @@ An example of 'train' looks as follows.
 ```
 This example was too long and was cropped:
 
-{
-    "embeddings": "[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1....",
-    "id": "0",
-    "text": "his is the text of a dummy passag",
-    "title": "Title of the article"
-}
+{'id': '1',
+ 'text': 'Aaron Aaron ( or ; "Ahärôn") is a prophet, high priest, and the brother of Moses in the Abrahamic religions. Knowledge of Aaron, along with his brother Moses, comes exclusively from religious texts, such as the Bible and Quran. The Hebrew Bible relates that, unlike Moses, who grew up in the Egyptian royal court, Aaron and his elder sister Miriam remained with their kinsmen in the eastern border-land of Egypt (Goshen). When Moses first confronted the Egyptian king about the Israelites, Aaron served as his brother\'s spokesman ("prophet") to the Pharaoh. Part of the Law (Torah) that Moses received from'],
+ 'title': 'Aaron',
+ 'embeddings': [-0.07233893871307373,
+   0.48035329580307007,
+   0.18650995194911957,
+   -0.5287084579467773,
+   -0.37329429388046265,
+   0.37622880935668945,
+   0.25524479150772095,
+   ...
+   -0.336689829826355,
+   0.6313082575798035,
+   -0.7025573253631592]}
 ```
 
 #### psgs_w100.multiset.exact
@@ -85,12 +121,20 @@ An example of 'train' looks as follows.
 ```
 This example was too long and was cropped:
 
-{
-    "embeddings": "[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1....",
-    "id": "0",
-    "text": "his is the text of a dummy passag",
-    "title": "Title of the article"
-}
+{'id': '1',
+ 'text': 'Aaron Aaron ( or ; "Ahärôn") is a prophet, high priest, and the brother of Moses in the Abrahamic religions. Knowledge of Aaron, along with his brother Moses, comes exclusively from religious texts, such as the Bible and Quran. The Hebrew Bible relates that, unlike Moses, who grew up in the Egyptian royal court, Aaron and his elder sister Miriam remained with their kinsmen in the eastern border-land of Egypt (Goshen). When Moses first confronted the Egyptian king about the Israelites, Aaron served as his brother\'s spokesman ("prophet") to the Pharaoh. Part of the Law (Torah) that Moses received from'],
+ 'title': 'Aaron',
+ 'embeddings': [-0.07233893871307373,
+   0.48035329580307007,
+   0.18650995194911957,
+   -0.5287084579467773,
+   -0.37329429388046265,
+   0.37622880935668945,
+   0.25524479150772095,
+   ...
+   -0.336689829826355,
+   0.6313082575798035,
+   -0.7025573253631592]}
 ```
 
 #### psgs_w100.multiset.no_index
@@ -103,12 +147,20 @@ An example of 'train' looks as follows.
 ```
 This example was too long and was cropped:
 
-{
-    "embeddings": "[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1....",
-    "id": "0",
-    "text": "his is the text of a dummy passag",
-    "title": "Title of the article"
-}
+{'id': '1',
+ 'text': 'Aaron Aaron ( or ; "Ahärôn") is a prophet, high priest, and the brother of Moses in the Abrahamic religions. Knowledge of Aaron, along with his brother Moses, comes exclusively from religious texts, such as the Bible and Quran. The Hebrew Bible relates that, unlike Moses, who grew up in the Egyptian royal court, Aaron and his elder sister Miriam remained with their kinsmen in the eastern border-land of Egypt (Goshen). When Moses first confronted the Egyptian king about the Israelites, Aaron served as his brother\'s spokesman ("prophet") to the Pharaoh. Part of the Law (Torah) that Moses received from'],
+ 'title': 'Aaron',
+ 'embeddings': [-0.07233893871307373,
+   0.48035329580307007,
+   0.18650995194911957,
+   -0.5287084579467773,
+   -0.37329429388046265,
+   0.37622880935668945,
+   0.25524479150772095,
+   ...
+   -0.336689829826355,
+   0.6313082575798035,
+   -0.7025573253631592]}
 ```
 
 #### psgs_w100.nq.compressed
@@ -121,12 +173,20 @@ An example of 'train' looks as follows.
 ```
 This example was too long and was cropped:
 
-{
-    "embeddings": "[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1....",
-    "id": "0",
-    "text": "his is the text of a dummy passag",
-    "title": "Title of the article"
-}
+{'id': '1',
+ 'text': 'Aaron Aaron ( or ; "Ahärôn") is a prophet, high priest, and the brother of Moses in the Abrahamic religions. Knowledge of Aaron, along with his brother Moses, comes exclusively from religious texts, such as the Bible and Quran. The Hebrew Bible relates that, unlike Moses, who grew up in the Egyptian royal court, Aaron and his elder sister Miriam remained with their kinsmen in the eastern border-land of Egypt (Goshen). When Moses first confronted the Egyptian king about the Israelites, Aaron served as his brother\'s spokesman ("prophet") to the Pharaoh. Part of the Law (Torah) that Moses received from'],
+ 'title': 'Aaron',
+ 'embeddings': [0.013342111371457577,
+   0.582173764705658,
+   -0.31309744715690613,
+   -0.6991612911224365,
+   -0.5583199858665466,
+   0.5187504887580872,
+   0.7152731418609619,
+   ...
+   -0.5385938286781311,
+   0.8093984127044678,
+   -0.4741983711719513]}
 ```
 
 #### psgs_w100.nq.exact
@@ -139,12 +199,20 @@ An example of 'train' looks as follows.
 ```
 This example was too long and was cropped:
 
-{
-    "embeddings": "[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1....",
-    "id": "0",
-    "text": "his is the text of a dummy passag",
-    "title": "Title of the article"
-}
+{'id': '1',
+ 'text': 'Aaron Aaron ( or ; "Ahärôn") is a prophet, high priest, and the brother of Moses in the Abrahamic religions. Knowledge of Aaron, along with his brother Moses, comes exclusively from religious texts, such as the Bible and Quran. The Hebrew Bible relates that, unlike Moses, who grew up in the Egyptian royal court, Aaron and his elder sister Miriam remained with their kinsmen in the eastern border-land of Egypt (Goshen). When Moses first confronted the Egyptian king about the Israelites, Aaron served as his brother\'s spokesman ("prophet") to the Pharaoh. Part of the Law (Torah) that Moses received from'],
+ 'title': 'Aaron',
+ 'embeddings': [0.013342111371457577,
+   0.582173764705658,
+   -0.31309744715690613,
+   -0.6991612911224365,
+   -0.5583199858665466,
+   0.5187504887580872,
+   0.7152731418609619,
+   ...
+   -0.5385938286781311,
+   0.8093984127044678,
+   -0.4741983711719513]}
 ```
 
 ### Data Fields
@@ -181,7 +249,7 @@ The data fields are the same among all splits.
 - `title`: a `string` feature.
 - `embeddings`: a `list` of `float32` features.
 
-### Data Splits Sample Size
+### Data Splits
 
 |            name             | train  |
 |-----------------------------|-------:|
@@ -199,9 +267,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

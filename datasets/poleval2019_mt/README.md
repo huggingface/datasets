@@ -17,9 +17,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: null
+pretty_name: Poleval2019Mt
 ---
 
 # Dataset Card for poleval2019_mt
@@ -27,7 +28,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -93,11 +94,12 @@ One example of the translation is as below:
 ### Data Splits
 
 The dataset is divided into two splits. All the headlines are scraped from news websites on the internet.
-|       | Tain   | Valid | Test  |
-| ----- | ------ | ----- | ----- |
-| ru-pl |  20001 | 3001  | 2969  |
-| pl-ru |  20001 | 3001  | 2969  |
-| en-pl | 129255 | 1000  | 9845  |
+
+|       |  train | validation | test |
+|-------|-------:|-----------:|-----:|
+| ru-pl |  20001 |       3001 | 2969 |
+| pl-ru |  20001 |       3001 | 2969 |
+| en-pl | 129255 |       1000 | 9845 |
 
 ## Dataset Creation
 
@@ -160,7 +162,17 @@ The organization details of PolEval is present in this [link](http://2019.poleva
 
 ### Citation Information
 
-[More Information Needed]
+```
+@proceedings{ogr:kob:19:poleval,
+  editor    = {Maciej Ogrodniczuk and Łukasz Kobyliński},
+  title     = {{Proceedings of the PolEval 2019 Workshop}},
+  year      = {2019},
+  address   = {Warsaw, Poland},
+  publisher = {Institute of Computer Science, Polish Academy of Sciences},
+  url       = {http://2019.poleval.pl/files/poleval2019.pdf},
+  isbn      = "978-83-63159-28-3"}
+}
+```
 
 ### Contributions
 

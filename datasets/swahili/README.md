@@ -14,9 +14,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
+paperswithcode_id: null
+pretty_name: swahili
 ---
 
 # Dataset Card for [Dataset Name]
@@ -24,7 +28,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -47,11 +51,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7339006/**
-- **Repository: NA**
-- **Paper: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7339006/**
-- **Leaderboard: [More Information Needed]**
-- **Point of Contact: [More Information Needed]**
+- **Homepage:** https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7339006/
+- **Repository:**
+- **Paper:** https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7339006/
+- **Leaderboard:** [More Information Needed]
+- **Point of Contact:** [More Information Needed]
 
 ### Dataset Summary
 

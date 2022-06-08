@@ -1,4 +1,57 @@
 ---
+languages:
+- en
+paperswithcode_id: sentiment140
+pretty_name: Sentiment140
+train-eval-index:
+- config: sentiment140
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    text: text
+    sentiment: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 macro
+      args:
+        average: macro
+    - type: f1
+      name: F1 micro
+      args:
+        average: micro
+    - type: f1
+      name: F1 weighted
+      args:
+        average: weighted
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
 ---
 
 # Dataset Card for "sentiment140"
@@ -6,12 +59,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -42,7 +95,7 @@
 Sentiment140 consists of Twitter messages with emoticons, which are used as noisy labels for
 sentiment classification. For more detailed information please refer to the paper.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -51,8 +104,6 @@ sentiment classification. For more detailed information please refer to the pape
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -84,7 +135,7 @@ The data fields are the same among all splits.
 - `sentiment`: a `int32` feature.
 - `query`: a `string` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 |    name    | train |test|
 |------------|------:|---:|
@@ -98,9 +149,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

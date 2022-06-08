@@ -9,7 +9,7 @@ import pytest
 from datasets import load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
-from datasets.features import Features, Sequence, Value
+from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.splits import NamedSplit
 
 from .conftest import s3_test_bucket_name
@@ -29,7 +29,7 @@ class DatasetDictTest(TestCase):
             dset = Dataset.from_dict(data)
         else:
             dset = Dataset.from_dict(
-                {"filename": ["my_name-train" + "_" + "{:03d}".format(x) for x in np.arange(30).tolist()]}
+                {"filename": ["my_name-train" + "_" + f"{x:03d}" for x in np.arange(30).tolist()]}
             )
         return dset
 
@@ -41,20 +41,6 @@ class DatasetDictTest(TestCase):
             }
         )
 
-    def test_flatten_in_place(self):
-        dset_split = Dataset.from_dict(
-            {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
-            features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
-        )
-        dset = DatasetDict({"train": dset_split, "test": dset_split})
-        dset.flatten_()
-        self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
-        self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
-        self.assertDictEqual(
-            dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
-        )
-        del dset
-
     def test_flatten(self):
         dset_split = Dataset.from_dict(
             {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
@@ -63,7 +49,7 @@ class DatasetDictTest(TestCase):
         dset = DatasetDict({"train": dset_split, "test": dset_split})
         dset = dset.flatten()
         self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
-        self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
+        self.assertListEqual(sorted(dset["train"].features.keys()), ["a.b.c", "foo"])
         self.assertDictEqual(
             dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
         )
@@ -209,17 +195,6 @@ class DatasetDictTest(TestCase):
             self.assertDictEqual(dset_split.format, dset_split2.format)
         del dset, dset2
 
-    def test_cast_in_place(self):
-        dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        features = dset["train"].features
-        features["col_1"] = Value("float64")
-        dset.cast_(features)
-        for dset_split in dset.values():
-            self.assertEqual(dset_split.num_columns, 2)
-            self.assertEqual(dset_split.features["col_1"], Value("float64"))
-            self.assertIsInstance(dset_split[0]["col_1"], float)
-        del dset
-
     def test_cast(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         features = dset["train"].features
@@ -229,19 +204,6 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split.num_columns, 2)
             self.assertEqual(dset_split.features["col_1"], Value("float64"))
             self.assertIsInstance(dset_split[0]["col_1"], float)
-        del dset
-
-    def test_remove_columns_in_place(self):
-        dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        dset.remove_columns_(column_names="col_1")
-        for dset_split in dset.values():
-            self.assertEqual(dset_split.num_columns, 1)
-            self.assertListEqual(list(dset_split.column_names), ["col_2"])
-
-        dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        dset.remove_columns_(column_names=["col_1", "col_2"])
-        for dset_split in dset.values():
-            self.assertEqual(dset_split.num_columns, 0)
         del dset
 
     def test_remove_columns(self):
@@ -255,14 +217,6 @@ class DatasetDictTest(TestCase):
         dset = dset.remove_columns(column_names=["col_1", "col_2"])
         for dset_split in dset.values():
             self.assertEqual(dset_split.num_columns, 0)
-        del dset
-
-    def test_rename_column_in_place(self):
-        dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
-        for dset_split in dset.values():
-            self.assertEqual(dset_split.num_columns, 2)
-            self.assertListEqual(list(dset_split.column_names), ["new_name", "col_2"])
         del dset
 
     def test_rename_column(self):
@@ -309,7 +263,13 @@ class DatasetDictTest(TestCase):
             )
             self.assertListEqual(list(dsets.keys()), list(filtered_dsets_2.keys()))
             self.assertEqual(len(filtered_dsets_2["train"]), 5)
-            del dsets, filtered_dsets_1, filtered_dsets_2
+
+            filtered_dsets_3: DatasetDict = dsets.filter(
+                lambda examples: [int(ex.split("_")[-1]) < 10 for ex in examples["filename"]], batched=True
+            )
+            self.assertListEqual(list(dsets.keys()), list(filtered_dsets_3.keys()))
+            self.assertEqual(len(filtered_dsets_3["train"]), 10)
+            del dsets, filtered_dsets_1, filtered_dsets_2, filtered_dsets_3
 
     def test_sort(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -319,7 +279,7 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(list(dsets.keys()), list(sorted_dsets_1.keys()))
             self.assertListEqual(
                 [f.split("_")[-1] for f in sorted_dsets_1["train"]["filename"]],
-                sorted("{:03d}".format(x) for x in range(30)),
+                sorted(f"{x:03d}" for x in range(30)),
             )
 
             indices_cache_file_names = {
@@ -332,7 +292,7 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(list(dsets.keys()), list(sorted_dsets_2.keys()))
             self.assertListEqual(
                 [f.split("_")[-1] for f in sorted_dsets_2["train"]["filename"]],
-                sorted(("{:03d}".format(x) for x in range(30)), reverse=True),
+                sorted((f"{x:03d}" for x in range(30)), reverse=True),
             )
             del dsets, sorted_dsets_1, sorted_dsets_2
 
@@ -435,6 +395,45 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(dsets["test"].column_names, ["filename"])
             del dsets
 
+    def test_align_labels_with_mapping(self):
+        train_features = Features(
+            {
+                "input_text": Value("string"),
+                "input_labels": ClassLabel(num_classes=3, names=["entailment", "neutral", "contradiction"]),
+            }
+        )
+        test_features = Features(
+            {
+                "input_text": Value("string"),
+                "input_labels": ClassLabel(num_classes=3, names=["entailment", "contradiction", "neutral"]),
+            }
+        )
+        train_data = {"input_text": ["a", "a", "b", "b", "c", "c"], "input_labels": [0, 0, 1, 1, 2, 2]}
+        test_data = {"input_text": ["a", "a", "c", "c", "b", "b"], "input_labels": [0, 0, 1, 1, 2, 2]}
+        label2id = {"CONTRADICTION": 0, "ENTAILMENT": 2, "NEUTRAL": 1}
+        id2label = {v: k for k, v in label2id.items()}
+        train_expected_labels = [2, 2, 1, 1, 0, 0]
+        test_expected_labels = [2, 2, 0, 0, 1, 1]
+        train_expected_label_names = [id2label[idx] for idx in train_expected_labels]
+        test_expected_label_names = [id2label[idx] for idx in test_expected_labels]
+        dsets = DatasetDict(
+            {
+                "train": Dataset.from_dict(train_data, features=train_features),
+                "test": Dataset.from_dict(test_data, features=test_features),
+            }
+        )
+        dsets = dsets.align_labels_with_mapping(label2id, "input_labels")
+        self.assertListEqual(train_expected_labels, dsets["train"]["input_labels"])
+        self.assertListEqual(test_expected_labels, dsets["test"]["input_labels"])
+        train_aligned_label_names = [
+            dsets["train"].features["input_labels"].int2str(idx) for idx in dsets["train"]["input_labels"]
+        ]
+        test_aligned_label_names = [
+            dsets["test"].features["input_labels"].int2str(idx) for idx in dsets["test"]["input_labels"]
+        ]
+        self.assertListEqual(train_expected_label_names, train_aligned_label_names)
+        self.assertListEqual(test_expected_label_names, test_aligned_label_names)
+
 
 def _check_csv_datasetdict(dataset_dict, expected_features, splits=("train",)):
     assert isinstance(dataset_dict, DatasetDict)
@@ -524,7 +523,6 @@ def test_datasetdict_from_json_keep_in_memory(keep_in_memory, jsonl_path, tmp_pa
 )
 def test_datasetdict_from_json_features(features, jsonl_path, tmp_path):
     cache_dir = tmp_path / "cache"
-    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = (
@@ -545,6 +543,61 @@ def test_datasetdict_from_json_splits(split, jsonl_path, tmp_path):
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     dataset = DatasetDict.from_json(path, cache_dir=cache_dir)
     _check_json_datasetdict(dataset, expected_features, splits=list(path.keys()))
+    assert all(dataset[split].split == split for split in path.keys())
+
+
+def _check_parquet_datasetdict(dataset_dict, expected_features, splits=("train",)):
+    assert isinstance(dataset_dict, DatasetDict)
+    for split in splits:
+        dataset = dataset_dict[split]
+        assert dataset.num_rows == 4
+        assert dataset.num_columns == 3
+        assert dataset.column_names == ["col_1", "col_2", "col_3"]
+        for feature, expected_dtype in expected_features.items():
+            assert dataset.features[feature].dtype == expected_dtype
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_datasetdict_from_parquet_keep_in_memory(keep_in_memory, parquet_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = DatasetDict.from_parquet({"train": parquet_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    _check_parquet_datasetdict(dataset, expected_features)
+
+
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+def test_datasetdict_from_parquet_features(features, parquet_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = DatasetDict.from_parquet({"train": parquet_path}, features=features, cache_dir=cache_dir)
+    _check_parquet_datasetdict(dataset, expected_features)
+
+
+@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
+def test_datasetdict_from_parquet_split(split, parquet_path, tmp_path):
+    if split:
+        path = {split: parquet_path}
+    else:
+        split = "train"
+        path = {"train": parquet_path, "test": parquet_path}
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    dataset = DatasetDict.from_parquet(path, cache_dir=cache_dir)
+    _check_parquet_datasetdict(dataset, expected_features, splits=list(path.keys()))
     assert all(dataset[split].split == split for split in path.keys())
 
 
@@ -579,7 +632,6 @@ def test_datasetdict_from_text_keep_in_memory(keep_in_memory, text_path, tmp_pat
 )
 def test_datasetdict_from_text_features(features, text_path, tmp_path):
     cache_dir = tmp_path / "cache"
-    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
     default_expected_features = {"text": "string"}
     expected_features = features.copy() if features else default_expected_features
     features = (

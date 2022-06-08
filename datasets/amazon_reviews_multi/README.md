@@ -4,70 +4,44 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  all_languages:
-  - de
-  - en
-  - es
-  - fr
-  - ja
-  - zh
-  de:
-  - de
-  en:
-  - en
-  es:
-  - es
-  fr:
-  - fr
-  ja:
-  - ja
-  zh:
-  - zh
+- de
+- en
+- es
+- fr
+- ja
+- zh
 licenses:
 - other-amazon-license
 multilinguality:
-  all_languages:
-  - multilingual
-  de:
-  - monolingual
-  en:
-  - monolingual
-  es:
-  - monolingual
-  fr:
-  - monolingual
-  ja:
-  - monolingual
-  zh:
-  - monolingual
+- monolingual
+- multilingual
 size_categories:
-  all_languages:
-  - 1M<n<10M
-  de:
-  - 100K<n<1M
-  en:
-  - 100K<n<1M
-  es:
-  - 100K<n<1M
-  fr:
-  - 100K<n<1M
-  ja:
-  - 100K<n<1M
-  zh:
-  - 100K<n<1M
+- 100K<n<1M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- sequence-modeling
+- summarization
+- text-generation
+- fill-mask
 - text-classification
-- text-scoring
 task_ids:
+- text-scoring
 - language-modeling
+- masked-language-modeling
 - sentiment-classification
 - sentiment-scoring
-- summarization
 - topic-classification
+paperswithcode_id: null
+pretty_name: The Multilingual Amazon Reviews Corpus
+configs:
+- all_languages
+- de
+- en
+- es
+- fr
+- ja
+- zh
 ---
 
 # Dataset Card for The Multilingual Amazon Reviews Corpus
@@ -75,12 +49,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

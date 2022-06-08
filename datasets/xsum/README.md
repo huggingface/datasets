@@ -1,4 +1,25 @@
 ---
+pretty_name: Extreme Summarization (XSum)
+languages:
+- en
+paperswithcode_id: xsum
+task_categories:
+- summarization
+task_ids:
+- news-articles-summarization
+train-eval-index:
+- config: default
+  task: summarization
+  task_id: summarization
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    document: text
+    summary: target
+  metrics:
+    - type: rouge
+      name: Rouge
 ---
 
 # Dataset Card for "xsum"
@@ -6,12 +27,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -46,7 +67,7 @@ There are three features:
   - summary: One sentence summary of the article.
   - id: BBC ID of the article.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -55,8 +76,6 @@ There are three features:
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -84,7 +103,7 @@ The data fields are the same among all splits.
 - `summary`: a `string` feature.
 - `id`: a `string` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 | name  |train |validation|test |
 |-------|-----:|---------:|----:|
@@ -98,9 +117,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

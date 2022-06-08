@@ -13,17 +13,18 @@ size_categories:
 - 1K<n<10K
 source_datasets:
 - original
-- extented|other-turkcorpus
+- extended|other-turkcorpus
 task_categories:
-  ratings:
-  - text-scoring
-  simplification:
-  - conditional-text-generation
+- text-classification
+- text2text-generation
 task_ids:
-  ratings:
-  - text-scoring-other-simplification-evaluation
-  simplification:
-  - text-simplification
+- text-classification-other-simplification-evaluation
+- text-simplification
+paperswithcode_id: asset
+pretty_name: ASSET
+configs:
+- ratings
+- simplification
 ---
 
 # Dataset Card for ASSET
@@ -31,12 +32,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -65,7 +66,7 @@ splitting in [HSplit](https://www.aclweb.org/anthology/D18-1081.pdf)), the simpl
 
 ### Supported Tasks and Leaderboards
 
-The dataset supports the evaluation of `test-simplification` systems. Success in this tasks is typically measured using the [SARI](https://huggingface.co/metrics/sari) and [FKBLEU](https://huggingface.co/metrics/fkbleu) metrics described in the paper [Optimizing Statistical Machine Translation for Text Simplification](https://www.aclweb.org/anthology/Q16-1029.pdf).
+The dataset supports the evaluation of `text-simplification` systems. Success in this tasks is typically measured using the [SARI](https://huggingface.co/metrics/sari) and [FKBLEU](https://huggingface.co/metrics/fkbleu) metrics described in the paper [Optimizing Statistical Machine Translation for Text Simplification](https://www.aclweb.org/anthology/Q16-1029.pdf).
 
 ### Languages
 
@@ -165,7 +166,7 @@ The dataset may contain some social biases, as the input sentences are based on 
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

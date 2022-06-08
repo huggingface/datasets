@@ -17,6 +17,56 @@ task_categories:
 - text-classification
 task_ids:
 - intent-classification
+paperswithcode_id: snips
+pretty_name: SNIPS Natural Language Understanding benchmark
+train-eval-index:
+- config: default
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+  train_split: train
+  col_mapping:
+    text: text
+    label: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 macro
+      args:
+        average: macro
+    - type: f1
+      name: F1 micro
+      args:
+        average: micro
+    - type: f1
+      name: F1 weighted
+      args:
+        average: weighted
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
 ---
 
 # Dataset Card for Snips Built In Intents
@@ -24,12 +74,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -54,8 +104,8 @@ task_ids:
 
 ### Dataset Summary
 
-Snips' built in intents dataset was initially used to compare different voice assistants and released as a public dataset hosted at 
-https://github.com/sonos/nlu-benchmark in folder 2016-12-built-in-intents. The dataset contains 328 utterances over 10 intent classes. 
+Snips' built in intents dataset was initially used to compare different voice assistants and released as a public dataset hosted at
+https://github.com/sonos/nlu-benchmark in folder 2016-12-built-in-intents. The dataset contains 328 utterances over 10 intent classes.
 A related Medium post is https://medium.com/snips-ai/benchmarking-natural-language-understanding-systems-d35be6ce568d.
 
 ### Supported Tasks and Leaderboards
@@ -86,26 +136,26 @@ The source data is not split.
 
 ### Curation Rationale
 
-The dataset was originally created to compare the performance of a number of voice assistants. However, the labelled utterances are useful 
+The dataset was originally created to compare the performance of a number of voice assistants. However, the labelled utterances are useful
 for developing and benchmarking text chatbots as well.
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-It is not clear how the data was collected. From the Medium post: `The benchmark relies on a set of 328 queries built by the business team 
+It is not clear how the data was collected. From the Medium post: `The benchmark relies on a set of 328 queries built by the business team
 at Snips, and kept secret from data scientists and engineers throughout the development of the solution.`
 
 #### Who are the source language producers?
 
-Originally prepared by snips.ai. The Snips team has since joined Sonos in November 2019. These open datasets remain available and their 
+Originally prepared by snips.ai. The Snips team has since joined Sonos in November 2019. These open datasets remain available and their
 access is now managed by the Sonos Voice Experience Team. Please email sve-research@sonos.com with any question.
 
 ### Annotations
 
 #### Annotation process
 
-It is not clear how the data was collected. From the Medium post: `The benchmark relies on a set of 328 queries built by the business team 
+It is not clear how the data was collected. From the Medium post: `The benchmark relies on a set of 328 queries built by the business team
 at Snips, and kept secret from data scientists and engineers throughout the development of the solution.`
 
 #### Who are the annotators?
@@ -134,7 +184,7 @@ at Snips, and kept secret from data scientists and engineers throughout the deve
 
 ### Dataset Curators
 
-Originally prepared by snips.ai. The Snips team has since joined Sonos in November 2019. These open datasets remain available and their 
+Originally prepared by snips.ai. The Snips team has since joined Sonos in November 2019. These open datasets remain available and their
 access is now managed by the Sonos Voice Experience Team. Please email sve-research@sonos.com with any question.
 
 ### Licensing Information
@@ -145,8 +195,8 @@ The source data is licensed under Creative Commons Zero v1.0 Universal.
 
 Any publication based on these datasets must include a full citation to the following paper in which the results were published by the Snips Team:
 
-Coucke A. et al., "Snips Voice Platform: an embedded Spoken Language Understanding system for private-by-design voice interfaces." CoRR 2018, 
-https://arxiv.org/abs/1805.10190 
+Coucke A. et al., "Snips Voice Platform: an embedded Spoken Language Understanding system for private-by-design voice interfaces." CoRR 2018,
+https://arxiv.org/abs/1805.10190
 
 ### Contributions
 

@@ -49,46 +49,40 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-  de-pl:
-  - 100K<n<1M
-  el-en:
-  - 1M<n<10M
-  en-ha:
-  - 10K<n<100K
-  en-ig:
-  - 10K<n<100K
-  en-km:
-  - 10K<n<100K
-  en-so:
-  - 10K<n<100K
-  en-sw:
-  - 100K<n<1M
-  en-tl:
-  - 100K<n<1M
-  es-gl:
-  - 1M<n<10M
-  fr-nl:
-  - 1M<n<10M
+- 100K<n<1M
+- 10K<n<100K
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: null
+pretty_name: OpusParaCrawl
+configs:
+- de-pl
+- el-en
+- en-ha
+- en-ig
+- en-km
+- en-so
+- en-sw
+- en-tl
+- es-gl
+- fr-nl
 ---
 
 # Dataset Card Creation Guide
 
 ## Table of Contents
-
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

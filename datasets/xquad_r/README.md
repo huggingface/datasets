@@ -4,28 +4,17 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  ar:
-  - ar
-  de:
-  - de
-  el:
-  - el
-  en:
-  - en
-  es:
-  - es
-  hi:
-  - hi
-  ru:
-  - ru
-  th:
-  - th
-  tr:
-  - tr
-  vi:
-  - vi
-  zh:
-  - zh
+- ar
+- de
+- el
+- en
+- es
+- hi
+- ru
+- th
+- tr
+- vi
+- zh
 licenses:
 - cc-by-sa-4.0
 multilinguality:
@@ -39,6 +28,20 @@ task_categories:
 - question-answering
 task_ids:
 - extractive-qa
+paperswithcode_id: xquad-r
+pretty_name: LAReQA
+configs:
+- ar
+- de
+- el
+- en
+- es
+- hi
+- ru
+- th
+- tr
+- vi
+- zh
 ---
 
 # Dataset Card for [Dataset Name]
@@ -46,12 +49,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

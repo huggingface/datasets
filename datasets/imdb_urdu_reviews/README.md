@@ -1,36 +1,37 @@
 ---
 annotations_creators:
-  - found
+- found
 language_creators:
-  - machine-generated
+- machine-generated
 languages:
-  - ur
+- ur
 licenses:
-  - odbl-1.0
+- odbl-1.0
 multilinguality:
-  - monolingual
+- monolingual
 size_categories:
-  - 10K<n<100K
+- 10K<n<100K
 source_datasets:
-  - original
+- original
 task_categories:
-  - text-classification
+- text-classification
 task_ids:
-  - sentiment-classification
+- sentiment-classification
+paperswithcode_id: null
+pretty_name: ImDB Urdu Reviews
 ---
 
 # Dataset Card for ImDB Urdu Reviews
 
 ## Table of Contents
-
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

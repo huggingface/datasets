@@ -21,16 +21,9 @@ A clear and concise description of the expected results.
 ## Actual results
 Specify the actual results or traceback.
 
-## Versions
-Paste the output of the following code:
-```python
-import datasets
-import sys
-import platform
-
-print(f"""
-- Datasets: {datasets.__version__}
-- Python: {sys.version}
-- Platform: {platform.platform()}
-""")
-```
+## Environment info
+<!-- You can run the command `datasets-cli env` and copy-and-paste its output below. -->
+- `datasets` version:
+- Platform:
+- Python version:
+- PyArrow version:

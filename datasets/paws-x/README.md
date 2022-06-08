@@ -1,4 +1,5 @@
 ---
+pretty_name: "PAWS-X: A Cross-lingual Adversarial Dataset for Paraphrase Identification"
 annotations_creators:
 - expert-generated
 - machine-generated
@@ -23,24 +24,26 @@ source_datasets:
 - extended|other-paws
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
 - semantic-similarity-classification
 - semantic-similarity-scoring
-- text-scoring-other-paraphrase-identification
+- text-classification-other-paraphrase-identification
+- text-scoring
+- multi-input-text-classification
+paperswithcode_id: paws-x
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for PAWS-X: A Cross-lingual Adversarial Dataset for Paraphrase Identification
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

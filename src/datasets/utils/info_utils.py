@@ -75,25 +75,29 @@ def verify_splits(expected_splits: Optional[dict], recorded_splits: dict):
     logger.info("All the splits matched successfully.")
 
 
-def get_size_checksum_dict(path: str) -> dict:
+def get_size_checksum_dict(path: str, record_checksum: bool = True) -> dict:
     """Compute the file size and the sha256 checksum of a file"""
-    m = sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(1 << 20), b""):
-            m.update(chunk)
-    return {"num_bytes": os.path.getsize(path), "checksum": m.hexdigest()}
+    if record_checksum:
+        m = sha256()
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(1 << 20), b""):
+                m.update(chunk)
+            checksum = m.hexdigest()
+    else:
+        checksum = None
+    return {"num_bytes": os.path.getsize(path), "checksum": checksum}
 
 
 def is_small_dataset(dataset_size):
-    """Check if `dataset_size` is smaller than `config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`.
+    """Check if `dataset_size` is smaller than `config.IN_MEMORY_MAX_SIZE`.
 
     Args:
         dataset_size (int): Dataset size in bytes.
 
     Returns:
-        bool: Whether `dataset_size` is smaller than `config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`.
+        bool: Whether `dataset_size` is smaller than `config.IN_MEMORY_MAX_SIZE`.
     """
-    if dataset_size and config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES is not None:
-        return dataset_size < config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES
+    if dataset_size and config.IN_MEMORY_MAX_SIZE:
+        return dataset_size < config.IN_MEMORY_MAX_SIZE
     else:
         return False

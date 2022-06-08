@@ -1,35 +1,37 @@
 ---
-annotations_creators: 
+annotations_creators:
 - expert-generated
-language_creators: 
+language_creators:
 - expert-generated
-languages: 
+languages:
 - pl
-licenses: 
+licenses:
 - cc-by-3.0
-multilinguality: 
+multilinguality:
 - monolingual
-size_categories: 
+size_categories:
 - n<1K
-source_datasets: 
+source_datasets:
 - original
-task_categories: 
-- conditional-text-generation
-task_ids: 
+task_categories:
 - summarization
+task_ids:
+- news-articles-summarization
+paperswithcode_id: null
+pretty_name: Polish Summaries Corpus
 ---
 
-# Dataset Card for polsum
+# Dataset Card for Polish Summaries Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

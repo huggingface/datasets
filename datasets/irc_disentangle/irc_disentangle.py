@@ -23,19 +23,29 @@ import datasets
 
 
 _CITATION = """\
-@InProceedings{acl19disentangle,
-author    = {Jonathan K. Kummerfeld and Sai R. Gouravajhala and Joseph Peper and Vignesh Athreya and Chulaka Gunasekara and Jatin Ganhotra and Siva Sankalp Patel and Lazaros Polymenakos and Walter S. Lasecki},
-title     = {A Large-Scale Corpus for Conversation Disentanglement},
-booktitle = {Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics},
-location  = {Florence, Italy},
-month     = {July},
-year      = {2019},
-doi       = {10.18653/v1/P19-1374},
-pages     = {3846--3856},
-url       = {https://aclweb.org/anthology/papers/P/P19/P19-1374/},
-arxiv     = {https://arxiv.org/abs/1810.11118},
-software  = {https://jkk.name/irc-disentanglement},
-data      = {https://jkk.name/irc-disentanglement},
+@inproceedings{kummerfeld-etal-2019-large,
+    title = "A Large-Scale Corpus for Conversation Disentanglement",
+    author = "Kummerfeld, Jonathan K.  and
+      Gouravajhala, Sai R.  and
+      Peper, Joseph J.  and
+      Athreya, Vignesh  and
+      Gunasekara, Chulaka  and
+      Ganhotra, Jatin  and
+      Patel, Siva Sankalp  and
+      Polymenakos, Lazaros C  and
+      Lasecki, Walter",
+    booktitle = "Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics",
+    month = jul,
+    year = "2019",
+    address = "Florence, Italy",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/P19-1374",
+    doi = "10.18653/v1/P19-1374",
+    pages = "3846--3856",
+    arxiv = "https://arxiv.org/abs/1810.11118",
+    software = "https://jkk.name/irc-disentanglement",
+    data = "https://jkk.name/irc-disentanglement",
+    abstract = "Disentangling conversations mixed together in a single stream of messages is a difficult task, made harder by the lack of large manually annotated datasets. We created a new dataset of 77,563 messages manually annotated with reply-structure graphs that both disentangle conversations and define internal conversation structure. Our data is 16 times larger than all previously released datasets combined, the first to include adjudication of annotation disagreements, and the first to include context. We use our data to re-examine prior work, in particular, finding that 89% of conversations in a widely used dialogue corpus are either missing messages or contain extra messages. Our manually-annotated data presents an opportunity to develop robust data-driven methods for conversation disentanglement, which will help advance dialogue research.",
 }
 """
 
@@ -109,40 +119,22 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        my_urls = _URL
-        dl_dir = dl_manager.download_and_extract(my_urls)
-
-        files = dict()
+        dl_dir = dl_manager.download_and_extract(_URL)
+        filepath = os.path.join(dl_dir, "jkkummerfeld-irc-disentanglement-35f0a40", "data")
+        split_names = {datasets.Split.TRAIN: "train", datasets.Split.VALIDATION: "dev", datasets.Split.TEST: "test"}
         if self.config.name == "ubuntu":
-            for split in ["train", "dev", "test"]:
-                files[split] = os.path.join(dl_dir, "jkkummerfeld-irc-disentanglement-fd379e9", "data", split)
-
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
+                    name=split,
                     gen_kwargs={
-                        "filepath": files["train"],
-                        "split": "train",
+                        "filepath": os.path.join(filepath, split_name),
+                        "split": split_name,
                     },
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    gen_kwargs={
-                        "filepath": files["test"],
-                        "split": "test",
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": files["dev"],
-                        "split": "dev",
-                    },
-                ),
+                )
+                for split, split_name in split_names.items()
             ]
-
         elif self.config.name == "channel_two":
-            filepath = os.path.join(dl_dir, "jkkummerfeld-irc-disentanglement-fd379e9", "data", "channel-two")
+            filepath = os.path.join(filepath, "channel-two")
             return [
                 datasets.SplitGenerator(
                     name="dev",
@@ -187,8 +179,8 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
         if self.config.name == "ubuntu":
             # run loop for each date
             all_files = sorted(glob.glob(os.path.join(filepath, "*.annotation.txt")))
-            all_dates = [Path(file).name[:10] for file in all_files]
-            all_info = [Path(file).name[10:-15] for file in all_files]
+            all_dates = [Path(filename).name[:10] for filename in all_files]
+            all_info = [Path(filename).name[10:-15] for filename in all_files]
 
         elif self.config.name == "channel_two":
             # run loop once (there are no dates for this config)

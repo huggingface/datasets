@@ -20,6 +20,7 @@
 import csv
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -43,7 +44,7 @@ _TRAIN_DOWNLOAD_URL = (
 
 
 class TweetsHateSpeechDetection(datasets.GeneratorBasedBuilder):
-    """Detecing which tweets showcase hate or racist remarks."""
+    """Detecting which tweets showcase hate or racist remarks."""
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -56,6 +57,7 @@ class TweetsHateSpeechDetection(datasets.GeneratorBasedBuilder):
             ),
             homepage="https://github.com/sharmaroshan/Twitter-Sentiment-Analysis",
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="tweet", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):

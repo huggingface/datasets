@@ -21,13 +21,15 @@ task_categories:
 task_ids:
 - other-other-text-to-speech
 - other-other-web-search
+paperswithcode_id: common-crawl-domain-names
+pretty_name: Common Crawl Domain Names
 ---
 
 # Dataset Card for Common Crawl Domain Names
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)

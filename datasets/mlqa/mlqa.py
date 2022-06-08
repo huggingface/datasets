@@ -117,27 +117,23 @@ class Mlqa(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         if self.config.name.startswith("mlqa-translate-train"):
-            dl_file = dl_manager.download_and_extract(self.config.data_url)
+            archive = dl_manager.download(self.config.data_url)
             lang = self.config.name.split(".")[-1]
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
-                        "filepath": os.path.join(
-                            os.path.join(dl_file, "mlqa-translate-train"),
-                            "{}_squad-translate-train-train-v1.1.json".format(lang),
-                        )
+                        "filepath": f"mlqa-translate-train/{lang}_squad-translate-train-train-v1.1.json",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
-                        "filepath": os.path.join(
-                            os.path.join(dl_file, "mlqa-translate-train"),
-                            "{}_squad-translate-train-dev-v1.1.json".format(lang),
-                        )
+                        "filepath": f"mlqa-translate-train/{lang}_squad-translate-train-dev-v1.1.json",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
@@ -154,7 +150,7 @@ class Mlqa(datasets.GeneratorBasedBuilder):
                         gen_kwargs={
                             "filepath": os.path.join(
                                 os.path.join(dl_file, "MLQA_V1/test"),
-                                "test-context-{}-question-{}.json".format(l1, l2),
+                                f"test-context-{l1}-question-{l2}.json",
                             )
                         },
                     ),
@@ -163,33 +159,36 @@ class Mlqa(datasets.GeneratorBasedBuilder):
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={
                             "filepath": os.path.join(
-                                os.path.join(dl_file, "MLQA_V1/dev"), "dev-context-{}-question-{}.json".format(l1, l2)
+                                os.path.join(dl_file, "MLQA_V1/dev"), f"dev-context-{l1}-question-{l2}.json"
                             )
                         },
                     ),
                 ]
             else:
                 if self.config.name.startswith("mlqa-translate-test"):
-                    dl_file = dl_manager.download_and_extract(self.config.data_url)
+                    archive = dl_manager.download(self.config.data_url)
                     lang = self.config.name.split(".")[-1]
                     return [
                         datasets.SplitGenerator(
                             name=datasets.Split.TEST,
                             # These kwargs will be passed to _generate_examples
                             gen_kwargs={
-                                "filepath": os.path.join(
-                                    os.path.join(dl_file, "mlqa-translate-test"),
-                                    "translate-test-context-{}-question-{}.json".format(lang, lang),
-                                )
+                                "filepath": f"mlqa-translate-test/translate-test-context-{lang}-question-{lang}.json",
+                                "files": dl_manager.iter_archive(archive),
                             },
                         ),
                     ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, filepath, files=None):
         """Yields examples."""
-        # TODO(mlqa): Yields (key, example) tuples from the dataset
-        with open(filepath, encoding="utf-8") as f:
-            data = json.load(f)
+        if self.config.name.startswith("mlqa-translate"):
+            for path, f in files:
+                if path == filepath:
+                    data = json.loads(f.read().decode("utf-8"))
+                    break
+        else:
+            with open(filepath, encoding="utf-8") as f:
+                data = json.load(f)
         for examples in data["data"]:
             for example in examples["paragraphs"]:
                 context = example["context"]

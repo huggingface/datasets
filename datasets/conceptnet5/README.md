@@ -20,18 +20,21 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  conceptnet5:
-  - 10M<n<100M
-  omcs_sentences_free:
-  - 100K<n<1M
-  omcs_sentences_more:
-  - 1M<n<10M
+- 100K<n<1M
+- 10M<n<100M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
 - text-classification
 task_ids:
 - multi-class-classification
+paperswithcode_id: conceptnet
+pretty_name: Conceptnet5
+configs:
+- conceptnet5
+- omcs_sentences_free
+- omcs_sentences_more
 ---
 
 # Dataset Card for Conceptnet5
@@ -39,12 +42,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

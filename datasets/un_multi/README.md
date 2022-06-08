@@ -4,69 +4,13 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  ar-de:
-  - ar
-  - de
-  ar-en:
-  - ar
-  - en
-  ar-es:
-  - ar
-  - es
-  ar-fr:
-  - ar
-  - fr
-  ar-ru:
-  - ar
-  - ru
-  ar-zh:
-  - ar
-  - zh
-  de-en:
-  - de
-  - en
-  de-es:
-  - de
-  - es
-  de-fr:
-  - de
-  - fr
-  de-ru:
-  - de
-  - ru
-  de-zh:
-  - de
-  - zh
-  en-es:
-  - en
-  - es
-  en-fr:
-  - en
-  - fr
-  en-ru:
-  - en
-  - ru
-  en-zh:
-  - en
-  - zh
-  es-fr:
-  - es
-  - fr
-  es-ru:
-  - es
-  - ru
-  es-zh:
-  - es
-  - zh
-  fr-ru:
-  - fr
-  - ru
-  fr-zh:
-  - fr
-  - zh
-  ru-zh:
-  - ru
-  - zh
+- ar
+- de
+- en
+- es
+- fr
+- ru
+- zh
 licenses:
 - unknown
 multilinguality:
@@ -76,9 +20,32 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: multiun
+pretty_name: Multilingual Corpus from United Nation Documents
+configs:
+- ar-de
+- ar-en
+- ar-es
+- ar-fr
+- ar-ru
+- ar-zh
+- de-en
+- de-es
+- de-fr
+- de-ru
+- de-zh
+- en-es
+- en-fr
+- en-ru
+- en-zh
+- es-fr
+- es-ru
+- es-zh
+- fr-ru
+- fr-zh
+- ru-zh
 ---
 
 # Dataset Card for [Dataset Name]
@@ -86,12 +53,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

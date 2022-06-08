@@ -1,0 +1,36 @@
+name: Update Hub repositories
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  update-hub-repositories:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.7"
+      - name: Set up default Git config
+        run: |
+          git config --global user.name system
+          git config --global user.email system@huggingface.co
+      - name: Install dependencies
+        working-directory: ./.github/hub
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Update Hub repositories
+        working-directory: ./.github/hub
+        run: |
+          export HF_TOKEN=${{ secrets.HUB_TRUSTED_COMMITER_TOKEN }}
+          export DATASETS_LIB_PATH=$GITHUB_WORKSPACE
+          export HF_USE_PROD=1
+          export GIT_LFS_SKIP_SMUDGE=1
+          python update_hub_repositories.py --auto

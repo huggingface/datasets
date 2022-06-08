@@ -9,46 +9,43 @@ licenses:
 - cc-by-sa-3.0
 multilinguality:
 - monolingual
+pretty_name: NQ-Open
 size_categories:
 - 10K<n<100K
 source_datasets:
-- 'extended|natural_questions'
+- extended|natural_questions
 task_categories:
 - question-answering
 task_ids:
 - open-domain-qa
+paperswithcode_id: null
 ---
 
 # Dataset Card for nq_open
 
 ## Table of Contents
-- [Dataset Card for nq_open](#dataset-card-for-nq_open)
-  - [Table of Contents](#table-of-contents)
-  - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
-      - [Who are the source language producers?](#who-are-the-source-language-producers)
-    - [Annotations](#annotations)
-      - [Annotation process](#annotation-process)
-      - [Who are the annotators?](#who-are-the-annotators)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -56,7 +53,7 @@ task_ids:
 - **Repository:** https://github.com/google-research-datasets/natural-questions/tree/master/nq_open
 - **Paper:** https://www.aclweb.org/anthology/P19-1612.pdf
 - **Leaderboard:** https://ai.google.com/research/NaturalQuestions/efficientqa
-- **Point of Contact:** efficientqa@googlegroups.com
+- **Point of Contact:** [Mailing List](efficientqa@googlegroups.com)
 
 ### Dataset Summary
 

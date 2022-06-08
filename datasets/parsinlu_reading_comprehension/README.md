@@ -17,39 +17,35 @@ task_categories:
 - question-answering
 task_ids:
 - extractive-qa
+paperswithcode_id: null
+pretty_name: PersiNLU (Reading Comprehension)
 ---
 
 # Dataset Card for PersiNLU (Reading Comprehension)
 
 ## Table of Contents
-- [Dataset Card for PersiNLU (Reading Comprehension)](#dataset-card-for-persi_nlu_reading_comprehension)
-  - [Table of Contents](#table-of-contents)
-  - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
-      - [Who are the source language producers?](#who-are-the-source-language-producers)
-    - [Annotations](#annotations)
-      - [Annotation process](#annotation-process)
-      - [Who are the annotators?](#who-are-the-annotators)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
-    - [Contributions](#contributions)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -57,7 +53,7 @@ task_ids:
 - **Repository:** [Github](https://github.com/persiannlp/parsinlu/)
 - **Paper:** [Arxiv](https://arxiv.org/abs/2012.06154)
 - **Leaderboard:** 
-- **Point of Contact:** d.khashabi@gmail.com
+- **Point of Contact:** [email](d.khashabi@gmail.com)
 
 ### Dataset Summary
 
@@ -143,7 +139,7 @@ For more details, check [the corresponding draft](https://arxiv.org/abs/2012.061
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 HuggingFace Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,15 +23,16 @@ from unittest import TestCase
 
 from absl.testing import parameterized
 
-from datasets import cached_path, import_main_class, load_dataset, prepare_module
 from datasets.builder import BuilderConfig, DatasetBuilder
+from datasets.download.download_config import DownloadConfig
+from datasets.download.download_manager import DownloadMode
+from datasets.download.mock_download_manager import MockDownloadManager
 from datasets.features import ClassLabel, Features, Value
+from datasets.load import dataset_module_factory, import_main_class, load_dataset
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.search import _has_faiss
-from datasets.utils.download_manager import GenerateMode
-from datasets.utils.file_utils import DownloadConfig, is_remote_url
+from datasets.utils.file_utils import cached_path, is_remote_url
 from datasets.utils.logging import get_logger
-from datasets.utils.mock_download_manager import MockDownloadManager
 
 from .utils import OfflineSimulationMode, for_all_test_methods, local, offline, packaged, slow
 
@@ -74,12 +74,29 @@ def skip_if_not_compatible_with_windows(test_case):
 
 
 def get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data):
-    extensions = {"text": "txt", "json": "json", "pandas": "pkl", "csv": "csv"}
-    return {
-        "train": os.path.join(path_to_dummy_data, "train." + extensions[dataset_name]),
-        "test": os.path.join(path_to_dummy_data, "test." + extensions[dataset_name]),
-        "dev": os.path.join(path_to_dummy_data, "dev." + extensions[dataset_name]),
+    extensions = {
+        "text": ".txt",
+        "json": ".json",
+        "pandas": ".pkl",
+        "csv": ".csv",
+        "parquet": ".parquet",
+        "imagefolder": "/",
     }
+    return {
+        "train": os.path.join(path_to_dummy_data, "train" + extensions[dataset_name]),
+        "test": os.path.join(path_to_dummy_data, "test" + extensions[dataset_name]),
+        "dev": os.path.join(path_to_dummy_data, "dev" + extensions[dataset_name]),
+    }
+
+
+def get_packaged_dataset_config_attributes(dataset_name):
+    if dataset_name == "json":
+        # The json dummy data are formatted as the squad format
+        # which has the list of examples in the field named "data".
+        # Therefore we have to tell the json loader to load this field.
+        return {"field": "data"}
+    else:
+        return {}
 
 
 class DatasetTester:
@@ -89,11 +106,11 @@ class DatasetTester:
     def load_builder_class(self, dataset_name, is_local=False):
         # Download/copy dataset script
         if is_local is True:
-            module_path, _ = prepare_module("./datasets/" + dataset_name)
+            dataset_module = dataset_module_factory(os.path.join("datasets", dataset_name))
         else:
-            module_path, _ = prepare_module(dataset_name, download_config=DownloadConfig(force_download=True))
+            dataset_module = dataset_module_factory(dataset_name, download_config=DownloadConfig(force_download=True))
         # Get dataset builder class
-        builder_cls = import_main_class(module_path)
+        builder_cls = import_main_class(dataset_module.module_path)
         return builder_cls
 
     def load_all_configs(self, dataset_name, is_local=False) -> List[Optional[BuilderConfig]]:
@@ -111,18 +128,15 @@ class DatasetTester:
 
                 # create config and dataset
                 dataset_builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
-                name = config.name if config is not None else None
-                dataset_builder = dataset_builder_cls(name=name, cache_dir=processed_temp_dir)
+                config_name = config.name if config is not None else None
+                dataset_builder = dataset_builder_cls(config_name=config_name, cache_dir=processed_temp_dir)
 
                 # TODO: skip Beam datasets and datasets that lack dummy data for now
                 if not dataset_builder.test_dummy_data:
                     logger.info("Skip tests for this dataset for now")
                     return
 
-                if config is not None:
-                    version = config.version
-                else:
-                    version = dataset_builder.VERSION
+                version = config.version if config else dataset_builder.config.version
 
                 def check_if_url_is_valid(url):
                     if is_remote_url(url) and "\\" in url:
@@ -139,12 +153,15 @@ class DatasetTester:
                 )
 
                 # packaged datasets like csv, text, json or pandas require some data files
-                if dataset_builder.__class__.__name__.lower() in _PACKAGED_DATASETS_MODULES:
+                builder_name = dataset_builder.__class__.__name__.lower()
+                if builder_name in _PACKAGED_DATASETS_MODULES:
                     mock_dl_manager.download_dummy_data()
                     path_to_dummy_data = mock_dl_manager.dummy_file
                     dataset_builder.config.data_files = get_packaged_dataset_dummy_data_files(
-                        dataset_builder.__class__.__name__.lower(), path_to_dummy_data
+                        builder_name, path_to_dummy_data
                     )
+                    for config_attr, value in get_packaged_dataset_config_attributes(builder_name).items():
+                        setattr(dataset_builder.config, config_attr, value)
 
                 # mock size needed for dummy data instead of actual dataset
                 if dataset_builder.info is not None:
@@ -157,7 +174,7 @@ class DatasetTester:
                 # generate examples from dummy data
                 dataset_builder.download_and_prepare(
                     dl_manager=mock_dl_manager,
-                    download_mode=GenerateMode.FORCE_REDOWNLOAD,
+                    download_mode=DownloadMode.FORCE_REDOWNLOAD,
                     ignore_verifications=True,
                     try_from_hf_gcs=False,
                 )
@@ -170,6 +187,16 @@ class DatasetTester:
                 for split in dataset_builder.info.splits.keys():
                     # check that loaded datset is not empty
                     self.parent.assertTrue(len(dataset[split]) > 0)
+
+                # check that we can cast features for each task template
+                task_templates = dataset_builder.info.task_templates
+                if task_templates:
+                    for task in task_templates:
+                        task_features = {**task.input_schema, **task.label_schema}
+                        for split in dataset:
+                            casted_dataset = dataset[split].prepare_for_task(task)
+                            self.parent.assertDictEqual(task_features, casted_dataset.features)
+                            del casted_dataset
                 del dataset
 
 
@@ -210,9 +237,9 @@ class LocalDatasetTest(parameterized.TestCase):
 
     def test_builder_class(self, dataset_name):
         builder_cls = self.dataset_tester.load_builder_class(dataset_name, is_local=True)
-        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
+        config_name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
-            builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
+            builder = builder_cls(config_name=config_name, cache_dir=tmp_cache_dir)
             self.assertIsInstance(builder, DatasetBuilder)
 
     def test_builder_configs(self, dataset_name):
@@ -230,12 +257,12 @@ class LocalDatasetTest(parameterized.TestCase):
     @slow
     def test_load_real_dataset(self, dataset_name):
         path = "./datasets/" + dataset_name
-        module_path, hash = prepare_module(path, download_config=DownloadConfig(local_files_only=True), dataset=True)
-        builder_cls = import_main_class(module_path, dataset=True)
-        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
+        dataset_module = dataset_module_factory(path, download_config=DownloadConfig(local_files_only=True))
+        builder_cls = import_main_class(dataset_module.module_path)
+        config_name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as temp_cache_dir:
             dataset = load_dataset(
-                path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                path, name=config_name, cache_dir=temp_cache_dir, download_mode=DownloadMode.FORCE_REDOWNLOAD
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
@@ -244,15 +271,15 @@ class LocalDatasetTest(parameterized.TestCase):
     @slow
     def test_load_real_dataset_all_configs(self, dataset_name):
         path = "./datasets/" + dataset_name
-        module_path, hash = prepare_module(path, download_config=DownloadConfig(local_files_only=True), dataset=True)
-        builder_cls = import_main_class(module_path, dataset=True)
+        dataset_module = dataset_module_factory(path, download_config=DownloadConfig(local_files_only=True))
+        builder_cls = import_main_class(dataset_module.module_path)
         config_names = (
             [config.name for config in builder_cls.BUILDER_CONFIGS] if len(builder_cls.BUILDER_CONFIGS) > 0 else [None]
         )
-        for name in config_names:
+        for config_name in config_names:
             with tempfile.TemporaryDirectory() as temp_cache_dir:
                 dataset = load_dataset(
-                    path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                    path, name=config_name, cache_dir=temp_cache_dir, download_mode=DownloadMode.FORCE_REDOWNLOAD
                 )
                 for split in dataset.keys():
                     self.assertTrue(len(dataset[split]) > 0)
@@ -260,7 +287,8 @@ class LocalDatasetTest(parameterized.TestCase):
 
 
 def get_packaged_dataset_names():
-    return [{"testcase_name": x, "dataset_name": x} for x in _PACKAGED_DATASETS_MODULES.keys()]
+    packaged_datasets = [{"testcase_name": x, "dataset_name": x} for x in _PACKAGED_DATASETS_MODULES.keys()]
+    return packaged_datasets
 
 
 @parameterized.named_parameters(get_packaged_dataset_names())
@@ -279,9 +307,9 @@ class PackagedDatasetTest(parameterized.TestCase):
 
     def test_builder_class(self, dataset_name):
         builder_cls = self.dataset_tester.load_builder_class(dataset_name)
-        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
+        config_name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
-            builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
+            builder = builder_cls(config_name=config_name, cache_dir=tmp_cache_dir)
             self.assertIsInstance(builder, DatasetBuilder)
 
     def test_builder_configs(self, dataset_name):

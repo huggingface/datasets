@@ -53,7 +53,7 @@ If you would like to work on any of the open Issues:
    it with `pip uninstall datasets` before reinstalling it in editable
    mode with the `-e` flag.)
 
-5. Develop the features on your branch. If you want to add a dataset see more in-detail intsructions in the section [*How to add a dataset*](#how-to-add-a-dataset). Alternatively, you can follow the steps to [add a dataset](https://huggingface.co/docs/datasets/add_dataset.html) and [share a dataset](https://huggingface.co/docs/datasets/share_dataset.html) in the documentation.
+5. Develop the features on your branch. If you want to add a dataset see more in-detail instructions in the section [*How to add a dataset*](#how-to-add-a-dataset). 
 
 6. Format your code. Run black and isort so that your newly added files look nice with the following command:
 
@@ -126,7 +126,8 @@ A [more complete guide](https://github.com/huggingface/datasets/blob/master/ADD_
 
 6. Finally, take some time to document your dataset for other users. Each dataset should be accompanied by a `README.md` dataset card in its directory which describes the data and contains tags representing languages and tasks supported to be easily discoverable. You can find information on how to fill out the card either manually or by using our [web app](https://huggingface.co/datasets/card-creator/) in the following [guide](https://github.com/huggingface/datasets/blob/master/templates/README_guide.md).
 
-7. If all tests pass, your dataset works correctly. Awesome! You can now follow steps 6, 7 and 8 of the section [*How to contribute to 🤗Datasets?*](#how-to-contribute-to-🤗Datasets). If you experience problems with the dummy data tests, you might want to take a look at the section *Help for dummy data tests* below.
+7. If all tests pass, your dataset works correctly. Awesome! You can now follow steps 6, 7 and 8 of the section [*How to contribute to 🤗 Datasets?*](#how-to-contribute-to-Datasets). If you experience problems with the dummy data tests, you might want to take a look at the section *Help for dummy data tests* below.
+
 
 
 ### Help for dummy data tests
@@ -143,7 +144,7 @@ Follow these steps in case the dummy data test keeps failing:
 
 - If the dummy data tests still fail, open a PR in the repo anyways and make a remark in the description that you need help creating the dummy data.
 
-If you're looking for more details about dataset scripts creation, please refer to the [documentation](https://huggingface.co/docs/datasets/add_dataset.html).
+If you're looking for more details about dataset scripts creation, please refer to the [documentation](https://huggingface.co/docs/datasets/master/dataset_script).
 
 Note: You can use the CLI tool from the root of the repository with the following command:
 ```bash

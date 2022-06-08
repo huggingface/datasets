@@ -17,6 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+paperswithcode_id: null
+pretty_name: Turkish Product Reviews
 ---
 
 # Dataset Card for Turkish Product Reviews
@@ -24,19 +26,20 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
   - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Discussion of Social Impact and Biases](#discussion-of-social-impact-and-biases)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
   - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
@@ -52,6 +55,10 @@ task_ids:
 ### Dataset Summary
 
 This Turkish Product Reviews Dataset contains 235.165 product reviews collected online. There are 220.284 positive, 14881 negative reviews.
+
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
 
 ### Languages
 
@@ -119,7 +126,11 @@ The dataset does not contain any additional annotations.
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
 
 [More Information Needed]
 
@@ -139,7 +150,7 @@ The data is under the [CC-BY-SA-4.0 License](https://github.com/fthbrmnby/turkis
 
 ### Citation Information
 
-[More Information Needed]
+No citation available for this dataset.
 
 ### Contributions
 

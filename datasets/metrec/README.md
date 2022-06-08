@@ -17,6 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-poetry-classification
+paperswithcode_id: metrec
+pretty_name: MetRec
 ---
 
 # Dataset Card for MetRec
@@ -24,19 +26,20 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
   - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Discussion of Social Impact and Biases](#discussion-of-social-impact-and-biases)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
   - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
@@ -80,9 +83,9 @@ A typical data point comprises a label which is out of 13 classes and a verse pa
 
 The data is split into a training and testing. The split is organized as the following 
 
-|           | Tain   | Test |
-|---------- | ------ | ---- |
-|data split | 47,124 | 8,316|
+|            |  train |  test |
+|------------|-------:|------:|
+| data split | 47,124 | 8,316 |
 
 ## Dataset Creation
 
@@ -120,7 +123,11 @@ The dataset does not contain any additional annotations.
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
 
 [More Information Needed]
 

@@ -17,6 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-analysis
+paperswithcode_id: null
+pretty_name: Hate Speech in Filipino
 ---
 
 # Dataset Card for Hate Speech in Filipino
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -47,11 +49,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: [Hate Speech Dataset in Filipino homepage](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)**
-- **Repository: [Hate Speech Dataset in Filipino homepage](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)**
-- **Paper: [PCJ paper](https://pcj.csp.org.ph/index.php/pcj/issue/download/29/PCJ%20V14%20N1%20pp1-14%202019)**
+- **Homepage:** [Hate Speech Dataset in Filipino homepage](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
+- **Repository:** [Hate Speech Dataset in Filipino homepage](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
+- **Paper:** [PCJ paper](https://pcj.csp.org.ph/index.php/pcj/issue/download/29/PCJ%20V14%20N1%20pp1-14%202019)
 - **Leaderboard:**
-- **Point of Contact: [Jan Christian Cruz](mailto:jan_christian_cruz@dlsu.edu.ph)**
+- **Point of Contact:** [Jan Christian Cruz](mailto:jan_christian_cruz@dlsu.edu.ph)
 
 ### Dataset Summary
 Contains 10k tweets (training set) that are labeled as hate speech or non-hate speech. Released with 4,232 validation and 4,232 testing samples. Collected during the 2016 Philippine Presidential Elections.

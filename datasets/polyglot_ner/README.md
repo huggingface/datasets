@@ -1,17 +1,76 @@
 ---
+annotations_creators:
+- machine-generated
+language_creators:
+- found
+languages:
+- ca
+- de
+- es
+- fi
+- hi
+- id
+- ko
+- ms
+- pl
+- ru
+- sr
+- tl
+- vi
+- ar
+- cs
+- el
+- et
+- fr
+- hr
+- it
+- lt
+- nl
+- pt
+- sk
+- sv
+- tr
+- zh
+- bg
+- da
+- en
+- fa
+- he
+- hu
+- ja
+- lv
+- "no"
+- ro
+- sl
+- th
+- uk
+licenses:
+- unknown
+multilinguality:
+- multilingual
+pretty_name: Polyglot-NER
+size_categories:
+- unknown
+source_datasets:
+- original
+task_categories:
+- token-classification
+task_ids:
+- named-entity-recognition
+paperswithcode_id: polyglot-ner
 ---
 
-# Dataset Card for "polyglot_ner"
+# Dataset Card for Polyglot-NER
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -47,7 +106,7 @@ named entity recognition. The details of the procedure of generating them is out
 Section 3 of the paper (https://arxiv.org/abs/1410.3791). Each config contains the data
 corresponding to a different language. For example, "es" includes only spanish examples.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -56,8 +115,6 @@ corresponding to a different language. For example, "es" includes only spanish e
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -185,15 +242,15 @@ The data fields are the same among all splits.
 - `words`: a `list` of `string` features.
 - `ner`: a `list` of `string` features.
 
-### Data Splits Sample Size
+### Data Splits
 
-|  name  | train  |
-|--------|-------:|
-|ar      |  339109|
-|bg      |  559694|
-|ca      |  372665|
-|combined|21070925|
-|cs      |  564462|
+| name     |    train |
+|----------|---------:|
+| ar       |   339109 |
+| bg       |   559694 |
+| ca       |   372665 |
+| combined | 21070925 |
+| cs       |   564462 |
 
 ## Dataset Creation
 
@@ -203,9 +260,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

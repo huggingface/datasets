@@ -19,6 +19,7 @@ import csv
 import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -67,6 +68,7 @@ class RomanUrdu(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage=_HOMEPAGE,
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="sentence", label_column="sentiment")],
         )
 
     def _split_generators(self, dl_manager):

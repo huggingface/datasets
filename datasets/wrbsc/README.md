@@ -1,22 +1,24 @@
 ---
-annotations_creators: 
+annotations_creators:
 - expert-generated
-language_creators: 
+language_creators:
 - found
-languages: 
+languages:
 - pl
-licenses: 
+licenses:
 - cc-by-sa-3.0
-multilinguality: 
+multilinguality:
 - monolingual
-size_categories: 
+size_categories:
 - 1K<n<10K
-source_datasets: 
+source_datasets:
 - original
-task_categories: 
+task_categories:
 - text-classification
-task_ids: 
+task_ids:
 - semantic-similarity-classification
+paperswithcode_id: null
+pretty_name: wrbsc
 ---
 
 # Dataset Card for wrbsc
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

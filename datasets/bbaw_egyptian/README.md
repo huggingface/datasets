@@ -16,9 +16,10 @@ size_categories:
 source_datasets:
 - extended|wikipedia
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: null
+pretty_name: BbawEgyptian
 ---
 
 # Dataset Card for "bbaw_egyptian"
@@ -26,12 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -60,17 +61,17 @@ task_ids:
 
 This dataset comprises parallel sentences of hieroglyphic encodings, transcription and translation as used in the paper [Multi-Task Modeling of Phonographic Languages: Translating Middle Egyptian Hieroglyph](https://zenodo.org/record/3524924). The data triples are extracted from the [digital corpus of Egyptian texts](https://edoc.bbaw.de/frontdoor/index/index/docId/2919) compiled by the project "Strukturen und Transformationen des Wortschatzes der ägyptischen Sprache".
 
-### Supported Tasks
-
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Languages
 
-The dataset consists of parallel tripls of
+The dataset consists of parallel triples of
 - `hieroglyphs`: [Encoding of the hieroglyphs with the [Gardiner's sign list](https://en.wikipedia.org/wiki/Gardiner%27s_sign_list)
 - `transcription`: Transliteration of the above mentioned hieroglyphs with a [transliteration scheme](https://en.wikipedia.org/wiki/Transliteration_of_Ancient_Egyptian)
 - `translation`: Translation in mostly German language (with some English mixed in)
+
 ## Dataset Structure
 
 The dataset is not divided into 'train', 'dev' and 'test' splits as it was not built for competitive purposes and we encourage all scientists to use individual partitioning schemes to suit their needs (due to the low resource setting it might be advisable to use cross validation anyway). The only available split 'all' therefore comprises the full 100,708 translation triples, 35,503 of which possess hieroglyphic encodings (the remaining 65,205 triples have empty `hieroglyph` entries).
@@ -98,7 +99,7 @@ An example of a data triple looks the following way:
 - `hieroglyphs`: a `string` feature.
 
 
-### Data Splits Sample Size
+### Data Splits
 
 |   name   |all|
 |----------|----:|
@@ -112,9 +113,18 @@ An example of a data triple looks the following way:
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
 The data source comes from the project "Strukturen und Transformationen des Wortschatzes der ägyptischen Sprache" which is compiling an extensively annotated digital corpus of Egyptian texts. Their [publication](https://edoc.bbaw.de/frontdoor/index/index/docId/2919) comprises an excerpt of the internal database's contents.
 
+#### Who are the source language producers?
+
+[More Information Needed]
+
+
 ### Annotations
+
+#### Annotation process
 
 The corpus has not been preprocessed as we encourage every scientist to prepare the corpus to their desired needs. This means, that all textcritic symbols are still included in the transliteration and translation. This concerns the following annotations:
 
@@ -130,6 +140,11 @@ The corpus has not been preprocessed as we encourage every scientist to prepare 
 - `〈〈〉〉`: haplography
 
 Their exists a similar sign list for the annotation of the hieroglyphic encoding. If you wish access to this list, please get in contact with the author.
+
+
+#### Who are the annotators?
+
+[More Information Needed]
 
 ### Personal and Sensitive Information
 

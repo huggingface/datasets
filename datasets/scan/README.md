@@ -1,4 +1,37 @@
 ---
+annotations_creators:
+- no-annotation
+language_creators:
+- expert-generated
+languages:
+- en
+licenses:
+- other-bsd
+multilinguality:
+- monolingual
+pretty_name: SCAN
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- sequence-modeling
+task_ids:
+- other-multi-turn
+paperswithcode_id: scan
+configs:
+- addprim_jump
+- addprim_turn_left
+- filler_num0
+- filler_num1
+- filler_num2
+- filler_num3
+- length
+- simple
+- template_around_right
+- template_jump_around_right
+- template_opposite_right
+- template_right
 ---
 
 # Dataset Card for "scan"
@@ -6,12 +39,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -49,7 +82,7 @@ See https://github.com/brendenlake/SCAN for a description of the splits.
 Example usage:
 data = datasets.load_dataset('scan/length')
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -58,8 +91,6 @@ data = datasets.load_dataset('scan/length')
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -142,7 +173,7 @@ The data fields are the same among all splits.
 - `commands`: a `string` feature.
 - `actions`: a `string` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 |      name       |train|test|
 |-----------------|----:|---:|
@@ -160,9 +191,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -197,7 +240,6 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
 @inproceedings{Lake2018GeneralizationWS,
   title={Generalization without Systematicity: On the Compositional Skills of
          Sequence-to-Sequence Recurrent Networks},
@@ -206,7 +248,6 @@ The data fields are the same among all splits.
   year={2018},
   url={https://arxiv.org/pdf/1711.00350.pdf},
 }
-
 ```
 
 

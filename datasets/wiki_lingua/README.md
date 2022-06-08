@@ -4,101 +4,69 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-  arabic:
-  - ar
-  chinese:
-  - zh
-  czech:
-  - cs
-  dutch:
-  - nl
-  english:
-  - en
-  french:
-  - fr
-  german:
-  - de
-  hindi:
-  - hi
-  indonesian:
-  - id
-  italian:
-  - it
-  japanese:
-  - ja
-  korean:
-  - ko
-  portuguese:
-  - pt
-  russian:
-  - ru
-  spanish:
-  - es
-  thai:
-  - th
-  turkish:
-  - tr
-  vietnamese:
-  - vi
+- ar
+- cs
+- de
+- en
+- es
+- fr
+- hi
+- id
+- it
+- ja
+- ko
+- nl
+- pt
+- ru
+- th
+- tr
+- vi
+- zh
 licenses:
 - cc-by-3.0
 multilinguality:
 - multilingual
 size_categories:
-  arabic:
-  - 1K<n<10K
-  chinese:
-  - 1K<n<10K
-  czech:
-  - 1K<n<10K
-  dutch:
-  - 10K<n<100K
-  english:
-  - 10K<n<100K
-  french:
-  - 10K<n<100K
-  german:
-  - 10K<n<100K
-  hindi:
-  - 1K<n<10K
-  indonesian:
-  - 10K<n<100K
-  italian:
-  - 10K<n<100K
-  japanese:
-  - 1K<n<10K
-  korean:
-  - 1K<n<10K
-  portuguese:
-  - 10K<n<100K
-  russian:
-  - 10K<n<100K
-  spanish:
-  - 1K<n<10K
-  thai:
-  - 1K<n<10K
-  turkish:
-  - 1K<n<10K
-  vietnamese:
-  - 1K<n<10K
+- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids: []
+paperswithcode_id: wikilingua
+pretty_name: WikiLingua
+configs:
+- arabic
+- chinese
+- czech
+- dutch
+- english
+- french
+- german
+- hindi
+- indonesian
+- italian
+- japanese
+- korean
+- portuguese
+- russian
+- spanish
+- thai
+- turkish
+- vietnamese
 ---
-# Dataset Card Creation Guide
+# Dataset Card for "wiki_lingua"
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -186,7 +154,27 @@ ______________________________
 
 ### Data Splits
 
-[More Information Needed]
+|            |   train |
+|:-----------|--------:|
+| arabic     |    9995 |
+| chinese    |    6541 |
+| czech      |    2520 |
+| dutch      |   10862 |
+| english    |   57945 |
+| french     |   21690 |
+| german     |   20103 |
+| hindi      |    3402 |
+| indonesian |   16308 |
+| italian    |   17673 |
+| japanese   |    4372 |
+| korean     |    4111 |
+| portuguese |   28143 |
+| russian    |   18143 |
+| spanish    |    6616 |
+| thai       |    5093 |
+| turkish    |    1512 |
+| vietnamese |    6616 |
+
 ## Dataset Creation
 
 ### Curation Rationale
@@ -243,11 +231,21 @@ ______________________________
 
 ### Licensing Information
 
-[More Information Needed]
+- Article provided by wikiHow https://www.wikihow.com/Main-Page, a wiki building the world's largest, highest quality how-to manual. Please edit this article and find author credits at wikiHow.com. Content on wikiHow can be shared under a [Creative Commons license](http://creativecommons.org/licenses/by-nc-sa/3.0/).
+- Refer to [this webpage](https://www.wikihow.com/wikiHow:Attribution) for the specific attribution guidelines.
+- also see https://gem-benchmark.com/data_cards/WikiLingua
 
 ### Citation Information
 
-[More Information Needed]
+```bibtex
+@article{ladhak-wiki-2020,
+  title   = {WikiLingua: A New Benchmark Dataset for Multilingual Abstractive Summarization},
+  authors = {Faisal Ladhak, Esin Durmus, Claire Cardie and Kathleen McKeown},
+  journal = {arXiv preprint arXiv:2010.03093},
+  year    = {2020},
+  url     = {https://arxiv.org/abs/2010.03093}
+}
+```
 
 ### Contributions
 

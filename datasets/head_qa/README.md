@@ -4,10 +4,8 @@ annotations_creators:
 language_creators:
 - expert-generated
 languages:
-  en:
-  - en
-  es:
-  - es
+- en
+- es
 licenses:
 - mit
 multilinguality:
@@ -20,6 +18,11 @@ task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
+paperswithcode_id: headqa
+pretty_name: HEAD-QA
+configs:
+- en
+- es
 ---
 
 # Dataset Card for HEAD-QA
@@ -27,7 +30,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -127,7 +130,7 @@ An example from the HEAD-QA dataset looks as follows:
 		'atext': 'Presentan un periodo refractario.'
 	}],
 'ra': '3',
-'image': '',
+'image': <PIL.PngImagePlugin.PngImageFile image mode=RGB size=675x538 at 0x1B42B6A1668>,
 'name': 'Cuaderno_2013_1_B',
 'year': '2013'
 }
@@ -142,7 +145,7 @@ An example from the HEAD-QA dataset looks as follows:
     - `aid`: answer identifier (int)
     - `atext`: answer text
 - `ra`: `aid` of the right answer (int)
-- `image`: optional, some of the questions refer to an image
+- `image`: (optional) a `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
 - `name`: name of the exam from which the question was extracted
 - `year`: year in which the exam took place
 

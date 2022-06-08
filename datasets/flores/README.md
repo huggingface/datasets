@@ -1,15 +1,13 @@
 ---
+pretty_name: Flores
 annotations_creators:
 - found
 language_creators:
 - found
 languages:
-  neen:
-  - en
-  - ne
-  sien:
-  - en
-  - si
+- en
+- ne
+- si
 licenses:
 - cc-by-4.0
 multilinguality:
@@ -27,9 +25,12 @@ source_datasets:
 - extended|other-global-voices
 - extended|other-common-crawl
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: flores
+configs:
+- neen
+- sien
 ---
 
 # Dataset Card for "flores"
@@ -37,12 +38,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -72,7 +73,7 @@ task_ids:
 
 Evaluation datasets for low-resource machine translation: Nepali-English and Sinhala-English.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -81,8 +82,6 @@ Evaluation datasets for low-resource machine translation: Nepali-English and Sin
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -126,7 +125,7 @@ The data fields are the same among all splits.
 #### sien
 - `translation`: a multilingual `string` variable, with possible languages including `si`, `en`.
 
-### Data Splits Sample Size
+### Data Splits
 
 |name|validation|test|
 |----|---------:|---:|
@@ -141,9 +140,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

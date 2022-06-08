@@ -17,6 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - topic-classification
+paperswithcode_id: null
+pretty_name: 10k German News Articles Datasets
 ---
 
 # Dataset Card for 10k German News Articles Datasets
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -47,9 +49,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: [10k German News Article Dataset](https://tblock.github.io/10kGNAD/)**
-- **Repository: [10k German News Article Dataset](https://github.com/tblock/10kGNAD)()**
-- **Point of Contact: [Steven Liu](stevhliu@gmail.com)**
+- **Homepage:** [10k German News Article Dataset](https://tblock.github.io/10kGNAD/)
+- **Repository:** [10k German News Article Dataset](https://github.com/tblock/10kGNAD)
+- **Point of Contact:** [Steven Liu](stevhliu@gmail.com)
 
 ### Dataset Summary
 

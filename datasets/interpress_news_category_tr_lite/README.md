@@ -17,6 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-news-category-classification
+paperswithcode_id: null
+pretty_name: Interpress Turkish News Category Dataset (270K - Lite Version)
 ---
 
 # Dataset Card for Interpress Turkish News Category Dataset (270K - Lite Version)
@@ -24,19 +26,20 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
   - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Discussion of Social Impact and Biases](#discussion-of-social-impact-and-biases)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
   - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
@@ -52,6 +55,10 @@ task_ids:
 ### Dataset Summary
 
 Turkish News Category Dataset (270K - Lite Version) is a Turkish news data set consisting of 273601 news in 10 categories ("kültürsanat", "ekonomi", "siyaset", "eğitim", "dünya", "spor", "teknoloji", "magazin", "sağlık", "gündem"), compiled from printed media and news websites between 2010 and 2017 by the Interpress (https://www.interpress.com/) media monitoring company. **It has been rearranged as easily separable and with fewer classes.**
+
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
 
 ### Languages
 
@@ -82,9 +89,9 @@ Here is an example from the dataset:
 
 The data is split into a training and testing. The split is organized as the following 
 
-|           | Tain    | Test  |
-|---------- | ------- | ----- |
-|data split | 218,880 | 54,721|
+|            |   train |   test |
+|------------|--------:|-------:|
+| data split | 218,880 | 54,721 |
 
 ## Dataset Creation
 
@@ -123,7 +130,11 @@ The dataset does not contain any additional annotations.
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
 
 [More Information Needed]
 
@@ -143,7 +154,7 @@ The dataset does not contain any additional annotations.
 
 ### Citation Information
 
-[More Information Needed]
+https://www.interpress.com/
 
 ### Contributions
 

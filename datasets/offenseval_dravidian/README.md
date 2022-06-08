@@ -4,32 +4,29 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-  kannada:
-  - en
-  - kn
-  malayalam:
-  - en
-  - ml
-  tamil:
-  - en
-  - ta
+- en
+- kn
+- ml
+- ta
 licenses:
 - cc-by-4.0
 multilinguality:
 - multilingual
 size_categories:
-  kannada:
-  - 1K<n<10K
-  malayalam:
-  - 10K<n<100K
-  tamil:
-  - 10K<n<100K
+- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
 - text-classification
 task_ids:
 - text-classification-other-offensive-language
+paperswithcode_id: null
+pretty_name: Offenseval Dravidian
+configs:
+- kannada
+- malayalam
+- tamil
 ---
 
 # Dataset Card for Offenseval Dravidian
@@ -37,12 +34,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -122,11 +119,11 @@ Kannada
 
 ### Data Splits
 
-|              | Tain   | Valid |
-| -----        | ------: | -----: |
-| Tamil      |  35139 |  4388 |
-| Malayalam        |  16010 |  1999 |
-| Kannada    |  6217  |  777 |
+|           | train | validation |
+|-----------|------:|-----------:|
+| Tamil     | 35139 |       4388 |
+| Malayalam | 16010 |       1999 |
+| Kannada   |  6217 |        777 |
 
 ## Dataset Creation
 
@@ -184,6 +181,22 @@ This work is licensed under a [Creative Commons Attribution 4.0 International Li
 
 ### Citation Information
 
+
+```
+@article{chakravarthi-etal-2021-lre,
+title = "DravidianCodeMix: Sentiment Analysis and Offensive Language Identification Dataset for Dravidian Languages in Code-Mixed Text",
+author = "Chakravarthi, Bharathi Raja  and
+  Priyadharshini, Ruba  and
+  Muralidaran, Vigneshwaran and
+  Jose, Navya and
+  Suryawanshi, Shardul and
+  Sherly, Elizabeth  and
+  McCrae, John P",
+  journal={Language Resources and Evaluation},
+  publisher={Springer}
+}
+
+```
 ```
 @inproceedings{dravidianoffensive-eacl,
 title={Findings of the Shared Task on {O}ffensive {L}anguage {I}dentification in {T}amil, {M}alayalam, and {K}annada},
@@ -204,7 +217,63 @@ publisher = "Association for Computational Linguistics",
 year={2021}
 }
 ```
+```
+@inproceedings{hande-etal-2020-kancmd,
+    title = "{K}an{CMD}: {K}annada {C}ode{M}ixed Dataset for Sentiment Analysis and Offensive Language Detection",
+    author = "Hande, Adeep  and
+      Priyadharshini, Ruba  and
+      Chakravarthi, Bharathi Raja",
+    booktitle = "Proceedings of the Third Workshop on Computational Modeling of People's Opinions, Personality, and Emotion's in Social Media",
+    month = dec,
+    year = "2020",
+    address = "Barcelona, Spain (Online)",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/2020.peoples-1.6",
+    pages = "54--63",
+    abstract = "We introduce Kannada CodeMixed Dataset (KanCMD), a multi-task learning dataset for sentiment analysis and offensive language identification. The KanCMD dataset highlights two real-world issues from the social media text. First, it contains actual comments in code mixed text posted by users on YouTube social media, rather than in monolingual text from the textbook. Second, it has been annotated for two tasks, namely sentiment analysis and offensive language detection for under-resourced Kannada language. Hence, KanCMD is meant to stimulate research in under-resourced Kannada language on real-world code-mixed social media text and multi-task learning. KanCMD was obtained by crawling the YouTube, and a minimum of three annotators annotates each comment. We release KanCMD 7,671 comments for multitask learning research purpose.",
+}
+```
 
+```
+@inproceedings{chakravarthi-etal-2020-corpus,
+    title = "Corpus Creation for Sentiment Analysis in Code-Mixed {T}amil-{E}nglish Text",
+    author = "Chakravarthi, Bharathi Raja  and
+      Muralidaran, Vigneshwaran  and
+      Priyadharshini, Ruba  and
+      McCrae, John Philip",
+    booktitle = "Proceedings of the 1st Joint Workshop on Spoken Language Technologies for Under-resourced languages (SLTU) and Collaboration and Computing for Under-Resourced Languages (CCURL)",
+    month = may,
+    year = "2020",
+    address = "Marseille, France",
+    publisher = "European Language Resources association",
+    url = "https://www.aclweb.org/anthology/2020.sltu-1.28",
+    pages = "202--210",
+    abstract = "Understanding the sentiment of a comment from a video or an image is an essential task in many applications. Sentiment analysis of a text can be useful for various decision-making processes. One such application is to analyse the popular sentiments of videos on social media based on viewer comments. However, comments from social media do not follow strict rules of grammar, and they contain mixing of more than one language, often written in non-native scripts. Non-availability of annotated code-mixed data for a low-resourced language like Tamil also adds difficulty to this problem. To overcome this, we created a gold standard Tamil-English code-switched, sentiment-annotated corpus containing 15,744 comment posts from YouTube. In this paper, we describe the process of creating the corpus and assigning polarities. We present inter-annotator agreement and show the results of sentiment analysis trained on this corpus as a benchmark.",
+    language = "English",
+    ISBN = "979-10-95546-35-1",
+}
+```
+
+```
+@inproceedings{chakravarthi-etal-2020-sentiment,
+    title = "A Sentiment Analysis Dataset for Code-Mixed {M}alayalam-{E}nglish",
+    author = "Chakravarthi, Bharathi Raja  and
+      Jose, Navya  and
+      Suryawanshi, Shardul  and
+      Sherly, Elizabeth  and
+      McCrae, John Philip",
+    booktitle = "Proceedings of the 1st Joint Workshop on Spoken Language Technologies for Under-resourced languages (SLTU) and Collaboration and Computing for Under-Resourced Languages (CCURL)",
+    month = may,
+    year = "2020",
+    address = "Marseille, France",
+    publisher = "European Language Resources association",
+    url = "https://www.aclweb.org/anthology/2020.sltu-1.25",
+    pages = "177--184",
+    abstract = "There is an increasing demand for sentiment analysis of text from social media which are mostly code-mixed. Systems trained on monolingual data fail for code-mixed data due to the complexity of mixing at different levels of the text. However, very few resources are available for code-mixed data to create models specific for this data. Although much research in multilingual and cross-lingual sentiment analysis has used semi-supervised or unsupervised methods, supervised methods still performs better. Only a few datasets for popular languages such as English-Spanish, English-Hindi, and English-Chinese are available. There are no resources available for Malayalam-English code-mixed data. This paper presents a new gold standard corpus for sentiment analysis of code-mixed text in Malayalam-English annotated by voluntary annotators. This gold standard corpus obtained a Krippendorff{'}s alpha above 0.8 for the dataset. We use this new corpus to provide the benchmark for sentiment analysis in Malayalam-English code-mixed texts.",
+    language = "English",
+    ISBN = "979-10-95546-35-1",
+}
+```
 ### Contributions
 
 Thanks to [@jamespaultg](https://github.com/jamespaultg) for adding this dataset.

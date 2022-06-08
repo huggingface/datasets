@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import partial
+
 # Lint as: python3
 from typing import Any, Callable, Dict, Generic, Iterable, List, MutableMapping, Optional, TypeVar, Union
 
@@ -20,8 +21,9 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 
-from ..features import pandas_types_mapper
+from ..features.features import _ArrayXDExtensionType, _is_zero_copy_only, decode_nested_example, pandas_types_mapper
 from ..table import Table
+from ..utils.py_utils import no_op_if_value_is_null
 
 
 T = TypeVar("T")
@@ -54,7 +56,7 @@ def _query_table_with_indices_mapping(
         key = indices.fast_slice(key % indices.num_rows, 1).column(0)[0].as_py()
         return _query_table(table, key)
     if isinstance(key, slice):
-        key = range(*key.indices(table.num_rows))
+        key = range(*key.indices(indices.num_rows))
     if isinstance(key, range):
         if _is_range_contiguous(key) and key.start >= 0:
             return _query_table(
@@ -94,6 +96,10 @@ def _query_table(table: Table, key: Union[int, slice, range, str, Iterable]) -> 
         return table.fast_gather(key % table.num_rows)
 
     _raise_bad_key_type(key)
+
+
+def _is_array_with_nulls(pa_array: pa.Array) -> bool:
+    return pa_array.null_count > 0
 
 
 class BaseArrowExtractor(Generic[RowFormat, ColumnFormat, BatchFormat]):
@@ -148,43 +154,127 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
         return _unnest(self.extract_batch(pa_table))
 
     def extract_column(self, pa_table: pa.Table) -> np.ndarray:
-        series = pa_table.to_pandas(types_mapper=pandas_types_mapper)[pa_table.column_names[0]]
-        return self._series_to_numpy(series)
+        return self._arrow_array_to_numpy(pa_table[pa_table.column_names[0]])
 
     def extract_batch(self, pa_table: pa.Table) -> dict:
-        df = pa_table.to_pandas(types_mapper=pandas_types_mapper)
-        return {k: self._series_to_numpy(v) for k, v in df.items()}
+        return {col: self._arrow_array_to_numpy(pa_table[col]) for col in pa_table.column_names}
 
-    def _series_to_numpy(self, series: pd.Series) -> np.ndarray:
-        # to_numpy takes too much time for series of objects (like series of np.array)
-        if series.dtype == np.object:
-            array = series.tolist()
+    def _arrow_array_to_numpy(self, pa_array: pa.Array) -> np.ndarray:
+        if isinstance(pa_array, pa.ChunkedArray):
+            if isinstance(pa_array.type, _ArrayXDExtensionType):
+                # don't call to_pylist() to preserve dtype of the fixed-size array
+                zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
+                if pa_array.type.shape[0] is None:
+                    array: List = [
+                        row
+                        for chunk in pa_array.chunks
+                        for row in chunk.to_list_of_numpy(zero_copy_only=zero_copy_only)
+                    ]
+                else:
+                    array: List = [
+                        row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
+                    ]
+            else:
+                zero_copy_only = _is_zero_copy_only(pa_array.type) and all(
+                    not _is_array_with_nulls(chunk) for chunk in pa_array.chunks
+                )
+                array: List = [
+                    row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
+                ]
         else:
-            array = series.to_numpy()
+            if isinstance(pa_array.type, _ArrayXDExtensionType):
+                # don't call to_pylist() to preserve dtype of the fixed-size array
+                zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
+                if pa_array.type.shape[0] is None:
+                    array: List = pa_array.to_list_of_numpy(zero_copy_only=zero_copy_only)
+                else:
+                    array: List = pa_array.to_numpy(zero_copy_only=zero_copy_only)
+            else:
+                zero_copy_only = _is_zero_copy_only(pa_array.type) and not _is_array_with_nulls(pa_array)
+                array: List = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
+        if len(array) > 0:
+            if any(
+                (isinstance(x, np.ndarray) and (x.dtype == np.object or x.shape != array[0].shape))
+                or (isinstance(x, float) and np.isnan(x))
+                for x in array
+            ):
+                return np.array(array, copy=False, **{**self.np_array_kwargs, "dtype": np.object})
         return np.array(array, copy=False, **self.np_array_kwargs)
 
 
 class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFrame]):
     def extract_row(self, pa_table: pa.Table) -> pd.DataFrame:
-        return pa_table.to_pandas(types_mapper=pandas_types_mapper).head(1)
+        return pa_table.slice(length=1).to_pandas(types_mapper=pandas_types_mapper)
 
     def extract_column(self, pa_table: pa.Table) -> pd.Series:
-        return pa_table.to_pandas(types_mapper=pandas_types_mapper)[pa_table.column_names[0]]
+        return pa_table.select([0]).to_pandas(types_mapper=pandas_types_mapper)[pa_table.column_names[0]]
 
     def extract_batch(self, pa_table: pa.Table) -> pd.DataFrame:
         return pa_table.to_pandas(types_mapper=pandas_types_mapper)
 
 
+class PythonFeaturesDecoder:
+    def __init__(self, features):
+        self.features = features
+
+    def decode_row(self, row: dict) -> dict:
+        return self.features.decode_example(row) if self.features else row
+
+    def decode_column(self, column: list, column_name: str) -> list:
+        return self.features.decode_column(column, column_name) if self.features else column
+
+    def decode_batch(self, batch: dict) -> dict:
+        return self.features.decode_batch(batch) if self.features else batch
+
+
+class PandasFeaturesDecoder:
+    def __init__(self, features):
+        self.features = features
+
+    def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
+        decode = (
+            {
+                column_name: no_op_if_value_is_null(partial(decode_nested_example, feature))
+                for column_name, feature in self.features.items()
+                if self.features._column_requires_decoding[column_name]
+            }
+            if self.features
+            else {}
+        )
+        if decode:
+            row[list(decode.keys())] = row.transform(decode)
+        return row
+
+    def decode_column(self, column: pd.Series, column_name: str) -> pd.Series:
+        decode = (
+            no_op_if_value_is_null(partial(decode_nested_example, self.features[column_name]))
+            if self.features and column_name in self.features and self.features._column_requires_decoding[column_name]
+            else None
+        )
+        if decode:
+            column = column.transform(decode)
+        return column
+
+    def decode_batch(self, batch: pd.DataFrame) -> pd.DataFrame:
+        return self.decode_row(batch)
+
+
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     """
-    A formatter is an object that extracts and formats data from pyarrow table.
-    It defines the formatting for rows, colums and batches.
+    A formatter is an object that extracts and formats data from pyarrow tables.
+    It defines the formatting for rows, columns and batches.
     """
 
     simple_arrow_extractor = SimpleArrowExtractor
     python_arrow_extractor = PythonArrowExtractor
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
+
+    def __init__(self, features=None, decoded=True):
+        self.features = features
+        self.decoded = decoded
+        self.python_features_decoder = PythonFeaturesDecoder(self.features)
+        self.pandas_features_decoder = PandasFeaturesDecoder(self.features)
 
     def __call__(self, pa_table: pa.Table, query_type: str) -> Union[RowFormat, ColumnFormat, BatchFormat]:
         if query_type == "row":
@@ -217,38 +307,66 @@ class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
 
 class PythonFormatter(Formatter[dict, list, dict]):
     def format_row(self, pa_table: pa.Table) -> dict:
-        return self.python_arrow_extractor().extract_row(pa_table)
+        row = self.python_arrow_extractor().extract_row(pa_table)
+        if self.decoded:
+            row = self.python_features_decoder.decode_row(row)
+        return row
 
     def format_column(self, pa_table: pa.Table) -> list:
-        return self.python_arrow_extractor().extract_column(pa_table)
+        column = self.python_arrow_extractor().extract_column(pa_table)
+        if self.decoded:
+            column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
+        return column
 
     def format_batch(self, pa_table: pa.Table) -> dict:
-        return self.python_arrow_extractor().extract_batch(pa_table)
+        batch = self.python_arrow_extractor().extract_batch(pa_table)
+        if self.decoded:
+            batch = self.python_features_decoder.decode_batch(batch)
+        return batch
 
 
 class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
-    def __init__(self, **np_array_kwargs):
+    def __init__(self, features=None, decoded=True, **np_array_kwargs):
+        super().__init__(features=features, decoded=decoded)
         self.np_array_kwargs = np_array_kwargs
 
     def format_row(self, pa_table: pa.Table) -> dict:
-        return self.numpy_arrow_extractor(**self.np_array_kwargs).extract_row(pa_table)
+        row = self.numpy_arrow_extractor(**self.np_array_kwargs).extract_row(pa_table)
+        if self.decoded:
+            row = self.python_features_decoder.decode_row(row)
+        return row
 
     def format_column(self, pa_table: pa.Table) -> np.ndarray:
-        return self.numpy_arrow_extractor(**self.np_array_kwargs).extract_column(pa_table)
+        column = self.numpy_arrow_extractor(**self.np_array_kwargs).extract_column(pa_table)
+        if self.decoded:
+            column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
+        return column
 
     def format_batch(self, pa_table: pa.Table) -> dict:
-        return self.numpy_arrow_extractor(**self.np_array_kwargs).extract_batch(pa_table)
+        batch = self.numpy_arrow_extractor(**self.np_array_kwargs).extract_batch(pa_table)
+        if self.decoded:
+            batch = self.python_features_decoder.decode_batch(batch)
+        return batch
 
 
 class PandasFormatter(Formatter):
     def format_row(self, pa_table: pa.Table) -> pd.DataFrame:
-        return self.pandas_arrow_extractor().extract_row(pa_table)
+        row = self.pandas_arrow_extractor().extract_row(pa_table)
+        if self.decoded:
+            row = self.pandas_features_decoder.decode_row(row)
+        return row
 
     def format_column(self, pa_table: pa.Table) -> pd.Series:
-        return self.pandas_arrow_extractor().extract_column(pa_table)
+        column = self.pandas_arrow_extractor().extract_column(pa_table)
+        if self.decoded:
+            column = self.pandas_features_decoder.decode_column(column, pa_table.column_names[0])
+        return column
 
     def format_batch(self, pa_table: pa.Table) -> pd.DataFrame:
-        return self.pandas_arrow_extractor().extract_batch(pa_table)
+        row = self.pandas_arrow_extractor().extract_batch(pa_table)
+        if self.decoded:
+            row = self.pandas_features_decoder.decode_batch(row)
+        return row
 
 
 class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
@@ -261,17 +379,18 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
     to return.
     """
 
-    def __init__(self, transform: Callable[[dict], dict]):
+    def __init__(self, transform: Callable[[dict], dict], features=None, decoded=True, **kwargs):
+        super().__init__(features=features, decoded=decoded)
         self.transform = transform
 
     def format_row(self, pa_table: pa.Table) -> dict:
         formatted_batch = self.format_batch(pa_table)
         try:
             return _unnest(formatted_batch)
-        except Exception:
+        except Exception as exc:
             raise TypeError(
                 f"Custom formatting function must return a dict to be able to pick a row, but got {formatted_batch}"
-            )
+            ) from exc
 
     def format_column(self, pa_table: pa.Table) -> ColumnFormat:
         formatted_batch = self.format_batch(pa_table)
@@ -287,19 +406,21 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
             )
         try:
             return formatted_batch[pa_table.column_names[0]]
-        except Exception:
+        except Exception as exc:
             raise TypeError(
                 f"Custom formatting function must return a dict to be able to pick a row, but got {formatted_batch}"
-            )
+            ) from exc
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.python_arrow_extractor().extract_batch(pa_table)
+        if self.decoded:
+            batch = self.python_features_decoder.decode_batch(batch)
         return self.transform(batch)
 
 
 def _check_valid_column_key(key: str, columns: List[str]) -> None:
     if key not in columns:
-        raise KeyError("Column {} not in the dataset. Current columns in the dataset: {}".format(key, columns))
+        raise KeyError(f"Column {key} not in the dataset. Current columns in the dataset: {columns}")
 
 
 def _check_valid_index_key(key: Union[int, slice, range, Iterable], size: int) -> None:
@@ -387,9 +508,9 @@ def format_table(
             the table as either a row, a column or a batch.
         formatter (``datasets.formatting.formatting.Formatter``): Any subclass of a Formatter such as
             PythonFormatter, NumpyFormatter, etc.
-        format_columns (Optional ``List[str]``): if not None, it defines the columns that will be formatted using the
+        format_columns (:obj:`List[str]`, optional): if not None, it defines the columns that will be formatted using the
             given formatter. Other columns are discarded (unless ``output_all_columns`` is True)
-        output_all_columns (``bool``, defaults to False). If True, the formatted output is completed using the columns
+        output_all_columns (:obj:`bool`, defaults to False). If True, the formatted output is completed using the columns
             that are not in the ``format_columns`` list. For these columns, the PythonFormatter is used.
 
 
@@ -406,7 +527,7 @@ def format_table(
     else:
         pa_table = table
     query_type = key_to_query_type(key)
-    python_formatter = PythonFormatter()
+    python_formatter = PythonFormatter(features=None)
     if format_columns is None:
         return formatter(pa_table, query_type=query_type)
     elif query_type == "column":

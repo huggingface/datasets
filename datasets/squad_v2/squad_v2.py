@@ -4,6 +4,7 @@
 import json
 
 import datasets
+from datasets.tasks import QuestionAnsweringExtractive
 
 
 # TODO(squad_v2): BibTeX citation
@@ -82,6 +83,11 @@ class SquadV2(datasets.GeneratorBasedBuilder):
             # Homepage of the dataset for documentation
             homepage="https://rajpurkar.github.io/SQuAD-explorer/",
             citation=_CITATION,
+            task_templates=[
+                QuestionAnsweringExtractive(
+                    question_column="question", context_column="context", answers_column="answers"
+                )
+            ],
         )
 
     def _split_generators(self, dl_manager):
@@ -103,15 +109,15 @@ class SquadV2(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             squad = json.load(f)
             for example in squad["data"]:
-                title = example.get("title", "").strip()
+                title = example.get("title", "")
                 for paragraph in example["paragraphs"]:
-                    context = paragraph["context"].strip()
+                    context = paragraph["context"]  # do not strip leading blank spaces GH-2585
                     for qa in paragraph["qas"]:
-                        question = qa["question"].strip()
+                        question = qa["question"]
                         id_ = qa["id"]
 
                         answer_starts = [answer["answer_start"] for answer in qa["answers"]]
-                        answers = [answer["text"].strip() for answer in qa["answers"]]
+                        answers = [answer["text"] for answer in qa["answers"]]
 
                         # Features currently used are "context", "question", and "answers".
                         # Others are extracted here for the ease of future expansions.

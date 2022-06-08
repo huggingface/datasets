@@ -16,7 +16,6 @@
 
 
 import json
-import os
 
 import datasets
 
@@ -118,37 +117,41 @@ class PyAst(datasets.GeneratorBasedBuilder):
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         my_urls = _URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        archive = dl_manager.download(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "python100k_train.json"),
-                    "split": "train",
+                    "filepath": "python100k_train.json",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "python50k_eval.json"), "split": "test"},
+                gen_kwargs={
+                    "filepath": "python50k_eval.json",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath, files):
         """Yields examples."""
         # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
-
-        with open(filepath, encoding="utf-8") as f:
-            for id_, row in enumerate(f):
-                row_data = json.loads(row)
-                for node in row_data:
-                    if "value" not in node:
-                        node["value"] = "N/A"
-                    if "children" not in node:
-                        node["children"] = []
-                yield id_, {
-                    "ast": row_data,
-                }
+        for path, f in files:
+            if path == filepath:
+                for id_, row in enumerate(f):
+                    row_data = json.loads(row.decode("utf-8"))
+                    for node in row_data:
+                        if "value" not in node:
+                            node["value"] = "N/A"
+                        if "children" not in node:
+                            node["children"] = []
+                    yield id_, {
+                        "ast": row_data,
+                    }
+                break

@@ -1,6 +1,8 @@
 ---
-annotations_creators: []
-language_creators: []
+annotations_creators:
+- found
+language_creators:
+- found
 languages:
 - th
 licenses:
@@ -15,13 +17,15 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+paperswithcode_id: null
+pretty_name: WongnaiReviews
 ---
 
 # Dataset Card for Wongnai_Reviews
 
 ## Dataset Description
 
-- **Repository: ** https://github.com/wongnai/wongnai-corpus
+- **Repository:** https://github.com/wongnai/wongnai-corpus
 
 ### Dataset Summary
 

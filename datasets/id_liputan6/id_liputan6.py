@@ -109,23 +109,21 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
         data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
         if not os.path.exists(data_dir):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('id_liputan6', "
-                "'canonical', data_dir=...)`. Manual download instructions:\n{}".format(
-                    data_dir, self.manual_download_instructions
-                )
+                f"{data_dir} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('id_liputan6', "
+                "'canonical', data_dir=...)`. Manual download instructions:\n{self.manual_download_instructions}"
             )
         split_generators = [
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "article_dir": os.path.join(data_dir, "{}/dev".format(self.config.name)),
+                    "article_dir": os.path.join(data_dir, f"{self.config.name}/dev"),
                     "split": "dev",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "article_dir": os.path.join(data_dir, "{}/test".format(self.config.name)),
+                    "article_dir": os.path.join(data_dir, f"{self.config.name}/test"),
                     "split": "test",
                 },
             ),
@@ -135,7 +133,7 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "article_dir": os.path.join(data_dir, "{}/train".format(self.config.name)),
+                        "article_dir": os.path.join(data_dir, f"{self.config.name}/train"),
                         "split": "train",
                     },
                 )

@@ -1,4 +1,5 @@
 ---
+pretty_name: Children’s Book Test (CBT)
 annotations_creators:
 - machine-generated
 language_creators:
@@ -10,73 +11,50 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  CN:
-  - 100K<n<1M
-  NE:
-  - 100K<n<1M
-  P:
-  - 100K<n<1M
-  V:
-  - 100K<n<1M
-  raw:
-  - n<1K
+- 100K<n<1M
+- n<1K
 source_datasets:
 - original
 task_categories:
-  CN:
-  - question-answering
-  NE:
-  - question-answering
-  P:
-  - question-answering
-  V:
-  - question-answering
-  raw:
-  - other
+- other
+- question-answering
 task_ids:
-  CN:
-  - multiple-choice-qa
-  NE:
-  - multiple-choice-qa
-  P:
-  - multiple-choice-qa
-  V:
-  - multiple-choice-qa
-  raw:
-  - other-other-raw-dataset
+- multiple-choice-qa
+- other-other-raw-dataset
+paperswithcode_id: cbt
+configs:
+- CN
+- NE
+- P
+- V
+- raw
 ---
 
 # Dataset Card for CBT
 
 ## Table of Contents
-- [Dataset Card for CBT](#dataset-card-for-dataset-name)
-  - [Table of Contents](#table-of-contents)
-  - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
-      - [Who are the source language producers?](#who-are-the-source-language-producers)
-    - [Annotations](#annotations)
-      - [Annotation process](#annotation-process)
-      - [Who are the annotators?](#who-are-the-annotators)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
-    - [Contributions](#contributions)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 

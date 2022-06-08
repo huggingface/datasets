@@ -1,4 +1,5 @@
 ---
+pretty_name: WikiMovies
 annotations_creators:
 - crowdsourced
 language_creators:
@@ -17,6 +18,7 @@ task_categories:
 - question-answering
 task_ids:
 - closed-domain-qa
+paperswithcode_id: wikimovies
 ---
 
 
@@ -25,12 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -48,9 +50,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: [WikiMovies Homepage](https://research.fb.com/downloads/babi/)**
+- **Homepage:** [WikiMovies Homepage](https://research.fb.com/downloads/babi/)
 - **Repository:**
-- **Paper: [Key-Value Memory Networks for Directly Reading Documents](https://arxiv.org/pdf/1606.03126.pdf)**
+- **Paper:** [Key-Value Memory Networks for Directly Reading Documents](https://arxiv.org/pdf/1606.03126.pdf)
 - **Leaderboard:**
 - **Point of Contact:**
 

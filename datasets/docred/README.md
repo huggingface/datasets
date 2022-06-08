@@ -1,17 +1,37 @@
 ---
+annotations_creators:
+- expert-generated
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- mit
+multilinguality:
+- monolingual
+paperswithcode_id: docred
+pretty_name: DocRED
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- text-retrieval
+task_ids:
+- entity-linking-retrieval
 ---
 
-# Dataset Card for "docred"
+# Dataset Card for DocRED
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -29,9 +49,8 @@
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/thunlp/DocRED](https://github.com/thunlp/DocRED)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** [https://github.com/thunlp/DocRED](https://github.com/thunlp/DocRED)
+- **Paper:** [DocRED: A Large-Scale Document-Level Relation Extraction Dataset](https://arxiv.org/abs/1906.06127)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 20.03 MB
 - **Size of the generated dataset:** 19.19 MB
@@ -44,7 +63,7 @@ Multiple entities in a document generally exhibit complex inter-sentence relatio
     - DocRED requires reading multiple sentences in a document to extract entities and infer their relations by synthesizing all information of the document.
     - Along with the human-annotated data, we also offer large-scale distantly supervised data, which enables DocRED to be adopted for both supervised and weakly supervised scenarios.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -53,8 +72,6 @@ Multiple entities in a document generally exhibit complex inter-sentence relatio
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -114,11 +131,11 @@ The data fields are the same among all splits.
   - `relation_text`: a `string` feature.
   - `evidence`: a `list` of `int32` features.
 
-### Data Splits Sample Size
+### Data Splits
 
 | name  |train_annotated|train_distant|validation|test|
 |-------|--------------:|------------:|---------:|---:|
-|default|           3053|         1000|      1000|1000|
+|default|           3053|       101873|       998|1000|
 
 ## Dataset Creation
 
@@ -128,9 +145,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

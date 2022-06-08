@@ -14,9 +14,11 @@ size_categories:
 source_datasets:
 - extended|other-turkish_ner
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
+paperswithcode_id: null
+pretty_name: TurkishShrinkedNer
 ---
 
 # Dataset Card for turkish_shrinked_ner
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

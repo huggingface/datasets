@@ -60,7 +60,7 @@ aggregation (how to avoid repetitions) and surface realisation
 (how to build a syntactically correct and natural sounding text).
 """
 
-_URL = "https://gitlab.com/shimorina/webnlg-dataset/-/archive/master/webnlg-dataset-master.zip"
+_URL = "https://gitlab.com/shimorina/webnlg-dataset/-/archive/587fa698bec705efbefe72a235a6019c2b9b8b6c/webnlg-dataset-587fa698bec705efbefe72a235a6019c2b9b8b6c.zip"
 
 _FILE_PATHS = {
     "webnlg_challenge_2017": {
@@ -239,7 +239,8 @@ class WebNlg(datasets.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filedirs": [
-                        os.path.join(data_dir, "webnlg-dataset-master", dir_suf) for dir_suf in dir_suffix_list
+                        os.path.join(data_dir, "webnlg-dataset-587fa698bec705efbefe72a235a6019c2b9b8b6c", dir_suf)
+                        for dir_suf in dir_suffix_list
                     ],
                 },
             )

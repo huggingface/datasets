@@ -17,8 +17,6 @@
 """20Newsgroup  dataset"""
 
 
-import os
-
 import datasets
 
 
@@ -121,41 +119,49 @@ class Newsgroups(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         url = _DOWNLOAD_URL[self.config.name.split("_")[0]]
-        path = dl_manager.download_and_extract(url)
+        archive = dl_manager.download(url)
         if self.config.name.startswith("bydate"):
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={"files_path": os.path.join(path, "20news-bydate-train", self.config.sub_dir)},
+                    gen_kwargs={
+                        "files_dir": "20news-bydate-train/" + self.config.sub_dir,
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    gen_kwargs={"files_path": os.path.join(path, "20news-bydate-test", self.config.sub_dir)},
+                    gen_kwargs={
+                        "files_dir": "20news-bydate-test/" + self.config.sub_dir,
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
             ]
         elif self.config.name.startswith("19997"):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={"files_path": os.path.join(path, "20_newsgroups", self.config.sub_dir)},
+                    gen_kwargs={
+                        "files_dir": "20_newsgroups/" + self.config.sub_dir,
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 )
             ]
         else:
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={"files_path": os.path.join(path, "20news-18828", self.config.sub_dir)},
+                    gen_kwargs={
+                        "files_dir": "20news-18828/" + self.config.sub_dir,
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 )
             ]
 
-    def _generate_examples(self, files_path):
+    def _generate_examples(self, files_dir, files):
         """Yields examples."""
-        files = sorted(os.listdir(files_path))
-        for id_, file in enumerate(files):
-            filepath = os.path.join(files_path, file)
-            with open(
-                filepath, encoding="utf8", errors="ignore"
-            ) as f:  # here we can ignore byte encoded tokens. we only have a very few and in most case it happens at the end of the file (kind of \FF)
-                text = f.read()
+        for id_, (path, f) in enumerate(files):
+            if path.startswith(files_dir):
+                text = f.read().decode("utf-8", errors="ignore")
                 yield id_, {"text": text}

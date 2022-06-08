@@ -17,19 +17,70 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+paperswithcode_id: null
+pretty_name: Amazon Review Polarity
+train-eval-index:
+- config: amazon_polarity
+  task: text-classification
+  task_id: binary_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    content: text
+    label: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 macro
+      args:
+        average: macro
+    - type: f1
+      name: F1 micro
+      args:
+        average: micro  
+    - type: f1
+      name: F1 weighted
+      args:
+        average: weighted
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro  
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro  
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted  
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro  
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro  
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
 ---
 
-# Dataset Card for amazon_polarity
+# Dataset Card for Amazon Review Polarity
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

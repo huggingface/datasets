@@ -18,12 +18,14 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 - text-classification
 task_ids:
 - intent-classification
 - sentiment-classification
 - text-simplification
+paperswithcode_id: null
+pretty_name: Disaster Response Messages
 ---
 
 # Dataset Card for Disaster Response Messages 
@@ -31,12 +33,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -54,11 +56,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: [HomePage](https://appen.com/datasets/combined-disaster-response-data/)
-- **Repository: [Repo to Download the Dataset](https://datasets.appen.com/appen_datasets/disaster_response_data/disaster_response_messages_training.csv)
+- **Homepage:** [HomePage](https://appen.com/datasets/combined-disaster-response-data/)
+- **Repository:** [Repo to Download the Dataset](https://datasets.appen.com/appen_datasets/disaster_response_data/disaster_response_messages_training.csv)
 - **Paper:
 - **Leaderboard:
-- **Point of Contact:[Darshan Gandhi](darshangandhi1151@gmail.com)
+- **Point of Contact:** [Darshan Gandhi](darshangandhi1151@gmail.com)
 
 ### Dataset Summary
 
@@ -126,9 +128,9 @@ Example of a Disaster Response : { 'split': 'train', 'message': 'Weather update 
 
 ### Data Splits
 
-The data is split into train, test :
-
-Train Count : 21046 Test Count : 2629
+|train|test |validation|
+|:----:|:-----------:|:----:|
+|21046|2629|2573|
 
 ## Dataset Creation
 

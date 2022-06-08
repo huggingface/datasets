@@ -1,31 +1,76 @@
 ---
+pretty_name: SQuAD2.0
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- cc-by-sa-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- open-domain-qa
+- extractive-qa
+paperswithcode_id: squad
+train-eval-index:
+- config: squad_v2
+  task: question-answering
+  task_id: extractive_question_answering
+  splits:
+    train_split: train
+    eval_split: validation
+  col_mapping:
+    question: question
+    context: context
+    answers:
+      text: text
+      answer_start: answer_start
+  metrics:
+  - type: squad_v2
+    name: SQuAD v2
 ---
 
 # Dataset Card for "squad_v2"
 
 ## Table of Contents
-- [Dataset Description](#dataset-description)
-  - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
-  - [Languages](#languages)
-- [Dataset Structure](#dataset-structure)
-  - [Data Instances](#data-instances)
-  - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
-- [Dataset Creation](#dataset-creation)
-  - [Curation Rationale](#curation-rationale)
-  - [Source Data](#source-data)
-  - [Annotations](#annotations)
-  - [Personal and Sensitive Information](#personal-and-sensitive-information)
-- [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Impact of Dataset](#social-impact-of-dataset)
-  - [Discussion of Biases](#discussion-of-biases)
-  - [Other Known Limitations](#other-known-limitations)
-- [Additional Information](#additional-information)
-  - [Dataset Curators](#dataset-curators)
-  - [Licensing Information](#licensing-information)
-  - [Citation Information](#citation-information)
-  - [Contributions](#contributions)
+- [Dataset Card for "squad_v2"](#dataset-card-for-squad_v2)
+  - [Table of Contents](#table-of-contents)
+  - [Dataset Description](#dataset-description)
+    - [Dataset Summary](#dataset-summary)
+    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+    - [Languages](#languages)
+  - [Dataset Structure](#dataset-structure)
+    - [Data Instances](#data-instances)
+      - [squad_v2](#squad_v2)
+    - [Data Fields](#data-fields)
+      - [squad_v2](#squad_v2-1)
+    - [Data Splits](#data-splits)
+  - [Dataset Creation](#dataset-creation)
+    - [Curation Rationale](#curation-rationale)
+    - [Source Data](#source-data)
+      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
+      - [Who are the source language producers?](#who-are-the-source-language-producers)
+    - [Annotations](#annotations)
+      - [Annotation process](#annotation-process)
+      - [Who are the annotators?](#who-are-the-annotators)
+    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Considerations for Using the Data](#considerations-for-using-the-data)
+    - [Social Impact of Dataset](#social-impact-of-dataset)
+    - [Discussion of Biases](#discussion-of-biases)
+    - [Other Known Limitations](#other-known-limitations)
+  - [Additional Information](#additional-information)
+    - [Dataset Curators](#dataset-curators)
+    - [Licensing Information](#licensing-information)
+    - [Citation Information](#citation-information)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -43,7 +88,7 @@ combines the 100,000 questions in SQuAD1.1 with over 50,000 unanswerable questio
  to look similar to answerable ones. To do well on SQuAD2.0, systems must not only answer questions when possible, but
  also determine when no answer is supported by the paragraph and abstain from answering.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -52,8 +97,6 @@ combines the 100,000 questions in SQuAD1.1 with over 50,000 unanswerable questio
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -92,11 +135,11 @@ The data fields are the same among all splits.
   - `text`: a `string` feature.
   - `answer_start`: a `int32` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
-|  name  |train |validation|
-|--------|-----:|---------:|
-|squad_v2|130319|     11873|
+| name     |  train | validation |
+| -------- | -----: | ---------: |
+| squad_v2 | 130319 |      11873 |
 
 ## Dataset Creation
 
@@ -106,9 +149,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

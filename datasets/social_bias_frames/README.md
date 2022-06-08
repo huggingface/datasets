@@ -1,24 +1,26 @@
 ---
-annotations_creators: 
-- crowdsourced 
-language_creators: 
-- found 
-languages: 
-- en 
-licenses: 
-- cc-by-4.0 
-multilinguality: 
-- monolingual 
-size_categories: 
-- 100K<n<1M 
+pretty_name: Social Bias Frames
+annotations_creators:
+- crowdsourced
+language_creators:
+- found
+languages:
+- en
+licenses:
+- cc-by-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
 source_datasets:
 - original
-task_categories: 
-- conditional-text-generation 
-- text-classification 
-task_ids: 
-- explanation-generation 
-- hate-speech-detection 
+task_categories:
+- text2text-generation
+- text-classification
+task_ids:
+- text2text-generation-other-explanation-generation
+- hate-speech-detection
+paperswithcode_id: null
 ---
 
 
@@ -27,12 +29,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -65,7 +67,7 @@ Warning: this document and dataset contain content that may be offensive or upse
 
 Social Bias Frames is a new way of representing the biases and offensiveness that are implied in language. For example, these frames are meant to distill the implication that "women (candidates) are less qualified" behind the statement "we shouldn’t lower our standards to hire more women." The Social Bias Inference Corpus (SBIC) supports large-scale learning and evaluation of social implications with over 150k structured annotations of social media posts, spanning over 34k implications about a thousand demographic groups.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 This dataset supports both classification and generation. Sap et al. developed several models using the SBIC. They report an F1 score of 78.8 in predicting whether the posts in the test set were offensive, an F1 score of 78.6 in predicting whether the posts were intending to be offensive, an F1 score of 80.7 in predicting whether the posts were lewd, and an F1 score of 69.9 in predicting whether the posts were targeting a specific group. 
 
@@ -76,8 +78,6 @@ Another of Sap et al.’s models performed better in the generation task. They r
 The language in SBIC is predominantly white-aligned English (78%, using a lexical dialect detector, [Blodgett et al., 2016](https://www.aclweb.org/anthology/D16-1120)). The curators find less than 10% of posts in SBIC are detected to have the AAE dialect category. The BCP-47 language tag is, presumably, en-US. 
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -140,7 +140,7 @@ The data fields are the same among all splits.
 - _dataSource_: a string indicating the source of the post (`t/...`: means Twitter, `r/...`: means a subreddit)
 
 
-### Data Splits Sample Size
+### Data Splits
 
 To ensure that no post appeared in multiple splits, the curators defined a training instance as the post and its three sets of annotations. They then split the dataset into train, validation, and test sets (75%/12.5%/12.5%).
 

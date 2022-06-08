@@ -1,4 +1,34 @@
 ---
+pretty_name: XQuAD
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
+languages:
+- en
+- fr
+- es
+- de
+- el
+- bg
+- ru
+- tr
+- ar
+- vi
+- zh
+licenses:
+- cc-by-sa-4.0
+multilinguality:
+- multilingual
+size_categories:
+- unknown
+source_datasets:
+- extended|squad
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
+paperswithcode_id: xquad
 ---
 
 # Dataset Card for "xquad"
@@ -6,12 +36,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -45,7 +75,7 @@ of SQuAD v1.1 (Rajpurkar et al., 2016) together with their professional translat
 Greek, Russian, Turkish, Arabic, Vietnamese, Thai, Chinese, and Hindi. Consequently, the dataset is entirely parallel
 across 11 languages.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -54,8 +84,6 @@ across 11 languages.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -208,15 +236,15 @@ The data fields are the same among all splits.
   - `text`: a `string` feature.
   - `answer_start`: a `int32` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
-|  name  |validation|
-|--------|---------:|
-|xquad.ar|      1190|
-|xquad.de|      1190|
-|xquad.el|      1190|
-|xquad.en|      1190|
-|xquad.es|      1190|
+| name     | validation |
+| -------- | ---------: |
+| xquad.ar |       1190 |
+| xquad.de |       1190 |
+| xquad.el |       1190 |
+| xquad.en |       1190 |
+| xquad.es |       1190 |
 
 ## Dataset Creation
 
@@ -226,9 +254,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

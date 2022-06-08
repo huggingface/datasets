@@ -1,13 +1,18 @@
 import os
+import sys
 import tempfile
 import unittest
 from contextlib import contextmanager
+from copy import deepcopy
+from ctypes.util import find_library
 from distutils.util import strtobool
 from enum import Enum
+from importlib.util import find_spec
 from pathlib import Path
 from unittest.mock import patch
 
 import pyarrow as pa
+from packaging import version
 
 from datasets import config
 
@@ -24,7 +29,7 @@ def parse_flag_from_env(key, default=False):
             _value = strtobool(value)
         except ValueError:
             # More values are supported, but let's keep the message simple.
-            raise ValueError("If set, {} must be yes or no.".format(key))
+            raise ValueError(f"If set, {key} must be yes or no.")
     return _value
 
 
@@ -112,6 +117,117 @@ def require_tf(test_case):
     return test_case
 
 
+def require_jax(test_case):
+    """
+    Decorator marking a test that requires JAX.
+
+    These tests are skipped when JAX isn't installed.
+
+    """
+    if not config.JAX_AVAILABLE:
+        test_case = unittest.skip("test requires JAX")(test_case)
+    return test_case
+
+
+def require_pil(test_case):
+    """
+    Decorator marking a test that requires Pillow.
+
+    These tests are skipped when Pillow isn't installed.
+
+    """
+    if not config.PIL_AVAILABLE:
+        test_case = unittest.skip("test requires Pillow")(test_case)
+    return test_case
+
+
+def require_sndfile(test_case):
+    """
+    Decorator marking a test that requires soundfile.
+
+    These tests are skipped when soundfile isn't installed.
+
+    """
+    if (sys.platform != "linux" and find_spec("soundfile") is None) or (
+        sys.platform == "linux" and find_library("sndfile") is None
+    ):
+        test_case = unittest.skip(
+            "test requires 'sndfile': `pip install soundfile`; "
+            "Linux requires sndfile installed with distribution package manager, e.g.: `sudo apt-get install libsndfile1`",
+        )(test_case)
+    return test_case
+
+
+def require_libsndfile_with_opus(test_case):
+    """
+    Decorator marking a test that requires libsndfile>=1.0.30 (version that is required for opus decoding).
+
+    These tests are skipped when libsndfile is <1.0.30.
+
+    """
+    if (sys.platform != "linux" and find_spec("soundfile")) or (sys.platform == "linux" and find_library("sndfile")):
+        import soundfile
+
+        # soundfile library is needed to be installed to check libsndfile version
+
+        if version.parse(soundfile.__libsndfile_version__) < version.parse("1.0.30"):
+            test_case = unittest.skip(
+                "test requires libsndfile>=1.0.30: `conda install -c conda-forge libsndfile>=1.0.30`"
+            )(test_case)
+    else:
+        test_case = require_sndfile(test_case)
+
+    return test_case
+
+
+def require_sox(test_case):
+    """
+    Decorator marking a test that requires sox.
+
+    These tests are skipped when sox isn't installed.
+    """
+    if find_library("sox") is None:
+        return unittest.skip("test requires 'sox'; only available in non-Windows, e.g.: `sudo apt-get install sox`")(
+            test_case
+        )
+    return test_case
+
+
+def require_torchaudio(test_case):
+    """
+    Decorator marking a test that requires torchaudio.
+
+    These tests are skipped when torchaudio isn't installed.
+    """
+    if find_spec("sox") is None:
+        return unittest.skip("test requires 'torchaudio'")(test_case)
+    return test_case
+
+
+def require_zstandard(test_case):
+    """
+    Decorator marking a test that requires zstandard.
+
+    These tests are skipped when zstandard isn't installed.
+
+    """
+    if not config.ZSTANDARD_AVAILABLE:
+        test_case = unittest.skip("test requires zstandard")(test_case)
+    return test_case
+
+
+def require_lz4(test_case):
+    """
+    Decorator marking a test that requires lz4.
+
+    These tests are skipped when lz4 isn't installed.
+
+    """
+    if not config.LZ4_AVAILABLE:
+        test_case = unittest.skip("test requires lz4")(test_case)
+    return test_case
+
+
 def require_transformers(test_case):
     """
     Decorator marking a test that requires transformers.
@@ -182,7 +298,7 @@ def packaged(test_case):
 
 def remote(test_case):
     """
-    Decorator marking a test as one that relies on github or aws.
+    Decorator marking a test as one that relies on GitHub or the Hugging Face Hub.
 
     Remote tests are skipped by default. Set the RUN_REMOTE environment variable
     to a falsy value to not run them.
@@ -229,8 +345,6 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
     HF_DATASETS_OFFLINE_SET_TO_1: the HF_DATASETS_OFFLINE environment variable is set to 1.
         This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEmabled error.
     """
-    import socket
-
     from requests import request as online_request
 
     def timeout_request(method, url, **kwargs):
@@ -252,7 +366,7 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
             raise
 
     def offline_socket(*args, **kwargs):
-        raise socket.error("Offline mode is enabled.")
+        raise OSError("Offline mode is enabled.")
 
     if mode is OfflineSimulationMode.CONNECTION_FAILS:
         # inspired from https://stackoverflow.com/a/18601897
@@ -261,7 +375,8 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
     elif mode is OfflineSimulationMode.CONNECTION_TIMES_OUT:
         # inspired from https://stackoverflow.com/a/904609
         with patch("requests.request", timeout_request):
-            yield
+            with patch("requests.api.request", timeout_request):
+                yield
     elif mode is OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1:
         with patch("datasets.config.HF_DATASETS_OFFLINE", True):
             yield
@@ -298,3 +413,7 @@ def assert_arrow_memory_doesnt_increase():
     previous_allocated_memory = pa.total_allocated_bytes()
     yield
     assert pa.total_allocated_bytes() - previous_allocated_memory <= 0, "Arrow memory wasn't expected to increase."
+
+
+def is_rng_equal(rng1, rng2):
+    return deepcopy(rng1).integers(0, 100, 10).tolist() == deepcopy(rng2).integers(0, 100, 10).tolist()

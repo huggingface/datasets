@@ -6,117 +6,73 @@ language_creators:
 languages:
 - es
 licenses:
-  DGT:
-  - mit
-  DOGC:
-  - mit
-  ECB:
-  - mit
-  EMEA:
-  - mit
-  EUBookShop:
-  - mit
-  Europarl:
-  - mit
-  GlobalVoices:
-  - mit
-  JRC:
-  - mit
-  NewsCommentary11:
-  - mit
-  OpenSubtitles2018:
-  - mit
-  ParaCrawl:
-  - mit
-  TED:
-  - mit
-  UN:
-  - mit
-  all_wikis:
-  - mit
-  combined:
-  - mit
-  multiUN:
-  - mit
+- mit
 multilinguality:
 - monolingual
 size_categories:
-  DGT:
-  - 1M<n<10M
-  DOGC:
-  - 10M<n<100M
-  ECB:
-  - 1M<n<10M
-  EMEA:
-  - 1M<n<10M
-  EUBookShop:
-  - 1M<n<10M
-  Europarl:
-  - 1M<n<10M
-  GlobalVoices:
-  - 100K<n<1M
-  JRC:
-  - 1M<n<10M
-  NewsCommentary11:
-  - 100K<n<1M
-  OpenSubtitles2018:
-  - 100M<n<1B
-  ParaCrawl:
-  - 10M<n<100M
-  TED:
-  - 100K<n<1M
-  UN:
-  - 10K<n<100K
-  all_wikis:
-  - 10M<n<100M
-  combined:
-  - 100M<n<1B
-  multiUN:
-  - 10M<n<100M
+- 100K<n<1M
+- 100M<n<1B
+- 10K<n<100K
+- 10M<n<100M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
 - other
 task_ids:
 - other-other-pretraining-language-models
+paperswithcode_id: null
+pretty_name: The Large Spanish Corpus
+configs:
+- DGT
+- DOGC
+- ECB
+- EMEA
+- EUBookShop
+- Europarl
+- GlobalVoices
+- JRC
+- NewsCommentary11
+- OpenSubtitles2018
+- ParaCrawl
+- TED
+- UN
+- all_wikis
+- combined
+- multiUN
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for The Large Spanish Corpus
 
 ## Table of Contents
-- [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
-  - [Table of Contents](#table-of-contents)
-  - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
-      - [Who are the source language producers?](#who-are-the-source-language-producers)
-    - [Annotations](#annotations)
-      - [Annotation process](#annotation-process)
-      - [Who are the annotators?](#who-are-the-annotators)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
 - **Homepage:** [https://github.com/josecannete/spanish-corpora](https://github.com/josecannete/spanish-corpora)
 - **Repository:** [https://github.com/josecannete/spanish-corpora](https://github.com/josecannete/spanish-corpora)
-- **Paper:** 
+- **Paper:**
 - **Leaderboard:**
 - **Point of Contact:** [José Cañete](mailto:jose.canete@ug.uchile.cl) (corpus creator) or [Lewis Tunstall](mailto:lewis.c.tunstall@gmail.com) (corpus submitter)
 

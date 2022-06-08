@@ -1,36 +1,37 @@
 ---
 annotations_creators:
-  - expert-generated
+- expert-generated
 language_creators:
-  - other
+- other
 languages:
-  - ko
+- ko
 licenses:
-  - mit
+- mit
 multilinguality:
-  - monolingual
+- monolingual
 size_categories:
-  - 1K<n<10K
+- 1K<n<10K
 source_datasets:
-  - original
+- original
 task_categories:
-  - structure-prediction
+- token-classification
 task_ids:
-  - named-entity-recognition
+- named-entity-recognition
+paperswithcode_id: null
+pretty_name: KorNER
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for KorNER
 
 ## Table of Contents
-
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

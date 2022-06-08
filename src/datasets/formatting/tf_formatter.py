@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,20 +27,40 @@ if TYPE_CHECKING:
 
 
 class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
-    def __init__(self, **tf_tensor_kwargs):
+    def __init__(self, features=None, decoded=True, **tf_tensor_kwargs):
         self.tf_tensor_kwargs = tf_tensor_kwargs
         import tensorflow as tf  # noqa: import tf at initialization
 
     def _tensorize(self, value):
         import tensorflow as tf
 
-        default_dtype = {}
-        if np.issubdtype(value.dtype, np.integer):
-            default_dtype = {"dtype": tf.int64}
-        elif np.issubdtype(value.dtype, np.floating):
-            default_dtype = {"dtype": tf.float32}
+        if "dtype" not in self.tf_tensor_kwargs:
+            if np.issubdtype(value.dtype, np.integer):
+                np_dtype = np.int64
+                tf_dtype = tf.int64
+                default_dtype = {"dtype": tf_dtype}
+            elif np.issubdtype(value.dtype, np.floating):
+                np_dtype = np.float32
+                tf_dtype = tf.float32
+                default_dtype = {"dtype": tf_dtype}
+            else:
+                np_dtype = None
+                tf_dtype = None
+                default_dtype = {}
+        else:
+            tf_dtype = self.tf_tensor_kwargs["dtype"]
+            np_dtype = tf_dtype.as_numpy_dtype
+            default_dtype = {}
 
-        return tf.ragged.constant(value, **{**default_dtype, **self.tf_tensor_kwargs})
+        # Saving the most expensive methods for last
+        try:
+            return tf.convert_to_tensor(value, dtype=tf_dtype)
+        except ValueError:
+            try:
+                return tf.ragged.stack([np.array(subarr, dtype=np_dtype) for subarr in value])
+            except ValueError:
+                # tf.ragged.constant is orders of magnitude slower than tf.ragged.stack
+                return tf.ragged.constant(value, **{**default_dtype, **self.tf_tensor_kwargs})
 
     def _recursive_tensorize(self, data_struct: dict):
         # support for nested types like struct of list of struct

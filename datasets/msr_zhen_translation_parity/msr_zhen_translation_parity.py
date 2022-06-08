@@ -93,9 +93,7 @@ class MsrZhenTranslationParity(datasets.GeneratorBasedBuilder):
 
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('msr_zhen_translation_parity', data_dir=...)`. Manual download instructions: {})".format(
-                    path_to_manual_file, self.manual_download_instructions
-                )
+                f"{path_to_manual_file} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('msr_zhen_translation_parity', data_dir=...)`. Manual download instructions: {self.manual_download_instructions})"
             )
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"path": path_to_manual_file})]
 

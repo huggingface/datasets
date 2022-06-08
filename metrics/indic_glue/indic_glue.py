@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,12 +73,12 @@ Examples:
 
 
 def simple_accuracy(preds, labels):
-    return (preds == labels).mean()
+    return float((preds == labels).mean())
 
 
 def acc_and_f1(preds, labels):
     acc = simple_accuracy(preds, labels)
-    f1 = f1_score(y_true=labels, y_pred=preds)
+    f1 = float(f1_score(y_true=labels, y_pred=preds))
     return {
         "accuracy": acc,
         "f1": f1,
@@ -99,7 +98,7 @@ def precision_at_10(en_sentvecs, in_sentvecs):
     actual = np.array(range(n))
     preds = sim.argsort(axis=1)[:, :10]
     matches = np.any(preds == actual[:, None], axis=1)
-    return matches.mean()
+    return float(matches.mean())
 
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)

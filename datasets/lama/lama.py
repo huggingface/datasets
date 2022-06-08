@@ -15,9 +15,8 @@
 """The LAMA Dataset"""
 
 
-import glob
 import json
-import os
+from fnmatch import fnmatch
 
 import datasets
 
@@ -45,12 +44,9 @@ _HOMEPAGE = "https://github.com/facebookresearch/LAMA"
 
 _LICENSE = "The Creative Commons Attribution-Noncommercial 4.0 International License. see https://github.com/facebookresearch/LAMA/blob/master/LICENSE"
 
-_URLs = {
-    "trex": "https://dl.fbaipublicfiles.com/LAMA/negated_data.tar.gz",
-    "squad": "https://dl.fbaipublicfiles.com/LAMA/negated_data.tar.gz",
-    "google_re": "https://dl.fbaipublicfiles.com/LAMA/negated_data.tar.gz",
-    "conceptnet": "https://dl.fbaipublicfiles.com/LAMA/negated_data.tar.gz",
-}
+_RELATIONS_URL = "https://s3.amazonaws.com/datasets.huggingface.co/lama/relations.jsonl"
+
+_DATA_URL = "https://dl.fbaipublicfiles.com/LAMA/negated_data.tar.gz"
 
 
 class Lama(datasets.GeneratorBasedBuilder):
@@ -168,16 +164,16 @@ class Lama(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        my_urls = _URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        archive = dl_manager.download(_DATA_URL)
         if self.config.name == "trex":
+            relations_path = dl_manager.download(_RELATIONS_URL)
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": [os.path.join(data_dir, "relations.jsonl")]
-                        + list(glob.glob(os.path.join(data_dir, "TREx", "*"))),
-                        "split": "train",
+                        "filepaths": ["TREx/*"],
+                        "files": dl_manager.iter_archive(archive),
+                        "relations_path": relations_path,
                     },
                 ),
             ]
@@ -186,15 +182,12 @@ class Lama(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": [
-                            os.path.join(data_dir, *f.split("/"))
-                            for f in [
-                                "Google_RE/date_of_birth_test.jsonl",
-                                "Google_RE/place_of_birth_test.jsonl",
-                                "Google_RE/place_of_death_test.jsonl",
-                            ]
+                        "filepaths": [
+                            "Google_RE/date_of_birth_test.jsonl",
+                            "Google_RE/place_of_birth_test.jsonl",
+                            "Google_RE/place_of_death_test.jsonl",
                         ],
-                        "split": "train",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
@@ -203,8 +196,8 @@ class Lama(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "ConceptNet", "test.jsonl"),
-                        "split": "train",
+                        "filepaths": ["ConceptNet/test.jsonl"],
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
@@ -213,26 +206,26 @@ class Lama(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "Squad", "test.jsonl"),
-                        "split": "train",
+                        "filepaths": ["Squad/test.jsonl"],
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepaths, files, relations_path=None):
         """Yields examples from the LAMA dataset."""
+        filepaths = list(filepaths)
         if self.config.name == "trex":
-            paths = filepath
-            relations_path = paths[0]
-            paths = paths[1:]
             all_rels = {}
             with open(relations_path, encoding="utf-8") as f:
                 for row in f:
                     data = json.loads(row)
                     all_rels[data["relation"]] = data
             id_ = -1
-            for filepath in paths:
-                with open(filepath, encoding="utf-8") as f:
+            inside_trec_directory = False
+            for path, f in files:
+                if any(fnmatch(path, pattern) for pattern in filepaths):
+                    inside_trec_directory = True
                     for row in f:
                         data = json.loads(row)
                         pred = all_rels.get(data["predicate_id"], {})
@@ -254,91 +247,104 @@ class Lama(datasets.GeneratorBasedBuilder):
                                 "description": str(pred.get("description", "")),
                                 "type": str(pred.get("type", "")),
                             }
+                elif inside_trec_directory:
+                    break
         elif self.config.name == "conceptnet":
             id_ = -1
-            with open(filepath, encoding="utf-8") as f:
-                for row in f:
-                    data = json.loads(row)
-                    if data.get("negated") is not None:
-                        for masked_sentence, negated in zip(data["masked_sentences"], data["negated"]):
-                            id_ += 1
-                            yield id_, {
-                                "uuid": str(data["uuid"]),
-                                "sub": str(data.get("sub", "")),
-                                "obj": str(data.get("obj", "")),
-                                "pred": str(data["pred"]),
-                                "obj_label": str(data["obj_label"]),
-                                "masked_sentence": str(masked_sentence),
-                                "negated": str(negated),
-                            }
-                    else:
-                        for masked_sentence in data["masked_sentences"]:
-                            id_ += 1
-                            yield id_, {
-                                "uuid": str(data["uuid"]),
-                                "sub": str(data.get("sub", "")),
-                                "obj": str(data.get("obj", "")),
-                                "pred": str(data["pred"]),
-                                "obj_label": str(data["obj_label"]),
-                                "masked_sentence": str(masked_sentence),
-                                "negated": str(""),
-                            }
+            for path, f in files:
+                if not filepaths:
+                    break
+                if path in list(filepaths):
+                    for row in f:
+                        data = json.loads(row)
+                        if data.get("negated") is not None:
+                            for masked_sentence, negated in zip(data["masked_sentences"], data["negated"]):
+                                id_ += 1
+                                yield id_, {
+                                    "uuid": str(data["uuid"]),
+                                    "sub": str(data.get("sub", "")),
+                                    "obj": str(data.get("obj", "")),
+                                    "pred": str(data["pred"]),
+                                    "obj_label": str(data["obj_label"]),
+                                    "masked_sentence": str(masked_sentence),
+                                    "negated": str(negated),
+                                }
+                        else:
+                            for masked_sentence in data["masked_sentences"]:
+                                id_ += 1
+                                yield id_, {
+                                    "uuid": str(data["uuid"]),
+                                    "sub": str(data.get("sub", "")),
+                                    "obj": str(data.get("obj", "")),
+                                    "pred": str(data["pred"]),
+                                    "obj_label": str(data["obj_label"]),
+                                    "masked_sentence": str(masked_sentence),
+                                    "negated": str(""),
+                                }
+                    filepaths.remove(path)
         elif self.config.name == "squad":
             id_ = -1
-            with open(filepath, encoding="utf-8") as f:
-                for row in f:
-                    data = json.loads(row)
-                    for masked_sentence in data["masked_sentences"]:
-                        id_ += 1
-                        yield id_, {
-                            "id": str(data["id"]),
-                            "sub_label": str(data["sub_label"]),
-                            "obj_label": str(data["obj_label"]),
-                            "negated": str(data.get("negated", "")),
-                            "masked_sentence": str(masked_sentence),
-                        }
-        elif self.config.name == "google_re":
-            id_ = -1
-            paths = filepath
-            for filepath in paths:
-                # from https://github.com/facebookresearch/LAMA/blob/master/scripts/run_experiments.py
-                if "place_of_birth" in filepath:
-                    pred = {
-                        "relation": "place_of_birth",
-                        "template": "[X] was born in [Y] .",
-                        "template_negated": "[X] was not born in [Y] .",
-                    }
-                elif "date_of_birth" in filepath:
-                    pred = {
-                        "relation": "date_of_birth",
-                        "template": "[X] (born [Y]).",
-                        "template_negated": "[X] (not born [Y]).",
-                    }
-                else:
-                    pred = {
-                        "relation": "place_of_death",
-                        "template": "[X] died in [Y] .",
-                        "template_negated": "[X] did not die in [Y] .",
-                    }
-                with open(filepath, encoding="utf-8") as f:
+            for path, f in files:
+                if not filepaths:
+                    break
+                if path in filepaths:
                     for row in f:
                         data = json.loads(row)
                         for masked_sentence in data["masked_sentences"]:
                             id_ += 1
                             yield id_, {
-                                "pred": str(data["pred"]),
-                                "sub": str(data["sub"]),
-                                "obj": str(data["obj"]),
-                                "evidences": str(data["evidences"]),
-                                "judgments": str(data["judgments"]),
-                                "sub_w": str(data["sub_w"]),
+                                "id": str(data["id"]),
                                 "sub_label": str(data["sub_label"]),
-                                "sub_aliases": str(data["sub_aliases"]),
-                                "obj_w": str(data["obj_w"]),
                                 "obj_label": str(data["obj_label"]),
-                                "obj_aliases": str(data["obj_aliases"]),
-                                "uuid": str(data["uuid"]),
+                                "negated": str(data.get("negated", "")),
                                 "masked_sentence": str(masked_sentence),
-                                "template": str(pred["template"]),
-                                "template_negated": str(pred["template_negated"]),
                             }
+                    filepaths.remove(path)
+        elif self.config.name == "google_re":
+            id_ = -1
+            for path, f in files:
+                if path in filepaths:
+                    if not filepaths:
+                        break
+                    if path in filepaths:
+                        # from https://github.com/facebookresearch/LAMA/blob/master/scripts/run_experiments.py
+                        if "place_of_birth" in path:
+                            pred = {
+                                "relation": "place_of_birth",
+                                "template": "[X] was born in [Y] .",
+                                "template_negated": "[X] was not born in [Y] .",
+                            }
+                        elif "date_of_birth" in path:
+                            pred = {
+                                "relation": "date_of_birth",
+                                "template": "[X] (born [Y]).",
+                                "template_negated": "[X] (not born [Y]).",
+                            }
+                        else:
+                            pred = {
+                                "relation": "place_of_death",
+                                "template": "[X] died in [Y] .",
+                                "template_negated": "[X] did not die in [Y] .",
+                            }
+                        for row in f:
+                            data = json.loads(row)
+                            for masked_sentence in data["masked_sentences"]:
+                                id_ += 1
+                                yield id_, {
+                                    "pred": str(data["pred"]),
+                                    "sub": str(data["sub"]),
+                                    "obj": str(data["obj"]),
+                                    "evidences": str(data["evidences"]),
+                                    "judgments": str(data["judgments"]),
+                                    "sub_w": str(data["sub_w"]),
+                                    "sub_label": str(data["sub_label"]),
+                                    "sub_aliases": str(data["sub_aliases"]),
+                                    "obj_w": str(data["obj_w"]),
+                                    "obj_label": str(data["obj_label"]),
+                                    "obj_aliases": str(data["obj_aliases"]),
+                                    "uuid": str(data["uuid"]),
+                                    "masked_sentence": str(masked_sentence),
+                                    "template": str(pred["template"]),
+                                    "template_negated": str(pred["template_negated"]),
+                                }
+                        filepaths.remove(path)

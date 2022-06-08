@@ -1,17 +1,39 @@
 ---
+annotations_creators:
+- no-annotation
+language_creators:
+- found
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: BookCorpusOpen
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-generation
+- fill-mask
+task_ids:
+- language-modeling
+- masked-language-modeling
+paperswithcode_id: bookcorpus
 ---
 
-# Dataset Card for "bookcorpusopen"
+# Dataset Card for BookCorpusOpen
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -42,7 +64,7 @@
 Books are a rich source of both fine-grained information, how a character, an object or a scene looks like, as well as high-level semantics, what someone is thinking, feeling and how these states evolve through a story.
 This version of bookcorpus has 17868 dataset items (books). Each item contains two fields: title and text. The title is the name of the book (just the file name) while text contains unprocessed book text. The bookcorpus has been prepared by Shawn Presser and is generously hosted by The-Eye. The-Eye is a non-profit, community driven platform dedicated to the archiving and long-term preservation of any and all data including but by no means limited to... websites, books, games, software, video, audio, other digital-obscura and ideas.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -51,8 +73,6 @@ This version of bookcorpus has 17868 dataset items (books). Each item contains t
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -80,7 +100,7 @@ The data fields are the same among all splits.
 - `title`: a `string` feature.
 - `text`: a `string` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 |   name   |train|
 |----------|----:|
@@ -94,9 +114,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -126,7 +158,9 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The books have been crawled from smashwords.com, see their [terms of service](https://www.smashwords.com/about/tos) for more information.
+
+A data sheet for this dataset has also been created and published in [Addressing "Documentation Debt" in Machine Learning Research: A Retrospective Datasheet for BookCorpus](https://arxiv.org/abs/2105.05241)
 
 ### Citation Information
 

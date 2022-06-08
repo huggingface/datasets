@@ -4,16 +4,11 @@ annotations_creators:
 language_creators:
 - expert-generated
 languages:
-  dihana:
-    - es
-  ilisten:
-    - it
-  loria:
-    - fr
-  maptask:
-    - en
-  vm2:
-    - de
+- de
+- en
+- es
+- fr
+- it
 licenses:
 - cc-by-sa-4.0
 multilinguality:
@@ -23,66 +18,49 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 - text-classification
 task_ids:
-  dihana:
-  - dialogue-modeling
-  - language-modeling
-  - text-classification-other-dialogue-act-classification
-  ilisten:
-  - dialogue-modeling
-  - language-modeling
-  - text-classification-other-dialogue-act-classification
-  loria:
-  - dialogue-modeling
-  - language-modeling
-  - text-classification-other-dialogue-act-classification
-  maptask:
-  - dialogue-modeling
-  - language-modeling
-  - text-classification-other-dialogue-act-classification
-  vm2:
-  - dialogue-modeling
-  - language-modeling
-  - text-classification-other-dialogue-act-classification
+- dialogue-modeling
+- language-modeling
+- masked-language-modeling
+- text-classification-other-dialogue-act-classification
+paperswithcode_id: null
+pretty_name: MIAM
+configs:
+- dihana
+- ilisten
+- loria
+- maptask
+- vm2
 ---
 
 # Dataset Card for MIAM
 
 ## Table of Contents
-- [Dataset Card for MIAM](#dataset-card-for-miam)
-  - [Table of Contents](#table-of-contents)
-  - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-      - [Dihana Corpus](#dihana-corpus)
-      - [iLISTEN Corpus](#ilisten-corpus)
-      - [LORIA Corpus](#loria-corpus)
-      - [HCRC MapTask Corpus](#hcrc-maptask-corpus)
-      - [VERBMOBIL](#verbmobil)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
-      - [Who are the source language producers?](#who-are-the-source-language-producers)
-    - [Annotations](#annotations)
-      - [Annotation process](#annotation-process)
-      - [Who are the annotators?](#who-are-the-annotators)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
-    - [Benchmark Curators](#benchmark-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 

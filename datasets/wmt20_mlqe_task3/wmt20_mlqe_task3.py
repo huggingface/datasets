@@ -16,7 +16,6 @@
 
 
 import csv
-import glob
 import os
 
 import datasets
@@ -155,87 +154,121 @@ class Wmt20MlqeTask3(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URLs)
+        downloaded_files = dl_manager.download(_URLs)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir["train+dev"], "task3", "train"),
+                    "main_dir": "task3/train",
                     "split": "train",
+                    "files": dl_manager.iter_archive(downloaded_files["train+dev"]),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir["test"], "test-blind"),
+                    "main_dir": "test-blind",
                     "split": "test",
+                    "files": dl_manager.iter_archive(downloaded_files["test"]),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir["train+dev"], "task3", "dev"),
+                    "main_dir": "task3/dev",
                     "split": "dev",
+                    "files": dl_manager.iter_archive(downloaded_files["train+dev"]),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, main_dir, split, files):
         """Yields examples."""
 
-        def open_and_read(fp):
-            with open(fp, encoding="utf-8") as f:
-                return f.read().splitlines()
+        prev_folder = None
+        source_segments, source_tokenized, mt_segments, mt_tokenized = [None] * 4
+        token_index, total_words, annotations, token_annotations = [], [], [], []
+        for path, f in files:
+            if path.startswith(main_dir):
+                dir_name = path.split("/")[main_dir.count("/") + 1]
+                folder = main_dir + "/" + dir_name
 
-        for id_, folder in enumerate(sorted(glob.glob(os.path.join(filepath, "*")))):
-            source_segments = open_and_read(os.path.join(folder, "source.segments"))
-            source_tokenized = open_and_read(os.path.join(folder, "source.tokenized"))
-            mt_segments = open_and_read(os.path.join(folder, "mt.segments"))
-            mt_tokenized = open_and_read(os.path.join(folder, "mt.tokenized"))
+                if prev_folder is not None and prev_folder != folder:
+                    yield prev_folder, {
+                        "document_id": os.path.basename(prev_folder),
+                        "source_segments": source_segments,
+                        "source_tokenized": source_tokenized,
+                        "mt_segments": mt_segments,
+                        "mt_tokenized": mt_tokenized,
+                        "annotations": annotations,
+                        "token_annotations": token_annotations,
+                        "token_index": token_index,
+                        "total_words": total_words,
+                    }
+                    source_segments, source_tokenized, mt_segments, mt_tokenized = [None] * 4
+                    token_index, total_words, annotations, token_annotations = [], [], [], []
 
-            if split in ["train", "dev"] and not os.path.exists(os.path.join(folder, "token_index")):
-                token_index = []
-            else:
-                token_index = [
-                    [idx.split(" ") for idx in line.split("\t")]
-                    for line in open_and_read(os.path.join(folder, "token_index"))
-                    if line != ""
-                ]
-            total_words = open_and_read(os.path.join(folder, "total_words"))[0]
+                prev_folder = folder
 
-            if split in ["train", "dev"]:
-                with open(os.path.join(folder, "annotations.tsv"), encoding="utf-8") as f:
-                    reader = csv.DictReader(f, delimiter="\t")
-                    annotations = [
-                        {
-                            "segment_id": row["segment_id"].split(" "),
-                            "annotation_start": row["annotation_start"].split(" "),
-                            "annotation_length": row["annotation_length"].split(" "),
-                            "severity": row["severity"],
-                            "severity_weight": row["severity_weight"],
-                            "category": row["category"],
-                        }
-                        for row in reader
+                source_segments_path = "/".join([folder, "source.segments"])
+                source_tokenized_path = "/".join([folder, "source.tokenized"])
+                mt_segments_path = "/".join([folder, "mt.segments"])
+                mt_tokenized_path = "/".join([folder, "mt.tokenized"])
+                total_words_path = "/".join([folder, "total_words"])
+                token_index_path = "/".join([folder, "token_index"])
+
+                if path == source_segments_path:
+                    source_segments = f.read().decode("utf-8").splitlines()
+                elif path == source_tokenized_path:
+                    source_tokenized = f.read().decode("utf-8").splitlines()
+                elif path == mt_segments_path:
+                    mt_segments = f.read().decode("utf-8").splitlines()
+                elif path == mt_tokenized_path:
+                    mt_tokenized = f.read().decode("utf-8").splitlines()
+                elif path == total_words_path:
+                    total_words = f.read().decode("utf-8").splitlines()[0]
+                elif path == token_index_path:
+                    token_index = [
+                        [idx.split(" ") for idx in line.split("\t")]
+                        for line in f.read().decode("utf-8").splitlines()
+                        if line != ""
                     ]
-                with open(os.path.join(folder, "token_annotations.tsv"), encoding="utf-8") as f:
-                    reader = csv.DictReader(f, delimiter="\t")
-                    token_annotations = [
-                        {
-                            "segment_id": row["segment_id"].split(" "),
-                            "first_token": row["first_token"].replace("-", "-1").split(" "),
-                            "last_token": row["last_token"].replace("-", "-1").split(" "),
-                            "token_after_gap": row["token_after_gap"].replace("-", "-1").split(" "),
-                            "severity": row["severity"],
-                            "category": row["category"],
-                        }
-                        for row in reader
-                    ]
-            else:
-                annotations = []
-                token_annotations = []
 
-            yield id_, {
-                "document_id": os.path.basename(folder),
+                if split in ["train", "dev"]:
+                    annotations_path = "/".join([folder, "annotations.tsv"])
+                    token_annotations_path = "/".join([folder, "token_annotations.tsv"])
+
+                    if path == annotations_path:
+                        lines = (line.decode("utf-8") for line in f)
+                        reader = csv.DictReader(lines, delimiter="\t")
+                        annotations = [
+                            {
+                                "segment_id": row["segment_id"].split(" "),
+                                "annotation_start": row["annotation_start"].split(" "),
+                                "annotation_length": row["annotation_length"].split(" "),
+                                "severity": row["severity"],
+                                "severity_weight": row["severity_weight"],
+                                "category": row["category"],
+                            }
+                            for row in reader
+                        ]
+                    elif path == token_annotations_path:
+                        lines = (line.decode("utf-8") for line in f)
+                        reader = csv.DictReader(lines, delimiter="\t")
+                        token_annotations = [
+                            {
+                                "segment_id": row["segment_id"].split(" "),
+                                "first_token": row["first_token"].replace("-", "-1").split(" "),
+                                "last_token": row["last_token"].replace("-", "-1").split(" "),
+                                "token_after_gap": row["token_after_gap"].replace("-", "-1").split(" "),
+                                "severity": row["severity"],
+                                "category": row["category"],
+                            }
+                            for row in reader
+                        ]
+        if prev_folder is not None:
+            yield prev_folder, {
+                "document_id": os.path.basename(prev_folder),
                 "source_segments": source_segments,
                 "source_tokenized": source_tokenized,
                 "mt_segments": mt_segments,

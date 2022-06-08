@@ -1,4 +1,5 @@
 ---
+pretty_name: Ohsumed
 annotations_creators:
 - human-annotated
 language_creators:
@@ -17,6 +18,7 @@ task_categories:
 - text-classification
 task_ids:
 - multi-label-classification
+paperswithcode_id: null
 ---
 
 # Dataset Card for ohsumed
@@ -24,7 +26,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -47,11 +49,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: http://davis.wpi.edu/xmdv/datasets/ohsumed.html**
-- **Repository: https://trec.nist.gov/data/filtering/t9.filtering.tar.gz**
-- **Paper: https://link.springer.com/chapter/10.1007/978-1-4471-2099-5_20**
+- **Homepage:** http://davis.wpi.edu/xmdv/datasets/ohsumed.html
+- **Repository:** https://trec.nist.gov/data/filtering/t9.filtering.tar.gz
+- **Paper:** https://link.springer.com/chapter/10.1007/978-1-4471-2099-5_20
 - **Leaderboard:**
-- **Point of Contact: [William Hersh](mailto:hersh@OHSU.EDU) [Aakash Gupta](mailto:aakashg80@gmail.com)**
+- **Point of Contact:** [William Hersh](mailto:hersh@OHSU.EDU) [Aakash Gupta](mailto:aakashg80@gmail.com)
 
 ### Dataset Summary
 
@@ -192,7 +194,7 @@ No PII data is present in the train, test or query files.
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

@@ -1,33 +1,36 @@
 ---
+pretty_name: Cifar100
 annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages: []
+languages:
+- en
 licenses:
 - unknown
-multilinguality: []
+multilinguality:
+- monolingual
 size_categories:
 - 10K<n<100K
 source_datasets:
 - extended|other-80-Million-Tiny-Images
 task_categories:
-- other
-task_ids:
-- other-other-image-classification
+- image-classification
+task_ids: []
+paperswithcode_id: cifar-100
 ---
  
-# Dataset Card for CIFAR-10
+# Dataset Card for CIFAR-100
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -41,6 +44,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -58,7 +62,7 @@ There are two labels per image - fine label (actual class) and coarse label (sup
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `image-classification`: The goal of this task is to classify a given image into one of 100 classes. The leaderboard is available [here](https://paperswithcode.com/sota/image-classification-on-cifar-100).
 
 ### Languages
 
@@ -68,9 +72,18 @@ English
 
 ### Data Instances
 
+A sample from the training set is provided below:
+
+```
+{
+  'img': <PIL.PngImagePlugin.PngImageFile image mode=RGB size=32x32 at 0x2767F58E080>, 'fine_label': 19,
+  'coarse_label': 11
+}
+```
+
 ### Data Fields
 
-- `img`:  a 32x32x3 image array
+- `img`: A `PIL.Image.Image` object containing the 32x32 image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
 - `fine_label`: an `int` classification label with the following mapping:
 
   `0`: apple
@@ -387,3 +400,7 @@ English
     year = {2009}
 }
 ```
+
+### Contributions
+
+Thanks to [@gchhablani](https://github.com/gchablani) for adding this dataset.

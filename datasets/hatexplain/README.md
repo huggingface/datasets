@@ -17,6 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-hate-speech-detection
+paperswithcode_id: hatexplain
+pretty_name: hatexplain
 ---
 
 # Dataset Card for hatexplain
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -51,7 +53,7 @@ task_ids:
 - **Repository:** https://github.com/punyajoy/HateXplain/
 - **Paper:** https://arxiv.org/abs/2012.10289
 - **Leaderboard:** [Needs More Information]
-- **Point of Contact:** [Needs More Information]
+- **Point of Contact:** Punyajoy Saha (punyajoys@iitkgp.ac.in)
 
 ### Dataset Summary
 
@@ -114,7 +116,7 @@ Sample Entry:
 
 ### Data Splits
 
-[Post_id_divisions](https://github.com/punyajoy/HateXplain/blob/master/Data/post_id_divisions.json) has a dictionary having train, valid and test post ids that are used to divide the dataset into train, val and test set in the ratio of 8:1:1.
+[Post_id_divisions](https://github.com/hate-alert/HateXplain/blob/master/Data/post_id_divisions.json) has a dictionary having train, valid and test post ids that are used to divide the dataset into train, val and test set in the ratio of 8:1:1.
 
 
 
@@ -122,37 +124,46 @@ Sample Entry:
 
 ### Curation Rationale
 
-[Needs More Information]
+The existing hate speech datasets do not provide human rationale which could justify the human reasoning behind their annotation process. This dataset allows researchers to move a step in this direction. The dataset provides token-level annotatoins for the annotation decision.
 
 ### Source Data
 
+We collected the data from Twitter and Gab.
+
 #### Initial Data Collection and Normalization
 
-[Needs More Information]
+We combined the lexicon set provided by [Davidson 2017](https://arxiv.org/abs/1703.04009),  [Ousidhoum 2019](https://arxiv.org/abs/1908.11049), and [Mathew 2019](https://arxiv.org/abs/1812.01693) to generate a single lexicon. We do not consider reposts and remove duplicates. We also ensure that the posts do not contain links, pictures, or videos as they indicate additional information that mightnot be available to the annotators. However, we do not exclude the emojis from the text as they might carry importantinformation for the hate and offensive speech labeling task.
 
 #### Who are the source language producers?
 
-[Needs More Information]
+The dataset is human generated using Amazon Mechanical Turk (AMT).
 
 ### Annotations
 
 #### Annotation process
 
-[Needs More Information]
+Each post in our dataset contains three types of annotations. First, whether the text is a hate speech, offensive speech, or normal. Second, the target communities in the text. Third, if the text is considered as hate speech, or offensive by majority of the annotators, we further ask the annotators to annotate parts of the text, which are words orphrases that could be a potential reason for the given annotation.  
+
+Before starting the annotation task, workers are explicitly warned that the annotation task displays some hateful or offensive content. We prepare instructions for workers that clearly explain the goal of the annotation task, how to annotate spans and also include a definition for each category. We provide multiple examples with classification, target community and span annotations to help the annotators understand the task.
 
 #### Who are the annotators?
 
-[Needs More Information]
+To ensure high quality dataset, we use built-in MTurk qualification requirements, namely the HITApproval Rate(95%) for all Requesters’ HITs and the Number of HITs Approved(5,000) requirements.
+
+Pilot annotation: In the pilot task, each annotator was provided with 20 posts and they were required to do the hate/offensive speech classification as well as identify the target community (if any). In order to have a clear understanding of the task, they were provided with multiple examples along with explanations for the labelling process. The main purpose of the pilot task was to shortlist those annotators who were able to do the classification accurately. We also collected feedback from annotators to improve the main annotation task. A total of 621 annotators took part in the pilot task. Out of these, 253 were selected for the main task.
+
+
+Main annotation: After the pilot annotation, once we had ascertained the quality of the annotators, we started with the main annotation task. In each round, we would select a batch of around 200 posts. Each post was annotated by three annotators, then majority voting was applied to decide the final label. The final dataset is composed of 9,055 posts from Twitter and 11,093 posts from Gab. The Krippendorff's alpha for the inter-annotator agreement is 0.46 which is higher than other hate speech datasets.
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+The posts were anonymized by replacing the usernames with <user> token. 
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[Needs More Information]
+The dataset could prove beneficial to develop models which are more explainable and less biased.
 
 ### Discussion of Biases
 
@@ -160,28 +171,31 @@ Sample Entry:
 
 ### Other Known Limitations
 
-[Needs More Information]
+The dataset has some limitations. First is the lack of external context. The dataset lacks any external context such as profile bio, user gender, history of posts etc., which might be helpful in the classification task. Another issue is the focus on English language and lack of multilingual hate speech.
 
 ## Additional Information
 
 ### Dataset Curators
 
-[Needs More Information]
+Binny Mathew - IIT Kharagpur, India
+Punyajoy Saha - IIT Kharagpur, India
+Seid Muhie Yimam - Universit ̈at Hamburg, Germany
+Chris Biemann - Universit ̈at Hamburg, Germany
+Pawan Goyal - IIT Kharagpur, India
+Animesh Mukherjee - IIT Kharagpur, India
 
 ### Licensing Information
 
-[Needs More Information]
+MIT License
 
 ### Citation Information
 
 ```bibtex
-@misc{mathew2020hatexplain,
+@article{mathew2020hatexplain,
       title={HateXplain: A Benchmark Dataset for Explainable Hate Speech Detection}, 
       author={Binny Mathew and Punyajoy Saha and Seid Muhie Yimam and Chris Biemann and Pawan Goyal and Animesh Mukherjee},
-      year={2020},
-      eprint={2012.10289},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
+      year={2021},
+      conference={AAAI conference on artificial intelligence}
 }
 
 ### Contributions

@@ -17,26 +17,30 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-news-category-classification
+paperswithcode_id: null
+pretty_name: TTC4900 - A Benchmark Data for Turkish Text Categorization
 ---
 
 # Dataset Card for TTC4900: A Benchmark Data for Turkish Text Categorization
 
 ## Table of Contents
+- [Table of Contents](#table-of-contents)
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
   - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Discussion of Social Impact and Biases](#discussion-of-social-impact-and-biases)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
   - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
@@ -46,15 +50,26 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [https://www.kaggle.com/savasy/ttc4900](https://www.kaggle.com/savasy/ttc4900)
-- **Point of Contact:** [ Avatar
-Savaş Yıldırım](mailto:savasy@gmail.com)
+- **Homepage:** [TTC4900 Homepage](https://www.kaggle.com/savasy/ttc4900)
+- **Repository:** [TTC4900 Repository](https://github.com/savasy/TurkishTextClassification)
+- **Paper:** [A Comparison of Different Approaches to Document Representation in Turkish Language](https://dergipark.org.tr/en/pub/sdufenbed/issue/38975/456349)
+- **Point of Contact:** [Savaş Yıldırım](mailto:savasy@gmail.com)
 
 ### Dataset Summary
 
 The data set is taken from [kemik group](http://www.kemik.yildiz.edu.tr/)
+The data are pre-processed for the text categorization, collocations are found, character set is corrected, and so forth.
+We named TTC4900 by mimicking the name convention of TTC 3600 dataset shared by the study ["A Knowledge-poor Approach to Turkish Text Categorization with a Comparative Analysis, Proceedings of CICLING 2014, Springer LNCS, Nepal, 2014"](https://link.springer.com/chapter/10.1007/978-3-642-54903-8_36)
 
-The data are pre-processed (noun phrase chunking etc.) for the text categorization problem by the study ["A Knowledge-poor Approach to Turkish Text Categorization with a Comparative Analysis, Proceedings of CICLING 2014, Springer LNCS, Nepal, 2014"](https://link.springer.com/chapter/10.1007/978-3-642-54903-8_36)
+If you use the dataset in a paper, please refer https://www.kaggle.com/savasy/ttc4900 as footnote and cite one of the papers as follows:
+
+- A Comparison of Different Approaches to Document Representation in Turkish Language, SDU Journal of Natural and Applied Science, Vol 22, Issue 2, 2018
+- A comparative analysis of text classification for Turkish language, Pamukkale University Journal of Engineering Science Volume 25 Issue 5, 2018
+- A Knowledge-poor Approach to Turkish Text Categorization with a Comparative Analysis, Proceedings of CICLING 2014, Springer LNCS, Nepal, 2014.
+
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
 
 ### Languages
 
@@ -75,7 +90,6 @@ Here is an example from the dataset:
 }
 ```
 
-
 ### Data Fields
 
 - **category** : Indicates to which category the news text belongs.
@@ -94,20 +108,15 @@ It is not divided into Train set and Test set.
 
 ### Source Data
 
-[More Information Needed]
-
 #### Initial Data Collection and Normalization
 
 The data are pre-processed for the text categorization, collocations are found, character set is corrected, and so forth. 
-
 
 #### Who are the source language producers?
 
 Turkish online news sites. 
 
 ### Annotations
-
-The dataset does not contain any additional annotations.
 
 #### Annotation process
 
@@ -123,7 +132,11 @@ The dataset does not contain any additional annotations.
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
 
 [More Information Needed]
 
@@ -135,7 +148,7 @@ The dataset does not contain any additional annotations.
 
 ### Dataset Curators
 
-[More Information Needed]
+The dataset was created by [Savaş Yıldırım](https://github.com/savasy)  
 
 ### Licensing Information
 
@@ -143,7 +156,22 @@ The dataset does not contain any additional annotations.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@article{doi:10.5505/pajes.2018.15931,
+  author = {Yıldırım, Savaş and Yıldız, Tuğba},
+  title = {A comparative analysis of text classification for Turkish language},
+  journal = {Pamukkale Univ Muh Bilim Derg},
+  volume = {24},
+  number = {5},
+  pages = {879-886},
+  year = {2018},
+  doi = {10.5505/pajes.2018.15931},
+  note ={doi: 10.5505/pajes.2018.15931},
+
+  URL = {https://dx.doi.org/10.5505/pajes.2018.15931},
+  eprint = {https://dx.doi.org/10.5505/pajes.2018.15931}
+}
+```
 
 ### Contributions
 

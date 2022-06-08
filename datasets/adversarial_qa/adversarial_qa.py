@@ -169,13 +169,14 @@ class AdversarialQA(datasets.GeneratorBasedBuilder):
         logger.info("generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             squad = json.load(f)
+            id_ = 0
             for article in squad["data"]:
                 title = article.get("title", "").strip()
                 for paragraph in article["paragraphs"]:
                     context = paragraph["context"].strip()
                     for qa in paragraph["qas"]:
                         question = qa["question"].strip()
-                        id_ = qa["id"]
+                        qid = qa["id"]
 
                         answer_starts = [answer["answer_start"] for answer in qa["answers"]]
                         answers = [answer["text"].strip() for answer in qa["answers"]]
@@ -188,10 +189,12 @@ class AdversarialQA(datasets.GeneratorBasedBuilder):
                             "title": title,
                             "context": context,
                             "question": question,
-                            "id": id_,
+                            "id": qid,
                             "answers": {
                                 "answer_start": answer_starts,
                                 "text": answers,
                             },
                             "metadata": {"split": split, "model_in_the_loop": model_in_the_loop},
                         }
+
+                        id_ += 1

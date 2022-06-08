@@ -14,41 +14,38 @@ size_categories:
 source_datasets:
 - extended|other-genia-v3.02
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
+paperswithcode_id: null
+pretty_name: BioNLP / JNLPBA Shared Task 2004
 ---
 
 # Dataset Card for JNLPBA
 
 ## Table of Contents
-- [Dataset Card for JNLPBA](#dataset-card-for-jnlpba)
-  - [Table of Contents](#table-of-contents)
-  - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
-      - [Who are the source language producers?](#who-are-the-source-language-producers)
-    - [Annotations](#annotations)
-      - [Annotation process](#annotation-process)
-      - [Who are the annotators?](#who-are-the-annotators)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -74,17 +71,22 @@ English
 
 ### Data Instances
 
-[Needs More Information]
+{
+  'id': '1',
+  'tokens': ['IL-2', 'gene', 'expression', 'and', 'NF-kappa', 'B', 'activation', 'through', 'CD28', 'requires', 'reactive', 'oxygen', 'production', 'by', '5-lipoxygenase', '.'],
+  'ner_tags': [1, 2, 0, 0, 9, 10, 0, 0, 9, 0, 0, 0, 0, 0, 9, 0],
+}
 
 ### Data Fields
 
-- `id`: Sentence identifier.  
-- `tokens`: Array of tokens composing a sentence.  
+- `id`: Sentence identifier.
+- `tokens`: Array of tokens composing a sentence.
 - `ner_tags`: Array of tags, where `0` indicates no bio-entity mentioned, `1` signals the first token of a bio-entity and `2` the subsequent bio-entity tokens.
 
 ### Data Splits
 
-[Needs More Information]
+Train samples: 37094
+Validation samples: 7714
 
 ## Dataset Creation
 
@@ -141,8 +143,18 @@ English
 [Needs More Information]
 
 ### Citation Information
-
-[Needs More Information]
+@inproceedings{collier-kim-2004-introduction,
+    title = "Introduction to the Bio-entity Recognition Task at {JNLPBA}",
+    author = "Collier, Nigel  and
+      Kim, Jin-Dong",
+    booktitle = "Proceedings of the International Joint Workshop on Natural Language Processing in Biomedicine and its Applications ({NLPBA}/{B}io{NLP})",
+    month = aug # " 28th and 29th",
+    year = "2004",
+    address = "Geneva, Switzerland",
+    publisher = "COLING",
+    url = "https://aclanthology.org/W04-1213",
+    pages = "73--78",
+}
 ### Contributions
 
 Thanks to [@edugp](https://github.com/edugp) for adding this dataset.

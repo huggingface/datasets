@@ -1,4 +1,5 @@
 ---
+pretty_name: ATOMIC
 annotations_creators:
 - crowdsourced
 language_creators:
@@ -14,9 +15,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
-- other-stuctured-to-text
+- text2text-generation-other-common-sense-if-then-reasoning
+paperswithcode_id: atomic
 ---
 
 # Dataset Card for An Atlas of Machine Commonsense for If-Then Reasoning - Atomic Common Sense Dataset
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -73,6 +75,10 @@ you have any concerns.
 
 
 For more information, see: https://homes.cs.washington.edu/~msap/atomic/
+
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
 
 ### Languages
 en

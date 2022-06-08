@@ -22,6 +22,7 @@ import struct
 import numpy as np
 
 import datasets
+from datasets.tasks import ImageClassification
 
 
 _CITATION = """\
@@ -64,13 +65,19 @@ class MNIST(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "image": datasets.Array2D(shape=(28, 28), dtype="uint8"),
+                    "image": datasets.Image(),
                     "label": datasets.features.ClassLabel(names=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]),
                 }
             ),
             supervised_keys=("image", "label"),
             homepage="http://yann.lecun.com/exdb/mnist/",
             citation=_CITATION,
+            task_templates=[
+                ImageClassification(
+                    image_column="image",
+                    label_column="label",
+                )
+            ],
         )
 
     def _split_generators(self, dl_manager):

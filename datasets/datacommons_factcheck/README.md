@@ -10,16 +10,19 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  fctchk_politifact_wapo:
-  - 1K<n<10K
-  weekly_standard:
-  - n<1K
+- 1K<n<10K
+- n<1K
 source_datasets:
 - original
 task_categories:
 - text-classification
 task_ids:
 - fact-checking
+paperswithcode_id: null
+pretty_name: DataCommons Fact Checked claims
+configs:
+- fctchk_politifact_wapo
+- weekly_standard
 ---
 
 # Dataset Card for DataCommons Fact Checked claims
@@ -27,12 +30,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -146,7 +149,7 @@ See section above describing the [fact checking organizations](#who-are-the-anno
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

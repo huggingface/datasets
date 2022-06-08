@@ -1,4 +1,26 @@
 ---
+paperswithcode_id: dailydialog
+annotations_creators:
+- expert-generated
+language_creators:
+- found
+languages:
+- en
+licenses:
+- cc-by-nc-sa-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- multi-label-classification
+- text-classification-other-emotion-classification
+- text-classification-other-dialog-act-classification
+pretty_name: DailyDialog
 ---
 
 # Dataset Card for "daily_dialog"
@@ -6,12 +28,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -45,7 +67,7 @@ and cover various topics about our daily life. We also manually label the develo
 intention and emotion information. Then, we evaluate existing approaches on DailyDialog dataset and hope it
 benefit the research field of dialog systems.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -54,8 +76,6 @@ benefit the research field of dialog systems.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -85,7 +105,7 @@ The data fields are the same among all splits.
 - `act`: a `list` of classification labels, with possible values including `__dummy__` (0), `inform` (1), `question` (2), `directive` (3), `commissive` (4).
 - `emotion`: a `list` of classification labels, with possible values including `no emotion` (0), `anger` (1), `disgust` (2), `fear` (3), `happiness` (4).
 
-### Data Splits Sample Size
+### Data Splits
 
 | name  |train|validation|test|
 |-------|----:|---------:|---:|
@@ -99,9 +119,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -121,7 +153,7 @@ The data fields are the same among all splits.
 
 ### Other Known Limitations
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 
@@ -131,7 +163,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+DailyDialog dataset is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
 ### Citation Information
 

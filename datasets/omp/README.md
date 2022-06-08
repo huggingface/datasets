@@ -1,4 +1,5 @@
 ---
+pretty_name: One Million Posts
 annotations_creators:
 - expert-generated
 language_creators:
@@ -17,6 +18,7 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+paperswithcode_id: one-million-posts-corpus
 ---
 
 # Dataset Card for One Million Posts Corpus
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -119,7 +121,51 @@ Austrian German
 
 ### Data Instances
 
-[More Information Needed]
+An example from the `posts_labeled` config:
+```json
+{
+  "ID_Post": "79",
+  "ID_Parent_Post": "",
+  "ID_Article": "1",
+  "ID_User": "12071",
+  "CreatedAt": "2015-06-01 08:58:32.363",
+  "Status": "online",
+  "Headline": "",
+  "Body": "ich kann keinen hinweis finden, wo man sich hinwenden muss, sollte man als abonnent des standard, die zeitung nicht bekommt, ist dass bewusst so arrangiert?",
+  "PositiveVotes": 0,
+  "NegativeVotes": 0,
+  "Category": 5,
+  "Value": 1,
+  "Fold": 1
+}
+```
+
+An example from the `posts_unlabeled` config:
+```json
+{
+  "ID_Post": "51",
+  "ID_Parent_Post": "",
+  "ID_Article": "1",
+  "ID_User": "11125",
+  "CreatedAt": "2011-05-15 08:37:11.313",
+  "Status": "online",
+  "Headline": "Ich würde es sehr begrüßen, wenn",
+  "Body": "Antworten erst beim Erscheinen als e-Mail dem Poster zugestellt würden.\r\n\r\nEs gibt User, die ihre Kommentare sofort nach Mail-Eingang irgendwo hinposten. Dadurch wird \r\n1. vor allem für andere Unser die Lesbarkeit wesentlich beeinträchtigt,\r\n2. kann das Post verdreht wiedergegeben werden,\r\n3. man ist immer wieder gezwungen die Antwort richtig zu stellen.\r\n\r\nPrivatfehden von Usern sollten, wenn schon zugelassen, für alle User nachvollziehbar sein.\r\n\r\nDanke!",
+  "PositiveVotes": 1,
+  "NegativeVotes": 0
+}
+```
+
+An example from the `articles` config:
+```json
+{
+  "ID_Article": "41",
+  "Path": "Newsroom/Wirtschaft/Wirtschaftpolitik/Energiemarkt",
+  "publishingDate": "2015-06-01 12:39:35.00",
+  "Title": "Öl- und Gas-Riesen fordern weltweite CO2-Preise",
+  "Body": '<div class="section" id="content-main" itemprop="articleBody"><div class="copytext"><h2 itemprop="description">Brief von BP, Total, Shell, Statoil, BG Group und Eni unterzeichnet</h2><p>Paris/London/La Defense - Sechs große Öl- und Gaskonzerne haben mit Blick auf die Verhandlungen über einen neuen Welt-Klimavertrag ein globales Preissystem für CO2-Emissionen gefordert. Wenn der Ausstoß von CO2 Geld kostet, sei dies ein Anreiz für die Nutzung von Erdgas statt Kohle, mehr Energieeffizienz und Investitionen zur Vermeidung des Treibhausgases, heißt es in einem am Montag veröffentlichten Brief.</p>\n<p>Das Schreiben ist unterzeichnet von BP, Total, Shell, Statoil, BG Group und Eni. Die Unternehmen versicherten, sie seien bereit, ihren Teil zum Kampf gegen den <a href="/r1937/Klimawandel">Klimawandel</a> beizutragen. Dafür sei aber ein klarer und verlässlicher Politik-Rahmen nötig. (APA, 1.6.2015)</p> </div></div>'
+}
+```
 
 ### Data Fields
 
@@ -152,7 +198,13 @@ For each article, the data set contains the following data:
 
 ### Data Splits
 
-[More Information Needed]
+Training split only.
+
+|      name       |   train |
+|-----------------|--------:|
+| posts_labeled   |   40567 |
+| posts_unlabeled | 1000000 |
+| articles        |   12087 |
 
 ## Dataset Creation
 

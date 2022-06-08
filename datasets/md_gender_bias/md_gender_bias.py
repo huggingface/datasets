@@ -16,7 +16,6 @@
 
 
 import json
-import os
 
 import datasets
 
@@ -299,7 +298,8 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = os.path.join(dl_manager.download_and_extract(_URL), "data_to_release")
+        archive = dl_manager.download(_URL)
+        data_dir = "data_to_release"
         if self.config.name == "gendered_words":
             return [
                 datasets.SplitGenerator(
@@ -307,9 +307,10 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
                     gen_kwargs={
                         "filepath": None,
                         "filepath_pair": (
-                            os.path.join(data_dir, "word_list/male_word_file.txt"),
-                            os.path.join(data_dir, "word_list/female_word_file.txt"),
+                            data_dir + "/" + "word_list/male_word_file.txt",
+                            data_dir + "/" + "word_list/female_word_file.txt",
                         ),
+                        "files": dl_manager.iter_archive(archive),
                     },
                 )
             ]
@@ -318,8 +319,9 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=f"yob{yob}",
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, f"names/yob{yob}.txt"),
+                        "filepath": data_dir + "/" + f"names/yob{yob}.txt",
                         "filepath_pair": None,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 )
                 for yob in range(1880, 2019)
@@ -329,8 +331,9 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "new_data/data.jsonl"),
+                        "filepath": data_dir + "/" + "new_data/data.jsonl",
                         "filepath_pair": None,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 )
             ]
@@ -339,8 +342,9 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=spl,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, fname),
+                        "filepath": data_dir + "/" + fname,
                         "filepath_pair": None,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 )
                 for spl, fname in _CONF_FILES[self.config.name].items()
@@ -352,45 +356,62 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
                     gen_kwargs={
                         "filepath": None,
                         "filepath_pair": (
-                            os.path.join(data_dir, fname_1),
-                            os.path.join(data_dir, fname_2),
+                            data_dir + "/" + fname_1,
+                            data_dir + "/" + fname_2,
                         ),
+                        "files": dl_manager.iter_archive(archive),
                     },
                 )
                 for spl, (fname_1, fname_2) in _CONF_FILES[self.config.name].items()
             ]
 
-    def _generate_examples(self, filepath, filepath_pair):
+    def _generate_examples(self, filepath, filepath_pair, files):
         if self.config.name == "gendered_words":
-            with open(filepath_pair[0], encoding="utf-8") as f_m:
-                with open(filepath_pair[1], encoding="utf-8") as f_f:
-                    for id_, (l_m, l_f) in enumerate(zip(f_m, f_f)):
+            male_data, female_data = None, None
+            for path, f in files:
+                if path == filepath_pair[0]:
+                    male_data = f.read().decode("utf-8").splitlines()
+                elif path == filepath_pair[1]:
+                    female_data = f.read().decode("utf-8").splitlines()
+                if male_data is not None and female_data is not None:
+                    for id_, (l_m, l_f) in enumerate(zip(male_data, female_data)):
                         yield id_, {
                             "word_masculine": l_m.strip(),
                             "word_feminine": l_f.strip(),
                         }
+                    break
         elif self.config.name == "name_genders":
-            with open(filepath, encoding="utf-8") as f:
-                for id_, line in enumerate(f):
-                    name, g, ct = line.strip().split(",")
-                    yield id_, {
-                        "name": name,
-                        "assigned_gender": g,
-                        "count": int(ct),
-                    }
-        elif "_inferred" in self.config.name:
-            with open(filepath_pair[0], encoding="utf-8") as f_b:
-                if "yelp" in self.config.name:
-                    for id_, line_b in enumerate(f_b):
-                        text_b, label_b, score_b = line_b.split("\t")
+            for path, f in files:
+                if path == filepath:
+                    for id_, line in enumerate(f):
+                        name, g, ct = line.decode("utf-8").strip().split(",")
                         yield id_, {
-                            "text": text_b,
-                            "binary_label": label_b,
-                            "binary_score": float(score_b.strip()),
+                            "name": name,
+                            "assigned_gender": g,
+                            "count": int(ct),
                         }
-                else:
-                    with open(filepath_pair[1], encoding="utf-8") as f_t:
-                        for id_, (line_b, line_t) in enumerate(zip(f_b, f_t)):
+                    break
+        elif "_inferred" in self.config.name:
+            if "yelp" in self.config.name:
+                for path, f in files:
+                    if path == filepath_pair[0]:
+                        for id_, line_b in enumerate(f):
+                            text_b, label_b, score_b = line_b.decode("utf-8").split("\t")
+                            yield id_, {
+                                "text": text_b,
+                                "binary_label": label_b,
+                                "binary_score": float(score_b.strip()),
+                            }
+                        break
+            else:
+                binary_data, ternary_data = None, None
+                for path, f in files:
+                    if path == filepath_pair[0]:
+                        binary_data = f.read().decode("utf-8").splitlines()
+                    elif path == filepath_pair[1]:
+                        ternary_data = f.read().decode("utf-8").splitlines()
+                    if binary_data is not None and ternary_data is not None:
+                        for id_, (line_b, line_t) in enumerate(zip(binary_data, ternary_data)):
                             text_b, label_b, score_b = line_b.split("\t")
                             text_t, label_t, score_t = line_t.split("\t")
                             yield id_, {
@@ -400,10 +421,13 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
                                 "ternary_label": label_t,
                                 "ternary_score": float(score_t.strip()),
                             }
+                        break
         else:
-            with open(filepath, encoding="utf-8") as f:
-                for id_, line in enumerate(f):
-                    example = json.loads(line.strip())
-                    if "turker_gender" in example and example["turker_gender"] is None:
-                        example["turker_gender"] = "no answer"
-                    yield id_, example
+            for path, f in files:
+                if path == filepath:
+                    for id_, line in enumerate(f):
+                        example = json.loads(line.decode("utf-8").strip())
+                        if "turker_gender" in example and example["turker_gender"] is None:
+                            example["turker_gender"] = "no answer"
+                        yield id_, example
+                    break

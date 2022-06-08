@@ -199,9 +199,9 @@ class CodeSearchNet(datasets.GeneratorBasedBuilder):
         for file_id_, filepath in enumerate(filepaths):
             with open(filepath, encoding="utf-8") as f:
                 for row_id_, row in enumerate(f):
-                    # Key of the example = dir_id_ + entry_id + row_id,
+                    # Key of the example = file_id + row_id,
                     # to ensure all examples have a distinct key
-                    id_ = file_id_ + row_id_
+                    id_ = f"{file_id_}_{row_id_}"
                     data = json.loads(row)
                     yield id_, {
                         "repository_name": data["repo"],

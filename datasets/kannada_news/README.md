@@ -17,6 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - topic-classification
+paperswithcode_id: null
+pretty_name: KannadaNews Dataset
 ---
 
 # Dataset Card for kannada_news dataset 
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -92,9 +94,10 @@ Data has two fields:
 ### Data Splits
 
 The dataset is divided into two splits. All the headlines are scraped from news websites on the internet.
-|                            | Tain   | Valid | 
-| -----                      | ------ | ----- |
-| Input Sentences            |  5167  | 1293  |
+
+|                 |   train | validation | 
+|-----------------|--------:|-----------:|
+| Input Sentences |    5167 |       1293 |
 
 ## Dataset Creation
 
@@ -155,7 +158,7 @@ cc-by-sa-4.0
 
 ### Citation Information
 
-[More Information Needed]
+https://www.kaggle.com/disisbig/kannada-news-dataset
 
 ### Contributions
 

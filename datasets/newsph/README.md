@@ -15,9 +15,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
+paperswithcode_id: newsph-nli
+pretty_name: NewsPH-NLI
 ---
 
 # Dataset Card for NewsPH
@@ -25,12 +29,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -49,10 +53,10 @@ task_ids:
 ## Dataset Description
 
 - **Homepage:** [Filipino Text Benchmarks](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
-- **Repository: **
+- **Repository:**
 - **Paper:** [Investigating the True Performance of Transformers in Low-Resource Languages: A Case Study in Automatic Corpus Creation](https://arxiv.org/abs/2010.11574)
 - **Leaderboard:**
-- **Point of Contact:** Jan Christian Blaise Cruz (jan_christian_cruz@dlsu.edu.ph)
+- **Point of Contact:** [Jan Christian Blaise Cruz](jan_christian_cruz@dlsu.edu.ph)
 
 ### Dataset Summary
 

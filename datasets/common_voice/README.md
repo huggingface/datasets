@@ -1,4 +1,5 @@
 ---
+pretty_name: Common Voice
 annotations_creators:
 - crowdsourced
 language_creators:
@@ -65,136 +66,81 @@ languages:
 - zh-HK
 - zh-TW
 licenses:
-- cc-by-nc-4.0
+- cc0-1.0
 multilinguality:
 - multilingual
 size_categories:
-  ab:
-  - n<1K
-  ar:
-  - 10K<n<100K
-  as:
-  - n<1K
-  br:
-  - 10K<n<100K
-  ca:
-  - 100K<n<1M
-  cnh:
-  - 1K<n<10K
-  cs:
-  - 10K<n<100K
-  cv:
-  - 10K<n<100K
-  cy:
-  - 10K<n<100K
-  de:
-  - 100K<n<1M
-  dv:
-  - 1K<n<10K
-  el:
-  - 10K<n<100K
-  en:
-  - 100K<n<1M
-  eo:
-  - 10K<n<100K
-  es:
-  - 100K<n<1M
-  et:
-  - 10K<n<100K
-  eu:
-  - 10K<n<100K
-  fa:
-  - 10K<n<100K
-  fi:
-  - 1K<n<10K
-  fr:
-  - 100K<n<1M
-  fy-NL:
-  - 10K<n<100K
-  ga-IE:
-  - 1K<n<10K
-  hi:
-  - n<1K
-  hsb:
-  - 1K<n<10K
-  hu:
-  - 1K<n<10K
-  ia:
-  - 1K<n<10K
-  id:
-  - 10K<n<100K
-  it:
-  - 100K<n<1M
-  ja:
-  - 1K<n<10K
-  ka:
-  - 1K<n<10K
-  kab:
-  - 100K<n<1M
-  ky:
-  - 10K<n<100K
-  lg:
-  - 1K<n<10K
-  lt:
-  - 1K<n<10K
-  lv:
-  - 1K<n<10K
-  mn:
-  - 1K<n<10K
-  mt:
-  - 10K<n<100K
-  nl:
-  - 10K<n<100K
-  or:
-  - 1K<n<10K
-  pa-IN:
-  - 1K<n<10K
-  pl:
-  - 10K<n<100K
-  pt:
-  - 10K<n<100K
-  rm-sursilv:
-  - 1K<n<10K
-  rm-vallader:
-  - 1K<n<10K
-  ro:
-  - 1K<n<10K
-  ru:
-  - 10K<n<100K
-  rw:
-  - 100K<n<1M
-  sah:
-  - 1K<n<10K
-  sl:
-  - 1K<n<10K
-  sv-SE:
-  - 1K<n<10K
-  ta:
-  - 10K<n<100K
-  th:
-  - 10K<n<100K
-  tr:
-  - 1K<n<10K
-  tt:
-  - 10K<n<100K
-  uk:
-  - 10K<n<100K
-  vi:
-  - 1K<n<10K
-  vot:
-  - n<1K
-  zh-CN:
-  - 10K<n<100K
-  zh-HK:
-  - 10K<n<100K
-  zh-TW:
-  - 10K<n<100K
+- 100K<n<1M
+- 10K<n<100K
+- 1K<n<10K
+- n<1K
 source_datasets:
-- extended|other-common-voice
+- extended|common_voice
 task_categories:
-- other
-task_ids:
-- other-other-automatic-speech-recognition
+- automatic-speech-recognition
+task_ids: []
+paperswithcode_id: common-voice
+configs:
+- ab
+- ar
+- as
+- br
+- ca
+- cnh
+- cs
+- cv
+- cy
+- de
+- dv
+- el
+- en
+- eo
+- es
+- et
+- eu
+- fa
+- fi
+- fr
+- fy-NL
+- ga-IE
+- hi
+- hsb
+- hu
+- ia
+- id
+- it
+- ja
+- ka
+- kab
+- ky
+- lg
+- lt
+- lv
+- mn
+- mt
+- nl
+- or
+- pa-IN
+- pl
+- pt
+- rm-sursilv
+- rm-vallader
+- ro
+- ru
+- rw
+- sah
+- sl
+- sv-SE
+- ta
+- th
+- tr
+- tt
+- uk
+- vi
+- vot
+- zh-CN
+- zh-HK
+- zh-TW
 ---
 
 # Dataset Card for common_voice
@@ -202,12 +148,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -221,6 +167,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -251,7 +198,7 @@ English
 A typical data point comprises the path to the audio file, called path and its sentence. Additional fields include accent, age, client_id, up_votes down_votes, gender, locale and segment.
 
 `
-{'accent': 'netherlands', 'age': 'fourties', 'client_id': 'bbbcb732e0f422150c30ff3654bbab572e2a617da107bca22ff8b89ab2e4f124d03b6a92c48322862f60bd0179ae07baf0f9b4f9c4e11d581e0cec70f703ba54', 'down_votes': 0, 'gender': 'male', 'locale': 'nl', 'path': 'nl/clips/common_voice_nl_23522441.mp3', 'segment': "''", 'sentence': 'Ik vind dat een dubieuze procedure.', 'up_votes': 2}
+{'accent': 'netherlands', 'age': 'fourties', 'client_id': 'bbbcb732e0f422150c30ff3654bbab572e2a617da107bca22ff8b89ab2e4f124d03b6a92c48322862f60bd0179ae07baf0f9b4f9c4e11d581e0cec70f703ba54', 'down_votes': 0, 'gender': 'male', 'locale': 'nl', 'path': 'nl/clips/common_voice_nl_23522441.mp3', 'segment': "''", 'sentence': 'Ik vind dat een dubieuze procedure.', 'up_votes': 2, 'audio': {'path': `nl/clips/common_voice_nl_23522441.mp3', 'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32), 'sampling_rate': 48000}
 `
 
 ### Data Fields
@@ -259,6 +206,8 @@ A typical data point comprises the path to the audio file, called path and its s
 client_id: An id for which client (voice) made the recording
 
 path: The path to the audio file
+
+audio: A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `dataset[0]["audio"]` should **always** be preferred over `dataset["audio"][0]`.
 
 sentence: The sentence the user was prompted to speak
 
@@ -343,7 +292,7 @@ The dataset consists of people who have donated their voice online.  You agree t
 
 ### Licensing Information
 
-[More Information Needed] 
+Public Domain, [CC-0](https://creativecommons.org/share-your-work/public-domain/cc0/)
 
 ### Citation Information
 
@@ -356,3 +305,7 @@ The dataset consists of people who have donated their voice online.  You agree t
   year = 2020
 }
 ```
+
+### Contributions
+
+Thanks to [@BirgerMoell](https://github.com/BirgerMoell) for adding this dataset.

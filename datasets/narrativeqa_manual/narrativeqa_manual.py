@@ -125,9 +125,7 @@ class NarrativeqaManual(datasets.GeneratorBasedBuilder):
 
         if not os.path.exists(manual_dir):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('narrativeqa_manual', data_dir=...)` that includes the stories downloaded from the original repository. Manual download instructions: {}".format(
-                    manual_dir, self.manual_download_instructions
-                )
+                f"{manual_dir} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('narrativeqa_manual', data_dir=...)` that includes the stories downloaded from the original repository. Manual download instructions: {self.manual_download_instructions}"
             )
 
         return [

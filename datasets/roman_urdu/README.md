@@ -1,4 +1,4 @@
---
+---
 annotations_creators:
 - crowdsourced
 language_creators:
@@ -17,20 +17,21 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+paperswithcode_id: roman-urdu-data-set
+pretty_name: Roman Urdu Dataset
 ---
 
 # Dataset Card for Roman Urdu Dataset
 
 ## Table of Contents
-
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

@@ -29,17 +29,21 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
+paperswithcode_id: parapat
+pretty_name: Parallel Corpus of Patents Abstracts
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for ParaPat: The Multi-Million Sentences Parallel Corpus of Patents Abstracts
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)

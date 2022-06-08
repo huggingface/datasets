@@ -14,9 +14,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
+- text-scoring
 - sentiment-scoring
+paperswithcode_id: null
+pretty_name: AppReviews
 ---
 
 # Dataset Card for [Dataset Name]
@@ -24,7 +27,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -47,11 +50,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: [Home Page](https://github.com/sealuzh/user_quality)
-- **Repository: [Repo Link](https://github.com/sealuzh/user_quality)
-- **Paper: [Link](https://giograno.me/assets/pdf/workshop/wama17.pdf)
+- **Homepage:** [Home Page](https://github.com/sealuzh/user_quality)
+- **Repository:** [Repo Link](https://github.com/sealuzh/user_quality)
+- **Paper:** [Link](https://giograno.me/assets/pdf/workshop/wama17.pdf)
 - **Leaderboard:
-- **Point of Contact: [Darshan Gandhi](darshangandhi1151@gmail.com)
+- **Point of Contact:** [Darshan Gandhi](darshangandhi1151@gmail.com)
 
 ### Dataset Summary
 

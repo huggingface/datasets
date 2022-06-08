@@ -15,7 +15,6 @@
 """ASSIN dataset."""
 
 
-import os
 import xml.etree.ElementTree as ET
 
 import datasets
@@ -110,54 +109,53 @@ class Assin(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URL)
+        archive = dl_manager.download(_URL)
 
         train_paths = []
         dev_paths = []
         test_paths = []
 
         if self.config.name == "full" or self.config.name == "ptpt":
-            train_paths.append(os.path.join(data_dir, "assin-ptpt-train.xml"))
-            dev_paths.append(os.path.join(data_dir, "assin-ptpt-dev.xml"))
-            test_paths.append(os.path.join(data_dir, "assin-ptpt-test.xml"))
+            train_paths.append("assin-ptpt-train.xml")
+            dev_paths.append("assin-ptpt-dev.xml")
+            test_paths.append("assin-ptpt-test.xml")
 
         if self.config.name == "full" or self.config.name == "ptbr":
-            train_paths.append(os.path.join(data_dir, "assin-ptbr-train.xml"))
-            dev_paths.append(os.path.join(data_dir, "assin-ptbr-dev.xml"))
-            test_paths.append(os.path.join(data_dir, "assin-ptbr-test.xml"))
+            train_paths.append("assin-ptbr-train.xml")
+            dev_paths.append("assin-ptbr-dev.xml")
+            test_paths.append("assin-ptbr-test.xml")
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "filepaths": train_paths,
-                    "split": "train",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
                     "filepaths": test_paths,
-                    "split": "test",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "filepaths": dev_paths,
-                    "split": "dev",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepaths, split):
+    def _generate_examples(self, filepaths, files):
         """Yields examples."""
 
         id_ = 0
 
-        for filepath in filepaths:
-
-            with open(filepath, "rb") as f:
+        for path, f in files:
+            if path in filepaths:
 
                 tree = ET.parse(f)
                 root = tree.getroot()

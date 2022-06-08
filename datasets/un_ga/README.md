@@ -4,51 +4,12 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  ar-to-en:
-  - ar
-  - en
-  ar-to-es:
-  - ar
-  - es
-  ar-to-fr:
-  - ar
-  - fr
-  ar-to-ru:
-  - ar
-  - ru
-  ar-to-zh:
-  - ar
-  - zh
-  en-to-es:
-  - en
-  - es
-  en-to-fr:
-  - en
-  - fr
-  en-to-ru:
-  - en
-  - ru
-  en-to-zh:
-  - en
-  - zh
-  es-to-fr:
-  - es
-  - fr
-  es-to-ru:
-  - es
-  - ru
-  es-to-zh:
-  - es
-  - zh
-  fr-to-ru:
-  - fr
-  - ru
-  fr-to-zh:
-  - fr
-  - zh
-  ru-to-zh:
-  - ru
-  - zh
+- ar
+- en
+- es
+- fr
+- ru
+- zh
 licenses:
 - unknown
 multilinguality:
@@ -58,9 +19,26 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: null
+pretty_name: UnGa
+configs:
+- ar-to-en
+- ar-to-es
+- ar-to-fr
+- ar-to-ru
+- ar-to-zh
+- en-to-es
+- en-to-fr
+- en-to-ru
+- en-to-zh
+- es-to-fr
+- es-to-ru
+- es-to-zh
+- fr-to-ru
+- fr-to-zh
+- ru-to-zh
 ---
 
 # Dataset Card for [Dataset Name]
@@ -68,12 +46,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

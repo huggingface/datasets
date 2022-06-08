@@ -407,12 +407,18 @@ class Clue(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         dl_dir = dl_manager.download_and_extract(self.config.data_url)
         data_dir = os.path.join(dl_dir, self.config.data_dir)
+
+        if self.config.name in {"chid", "c3"}:
+            test_file = "test1.1.json"
+        elif self.config.name == "diagnostics":
+            test_file = "diagnostics_test.json"
+        else:
+            test_file = "test.json"
+
         test_split = datasets.SplitGenerator(
             name=datasets.Split.TEST,
             gen_kwargs={
-                "data_file": os.path.join(
-                    data_dir, "test.json" if self.config.name != "diagnostics" else "diagnostics_test.json"
-                ),
+                "data_file": os.path.join(data_dir, test_file),
                 "split": "test",
             },
         )
@@ -458,7 +464,7 @@ class Clue(datasets.GeneratorBasedBuilder):
         label_classes = self.config.label_classes
 
         if self.config.name == "chid" and split != "test":
-            answer_file = os.path.join(os.path.dirname(data_file), "{}_answer.json".format(split))
+            answer_file = os.path.join(os.path.dirname(data_file), f"{split}_answer.json")
             answer_dict = json.load(open(answer_file, encoding="utf8"))
 
         if self.config.name == "c3":
@@ -466,13 +472,13 @@ class Clue(datasets.GeneratorBasedBuilder):
                 files = [data_file]
             else:
                 data_dir = os.path.dirname(data_file)
-                files = [os.path.join(data_dir, "{}-{}.json".format(typ, split)) for typ in ["d", "m"]]
+                files = [os.path.join(data_dir, f"{typ}-{split}.json") for typ in ["d", "m"]]
             data = []
             for f in files:
                 data_subset = json.load(open(f, encoding="utf8"))
                 data += data_subset
             for idx, entry in enumerate(data):
-                for question in entry[1]:
+                for qidx, question in enumerate(entry[1]):
                     example = {
                         "id": idx if split != "test" else int(question["id"]),
                         "context": entry[0],
@@ -480,7 +486,7 @@ class Clue(datasets.GeneratorBasedBuilder):
                         "choice": question["choice"],
                         "answer": question["answer"] if split != "test" else "",
                     }
-                    yield example["id"], example
+                    yield f"{idx}_{qidx}", example
 
         else:
             with open(data_file, encoding="utf8") as f:

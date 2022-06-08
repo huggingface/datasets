@@ -19,7 +19,6 @@
 
 import csv
 import ctypes
-import os
 
 import datasets
 
@@ -71,20 +70,25 @@ class Sogou_News(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        dl_dir = dl_manager.download_and_extract(_DATA_URL)
+        archive = dl_manager.download(_DATA_URL)
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv", "test.csv")}
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": "sogou_news_csv/test.csv", "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv", "train.csv")}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": "sogou_news_csv/train.csv", "files": dl_manager.iter_archive(archive)},
             ),
         ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, filepath, files):
         """This function returns the examples in the raw (text) form."""
-        with open(filepath, encoding="utf-8") as csv_file:
-            data = csv.reader(csv_file)
-            for id_, row in enumerate(data):
-                yield id_, {"title": row[1], "content": row[2], "label": int(row[0]) - 1}
+        for path, f in files:
+            if path == filepath:
+                lines = (line.decode("utf-8") for line in f)
+                data = csv.reader(lines)
+                for id_, row in enumerate(data):
+                    yield id_, {"title": row[1], "content": row[2], "label": int(row[0]) - 1}
+                break

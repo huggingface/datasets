@@ -193,7 +193,7 @@ _URLs = {
         "challenge_set": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_challenge_sets/schema_guided_dialog.zip",
     },
     "totto": {
-        "data": "https://storage.googleapis.com/totto/totto_data.zip",
+        "data": "https://storage.googleapis.com/totto-public/totto_data.zip",
         "challenge_set": "https://storage.googleapis.com/huggingface-nlp/datasets/gem/gem_challenge_sets/totto.zip",
     },
     "web_nlg_en": {
@@ -290,11 +290,11 @@ _URLs = {
 # Add Asset files
 _URLs["wiki_auto_asset_turk"][
     "test_asset_orig"
-] = "https://github.com/facebookresearch/asset/raw/master/dataset/asset.test.orig"
+] = "https://github.com/facebookresearch/asset/raw/main/dataset/asset.test.orig"
 for i in range(10):
     _URLs["wiki_auto_asset_turk"][
         f"test_asset_{i}"
-    ] = f"https://github.com/facebookresearch/asset/raw/master/dataset/asset.test.simp.{i}"
+    ] = f"https://github.com/facebookresearch/asset/raw/main/dataset/asset.test.simp.{i}"
 
 _SGD_ACTS = [
     "AFFIRM",
@@ -883,7 +883,7 @@ class Gem(datasets.GeneratorBasedBuilder):
                 ("challenge_test_bfp_02", "test_xsum_ButterFingersPerturbation_p=0.02_500.json"),
                 ("challenge_test_bfp_05", "test_xsum_ButterFingersPerturbation_p=0.05_500.json"),
                 ("challenge_test_nopunc", "test_xsum_WithoutPunctuation500.json"),
-                ("challenge_test_covid", f"en_test_covid19.jsonl"),
+                ("challenge_test_covid", "en_test_covid19.jsonl"),
             ]
             return [
                 datasets.SplitGenerator(
@@ -1170,8 +1170,8 @@ class Gem(datasets.GeneratorBasedBuilder):
                             "highlighted_cells": result["highlighted_cells"],
                             "example_id": str(result["example_id"]),
                             "overlap_subset": str(result["overlap_subset"]),
+                            "sentence_annotations": [] if split == "test" else result["sentence_annotations"],
                         }
-                        response["sentence_annotations"] = [] if split == "test" else result["sentence_annotations"]
                         response["references"] = [
                             sentence["final_sentence"] for sentence in response["sentence_annotations"]
                         ]

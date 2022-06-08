@@ -20,7 +20,7 @@ import datasets
 _DESCRIPTION = """\
 This corpus is an attempt to recreate the dataset used for training XLM-R. This corpus comprises of monolingual data for 100+ languages and also includes data for romanized languages (indicated by *_rom). This was constructed using the urls and paragraph indices provided by the CC-Net repository by processing January-December 2018 Commoncrawl snapshots. Each file comprises of documents separated by double-newlines and paragraphs within the same document separated by a newline. The data is generated using the open source CC-Net repository. No claims of intellectual property are made on the work of preparation of the corpus.
 """
-_HOMEPAGE_URL = "http://data.statmt.org/cc-100/"
+_HOMEPAGE_URL = "https://data.statmt.org/cc-100/"
 _CITATION = """\
 @inproceedings{conneau-etal-2020-unsupervised,
     title = "Unsupervised Cross-lingual Representation Learning at Scale",
@@ -67,11 +67,11 @@ _CITATION = """\
 """
 
 _VERSION = "1.0.0"
-_BASE_URL = "http://data.statmt.org/cc-100/{}.txt.xz"
+_BASE_URL = "https://data.statmt.org/cc-100/{}.txt.xz"
 
 # Please note: due to the size of the data, only few examples are provided.
 # However, you can pass the lang parameter in config to fetch data of any language in the corpus
-_LANGUAGES = ["am", "sr"]
+_LANGUAGES = ["am", "sr", "ka"]
 
 
 class Cc100Config(datasets.BuilderConfig):

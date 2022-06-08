@@ -18,6 +18,8 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-hate-speech-topic-classification
+paperswithcode_id: bengali-hate-speech
+pretty_name: Bengali Hate Speech Dataset
 ---
 
 # Dataset Card for Bengali Hate Speech Dataset
@@ -25,7 +27,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -48,10 +50,10 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: [Bengali Hate Speech Dataset](https://github.com/rezacsedu/Bengali-Hate-Speech-Dataset)**
-- **Repository: [Bengali Hate Speech Dataset](https://github.com/rezacsedu/Bengali-Hate-Speech-Dataset)**
-- **Paper: [Classification Benchmarks for Under-resourced Bengali Language based on Multichannel Convolutional-LSTM Network](https://arxiv.org/abs/2004.07807)**
-- **Point of Contact: [Md. Rezaul Karim](rezaul.karim.fit@gmail.com)**
+- **Homepage:** [Bengali Hate Speech Dataset](https://github.com/rezacsedu/Bengali-Hate-Speech-Dataset)
+- **Repository:** [Bengali Hate Speech Dataset](https://github.com/rezacsedu/Bengali-Hate-Speech-Dataset)
+- **Paper:** [Classification Benchmarks for Under-resourced Bengali Language based on Multichannel Convolutional-LSTM Network](https://arxiv.org/abs/2004.07807)
+- **Point of Contact:** [Md. Rezaul Karim](rezaul.karim.fit@gmail.com)
 
 ### Dataset Summary
 

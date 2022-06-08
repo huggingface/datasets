@@ -2,9 +2,8 @@ import json
 import os
 import tempfile
 
-from utils import generate_example_dataset, get_duration
-
 import datasets
+from utils import generate_example_dataset, get_duration
 
 
 SPEED_TEST_N_EXAMPLES = 500_000

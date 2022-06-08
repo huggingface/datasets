@@ -15,9 +15,12 @@ size_categories:
 source_datasets:
 - extended|other-sts-b
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
+- text-scoring
 - semantic-similarity-scoring
+paperswithcode_id: null
+pretty_name: Swedish Machine Translated STS-B
 ---
 
 # Dataset Card for Swedish Machine Translated STS-B 
@@ -25,12 +28,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

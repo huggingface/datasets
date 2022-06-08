@@ -10,17 +10,19 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  ollie_lemmagrep:
-  - 10M<n<100M
-  ollie_patterned:
-  - 1M<n<10M
+- 10M<n<100M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- other
+- text-to-structured
 task_ids:
-- other-stuctured-to-text
-- other-other-relation-extraction
+- relation-extraction
+paperswithcode_id: null
+pretty_name: Ollie
+configs:
+- ollie_lemmagrep
+- ollie_patterned
 ---
 
 # Dataset Card for Ollie
@@ -28,12 +30,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -80,6 +82,10 @@ conditions (if X then).
 
 More information is available at the Ollie homepage:
 https://knowitall.github.io/ollie/
+
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
 
 ### Languages
 en
@@ -194,7 +200,6 @@ Since the data is gathered from the web, there is likely to be biased text and r
 
 [More Information Needed]
 
-
 ## Additional Information
 
 ### Dataset Curators
@@ -207,12 +212,15 @@ The University of Washington academic license: https://raw.githubusercontent.com
 
 
 ### Citation Information
+
+```
 @inproceedings{ollie-emnlp12,
   author = {Mausam and Michael Schmitz and Robert Bart and Stephen Soderland and Oren Etzioni},
   title = {Open Language Learning for Information Extraction},
   booktitle = {Proceedings of Conference on Empirical Methods in Natural Language Processing and Computational Natural Language Learning (EMNLP-CONLL)},
   year = {2012}
 }
+```
 
 ### Contributions
 

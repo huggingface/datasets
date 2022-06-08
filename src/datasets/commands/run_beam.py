@@ -6,12 +6,13 @@ from typing import List
 
 from datasets import config
 from datasets.builder import DatasetBuilder
-from datasets.commands import BaseTransformersCLICommand
-from datasets.load import import_main_class, prepare_module
-from datasets.utils.download_manager import DownloadConfig, GenerateMode
+from datasets.commands import BaseDatasetsCLICommand
+from datasets.download.download_config import DownloadConfig
+from datasets.download.download_manager import DownloadMode
+from datasets.load import dataset_module_factory, import_main_class
 
 
-def run_beam_command_factory(args):
+def run_beam_command_factory(args, **kwargs):
     return RunBeamCommand(
         args.dataset,
         args.name,
@@ -22,31 +23,33 @@ def run_beam_command_factory(args):
         args.save_infos,
         args.ignore_verifications,
         args.force_redownload,
+        **kwargs,
     )
 
 
-class RunBeamCommand(BaseTransformersCLICommand):
+class RunBeamCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
-        run_beam_parser = parser.add_parser("run_beam")
-        run_beam_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
+        run_beam_parser = parser.add_parser("run_beam", help="Run a Beam dataset processing pipeline")
+        run_beam_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
+        run_beam_parser.add_argument("--name", type=str, default=None, help="Dataset config name")
         run_beam_parser.add_argument(
             "--cache_dir",
             type=str,
             default=None,
-            help="Cache directory where the datasets are stored.",
+            help="Cache directory where the datasets are stored",
         )
         run_beam_parser.add_argument(
             "--beam_pipeline_options",
             type=str,
             default="",
-            help="Beam pipeline options, separated by commas. Example: `--beam_pipeline_options=job_name=my-job,project=my-project`",
+            help="Beam pipeline options, separated by commas. Example:: `--beam_pipeline_options=job_name=my-job,project=my-project`",
         )
         run_beam_parser.add_argument(
             "--data_dir",
             type=str,
             default=None,
-            help="Can be used to specify a manual directory to get the files from.",
+            help="Can be used to specify a manual directory to get the files from",
         )
         run_beam_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
         run_beam_parser.add_argument("--save_infos", action="store_true", help="Save the dataset infos file")
@@ -54,7 +57,6 @@ class RunBeamCommand(BaseTransformersCLICommand):
             "--ignore_verifications", action="store_true", help="Run the test without checksums and splits checks"
         )
         run_beam_parser.add_argument("--force_redownload", action="store_true", help="Force dataset redownload")
-        run_beam_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
         run_beam_parser.set_defaults(func=run_beam_command_factory)
 
     def __init__(
@@ -68,6 +70,7 @@ class RunBeamCommand(BaseTransformersCLICommand):
         save_infos: bool,
         ignore_verifications: bool,
         force_redownload: bool,
+        **config_kwargs,
     ):
         self._dataset = dataset
         self._name = name
@@ -78,6 +81,7 @@ class RunBeamCommand(BaseTransformersCLICommand):
         self._save_infos = save_infos
         self._ignore_verifications = ignore_verifications
         self._force_redownload = force_redownload
+        self._config_kwargs = config_kwargs
 
     def run(self):
         import apache_beam as beam
@@ -85,13 +89,13 @@ class RunBeamCommand(BaseTransformersCLICommand):
         if self._name is not None and self._all_configs:
             print("Both parameters `name` and `all_configs` can't be used at once.")
             exit(1)
-        path, name = self._dataset, self._name
-        module_path, hash = prepare_module(path)
-        builder_cls = import_main_class(module_path)
+        path, config_name = self._dataset, self._name
+        dataset_module = dataset_module_factory(path)
+        builder_cls = import_main_class(dataset_module.module_path)
         builders: List[DatasetBuilder] = []
         if self._beam_pipeline_options:
             beam_options = beam.options.pipeline_options.PipelineOptions(
-                flags=["--%s" % opt.strip() for opt in self._beam_pipeline_options.split(",") if opt]
+                flags=[f"--{opt.strip()}" for opt in self._beam_pipeline_options.split(",") if opt]
             )
         else:
             beam_options = None
@@ -99,28 +103,37 @@ class RunBeamCommand(BaseTransformersCLICommand):
             for builder_config in builder_cls.BUILDER_CONFIGS:
                 builders.append(
                     builder_cls(
-                        name=builder_config.name,
+                        config_name=builder_config.name,
                         data_dir=self._data_dir,
-                        hash=hash,
+                        hash=dataset_module.hash,
                         beam_options=beam_options,
                         cache_dir=self._cache_dir,
+                        base_path=dataset_module.builder_kwargs.get("base_path"),
                     )
                 )
         else:
             builders.append(
-                builder_cls(name=name, data_dir=self._data_dir, beam_options=beam_options, cache_dir=self._cache_dir)
+                builder_cls(
+                    config_name=config_name,
+                    data_dir=self._data_dir,
+                    beam_options=beam_options,
+                    cache_dir=self._cache_dir,
+                    base_path=dataset_module.builder_kwargs.get("base_path"),
+                    **self._config_kwargs,
+                )
             )
 
         for builder in builders:
             builder.download_and_prepare(
-                download_mode=GenerateMode.REUSE_CACHE_IF_EXISTS
+                download_mode=DownloadMode.REUSE_CACHE_IF_EXISTS
                 if not self._force_redownload
-                else GenerateMode.FORCE_REDOWNLOAD,
-                download_config=DownloadConfig(cache_dir=os.path.join(config.HF_DATASETS_CACHE, "downloads")),
-                save_infos=self._save_infos,
+                else DownloadMode.FORCE_REDOWNLOAD,
+                download_config=DownloadConfig(cache_dir=config.DOWNLOADED_DATASETS_PATH),
                 ignore_verifications=self._ignore_verifications,
                 try_from_hf_gcs=False,
             )
+            if self._save_infos:
+                builder._save_infos()
 
         print("Apache beam run successful.")
 
@@ -138,10 +151,10 @@ class RunBeamCommand(BaseTransformersCLICommand):
             elif os.path.isfile(combined_path):
                 dataset_dir = path
             else:  # in case of a remote dataset
-                print("Dataset Infos file saved at {}".format(dataset_infos_path))
+                print(f"Dataset Infos file saved at {dataset_infos_path}")
                 exit(1)
 
             # Move datasetinfo back to the user
             user_dataset_infos_path = os.path.join(dataset_dir, config.DATASETDICT_INFOS_FILENAME)
             copyfile(dataset_infos_path, user_dataset_infos_path)
-            print("Dataset Infos file saved at {}".format(user_dataset_infos_path))
+            print(f"Dataset Infos file saved at {user_dataset_infos_path}")

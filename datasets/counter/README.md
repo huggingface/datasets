@@ -6,7 +6,7 @@ language_creators:
 languages:
 - ur
 licenses:
-- cc-by-4.0
+- cc-by-nc-sa-4.0
 multilinguality:
 - monolingual
 size_categories:
@@ -15,23 +15,25 @@ source_datasets:
 - original
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
+- text-scoring
 - semantic-similarity-scoring
 - topic-classification
+paperswithcode_id: counter
+pretty_name: COUNTER
 ---
 
-# Dataset Card for counter
+# Dataset Card for COUNTER
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -53,7 +55,7 @@ task_ids:
 - **Repository:** [More Information Needed]
 - **Paper:** https://link.springer.com/article/10.1007%2Fs10579-016-9367-2
 - **Leaderboard:** [More Information Needed]
-- **Point of Contact:** ucrel@lancaster.ac.uk
+- **Point of Contact:** [UCREL](ucrel@lancaster.ac.uk)
 
 ### Dataset Summary
 
@@ -177,7 +179,7 @@ The annotations were performed by three annotators (A, B and C), who were native
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 
@@ -187,7 +189,8 @@ The annotations were performed by three annotators (A, B and C), who were native
 
 ### Licensing Information
 
-[More Information Needed]
+This dataset is licensed under the Creative Common Attribution-NonCommercial-ShareAlike 4.0 International License.
+[(CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
 ### Citation Information
 

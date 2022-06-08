@@ -10,23 +10,26 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  nell_belief:
-  - 1M<n<10M
-  nell_belief_sentences:
-  - 10M<n<100M
-  nell_candidate:
-  - 10M<n<100M
-  nell_candidate_sentences:
-  - 100M<n<1B
+- 100M<n<1B
+- 10M<n<100M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text-to-tabular
 - text-retrieval
+- text-to-structured
 task_ids:
 - entity-linking-retrieval
 - fact-checking-retrieval
-- other-stuctured-to-text
+- relation-extraction
+paperswithcode_id: nell
+pretty_name: Never Ending Language Learning (NELL)
+configs:
+- nell_belief
+- nell_belief_sentences
+- nell_candidate
+- nell_candidate_sentences
 ---
 
 # Dataset Card for Never Ending Language Learning (NELL)
@@ -34,12 +37,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -100,6 +103,10 @@ Extract new instances of categories and relations. In other words, find noun phr
 Learn to read better than yesterday. NELL uses a variety of methods to extract beliefs from the web. These are retrained, using the growing knowledge base as a self-supervised collection of training examples. The result is a semi-supervised learning method that couples the training of hundreds of different extraction methods for a wide range of categories and relations. Much of NELL’s current success is due to its algorithm for coupling the simultaneous training of many extraction methods.
 
 For more information, see: http://rtw.ml.cmu.edu/rtw/resources
+
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
 
 ### Languages
 en, and perhaps some others

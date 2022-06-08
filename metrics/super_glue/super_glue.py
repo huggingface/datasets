@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -107,12 +106,12 @@ Examples:
 
 
 def simple_accuracy(preds, labels):
-    return (preds == labels).mean()
+    return float((preds == labels).mean())
 
 
 def acc_and_f1(preds, labels, f1_avg="binary"):
     acc = simple_accuracy(preds, labels)
-    f1 = f1_score(y_true=labels, y_pred=preds, average=f1_avg)
+    f1 = float(f1_score(y_true=labels, y_pred=preds, average=f1_avg))
     return {
         "accuracy": acc,
         "f1": f1,
@@ -125,7 +124,7 @@ def evaluate_multirc(ids_preds, labels):
     """
     question_map = {}
     for id_pred, label in zip(ids_preds, labels):
-        question_id = "{}-{}".format(id_pred["idx"]["paragraph"], id_pred["idx"]["question"])
+        question_id = f'{id_pred["idx"]["paragraph"]}-{id_pred["idx"]["question"]}'
         pred = id_pred["prediction"]
         if question_id in question_map:
             question_map[question_id].append((pred, label))
@@ -136,11 +135,11 @@ def evaluate_multirc(ids_preds, labels):
         question_preds, question_labels = zip(*preds_labels)
         f1 = f1_score(y_true=question_labels, y_pred=question_preds, average="macro")
         f1s.append(f1)
-        em = int(sum([p == l for p, l in preds_labels]) == len(preds_labels))
+        em = int(sum(p == l for p, l in preds_labels) == len(preds_labels))
         ems.append(em)
-    f1_m = sum(f1s) / len(f1s)
+    f1_m = float(sum(f1s) / len(f1s))
     em = sum(ems) / len(ems)
-    f1_a = f1_score(y_true=labels, y_pred=[id_pred["prediction"] for id_pred in ids_preds])
+    f1_a = float(f1_score(y_true=labels, y_pred=[id_pred["prediction"] for id_pred in ids_preds]))
     return {"exact_match": em, "f1_m": f1_m, "f1_a": f1_a}
 
 

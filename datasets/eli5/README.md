@@ -14,10 +14,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- question-answering
+- text2text-generation
 task_ids:
 - abstractive-qa
-- open-domain-qa
+- open-domain-abstrative-qa
+paperswithcode_id: eli5
+pretty_name: ELI5
 ---
 
 # Dataset Card for ELI5
@@ -25,12 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -55,11 +57,11 @@ task_ids:
 
 ### Dataset Summary
 
-The ELI5 dataset is an English-language dataset of questions and answers gathered from three subreddits were users ask factual questions requiring paragraph-length or longer answers. The dataset was created to support the task of open-domain long form abstractive question answering, and covers questions about general topics in its [r/explainlikeimfive](https://www.reddit.com/r/explainlikeimfive/) subset, science in it [r/askscience](https://www.reddit.com/r/askscience/) subset, and History in its [r/AskHistorians](https://www.reddit.com/r/AskHistorians/) subset.
+The ELI5 dataset is an English-language dataset of questions and answers gathered from three subreddits where users ask factual questions requiring paragraph-length or longer answers. The dataset was created to support the task of open-domain long form abstractive question answering, and covers questions about general topics in its [r/explainlikeimfive](https://www.reddit.com/r/explainlikeimfive/) subset, science in it [r/askscience](https://www.reddit.com/r/askscience/) subset, and History in its [r/AskHistorians](https://www.reddit.com/r/AskHistorians/) subset.
 
 ### Supported Tasks and Leaderboards
 
-- `abstractive-qa`, `open-domain-qa`: The dataset can be used to train a model for Open Domain Long Form Question Answering. An LFQA model is presented with a non-factoid and asked to retrieve relevant information from a knowledge source (such as [Wikipedia](https://www.wikipedia.org/)), then use it to generate a multi-sentence answer. The model performance is measured by how high its [ROUGE](https://huggingface.co/metrics/rouge) score to the reference is. A [BART-based model](https://huggingface.co/yjernite/bart_eli5) with a [dense retriever](https://huggingface.co/yjernite/retribert-base-uncased) trained to draw information from [Wikipedia passages](https://huggingface.co/datasets/wiki_snippets) achieves a [ROUGE-L of 0.149](https://yjernite.github.io/lfqa.html#generation).
+- `abstractive-qa`, `open-domain-abstractive-qa`: The dataset can be used to train a model for Open Domain Long Form Question Answering. An LFQA model is presented with a non-factoid and asked to retrieve relevant information from a knowledge source (such as [Wikipedia](https://www.wikipedia.org/)), then use it to generate a multi-sentence answer. The model performance is measured by how high its [ROUGE](https://huggingface.co/metrics/rouge) score to the reference is. A [BART-based model](https://huggingface.co/yjernite/bart_eli5) with a [dense retriever](https://huggingface.co/yjernite/retribert-base-uncased) trained to draw information from [Wikipedia passages](https://huggingface.co/datasets/wiki_snippets) achieves a [ROUGE-L of 0.149](https://yjernite.github.io/lfqa.html#generation).
 
 ### Languages
 
@@ -105,7 +107,7 @@ An example from the ELI5 test set looks as follows:
 
 The data is split into a training, validation and test set for each of the three subreddits. In order to avoid having duplicate questions in across sets, the `title` field of each of the questions were ranked by their tf-idf match to their nearest neighbor and the ones with the smallest value were used in the test and validation sets. The final split sizes are as follow:
 
-|                             | Tain   | Valid | Test |
+|                             | Train   | Valid | Test |
 | -----                       | ------ | ----- | ---- |
 | r/explainlikeimfive examples| 272634 |  9812 | 24512|
 | r/askscience examples       | 131778 |  2281 | 4462 |

@@ -1,4 +1,73 @@
 ---
+pretty_name: RottenTomatoes - MR Movie Review Data
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+task_categories:
+- text-classification
+task_ids:
+- sentiment-classification
+paperswithcode_id: mr
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+train-eval-index:
+- config: default
+  task: text-classification
+  task_id: binary_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    text: text
+    label: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1
+      args:
+        average: binary
+    - type: f1
+      name: F1 micro
+      args:
+        average: micro
+    - type: f1
+      name: F1 weighted
+      args:
+        average: weighted
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
 ---
 
 # Dataset Card for "rotten_tomatoes"
@@ -6,12 +75,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -31,7 +100,7 @@
 
 - **Homepage:** [http://www.cs.cornell.edu/people/pabo/movie-review-data/](http://www.cs.cornell.edu/people/pabo/movie-review-data/)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [https://arxiv.org/abs/cs/0506075](https://arxiv.org/abs/cs/0506075)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 0.47 MB
 - **Size of the generated dataset:** 1.28 MB
@@ -46,7 +115,7 @@ Pang and Lillian Lee, ``Seeing stars: Exploiting class relationships for
 sentiment categorization with respect to rating scales.'', Proceedings of the
 ACL, 2005.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -55,8 +124,6 @@ ACL, 2005.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -70,7 +137,7 @@ An example of 'validation' looks as follows.
 ```
 {
     "label": 1,
-    "text": "Sometimes the days and nights just drag on-- it's the morning that make me feel alive. And I have one thing to thank for that: pancakes."
+    "text": "Sometimes the days and nights just drag on -- it 's the morning that make me feel alive . And I have one thing to thank for that : pancakes . "
 }
 ```
 
@@ -82,7 +149,7 @@ The data fields are the same among all splits.
 - `text`: a `string` feature.
 - `label`: a classification label, with possible values including `neg` (0), `pos` (1).
 
-### Data Splits Sample Size
+### Data Splits
 
 | name  |train|validation|test|
 |-------|----:|---------:|---:|
@@ -96,9 +163,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

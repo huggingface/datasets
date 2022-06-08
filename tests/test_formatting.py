@@ -9,7 +9,7 @@ from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter
 from datasets.formatting.formatting import NumpyArrowExtractor, PandasArrowExtractor, PythonArrowExtractor
 from datasets.table import InMemoryTable
 
-from .utils import require_tf, require_torch
+from .utils import require_jax, require_tf, require_torch
 
 
 _COL_A = [0, 1, 2]
@@ -164,20 +164,20 @@ class FormatterTest(TestCase):
         pa_table = self._create_dummy_table()
         formatter = TFFormatter()
         row = formatter.format_row(pa_table)
-        tf.debugging.assert_equal(row["a"], tf.ragged.constant(_COL_A, dtype=tf.int64)[0])
-        tf.debugging.assert_equal(row["b"], tf.ragged.constant(_COL_B, dtype=tf.string)[0])
-        tf.debugging.assert_equal(row["c"], tf.ragged.constant(_COL_C, dtype=tf.float32)[0])
+        tf.debugging.assert_equal(row["a"], tf.convert_to_tensor(_COL_A, dtype=tf.int64)[0])
+        tf.debugging.assert_equal(row["b"], tf.convert_to_tensor(_COL_B, dtype=tf.string)[0])
+        tf.debugging.assert_equal(row["c"], tf.convert_to_tensor(_COL_C, dtype=tf.float32)[0])
         col = formatter.format_column(pa_table)
         tf.debugging.assert_equal(col, tf.ragged.constant(_COL_A, dtype=tf.int64))
         batch = formatter.format_batch(pa_table)
-        tf.debugging.assert_equal(batch["a"], tf.ragged.constant(_COL_A, dtype=tf.int64))
-        tf.debugging.assert_equal(batch["b"], tf.ragged.constant(_COL_B, dtype=tf.string))
-        self.assertIsInstance(batch["c"], tf.RaggedTensor)
+        tf.debugging.assert_equal(batch["a"], tf.convert_to_tensor(_COL_A, dtype=tf.int64))
+        tf.debugging.assert_equal(batch["b"], tf.convert_to_tensor(_COL_B, dtype=tf.string))
+        self.assertIsInstance(batch["c"], tf.Tensor)
         self.assertEqual(batch["c"].dtype, tf.float32)
         tf.debugging.assert_equal(
-            batch["c"].bounding_shape(), tf.ragged.constant(_COL_C, dtype=tf.float32).bounding_shape()
+            batch["c"].shape.as_list(), tf.convert_to_tensor(_COL_C, dtype=tf.float32).shape.as_list()
         )
-        tf.debugging.assert_equal(batch["c"].flat_values, tf.ragged.constant(_COL_C, dtype=tf.float32).flat_values)
+        tf.debugging.assert_equal(tf.convert_to_tensor(batch["c"]), tf.convert_to_tensor(_COL_C, dtype=tf.float32))
 
     @require_tf
     def test_tf_formatter_np_array_kwargs(self):
@@ -194,6 +194,39 @@ class FormatterTest(TestCase):
         batch = formatter.format_batch(pa_table)
         self.assertEqual(batch["a"].dtype, tf.float16)
         self.assertEqual(batch["c"].dtype, tf.float16)
+
+    @require_jax
+    def test_jax_formatter(self):
+        import jax.numpy as jnp
+
+        from datasets.formatting import JaxFormatter
+
+        pa_table = self._create_dummy_table().drop(["b"])
+        formatter = JaxFormatter()
+        row = formatter.format_row(pa_table)
+        jnp.allclose(row["a"], jnp.array(_COL_A, dtype=jnp.int64)[0])
+        jnp.allclose(row["c"], jnp.array(_COL_C, dtype=jnp.float32)[0])
+        col = formatter.format_column(pa_table)
+        jnp.allclose(col, jnp.array(_COL_A, dtype=jnp.int64))
+        batch = formatter.format_batch(pa_table)
+        jnp.allclose(batch["a"], jnp.array(_COL_A, dtype=jnp.int64))
+        jnp.allclose(batch["c"], jnp.array(_COL_C, dtype=jnp.float32))
+
+    @require_jax
+    def test_jax_formatter_np_array_kwargs(self):
+        import jax.numpy as jnp
+
+        from datasets.formatting import JaxFormatter
+
+        pa_table = self._create_dummy_table().drop(["b"])
+        formatter = JaxFormatter(dtype=jnp.float16)
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["c"].dtype, jnp.float16)
+        col = formatter.format_column(pa_table)
+        self.assertEqual(col.dtype, jnp.float16)
+        batch = formatter.format_batch(pa_table)
+        self.assertEqual(batch["a"].dtype, jnp.float16)
+        self.assertEqual(batch["c"].dtype, jnp.float16)
 
 
 class QueryTest(TestCase):

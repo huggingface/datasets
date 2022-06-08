@@ -1,20 +1,23 @@
 ---
+pretty_name: Cifar10
 annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages: []
+languages:
+- en
 licenses:
 - unknown
-multilinguality: []
+multilinguality:
+- monolingual
 size_categories:
 - 10K<n<100K
 source_datasets:
 - extended|other-80-Million-Tiny-Images
 task_categories:
-- other
-task_ids:
-- other-other-image-classification
+- image-classification
+task_ids: []
+paperswithcode_id: cifar-10
 ---
 
 # Dataset Card for CIFAR-10
@@ -22,12 +25,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -58,7 +61,7 @@ The dataset is divided into five training batches and one test batch, each with 
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `image-classification`: The goal of this task is to classify a given image into one of 10 classes. The leaderboard is available [here](https://paperswithcode.com/sota/image-classification-on-cifar-10).
 
 ### Languages
 
@@ -68,22 +71,29 @@ English
 
 ### Data Instances
 
-[More Information Needed]
+A sample from the training set is provided below:
+
+```
+{
+  'img': <PIL.PngImagePlugin.PngImageFile image mode=RGB size=32x32 at 0x201FA6EE748>,
+  'label': 0
+}
+```
 
 ### Data Fields
 
-- img:    32x32x3 image
-- label:  0-9 with the following correspondence
-          0 airplane 
-          1 automobile 
-          2 bird 
-          3 cat 
-          4 deer
-          5 dog
-          6 frog
-          7 horse
-          8 ship
-          9 truck
+- img: A `PIL.Image.Image` object containing the 32x32 image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
+- label: 0-9 with the following correspondence
+         0 airplane
+         1 automobile
+         2 bird
+         3 cat
+         4 deer
+         5 dog
+         6 frog
+         7 horse
+         8 ship
+         9 truck
 
 ### Data Splits
 

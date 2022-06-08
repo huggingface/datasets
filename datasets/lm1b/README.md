@@ -1,3 +1,7 @@
+---
+pretty_name: Lm1b
+paperswithcode_id: billion-word-benchmark
+---
 
 ### Contributions
 

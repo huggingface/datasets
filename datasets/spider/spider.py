@@ -16,6 +16,7 @@
 
 
 import json
+import os
 
 import datasets
 
@@ -40,7 +41,7 @@ _HOMEPAGE = "https://yale-lily.github.io/spider"
 
 _LICENSE = "CC BY-SA 4.0"
 
-_URL = "https://drive.google.com/uc?export=download&id=1_AckYkinAnhqmRQtGsQgUKAnTHxxX5J0"
+_URL = "https://huggingface.co/datasets/spider/resolve/main/data/spider.zip"
 
 
 class Spider(datasets.GeneratorBasedBuilder):
@@ -81,13 +82,13 @@ class Spider(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "data_filepath": downloaded_filepath + "/spider/train_spider.json",
+                    "data_filepath": os.path.join(downloaded_filepath, "spider/train_spider.json"),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "data_filepath": downloaded_filepath + "/spider/dev.json",
+                    "data_filepath": os.path.join(downloaded_filepath, "spider/dev.json"),
                 },
             ),
         ]

@@ -17,9 +17,9 @@
 
 
 import csv
-import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 logger = datasets.logging.get_logger(__name__)
@@ -30,11 +30,34 @@ The data set is taken from kemik group
 http://www.kemik.yildiz.edu.tr/
 The data are pre-processed for the text categorization, collocations are found, character set is corrected, and so forth.
 We named TTC4900 by mimicking the name convention of TTC 3600 dataset shared by the study http://journals.sagepub.com/doi/abs/10.1177/0165551515620551
+
+If you use the dataset in a paper, please refer https://www.kaggle.com/savasy/ttc4900 as footnote and cite one of the papers as follows:
+
+- A Comparison of Different Approaches to Document Representation in Turkish Language, SDU Journal of Natural and Applied Science, Vol 22, Issue 2, 2018
+- A comparative analysis of text classification for Turkish language, Pamukkale University Journal of Engineering Science Volume 25 Issue 5, 2018
+- A Knowledge-poor Approach to Turkish Text Categorization with a Comparative Analysis, Proceedings of CICLING 2014, Springer LNCS, Nepal, 2014.
 """
 
-_CITATION = ""
+_CITATION = """\
+@article{doi:10.5505/pajes.2018.15931,
+author = {Yıldırım, Savaş and Yıldız, Tuğba},
+title = {A comparative analysis of text classification for Turkish language},
+journal = {Pamukkale Univ Muh Bilim Derg},
+volume = {24},
+number = {5},
+pages = {879-886},
+year = {2018},
+doi = {10.5505/pajes.2018.15931},
+note ={doi: 10.5505/pajes.2018.15931},
+
+URL = {https://dx.doi.org/10.5505/pajes.2018.15931},
+eprint = {https://dx.doi.org/10.5505/pajes.2018.15931}
+}
+"""
+
 _LICENSE = "CC0: Public Domain"
 _HOMEPAGE = "https://www.kaggle.com/savasy/ttc4900"
+_DOWNLOAD_URL = "https://raw.githubusercontent.com/savasy/TurkishTextClassification/master"
 _FILENAME = "7allV03.csv"
 
 
@@ -60,18 +83,6 @@ class TTC4900(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-    @property
-    def manual_download_instructions(self):
-        return """\
-    You need to go to https://www.kaggle.com/savasy/ttc4900,
-    and manually download the ttc4900. Once it is completed,
-    a file named archive.zip will be appeared in your Downloads folder
-    or whichever folder your browser chooses to save files to. You then have
-    to unzip the file and move 7allV03.csv under <path/to/folder>.
-    The <path/to/folder> can e.g. be "~/manual_data".
-    ttc4900 can then be loaded using the following command `datasets.load_dataset("ttc4900", data_dir="<path/to/folder>")`.
-    """
-
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -90,21 +101,18 @@ class TTC4900(datasets.GeneratorBasedBuilder):
             license=_LICENSE,
             # Citation for the dataset
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="text", label_column="category")],
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        path_to_manual_file = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-        if not os.path.exists(path_to_manual_file):
-            raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('ttc4900', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
-                    path_to_manual_file, _FILENAME, self.manual_download_instructions
-                )
-            )
+
+        urls_to_download = {
+            "train": _DOWNLOAD_URL + "/" + _FILENAME,
+        }
+        downloaded_files = dl_manager.download(urls_to_download)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(path_to_manual_file, _FILENAME)}
-            )
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
         ]
 
     def _generate_examples(self, filepath):

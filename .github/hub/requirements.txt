@@ -1,0 +1,4 @@
+GitPython==3.1.27
+python-dotenv==0.19.2
+requests==2.25.1
+tqdm==4.62.3

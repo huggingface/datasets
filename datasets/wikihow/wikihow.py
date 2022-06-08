@@ -24,7 +24,7 @@ import re
 import datasets
 
 
-_CITATION = """
+_CITATION = """\
 @misc{koupaee2018wikihow,
     title={WikiHow: A Large Scale Text Summarization Dataset},
     author={Mahnaz Koupaee and William Yang Wang},
@@ -35,7 +35,7 @@ _CITATION = """
 }
 """
 
-_DESCRIPTION = """
+_DESCRIPTION = """\
 WikiHow is a new large-scale dataset using the online WikiHow
 (http://www.wikihow.com/) knowledge base.
 
@@ -135,9 +135,7 @@ class Wikihow(datasets.GeneratorBasedBuilder):
 
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('wikihow', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
-                    path_to_manual_file, self.config.filename, self.manual_download_instructions
-                )
+                f"{path_to_manual_file} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('wikihow', data_dir=...)` that includes a file name {self.config.filename}. Manual download instructions: {self.manual_download_instructions})"
             )
         return [
             datasets.SplitGenerator(

@@ -1,8 +1,6 @@
 ---
 annotations_creators:
 - expert-generated
-extended:
-- original
 language_creators:
 - expert-generated
 languages:
@@ -12,7 +10,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 10K<n<100K  
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -20,39 +18,84 @@ task_categories:
 task_ids:
 - intent-classification
 - multi-class-classification
+paperswithcode_id: null
+pretty_name: BANKING77
+train-eval-index:
+- config: default
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    text: text
+    label: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 macro
+      args:
+        average: macro
+    - type: f1
+      name: F1 micro
+      args:
+        average: micro  
+    - type: f1
+      name: F1 weighted
+      args:
+        average: weighted
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro  
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro  
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted  
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro  
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro  
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
 ---
 
 # Dataset Card for BANKING77
 
 ## Table of Contents
-- [Dataset Card for BANKING77](#dataset-card-for-dataset-name)
-  - [Table of Contents](#table-of-contents)
-  - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
-      - [Who are the source language producers?](#who-are-the-source-language-producers)
-    - [Annotations](#annotations)
-      - [Annotation process](#annotation-process)
-      - [Who are the annotators?](#who-are-the-annotators)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
-    - [Contributions](#contributions)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 

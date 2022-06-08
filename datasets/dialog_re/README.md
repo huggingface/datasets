@@ -5,7 +5,8 @@ language_creators:
 - expert-generated
 languages:
 - en
-licenses: []
+licenses:
+- other-non-commercial-research-purpose-only
 multilinguality:
 - monolingual
 size_categories:
@@ -14,10 +15,13 @@ source_datasets:
 - original
 task_categories:
 - other
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - other-other-relation-extraction
 - dialogue-modeling
+paperswithcode_id: dialogre
+pretty_name: DialogRE
 ---
 
 # Dataset Card for [DialogRE]
@@ -25,12 +29,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -141,9 +145,9 @@ An example from the DialogRE train set looks as follows:
 
 The data is split into a training, validation and test set as per the original dataset split. 
 
-|                       | Tain | Valid | Test |
-| --------------------- | ---- | ----- | ---- |
-| Input dialog examples | 1073 | 358   | 357  |
+|                       |  train |  validation |  test |
+| --------------------- |-------:|------------:|------:|
+| Input dialog examples |   1073 |         358 |   357 |
 
 ## Dataset Creation
 

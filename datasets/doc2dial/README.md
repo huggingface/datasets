@@ -17,6 +17,8 @@ task_categories:
 - question-answering
 task_ids:
 - closed-domain-qa
+paperswithcode_id: doc2dial
+pretty_name: doc2dial
 ---
 
 # Dataset Card for doc2dial
@@ -24,12 +26,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -47,11 +49,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://doc2dial.github.io/file/doc2dial/
+- **Homepage:** https://doc2dial.github.io
 - **Repository:** [Needs More Information]
 - **Paper:** https://www.aclweb.org/anthology/2020.emnlp-main.652.pdf
 - **Leaderboard:**
-- **Point of Contact:** kmfoda@gmai.com
+- **Point of Contact:**
 
 ### Dataset Summary
 

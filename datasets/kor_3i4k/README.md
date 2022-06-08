@@ -17,6 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - intent-classification
+paperswithcode_id: null
+pretty_name: 3i4K
 ---
 
 # Dataset Card for 3i4K
@@ -24,7 +26,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -47,10 +49,10 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: [3i4K](https://github.com/warnikchow/3i4k)**
-- **Repository: [3i4K](https://github.com/warnikchow/3i4k)**
-- **Paper: [Speech Intention Understanding in a Head-final Language: A Disambiguation Utilizing Intonation-dependency](https://arxiv.org/abs/1811.04231)**
-- **Point of Contact: [Won Ik Cho](wicho@hi.snu.ac.kr)**
+- **Homepage:** [3i4K](https://github.com/warnikchow/3i4k)
+- **Repository:** [3i4K](https://github.com/warnikchow/3i4k)
+- **Paper:** [Speech Intention Understanding in a Head-final Language: A Disambiguation Utilizing Intonation-dependency](https://arxiv.org/abs/1811.04231)
+- **Point of Contact:** [Won Ik Cho](wicho@hi.snu.ac.kr)
 
 ### Dataset Summary
 

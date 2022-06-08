@@ -30,9 +30,8 @@
 """Yelp Polarity Reviews dataset."""
 
 
-import os
-
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -123,6 +122,7 @@ class YelpPolarity(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://course.fast.ai/datasets",
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="text", label_column="label")],
         )
 
     def _vocab_text_gen(self, train_file):
@@ -130,18 +130,33 @@ class YelpPolarity(datasets.GeneratorBasedBuilder):
             yield ex["text"]
 
     def _split_generators(self, dl_manager):
-        arch_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
-        train_file = os.path.join(arch_path, "yelp_review_polarity_csv", "train.csv")
-        test_file = os.path.join(arch_path, "yelp_review_polarity_csv", "test.csv")
+        arch_path = dl_manager.download(_DOWNLOAD_URL)
+        train_file = "yelp_review_polarity_csv/train.csv"
+        test_file = "yelp_review_polarity_csv/test.csv"
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_file}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_file}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": train_file,
+                    "files": dl_manager.iter_archive(arch_path),
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "filepath": test_file,
+                    "files": dl_manager.iter_archive(arch_path),
+                },
+            ),
         ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, filepath, files):
         """Generate Yelp examples."""
-        with open(filepath, encoding="utf-8") as f:
-            for line_id, line in enumerate(f):
-                # The format of the line is:
-                # "1", "The text of the review."
-                yield line_id, {"text": line[5:-2].strip(), "label": line[1]}
+        for path, f in files:
+            if path == filepath:
+                for line_id, line in enumerate(f):
+                    line = line.decode("utf-8")
+                    # The format of the line is:
+                    # "1", "The text of the review."
+                    yield line_id, {"text": line[5:-2].strip(), "label": line[1]}
+                break

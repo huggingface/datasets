@@ -1,31 +1,19 @@
 ---
+pretty_name: WMT20 - MultiLingual Quality Estimation (MLQE) Task1
 annotations_creators:
 - expert-generated
 - machine-generated
 language_creators:
 - found
 languages:
-  en-de:
-  - en
-  - de
-  en-zh:
-  - en
-  - zh
-  et-en:
-  - et
-  - en
-  ne-en:
-  - ne
-  - en
-  ro-en:
-  - ro
-  - en
-  si-en:
-  - si
-  - en
-  ru-en:
-  - en
-  - ru
+- de
+- en
+- et
+- ne
+- ro
+- ru
+- si
+- zh
 licenses:
 - unknown
 multilinguality:
@@ -36,9 +24,17 @@ source_datasets:
 - extended|reddit
 - extended|wikipedia
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: null
+configs:
+- en-de
+- en-zh
+- et-en
+- ne-en
+- ro-en
+- ru-en
+- si-en
 ---
 
 # Dataset Card Creation Guide
@@ -46,12 +42,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

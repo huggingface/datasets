@@ -1,4 +1,8 @@
 ---
+languages:
+- en
+paperswithcode_id: anli
+pretty_name: Adversarial NLI
 ---
 
 # Dataset Card for "anli"
@@ -6,12 +10,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -30,7 +34,7 @@
 ## Dataset Description
 
 - **Homepage:** [https://github.com/facebookresearch/anli/](https://github.com/facebookresearch/anli/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** [https://github.com/facebookresearch/anli/](https://github.com/facebookresearch/anli/)
 - **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 17.76 MB
@@ -44,17 +48,15 @@ The dataset is collected via an iterative, adversarial human-and-model-in-the-lo
 ANLI is much more difficult than its predecessors including SNLI and MNLI.
 It contains three rounds. Each round has train/dev/test splits.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+English
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -88,7 +90,7 @@ The data fields are the same among all splits.
 - `label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2).
 - `reason`: a `string` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 |   name   |train_r1|dev_r1|train_r2|dev_r2|train_r3|dev_r3|test_r1|test_r2|test_r3|
 |----------|-------:|-----:|-------:|-----:|-------:|-----:|------:|------:|------:|
@@ -102,9 +104,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -134,7 +148,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[cc-4 Attribution-NonCommercial](https://github.com/facebookresearch/anli/blob/main/LICENSE)
 
 ### Citation Information
 

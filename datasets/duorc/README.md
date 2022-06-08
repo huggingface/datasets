@@ -10,17 +10,21 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  ParaphraseRC:
-  - 100K<n<1M
-  SelfRC:
-  - 10K<n<100K
+- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
 - question-answering
+- text2text-generation
 task_ids:
 - abstractive-qa
 - extractive-qa
+paperswithcode_id: duorc
+pretty_name: DuoRC
+configs:
+- ParaphraseRC
+- SelfRC
 ---
 
 # Dataset Card for duorc
@@ -28,12 +32,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

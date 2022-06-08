@@ -1,67 +1,38 @@
 ---
 annotations_creators:
-  monolingual:
-  - no-annotation
-  monolingual_raw:
-  - found
-  parallel:
-  - expert-generated
-  parallel_raw:
-  - expert-generated
+- expert-generated
+- found
+- no-annotation
 language_creators:
 - found
 languages:
-  monolingual:
-  - chr
-  - en
-  monolingual_raw:
-  - chr
-  parallel:
-  - chr
-  - en
-  parallel_raw:
-  - chr
-  - en
+- chr
+- en
 licenses:
 - other-different-license-per-source
 multilinguality:
-  monolingual:
-  - multilingual
-  monolingual_raw:
-  - monolingual
-  parallel:
-  - translation
-  parallel_raw:
-  - translation
+- monolingual
+- multilingual
+- translation
 size_categories:
-  monolingual:
-  - 100K<n<1M
-  monolingual_raw:
-  - 1K<n<10K
-  parallel:
-  - 10K<n<100K
-  parallel_raw:
-  - 10K<n<100K
+- 100K<n<1M
+- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
-  monolingual:
-  - conditional-text-generation
-  monolingual_raw:
-  - sequence-modeling
-  parallel:
-  - conditional-text-generation
-  parallel_raw:
-  - conditional-text-generation
+- fill-mask
+- text-generation
+- translation
 task_ids:
-  monolingual:
-  - machine-translation
-  monolingual_raw:
-  - language-modeling
-  parallel:
-  - machine-translation
-  parallel_raw:
-  - machine-translation
+- language-modeling
+- masked-language-modeling
+paperswithcode_id: chren
+configs:
+- monolingual
+- monolingual_raw
+- parallel
+- parallel_raw
 ---
 
 # Dataset Card for ChrEn
@@ -69,12 +40,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

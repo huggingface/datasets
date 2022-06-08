@@ -16,7 +16,6 @@
 
 
 import json
-import os
 
 import datasets
 
@@ -93,56 +92,62 @@ class Atomic(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         my_urls = _URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        archive = dl_manager.download(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "v4_atomic_trn.csv"),
-                    "split": "train",
+                    "filepath": "v4_atomic_trn.csv",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(data_dir, "v4_atomic_tst.csv"), "split": "test"},
+                gen_kwargs={
+                    "filepath": "v4_atomic_tst.csv",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "v4_atomic_dev.csv"),
-                    "split": "dev",
+                    "filepath": "v4_atomic_dev.csv",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath, files):
         """Yields examples from the Atomic dataset."""
 
-        with open(filepath, encoding="utf-8") as f:
-            for id_, row in enumerate(f):
-                if row.startswith("event"):
-                    continue
-                row = row.replace('"[', "[").replace(']"', "]")
-                sent, rest = row.split("[", 1)
-                sent = sent.strip(', "')
-                rest = "[" + rest
-                rest = rest.replace('""', '"').replace('\\\\"]', '"]')
-                rest = rest.split(",")
-                rest[-1] = '"' + rest[-1].strip() + '"'
-                rest = ",".join(rest)
-                row = '["' + sent + '",' + rest + "]"
-                row = json.loads(row)
-                yield id_, {
-                    "event": str(row[0]),
-                    "oEffect": row[1],
-                    "oReact": row[2],
-                    "oWant": row[3],
-                    "xAttr": row[4],
-                    "xEffect": row[5],
-                    "xIntent": row[6],
-                    "xNeed": row[7],
-                    "xReact": row[8],
-                    "xWant": row[9],
-                    "prefix": row[10],
-                    "split": str(row[11]),
-                }
+        for path, f in files:
+            if path == filepath:
+                for id_, row in enumerate(f):
+                    row = row.decode("utf-8")
+                    if row.startswith("event"):
+                        continue
+                    row = row.replace('"[', "[").replace(']"', "]")
+                    sent, rest = row.split("[", 1)
+                    sent = sent.strip(', "')
+                    rest = "[" + rest
+                    rest = rest.replace('""', '"').replace('\\\\"]', '"]')
+                    rest = rest.split(",")
+                    rest[-1] = '"' + rest[-1].strip() + '"'
+                    rest = ",".join(rest)
+                    row = '["' + sent + '",' + rest + "]"
+                    row = json.loads(row)
+                    yield id_, {
+                        "event": str(row[0]),
+                        "oEffect": row[1],
+                        "oReact": row[2],
+                        "oWant": row[3],
+                        "xAttr": row[4],
+                        "xEffect": row[5],
+                        "xIntent": row[6],
+                        "xNeed": row[7],
+                        "xReact": row[8],
+                        "xWant": row[9],
+                        "prefix": row[10],
+                        "split": str(row[11]),
+                    }
+                break

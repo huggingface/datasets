@@ -4,6 +4,7 @@
 import json
 
 import datasets
+from datasets.tasks import QuestionAnsweringExtractive
 
 
 _CITATION = """\
@@ -50,9 +51,7 @@ class Xquad(datasets.GeneratorBasedBuilder):
 
     # TODO(xquad): Set up version.
     VERSION = datasets.Version("1.0.0")
-    BUILDER_CONFIGS = [
-        XquadConfig(name="xquad.{}".format(lang), description=_DESCRIPTION, lang=lang) for lang in _LANG
-    ]
+    BUILDER_CONFIGS = [XquadConfig(name=f"xquad.{lang}", description=_DESCRIPTION, lang=lang) for lang in _LANG]
 
     def _info(self):
         # TODO(xquad): Specifies the datasets.DatasetInfo object
@@ -81,6 +80,11 @@ class Xquad(datasets.GeneratorBasedBuilder):
             # Homepage of the dataset for documentation
             homepage="https://github.com/deepmind/xquad",
             citation=_CITATION,
+            task_templates=[
+                QuestionAnsweringExtractive(
+                    question_column="question", context_column="context", answers_column="answers"
+                )
+            ],
         )
 
     def _split_generators(self, dl_manager):
@@ -88,7 +92,7 @@ class Xquad(datasets.GeneratorBasedBuilder):
         # TODO(xquad): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        urls_to_download = {lang: _URL + "xquad.{}.json".format(lang) for lang in _LANG}
+        urls_to_download = {lang: _URL + f"xquad.{lang}.json" for lang in _LANG}
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
@@ -104,13 +108,12 @@ class Xquad(datasets.GeneratorBasedBuilder):
         # TODO(xquad): Yields (key, example) tuples from the dataset
         with open(filepath, encoding="utf-8") as f:
             xquad = json.load(f)
+            id_ = 0
             for article in xquad["data"]:
                 for paragraph in article["paragraphs"]:
                     context = paragraph["context"].strip()
                     for qa in paragraph["qas"]:
                         question = qa["question"].strip()
-                        id_ = qa["id"]
-
                         answer_starts = [answer["answer_start"] for answer in qa["answers"]]
                         answers = [answer["text"].strip() for answer in qa["answers"]]
 
@@ -119,9 +122,10 @@ class Xquad(datasets.GeneratorBasedBuilder):
                         yield id_, {
                             "context": context,
                             "question": question,
-                            "id": id_,
+                            "id": qa["id"],
                             "answers": {
                                 "answer_start": answer_starts,
                                 "text": answers,
                             },
                         }
+                        id_ += 1

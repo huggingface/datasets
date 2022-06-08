@@ -11,14 +11,8 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  kinnews_cleaned:
-  - 10K<n<100K
-  kinnews_raw:
-  - 10K<n<100K
-  kirnews_cleaned:
-  - 1K<n<10K
-  kirnews_raw:
-  - 1K<n<10K
+- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -26,18 +20,25 @@ task_categories:
 task_ids:
 - multi-class-classification
 - topic-classification
+paperswithcode_id: kinnews-and-kirnews
+pretty_name: KinnewsKirnews
+configs:
+- kinnews_cleaned
+- kinnews_raw
+- kirnews_cleaned
+- kirnews_raw
 ---
 # Dataset Card for kinnews_kirnews
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

@@ -17,6 +17,8 @@ task_categories:
 - question-answering
 task_ids:
 - open-domain-qa
+paperswithcode_id: freebaseqa
+pretty_name: FreebaseQA
 ---
  
 # Dataset Card for FreebaseQA
@@ -24,7 +26,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -44,14 +46,13 @@ task_ids:
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
- 
 ## Dataset Description
  
 - **Homepage:**
-- **Repository: [FreebaseQA repository](https://github.com/kelvin-jiang/FreebaseQA)**
-- **Paper: [FreebaseQA ACL paper](https://www.aclweb.org/anthology/N19-1028.pdf)**
+- **Repository:** [FreebaseQA repository](https://github.com/kelvin-jiang/FreebaseQA)
+- **Paper:** [FreebaseQA ACL paper](https://www.aclweb.org/anthology/N19-1028.pdf)
 - **Leaderboard:**
-- **Point of Contact: [Kelvin Jiang](https://github.com/kelvin-jiang)**
+- **Point of Contact:** [Kelvin Jiang](https://github.com/kelvin-jiang)
  
 ### Dataset Summary
  

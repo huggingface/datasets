@@ -23,6 +23,8 @@ import os
 import datasets
 
 
+_HOMEPAGE = "https://evasharma.github.io/bigpatent/"
+
 _CITATION = """
 @misc{sharma2019bigpatent,
     title={BIGPATENT: A Large-Scale Dataset for Abstractive and Coherent Summarization},
@@ -49,7 +51,14 @@ There are two features:
   - abstract: Patent abastract.
 """
 
-_URL = "https://drive.google.com/uc?export=download&id=1J3mucMFTWrgAYa3LuBZoLRR3CzzYD3fa"
+_LICENSE = "Creative Commons Attribution 4.0 International"
+
+_REPO = "https://huggingface.co/datasets/big_patent/resolve/main/data"
+_URLS = {
+    "train": f"{_REPO}/train.zip",
+    "validation": f"{_REPO}/val.zip",
+    "test": f"{_REPO}/test.zip",
+}
 
 _DOCUMENT = "description"
 _SUMMARY = "abstract"
@@ -101,7 +110,7 @@ class BigPatent(datasets.GeneratorBasedBuilder):
         BigPatentConfig(  # pylint:disable=g-complex-comprehension
             cpc_codes=[k],
             name=k,
-            description=("Patents under Cooperative Patent Classification (CPC)" "{0}: {1}".format(k, v)),
+            description=f"Patents under Cooperative Patent Classification (CPC) {k}: {v}",
         )
         for k, v in sorted(_CPC_DESCRIPTION.items())
     ]
@@ -113,38 +122,27 @@ class BigPatent(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features({_DOCUMENT: datasets.Value("string"), _SUMMARY: datasets.Value("string")}),
             supervised_keys=(_DOCUMENT, _SUMMARY),
-            homepage="https://evasharma.github.io/bigpatent/",
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        dl_path = dl_manager.download_and_extract(_URL)
-        split_types = ["train", "val", "test"]
-        extract_paths = dl_manager.extract(
-            {k: os.path.join(dl_path, "bigPatentData", k + ".tar.gz") for k in split_types}
-        )
-        extract_paths = {k: os.path.join(extract_paths[k], k) for k in split_types}
-
+        dl_paths = dl_manager.download_and_extract(_URLS)
+        split_dirs = {datasets.Split.TRAIN: "train", datasets.Split.VALIDATION: "val", datasets.Split.TEST: "test"}
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"path": extract_paths["train"]},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"path": extract_paths["val"]},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"path": extract_paths["test"]},
-            ),
+                name=split,
+                gen_kwargs={"path": dl_paths[split], "split_dir": split_dirs[split]},
+            )
+            for split in split_dirs
         ]
 
-    def _generate_examples(self, path=None):
+    def _generate_examples(self, path=None, split_dir=None):
         """Yields examples."""
         for cpc_code in self.config.cpc_codes:
-            filenames = glob.glob(os.path.join(path, cpc_code, "*"))
+            filenames = glob.glob(os.path.join(path, split_dir, cpc_code, "*"))
             for filename in sorted(filenames):
                 with open(filename, "rb") as fin:
                     fin = gzip.GzipFile(fileobj=fin)

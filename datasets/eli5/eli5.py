@@ -115,9 +115,9 @@ def _open_compressed_file(f_name, f_type):
 # download a file, extract posts from desired subreddit, then remove from disk
 def _download_and_select_lines(dl_manager, f_url, mode, st_time):
     # download and pre-process original posts
-    logger.info("downloading {} {:.2f}".format(f_url, time() - st_time))
+    logger.info(f"downloading {f_url} {time() - st_time:.2f}")
     f_downloaded_path = dl_manager.download(f_url)
-    logger.info("decompressing and filtering {} {:.2f}".format(f_url, time() - st_time))
+    logger.info(f"decompressing and filtering {f_url} {time() - st_time:.2f}")
     f, fh = _open_compressed_file(f_downloaded_path, f_url.split(".")[-1])
     lines = dict([(name, []) for name in _SUB_REDDITS])
     for line in f:
@@ -130,7 +130,7 @@ def _download_and_select_lines(dl_manager, f_url, mode, st_time):
     os.remove(f_downloaded_path)
     os.remove(f_downloaded_path + ".json")
     os.remove(f_downloaded_path + ".lock")
-    logger.info("tokenizing and selecting {} {:.2f}".format(f_url, time() - st_time))
+    logger.info("tokenizing and selecting {f_url} {time() - st_time:.2f}")
     processed_items = dict([(name, []) for name in _SUB_REDDITS])
     if mode == "submissions":
         key_list = ["id", "score", "url", "title", "selftext", "subreddit"]
@@ -146,9 +146,7 @@ def _download_and_select_lines(dl_manager, f_url, mode, st_time):
                     else:
                         reddit_res[k] = line[k]
                 processed_items[name] += [reddit_res]
-    logger.info(
-        "Total found {} {} {:.2f}".format(sum([len(ls) for ls in processed_items.values()]), mode, time() - st_time)
-    )
+    logger.info(f"Total found {sum([len(ls) for ls in processed_items.values()])} {mode} {time() - st_time:.2f}")
     return processed_items
 
 
@@ -191,7 +189,7 @@ def _download_and_filter_reddit(dl_manager, start_year=2011, start_month=7, end_
                     for dct in processed_submissions[name]:
                         qa_dict[name][dct["id"]] = dct
             else:
-                logger.info("Could not find submissions dump file for year {:4d} month {:2d}".format(year, month))
+                logger.info(f"Could not find submissions dump file for year {year:4d} month {month:2d}")
     # then all answers
     for year in range(start_year, end_year + 1):
         start_mth = start_month if year == start_year else 1
@@ -210,7 +208,7 @@ def _download_and_filter_reddit(dl_manager, start_year=2011, start_month=7, end_
                             merged_comments += 1
                             qa_dict[name][did]["comments"] = qa_dict[name][did].get("comments", []) + [dct]
             else:
-                logger.info("Could not find comments dump file for year {:4d} month {:2d}".format(year, month))
+                logger.info(f"Could not find comments dump file for year {year:4d} month {month:2d}")
     # then post-process
     res = {}
     for name in _SUB_REDDITS:
@@ -354,7 +352,7 @@ class Eli5(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, split, subreddit_name):
-        logger.info("generating examples from = {}, {} set".format(subreddit_name, split))
+        logger.info(f"generating examples from = {subreddit_name}, {split} set")
         if split in self.data_split.get(subreddit_name, []):
             id_list = self.data_split[subreddit_name][split]
             data = [
@@ -386,7 +384,7 @@ class Eli5(datasets.GeneratorBasedBuilder):
             for i, ans in enumerate(example["comments"]):
                 txt = ans["body"][0]
                 for j, _ in enumerate(ans["body"][1]):
-                    txt = txt.replace("_URL_{}_".format(j), "_URL_{}_".format(map_url_indices[(i, j)]))
+                    txt = txt.replace(f"_URL_{j}_", f"_URL_{map_url_indices[(i, j)]}_")
                 answer_texts += [txt.strip()]
             yield id_, {
                 "q_id": id_,

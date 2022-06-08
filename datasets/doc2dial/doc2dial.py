@@ -291,7 +291,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                         for dial in dials:
                             all_prev_utterances = []
                             for idx, turn in enumerate(dial["turns"]):
-                                all_prev_utterances.append("\t{}: {}".format(turn["role"], turn["utterance"]))
+                                all_prev_utterances.append(f"\t{turn['role']}:{turn['utterance']}")
                                 if turn["role"] == "agent":
                                     continue
                                 if idx + 1 < len(dial["turns"]):
@@ -302,7 +302,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                 else:
                                     continue
                                 question = " ".join(list(reversed(all_prev_utterances))).strip()
-                                id_ = "{}_{}".format(dial["dial_id"], turn["turn_id"])
+                                id_ = f"{dial['dial_id']}_{turn['turn_id']}"
                                 qa = {
                                     "id": id_,
                                     "title": doc_id,

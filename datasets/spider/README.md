@@ -15,23 +15,25 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
-- conditional-text-generation-other-stuctured-to-text
+- text2text-generation-other-text-to-sql
+paperswithcode_id: spider-1
+pretty_name: Spider
 ---
 
 
-# Dataset Card for [spider]
+# Dataset Card for Spider
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -140,6 +142,8 @@ The listed authors in the homepage are maintaining/supporting the dataset.
 ### Dataset Curators
 
 [More Information Needed]
+
+### Licensing Information
 
 The spider dataset is licensed under 
 the [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/legalcode)

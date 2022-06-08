@@ -1,17 +1,38 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- fr-FR
+licenses:
+- mit
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
+- open-domain-qa
+paperswithcode_id: null
+pretty_name: Piaf
 ---
 
-# Dataset Card for "piaf"
+# Dataset Card for Piaf
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -41,7 +62,7 @@
 
 Piaf is a reading comprehension dataset. This version, published in February 2020, contains 3835 questions on French Wikipedia.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -50,8 +71,6 @@ Piaf is a reading comprehension dataset. This version, published in February 202
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -88,11 +107,11 @@ The data fields are the same among all splits.
   - `text`: a `string` feature.
   - `answer_start`: a `int32` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
-|   name   |train|
-|----------|----:|
-|plain_text| 3835|
+| name       | train |
+|------------|------:|
+| plain_text |  3835 |
 
 ## Dataset Creation
 
@@ -102,9 +121,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

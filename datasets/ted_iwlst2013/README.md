@@ -4,48 +4,21 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  ar-en:
-  - ar
-  - en
-  de-en:
-  - de
-  - en
-  en-es:
-  - en
-  - es
-  en-fa:
-  - en
-  - fa
-  en-fr:
-  - en
-  - fr
-  en-it:
-  - en
-  - it
-  en-nl:
-  - en
-  - nl
-  en-pl:
-  - en
-  - pl
-  en-pt:
-  - en
-  - pt
-  en-ro:
-  - en
-  - ro
-  en-ru:
-  - en
-  - ru
-  en-sl:
-  - en
-  - sl
-  en-tr:
-  - en
-  - tr
-  en-zh:
-  - en
-  - zh
+- ar
+- de
+- en
+- es
+- fa
+- fr
+- it
+- nl
+- pl
+- pt
+- ro
+- ru
+- sl
+- tr
+- zh
 licenses:
 - unknown
 multilinguality:
@@ -55,9 +28,25 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: null
+pretty_name: TedIwlst2013
+configs:
+- ar-en
+- de-en
+- en-es
+- en-fa
+- en-fr
+- en-it
+- en-nl
+- en-pl
+- en-pt
+- en-ro
+- en-ru
+- en-sl
+- en-tr
+- en-zh
 ---
 
 # Dataset Card Creation Guide
@@ -65,12 +54,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

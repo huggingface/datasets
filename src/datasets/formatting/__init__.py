@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +18,7 @@
 from typing import Dict, List, Optional
 
 from .. import config
-from ..utils.logging import get_logger
+from ..utils import logging
 from .formatting import (
     ArrowFormatter,
     CustomFormatter,
@@ -32,7 +31,7 @@ from .formatting import (
 )
 
 
-logger = get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 _FORMAT_TYPES: Dict[Optional[str], type] = {}
 _FORMAT_TYPES_ALIASES: Dict[Optional[str], str] = {}
@@ -93,6 +92,14 @@ else:
     _tf_error = ValueError("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
     _register_unavailable_formatter(_tf_error, "tensorflow", aliases=["tf"])
 
+if config.JAX_AVAILABLE:
+    from .jax_formatter import JaxFormatter
+
+    _register_formatter(JaxFormatter, "jax", aliases=[])
+else:
+    _jax_error = ValueError("JAX needs to be installed to be able to return JAX arrays.")
+    _register_unavailable_formatter(_jax_error, "jax", aliases=[])
+
 
 def get_format_type_from_alias(format_type: Optional[str]) -> Optional[str]:
     """If the given format type is a known alias, then return its main type name. Otherwise return the type with no change."""
@@ -116,7 +123,5 @@ def get_formatter(format_type: Optional[str], **format_kwargs) -> Formatter:
         raise _FORMAT_TYPES_ALIASES_UNAVAILABLE[format_type]
     else:
         raise ValueError(
-            "Return type should be None or selected in {}, but got '{}'".format(
-                list(type for type in _FORMAT_TYPES.keys() if type != None), format_type
-            )
+            f"Return type should be None or selected in {list(type for type in _FORMAT_TYPES.keys() if type != None)}, but got '{format_type}'"
         )

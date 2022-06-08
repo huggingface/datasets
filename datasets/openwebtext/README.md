@@ -1,4 +1,26 @@
 ---
+annotations_creators:
+- no-annotation
+language_creators:
+- found
+languages:
+- en
+licenses:
+- cc0-1.0
+multilinguality:
+- monolingual
+pretty_name: OpenWebText
+size_categories:
+- 1M<n<10M
+source_datasets:
+- original
+task_categories:
+- text-generation
+- fill-mask
+task_ids:
+- language-modeling
+- masked-language-modeling
+paperswithcode_id: openwebtext
 ---
 
 # Dataset Card for "openwebtext"
@@ -6,12 +28,12 @@
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -33,15 +55,15 @@
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Size of downloaded dataset files:** 12283.35 MB
-- **Size of the generated dataset:** 37927.15 MB
-- **Total amount of disk used:** 50210.50 MB
+- **Size of downloaded dataset files:** 12880.03 MB
+- **Size of the generated dataset:** 39769.50 MB
+- **Total amount of disk used:** 52649.52 MB
 
 ### Dataset Summary
 
 An open-source replication of the WebText dataset from OpenAI.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -51,15 +73,13 @@ An open-source replication of the WebText dataset from OpenAI.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### plain_text
 
-- **Size of downloaded dataset files:** 12283.35 MB
-- **Size of the generated dataset:** 37927.15 MB
-- **Total amount of disk used:** 50210.50 MB
+- **Size of downloaded dataset files:** 12880.03 MB
+- **Size of the generated dataset:** 39769.50 MB
+- **Total amount of disk used:** 52649.52 MB
 
 An example of 'train' looks as follows.
 ```
@@ -77,11 +97,11 @@ The data fields are the same among all splits.
 #### plain_text
 - `text`: a `string` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
-|   name   | train |
-|----------|------:|
-|plain_text|8013769|
+| name       |   train |
+|------------|--------:|
+| plain_text | 8013769 |
 
 ## Dataset Creation
 
@@ -91,9 +111,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -134,9 +166,7 @@ The data fields are the same among all splits.
 	howpublished{\url{http://Skylion007.github.io/OpenWebTextCorpus}},
 	year={2019}
 }
-
 ```
-
 
 ### Contributions
 

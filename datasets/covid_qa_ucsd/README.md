@@ -5,25 +5,26 @@ language_creators:
 - expert-generated
 - found
 languages:
-  en:
-  - en
-  zh:
-  - zh
+- en
+- zh
 licenses:
 - unknown
 multilinguality:
 - monolingual
 size_categories:
-  en:
-  - n<1K
-  zh:
-  - 1K<n<10K
+- 1K<n<10K
+- n<1K
 source_datasets:
 - original
 task_categories:
 - question-answering
 task_ids:
 - closed-domain-qa
+paperswithcode_id: null
+pretty_name: CovidQaUcsd
+configs:
+- en
+- zh
 ---
 
 # Dataset Card for [Dataset Name]
@@ -31,7 +32,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)

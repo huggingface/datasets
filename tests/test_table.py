@@ -6,6 +6,8 @@ import numpy as np
 import pyarrow as pa
 import pytest
 
+from datasets import Sequence, Value
+from datasets.features.features import ClassLabel, Features
 from datasets.table import (
     ConcatenationTable,
     InMemoryTable,
@@ -16,6 +18,7 @@ from datasets.table import (
     _in_memory_arrow_table_from_file,
     _interpolation_search,
     _memory_mapped_arrow_table_from_file,
+    cast_array_to_feature,
     concat_tables,
     inject_arrow_table_documentation,
 )
@@ -88,6 +91,10 @@ def assert_index_attributes_equal(table: Table, other: Table):
     assert table._batches == other._batches
     np.testing.assert_array_equal(table._offsets, other._offsets)
     assert table._schema == other._schema
+
+
+def add_suffix_to_column_names(table, suffix):
+    return table.rename_columns([f"{name}{suffix}" for name in table.column_names])
 
 
 def test_inject_arrow_table_documentation(in_memory_pa_table):
@@ -220,9 +227,13 @@ def test_in_memory_table_from_buffer(in_memory_pa_table):
 def test_in_memory_table_from_pandas(in_memory_pa_table):
     df = in_memory_pa_table.to_pandas()
     with assert_arrow_memory_increases():
+        # with no schema it might infer another order of the fields in the schema
         table = InMemoryTable.from_pandas(df)
-        assert table.table == in_memory_pa_table
         assert isinstance(table, InMemoryTable)
+    # by specifying schema we get the same order of features, and so the exact same table
+    table = InMemoryTable.from_pandas(df, schema=in_memory_pa_table.schema)
+    assert table.table == in_memory_pa_table
+    assert isinstance(table, InMemoryTable)
 
 
 def test_in_memory_table_from_arrays(in_memory_pa_table):
@@ -310,6 +321,38 @@ def test_in_memory_table_cast(in_memory_pa_table):
     )
     table = InMemoryTable(in_memory_pa_table).cast(schema)
     assert table.table == in_memory_pa_table.cast(schema)
+    assert isinstance(table, InMemoryTable)
+
+
+def test_in_memory_table_cast_reorder_struct():
+    table = InMemoryTable(
+        pa.Table.from_pydict(
+            {
+                "top": [
+                    {
+                        "foo": "a",
+                        "bar": "b",
+                    }
+                ]
+            }
+        )
+    )
+    schema = pa.schema({"top": pa.struct({"bar": pa.string(), "foo": pa.string()})})
+    assert table.cast(schema).schema == schema
+
+
+def test_in_memory_table_cast_with_hf_features():
+    table = InMemoryTable(pa.Table.from_pydict({"labels": [0, 1]}))
+    features = Features({"labels": ClassLabel(names=["neg", "pos"])})
+    schema = features.arrow_schema
+    assert table.cast(schema).schema == schema
+    assert Features.from_arrow_schema(table.cast(schema).schema) == features
+
+
+def test_in_memory_table_replace_schema_metadata(in_memory_pa_table):
+    metadata = {"huggingface": "{}"}
+    table = InMemoryTable(in_memory_pa_table).replace_schema_metadata(metadata)
+    assert table.table.schema.metadata == in_memory_pa_table.replace_schema_metadata(metadata).schema.metadata
     assert isinstance(table, InMemoryTable)
 
 
@@ -483,6 +526,16 @@ def test_memory_mapped_table_cast(arrow_file, in_memory_pa_table):
     assert_pickle_does_bring_data_in_memory(table)
 
 
+def test_memory_mapped_table_replace_schema_metadata(arrow_file, in_memory_pa_table):
+    metadata = {"huggingface": "{}"}
+    table = MemoryMappedTable.from_file(arrow_file).replace_schema_metadata(metadata)
+    assert table.table.schema.metadata == in_memory_pa_table.replace_schema_metadata(metadata).schema.metadata
+    assert isinstance(table, MemoryMappedTable)
+    assert table.replays == [("replace_schema_metadata", (metadata,), {})]
+    assert_deepcopy_without_bringing_data_in_memory(table)
+    assert_pickle_without_bringing_data_in_memory(table)
+
+
 def test_memory_mapped_table_add_column(arrow_file, in_memory_pa_table):
     i = len(in_memory_pa_table.column_names)
     field_ = "new_field"
@@ -614,9 +667,11 @@ def test_concatenation_table_from_tables(axis, in_memory_pa_table, arrow_file):
     if axis == 0:
         expected_table = pa.concat_tables([in_memory_pa_table] * len(tables))
     else:
+        # avoids error due to duplicate column names
+        tables[1:] = [add_suffix_to_column_names(table, i) for i, table in enumerate(tables[1:], 1)]
         expected_table = in_memory_pa_table
-        for _ in range(1, len(tables)):
-            for name, col in zip(in_memory_pa_table.column_names, in_memory_pa_table.columns):
+        for table in tables[1:]:
+            for name, col in zip(table.column_names, table.columns):
                 expected_table = expected_table.append_column(name, col)
 
     with assert_arrow_memory_doesnt_increase():
@@ -741,8 +796,9 @@ def test_concatenation_table_cast(
             for k, v in zip(in_memory_pa_table.schema.names, in_memory_pa_table.schema.types)
         }
     )
-    with pytest.raises(pa.ArrowNotImplementedError):
-        ConcatenationTable.from_blocks(blocks).cast(schema)
+    table = ConcatenationTable.from_blocks(blocks).cast(schema)
+    assert table.table == in_memory_pa_table.cast(schema)
+    assert isinstance(table, ConcatenationTable)
     schema = pa.schema(
         {
             k: v if v != pa.int64() else pa.int32()
@@ -751,6 +807,21 @@ def test_concatenation_table_cast(
     )
     table = ConcatenationTable.from_blocks(blocks).cast(schema)
     assert table.table == in_memory_pa_table.cast(schema)
+    assert isinstance(table, ConcatenationTable)
+
+
+@pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
+def test_concatenation_table_replace_schema_metadata(
+    blocks_type, in_memory_pa_table, in_memory_blocks, memory_mapped_blocks, mixed_in_memory_and_memory_mapped_blocks
+):
+    blocks = {
+        "in_memory": in_memory_blocks,
+        "memory_mapped": memory_mapped_blocks,
+        "mixed": mixed_in_memory_and_memory_mapped_blocks,
+    }[blocks_type]
+    metadata = {"huggingface": "{}"}
+    table = ConcatenationTable.from_blocks(blocks).replace_schema_metadata(metadata)
+    assert table.table.schema.metadata == in_memory_pa_table.replace_schema_metadata(metadata).schema.metadata
     assert isinstance(table, ConcatenationTable)
 
 
@@ -869,7 +940,10 @@ def test_concat_tables(arrow_file, in_memory_pa_table):
     assert isinstance(concatenated_table.blocks[0][0], InMemoryTable)
     assert isinstance(concatenated_table.blocks[1][0], MemoryMappedTable)
     assert isinstance(concatenated_table.blocks[2][0], InMemoryTable)
-    concatenated_table = concat_tables(tables, axis=1)
+    # add suffix to avoid error due to duplicate column names
+    concatenated_table = concat_tables(
+        [add_suffix_to_column_names(table, i) for i, table in enumerate(tables)], axis=1
+    )
     assert concatenated_table.table.shape == (10, 16)
     assert len(concatenated_table.blocks[0]) == 3  # t0 and t1 are consolidated as a single InMemoryTable
     assert isinstance(concatenated_table.blocks[0][0], InMemoryTable)
@@ -929,3 +1003,34 @@ def test_indexed_table_mixin():
     assert all(table._offsets.tolist() == np.cumsum([0] + [n_rows_per_chunk] * n_chunks))
     assert table.fast_slice(5) == pa_table.slice(5)
     assert table.fast_slice(2, 13) == pa_table.slice(2, 13)
+
+
+def test_cast_array_to_features():
+    arr = pa.array([[0, 1]])
+    assert cast_array_to_feature(arr, Sequence(Value("string"))).type == pa.list_(pa.string())
+    with pytest.raises(TypeError):
+        cast_array_to_feature(arr, Sequence(Value("string")), allow_number_to_str=False)
+
+
+def test_cast_array_to_features_nested():
+    arr = pa.array([[{"foo": [0]}]])
+    assert cast_array_to_feature(arr, [{"foo": Sequence(Value("string"))}]).type == pa.list_(
+        pa.struct({"foo": pa.list_(pa.string())})
+    )
+
+
+def test_cast_array_to_features_nested_with_null_values():
+    # same type
+    arr = pa.array([{"foo": [None, [0]]}], pa.struct({"foo": pa.list_(pa.list_(pa.int64()))}))
+    casted_array = cast_array_to_feature(arr, {"foo": [[Value("int64")]]})
+    assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int64()))})
+    assert casted_array.to_pylist() == arr.to_pylist()
+
+    # different type
+    arr = pa.array([{"foo": [None, [0]]}], pa.struct({"foo": pa.list_(pa.list_(pa.int64()))}))
+    with pytest.warns(UserWarning, match="None values are converted to empty lists.+"):
+        casted_array = cast_array_to_feature(arr, {"foo": [[Value("int32")]]})
+    assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int32()))})
+    assert casted_array.to_pylist() == [
+        {"foo": [[], [0]]}
+    ]  # empty list because of https://github.com/huggingface/datasets/issues/3676

@@ -17,12 +17,12 @@
 """CIFAR-10 Data Set"""
 
 
-import os
 import pickle
 
 import numpy as np
 
 import datasets
+from datasets.tasks import ImageClassification
 
 
 _CITATION = """\
@@ -41,6 +41,19 @@ per class. There are 50000 training images and 10000 test images.
 
 _DATA_URL = "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz"
 
+_NAMES = [
+    "airplane",
+    "automobile",
+    "bird",
+    "cat",
+    "deer",
+    "dog",
+    "frog",
+    "horse",
+    "ship",
+    "truck",
+]
+
 
 class Cifar10(datasets.GeneratorBasedBuilder):
     """CIFAR-10 Data Set"""
@@ -58,38 +71,29 @@ class Cifar10(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "img": datasets.Array3D(shape=(32, 32, 3), dtype="uint8"),
-                    "label": datasets.features.ClassLabel(
-                        names=[
-                            "airplane",
-                            "automobile",
-                            "bird",
-                            "cat",
-                            "deer",
-                            "dog",
-                            "frog",
-                            "horse",
-                            "ship",
-                            "truck",
-                        ]
-                    ),
+                    "img": datasets.Image(),
+                    "label": datasets.features.ClassLabel(names=_NAMES),
                 }
             ),
             supervised_keys=("img", "label"),
             homepage="https://www.cs.toronto.edu/~kriz/cifar.html",
             citation=_CITATION,
+            task_templates=ImageClassification(image_column="img", label_column="label"),
         )
 
     def _split_generators(self, dl_manager):
-        dl_dir = dl_manager.download_and_extract(_DATA_URL)
-        final_dir = os.path.join(dl_dir, "cifar-10-batches-py")
+        archive = dl_manager.download(_DATA_URL)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": final_dir, "split": "train"}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": final_dir, "split": "test"}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_archive(archive), "split": "train"}
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"files": dl_manager.iter_archive(archive), "split": "test"}
+            ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, files, split):
         """This function returns the examples in the raw (text) form."""
 
         if split == "train":
@@ -97,13 +101,11 @@ class Cifar10(datasets.GeneratorBasedBuilder):
 
         if split == "test":
             batches = ["test_batch"]
+        batches = [f"cifar-10-batches-py/{filename}" for filename in batches]
 
-        for batch in batches:
+        for path, fo in files:
 
-            file = os.path.join(filepath, batch)
-
-            with open(file, "rb") as fo:
-
+            if path in batches:
                 dict = pickle.load(fo, encoding="bytes")
 
                 labels = dict[b"labels"]
@@ -113,7 +115,7 @@ class Cifar10(datasets.GeneratorBasedBuilder):
 
                     img_reshaped = np.transpose(np.reshape(images[idx], (3, 32, 32)), (1, 2, 0))
 
-                    yield f"{batch}_{idx}", {
+                    yield f"{path}_{idx}", {
                         "img": img_reshaped,
                         "label": labels[idx],
                     }

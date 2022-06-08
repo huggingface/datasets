@@ -5,9 +5,8 @@ from pathlib import PurePath
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 
 import numpy as np
-from tqdm.auto import tqdm
 
-from .utils.logging import WARNING, get_logger
+from .utils import logging
 
 
 if TYPE_CHECKING:
@@ -28,22 +27,31 @@ _has_elasticsearch = importlib.util.find_spec("elasticsearch") is not None
 _has_faiss = importlib.util.find_spec("faiss") is not None
 
 
-logger = get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 
 class MissingIndex(Exception):
     pass
 
 
-SearchResults = NamedTuple("SearchResults", [("scores", List[float]), ("indices", List[int])])
-BatchedSearchResults = NamedTuple(
-    "BatchedSearchResults", [("total_scores", List[List[float]]), ("total_indices", List[List[int]])]
-)
+class SearchResults(NamedTuple):
+    scores: List[float]
+    indices: List[int]
 
-NearestExamplesResults = NamedTuple("NearestExamplesResults", [("scores", List[float]), ("examples", dict)])
-BatchedNearestExamplesResults = NamedTuple(
-    "BatchedNearestExamplesResults", [("total_scores", List[List[float]]), ("total_examples", List[dict])]
-)
+
+class BatchedSearchResults(NamedTuple):
+    total_scores: List[List[float]]
+    total_indices: List[List[int]]
+
+
+class NearestExamplesResults(NamedTuple):
+    scores: List[float]
+    examples: dict
+
+
+class BatchedNearestExamplesResults(NamedTuple):
+    total_scores: List[List[float]]
+    total_examples: List[dict]
 
 
 class BaseIndex:
@@ -102,12 +110,12 @@ class ElasticSearchIndex(BaseIndex):
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
     ):
-        assert (
-            _has_elasticsearch
-        ), "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch==7.7.1 for example`"
-        assert es_client is None or (
-            host is None and port is None
-        ), "Please specify either `es_client` or `(host, port)`, but not both."
+        if not _has_elasticsearch:
+            raise ImportError(
+                "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch==7.7.1 for example`"
+            )
+        if es_client is not None and (host is not None or port is not None):
+            raise ValueError("Please specify either `es_client` or `(host, port)`, but not both.")
         host = host or "localhost"
         port = port or 9200
 
@@ -141,8 +149,7 @@ class ElasticSearchIndex(BaseIndex):
         index_config = self.es_index_config
         self.es_client.indices.create(index=index_name, body=index_config)
         number_of_docs = len(documents)
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        progress = tqdm(unit="docs", total=number_of_docs, disable=not_verbose)
+        progress = logging.tqdm(unit="docs", total=number_of_docs, disable=not logging.is_progress_bar_enabled())
         successes = 0
 
         def passage_generator():
@@ -167,7 +174,7 @@ class ElasticSearchIndex(BaseIndex):
             logger.warning(
                 f"Some documents failed to be added to ElasticSearch. Failures: {len(documents)-successes}/{len(documents)}"
             )
-        logger.info("Indexed %d documents" % (successes,))
+        logger.info(f"Indexed {successes:d} documents")
 
     def search(self, query: str, k=10) -> SearchResults:
         """Find the nearest examples indices to the query.
@@ -187,6 +194,19 @@ class ElasticSearchIndex(BaseIndex):
         hits = response["hits"]["hits"]
         return SearchResults([hit["_score"] for hit in hits], [int(hit["_id"]) for hit in hits])
 
+    def search_batch(self, queries, k: int = 10, max_workers=10) -> BatchedSearchResults:
+        import concurrent.futures
+
+        total_scores, total_indices = [None] * len(queries), [None] * len(queries)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_index = {executor.submit(self.search, query, k): i for i, query in enumerate(queries)}
+            for future in concurrent.futures.as_completed(future_to_index):
+                index = future_to_index[future]
+                results: SearchResults = future.result()
+                total_scores[index] = results.scores
+                total_indices[index] = results.indices
+        return BatchedSearchResults(total_indices=total_indices, total_scores=total_scores)
+
 
 class FaissIndex(BaseIndex):
     """
@@ -200,7 +220,7 @@ class FaissIndex(BaseIndex):
 
     def __init__(
         self,
-        device: Optional[int] = None,
+        device: Optional[Union[int, List[int]]] = None,
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
         custom_index: Optional["faiss.Index"] = None,
@@ -210,16 +230,22 @@ class FaissIndex(BaseIndex):
         You can find more information about Faiss here:
         - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
         """
-        assert not (
-            string_factory is not None and custom_index is not None
-        ), "Please specify either `string_factory` or `custom_index` but not both."
+        if string_factory is not None and custom_index is not None:
+            raise ValueError("Please specify either `string_factory` or `custom_index` but not both.")
+        if device is not None and custom_index is not None:
+            raise ValueError(
+                "Cannot pass both 'custom_index' and 'device'. "
+                "Pass 'custom_index' already transferred to the target device instead."
+            )
         self.device = device
         self.string_factory = string_factory
         self.metric_type = metric_type
         self.faiss_index = custom_index
         if not _has_faiss:
             raise ImportError(
-                "You must install Faiss to use FaissIndex. To do so you can run `pip install faiss-cpu` or `pip install faiss-gpu`"
+                "You must install Faiss to use FaissIndex. To do so you can run `conda install -c pytorch faiss-cpu` or `conda install -c pytorch faiss-gpu`. "
+                "A community supported package is also available on pypi: `pip install faiss-cpu` or `pip install faiss-gpu`. "
+                "Note that pip may not have the latest version of FAISS, and thus, some of the latest features and bug fixes may not be available."
             )
 
     def add_vectors(
@@ -249,11 +275,9 @@ class FaissIndex(BaseIndex):
                     index = faiss.IndexFlat(size)
                 else:
                     index = faiss.IndexFlat(size, self.metric_type)
-            if self.device is not None and self.device > -1:
-                self.faiss_res = faiss.StandardGpuResources()
-                index = faiss.index_cpu_to_gpu(self.faiss_res, self.device, index)
-            self.faiss_index = index
-            logger.info("Created faiss index of type {}".format(type(self.faiss_index)))
+
+            self.faiss_index = self._faiss_index_to_device(index, self.device)
+            logger.info(f"Created faiss index of type {type(self.faiss_index)}")
 
         # Set verbosity level
         if faiss_verbose is not None:
@@ -268,17 +292,50 @@ class FaissIndex(BaseIndex):
         # Train
         if train_size is not None:
             train_vecs = vectors[:train_size] if column is None else vectors[:train_size][column]
-            logger.info("Training the index with the first {} vectors".format(len(train_vecs)))
+            logger.info(f"Training the index with the first {len(train_vecs)} vectors")
             self.faiss_index.train(train_vecs)
         else:
             logger.info("Ignored the training step of the faiss index as `train_size` is None.")
 
         # Add vectors
-        logger.info("Adding {} vectors to the faiss index".format(len(vectors)))
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        for i in tqdm(range(0, len(vectors), batch_size), disable=not_verbose):
+        logger.info(f"Adding {len(vectors)} vectors to the faiss index")
+        for i in logging.tqdm(range(0, len(vectors), batch_size), disable=not logging.is_progress_bar_enabled()):
             vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
             self.faiss_index.add(vecs)
+
+    @staticmethod
+    def _faiss_index_to_device(index: "faiss.Index", device: Optional[Union[int, List[int]]] = None) -> "faiss.Index":
+        """
+        Sends a faiss index to a device.
+        A device can either be a positive integer (GPU id), a negative integer (all GPUs),
+            or a list of positive integers (select GPUs to use), or `None` for CPU.
+        """
+
+        # If device is not specified, then it runs on CPU.
+        if device is None:
+            return index
+
+        import faiss  # noqa: F811
+
+        # If the device id is given as an integer
+        if isinstance(device, int):
+            # Positive integers are directly mapped to GPU ids
+            if device > -1:
+                faiss_res = faiss.StandardGpuResources()
+                index = faiss.index_cpu_to_gpu(faiss_res, device, index)
+            # And negative integers mean using all GPUs
+            else:
+                index = faiss.index_cpu_to_all_gpus(index)
+        # Device ids given as a list mean mapping to those devices specified.
+        elif isinstance(device, (list, tuple)):
+            index = faiss.index_cpu_to_gpus_list(index, gpus=list(device))
+        else:
+            raise TypeError(
+                f"The argument type: {type(device)} is not expected. "
+                + "Please pass in either nothing, a positive int, a negative int, or a list of positive ints."
+            )
+
+        return index
 
     def search(self, query: np.array, k=10) -> SearchResults:
         """Find the nearest examples indices to the query.
@@ -291,7 +348,9 @@ class FaissIndex(BaseIndex):
             scores (`List[List[float]`): The retrieval scores of the retrieved examples.
             indices (`List[List[int]]`): The indices of the retrieved examples.
         """
-        assert len(query.shape) == 1 or (len(query.shape) == 2 and query.shape[0] == 1)
+        if len(query.shape) != 1 and (len(query.shape) != 2 or query.shape[0] != 1):
+            raise ValueError("Shape of query is incorrect, it has to be either a 1D array or 2D (1, N)")
+
         queries = query.reshape(1, -1)
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
@@ -309,7 +368,8 @@ class FaissIndex(BaseIndex):
             total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
             total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
         """
-        assert len(queries.shape) == 2
+        if len(queries.shape) != 2:
+            raise ValueError("Shape of query must be 2D")
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
         scores, indices = self.faiss_index.search(queries, k)
@@ -319,35 +379,26 @@ class FaissIndex(BaseIndex):
         """Serialize the FaissIndex on disk"""
         import faiss  # noqa: F811
 
-        if (
-            hasattr(self.faiss_index, "device")
-            and self.faiss_index.device is not None
-            and self.faiss_index.device > -1
-        ) or (
-            hasattr(self.faiss_index, "getDevice")
-            and self.faiss_index.getDevice() is not None
-            and self.faiss_index.getDevice() > -1
-        ):
+        if self.device is not None and isinstance(self.device, (int, list, tuple)):
             index = faiss.index_gpu_to_cpu(self.faiss_index)
         else:
             index = self.faiss_index
+
         faiss.write_index(index, str(file))
 
     @classmethod
     def load(
         cls,
         file: Union[str, PurePath],
-        device: Optional[int] = None,
+        device: Optional[Union[int, List[int]]] = None,
     ) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
         import faiss  # noqa: F811
 
+        # Instances of FaissIndex is essentially just a wrapper for faiss indices.
         faiss_index = cls(device=device)
         index = faiss.read_index(str(file))
-        if faiss_index.device is not None and faiss_index.device > -1:
-            faiss_index.faiss_res = faiss.StandardGpuResources()
-            index = faiss.index_cpu_to_gpu(faiss_index.faiss_res, faiss_index.device, index)
-        faiss_index.faiss_index = index
+        faiss_index.faiss_index = faiss_index._faiss_index_to_device(index, faiss_index.device)
         return faiss_index
 
 
@@ -392,7 +443,7 @@ class IndexableMixin:
         self,
         column: str,
         index_name: Optional[str] = None,
-        device: Optional[int] = None,
+        device: Optional[Union[int, List[int]]] = None,
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
         custom_index: Optional["faiss.Index"] = None,
@@ -401,7 +452,7 @@ class IndexableMixin:
     ):
         """Add a dense index using Faiss for fast retrieval.
         The index is created using the vectors of the specified column.
-        You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
+        You can specify `device` if you want to run it on GPU (`device` must be the GPU index, see more below).
         You can find more information about Faiss here:
         - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
 
@@ -409,9 +460,10 @@ class IndexableMixin:
             column (:obj:`str`): The column of the vectors to add to the index.
             index_name (Optional :obj:`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
                 By defaul it corresponds to `column`.
-            device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+            device (Optional :obj:`Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
+                If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
             string_factory (Optional :obj:`str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-            metric_type (Optional :obj:`int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
+            metric_type (Optional :obj:`int`): Type of metric. Ex: `faiss.METRIC_INNER_PRODUCT` or `faiss.METRIC_L2`.
             custom_index (Optional :obj:`faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
             train_size (Optional :obj:`int`): If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False): Enable the verbosity of the Faiss index.
@@ -427,7 +479,7 @@ class IndexableMixin:
         self,
         external_arrays: np.array,
         index_name: str,
-        device: Optional[int] = None,
+        device: Optional[Union[int, List[int]]] = None,
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
         custom_index: Optional["faiss.Index"] = None,
@@ -444,9 +496,10 @@ class IndexableMixin:
             external_arrays (:obj:`np.array`): If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
                 It will use `external_arrays` to create the Faiss index instead of the arrays in the given `column`.
             index_name (:obj:`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-            device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+            device (Optional :obj:`Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
+                If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
             string_factory (Optional :obj:`str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-            metric_type (Optional :obj:`int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
+            metric_type (Optional :obj:`int`): Type of metric. Ex: `faiss.METRIC_INNER_PRODUCT` or `faiss.METRIC_L2`.
             custom_index (Optional :obj:`faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
             train_size (Optional :obj:`int`): If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False): Enable the verbosity of the Faiss index.
@@ -466,15 +519,15 @@ class IndexableMixin:
         """
         index = self.get_index(index_name)
         if not isinstance(index, FaissIndex):
-            raise ValueError("Index '{}' is not a FaissIndex but a '{}'".format(index_name, type(index)))
+            raise ValueError(f"Index '{index_name}' is not a FaissIndex but a '{type(index)}'")
         index.save(file)
-        logger.info("Saved FaissIndex {} at {}".format(index_name, file))
+        logger.info(f"Saved FaissIndex {index_name} at {file}")
 
     def load_faiss_index(
         self,
         index_name: str,
         file: Union[str, PurePath],
-        device: Optional[int] = None,
+        device: Optional[Union[int, List[int]]] = None,
     ):
         """Load a FaissIndex from disk.
 
@@ -485,16 +538,16 @@ class IndexableMixin:
             index_name (:obj:`str`): The index_name/identifier of the index. This is the index_name that is used to
                 call `.get_nearest` or `.search`.
             file (:obj:`str`): The path to the serialized faiss index on disk.
-            device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+            device (Optional :obj:`Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
+                If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
         """
         index = FaissIndex.load(file, device=device)
-        assert index.faiss_index.ntotal == len(
-            self
-        ), "Index size should match Dataset size, but Index '{}' at {} has {} elements while the dataset has {} examples.".format(
-            index_name, file, index.faiss_index.ntotal, len(self)
-        )
+        if index.faiss_index.ntotal != len(self):
+            raise ValueError(
+                f"Index size should match Dataset size, but Index '{index_name}' at {file} has {index.faiss_index.ntotal} elements while the dataset has {len(self)} examples."
+            )
         self._indexes[index_name] = index
-        logger.info("Loaded FaissIndex {} from {}".format(index_name, file))
+        logger.info(f"Loaded FaissIndex {index_name} from {file}")
 
     def add_elasticsearch_index(
         self,
@@ -646,7 +699,8 @@ class IndexableMixin:
         """
         self._check_index_is_initialized(index_name)
         scores, indices = self.search(index_name, query, k)
-        return NearestExamplesResults(scores, self[[i for i in indices if i >= 0]])
+        top_indices = [i for i in indices if i >= 0]
+        return NearestExamplesResults(scores[: len(top_indices)], self[top_indices])
 
     def get_nearest_examples_batch(
         self, index_name: str, queries: Union[List[str], np.array], k: int = 10
@@ -664,6 +718,9 @@ class IndexableMixin:
         """
         self._check_index_is_initialized(index_name)
         total_scores, total_indices = self.search_batch(index_name, queries, k)
-        return BatchedNearestExamplesResults(
-            total_scores, [self[[i for i in indices if i >= 0]] for indices in total_indices]
-        )
+        total_scores = [
+            scores_i[: len([i for i in indices_i if i >= 0])]
+            for scores_i, indices_i in zip(total_scores, total_indices)
+        ]
+        total_samples = [self[[i for i in indices if i >= 0]] for indices in total_indices]
+        return BatchedNearestExamplesResults(total_scores, total_samples)

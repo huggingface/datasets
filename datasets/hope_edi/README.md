@@ -4,36 +4,29 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-  english:
-  - en
-  malayalam:
-  - en
-  - ml
-  tamil:
-  - en
-  - ta
+- en
+- ml
+- ta
 licenses:
 - cc-by-4.0
 multilinguality:
-  english:
-  - monolingual
-  malayalam:
-  - multilingual
-  tamil:
-  - multilingual
+- monolingual
+- multilingual
 size_categories:
-  english:
-  - 10K<n<100K
-  malayalam:
-  - 1K<n<10K
-  tamil:
-  - 10K<n<100K
+- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
 - text-classification
 task_ids:
 - text-classification-other-hope-speech-classification
+paperswithcode_id: hopeedi
+pretty_name: 'HopeEDI: A Multilingual Hope Speech Detection Dataset for Equality, Diversity, and Inclusion'
+configs:
+- english
+- malayalam
+- tamil
 ---
 
 # Dataset Card for [Dataset Name]
@@ -41,12 +34,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -127,12 +120,11 @@ Malayalam
 
 ### Data Splits
 
-
-|              | Tain   | Valid |
-| -----        | ------: | -----: |
-| English      |  22762 |  2843 |
-| Tamil        |  16160 |  2018 |
-| Malayalam    |  8564  |  1070 |
+|           | train | validation |
+| -----     |------:|-----------:|
+| English   | 22762 |       2843 |
+| Tamil     | 16160 |       2018 |
+| Malayalam |  8564 |       1070 |
 
 ## Dataset Creation
 

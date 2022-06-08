@@ -14,13 +14,15 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 - part-of-speech-tagging
-- structure-prediction-other-clause-segmentation
-- structure-prediction-other-sentence-segmentation
-- structure-prediction-other-word-segmentation
+- token-classification-other-clause-segmentation
+- token-classification-other-sentence-segmentation
+- token-classification-other-word-segmentation
+paperswithcode_id: null
+pretty_name: LST20
 ---
 
 # Dataset Card for LST20
@@ -28,12 +30,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -55,7 +57,7 @@ task_ids:
 - **Repository:**
 - **Paper:** 
 - **Leaderboard:**
-- **Point of Contact:** thepchai@nectec.or.th
+- **Point of Contact:** [email](thepchai@nectec.or.th)
 
 ### Dataset Summary
 

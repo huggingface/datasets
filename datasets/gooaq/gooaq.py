@@ -17,6 +17,8 @@
 
 import json
 
+import numpy as np
+
 import datasets
 
 
@@ -43,13 +45,15 @@ _HOMEPAGE = "https://github.com/allenai/gooaq"
 
 _LICENSE = "Licensed under the Apache License, Version 2.0"
 
-_URL = "https://github.com/allenai/gooaq/raw/main/data/qoogle.jsonl"
+_URL = "https://github.com/allenai/gooaq/raw/main/data/gooaq.jsonl"
+
+_SPLITS_URL = "https://github.com/allenai/gooaq/raw/main/data/split.json"
 
 
 class Gooaq(datasets.GeneratorBasedBuilder):
     """GooAQ - Question-answers, collected from Google"""
 
-    VERSION = datasets.Version("1.1.0")
+    VERSION = datasets.Version("1.2.0")
 
     def _info(self):
         features = datasets.Features(
@@ -83,39 +87,70 @@ class Gooaq(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        data_dir = dl_manager.download(_URL)
+        data = dl_manager.download(_URL)
+        splits = dl_manager.download(_SPLITS_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": data_dir,
+                    "filepath": data,
                     "split": "train",
+                    "split_file": splits,
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "filepath": data,
+                    "split": "dev",
+                    "split_file": splits,
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "filepath": data,
+                    "split": "test",
+                    "split_file": splits,
                 },
             ),
         ]
 
     def _generate_examples(
-        self, filepath, split  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
+        self,
+        filepath,
+        split,
+        split_file,  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
         dominant_classes = ["feat_snip", "collection", "knowledge", "unit_conv", "time_conv", "curr_conv"]
+
+        with open(split_file, encoding="utf-8") as f_split:
+            if split == "train":
+                split_ids = json.load(f_split)[split]
+                split_ids = np.array(split_ids)[:, 0]
+            else:
+                split_ids = json.load(f_split)[split]
+
+        split_ids = set(split_ids)
 
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)
 
-                if data["answer_type"] not in dominant_classes:
-                    yield id_, {
-                        "id": data["id"],
-                        "question": data["question"],
-                        "short_answer": data["short_answer"],
-                        "answer": data["answer"],
-                        "answer_type": -1,
-                    }
-                else:
-                    yield id_, {
-                        "id": data["id"],
-                        "question": data["question"],
-                        "short_answer": data["short_answer"],
-                        "answer": data["answer"],
-                        "answer_type": data["answer_type"],
-                    }
+                if data["id"] in split_ids:
+                    if data["answer_type"] not in dominant_classes:
+                        yield id_, {
+                            "id": data["id"],
+                            "question": data["question"],
+                            "short_answer": data["short_answer"],
+                            "answer": data["answer"],
+                            "answer_type": -1,
+                        }
+                    else:
+                        yield id_, {
+                            "id": data["id"],
+                            "question": data["question"],
+                            "short_answer": data["short_answer"],
+                            "answer": data["answer"],
+                            "answer_type": data["answer_type"],
+                        }

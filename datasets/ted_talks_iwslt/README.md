@@ -119,42 +119,31 @@ licenses:
 multilinguality:
 - translation
 size_categories:
-  de_ja_2014:
-  - 1K<n<10K
-  de_ja_2015:
-  - 1K<n<10K
-  de_ja_2016:
-  - 1K<n<10K
-  eu_ca_2014:
-  - n<1K
-  eu_ca_2015:
-  - n<1K
-  eu_ca_2016:
-  - n<1K
-  fr-ca_hi_2014:
-  - n<1K
-  fr-ca_hi_2015:
-  - n<1K
-  fr-ca_hi_2016:
-  - n<1K
-  nl_en_2014:
-  - 1K<n<10K
-  nl_en_2015:
-  - 1K<n<10K
-  nl_en_2016:
-  - 1K<n<10K
-  nl_hi_2014:
-  - n<1K
-  nl_hi_2015:
-  - n<1K
-  nl_hi_2016:
-  - n<1K
+- 1K<n<10K
+- n<1K
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: null
+pretty_name: Web Inventory of Transcribed & Translated(WIT) Ted Talks
+configs:
+- de_ja_2014
+- de_ja_2015
+- de_ja_2016
+- eu_ca_2014
+- eu_ca_2015
+- eu_ca_2016
+- fr-ca_hi_2014
+- fr-ca_hi_2015
+- fr-ca_hi_2016
+- nl_en_2014
+- nl_en_2015
+- nl_en_2016
+- nl_hi_2014
+- nl_hi_2015
+- nl_hi_2016
 ---
 
 # Dataset Card for Web Inventory of Transcribed & Translated(WIT) Ted Talks
@@ -162,12 +151,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

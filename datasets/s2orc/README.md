@@ -15,21 +15,25 @@ source_datasets:
 - original
 task_categories:
 - other
-- sequence-modeling
+- text-generation
+- fill-mask
 - text-classification
 task_ids:
 - language-modeling
+- masked-language-modeling
 - multi-class-classification
 - multi-label-classification
 - other-other-citation-recommendation
+paperswithcode_id: s2orc
+pretty_name: S2ORC
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for S2ORC: The Semantic Scholar Open Research Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -243,3 +247,6 @@ Semantic Scholar Open Research Corpus is licensed under ODC-BY.
       primaryClass={cs.CL}
 }
 ```
+### Contributions
+
+Thanks to [@bhavitvyamalik](https://github.com/bhavitvyamalik) for adding this dataset.

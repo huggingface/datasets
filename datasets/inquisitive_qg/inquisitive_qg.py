@@ -18,7 +18,6 @@
 
 
 import itertools
-import os
 
 import datasets
 
@@ -95,8 +94,8 @@ class InquisitiveQg(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         questions_file = dl_manager.download(_QUESTIONS_URL)
-        extracted_path = dl_manager.download_and_extract(_ARTICLES_URL)
-        articles_dir = os.path.join(extracted_path, "article")
+        archive = dl_manager.download(_ARTICLES_URL)
+        articles_dir = "article"
 
         return [
             datasets.SplitGenerator(
@@ -105,6 +104,7 @@ class InquisitiveQg(datasets.GeneratorBasedBuilder):
                     "articles_dir": articles_dir,
                     "questions_file": questions_file,
                     "article_ids": TRAIN_ARTICLE_IDS,
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
@@ -113,6 +113,7 @@ class InquisitiveQg(datasets.GeneratorBasedBuilder):
                     "articles_dir": articles_dir,
                     "questions_file": questions_file,
                     "article_ids": DEV_ARTICLE_IDS,
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
@@ -121,11 +122,15 @@ class InquisitiveQg(datasets.GeneratorBasedBuilder):
                     "articles_dir": articles_dir,
                     "questions_file": questions_file,
                     "article_ids": TEST_ARTICLE_IDS,
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, articles_dir, questions_file, article_ids):
+    def _generate_examples(self, articles_dir, questions_file, article_ids, files):
+        articles = {}
+        for path, f in files:
+            articles[path] = f.read().decode("utf-8")
         with open(questions_file, encoding="utf-8") as f:
             questions_counter = 0
             rows = f.readlines()
@@ -139,11 +144,9 @@ class InquisitiveQg(datasets.GeneratorBasedBuilder):
                 if article_id not in article_ids:
                     continue
 
-                # read the article file
                 fname = str(article_id).rjust(4, "0") + ".txt"
-                article_path = os.path.join(articles_dir, fname)
-                with open(article_path, encoding="utf-8") as f:
-                    article = f.read()
+                article_path = articles_dir + "/" + fname
+                article = articles[article_path]
 
                 id_ = str(questions_counter)
                 example = {

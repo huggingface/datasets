@@ -20,17 +20,20 @@ source_datasets:
 task_categories:
 - other
 - question-answering
+- text2text-generation
 task_ids:
 - abstractive-qa
 - extractive-qa
 - other-other-query-based-multi-document-summarization
+paperswithcode_id: aquamuse
+pretty_name: AQuaMuSe
 ---
 
 # Dataset Card for AQuaMuSe
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)

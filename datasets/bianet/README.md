@@ -4,32 +4,30 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  en-to-ku:
-  - en
-  - ku
-  en-to-tr:
-  - en
-  - tr
-  ku-to-tr:
-  - ku
-  - tr
+- en
+- ku
+- tr
 licenses:
 - unknown
 multilinguality:
 - translation
 size_categories:
-  en_to_ku:
-  - 1K<n<10K
-  en_to_tr:
-  - 10K<n<100K
-  ku_to_tr:
-  - 1K<n<10K
+- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
+paperswithcode_id: bianet
+pretty_name: Bianet
+configs:
+- en-to-ku
+- en-to-tr
+- en_to_ku
+- en_to_tr
+- ku-to-tr
+- ku_to_tr
 ---
 
 # Dataset Card for [Dataset Name]
@@ -37,12 +35,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)

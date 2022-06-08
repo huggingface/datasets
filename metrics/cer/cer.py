@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,30 +17,50 @@ from typing import List
 
 import jiwer
 import jiwer.transforms as tr
+from packaging import version
 
 import datasets
+from datasets.config import PY_VERSION
 
 
-class SentencesToListOfCharacters(tr.AbstractTransform):
-    def process_string(self, s: str):
-        return list(s)
-
-    def process_list(self, inp: List[str]):
-        chars = []
-
-        for sentence in inp:
-            chars.extend(self.process_string(sentence))
-
-        return chars
+if PY_VERSION < version.parse("3.8"):
+    import importlib_metadata
+else:
+    import importlib.metadata as importlib_metadata
 
 
-cer_transform = tr.Compose(
-    [
-        tr.RemoveMultipleSpaces(),
-        tr.Strip(),
-        SentencesToListOfCharacters(),
-    ]
-)
+SENTENCE_DELIMITER = ""
+
+
+if version.parse(importlib_metadata.version("jiwer")) < version.parse("2.3.0"):
+
+    class SentencesToListOfCharacters(tr.AbstractTransform):
+        def __init__(self, sentence_delimiter: str = " "):
+            self.sentence_delimiter = sentence_delimiter
+
+        def process_string(self, s: str):
+            return list(s)
+
+        def process_list(self, inp: List[str]):
+            chars = []
+            for sent_idx, sentence in enumerate(inp):
+                chars.extend(self.process_string(sentence))
+                if self.sentence_delimiter is not None and self.sentence_delimiter != "" and sent_idx < len(inp) - 1:
+                    chars.append(self.sentence_delimiter)
+            return chars
+
+    cer_transform = tr.Compose(
+        [tr.RemoveMultipleSpaces(), tr.Strip(), SentencesToListOfCharacters(SENTENCE_DELIMITER)]
+    )
+else:
+    cer_transform = tr.Compose(
+        [
+            tr.RemoveMultipleSpaces(),
+            tr.Strip(),
+            tr.ReduceToSingleSentence(SENTENCE_DELIMITER),
+            tr.ReduceToListOfListOfChars(),
+        ]
+    )
 
 
 _CITATION = """\
@@ -57,7 +76,7 @@ _CITATION = """\
 _DESCRIPTION = """\
 Character error rate (CER) is a common metric of the performance of an automatic speech recognition system.
 
-CER is similar to Word Error Rate (WER), but operate on character insted of word. Please refer to docs of WER for further information.
+CER is similar to Word Error Rate (WER), but operates on character instead of word. Please refer to docs of WER for further information.
 
 Character error rate can be computed as:
 
@@ -71,7 +90,7 @@ I is the number of insertions,
 C is the number of correct characters,
 N is the number of characters in the reference (N=S+D+C).
 
-CER's output is always a number between 0 and 1. This value indicates the percentage of characters that were incorrectly predicted. The lower the value, the better the
+CER's output is not always a number between 0 and 1, in particular when there is a high number of insertions. This value is often associated to the percentage of characters that were incorrectly predicted. The lower the value, the better the
 performance of the ASR system with a CER of 0 being a perfect score.
 """
 
@@ -117,12 +136,12 @@ class CER(datasets.Metric):
 
     def _compute(self, predictions, references, concatenate_texts=False):
         if concatenate_texts:
-            return jiwer.wer(
+            return jiwer.compute_measures(
                 references,
                 predictions,
                 truth_transform=cer_transform,
                 hypothesis_transform=cer_transform,
-            )
+            )["wer"]
 
         incorrect = 0
         total = 0

@@ -14,41 +14,40 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-  de:
-  - 100K<n<1M
-  es:
-  - 100K<n<1M
-  fr:
-  - 100K<n<1M
-  ru:
-  - 10K<n<100K
-  tu:
-  - 100K<n<1M
+- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - extended|cnn_dailymail
 - original
 task_categories:
-- conditional-text-generation
+- translation
 - text-classification
 task_ids:
-- machine-translation
 - multi-class-classification
 - multi-label-classification
 - summarization
 - topic-classification
+paperswithcode_id: mlsum
+pretty_name: MLSUM
+configs:
+- de
+- es
+- fr
+- ru
+- tu
 ---
 
-# Dataset Card for "mlsum"
+# Dataset Card for MLSUM
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -69,7 +68,7 @@ task_ids:
 - **Homepage:** []()
 - **Repository:** https://github.com/recitalAI/MLSUM
 - **Paper:** https://www.aclweb.org/anthology/2020.emnlp-main.647/
-- **Point of Contact:** thomas@recital.ai
+- **Point of Contact:** [email](thomas@recital.ai)
 - **Size of downloaded dataset files:** 1748.64 MB
 - **Size of the generated dataset:** 4635.42 MB
 - **Total amount of disk used:** 6384.06 MB
@@ -82,7 +81,7 @@ Together with English newspapers from the popular CNN/Daily mail dataset, the co
 We report cross-lingual comparative analyses based on state-of-the-art systems.
 These highlight existing biases which motivate the use of a multi-lingual dataset.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -91,8 +90,6 @@ These highlight existing biases which motivate the use of a multi-lingual datase
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -230,7 +227,7 @@ The data fields are the same among all splits.
 - `title`: a `string` feature.
 - `date`: a `string` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 |name|train |validation|test |
 |----|-----:|---------:|----:|
@@ -248,9 +245,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -280,7 +289,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Usage of dataset is restricted to non-commercial research purposes only. Copyright belongs to the original copyright holders. See https://github.com/recitalAI/MLSUM#mlsum
 
 ### Citation Information
 

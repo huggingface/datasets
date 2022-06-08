@@ -1,17 +1,42 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+- found
+languages:
+- en
+licenses:
+- cc-by-3.0
+- cc-by-sa-3.0-at
+- mit
+- other-Open Portion of the American National Corpus
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- natural-language-inference
+- multi-input-text-classification
+paperswithcode_id: multinli
+pretty_name: Multi-Genre Natural Language Inference
 ---
 
-# Dataset Card for "multi_nli_mismatch"
+# Dataset Card for Multi-Genre Natural Language Inference (Mismatched only)
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -46,7 +71,7 @@ that covers a range of genres of spoken and written text, and supports a
 distinctive cross-genre generalization evaluation. The corpus served as the
 basis for the shared task of the RepEval 2017 Workshop at EMNLP in Copenhagen.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -55,8 +80,6 @@ basis for the shared task of the RepEval 2017 Workshop at EMNLP in Copenhagen.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -84,7 +107,7 @@ The data fields are the same among all splits.
 - `hypothesis`: a `string` feature.
 - `label`: a `string` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 |   name   |train |validation|
 |----------|-----:|---------:|
@@ -98,9 +121,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

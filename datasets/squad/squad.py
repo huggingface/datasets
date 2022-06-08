@@ -20,6 +20,7 @@
 import json
 
 import datasets
+from datasets.tasks import QuestionAnsweringExtractive
 
 
 logger = datasets.logging.get_logger(__name__)
@@ -98,6 +99,11 @@ class Squad(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://rajpurkar.github.io/SQuAD-explorer/",
             citation=_CITATION,
+            task_templates=[
+                QuestionAnsweringExtractive(
+                    question_column="question", context_column="context", answers_column="answers"
+                )
+            ],
         )
 
     def _split_generators(self, dl_manager):
@@ -111,28 +117,26 @@ class Squad(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
         logger.info("generating examples from = %s", filepath)
+        key = 0
         with open(filepath, encoding="utf-8") as f:
             squad = json.load(f)
             for article in squad["data"]:
-                title = article.get("title", "").strip()
+                title = article.get("title", "")
                 for paragraph in article["paragraphs"]:
-                    context = paragraph["context"].strip()
+                    context = paragraph["context"]  # do not strip leading blank spaces GH-2585
                     for qa in paragraph["qas"]:
-                        question = qa["question"].strip()
-                        id_ = qa["id"]
-
                         answer_starts = [answer["answer_start"] for answer in qa["answers"]]
-                        answers = [answer["text"].strip() for answer in qa["answers"]]
-
+                        answers = [answer["text"] for answer in qa["answers"]]
                         # Features currently used are "context", "question", and "answers".
                         # Others are extracted here for the ease of future expansions.
-                        yield id_, {
+                        yield key, {
                             "title": title,
                             "context": context,
-                            "question": question,
-                            "id": id_,
+                            "question": qa["question"],
+                            "id": qa["id"],
                             "answers": {
                                 "answer_start": answer_starts,
                                 "text": answers,
                             },
                         }
+                        key += 1

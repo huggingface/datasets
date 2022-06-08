@@ -17,26 +17,30 @@ task_categories:
 - question-answering
 task_ids:
 - open-domain-qa
+paperswithcode_id: wikiqaar
+pretty_name: English-Arabic Wikipedia Question-Answering
 ---
 
 # Dataset Card for WikiQAar
 
 ## Table of Contents
+- [Table of Contents](#table-of-contents)
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
   - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Discussion of Social Impact and Biases](#discussion-of-social-impact-and-biases)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
   - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
@@ -84,9 +88,9 @@ Each data point contains the question and whether the answer is a valid or not.
 
 The dataset is not split. 
 
-|           | Tain   | Dev   | Test  |
-|---------- | ------ | ------| ------|
-|Data split | 70,264 | 20,632| 10,387|
+|            |  train | validation |   test |
+|------------|-------:|-----------:|-------:|
+| Data split | 70,264 |     20,632 | 10,387 |
 
 ## Dataset Creation
 
@@ -124,7 +128,11 @@ The dataset does not contain any additional annotations.
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
 
 [More Information Needed]
 
@@ -144,7 +152,16 @@ The dataset does not contain any additional annotations.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@InProceedings{YangYihMeek:EMNLP2015:WikiQA,
+       author = {{Yi}, Yang and {Wen-tau},  Yih and {Christopher} Meek},
+        title = "{WikiQA: A Challenge Dataset for Open-Domain Question Answering}",
+      journal = {Association for Computational Linguistics},
+         year = 2015,
+          doi = {10.18653/v1/D15-1237},
+        pages = {2013–2018},
+}
+```
 
 ### Contributions
 

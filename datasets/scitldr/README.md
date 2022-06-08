@@ -14,32 +14,34 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- summarization-other-scientific-documents-summarization
+paperswithcode_id: scitldr
+pretty_name: SciTLDR
 ---
 
 # Dataset Card for SciTLDR
 
 ## Table of Contents
-  - [Dataset Description](#dataset-description)
+- [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
+- [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
-  - [Dataset Creation](#dataset-creation)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
   - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
   - [Social Impact of Dataset](#social-impact-of-dataset)
   - [Discussion of Biases](#discussion-of-biases)
   - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
+- [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)

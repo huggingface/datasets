@@ -10,20 +10,21 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  generics_kb:
-  - 1M<n<10M
-  generics_kb_best:
-  - 1M<n<10M
-  generics_kb_simplewiki:
-  - 10K<n<100K
-  generics_kb_waterloo:
-  - 1M<n<10M
+- 10K<n<100K
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
 - other
 task_ids:
 - other-other-knowledge-base
+paperswithcode_id: genericskb
+pretty_name: GenericsKB
+configs:
+- generics_kb
+- generics_kb_best
+- generics_kb_simplewiki
+- generics_kb_waterloo
 ---
 
 # Dataset Card for Generics KB
@@ -31,7 +32,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)

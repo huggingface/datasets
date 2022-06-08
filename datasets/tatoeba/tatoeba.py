@@ -43,9 +43,10 @@ _CITATION = """\
  }
 """
 
-_VERSION = "2020.11.9"
+_VERSION = "2021.7.22"
+_DATE = "v" + "-".join(s.zfill(2) for s in _VERSION.split("."))
 _BASE_NAME = "Tatoeba.{}.{}"
-_BASE_URL = "https://object.pouta.csc.fi/OPUS-Tatoeba/v2020-11-09/moses/{}-{}.txt.zip"
+_BASE_URL = "https://object.pouta.csc.fi/OPUS-Tatoeba/{}/moses/{}-{}.txt.zip"
 
 # Please note that only few pairs are shown here. You can use config to generate data for all language pairs
 _LANGUAGE_PAIRS = [
@@ -58,7 +59,7 @@ _LANGUAGE_PAIRS = [
 
 
 class TatoebaConfig(datasets.BuilderConfig):
-    def __init__(self, *args, lang1=None, lang2=None, **kwargs):
+    def __init__(self, *args, lang1=None, lang2=None, date=_DATE, **kwargs):
         super().__init__(
             *args,
             name=f"{lang1}-{lang2}",
@@ -66,6 +67,7 @@ class TatoebaConfig(datasets.BuilderConfig):
         )
         self.lang1 = lang1
         self.lang2 = lang2
+        self.date = date
 
 
 class Tatoeba(datasets.GeneratorBasedBuilder):
@@ -95,10 +97,10 @@ class Tatoeba(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        def _base_url(lang1, lang2):
-            return _BASE_URL.format(lang1, lang2)
+        def _base_url(lang1, lang2, date):
+            return _BASE_URL.format(date, lang1, lang2)
 
-        download_url = _base_url(self.config.lang1, self.config.lang2)
+        download_url = _base_url(self.config.lang1, self.config.lang2, self.config.date)
         path = dl_manager.download_and_extract(download_url)
         return [
             datasets.SplitGenerator(

@@ -1,6 +1,6 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+- copy-paste the tags obtained with the online tagging app: https://huggingface.co/spaces/huggingface/datasets-tagging
 ---
 
 # Dataset Card Creation Guide
@@ -80,20 +80,20 @@ List and describe the fields present in the dataset. Mention their data type, an
 
 - `example_field`: description of `example_field`
 
-Note that the descriptions can be initialized with the **Show Markdown Data Fields** output of the [tagging app](https://github.com/huggingface/datasets-tagging), you will then only need to refine the generated descriptions.
+Note that the descriptions can be initialized with the **Show Markdown Data Fields** output of the [Datasets Tagging app](https://huggingface.co/spaces/huggingface/datasets-tagging), you will then only need to refine the generated descriptions.
 
 ### Data Splits
 
 Describe and name the splits in the dataset if there are more than one.
 
-Describe any criteria for splitting the data, if used. If their are differences between the splits (e.g. if the training annotations are machine-generated and the dev and test ones are created by humans, or if different numbers of annotators contributed to each example), describe them here.
+Describe any criteria for splitting the data, if used. If there are differences between the splits (e.g. if the training annotations are machine-generated and the dev and test ones are created by humans, or if different numbers of annotators contributed to each example), describe them here.
 
 Provide the sizes of each split. As appropriate, provide any descriptive statistics for the features, such as average length.  For example:
 
-|                            | Tain   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| Input Sentences            |        |       |      |
-| Average Sentence Length    |        |       |      |
+|                         | train | validation | test |
+|-------------------------|------:|-----------:|-----:|
+| Input Sentences         |       |            |      |
+| Average Sentence Length |       |            |      |
 
 ## Dataset Creation
 

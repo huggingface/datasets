@@ -124,42 +124,29 @@ class Scitldr(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         urls = {
-            "train": os.path.join(_URLs[self.config.name], _TRAIN_DATA),
-            "valid": os.path.join(_URLs[self.config.name], _VALID_DATA),
-            "test": os.path.join(_URLs[self.config.name], _TEST_DATA),
+            "train": _URLs[self.config.name] + _TRAIN_DATA,
+            "valid": _URLs[self.config.name] + _VALID_DATA,
+            "test": _URLs[self.config.name] + _TEST_DATA,
         }
-        data_dir = dl_manager.download_and_extract(urls)
+        data_dir = dl_manager.download(urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir["train"]), "split": "train"},
+                gen_kwargs={"filepath": os.path.join(data_dir["train"])},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir["test"]), "split": "test"},
+                gen_kwargs={"filepath": os.path.join(data_dir["test"])},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir["valid"]), "split": "dev"},
+                gen_kwargs={"filepath": os.path.join(data_dir["valid"])},
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath):
         """Yields examples."""
-        # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
-        # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
-        # The key is not important, it's more here for legacy reason (legacy from tfds)
-
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)

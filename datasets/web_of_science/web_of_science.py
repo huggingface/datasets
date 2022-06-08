@@ -39,9 +39,7 @@ full dataset. WOS-11967 and WOS-5736 are two subsets of WOS-46985.
 
 """
 
-_DATA_URL = (
-    "https://data.mendeley.com/datasets/9rw3vkcfy4/6/files/c9ea673d-5542-44c0-ab7b-f1311f7d61df/WebOfScience.zip?dl=1"
-)
+_DATA_URL = "https://data.mendeley.com/public-files/datasets/9rw3vkcfy4/files/c9ea673d-5542-44c0-ab7b-f1311f7d61df/file_downloaded"
 
 
 class WebOfScienceConfig(datasets.BuilderConfig):
