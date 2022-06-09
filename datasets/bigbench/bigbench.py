@@ -91,6 +91,12 @@ class BigBenchConfig(datasets.BuilderConfig):
         max_examples: Optional[int] = None,
         **kwargs,
     ):
+        if subtask_name is not None:
+            name += f"_subtask={subtask_name}"
+        if num_shots != 0:
+            name += f"_num_shots={num_shots}"
+        if max_examples is not None:
+            name += f"_max_examples={max_examples}"
         super().__init__(
             name=name,
             **kwargs,
