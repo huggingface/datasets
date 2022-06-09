@@ -22,6 +22,7 @@ from .download.streaming_download_manager import (
     xsplit,
     xsplitext,
     xwalk,
+    xxml_dom_minidom_parse,
 )
 from .utils.logging import get_logger
 from .utils.patching import patch_submodule
@@ -90,6 +91,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     patch_submodule(module, "pandas.read_excel", xpandas_read_excel, attrs=["__version__"]).start()
     patch_submodule(module, "scipy.io.loadmat", wrap_auth(xsio_loadmat), attrs=["__version__"]).start()
     patch_submodule(module, "xml.etree.ElementTree.parse", wrap_auth(xet_parse)).start()
+    patch_submodule(module, "xml.dom.minidom.parse", wrap_auth(xxml_dom_minidom_parse)).start()
     module._patched_for_streaming = True
 
 

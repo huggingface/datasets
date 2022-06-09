@@ -21,24 +21,26 @@ languages:
 - ame
 - ami
 - amr
-- arb
+- ar
 - arl
 - arn
 - ast
 - auc
-- ayr
-- azj
+- ay
+- az
+- az-Cyrl
+- az-Latn
 - ban
 - bax
 - bba
 - bci
-- bcl
 - be
 - bem
 - bfa
 - bg
 - bho
 - bi
+- bik
 - bin
 - blt
 - bm
@@ -47,6 +49,8 @@ languages:
 - boa
 - br
 - bs
+- bs-Cyrl
+- bs-Latn
 - buc
 - bug
 - bum
@@ -70,9 +74,10 @@ languages:
 - cjs
 - cjy
 - ckb
-- cmn
+- ckb-Latn
 - cnh
 - cni
+- cnr
 - co
 - cof
 - cot
@@ -89,6 +94,8 @@ languages:
 - dag
 - ddn
 - de
+- de-1901
+- de-1996
 - dga
 - dip
 - duu
@@ -97,16 +104,19 @@ languages:
 - dyu
 - dz
 - ee
-- ekk
 - el
-- emk
+- el-monoton
+- el-polyton
 - en
 - eo
 - es
 - ese
+- et
 - eu
 - eve
 - evn
+- fa
+- fa-AF
 - fat
 - fi
 - fj
@@ -115,33 +125,37 @@ languages:
 - fon
 - fr
 - fuf
+- fuf-Adlm
 - fur
 - fuv
+- fvr
 - fy
 - ga
 - gaa
 - gag
 - gan
-- gaz
 - gd
 - gjn
 - gkp
 - gl
 - gld
+- gn
+- gsw
 - gu
 - guc
-- gug
 - guu
 - gv
 - gyr
 - ha
 - hak
+- ha-NE
+- ha-NG
 - haw
 - he
-- hea
 - hi
 - hil
 - hlt
+- hmn
 - hms
 - hna
 - hni
@@ -149,6 +163,7 @@ languages:
 - hns
 - hr
 - hsb
+- hsn
 - ht
 - hu
 - hus
@@ -157,47 +172,53 @@ languages:
 - ia
 - ibb
 - id
+- idu
 - ig
 - ii
-- ike
+- ijs
 - ilo
 - io
 - is
 - it
+- iu
 - ja
 - jiv
 - jv
+- jv-Java
 - ka
+- kaa
 - kbd
 - kbp
 - kde
 - kdh
 - kea
 - kek
+- kg
+- kg-AO
 - kha
-- khk
 - kjh
 - kk
 - kkh
+- kkh-Lana
 - kl
 - km
 - kmb
-- kmr
 - kn
-- knc
-- kng
 - ko
 - koi
 - koo
 - kqn
 - kqs
+- kr
 - kri
 - krl
 - ktu
+- ku
 - kwi
 - ky
 - la
 - lad
+- lah
 - lb
 - lg
 - lia
@@ -214,16 +235,18 @@ languages:
 - lue
 - lun
 - lus
-- lvs
+- lv
 - mad
 - mag
 - mai
 - mam
+- man
 - maz
 - mcd
 - mcf
 - men
 - mfq
+- mg
 - mh
 - mi
 - mic
@@ -231,7 +254,10 @@ languages:
 - miq
 - mk
 - ml
+- mn
+- mn-Cyrl
 - mnw
+- mor
 - mos
 - mr
 - mt
@@ -244,16 +270,17 @@ languages:
 - nb
 - nba
 - nds
+- ne
 - ng
 - nhn
 - nio
 - niu
+- niv
 - njo
 - nku
 - nl
 - nn
 - not
-- npi
 - nr
 - nso
 - nv
@@ -265,6 +292,7 @@ languages:
 - oc
 - ojb
 - oki
+- om
 - orh
 - os
 - ote
@@ -273,27 +301,24 @@ languages:
 - pap
 - pau
 - pbb
-- pbu
 - pcd
 - pcm
-- pes
 - pis
 - piu
 - pl
-- plt
-- pnb
 - pon
 - pov
 - ppl
 - prq
-- prs
+- ps
 - pt
+- pt-BR
+- pt-PT
 - qu
 - quc
 - qug
 - quh
 - quy
-- quz
 - qva
 - qvc
 - qvh
@@ -306,13 +331,21 @@ languages:
 - rgn
 - rm
 - rmn
+- rm-puter
+- rm-rumgr
+- rm-surmiran
+- rm-sursilv
+- rm-sutsilv
+- rm-vallader
 - rn
 - ro
 - ru
 - rup
 - rw
 - sa
+- sa-Gran
 - sah
+- sc
 - sco
 - se
 - sey
@@ -324,13 +357,15 @@ languages:
 - sk
 - skr
 - sl
+- slr
 - sm
 - sn
 - snk
 - snn
 - so
 - sr
-- src
+- sr-Cyrl
+- sr-Latn
 - srr
 - ss
 - st
@@ -338,10 +373,11 @@ languages:
 - suk
 - sus
 - sv
+- sw
 - swb
-- swh
 - ta
 - taj
+- ta-LK
 - tbz
 - tca
 - tdt
@@ -353,6 +389,8 @@ languages:
 - ti
 - tiv
 - tk
+- tk-Cyrl
+- tk-Latn
 - tl
 - tly
 - tn
@@ -366,24 +404,31 @@ languages:
 - ts
 - tsz
 - tt
-- tw
+- tw-akuapem
+- tw-asante
 - ty
 - tyv
 - tzh
 - tzm
 - tzo
+- udu
 - ug
+- ug-Arab
+- ug-Latn
 - uk
 - umb
 - und
 - ur
 - ura
-- uzn
+- uz
+- uz-Cyrl
+- uz-Latn
 - vai
 - ve
 - vec
 - vep
 - vi
+- vi-Hani
 - vmw
 - wa
 - war
@@ -395,19 +440,24 @@ languages:
 - yad
 - yao
 - yap
-- ydd
+- yi
 - ykg
 - yo
+- yrk
 - yua
 - yue
+- za
 - zam
 - zdj
 - zgh
+- zh
+- zh-Hant
 - zlm
+- zlm-Arab
+- zlm-Latn
 - zro
 - ztu
 - zu
-- zyb
 licenses:
 - unknown
 multilinguality:
@@ -452,7 +502,7 @@ pretty_name: The Universal Declaration of Human Rights (UDHR)
 ## Dataset Description
 
 - **Homepage:** https://www.ohchr.org/EN/UDHR/Pages/UDHRIndex.aspx, https://unicode.org/udhr/index.html
-- **Repository:**
+- **Repository:** https://github.com/unicode-org/udhr
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**
@@ -474,7 +524,7 @@ This plain text version prepared by the “UDHR in Unicode” project, https://w
 
 ### Languages
 
-The dataset includes translations of the document in 467 languages and dialects. The list of languages can be found
+The dataset includes translations of the document in over 400 languages and dialects. The list of languages can be found
 [here](https://unicode.org/udhr/translations.html).
 
 ## Dataset Structure
@@ -555,14 +605,15 @@ The txt/xml data files used here were compiled by The Unicode Consortium, which 
 
 ### Licensing Information
 
-© 1996 – 2009 The Office of the High Commissioner for Human Rights
+Source text © 1996 – 2022 The Office of the High Commissioner for Human Rights
 
-[More Information Needed]
+The [Unicode license](https://www.unicode.org/license.txt) applies to these translations.
+
 
 ### Citation Information
 
-[More Information Needed]
+United Nations. (1998). The Universal Declaration of Human Rights, 1948-1998. New York: United Nations Dept. of Public Information.
 
 ### Contributions
 
-Thanks to [@joeddav](https://github.com/joeddav) for adding this dataset.
+Thanks to [@joeddav](https://github.com/joeddav) for adding this dataset. Updated May 2022 [@leondz](https://github.com/leondz).

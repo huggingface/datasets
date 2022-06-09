@@ -61,6 +61,7 @@ from tqdm.auto import tqdm
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
+from .download.download_config import DownloadConfig
 from .download.streaming_download_manager import xgetsize
 from .features import Audio, ClassLabel, Features, Image, Sequence, Value
 from .features.features import FeatureType, decode_nested_example, pandas_types_mapper, require_decoding
@@ -75,7 +76,7 @@ from .fingerprint import (
     update_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
-from .info import DatasetInfo
+from .info import DatasetInfo, DatasetInfosDict
 from .search import IndexableMixin
 from .splits import NamedSplit, Split, SplitInfo
 from .table import (
@@ -91,7 +92,7 @@ from .table import (
 from .tasks import TaskTemplate
 from .utils import logging
 from .utils._hf_hub_fixes import create_repo
-from .utils.file_utils import _retry, estimate_dataset_size
+from .utils.file_utils import _retry, cached_path, estimate_dataset_size, hf_hub_url
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import convert_file_size_to_int, temporary_assignment, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
@@ -3913,8 +3914,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Returns:
             repo_id (:obj:`str`): ID of the repository in <user>/<dataset_name>` or `<org>/<dataset_name>` format
             split (:obj:`str`): name of the uploaded split
-            uploaded_size (:obj:`int`): number of uploaded bytes
+            uploaded_size (:obj:`int`): number of uploaded bytes to the repository
             dataset_nbytes (:obj:`int`): approximate size in bytes of the uploaded dataset afer uncompression
+            repo_files (:obj:`str`): list of files in the repository
+            deleted_size (:obj:`int`): number of deleted bytes in the repository
 
         Example:
 
@@ -4031,8 +4034,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         shards_iter = iter(shards)
         first_shard = next(shards_iter)
         first_shard_path_in_repo = path_in_repo(0, first_shard)
-        if first_shard_path_in_repo in data_files:
-            logger.warning("Resuming upload of dataset shards")
+        if first_shard_path_in_repo in data_files and num_shards < len(data_files):
+            logger.warning("Resuming upload of the dataset shards.")
 
         uploaded_size = 0
         shards_path_in_repo = []
@@ -4073,6 +4076,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for data_file in data_files
             if data_file.startswith(f"data/{split}-") and data_file not in shards_path_in_repo
         ]
+        deleted_size = sum(xgetsize(hf_hub_url(repo_id, data_file)) for data_file in data_files_to_delete)
 
         def delete_file(file):
             api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
@@ -4086,7 +4090,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             ):
                 delete_file(data_file)
 
-        return repo_id, split, uploaded_size, dataset_nbytes
+        repo_files = list(set(files) - set(data_files_to_delete))
+
+        return repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size
 
     def push_to_hub(
         self,
@@ -4147,7 +4153,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             max_shard_size = shard_size
 
-        repo_id, split, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
+        repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
             split=split,
             private=private,
@@ -4165,6 +4171,37 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info_to_dump.splits = {
             split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)
         }
+        if config.DATASETDICT_INFOS_FILENAME in repo_files:
+            download_config = DownloadConfig()
+            download_config.download_desc = "Downloading metadata"
+            download_config.use_auth_token = token if token is not None else HfFolder.get_token()
+            dataset_infos_path = cached_path(
+                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
+                download_config=download_config,
+            )
+            with open(dataset_infos_path, encoding="utf-8") as f:
+                dataset_infos: DatasetInfosDict = json.load(f)
+                repo_info = DatasetInfo.from_dict(dataset_infos[next(iter(dataset_infos))])
+            logger.warning("Updating downloaded metadata with the new split.")
+
+            if repo_info.splits and list(repo_info.splits) != [split]:
+                if self.features != repo_info.features:
+                    raise ValueError(
+                        f"Features of the new split don't match the features of the existing splits on the hub: {self.features} != {repo_info.features}"
+                    )
+
+                if split in repo_info.splits:
+                    repo_info.download_size -= deleted_size
+                    repo_info.dataset_size -= repo_info.splits[split].num_bytes
+
+                repo_info.download_checksums = None
+                repo_info.download_size += uploaded_size
+                repo_info.dataset_size += dataset_nbytes
+                repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
+                repo_info.splits[split] = SplitInfo(
+                    split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
+                )
+                info_to_dump = repo_info
         buffer = BytesIO()
         buffer.write(f'{{"{organization}--{dataset_name}": '.encode())
         info_to_dump._dump_info(buffer, pretty_print=True)
