@@ -210,14 +210,12 @@ class DatasetDictTest(TestCase):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         dset = dset.remove_columns(column_names="col_1")
         for dset_split in dset.values():
-            self.assertEqual(dset_split._format_columns, None)
             self.assertEqual(dset_split.num_columns, 1)
             self.assertListEqual(list(dset_split.column_names), ["col_2"])
 
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         dset = dset.remove_columns(column_names=["col_1", "col_2"])
         for dset_split in dset.values():
-            self.assertEqual(dset_split._format_columns, None)
             self.assertEqual(dset_split.num_columns, 0)
         del dset
 
