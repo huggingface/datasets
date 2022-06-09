@@ -47,13 +47,18 @@ class patch_submodule:
 
     def __enter__(self):
         *submodules, target_attr = self.target.split(".")
+
         # Patch modules:
         # it's used to patch attributes of submodules like "os.path.join";
         # in this case we need to patch "os" and "os.path"
+
         for i in range(len(submodules)):
             submodule = import_module(".".join(submodules[: i + 1]))
+            # We iterate over all the globals in self.obj in case we find "os" or "os.path"
             for attr in self.obj.__dir__():
                 obj_attr = getattr(self.obj, attr)
+                # We don't check for the name of the global, but rather if its value *is* "os" or "os.path".
+                # This allows to patch renamed modules like "from os import path as ospath".
                 if obj_attr is submodule or (
                     (isinstance(obj_attr, _PatchedModuleObj) and obj_attr._original_module is submodule)
                 ):
@@ -67,17 +72,22 @@ class patch_submodule:
                         patched = getattr(patched, key)
                     # finally set the target attribute
                     setattr(patched, target_attr, self.new)
+
         # Patch attribute itself:
         # it's used for builtins like "open",
         # and also to patch "os.path.join" we may also need to patch "join"
         # itself if it was imported as "from os.path import join".
-        if submodules:  # if it's an attribute of a submodule
+
+        if submodules:  # if it's an attribute of a submodule like "os.path.join"
             attr_value = getattr(import_module(".".join(submodules)), target_attr)
+            # We iterate over all the globals in self.obj in case we find "os.path.join"
             for attr in self.obj.__dir__():
+                # We don't check for the name of the global, but rather if its value *is* "os.path.join".
+                # This allows to patch renamed attributes like "from os.path import join as pjoin".
                 if getattr(self.obj, attr) is attr_value:
                     self.original[attr] = getattr(self.obj, attr)
                     setattr(self.obj, attr, self.new)
-        elif target_attr in globals()["__builtins__"]:  # if it'a s builtin
+        elif target_attr in globals()["__builtins__"]:  # if it'a s builtin like "open"
             self.original[target_attr] = globals()["__builtins__"][target_attr]
             setattr(self.obj, target_attr, self.new)
         else:

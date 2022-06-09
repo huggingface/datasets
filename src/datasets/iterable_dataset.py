@@ -85,6 +85,19 @@ def _shuffle_kwargs(rng: np.random.Generator, kwargs: dict) -> dict:
 
 def _shard_kwargs(shard_idx: int, kwargs: dict) -> dict:
     """Return a copy of the input kwargs but with only one shard"""
+    # Having lists of different sizes makes sharding ambigious, raise an error in this case
+    # until we decide how to define sharding without ambiguity for users
+    lists_lengths = {key: len(value) for key, value in kwargs.items() if isinstance(value, list)}
+    if len(set(lists_lengths.values())) > 1:
+        raise RuntimeError(
+            (
+                "Sharding is ambiguous for this dataset: "
+                + "we found several data sources lists of different lengths, and we don't know over which list we should parallelize:\n"
+                + "\n".join(f"\t- key {key} has length {length}" for key, length in lists_lengths.items())
+                + "\nTo fix this, check the dataset script 'gen_kwargs' and make sure to use lists only for data sources, "
+                + "and use tuples otherwise. In the end there should only one single list, or several lists with the same length."
+            )
+        )
     return {key: [value[shard_idx]] if isinstance(value, list) else value for key, value in kwargs.items()}
 
 
