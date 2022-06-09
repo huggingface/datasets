@@ -131,9 +131,8 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
         dst_dirpath = os.path.join(local_path, os.path.relpath(dirpath, module_source_dirpath))
         os.makedirs(dst_dirpath, exist_ok=True)
         # skipping hidden directories; prune the search
-        for i in range(len(dirnames)):
-            if dirnames[i].startswith((".", "__")):
-                del dirnames[i]
+        # [:] for the in-place list modification required by os.walk
+        dirnames[:] = [dirname for dirname in dirnames if not dirname.startswith((".", "__"))]
         for filename in filenames:
             shutil.copy2(os.path.join(dirpath, filename), os.path.join(dst_dirpath, filename))
         shutil.copystat(dirpath, dst_dirpath)
@@ -168,9 +167,7 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
         dst_dirpath = os.path.join(local_path, os.path.relpath(dirpath, module_source_dirpath))
         os.makedirs(dst_dirpath, exist_ok=True)
         # skipping hidden directories; prune the search
-        for i in range(len(dirnames)):
-            if dirnames[i].startswith((".", "__")):
-                del dirnames[i]
+        dirnames[:] = [dirname for dirname in dirnames if not dirname.startswith((".", "__"))]
         for filename in filenames:
             shutil.copy2(os.path.join(dirpath, filename), os.path.join(dst_dirpath, filename))
         shutil.copystat(dirpath, dst_dirpath)
