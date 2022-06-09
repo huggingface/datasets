@@ -58,8 +58,6 @@ from multiprocess import Pool, RLock
 from requests import HTTPError
 from tqdm.auto import tqdm
 
-from datasets.formatting.formatting import _is_range_contiguous
-
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
@@ -78,6 +76,7 @@ from .fingerprint import (
     update_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
+from .formatting.formatting import _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
 from .search import IndexableMixin
 from .splits import NamedSplit, Split, SplitInfo
@@ -2998,7 +2997,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             indices (sequence, iterable, range, ndarray or Series): List or 1D-array of integer indices for indexing.
-                If the indices is a contiguous range, then no new indices mapping is created and the Arrow table is simply sliced,
+                If the indices correspond to a contiguous range, then no new indices mapping is created and the Arrow table is simply sliced,
                 which is much more efficient.
             keep_in_memory (:obj:`bool`, default `False`): Keep the indices mapping in memory instead of writing it to a cache file.
             indices_cache_file_name (:obj:`str`, optional, default `None`): Provide the name of a path for the cache file. It is used to store the
