@@ -1,4 +1,30 @@
-[Needs More Information]
+---
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
+languages:
+- en
+licenses:
+- apache-2.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- MS^2
+- Cochrane
+task_categories:
+- summarization
+- text2text-generation
+task_ids:
+- summarization
+- query-based-summarization 
+- other-other-query-based-multi-document-summarization
+- summarization-other-scientific-documents-summarization
+paperswithcode_id: multi-document-summarization
+pretty_name: MSLR Shared Task
+---
 
 # Dataset Card for MSLR2022
 
