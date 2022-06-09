@@ -4,22 +4,8 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-  release_v1:
-  - en
-  release_v2:
-  - en
-  release_v2.1:
-  - en
-  release_v2.1_constrained:
-  - en
-  release_v2_constrained:
-  - en
-  release_v3.0_en:
-  - en
-  release_v3.0_ru:
-  - ru
-  webnlg_challenge_2017:
-  - en
+- en
+- ru
 licenses:
 - cc-by-sa-3.0
 - cc-by-nc-sa-4.0
@@ -37,6 +23,15 @@ task_ids:
 - rdf-to-text
 paperswithcode_id: webnlg
 pretty_name: WebNLG
+configs:
+- release_v1
+- release_v2
+- release_v2.1
+- release_v2.1_constrained
+- release_v2_constrained
+- release_v3.0_en
+- release_v3.0_ru
+- webnlg_challenge_2017
 ---
 
 # Dataset Card for WebNLG

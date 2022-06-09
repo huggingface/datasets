@@ -67,7 +67,7 @@ REQUIRED_PKGS = [
     # Minimum 6.0.0 to support wrap_array which is needed for ArrayND features
     "pyarrow>=6.0.0",
     # For smart caching dataset processing
-    "dill",
+    "dill<0.3.6",  # tmp pin until 0.3.6 release: see https://github.com/huggingface/datasets/pull/4397
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
@@ -118,9 +118,9 @@ TESTS_REQUIRE = [
     # optional dependencies
     "apache-beam>=2.26.0",
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElastictSearch()
-    "aiobotocore",
-    "boto3",
-    "botocore",
+    "aiobotocore==1.4.2",  # to be compatible with boto3==1.17.106 - both have strong dependencies on botocore
+    "boto3==1.17.106",  # to be compatible with aiobotocore==1.4.2 - both have strong dependencies on botocore
+    "botocore==1.20.106",  # to be compatible with aiobotocore and boto3
     "faiss-cpu>=1.6.4",
     "fsspec[s3]",
     "moto[s3,server]==2.0.4",
@@ -144,6 +144,9 @@ TESTS_REQUIRE = [
     "py7zr",
     "tldextract",
     "zstandard",
+    "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz",
+    "sentencepiece",  # bigbench requires t5 which requires seqio which requires sentencepiece
+    "sacremoses",
     # metrics dependencies
     "bert_score>=0.3.6",
     "jiwer",
@@ -198,7 +201,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.2.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.2.3.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

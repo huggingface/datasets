@@ -15,38 +15,21 @@ size_categories:
 source_datasets:
 - extended
 task_categories:
-  ecthr_a:
-  - text-classification
-  ecthr_b:
-  - text-classification
-  eurlex:
-  - text-classification
-  scotus:
-  - text-classification
-  unfair_tos:
-  - text-classification
-  ledgar:
-  - text-classification
-  case_hold:
-  - question-answering
+- question-answering
+- text-classification
 task_ids:
-  ecthr_a:
-  - multi-label-classification
-  ecthr_b:
-  - multi-label-classification
-  eurlex:
-  - multi-label-classification
-  - topic-classification
-  scotus:
-  - multi-class-classification
-  - topic-classification
-  ledgar:
-  - multi-class-classification
-  - topic-classification
-  unfair_tos:
-  - multi-label-classification
-  case_hold:
-  - multiple-choice-qa
+- multi-class-classification
+- multi-label-classification
+- multiple-choice-qa
+- topic-classification
+configs:
+- case_hold
+- ecthr_a
+- ecthr_b
+- eurlex
+- ledgar
+- scotus
+- unfair_tos
 ---
 
 # Dataset Card for "LexGLUE"

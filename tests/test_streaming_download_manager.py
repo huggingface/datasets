@@ -7,8 +7,7 @@ import pytest
 from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
 
 import datasets
-from datasets.filesystems import COMPRESSION_FILESYSTEMS
-from datasets.utils.streaming_download_manager import (
+from datasets.download.streaming_download_manager import (
     StreamingDownloadManager,
     _as_posix,
     _get_extraction_protocol,
@@ -32,6 +31,7 @@ from datasets.utils.streaming_download_manager import (
     xsplit,
     xsplitext,
 )
+from datasets.filesystems import COMPRESSION_FILESYSTEMS
 
 from .utils import require_lz4, require_zstandard, slow
 
@@ -140,9 +140,9 @@ class DummyTestFS(AbstractFileSystem):
 
 @pytest.fixture
 def mock_fsspec(monkeypatch):
-    dummy_registry = datasets.utils.streaming_download_manager.fsspec.registry.target.copy()
+    dummy_registry = datasets.download.streaming_download_manager.fsspec.registry.target.copy()
     dummy_registry["mock"] = DummyTestFS
-    monkeypatch.setattr("datasets.utils.streaming_download_manager.fsspec.registry.target", dummy_registry)
+    monkeypatch.setattr("datasets.download.streaming_download_manager.fsspec.registry.target", dummy_registry)
 
 
 def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
@@ -226,7 +226,7 @@ def test_xjoin(input_path, paths_to_join, expected_path):
     ],
 )
 def test_xdirname(input_path, expected_path):
-    from datasets.utils.streaming_download_manager import xdirname
+    from datasets.download.streaming_download_manager import xdirname
 
     output_path = xdirname(input_path)
     output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
@@ -750,3 +750,10 @@ def test_iter_archive_file(tar_nested_jsonl_path):
             _test_jsonl(subpath, subfile)
     assert num_tar == 1
     assert num_jsonl == 2
+
+
+def test_iter_files(data_dir_with_hidden_files):
+    dl_manager = StreamingDownloadManager()
+    for num_file, file in enumerate(dl_manager.iter_files(data_dir_with_hidden_files), start=1):
+        pass
+    assert num_file == 2

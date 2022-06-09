@@ -43,6 +43,9 @@ from .data_files import (
     sanitize_patterns,
 )
 from .dataset_dict import DatasetDict, IterableDatasetDict
+from .download.download_config import DownloadConfig
+from .download.download_manager import DownloadMode
+from .download.streaming_download_manager import StreamingDownloadManager, xglob, xjoin
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .info import DatasetInfo, DatasetInfosDict
@@ -52,9 +55,7 @@ from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, 
 from .splits import Split
 from .streaming import extend_module_for_streaming
 from .tasks import TaskTemplate
-from .utils.download_manager import DownloadMode
 from .utils.file_utils import (
-    DownloadConfig,
     OfflineModeIsEnabled,
     _raise_if_offline_mode_is_enabled,
     cached_path,
@@ -69,7 +70,6 @@ from .utils.file_utils import (
 from .utils.filelock import FileLock
 from .utils.info_utils import is_small_dataset
 from .utils.logging import get_logger
-from .utils.streaming_download_manager import StreamingDownloadManager, xglob, xjoin
 from .utils.version import Version
 
 
@@ -792,15 +792,15 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "name": os.path.basename(self.path),
+            "config_name": os.path.basename(self.path),
             "base_path": self.path,
             **builder_kwargs,
         }
         if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
-                builder_kwargs["name"] = next(iter(dataset_infos))
-                builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["name"]])
+            builder_kwargs["config_name"] = next(iter(dataset_infos))
+            builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["config_name"]])
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
@@ -901,7 +901,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "name": self.name.replace("/", "--"),
+            "config_name": self.name.replace("/", "--"),
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
             "repo_id": self.name,
             **builder_kwargs,
@@ -916,8 +916,8 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
-                builder_kwargs["name"] = next(iter(dataset_infos))
-                builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["name"]])
+            builder_kwargs["config_name"] = next(iter(dataset_infos))
+            builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["config_name"]])
         except FileNotFoundError:
             pass
         return DatasetModule(module_path, hash, builder_kwargs)
@@ -1100,7 +1100,6 @@ def dataset_module_factory(
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[DownloadMode] = None,
-    force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
     data_dir: Optional[str] = None,
     data_files: Optional[Union[Dict, List, str, DataFilesDict]] = None,
@@ -1142,15 +1141,14 @@ def dataset_module_factory(
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
-            Used to inspect or modify the script folder.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default the datasets and metrics are stored inside the `datasets_modules` module.
         data_dir (:obj:`str`, optional): Directory with the data files. Used only if `data_files` is not specified,
             in which case it's equal to passing `os.path.join(data_dir, "**")` as `data_files`.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
-        download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
+        **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
+            the attributes in download_config if supplied.
 
     Returns:
         DatasetModule
@@ -1211,7 +1209,7 @@ def dataset_module_factory(
             path, data_dir=data_dir, data_files=data_files, download_mode=download_mode
         ).get_module()
     # Try remotely
-    elif is_relative_path(path) and path.count("/") <= 1 and not force_local_path:
+    elif is_relative_path(path) and path.count("/") <= 1:
         try:
             _raise_if_offline_mode_is_enabled()
             if path.count("/") == 0:  # even though the dataset is on the Hub, we get it from GitHub for now
@@ -1291,7 +1289,6 @@ def metric_module_factory(
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[DownloadMode] = None,
-    force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
     **download_kwargs,
 ) -> MetricModule:
@@ -1319,12 +1316,11 @@ def metric_module_factory(
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
-            Used to inspect or modify the script folder.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
-            By default the datasets and metrics are stored inside the `datasets_modules` module.
-        download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
+            By default, the datasets and metrics are stored inside the `datasets_modules` module.
+        **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
+            the attributes in download_config if supplied.
 
     Returns:
         MetricModule
@@ -1351,7 +1347,7 @@ def metric_module_factory(
         return LocalMetricModuleFactory(
             combined_path, download_mode=download_mode, dynamic_modules_path=dynamic_modules_path
         ).get_module()
-    elif is_relative_path(path) and path.count("/") == 0 and not force_local_path:
+    elif is_relative_path(path) and path.count("/") == 0:
         try:
             return GithubMetricModuleFactory(
                 path,
@@ -1431,6 +1427,15 @@ def load_metric(
 
     Returns:
         `datasets.Metric`
+
+    Example:
+
+    ```py
+    >>> from datasets import load_metric
+    >>> accuracy = load_metric('accuracy')
+    >>> accuracy.compute(references=[1, 0], predictions=[1, 1])
+    {'accuracy': 0.5}
+    ```
     """
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     metric_module = metric_module_factory(
@@ -1501,7 +1506,6 @@ def load_dataset_builder(
               -> load the dataset builder from the dataset script in the dataset repository
               e.g. ``glue``, ``squad``, ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
 
-
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration. If specified for the generic builders (csv, text etc.) or the Hub datasets and `data_files` is None,
             the behavior is equal to passing `os.path.join(data_dir, **)` as `data_files` to reference all the files in a directory.
@@ -1518,10 +1522,21 @@ def load_dataset_builder(
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
+        **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig`
+            and used in the :class:`DatasetBuilder`.
 
     Returns:
         :class:`DatasetBuilder`
 
+    Example:
+
+    ```py
+    >>> from datasets import load_dataset_builder
+    >>> ds_builder = load_dataset_builder('rotten_tomatoes')
+    >>> ds_builder.info.features
+    {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+     'text': Value(dtype='string', id=None)}
+    ```
     """
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     if use_auth_token is not None:
@@ -1540,7 +1555,7 @@ def load_dataset_builder(
     builder_cls = import_main_class(dataset_module.module_path)
     builder_kwargs = dataset_module.builder_kwargs
     data_files = builder_kwargs.pop("data_files", data_files)
-    name = builder_kwargs.pop("name", name)
+    config_name = builder_kwargs.pop("config_name", name)
     hash = builder_kwargs.pop("hash")
 
     if path in _PACKAGED_DATASETS_MODULES and data_files is None:
@@ -1555,7 +1570,7 @@ def load_dataset_builder(
     # Instantiate the dataset builder
     builder_instance: DatasetBuilder = builder_cls(
         cache_dir=cache_dir,
-        name=name,
+        config_name=config_name,
         data_dir=data_dir,
         data_files=data_files,
         hash=hash,
@@ -1678,7 +1693,8 @@ def load_dataset(
             Note that streaming works for datasets that use data formats that support being iterated over like txt, csv, jsonl for example.
             Json files may be downloaded completely. Also streaming from remote zip or gzip files is supported but other compressed formats
             like rar and xz are not yet supported. The tgz format doesn't allow streaming.
-        **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
+        **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig`
+            and used in the :class:`DatasetBuilder`.
 
     Returns:
         :class:`Dataset` or :class:`DatasetDict`:
@@ -1690,6 +1706,48 @@ def load_dataset(
         - if `split` is not None: the dataset requested,
         - if `split` is None, a ``datasets.streaming.IterableDatasetDict`` with each split.
 
+    Example:
+
+    Load a dataset from the Hugging Face Hub:
+
+    ```py
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset('rotten_tomatoes', split='train')
+
+    # Map data files to splits
+    >>> data_files = {'train': 'train.csv', 'test': 'test.csv'}
+    >>> ds = load_dataset('namespace/your_dataset_name', data_files=data_files)
+    ```
+
+    Load a local dataset:
+
+    ```py
+    # Load a CSV file
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset('csv', data_files='path/to/local/my_dataset.csv')
+
+    # Load a JSON file
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset('json', data_files='path/to/local/my_dataset.json')
+
+    # Load from a local loading script
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset('path/to/local/loading_script/loading_script.py', split='train')
+    ```
+
+    Load an [`~datasets.IterableDataset`]:
+
+    ```py
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset('rotten_tomatoes', split='train', streaming=True)
+    ```
+
+    Load an image dataset with the `ImageFolder` dataset builder:
+
+    ```py
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset('imagefolder', data_dir='/path/to/images', split='train')
+    ```
     """
     if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():
         raise ValueError(
@@ -1770,6 +1828,13 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
         :class:`Dataset` or :class:`DatasetDict`:
         - If `dataset_path` is a path of a dataset directory: the dataset requested.
         - If `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
+
+    Example:
+
+    ```py
+    >>> from datasets import load_from_disk
+    >>> ds = load_from_disk('path/to/dataset/directory')
+    ```
     """
     # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
     if is_remote_filesystem(fs):

@@ -21,6 +21,7 @@ from datasets.utils.file_utils import hf_hub_url
 
 _TEST_PATTERNS = ["*", "**", "**/*", "*.txt", "data/*", "**/*.txt", "**/train.txt"]
 _FILES_TO_IGNORE = {".dummy", "README.md", "dummy_data.zip", "dataset_infos.json"}
+_DIRS_TO_IGNORE = {"data/.dummy_subdir"}
 _TEST_PATTERNS_SIZES = dict(
     [
         ("*", 0),
@@ -57,7 +58,22 @@ def complex_data_dir(tmp_path):
     with open(data_dir / "data" / "subdir" / "test.txt", "w") as f:
         f.write("bar\n" * 10)
 
+    (data_dir / "data" / ".dummy_subdir").mkdir()
+    with open(data_dir / "data" / ".dummy_subdir" / "train.txt", "w") as f:
+        f.write("foo\n" * 10)
+    with open(data_dir / "data" / ".dummy_subdir" / "test.txt", "w") as f:
+        f.write("bar\n" * 10)
+
     return str(data_dir)
+
+
+def is_relative_to(path, *other):
+    # A built-in method in Python 3.9+
+    try:
+        path.relative_to(*other)
+        return True
+    except ValueError:
+        return False
 
 
 @pytest.fixture
@@ -78,7 +94,11 @@ def pattern_results(complex_data_dir):
         pattern: sorted(
             str(Path(path).resolve())
             for path in fsspec.filesystem("file").glob(os.path.join(complex_data_dir, pattern))
-            if Path(path).name not in _FILES_TO_IGNORE and Path(path).is_file()
+            if Path(path).name not in _FILES_TO_IGNORE
+            and not any(
+                is_relative_to(Path(path), os.path.join(complex_data_dir, dir_path)) for dir_path in _DIRS_TO_IGNORE
+            )
+            and Path(path).is_file()
         )
         for pattern in _TEST_PATTERNS
     }

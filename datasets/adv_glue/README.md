@@ -15,31 +15,19 @@ size_categories:
 source_datasets:
 - extended|glue
 task_categories:
-  adv_mnli:
-  - text-classification
-  adv_mnli_mismatched:
-  - text-classification
-  adv_qnli:
-  - text-classification
-  adv_qqp:
-  - text-classification
-  adv_rte:
-  - text-classification
-  adv_sst2:
-  - text-classification
+- text-classification
 task_ids:
-  adv_mnli:
-  - natural-language-inference
-  adv_mnli_mismatched:
-  - natural-language-inference
-  adv_qnli:
-  - text-classification-other-qa-nli
-  adv_qqp:
-  - text-classification-other-paraphrase-identification
-  adv_rte:
-  - natural-language-inference
-  adv_sst2:
-  - sentiment-classification
+- natural-language-inference
+- sentiment-classification
+- text-classification-other-paraphrase-identification
+- text-classification-other-qa-nli
+configs:
+- adv_mnli
+- adv_mnli_mismatched
+- adv_qnli
+- adv_qqp
+- adv_rte
+- adv_sst2
 ---
 
 # Dataset Card for Adversarial GLUE

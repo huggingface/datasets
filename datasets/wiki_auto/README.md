@@ -1,15 +1,7 @@
 ---
 annotations_creators:
-  auto:
-  - machine-generated
-  auto_acl:
-  - machine-generated
-  auto_full_no_split:
-  - machine-generated
-  auto_full_with_split:
-  - machine-generated
-  manual:
-  - crowdsourced
+- crowdsourced
+- machine-generated
 language_creators:
 - found
 languages:
@@ -28,6 +20,12 @@ task_ids:
 - text-simplification
 paperswithcode_id: null
 pretty_name: WikiAuto
+configs:
+- auto
+- auto_acl
+- auto_full_no_split
+- auto_full_with_split
+- manual
 ---
 
 # Dataset Card for WikiAuto

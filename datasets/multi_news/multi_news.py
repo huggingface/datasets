@@ -16,9 +16,6 @@
 # Lint as: python3
 """Multi-News dataset."""
 
-
-import os
-
 import datasets
 
 
@@ -44,7 +41,20 @@ There are two features:
   - summary: news summary.
 """
 
-_URL = "https://drive.google.com/uc?export=download&id=1vRY2wM6rlOZrf9exGTm5pXj5ExlVwJ0C"
+_URLs = {
+    "train": [
+        "https://drive.google.com/uc?export=download&id=1wHAWDOwOoQWSj7HYpyJ3Aeud8WhhaJ7P",
+        "https://drive.google.com/uc?export=download&id=1QVgswwhVTkd3VLCzajK6eVkcrSWEK6kq",
+    ],
+    "val": [
+        "https://drive.google.com/uc?export=download&id=1p_u9_jpz3Zbj0EL05QFX6wvJAahmOn6h",
+        "https://drive.google.com/uc?export=download&id=1Y1lBbBU5Q0aJMqLhYEOdEtTqQ85XnRRM",
+    ],
+    "test": [
+        "https://drive.google.com/uc?export=download&id=1-n_6fj-1nM7sWtBSNkQCSfl5Rb3zPVfr",
+        "https://drive.google.com/uc?export=download&id=1CX_YcgQ3WwNC1fXBpMfwMXFPCqsd9Lbp",
+    ],
+}
 
 _DOCUMENT = "document"
 _SUMMARY = "summary"
@@ -66,33 +76,30 @@ class MultiNews(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        extract_path = os.path.join(dl_manager.download_and_extract(_URL), "multi-news-original")
+        files = dl_manager.download(_URLs)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"path": os.path.join(extract_path, "train")},
+                gen_kwargs={"src_file": files["train"][0], "tgt_file": files["train"][1]},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"path": os.path.join(extract_path, "val")},
+                gen_kwargs={"src_file": files["val"][0], "tgt_file": files["val"][1]},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"path": os.path.join(extract_path, "test")},
+                gen_kwargs={"src_file": files["test"][0], "tgt_file": files["test"][1]},
             ),
         ]
 
-    def _generate_examples(self, path=None):
+    def _generate_examples(self, src_file, tgt_file):
         """Yields examples."""
-        with open(os.path.join(path + ".src"), encoding="utf-8") as src_f, open(
-            os.path.join(path + ".tgt"), encoding="utf-8"
-        ) as tgt_f:
+        with open(src_file, encoding="utf-8") as src_f, open(tgt_file, encoding="utf-8") as tgt_f:
             for i, (src_line, tgt_line) in enumerate(zip(src_f, tgt_f)):
                 yield i, {
                     # In original file, each line has one example and natural newline
                     # tokens "\n" are being replaced with "NEWLINE_CHAR". Here restore
                     # the natural newline token to avoid special vocab "NEWLINE_CHAR".
                     _DOCUMENT: src_line.strip().replace("NEWLINE_CHAR", "\n"),
-                    # Remove the starting token "- " for every target sequence.
-                    _SUMMARY: tgt_line.strip().lstrip("- "),
+                    _SUMMARY: tgt_line.strip(),
                 }
