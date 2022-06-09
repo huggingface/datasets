@@ -5,6 +5,7 @@ import posixpath
 import re
 import tarfile
 import time
+import xml.dom.minidom
 from asyncio import TimeoutError
 from io import BytesIO
 from itertools import chain
@@ -692,6 +693,25 @@ def xet_parse(source, parser=None, use_auth_token: Optional[Union[str, bool]] = 
     else:
         with xopen(source, "rb", use_auth_token=use_auth_token) as f:
             return ET.parse(f, parser=parser)
+
+
+def xxml_dom_minidom_parse(filename_or_file, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
+    """Extend `xml.dom.minidom.parse` function to support remote files.
+
+    Args:
+        filename_or_file (`str` or file): File path or file object.
+        use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
+        **kwargs (optional): Additional keyword arguments passed to `xml.dom.minidom.parse`.
+
+    Returns:
+        :obj:`xml.dom.minidom.Document`: Parsed document.
+    """
+    if hasattr(filename_or_file, "read"):
+        return xml.dom.minidom.parse(filename_or_file, **kwargs)
+    else:
+        with xopen(filename_or_file, "rb", use_auth_token=use_auth_token) as f:
+            return xml.dom.minidom.parse(f, **kwargs)
 
 
 class _IterableFromGenerator(Iterable):

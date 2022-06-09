@@ -29,6 +29,7 @@ from .download.streaming_download_manager import (
     xsplit,
     xsplitext,
     xwalk,
+    xxml_dom_minidom_parse,
 )
 from .utils.logging import get_logger
 from .utils.patching import patch_submodule
@@ -98,6 +99,9 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     patch_submodule(module, "pd.read_csv", wrap_auth(xpandas_read_csv), attrs=["__version__"]).start()
     patch_submodule(module, "pd.read_excel", xpandas_read_excel, attrs=["__version__"]).start()
     patch_submodule(module, "sio.loadmat", wrap_auth(xsio_loadmat), attrs=["__version__"]).start()
+    # xml.dom.minidom
+    if hasattr(module, "parse") and module.parse.__module__ == "xml.dom.minidom":
+        patch_submodule(module, "parse", wrap_auth(xxml_dom_minidom_parse)).start()
     # xml.etree.ElementTree
     for submodule in ["ElementTree", "ET"]:
         patch_submodule(module, f"{submodule}.parse", wrap_auth(xet_parse)).start()
