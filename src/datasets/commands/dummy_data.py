@@ -8,8 +8,6 @@ from argparse import ArgumentParser
 from pathlib import Path
 from typing import Optional
 
-import pandas as pd
-
 from datasets import config
 from datasets.commands import BaseDatasetsCLICommand
 from datasets.download.download_config import DownloadConfig
@@ -116,7 +114,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         if os.path.isfile(src_path):
             logger.debug(f"Trying to generate dummy data file {dst_path}")
             dst_path_extensions = Path(dst_path).suffixes
-            line_by_line_extensions = [".txt", ".jsonl", ".tsv"]
+            line_by_line_extensions = [".txt", ".csv", ".jsonl", ".tsv"]
             is_line_by_line_text_file = any(extension in dst_path_extensions for extension in line_by_line_extensions)
             if match_text_files is not None:
                 file_name = os.path.basename(dst_path)
@@ -133,12 +131,6 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                                 break
                             first_lines.append(line)
                         dst_file.write("".join(first_lines).strip())
-                return 1
-            elif ".csv" in dst_path_extensions:
-                Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
-                input_csv = pd.read_csv(src_path, encoding=encoding)
-                first_lines = input_csv[:n_lines]
-                first_lines.to_csv(dst_path, encoding=encoding)
                 return 1
             # json file
             elif ".json" in dst_path_extensions:
