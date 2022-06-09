@@ -1006,7 +1006,6 @@ def dataset_module_factory(
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[DownloadMode] = None,
-    force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
     data_dir: Optional[str] = None,
     data_files: Optional[Union[Dict, List, str, DataFilesDict]] = None,
@@ -1048,8 +1047,6 @@ def dataset_module_factory(
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
-            Used to inspect or modify the script folder.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default the datasets and metrics are stored inside the `datasets_modules` module.
@@ -1118,7 +1115,7 @@ def dataset_module_factory(
             path, data_dir=data_dir, data_files=data_files, download_mode=download_mode
         ).get_module()
     # Try remotely
-    elif is_relative_path(path) and path.count("/") <= 1 and not force_local_path:
+    elif is_relative_path(path) and path.count("/") <= 1:
         try:
             _raise_if_offline_mode_is_enabled()
             if path.count("/") == 0:  # even though the dataset is on the Hub, we get it from GitHub for now
@@ -1198,7 +1195,6 @@ def metric_module_factory(
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[DownloadMode] = None,
-    force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
     **download_kwargs,
 ) -> MetricModule:
@@ -1226,8 +1222,6 @@ def metric_module_factory(
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
-            Used to inspect or modify the script folder.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default, the datasets and metrics are stored inside the `datasets_modules` module.
@@ -1259,7 +1253,7 @@ def metric_module_factory(
         return LocalMetricModuleFactory(
             combined_path, download_mode=download_mode, dynamic_modules_path=dynamic_modules_path
         ).get_module()
-    elif is_relative_path(path) and path.count("/") == 0 and not force_local_path:
+    elif is_relative_path(path) and path.count("/") == 0:
         try:
             return GithubMetricModuleFactory(
                 path,
