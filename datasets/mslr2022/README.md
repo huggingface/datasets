@@ -18,7 +18,6 @@ task_categories:
 - summarization
 - text2text-generation
 task_ids:
-- summarization
 - query-based-summarization 
 - other-other-query-based-multi-document-summarization
 - summarization-other-scientific-documents-summarization
