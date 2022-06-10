@@ -33,6 +33,8 @@
     title: Process image data
   - local: stream
     title: Stream
+  - local: pytorch
+    title: Use with PyTorch
   - local: share
     title: Share
   - local: dataset_script
