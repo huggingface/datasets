@@ -1247,6 +1247,10 @@ def dataset_module_factory(
                     elif "404" in str(e):
                         msg = f"Dataset '{path}' doesn't exist on the Hub"
                         raise FileNotFoundError(msg + f" at revision '{revision}'" if revision else msg)
+                    elif "401" in str(e):
+                        msg = f"Dataset '{path}' doesn't exist on the Hub"
+                        msg = msg + f" at revision '{revision}'" if revision else msg
+                        raise FileNotFoundError(msg + ". If the repo is private, make sure you are authenticated.")
                     else:
                         raise e
                 if filename in [sibling.rfilename for sibling in dataset_info.siblings]:
