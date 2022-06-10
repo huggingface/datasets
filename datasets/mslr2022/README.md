@@ -18,8 +18,8 @@ task_categories:
 - summarization
 - text2text-generation
 task_ids:
-- query-based-summarization 
-- other-other-query-based-multi-document-summarization
+- summarization-other-query-based-summarization 
+- summarization-other-query-based-multi-document-summarization
 - summarization-other-scientific-documents-summarization
 paperswithcode_id: multi-document-summarization
 pretty_name: MSLR Shared Task
