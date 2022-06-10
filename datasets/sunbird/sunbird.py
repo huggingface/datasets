@@ -93,7 +93,6 @@ class Sunbird(datasets.GeneratorBasedBuilder):
         domain = "supervised"
 
         if domain=="supervised":
-            print(_URL["supervised"].format(lang_pair))
             dl_dir = dl_manager.download_and_extract(_URL["supervised"].format(lang_pair))
 
         data_dir = os.path.join(dl_dir, os.path.join("v7-dataset/v7.0", domain, lang_pair))
