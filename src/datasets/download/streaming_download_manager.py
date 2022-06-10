@@ -5,6 +5,7 @@ import posixpath
 import re
 import tarfile
 import time
+import xml.dom.minidom
 from asyncio import TimeoutError
 from io import BytesIO
 from itertools import chain
@@ -694,6 +695,25 @@ def xet_parse(source, parser=None, use_auth_token: Optional[Union[str, bool]] = 
             return ET.parse(f, parser=parser)
 
 
+def xxml_dom_minidom_parse(filename_or_file, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
+    """Extend `xml.dom.minidom.parse` function to support remote files.
+
+    Args:
+        filename_or_file (`str` or file): File path or file object.
+        use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
+        **kwargs (optional): Additional keyword arguments passed to `xml.dom.minidom.parse`.
+
+    Returns:
+        :obj:`xml.dom.minidom.Document`: Parsed document.
+    """
+    if hasattr(filename_or_file, "read"):
+        return xml.dom.minidom.parse(filename_or_file, **kwargs)
+    else:
+        with xopen(filename_or_file, "rb", use_auth_token=use_auth_token) as f:
+            return xml.dom.minidom.parse(f, **kwargs)
+
+
 class _IterableFromGenerator(Iterable):
     """Utility class to create an iterable from a generator function, in order to reset the generator when needed."""
 
@@ -759,11 +779,10 @@ class FilesIterable(_IterableFromGenerator):
                 yield urlpath
             else:
                 for dirpath, dirnames, filenames in xwalk(urlpath, use_auth_token=use_auth_token):
-                    for i, dirname in enumerate(dirnames):
-                        if dirname.startswith((".", "__")):
-                            # skipping hidden directories; prune the search
-                            # (only works for local paths as fsspec's walk doesn't support the in-place modification)
-                            del dirnames[i]
+                    # skipping hidden directories; prune the search
+                    # [:] for the in-place list modification required by os.walk
+                    # (only works for local paths as fsspec's walk doesn't support the in-place modification)
+                    dirnames[:] = [dirname for dirname in dirnames if not dirname.startswith((".", "__"))]
                     if xbasename(dirpath).startswith((".", "__")):
                         # skipping hidden directories
                         continue
