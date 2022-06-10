@@ -21,7 +21,7 @@ import datasets
 
 _HOMEPAGE = "http://shuoyang1213.me/WIDERFACE/"
 
-_LICENSE = "Unknown"
+_LICENSE = "Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)"
 
 _CITATION = """\
 @inproceedings{yang2016wider,
