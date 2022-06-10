@@ -12,8 +12,8 @@ multilinguality:
 size_categories:
 - 10K<n<100K
 source_datasets:
-- MS^2
-- Cochrane
+- extended|other-MS^2
+- extended|other-Cochrane
 task_categories:
 - summarization
 - text2text-generation
