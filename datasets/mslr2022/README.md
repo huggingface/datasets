@@ -166,7 +166,22 @@ __Cochrane__
 
 ### Data Fields
 
-[Needs More Information]
+__MS^2__
+
+- `"review_id"`: The PubMed ID of the review.
+- `"pmid"`: The PubMed IDs of the included studies.
+- `"title"`: The titles of the included studies.
+- `"abstract"`: The abstracts of the included studies.
+- `"target"`: The conclusions, taken from the abstract of the review, that serve as the summarization target.
+- `"background"`: A description of the reviews objective.
+
+__Cochrane__
+
+- `"review_id"`: The PubMed ID of the review.
+- `"pmid"`: The PubMed IDs of the included studies.
+- `"title"`: The titles of the included studies.
+- `"abstract"`: The abstracts of the included studies.
+- `"target"`: The conclusions, taken from the abstract of the review, that serve as the summarization target.
 
 ### Data Splits
 
