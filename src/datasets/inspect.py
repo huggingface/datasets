@@ -27,13 +27,7 @@ from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager
 from .info import DatasetInfo
-from .load import (
-    dataset_module_factory,
-    extend_dataset_builder_for_streaming,
-    import_main_class,
-    load_dataset_builder,
-    metric_module_factory,
-)
+from .load import dataset_module_factory, import_main_class, load_dataset_builder, metric_module_factory
 from .utils.file_utils import relative_to_absolute_path
 from .utils.logging import get_logger
 from .utils.version import Version
@@ -349,7 +343,6 @@ def get_dataset_config_info(
         use_auth_token=use_auth_token,
         **config_kwargs,
     )
-    extend_dataset_builder_for_streaming(builder, use_auth_token=use_auth_token)
     info = builder.info
     if info.splits is None:
         try:
