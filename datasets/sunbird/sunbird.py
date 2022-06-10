@@ -142,10 +142,9 @@ class Sunbird(datasets.GeneratorBasedBuilder):
         """Generates training/test examples."""
         src_tag, tgt_tag = self.config.language_pair.split("-")
         with open(filepath, encoding="utf-8") as f1, open(labelpath, encoding="utf-8") as f2:
-            src = f1.read().split("\n")[:-1]
-            tgt = f2.read().split("\n")[:-1]
-            for idx, (s, t) in enumerate(zip(src, tgt)):
-                yield idx, {"translation": {src_tag: s, tgt_tag: t}}
+            for idx, (s, t) in enumerate(zip(f1, f2)):
+                if s.strip() and t.strip():
+                    yield idx, {"translation": {src_tag: s.strip(), tgt_tag: t.strip()}}
 
 
 
