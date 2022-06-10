@@ -101,5 +101,5 @@ class Sst2(datasets.GeneratorBasedBuilder):
                         yield idx, {
                             "idx": row["index"] if "index" in row else idx,
                             "sentence": row["sentence"],
-                            "label": int(row["label"]) if "label" in row else -1
+                            "label": int(row["label"]) if "label" in row else -1,
                         }
