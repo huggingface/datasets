@@ -95,7 +95,7 @@ def _shard_kwargs(shard_idx: int, kwargs: dict) -> dict:
                 + "we found several data sources lists of different lengths, and we don't know over which list we should parallelize:\n"
                 + "\n".join(f"\t- key {key} has length {length}" for key, length in lists_lengths.items())
                 + "\nTo fix this, check the dataset script 'gen_kwargs' and make sure to use lists only for data sources, "
-                + "and use tuples otherwise. In the end there should only have one single list, or several lists with the same length."
+                + "and use tuples otherwise. In the end there should only be one single list, or several lists with the same length."
             )
         )
     return {key: [value[shard_idx]] if isinstance(value, list) else value for key, value in kwargs.items()}
