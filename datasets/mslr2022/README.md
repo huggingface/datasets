@@ -90,7 +90,20 @@ More information on dataset structure [here](https://github.com/allenai/mslr-sha
 
 ### Data Splits
 
-[Needs More Information]
+Each dataset is split into training, validation and test partitions
+
+__MS^2__
+
+| train | validation | test |
+|------:|-----------:|-----:|
+| 14188 |       2021 | 1667 |
+
+__Cochrane__
+
+| train | validation | test |
+|------:|-----------:|-----:|
+|  3752 |        470 |  470 |
+
 
 ## Dataset Creation
 
