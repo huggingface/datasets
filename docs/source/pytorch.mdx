@@ -38,7 +38,8 @@ To load the data as tensors on a GPU, you can also specify the `device` argument
 
 ### N-dimensional arrays
 
-If your dataset consists of N-dimensional arrays, you will see that by default they are considered as nested lists. In particular, a PyTorch formatted dataset outputs nested lists instead of one single tensor:
+If your dataset consists of N-dimensional arrays, you will see that by default they are considered as nested lists.
+In particular, a PyTorch formatted dataset outputs nested lists instead of one single tensor:
 
 ```py
 >>> from datasets import Dataset
@@ -71,10 +72,114 @@ To get one single tensor, you must explicitly use the Array feature type and spe
 
 ### Other feature types
 
+[`ClassLabel`] data are properly converted to tensors:
+
+```py
+>>> from datasets import Dataset, Features, ClassLabel
+>>> data = [0, 0, 1]
+>>> features = Features({"data": ClassLabel(names=["negative", "positive"])})
+>>> ds = Dataset.from_dict({"data": data}, features=features) 
+>>> ds = ds.with_format("pytorch")  
+>>> ds[:3]
+{'data': tensor([0, 0, 1])}
+```
+
+However, since it's not possible to convert text data to PyTorch tensors, you can't format a `string` column to PyTorch.
+Instead, you can explicitly format certain columns and leave the other columns unformatted:
+
+```py
+>>> from datasets import Dataset, Features 
+>>> text = ["foo", "bar"]
+>>> data = [0, 1] 
+>>> ds = Dataset.from_dict({"text": text, "data": data})  
+>>> ds = ds.with_format("pytorch", columns=["data"], output_all_columns=True) 
+>>> ds[:2]                                                                                                                                                     
+{'data': tensor([0, 1]), 'text': ['foo', 'bar']}
+```
+
+The [`Image`] and [`Audio`] feature types are not supported yet.
+
 ## Data loading
 
-### With a DataLoader
+Like `torch.utils.data.Dataset` objects, a [`Dataset`] can be passed directly to a PyTorch `DataLoader`:
 
-### Multiple Workers
+```py
+>>> import numpy as np
+>>> from datasets import Dataset 
+>>> from torch.utils.data import DataLoader
+>>> data = np.random.rand(16)
+>>> label = np.random.randint(0, 2, size=16)
+>>> ds = Dataset.from_dict({"data": data, "label": label}).with_format("pytorch")
+>>> dataloader = DataLoader(ds, batch_size=4)
+>>> for batch in dataloader:
+...     print(batch)                                                                                            
+{'data': tensor([0.0047, 0.4979, 0.6726, 0.8105]), 'label': tensor([0, 1, 0, 1])}
+{'data': tensor([0.4832, 0.2723, 0.4259, 0.2224]), 'label': tensor([0, 0, 0, 0])}
+{'data': tensor([0.5837, 0.3444, 0.4658, 0.6417]), 'label': tensor([0, 1, 0, 0])}
+{'data': tensor([0.7022, 0.1225, 0.7228, 0.8259]), 'label': tensor([1, 1, 1, 1])}
+```
 
-### In streaming mode
+### Optimize data loading
+
+#### Use multiple Workers
+
+You can parallelize data loading the `num_workers` argument of a PyTorch `DataLoader` and get a higher throughput.
+
+Under the hood, the `DataLoader` starts `num_workers` processes.
+Each process reloads the dataset passed to the `DataLoader` and is used to query examples.
+Reloading the dataset inside a worker doesn't fill up your RAM, since it simply memory-map the dataset again from your disk.
+
+```py
+>>> import numpy as np
+>>> from datasets import Dataset, load_from_disk
+>>> from torch.utils.data import DataLoader
+>>> data = np.random.rand(10_000)
+>>> Dataset.from_dict({"data": data}).save_to_disk("my_dataset")
+>>> ds = load_from_disk("my_dataset").with_format("torch")
+>>> dataloader = DataLoader(ds, batch_size=32, num_workers=4)
+```
+
+#### Use a BatchSampler
+
+By default the pytorch data loader load batches of data from a dataset one by one like this:
+
+```py
+batch = [dataset[idx] for idx in range(start, end)]
+```
+
+Unfortunately, this does numerous read operations on the dataset.
+It is more efficient to query batches of examples using a list:
+
+```py
+batch = dataset[start:end]
+# or
+batch = dataset[list_of_indices]
+```
+
+For the pytorch data loader to query batches using a list, you can use a `BatchSampler`:
+
+```py
+>>> from torch.utils.data.sampler import BatchSampler, RandomSampler
+>>> sampler = BatchSampler(RandomSampler(ds), batch_size=32, drop_last=False)
+>>> dataloader = DataLoader(ds, sampler=sampler)
+```
+
+Moreover, this is particularly useful if you used [`set_transform`] to apply a transform on-the-fly when examples are accessed.
+You must use a `BatchSampler` if you want the transform to be given full batches instead of receiving `batch_size` times one single element.
+
+### Stream data
+
+Loading a dataset in streaming mode is useful to progressively download the data you need while iterating over the dataset.
+Set the format of a streaming dataset to "pytorch", and it inherits from `torch.utils.data.IterableDataset` so you can pass it to a DataLoader:
+
+```py
+>>> import numpy as np
+>>> from datasets import Dataset, load_dataset
+>>> from torch.utils.data import DataLoader
+>>> data = np.random.rand(10_000)
+>>> Dataset.from_dict({"data": data}).push_to_hub("<username>/my_dataset")  # Upload to the Hugging Face Hub
+>>> ds = load_dataset("<username>/my_dataset", streaming=True, split="train").with_format("torch")
+>>> dataloader = DataLoader(ds, batch_size=32)
+>>> for batch in dataloader: 
+...     pass
+```
