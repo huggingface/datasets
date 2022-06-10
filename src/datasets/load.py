@@ -288,17 +288,36 @@ def _download_additional_modules(
         local_imports.append((import_name, local_import_path))
 
     # Check library imports
-    needs_to_be_installed = []
+    needs_to_be_installed = {}
     for library_import_name, library_import_path in library_imports:
         try:
             lib = importlib.import_module(library_import_name)  # noqa F841
         except ImportError:
-            needs_to_be_installed.append((library_import_name, library_import_path))
+            # Add/update an entry if a new library name is encountered or a '# From' path different from a library name
+            if library_import_name not in needs_to_be_installed or (
+                library_import_name != library_import_path
+                and library_import_name == needs_to_be_installed[library_import_name]
+            ):
+                needs_to_be_installed[library_import_name] = library_import_path
+            # Raise an error if a '# From' path different from a library name has been encountered twice for the same library
+            elif (
+                library_import_name in needs_to_be_installed
+                and library_import_name != library_import_path
+                and library_import_path != needs_to_be_installed[library_import_name]
+            ):
+                raise ValueError(
+                    f"Error in the {name} script, two different '# From:' directives ('{needs_to_be_installed[library_import_name]}' and '{library_import_path}') are specified for the same library ('{library_import_name}')"
+                )
     if needs_to_be_installed:
+        needs_to_be_installed_str = "\n".join(
+            [
+                f"\t- '{lib_name}' using 'pip install {lib_path}'"
+                for lib_name, lib_path in needs_to_be_installed.items()
+            ]
+        )
         raise ImportError(
-            f"To be able to use {name}, you need to install the following dependencies"
-            f"{[lib_name for lib_name, lib_path in needs_to_be_installed]} using 'pip install "
-            f"{' '.join([lib_path for lib_name, lib_path in needs_to_be_installed])}' for instance'"
+            f"To be able to use {name}, you need to install the following dependencies:\n"
+            f"{needs_to_be_installed_str}"
         )
     return local_imports
 
