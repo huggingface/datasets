@@ -1,5 +1,9 @@
 # Using Datasets with TensorFlow
 
+This document is a quick introduction to using `datasets` with TensorFlow, with a particular focus on how to get
+`tf.Tensor` objects out of our datasets, and how to stream data from Hugging Face `Dataset` objects to Keras methods
+like `model.fit()`.
+
 ### Dataset format
 
 By default, datasets return regular Python objects: integers, floats, strings, lists, etc.
@@ -154,7 +158,7 @@ that you set the batch size when creating the dataset, and so you don't need to 
 >>> model.fit(tf_ds, epochs=2)
 ```
 
-For a full description of the arguments, please see the [`~Dataset.to_tf_dataset`]. In many cases,
+For a full description of the arguments, please see the [`~Dataset.to_tf_dataset`] documentation. In many cases,
 you will also need to add a `collate_fn` to your call. This is a function that takes multiple elements of the dataset
 and combines them into a single batch. When all elements have the same length, the built-in default collator will
 suffice, but for more complex tasks a custom collator may be necessary. In particular, many tasks have samples
