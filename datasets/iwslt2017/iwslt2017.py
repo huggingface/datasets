@@ -40,7 +40,7 @@ The IWSLT 2017 Evaluation Campaign includes a multilingual TED Talks MT task. Th
 For each language pair, training and development sets are available through the entry of the table below: by clicking, an archive will be downloaded which contains the sets and a README file. Numbers in the table refer to millions of units (untokenized words) of the target side of all parallel training sets.
 """
 
-MULTI_URL = "https://wit3.fbk.eu/archive/2017-01-trnmted//texts/DeEnItNlRo/DeEnItNlRo/DeEnItNlRo-DeEnItNlRo.tgz"
+MULTI_URL = "https://huggingface.co/datasets/iwslt2017/resolve/ebd7c60d9800c2a1be010a227e5f0a2363730f7a/data/2017-01-trnmted/texts/DeEnItNlRo/DeEnItNlRo/DeEnItNlRo-DeEnItNlRo.tgz"
 
 
 class IWSLT2017Config(datasets.BuilderConfig):
@@ -118,7 +118,7 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
             data_dir = os.path.join(dl_dir, "DeEnItNlRo-DeEnItNlRo")
             years = [2010]
         else:
-            bi_url = f"https://wit3.fbk.eu/archive/2017-01-trnted/texts/{source}/{target}/{source}-{target}.tgz"
+            bi_url = f"https://huggingface.co/datasets/iwslt2017/resolve/ebd7c60d9800c2a1be010a227e5f0a2363730f7a/data/2017-01-trnted/texts/{source}/{target}/{source}-{target}.tgz"
             dl_dir = dl_manager.download_and_extract(bi_url)
             data_dir = os.path.join(dl_dir, f"{source}-{target}")
             years = [2010, 2011, 2012, 2013, 2014, 2015]
