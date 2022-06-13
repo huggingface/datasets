@@ -154,7 +154,7 @@ that you set the batch size when creating the dataset, and so you don't need to 
 >>> model.fit(tf_ds, epochs=2)
 ```
 
-For a full description of the arguments, please see the `to_tf_dataset()` [documentation](https://huggingface.co/docs/datasets/package_reference/main_classes#datasets.Dataset.to_tf_dataset). In many cases,
+For a full description of the arguments, please see the [`~Dataset.to_tf_dataset`]. In many cases,
 you will also need to add a `collate_fn` to your call. This is a function that takes multiple elements of the dataset
 and combines them into a single batch. When all elements have the same length, the built-in default collator will
 suffice, but for more complex tasks a custom collator may be necessary. In particular, many tasks have samples
