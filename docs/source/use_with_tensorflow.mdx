@@ -39,8 +39,8 @@ which runs the map function immediately and saves the new or changed columns.
 
 Since the entire data preprocessing pipeline can be compiled in a `tf.data.Dataset`, this approach allows for massively
 parallel, asynchronous data loading and training. However, the requirement for graph compilation can be a limitation,
-particularly for HuggingFace tokenizers, which are usually not (yet!) compilable as part of a TF graph. As a result, for NLP
-tasks we usually advise pre-processing the dataset as a Hugging Face dataset, where arbitrary Python functions can be
+particularly for HuggingFace tokenizers, which are usually not (yet!) compilable as part of a TF graph. As a result, 
+we usually advise pre-processing the dataset as a Hugging Face dataset, where arbitrary Python functions can be
 used, and then converting to `tf.data.Dataset` afterwards using `to_tf_dataset()` to get a batched dataset ready for
 training. To see examples of this approach, please see the example scripts(link) or notebooks(link) for `transformers`.
 
