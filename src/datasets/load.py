@@ -194,17 +194,20 @@ def _download_additional_modules(
         local_imports.append((import_name, local_import_path))
 
     # Check library imports
-    needs_to_be_installed = []
+    needs_to_be_installed = {}
     for library_import_name, library_import_path in library_imports:
         try:
             lib = importlib.import_module(library_import_name)  # noqa F841
         except ImportError:
-            needs_to_be_installed.append((library_import_name, library_import_path))
+            if library_import_name not in needs_to_be_installed or library_import_path != library_import_name:
+                needs_to_be_installed[library_import_name] = library_import_path
     if needs_to_be_installed:
+        _depencencies_str = "dependencies" if len(needs_to_be_installed) > 1 else "dependency"
+        _them_str = "them" if len(needs_to_be_installed) > 1 else "it"
         raise ImportError(
-            f"To be able to use {name}, you need to install the following dependencies"
-            f"{[lib_name for lib_name, lib_path in needs_to_be_installed]} using 'pip install "
-            f"{' '.join([lib_path for lib_name, lib_path in needs_to_be_installed])}' for instance'"
+            f"To be able to use {name}, you need to install the following {_depencencies_str}: "
+            f"{', '.join(needs_to_be_installed)}.\nPlease install {_them_str} using 'pip install "
+            f"{' '.join(needs_to_be_installed.values())}' for instance'"
         )
     return local_imports
 
