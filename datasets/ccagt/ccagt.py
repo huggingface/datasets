@@ -1,10 +1,7 @@
-from __future__ import annotations
-
 import json
 import os
 from collections import OrderedDict, defaultdict
 from math import ceil
-from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -54,7 +51,7 @@ informed consent form.
 _DATA_URL = "https://md-datasets-cache-zipfiles-prod.s3.eu-west-1.amazonaws.com/wg4bpm33hj-2.zip"
 
 
-def tvt(ids: list[int], tvt_size: tuple[float, float, float], seed: int = 1609) -> tuple[set[int], set[int], set[int]]:
+def tvt(ids, tvt_size, seed=1609):
     """From a list of indexes/ids (int) will generate the train-validation-test data.
 
     Based on `github.com/scikit-learn/scikit-learn/blob/37ac6788c9504ee409b75e5e24ff7d86c90c2ffb/sklearn/model_selection/_split.py#L2321`
@@ -79,7 +76,7 @@ def tvt(ids: list[int], tvt_size: tuple[float, float, float], seed: int = 1609) 
     return out["train"], out["valid"], out["test"]
 
 
-def annotations_per_image(df: pd.DataFrame) -> pd.DataFrame:
+def annotations_per_image(df):
     """
     based on: https://github.com/johnnv1/CCAgT-utils/blob/54ade78e4ddb2e2ed9507b8a1633940897767cac/CCAgT_utils/describe.py#L152
     """
@@ -102,9 +99,7 @@ def annotations_per_image(df: pd.DataFrame) -> pd.DataFrame:
     return df_describe_images
 
 
-def tvt_by_nors(
-    df: pd.DataFrame, tvt_size: tuple[float, float, float] = (0.7, 0.15, 0.15), **kwargs: Any
-) -> tuple[set[int], set[int], set[int]]:
+def tvt_by_nors(df, tvt_size=(0.7, 0.15, 0.15), **kwargs):
     """This will split the CCAgT annotations based on the number of NORs
     into each image. With a silly separation, first will split
     between each fold images with one or less NORs, after will split
@@ -123,9 +118,9 @@ def tvt_by_nors(
     img_ids["medium_nors"] = df_describe_imgs[(df_describe_imgs["NORs"] >= 2) * (df_describe_imgs["NORs"] <= 7)].index
     img_ids["high_nors"] = df_describe_imgs[(df_describe_imgs["NORs"] > 7)].index
 
-    train_ids: set[int] = set({})
-    valid_ids: set[int] = set({})
-    test_ids: set[int] = set({})
+    train_ids = set({})
+    valid_ids = set({})
+    test_ids = set({})
 
     for k, ids in img_ids.items():
         print(f"Splitting {len(ids)} images with {k} quantity...")
