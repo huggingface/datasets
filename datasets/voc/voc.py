@@ -17,9 +17,7 @@
 """PASCAL VOC datasets."""
 
 
-import os
 import xml.etree.ElementTree
-from pathlib import Path
 
 import datasets
 
@@ -99,12 +97,8 @@ class VocConfig(datasets.BuilderConfig):
 
 def _get_example_objects(annon_filepath):
     """Function to get all the objects from the annotation XML file."""
-    # with open(annon_filepath, "r", encoding="utf-8") as f:
     root = xml.etree.ElementTree.parse(annon_filepath).getroot()
 
-    # Disable pytype to avoid attribute-error due to find returning
-    # Optional[Element]
-    # pytype: disable=attribute-error
     size = root.find("size")
     width = float(size.find("width").text)
     height = float(size.find("height").text)
@@ -153,8 +147,6 @@ class Voc(datasets.GeneratorBasedBuilder):
             has_test_annotations=False,
         ),
     ]
-
-    # DEFAULT_CONFIG_NAME = "2012"
 
     def _info(self):
         return datasets.DatasetInfo(
