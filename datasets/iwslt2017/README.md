@@ -1,6 +1,8 @@
 ---
 paperswithcode_id: null
 pretty_name: IWSLT 2017
+licenses:
+- cc-by-nc-nd-4.0
 ---
 
 # Dataset Card for IWSLT 2017
@@ -218,7 +220,9 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Creative Commons BY-NC-ND
+
+See the (TED Talks Usage Policy)[https://www.ted.com/about/our-organization/our-policies-terms/ted-talks-usage-policy].
 
 ### Citation Information
 

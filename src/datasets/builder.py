@@ -51,6 +51,7 @@ from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
 from .naming import camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator
+from .streaming import extend_dataset_builder_for_streaming
 from .utils import logging
 from .utils.file_utils import cached_path, is_remote_url
 from .utils.filelock import FileLock
@@ -349,6 +350,17 @@ class DatasetBuilder:
 
         # Record infos even if verify_infos=False; used by "datasets-cli test" to generate dataset_infos.json
         self._record_infos = False
+
+        # Enable streaming (e.g. it patches "open" to work with remote files)
+        extend_dataset_builder_for_streaming(self)
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, d):
+        self.__dict__ = d
+        # Re-enable streaming, since patched functions are not kept when pickling
+        extend_dataset_builder_for_streaming(self)
 
     # Must be set for datasets that use 'data_dir' functionality - the ones
     # that require users to do additional steps to download the data
@@ -993,14 +1005,13 @@ class DatasetBuilder:
         self,
         split: Optional[str] = None,
         base_path: Optional[str] = None,
-        use_auth_token: Optional[str] = None,
     ) -> Union[Dict[str, IterableDataset], IterableDataset]:
         if not isinstance(self, (GeneratorBasedBuilder, ArrowBasedBuilder)):
             raise ValueError(f"Builder {self.name} is not streamable.")
 
         dl_manager = StreamingDownloadManager(
             base_path=base_path or self.base_path,
-            download_config=DownloadConfig(use_auth_token=use_auth_token),
+            download_config=DownloadConfig(use_auth_token=self.use_auth_token),
             dataset_name=self.name,
             data_dir=self.config.data_dir,
         )
