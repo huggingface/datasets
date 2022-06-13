@@ -1,3 +1,4 @@
+import bz2
 import gzip
 import lzma
 import os
@@ -157,9 +158,29 @@ class ZstdExtractor:
             dctx.copy_stream(ifh, ofh)
 
 
+class Bzip2Extractor:
+    @staticmethod
+    def is_extractable(path: str) -> bool:
+        with open(path, "rb") as f:
+            try:
+                header_magic_bytes = f.read(3)
+            except OSError:
+                return False
+            if header_magic_bytes == b"BZh":
+                return True
+            else:
+                return False
+
+    @staticmethod
+    def extract(input_path, output_path):
+        with bz2.open(input_path, "rb") as compressed_file:
+            with open(output_path, "wb") as extracted_file:
+                shutil.copyfileobj(compressed_file, extracted_file)
+
+
 class Extractor:
     #  Put zip file to the last, b/c it is possible wrongly detected as zip (I guess it means: as tar or gzip)
-    extractors = [TarExtractor, GzipExtractor, ZipExtractor, XzExtractor, RarExtractor, ZstdExtractor]
+    extractors = [TarExtractor, GzipExtractor, ZipExtractor, XzExtractor, RarExtractor, ZstdExtractor, Bzip2Extractor]
 
     @classmethod
     def is_extractable(cls, path, return_extractor=False):

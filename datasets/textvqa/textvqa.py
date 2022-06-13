@@ -93,7 +93,7 @@ class Textvqa(datasets.GeneratorBasedBuilder):
             citation=_CITATION,
         )
 
-    def _split_generators(self, dl_manager: datasets.utils.DownloadManager):
+    def _split_generators(self, dl_manager):
         downloaded_files = dl_manager.download_and_extract(_URLS)
         return [
             datasets.SplitGenerator(

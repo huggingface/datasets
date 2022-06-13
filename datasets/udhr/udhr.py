@@ -29,7 +29,7 @@ The Universal Declaration of Human Rights (UDHR) is a milestone document in the 
 representatives with different legal and cultural backgrounds from all regions of the world, it set out, for the
 first time, fundamental human rights to be universally protected. The Declaration was adopted by the UN General
 Assembly in Paris on 10 December 1948 during its 183rd plenary meeting. The dataset includes translations of the
-document in 464 languages and dialects.
+document in 464+ languages and dialects.
 
 © 1996 – 2009 The Office of the High Commissioner for Human Rights
 
@@ -45,6 +45,8 @@ _TXT_DOWNLOAD_URL = "https://unicode.org/udhr/assemblies/udhr_txt.zip"
 
 class UDHN(datasets.GeneratorBasedBuilder):
     """Universal Declaration of Human Rights"""
+
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
         return datasets.DatasetInfo(
