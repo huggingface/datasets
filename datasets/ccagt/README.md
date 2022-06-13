@@ -20,8 +20,6 @@ task_categories:
 - object-detection
 task_ids:
 - semantic-segmentation
-- instance-segmentation
-- panoptic-segmentation
 ---
 
 # Dataset Card for Images of Cervical Cells with AgNOR Stain Technique
@@ -63,7 +61,7 @@ The CCAgT dataset contains 9339 images with resolution of 1600X1200 where each p
 ### Supported Tasks and Leaderboards
 
 - image-segmentation: The dataset can be used to train a model for semantic segmentation. Semantic segmentation consists in classify each pixel of the images; Success on this task is typically measured by achieving a high values of [mean iou](https://huggingface.co/spaces/evaluate-metric/mean_iou) or [f-score](https://huggingface.co/spaces/evaluate-metric/f1) for pixels results. 
-  - For instance segmentation's or panoptic segmentation needs to convert the original dataset.instance segmentation consists in firstly do object detection, and then uses a semantic segmentation model inside detected object; panoptic segmentation is the combination of instance segmentation and semantic segmentation. For instances results,  this task is typically measured by achieving a high values of [recall](https://huggingface.co/spaces/evaluate-metric/recall),  [precision](https://huggingface.co/spaces/evaluate-metric/precision) and [f-score](https://huggingface.co/spaces/evaluate-metric/f1).
+  - For instance segmentation's or panoptic segmentation needs to convert the original dataset. Instance segmentation consists in firstly do object detection, and then uses a semantic segmentation model inside detected object; panoptic segmentation is the combination of instance segmentation and semantic segmentation. For instances results,  this task is typically measured by achieving a high values of [recall](https://huggingface.co/spaces/evaluate-metric/recall),  [precision](https://huggingface.co/spaces/evaluate-metric/precision) and [f-score](https://huggingface.co/spaces/evaluate-metric/f1).
 
 - object-detection: The dataset can be used to train a model for object detection to detect the nuclei categories, or the tiny objects (NORs), which consists of locating instances of objects and then classifying each one. This task is typically measured by achieving a high values of [recall](https://huggingface.co/spaces/evaluate-metric/recall),  [precision](https://huggingface.co/spaces/evaluate-metric/precision) and [f-score](https://huggingface.co/spaces/evaluate-metric/f1).
 
