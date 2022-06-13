@@ -19,14 +19,12 @@ import importlib
 import inspect
 import json
 import os
-import re
 import shutil
 import time
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
-from urllib.parse import urlparse
 
 import fsspec
 import requests
@@ -53,7 +51,6 @@ from .iterable_dataset import IterableDataset
 from .metric import Metric
 from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, _hash_python_lines
 from .splits import Split
-from .streaming import extend_module_for_streaming
 from .tasks import TaskTemplate
 from .utils.file_utils import (
     OfflineModeIsEnabled,
@@ -70,6 +67,7 @@ from .utils.file_utils import (
 from .utils.filelock import FileLock
 from .utils.info_utils import is_small_dataset
 from .utils.logging import get_logger
+from .utils.py_utils import get_imports
 from .utils.version import Version
 
 
@@ -142,25 +140,6 @@ def files_to_hash(file_paths: List[str]) -> str:
     return _hash_python_lines(lines)
 
 
-def convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
-    """Convert a link to a file on a github repo in a link to the raw github object."""
-    parsed = urlparse(url_path)
-    sub_directory = None
-    if parsed.scheme in ("http", "https", "s3") and parsed.netloc == "github.com":
-        if "blob" in url_path:
-            if not url_path.endswith(".py"):
-                raise ValueError(f"External import from github at {url_path} should point to a file ending with '.py'")
-            url_path = url_path.replace("blob", "raw")  # Point to the raw file
-        else:
-            # Parse github url to point to zip
-            github_path = parsed.path[1:]
-            repo_info, branch = github_path.split("/tree/") if "/tree/" in github_path else (github_path, "master")
-            repo_owner, repo_name = repo_info.split("/")
-            url_path = f"https://github.com/{repo_owner}/{repo_name}/archive/{branch}.zip"
-            sub_directory = f"{repo_name}-{branch}"
-    return url_path, sub_directory
-
-
 def increase_load_count(name: str, resource_type: str):
     """Update the download count of a dataset or metric."""
     if not config.HF_DATASETS_OFFLINE and config.HF_UPDATE_DOWNLOAD_COUNTS:
@@ -168,79 +147,6 @@ def increase_load_count(name: str, resource_type: str):
             head_hf_s3(name, filename=name + ".py", dataset=(resource_type == "dataset"))
         except Exception:
             pass
-
-
-def get_imports(file_path: str) -> Tuple[str, str, str, str]:
-    """Find whether we should import or clone additional files for a given processing script.
-        And list the import.
-
-    We allow:
-    - library dependencies,
-    - local dependencies and
-    - external dependencies whose url is specified with a comment starting from "# From:' followed by the raw url to a file, an archive or a github repository.
-        external dependencies will be downloaded (and extracted if needed in the dataset folder).
-        We also add an `__init__.py` to each sub-folder of a downloaded folder so the user can import from them in the script.
-
-    Note that only direct import in the dataset processing script will be handled
-    We don't recursively explore the additional import to download further files.
-
-    Example::
-
-        import tensorflow
-        import .c4_utils
-        import .clicr.dataset-code.build_json_dataset  # From: https://raw.githubusercontent.com/clips/clicr/master/dataset-code/build_json_dataset
-    """
-    lines = []
-    with open(file_path, encoding="utf-8") as f:
-        lines.extend(f.readlines())
-
-    logger.debug(f"Checking {file_path} for additional imports.")
-    imports: List[Tuple[str, str, str, Optional[str]]] = []
-    is_in_docstring = False
-    for line in lines:
-        docstr_start_match = re.findall(r'[\s\S]*?"""[\s\S]*?', line)
-
-        if len(docstr_start_match) == 1:
-            # flip True <=> False only if doctstring
-            # starts at line without finishing
-            is_in_docstring = not is_in_docstring
-
-        if is_in_docstring:
-            # import statements in doctstrings should
-            # not be added as required dependencies
-            continue
-
-        match = re.match(r"^import\s+(\.?)([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)", line, flags=re.MULTILINE)
-        if match is None:
-            match = re.match(
-                r"^from\s+(\.?)([^\s\.]+)(?:[^\s]*)\s+import\s+[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)",
-                line,
-                flags=re.MULTILINE,
-            )
-            if match is None:
-                continue
-        if match.group(1):
-            # The import starts with a '.', we will download the relevant file
-            if any(imp[1] == match.group(2) for imp in imports):
-                # We already have this import
-                continue
-            if match.group(3):
-                # The import has a comment with 'From:', we'll retrieve it from the given url
-                url_path = match.group(3)
-                url_path, sub_directory = convert_github_url(url_path)
-                imports.append(("external", match.group(2), url_path, sub_directory))
-            elif match.group(2):
-                # The import should be at the same place as the file
-                imports.append(("internal", match.group(2), match.group(2), None))
-        else:
-            if match.group(3):
-                # The import has a comment with `From: git+https:...`, asks user to pip install from git.
-                url_path = match.group(3)
-                imports.append(("library", match.group(2), url_path, None))
-            else:
-                imports.append(("library", match.group(2), match.group(2), None))
-
-    return imports
 
 
 def _download_additional_modules(
@@ -288,17 +194,20 @@ def _download_additional_modules(
         local_imports.append((import_name, local_import_path))
 
     # Check library imports
-    needs_to_be_installed = []
+    needs_to_be_installed = {}
     for library_import_name, library_import_path in library_imports:
         try:
             lib = importlib.import_module(library_import_name)  # noqa F841
         except ImportError:
-            needs_to_be_installed.append((library_import_name, library_import_path))
+            if library_import_name not in needs_to_be_installed or library_import_path != library_import_name:
+                needs_to_be_installed[library_import_name] = library_import_path
     if needs_to_be_installed:
+        _depencencies_str = "dependencies" if len(needs_to_be_installed) > 1 else "dependency"
+        _them_str = "them" if len(needs_to_be_installed) > 1 else "it"
         raise ImportError(
-            f"To be able to use {name}, you need to install the following dependencies"
-            f"{[lib_name for lib_name, lib_path in needs_to_be_installed]} using 'pip install "
-            f"{' '.join([lib_path for lib_name, lib_path in needs_to_be_installed])}' for instance'"
+            f"To be able to use {name}, you need to install the following {_depencencies_str}: "
+            f"{', '.join(needs_to_be_installed)}.\nPlease install {_them_str} using 'pip install "
+            f"{' '.join(needs_to_be_installed.values())}' for instance'"
         )
     return local_imports
 
@@ -1100,7 +1009,6 @@ def dataset_module_factory(
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[DownloadMode] = None,
-    force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
     data_dir: Optional[str] = None,
     data_files: Optional[Union[Dict, List, str, DataFilesDict]] = None,
@@ -1142,8 +1050,6 @@ def dataset_module_factory(
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
-            Used to inspect or modify the script folder.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default the datasets and metrics are stored inside the `datasets_modules` module.
@@ -1212,7 +1118,7 @@ def dataset_module_factory(
             path, data_dir=data_dir, data_files=data_files, download_mode=download_mode
         ).get_module()
     # Try remotely
-    elif is_relative_path(path) and path.count("/") <= 1 and not force_local_path:
+    elif is_relative_path(path) and path.count("/") <= 1:
         try:
             _raise_if_offline_mode_is_enabled()
             if path.count("/") == 0:  # even though the dataset is on the Hub, we get it from GitHub for now
@@ -1250,6 +1156,10 @@ def dataset_module_factory(
                     elif "404" in str(e):
                         msg = f"Dataset '{path}' doesn't exist on the Hub"
                         raise FileNotFoundError(msg + f" at revision '{revision}'" if revision else msg)
+                    elif "401" in str(e):
+                        msg = f"Dataset '{path}' doesn't exist on the Hub"
+                        msg = msg + f" at revision '{revision}'" if revision else msg
+                        raise FileNotFoundError(msg + ". If the repo is private, make sure you are authenticated.")
                     else:
                         raise e
                 if filename in [sibling.rfilename for sibling in dataset_info.siblings]:
@@ -1292,7 +1202,6 @@ def metric_module_factory(
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[DownloadMode] = None,
-    force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
     **download_kwargs,
 ) -> MetricModule:
@@ -1320,8 +1229,6 @@ def metric_module_factory(
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
-            Used to inspect or modify the script folder.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default, the datasets and metrics are stored inside the `datasets_modules` module.
@@ -1353,7 +1260,7 @@ def metric_module_factory(
         return LocalMetricModuleFactory(
             combined_path, download_mode=download_mode, dynamic_modules_path=dynamic_modules_path
         ).get_module()
-    elif is_relative_path(path) and path.count("/") == 0 and not force_local_path:
+    elif is_relative_path(path) and path.count("/") == 0:
         try:
             return GithubMetricModuleFactory(
                 path,
@@ -1374,25 +1281,6 @@ def metric_module_factory(
                 ) from None
     else:
         raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(combined_path)}.")
-
-
-def extend_dataset_builder_for_streaming(builder: DatasetBuilder, use_auth_token: Optional[Union[bool, str]] = None):
-    """Extend the dataset builder module and the modules imported by it to support streaming.
-
-    Args:
-        builder (:class:`DatasetBuilder`): Dataset builder instance.
-        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, will get token from `"~/.huggingface"`.
-    """
-    # this extends the open and os.path.join functions for data streaming
-    extend_module_for_streaming(builder.__module__, use_auth_token=use_auth_token)
-    # if needed, we also have to extend additional internal imports (like wmt14 -> wmt_utils)
-    if not builder.__module__.startswith("datasets."):  # check that it's not a packaged builder like csv
-        for imports in get_imports(inspect.getfile(builder.__class__)):
-            if imports[0] == "internal":
-                internal_import_name = imports[1]
-                internal_module_name = ".".join(builder.__module__.split(".")[:-1] + [internal_import_name])
-                extend_module_for_streaming(internal_module_name, use_auth_token=use_auth_token)
 
 
 def load_metric(
@@ -1781,11 +1669,7 @@ def load_dataset(
 
     # Return iterable dataset in case of streaming
     if streaming:
-        extend_dataset_builder_for_streaming(builder_instance, use_auth_token=use_auth_token)
-        return builder_instance.as_streaming_dataset(
-            split=split,
-            use_auth_token=use_auth_token,
-        )
+        return builder_instance.as_streaming_dataset(split=split)
 
     # Some datasets are already processed on the HF google storage
     # Don't try downloading from google storage for the packaged datasets as text, json, csv or pandas

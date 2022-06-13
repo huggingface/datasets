@@ -51,6 +51,7 @@ from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
 from .naming import camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator
+from .streaming import extend_dataset_builder_for_streaming
 from .utils import logging
 from .utils.file_utils import cached_path, is_remote_url
 from .utils.filelock import FileLock
@@ -199,6 +200,12 @@ class DatasetBuilder:
             It affects the data generated on disk: different configurations will have their own subdirectories and
             versions.
             If not provided, the default configuration is used (if it exists).
+
+            <Added version="2.3.0">
+
+            Parameter `name` was renamed to `config_name`.
+
+            </Added>
         hash (`str`, *optional*): Hash specific to the dataset code. Used to update the caching directory when the
             dataset loading script code is updated (to avoid reusing old data).
             The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``.
@@ -219,7 +226,14 @@ class DatasetBuilder:
             ``os.path.join(data_dir, "**")`` as `data_files`.
             For builders that require manual download, it must be the path to the local directory containing the
             manually downloaded data.
-        name (`str`): Deprecated. Use `config_name` instead.
+        name (`str`): Configuration name for the dataset.
+
+            <Deprecated version="2.3.0">
+
+            Use `config_name` instead.
+
+            </Deprecated>
+
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the corresponding builder
             configuration class, set on the class attribute [`DatasetBuilder.BUILDER_CONFIG_CLASS`]. The builder
             configuration class is [`BuilderConfig`] or a subclass of it.
@@ -336,6 +350,17 @@ class DatasetBuilder:
 
         # Record infos even if verify_infos=False; used by "datasets-cli test" to generate dataset_infos.json
         self._record_infos = False
+
+        # Enable streaming (e.g. it patches "open" to work with remote files)
+        extend_dataset_builder_for_streaming(self)
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, d):
+        self.__dict__ = d
+        # Re-enable streaming, since patched functions are not kept when pickling
+        extend_dataset_builder_for_streaming(self)
 
     # Must be set for datasets that use 'data_dir' functionality - the ones
     # that require users to do additional steps to download the data
@@ -980,14 +1005,13 @@ class DatasetBuilder:
         self,
         split: Optional[str] = None,
         base_path: Optional[str] = None,
-        use_auth_token: Optional[str] = None,
     ) -> Union[Dict[str, IterableDataset], IterableDataset]:
         if not isinstance(self, (GeneratorBasedBuilder, ArrowBasedBuilder)):
             raise ValueError(f"Builder {self.name} is not streamable.")
 
         dl_manager = StreamingDownloadManager(
             base_path=base_path or self.base_path,
-            download_config=DownloadConfig(use_auth_token=use_auth_token),
+            download_config=DownloadConfig(use_auth_token=self.use_auth_token),
             dataset_name=self.name,
             data_dir=self.config.data_dir,
         )
