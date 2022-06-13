@@ -133,7 +133,7 @@ parallel, asynchronous data loading and training. However, the requirement for g
 particularly for HuggingFace tokenizers, which are usually not (yet!) compilable as part of a TF graph. As a result, 
 we usually advise pre-processing the dataset as a Hugging Face dataset, where arbitrary Python functions can be
 used, and then converting to `tf.data.Dataset` afterwards using `to_tf_dataset()` to get a batched dataset ready for
-training. To see examples of this approach, please see the example scripts(link) or notebooks(link) for `transformers`.
+training. To see examples of this approach, please see the [examples](https://github.com/huggingface/transformers/tree/main/examples) or [notebooks](https://huggingface.co/docs/transformers/notebooks) for `transformers`.
 
 ### Using `to_tf_dataset()`
 
@@ -158,7 +158,7 @@ that you set the batch size when creating the dataset, and so you don't need to 
 >>> model.fit(tf_ds, epochs=2)
 ```
 
-For a full description of the arguments, please see the `to_tf_dataset()` documentation(link). In many cases,
+For a full description of the arguments, please see the `to_tf_dataset()` [documentation](https://huggingface.co/docs/datasets/package_reference/main_classes#datasets.Dataset.to_tf_dataset). In many cases,
 you will also need to add a `collate_fn` to your call. This is a function that takes multiple elements of the dataset
 and combines them into a single batch. When all elements have the same length, the built-in default collator will
 suffice, but for more complex tasks a custom collator may be necessary. In particular, many tasks have samples
