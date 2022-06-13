@@ -102,7 +102,7 @@ VISION_REQURE = [
 BENCHMARKS_REQUIRE = [
     "numpy==1.18.5",
     "tensorflow==2.3.0",
-    "torch==1.11.0",
+    "torch==1.7.1",
     "transformers==3.0.2",
 ]
 
