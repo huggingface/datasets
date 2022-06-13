@@ -199,13 +199,13 @@ def _download_additional_modules(
         try:
             lib = importlib.import_module(library_import_name)  # noqa F841
         except ImportError:
-            # Add/update an entry if a new library name is encountered or a '# From' path different from a library name
+            # Add/update an entry if a new library name is encountered or a '# From' path different from the library name
             if library_import_name not in needs_to_be_installed or (
                 library_import_name != library_import_path
                 and library_import_name == needs_to_be_installed[library_import_name]
             ):
                 needs_to_be_installed[library_import_name] = library_import_path
-            # Raise an error if a '# From' path different from a library name has been encountered twice for the same library
+            # Raise an error if a '# From' path different from the library name has been encountered twice for the same library
             elif (
                 library_import_name in needs_to_be_installed
                 and library_import_name != library_import_path
