@@ -19,6 +19,7 @@
 
 import os
 import xml.etree.ElementTree
+from pathlib import Path
 
 import datasets
 
@@ -98,35 +99,35 @@ class VocConfig(datasets.BuilderConfig):
 
 def _get_example_objects(annon_filepath):
     """Function to get all the objects from the annotation XML file."""
-    with open(annon_filepath, "r", encoding="utf-8") as f:
-        root = xml.etree.ElementTree.parse(f).getroot()
+    # with open(annon_filepath, "r", encoding="utf-8") as f:
+    root = xml.etree.ElementTree.parse(annon_filepath).getroot()
 
-        # Disable pytype to avoid attribute-error due to find returning
-        # Optional[Element]
-        # pytype: disable=attribute-error
-        size = root.find("size")
-        width = float(size.find("width").text)
-        height = float(size.find("height").text)
+    # Disable pytype to avoid attribute-error due to find returning
+    # Optional[Element]
+    # pytype: disable=attribute-error
+    size = root.find("size")
+    width = float(size.find("width").text)
+    height = float(size.find("height").text)
 
-        for obj in root.findall("object"):
-            # Get object's label name.
-            label = obj.find("name").text.lower()
-            # Get objects' pose name.
-            pose = obj.find("pose").text.lower()
-            is_truncated = obj.find("truncated").text == "1"
-            is_difficult = obj.find("difficult").text == "1"
-            bndbox = obj.find("bndbox")
-            xmax = float(bndbox.find("xmax").text)
-            xmin = float(bndbox.find("xmin").text)
-            ymax = float(bndbox.find("ymax").text)
-            ymin = float(bndbox.find("ymin").text)
-            yield {
-                "label": label,
-                "pose": pose,
-                "bbox": [ymin / height, xmin / width, ymax / height, xmax / width],
-                "is_truncated": is_truncated,
-                "is_difficult": is_difficult,
-            }
+    for obj in root.findall("object"):
+        # Get object's label name.
+        label = obj.find("name").text.lower()
+        # Get objects' pose name.
+        pose = obj.find("pose").text.lower()
+        is_truncated = obj.find("truncated").text == "1"
+        is_difficult = obj.find("difficult").text == "1"
+        bndbox = obj.find("bndbox")
+        xmax = float(bndbox.find("xmax").text)
+        xmin = float(bndbox.find("xmin").text)
+        ymax = float(bndbox.find("ymax").text)
+        ymin = float(bndbox.find("ymin").text)
+        yield {
+            "label": label,
+            "pose": pose,
+            "bbox": [ymin / height, xmin / width, ymax / height, xmax / width],
+            "is_truncated": is_truncated,
+            "is_difficult": is_difficult,
+        }
 
 
 class Voc(datasets.GeneratorBasedBuilder):
@@ -179,51 +180,61 @@ class Voc(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        paths = dl_manager.download_and_extract(
-            {k: _VOC_DATA_URL + v  for k, v in self.config.filenames.items()}
-        )
+        paths = dl_manager.download({k: _VOC_DATA_URL + v for k, v in self.config.filenames.items()})
+
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"data_path": paths["test"], "set_name": "test"}
+                name=datasets.Split.TEST,
+                gen_kwargs={"data_path": dl_manager.iter_archive(paths["test"]), "set_name": "test"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"data_path": paths["trainval"], "set_name": "train"}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"data_path": dl_manager.iter_archive(paths["trainval"]), "set_name": "train"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"data_path": paths["trainval"], "set_name": "val"}
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"data_path": dl_manager.iter_archive(paths["trainval"]), "set_name": "val"},
             ),
         ]
 
     def _generate_examples(self, data_path, set_name):
-        set_filepath = os.path.join(
-            data_path, "VOCdevkit", "VOC" + self.config.year, "ImageSets", "Main", set_name + ".txt")
-        )
+        anns = {}
         load_annotations = self.config.has_test_annotations or set_name != "test"
-        with open(set_filepath, "r", encoding="utf-8") as f:
-            for line in f:
-                image_id = line.strip()
-                example = self._generate_example(data_path, image_id, load_annotations)
-                yield image_id, example
+        idx = 0
+        for (fpath, fobj) in data_path:
 
-    def _generate_example(self, data_path, image_id, load_annotations):
-        image_filepath = os.path.join(
-            data_path, "VOCdevkit", "VOC" + self.config.year, "JPEGImages", image_id + ".jpg")
-        )
-        annon_filepath = os.path.join(
-            data_path, "VOCdevkit", "VOC" + self.config.year, "Annotations", image_id + ".xml")
-        )
-        if load_annotations:
-            objects = list(_get_example_objects(annon_filepath))
-            # Use set() to remove duplicates
-            labels = sorted(set(obj["label"] for obj in objects))
-            labels_no_difficult = sorted(set(obj["label"] for obj in objects if obj["is_difficult"] == 0))
-        else:  # The test set of VOC2012 does not contain annotations
-            objects = []
-            labels = []
-            labels_no_difficult = []
-        return {
-            "image": image_filepath,
-            "objects": objects,
-            "labels": labels,
-            "labels_no_difficult": labels_no_difficult,
-        }
+            # Step 1 - Gather annotations into map of image_id -> annotation
+            if "Annotations" in fpath and load_annotations:
+                image_id = fpath.split("/")[-1][:-4]
+
+                # Some annotations are invalid. In cases like this, it means the fileobj is not in split's list.
+                # So, in these cases we just continue to loop, skpping this annotation file.
+                try:
+                    objects = list(_get_example_objects(fobj))
+                except:
+                    continue
+
+                anns[image_id] = objects
+
+            # Step 2 - Locate this set's image ID list and read it in as a list
+            if f"Main/{set_name}.txt" in fpath:
+                image_ids = [x.decode("utf-8").strip() for x in fobj.readlines()]
+
+            # Step 3 - For every image, check if its in this set's image_ids list, and return it (with annotations if necessary)
+            if "JPEGImages" in fpath:
+                image_id = fpath.split("/")[-1][:-4]
+                if not image_id in image_ids:
+                    continue
+                if load_annotations:
+                    objects = anns[image_id]
+                    labels = sorted(set(obj["label"] for obj in objects))
+                    labels_no_difficult = sorted(set(obj["label"] for obj in objects if obj["is_difficult"] == 0))
+                else:
+                    objects, labels, labels_no_difficult = [], [], []
+                yield idx, {
+                    "image": {"path": fpath, "bytes": fobj.read()},
+                    "objects": objects,
+                    "labels": labels,
+                    "labels_no_difficult": labels_no_difficult,
+                }
+                idx += 1
