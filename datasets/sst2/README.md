@@ -19,8 +19,6 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: sst
 pretty_name: Stanford Sentiment Treebank v2
-configs:
-- default
 ---
 
 # Dataset Card for [Dataset Name]
