@@ -71,10 +71,7 @@ collators or examples here?)
 
 ### Caveats and limitations
 
-Right now, `to_tf_dataset()` focuses on making "ready-to-use" datasets with batching and data collation applied.
-However, particularly for computer vision tasks, we realize that it would often be preferable to convert a
-Hugging Face `Dataset` to an unbatched, unmodified `tf.data.Dataset` and then perform batching/shuffling using `tf.data`
-methods. We're actively working on adding this feature and making it performant, so watch this space!
+Right now, `to_tf_dataset()` always return a batched dataset, we will add support for unbatched datasets soon !
 
 
 
