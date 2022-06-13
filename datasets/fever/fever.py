@@ -101,7 +101,8 @@ class Fever(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         if self.config.name == "v2.0":
-            urls = "https://s3-eu-west-1.amazonaws.com/fever.public/fever2-fixers-dev.jsonl"
+            base_url = "https://fever.ai/download/fever2.0"
+            urls = f"{base_url}/fever2-fixers-dev.jsonl"
             dl_path = dl_manager.download_and_extract(urls)
             return [
                 datasets.SplitGenerator(
@@ -112,13 +113,14 @@ class Fever(datasets.GeneratorBasedBuilder):
                 )
             ]
         elif self.config.name == "v1.0":
+            base_url = "https://fever.ai/download/fever"
             urls = {
-                "train": "https://s3-eu-west-1.amazonaws.com/fever.public/train.jsonl",
-                "labelled_dev": "https://s3-eu-west-1.amazonaws.com/fever.public/shared_task_dev.jsonl",
-                "unlabelled_dev": "https://s3-eu-west-1.amazonaws.com/fever.public/shared_task_dev_public.jsonl",
-                "unlabelled_test": "https://s3-eu-west-1.amazonaws.com/fever.public/shared_task_test.jsonl",
-                "paper_dev": "https://s3-eu-west-1.amazonaws.com/fever.public/paper_dev.jsonl",
-                "paper_test": "https://s3-eu-west-1.amazonaws.com/fever.public/paper_test.jsonl",
+                "train": f"{base_url}/train.jsonl",
+                "labelled_dev": f"{base_url}/shared_task_dev.jsonl",
+                "unlabelled_dev": f"{base_url}/shared_task_dev_public.jsonl",
+                "unlabelled_test": f"{base_url}/shared_task_test.jsonl",
+                "paper_dev": f"{base_url}/paper_dev.jsonl",
+                "paper_test": f"{base_url}/paper_test.jsonl",
             }
             dl_path = dl_manager.download_and_extract(urls)
             return [
@@ -160,7 +162,8 @@ class Fever(datasets.GeneratorBasedBuilder):
                 ),
             ]
         elif self.config.name == "wiki_pages":
-            urls = "https://s3-eu-west-1.amazonaws.com/fever.public/wiki-pages.zip"
+            base_url = "https://fever.ai/download/fever"
+            urls = f"{base_url}/wiki-pages.zip"
             dl_path = dl_manager.download_and_extract(urls)
             files = sorted(os.listdir(os.path.join(dl_path, "wiki-pages")))
             file_paths = [os.path.join(dl_path, "wiki-pages", file) for file in files]
