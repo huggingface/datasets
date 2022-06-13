@@ -33,6 +33,8 @@
     title: Process image data
   - local: stream
     title: Stream
+  - local: use_with_tensorflow
+    title: Use with TensorFlow
   - local: share
     title: Share
   - local: dataset_script
