@@ -1,6 +1,6 @@
 # Load a dataset from the Hub
 
-Finding good high-quality datasets that are reproducible and accessible can be difficult. One of 🤗 Datasets main goal is to provide a simple way to load a dataset of any format or type. The easiest way to get started is to discover an existing dataset on the [Hugging Face Hub](https://huggingface.co/datasets) - a community-driven collection of datasets for tasks in NLP, computer vision, and audio - and use 🤗 Datasets to download and generate the dataset.
+Finding high-quality datasets that are reproducible and accessible can be difficult. One of 🤗 Datasets main goals is to provide a simple way to load a dataset of any format or type. The easiest way to get started is to discover an existing dataset on the [Hugging Face Hub](https://huggingface.co/datasets) - a community-driven collection of datasets for tasks in NLP, computer vision, and audio - and use 🤗 Datasets to download and generate the dataset.
 
 This tutorial uses the [rotten_tomatoes](https://huggingface.co/datasets/rotten_tomatoes) and [MInDS-14](https://huggingface.co/datasets/PolyAI/minds14) datasets, but feel free to load any dataset you want and follow along. Head over to the Hub now and find a dataset for your task!
 
@@ -80,7 +80,7 @@ DatasetDict({
 
 ## Configurations
 
-Some datasets contain several sub-datasets. For example, the [MInDS-14](https://huggingface.co/datasets/PolyAI/minds14) dataset has several sub-datasets, each one containing audio data in a different language. These sub-datasets are known as *configurations*, and you must explicitly select one when you load the dataset. If you don't provide a configuration name, 🤗 Datasets will raise a `ValueError` and remind you to choose a configuration.
+Some datasets contain several sub-datasets. For example, the [MInDS-14](https://huggingface.co/datasets/PolyAI/minds14) dataset has several sub-datasets, each one containing audio data in a different language. These sub-datasets are known as *configurations*, and you must explicitly select one when loading the dataset. If you don't provide a configuration name, 🤗 Datasets will raise a `ValueError` and remind you to choose a configuration.
 
 Use the [`get_dataset_config_names`] function to retrieve a list of all the possible configurations available to your dataset:
 

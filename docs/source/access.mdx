@@ -48,7 +48,7 @@ You can combine row and column name indexing to return a specific value at a pos
 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'
 ```
 
-But it is important to remember that indexing order matters, especially when you're working with large or audio and image datasets. Indexing by the column name returns all the values in the column first, then loads the value at that position. For large datasets, it may be slower to index by the column name first.
+But it is important to remember that indexing order matters, especially when working with large audio and image datasets. Indexing by the column name returns all the values in the column first, then loads the value at that position. For large datasets, it may be slower to index by the column name first.
 
 ```py
 >>> with Timer():
