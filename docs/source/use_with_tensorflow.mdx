@@ -23,7 +23,7 @@ array([[1, 2],
 
 <Tip>
 
-A [`Dataset`] object is a wrapper of an Arrow table, which allows fast zero-copy reads from arrays in the dataset to TensorFlow tensors.
+A [`Dataset`] object is a wrapper of an Arrow table, which allows fast reads from arrays in the dataset to TensorFlow tensors.
 
 </Tip>
 
@@ -162,8 +162,9 @@ For a full description of the arguments, please see the `to_tf_dataset()` docume
 you will also need to add a `collate_fn` to your call. This is a function that takes multiple elements of the dataset
 and combines them into a single batch. When all elements have the same length, the built-in default collator will
 suffice, but for more complex tasks a custom collator may be necessary. In particular, many tasks have samples
-with varying sequence lengths which will require a collator that can pad batches correctly. (Link to transformers
-collators or examples here?)
+with varying sequence lengths which will require a data collator that can pad batches correctly. You can see examples
+of this in the `transformers` NLP [examples](https://github.com/huggingface/transformers/tree/main/examples) and
+[notebooks](https://huggingface.co/docs/transformers/notebooks), where variable sequence lengths are very common.
 
 ### When to use to_tf_dataset
 
@@ -186,7 +187,7 @@ instead:
 - Your data has a variable dimension, such as input texts in NLP that consist of varying
   numbers of tokens. When you create a batch with samples with a variable dimension, the standard solution is to
   pad the shorter samples to the length of the longest one. When you stream samples from a dataset with `to_tf_dataset`,
-  you can apply this padding to each batch via your `collate_fn`. (link examples here?) However, if you want to convert
+  you can apply this padding to each batch via your `collate_fn`. However, if you want to convert
   such a dataset to dense `Tensor`s, then you will have to pad samples to the length of the longest sample in *the
   entire dataset!* This can result in huge amounts of padding, which wastes memory and reduces your model's speed.
 
