@@ -1044,4 +1044,4 @@ def test_cast_array_to_features_to_null_type():
     # different type
     arr = pa.array([[None, 1]])
     with pytest.raises(TypeError):
-        cast_array_to_feature(arr, Sequence(Value("null")), allow_number_to_str=False)
+        cast_array_to_feature(arr, Sequence(Value("null")))
