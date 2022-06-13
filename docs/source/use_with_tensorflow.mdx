@@ -1,7 +1,5 @@
 # Using Datasets with TensorFlow
 
-## Tensors
-
 ### Dataset format
 
 By default, datasets return regular Python objects: integers, floats, strings, lists, etc.
@@ -113,8 +111,6 @@ The [`Image`] and [`Audio`] feature types are not supported yet.
 
 ## Data loading
 
-### Interoperability with tf.data
-
 Although you can load individual samples and batches just by indexing into your dataset, this won't work if you want
 to use Keras methods like `fit()` and `predict()`. You could write a generator function that shuffles and loads batches
 from your dataset and `fit()` on that, but that sounds like a lot of unnecessary work. Instead, if you want to stream
@@ -162,7 +158,7 @@ For a full description of the arguments, please see the `to_tf_dataset()` [docum
 you will also need to add a `collate_fn` to your call. This is a function that takes multiple elements of the dataset
 and combines them into a single batch. When all elements have the same length, the built-in default collator will
 suffice, but for more complex tasks a custom collator may be necessary. In particular, many tasks have samples
-with varying sequence lengths which will require a data collator that can pad batches correctly. You can see examples
+with varying sequence lengths which will require a [data collator](https://huggingface.co/docs/transformers/main/en/main_classes/data_collator) that can pad batches correctly. You can see examples
 of this in the `transformers` NLP [examples](https://github.com/huggingface/transformers/tree/main/examples) and
 [notebooks](https://huggingface.co/docs/transformers/notebooks), where variable sequence lengths are very common.
 
