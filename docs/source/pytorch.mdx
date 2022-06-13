@@ -190,3 +190,5 @@ If the dataset is split in several shards (i.e. if the dataset consists of multi
 1024
 >>> dataloader = DataLoader(ds, batch_size=32, num_workers=4)
 ```
+
+In this case each worker will be given a subset of the list of shards to stream from.
