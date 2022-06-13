@@ -217,7 +217,7 @@ class DatasetDictTest(TestCase):
         dset = dset.remove_columns(column_names=["col_1", "col_2"])
         for dset_split in dset.values():
             self.assertEqual(dset_split.num_columns, 0)
-        
+
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         for dset_split in dset.values():
             dset_split._format_columns = ["col_1", "col_2"]
