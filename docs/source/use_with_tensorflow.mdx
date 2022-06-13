@@ -100,7 +100,7 @@ Strings are also supported:
  'data': <tf.Tensor: shape=(2,), dtype=int64, numpy=array([0, 1])>}
 ```
 
-But if you want, you can explicitly format certain columns and leave the other columns unformatted:
+You can also explicitly format certain columns and leave the other columns unformatted:
 
 ```py
 >>> ds = ds.with_format("tf", columns=["data"], output_all_columns=True)
