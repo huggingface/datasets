@@ -180,6 +180,13 @@ Set the format of a streaming dataset to "pytorch", and it inherits from `torch.
 >>> Dataset.from_dict({"data": data}).push_to_hub("<username>/my_dataset")  # Upload to the Hugging Face Hub
 >>> ds = load_dataset("<username>/my_dataset", streaming=True, split="train").with_format("torch")
 >>> dataloader = DataLoader(ds, batch_size=32)
->>> for batch in dataloader: 
-...     pass
+```
+
+If the dataset is split in several shards (i.e. if the dataset consists of multiple data files), then you can stream in parallel using `num_workers`:
+
+```py
+>>> ds = load_dataset("c4", "en", streaming=True, split="train").with_format("torch")
+>>> ds.n_shards
+1024
+>>> dataloader = DataLoader(ds, batch_size=32, num_workers=4)
 ```
