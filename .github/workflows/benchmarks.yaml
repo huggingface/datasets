@@ -10,6 +10,9 @@ jobs:
         env:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # See https://github.com/actions/checkout/issues/760
+          git config --global --add safe.directory /__w/datasets/datasets
+
           # Your ML workflow goes here
 
           pip install --upgrade pip
