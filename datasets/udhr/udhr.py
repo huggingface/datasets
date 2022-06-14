@@ -56,6 +56,7 @@ class UDHN(datasets.GeneratorBasedBuilder):
                     "lang_name": datasets.Value("string"),
                     "iso639-3": datasets.Value("string"),
                     "iso15924": datasets.Value("string"),
+                    "bcp47": datasets.Value("string"),
                 }
             ),
             homepage=_WEBPAGE,
@@ -81,4 +82,5 @@ class UDHN(datasets.GeneratorBasedBuilder):
                     "lang_name": root.get("n"),
                     "iso639-3": root.get("iso639-3"),
                     "iso15924": root.get("iso15924"),
+                    "bcp47": root.get("{http://www.w3.org/XML/1998/namespace}lang"),
                 }
