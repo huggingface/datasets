@@ -1585,6 +1585,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return self.cast(features)
 
     @transmit_tasks
+    @transmit_format
     @fingerprint_transform(inplace=False)
     def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
         """
@@ -1626,9 +1627,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         for column_name in column_names:
             del dataset._info.features[column_name]
-
-        if self._format_columns is not None:
-            dataset._format_columns = [col for col in self._format_columns if col not in column_names]
 
         dataset._data = dataset._data.drop(column_names)
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
