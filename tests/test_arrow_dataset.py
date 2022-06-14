@@ -515,6 +515,15 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(new_dset._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
 
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset._format_columns = ["col_1", "col_2", "col_3"]
+                with dset.remove_columns(column_names=["col_1"]) as new_dset:
+                    self.assertListEqual(new_dset._format_columns, ["col_2", "col_3"])
+                    self.assertEqual(new_dset.num_columns, 2)
+                    self.assertListEqual(list(new_dset.column_names), ["col_2", "col_3"])
+                    self.assertNotEqual(new_dset._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
+
     def test_rename_column(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
