@@ -1749,6 +1749,8 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             raise TypeError(
                 f"Couldn't cast array of type {array.type} to {pa_type} since allow_number_to_str is set to {allow_number_to_str}"
             )
+        if pa.types.is_null(pa_type) and not pa.types.is_null(array.type):
+            raise TypeError(f"Couldn't cast array of type {array.type} to {pa_type}")
         return array.cast(pa_type)
     raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{pa_type}")
 
