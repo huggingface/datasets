@@ -84,7 +84,7 @@ class SVIdent(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         data = []
-        with open(filepath, newline="") as csvfile:
+        with open(filepath, newline="", encoding="utf-8") as csvfile:
             reader = csv.reader(csvfile, delimiter="\t")
             next(reader, None)  # skip the headers
             for row in reader:
