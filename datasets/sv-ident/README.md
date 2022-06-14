@@ -162,4 +162,15 @@ VADIS project (https://vadis-project.github.io/)
 
 ### Citation Information
 
+```
+@misc{github,
+    author={vadis-project},
+    title={SV-Ident},
+    year={2022},
+    url={https://github.com/vadis-project/sv-ident},
+    }
+```
+
+### Contributions
+
 [Needs More Information]

@@ -23,7 +23,14 @@ import datasets
 
 
 # TODO: Add BibTeX citation
-# _CITATION = ""
+_CITATION = """\
+@misc{sv-ident,
+    author={vadis-project},
+    title={SV-Ident},
+    year={2022},
+    url={https://github.com/vadis-project/sv-ident},
+    }
+"""
 
 _DESCRIPTION = """\
 The SV-Ident corpus (version 0.3) is a collection of 4,248 expert-annotated English
@@ -66,7 +73,7 @@ class SVIdent(datasets.GeneratorBasedBuilder):
             supervised_keys=("sentence", "is_variable"),
             homepage=_HOMEPAGE,
             # license=_LICENSE,
-            # citation=_CITATION,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
