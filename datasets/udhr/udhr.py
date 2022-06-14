@@ -36,7 +36,7 @@ document in 464+ languages and dialects.
 This plain text version prepared by the “UDHR in Unicode” project, https://www.unicode.org/udhr.
 """
 
-_WEBPAGE = "https://www.ohchr.org/EN/UDHR/Pages/UDHRIndex.aspx"
+_HOMEPAGE = "https://www.ohchr.org/en/universal-declaration-of-human-rights"
 
 _URL = "https://unicode.org/udhr/assemblies/udhr_xml.zip"
 
@@ -59,7 +59,7 @@ class UDHN(datasets.GeneratorBasedBuilder):
                     "bcp47": datasets.Value("string"),
                 }
             ),
-            homepage=_WEBPAGE,
+            homepage=_HOMEPAGE,
         )
 
     def _split_generators(self, dl_manager):
