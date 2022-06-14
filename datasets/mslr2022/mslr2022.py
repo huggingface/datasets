@@ -96,7 +96,6 @@ class MSLR2022(datasets.GeneratorBasedBuilder):
         # These are unique to MS^2
         if self.config.name == "ms2":
             fields["background"] = datasets.Value("string")
-            fields["reviews_info"] = datasets.Value("string")
 
         features = datasets.Features(fields)
 
@@ -142,10 +141,6 @@ class MSLR2022(datasets.GeneratorBasedBuilder):
         if split != "test":
             targets_filepath = os.path.join(data_dir, f"{split}-targets.csv")
             targets_df = pd.read_csv(targets_filepath, index_col=0, dtype={"ReviewID": "string"})
-            # Only MS^2 has the *-reviews-info.csv files, and only for the train and dev splits.
-            if self.config.name == "ms2":
-                reviews_info_filepath = os.path.join(data_dir, f"{split}-reviews-info.csv")
-                reviews_info_df = pd.read_csv(reviews_info_filepath, index_col=0, dtype={"ReviewID": "string"})
 
         for review_id in inputs_df.ReviewID.unique():
             inputs = inputs_df[inputs_df.ReviewID == review_id]
@@ -160,7 +155,6 @@ class MSLR2022(datasets.GeneratorBasedBuilder):
 
             if self.config.name == "ms2":
                 example["background"] = ""
-                example["reviews_info"] = ""
 
             # Only the train and dev splits have targets
             if split != "test":
@@ -169,8 +163,5 @@ class MSLR2022(datasets.GeneratorBasedBuilder):
                 # Only MS^2 has these fields, and only for train and dev splits.
                 if self.config.name == "ms2":
                     example["background"] = targets.Background.values[0]
-
-                    reviews_info = reviews_info_df[reviews_info_df.ReviewID == review_id]
-                    example["reviews_info"] = reviews_info.Background.values[0]
 
             yield review_id, example
