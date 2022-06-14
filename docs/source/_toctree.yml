@@ -10,15 +10,15 @@
   - local: installation
     title: Installation
   - local: load_hub
-    title: Hugging Face Hub
+    title: Load a dataset from the Hub
   - local: access
-    title: The Dataset object
+    title: Know your dataset
   - local: use_dataset
-    title: Train with 🤗 Datasets
+    title: Preprocess
   - local: metrics
     title: Evaluate predictions
   - local: upload_dataset
-    title: Upload a dataset to the Hub
+    title: Share a dataset to the Hub
   title: "Tutorials"
 - sections:
   - local: how_to

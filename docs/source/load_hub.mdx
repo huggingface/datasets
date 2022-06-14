@@ -1,103 +1,101 @@
-# Hugging Face Hub
+# Load a dataset from the Hub
 
-Now that you are all setup, the first step is to load a dataset. The easiest way to load a dataset is from the [Hugging Face Hub](https://huggingface.co/datasets). There are already over 6000 datasets in over 100 languages on the Hub. Choose from a wide category of datasets to use for NLP tasks like question answering, summarization, machine translation, and language modeling.
+Finding high-quality datasets that are reproducible and accessible can be difficult. One of 🤗 Datasets main goals is to provide a simple way to load a dataset of any format or type. The easiest way to get started is to discover an existing dataset on the [Hugging Face Hub](https://huggingface.co/datasets) - a community-driven collection of datasets for tasks in NLP, computer vision, and audio - and use 🤗 Datasets to download and generate the dataset.
+
+This tutorial uses the [rotten_tomatoes](https://huggingface.co/datasets/rotten_tomatoes) and [MInDS-14](https://huggingface.co/datasets/PolyAI/minds14) datasets, but feel free to load any dataset you want and follow along. Head over to the Hub now and find a dataset for your task!
 
 ## Load a dataset
 
-Before you take the time to download a dataset, it is often helpful to quickly get all the relevant information about a dataset. The [`load_dataset_builder`] method allows you to inspect the attributes of a dataset without downloading it.
+Before you take the time to download a dataset, it's often helpful to quickly get some general information about a dataset. A dataset's information is stored inside [`DatasetInfo`] and can include information such as the dataset description, features, and dataset size. 
+
+Use the [`load_dataset_builder`] function to load a dataset builder and inspect a dataset's attributes without committing to downloading it:
 
 ```py
 >>> from datasets import load_dataset_builder
->>> dataset_builder = load_dataset_builder('imdb')
->>> print(dataset_builder.cache_dir)
-/Users/thomwolf/.cache/huggingface/datasets/imdb/plain_text/1.0.0/fdc76b18d5506f14b0646729b8d371880ef1bc48a26d00835a7f3da44004b676
->>> print(dataset_builder.info.features)
-{'text': Value(dtype='string', id=None), 'label': ClassLabel(num_classes=2, names=['neg', 'pos'], names_file=None, id=None)}
->>> print(dataset_builder.info.splits)
-{'train': SplitInfo(name='train', num_bytes=33432835, num_examples=25000, dataset_name='imdb'), 'test': SplitInfo(name='test', num_bytes=32650697, num_examples=25000, dataset_name='imdb'), 'unsupervised': SplitInfo(name='unsupervised', num_bytes=67106814, num_examples=50000, dataset_name='imdb')}
+>>> ds_builder = load_dataset_builder("rotten_tomatoes")
+
+# Inspect dataset description
+>>> ds_builder.info.description
+Movie Review Dataset. This is a dataset of containing 5,331 positive and 5,331 negative processed sentences from Rotten Tomatoes movie reviews. This data was first used in Bo Pang and Lillian Lee, ``Seeing stars: Exploiting class relationships for sentiment categorization with respect to rating scales.'', Proceedings of the ACL, 2005.
+
+# Inspect dataset features
+>>> ds_builder.info.features
+{'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+ 'text': Value(dtype='string', id=None)}
 ```
 
-<Tip>
-
-Take a look at [`DatasetInfo`] for a full list of attributes you can use with `dataset_builder`.
-
-</Tip>
-
-Once you are happy with the dataset you want, load it in a single line with [`load_dataset`]:
+If you're happy with the dataset, then load it with [`load_dataset`]:
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('glue', 'mrpc', split='train')
+
+>>> dataset = load_dataset("rotten_tomatoes", split="train")
 ```
 
-## Select a configuration
+## Splits
 
-Some datasets, like the [General Language Understanding Evaluation (GLUE)](https://huggingface.co/datasets/glue) benchmark, are actually made up of several datasets. These sub-datasets are called **configurations**, and you must explicitly select one when you load the dataset. If you don't provide a configuration name, 🤗 Datasets will raise a `ValueError` and remind you to select a configuration.
+A split is a specific subset of a dataset like `train` and `test`. List a dataset's split names with the [`get_dataset_split_names`] function:
+
+```py
+>>> from datasets import get_dataset_split_names
+
+>>> get_dataset_split_names("rotten_tomatoes")
+['train', 'validation', 'test']
+```
+
+Then you can load a specific split with the `split` parameter. Loading a dataset `split` returns a [`Dataset`] object:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("rotten_tomatoes", split="train")
+>>> dataset
+Dataset({
+    features: ['text', 'label'],
+    num_rows: 8530
+})
+```
+
+If you don't specify a `split`, 🤗 Datasets returns a [`DatasetDict`] object instead:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("rotten_tomatoes")
+DatasetDict({
+    train: Dataset({
+        features: ['text', 'label'],
+        num_rows: 8530
+    })
+    validation: Dataset({
+        features: ['text', 'label'],
+        num_rows: 1066
+    })
+    test: Dataset({
+        features: ['text', 'label'],
+        num_rows: 1066
+    })
+})
+```
+
+## Configurations
+
+Some datasets contain several sub-datasets. For example, the [MInDS-14](https://huggingface.co/datasets/PolyAI/minds14) dataset has several sub-datasets, each one containing audio data in a different language. These sub-datasets are known as *configurations*, and you must explicitly select one when loading the dataset. If you don't provide a configuration name, 🤗 Datasets will raise a `ValueError` and remind you to choose a configuration.
 
 Use the [`get_dataset_config_names`] function to retrieve a list of all the possible configurations available to your dataset:
 
 ```py
-from datasets import get_dataset_config_names
+>>> from datasets import get_dataset_config_names
 
-configs = get_dataset_config_names("glue")
-print(configs)
-# ['cola', 'sst2', 'mrpc', 'qqp', 'stsb', 'mnli', 'mnli_mismatched', 'mnli_matched', 'qnli', 'rte', 'wnli', 'ax']
+>>> configs = get_dataset_config_names("PolyAI/minds14")
+>>> print(configs)
+['cs-CZ', 'de-DE', 'en-AU', 'en-GB', 'en-US', 'es-ES', 'fr-FR', 'it-IT', 'ko-KR', 'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'zh-CN', 'all']
 ```
 
-❌ Incorrect way to load a configuration:
+Then load the configuration you want:
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('glue')
-ValueError: Config name is missing.
-Please pick one among the available configs: ['cola', 'sst2', 'mrpc', 'qqp', 'stsb', 'mnli', 'mnli_mismatched', 'mnli_matched', 'qnli', 'rte', 'wnli', 'ax']
-Example of usage:
-        *load_dataset('glue', 'cola')*
-```
 
-✅ Correct way to load a configuration:
-
-```py
->>> dataset = load_dataset('glue', 'sst2')
-Downloading and preparing dataset glue/sst2 (download: 7.09 MiB, generated: 4.81 MiB, total: 11.90 MiB) to /Users/thomwolf/.cache/huggingface/datasets/glue/sst2/1.0.0...
-Downloading: 100%|██████████████████████████████████████████████████████████████| 7.44M/7.44M [00:01<00:00, 7.03MB/s]
-Dataset glue downloaded and prepared to /Users/thomwolf/.cache/huggingface/datasets/glue/sst2/1.0.0. Subsequent calls will reuse this data.
->>> print(dataset)
-{'train': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 67349),
-    'validation': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 872),
-    'test': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 1821)
-}
-```
-
-## Select a split
-
-A split is a specific subset of the dataset like `train` and `test`. Make sure you select a split when you load a dataset. If you don't supply a `split` argument, 🤗 Datasets will only return a dictionary containing the subsets of the dataset.
-
-```py
->>> from datasets import load_dataset
->>> datasets = load_dataset('glue', 'mrpc')
->>> print(datasets)
-{train: Dataset({
-    features: ['idx', 'label', 'sentence1', 'sentence2'],
-    num_rows: 3668
-})
-validation: Dataset({
-    features: ['idx', 'label', 'sentence1', 'sentence2'],
-    num_rows: 408
-})
-test: Dataset({
-    features: ['idx', 'label', 'sentence1', 'sentence2'],
-    num_rows: 1725
-})
-}
-```
-
-You can list the split names for a dataset, or a specific configuration, with the [`get_dataset_split_names`] method:
-
-```py
->>> from datasets import get_dataset_split_names
->>> get_dataset_split_names('sent_comp')
-['validation', 'train']
->>> get_dataset_split_names('glue', 'cola')
-['test', 'train', 'validation']
+>>> mindsFR = load_dataset("PolyAI/minds14", "fr-FR", split="train")
 ```
