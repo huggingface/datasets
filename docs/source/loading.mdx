@@ -11,7 +11,7 @@ This guide will show you how to load a dataset from:
 - Offline
 - A specific slice of a split
 
-You will also learn how to troubleshoot common errors, and how to load specific configurations of a metric.
+For more information specific to loading audio datasets, take a look at the <a class="bg-yellow-200 text-yellow-900 dark:bg-yellow-500 px-1 rounded font-bold" href="./audio_load">load audio data</a> guide. If you're working with image datasets, you can check out the <a class="bg-green-200 text-green-900 dark:bg-green-500 px-1 rounded font-bold" href="./image_load">load image data</a> guide.
 
 <a id='load-from-the-hub'></a>
 
@@ -373,6 +373,12 @@ Now when you look at your dataset features, you can see it uses the custom label
 ```
 
 ## Metrics
+
+<Tip warning={true}>
+
+Metrics will soon be deprecated in 🤗 Datasets. To learn more about how to use metrics, take a look at our newest library 🤗 Evaluate! In addition to metrics, we've also added more tools for evaluating models and datasets.
+
+</Tip>
 
 When the metric you want to use is not supported by 🤗 Datasets, you can write and use your own metric script. Load your metric by providing the path to your local metric loading script:
 
