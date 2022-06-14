@@ -1,8 +1,4 @@
 ---
-pretty_name:
-- SV-Ident
-paperswithcode_id:
--sv-ident
 annotations_creators:
 - expert-generated
 language_creators:
@@ -24,6 +20,7 @@ task_categories:
 task_ids:
 - multi-label-classification
 - semantic-similarity-classification
+pretty_name: SV-Ident
 ---
 
 # Dataset Card for SV-Ident
