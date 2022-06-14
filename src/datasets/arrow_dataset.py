@@ -3032,6 +3032,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if len(self) == 0:
             return self
 
+        # Convert generator objects to lists
+        if isinstance(indices, Iterator):
+            indices = list(indices)
+
         # If the indices are contiguous, simply slice the arrow table
         if isinstance(indices, range):
             if _is_range_contiguous(indices) and indices.start >= 0:
@@ -3176,7 +3180,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 path=tmp_file.name, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
             )
 
-        indices = list(indices)
+        indices = indices if isinstance(indices, list) else list(indices)
 
         size = len(self)
         if indices:
