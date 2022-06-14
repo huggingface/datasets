@@ -26,16 +26,21 @@ import datasets
 class FeverConfig(datasets.BuilderConfig):
     """BuilderConfig for FEVER."""
 
-    def __init__(self, homepage: str = None, citation: str = None, **kwargs):
+    def __init__(self, homepage: str = None, citation: str = None, base_url: str = None, urls: dict = None, **kwargs):
         """BuilderConfig for FEVER.
 
         Args:
+            homepage (`str`): Homepage.
             citation (`str`): Citation reference.
+            base_url (`str`): Data base URL that precedes all data URLs.
+            urls (`dict`): Data URLs (each URL will pe preceded by `base_url`).
             **kwargs: keyword arguments forwarded to super.
         """
         super().__init__(**kwargs)
         self.homepage = homepage
         self.citation = citation
+        self.base_url = base_url
+        self.urls = {key: f"{base_url}/{url}" for key, url in urls.items()}
 
 
 class Fever(datasets.GeneratorBasedBuilder):
@@ -63,6 +68,15 @@ class Fever(datasets.GeneratorBasedBuilder):
                     year = {2018}
                 }"""
             ),
+            base_url="https://fever.ai/download/fever",
+            urls={
+                datasets.Split.TRAIN: "train.jsonl",
+                "labelled_dev": "shared_task_dev.jsonl",
+                "unlabelled_dev": "shared_task_dev_public.jsonl",
+                "unlabelled_test": "shared_task_test.jsonl",
+                "paper_dev": "paper_dev.jsonl",
+                "paper_test": "paper_test.jsonl",
+            },
         ),
         FeverConfig(
             name="v2.0",
@@ -88,6 +102,10 @@ class Fever(datasets.GeneratorBasedBuilder):
                     year = {2018}
                 }"""
             ),
+            base_url="https://fever.ai/download/fever2.0",
+            urls={
+                datasets.Split.VALIDATION: "fever2-fixers-dev.jsonl",
+            },
         ),
         FeverConfig(
             name="wiki_pages",
@@ -110,11 +128,14 @@ class Fever(datasets.GeneratorBasedBuilder):
                     year = {2018}
                 }"""
             ),
+            base_url="https://fever.ai/download/fever",
+            urls={
+                "wikipedia_pages": "wiki-pages.zip",
+            },
         ),
     ]
 
     def _info(self):
-
         if self.config.name == "wiki_pages":
             features = {
                 "id": datasets.Value("string"),
@@ -140,83 +161,18 @@ class Fever(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        if self.config.name == "v2.0":
-            base_url = "https://fever.ai/download/fever2.0"
-            urls = f"{base_url}/fever2-fixers-dev.jsonl"
-            dl_path = dl_manager.download_and_extract(urls)
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": dl_path,
-                    },
-                )
-            ]
-        elif self.config.name == "v1.0":
-            base_url = "https://fever.ai/download/fever"
-            urls = {
-                "train": f"{base_url}/train.jsonl",
-                "labelled_dev": f"{base_url}/shared_task_dev.jsonl",
-                "unlabelled_dev": f"{base_url}/shared_task_dev_public.jsonl",
-                "unlabelled_test": f"{base_url}/shared_task_test.jsonl",
-                "paper_dev": f"{base_url}/paper_dev.jsonl",
-                "paper_test": f"{base_url}/paper_test.jsonl",
-            }
-            dl_path = dl_manager.download_and_extract(urls)
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": dl_path["train"],
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name="unlabelled_test",
-                    gen_kwargs={
-                        "filepath": dl_path["unlabelled_test"],
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name="unlabelled_dev",
-                    gen_kwargs={
-                        "filepath": dl_path["unlabelled_dev"],
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name="labelled_dev",
-                    gen_kwargs={
-                        "filepath": dl_path["labelled_dev"],
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name="paper_dev",
-                    gen_kwargs={
-                        "filepath": dl_path["paper_dev"],
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name="paper_test",
-                    gen_kwargs={
-                        "filepath": dl_path["paper_test"],
-                    },
-                ),
-            ]
-        elif self.config.name == "wiki_pages":
-            base_url = "https://fever.ai/download/fever"
-            urls = f"{base_url}/wiki-pages.zip"
-            dl_path = dl_manager.download_and_extract(urls)
-            files = sorted(os.listdir(os.path.join(dl_path, "wiki-pages")))
-            file_paths = [os.path.join(dl_path, "wiki-pages", file) for file in files]
-            return [
-                datasets.SplitGenerator(
-                    name="wikipedia_pages",
-                    gen_kwargs={
-                        "filepath": file_paths,
-                    },
-                ),
-            ]
-        else:
-            raise ValueError("config name not found")
+        dl_paths = dl_manager.download_and_extract(self.config.urls)
+        return [
+            datasets.SplitGenerator(
+                name=split,
+                gen_kwargs={
+                    "filepath": dl_paths[split]
+                    if self.config.name != "wiki_pages"
+                    else dl_manager.iter_files(os.path.join(dl_paths[split], "wiki-pages")),
+                },
+            )
+            for split in dl_paths.keys()
+        ]
 
     def _generate_examples(self, filepath):
         """Yields examples."""
