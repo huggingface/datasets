@@ -96,9 +96,9 @@ class Audio:
             # we set "bytes": None to not duplicate the data if they're already available locally
             if value["path"].endswith("pcm"):
                 # "PCM" only has raw audio bytes
-                if value.get("sampling_rate") is None:
+                if self.sampling_rate is None:
                     # At least, If you want to convert "PCM-byte" to "WAV-byte", you have to know sampling rate
-                    raise KeyError("To use PCM files, please specify a 'sampling_rate' in addition to the 'path'.")
+                    raise KeyError("To use PCM files, please specify a 'sampling_rate' in Audio object")
                 if value.get("bytes"):
                     # If we already had PCM-byte, we don`t have to make "read file, make bytes" (just use it!)
                     bytes_value = np.frombuffer(value["bytes"], dtype=np.int16).astype(np.float32) / 32767
@@ -106,7 +106,7 @@ class Audio:
                     bytes_value = np.memmap(value["path"], dtype="h", mode="r").astype(np.float32) / 32767
 
                 buffer = BytesIO(bytes())
-                wavfile.write(buffer, value["sampling_rate"], bytes_value)
+                wavfile.write(buffer, self.sampling_rate, bytes_value)
                 return {"bytes": buffer.getvalue(), "path": value.get("path")}
             else:
                 return {"bytes": None, "path": value.get("path")}

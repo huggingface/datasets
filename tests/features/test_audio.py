@@ -78,6 +78,26 @@ def test_audio_feature_encode_example(shared_datadir, build_example):
     assert decoded_example.keys() == {"path", "array", "sampling_rate"}
 
 
+@pytest.mark.parametrize(
+    "build_example",
+    [
+        lambda audio_path: {"path": audio_path},
+        lambda audio_path: {"path": audio_path, "bytes": None},
+        lambda audio_path: {"path": audio_path, "bytes": open(audio_path, "rb").read()},
+        lambda audio_path: {"array": [0.1, 0.2, 0.3], "sampling_rate": 16_000},
+    ],
+)
+def test_audio_feature_encode_example_pcm(shared_datadir, build_example):
+    audio_path = str(shared_datadir / "test_audio_16000.pcm")
+    audio = Audio(sampling_rate=16_000)
+    encoded_example = audio.encode_example(build_example(audio_path))
+    assert isinstance(encoded_example, dict)
+    assert encoded_example.keys() == {"bytes", "path"}
+    assert encoded_example["bytes"] is not None or encoded_example["path"] is not None
+    decoded_example = audio.decode_example(encoded_example)
+    assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+
+
 @require_sndfile
 def test_audio_decode_example(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -124,6 +144,18 @@ def test_audio_decode_example_opus(shared_datadir):
     assert decoded_example["path"] == audio_path
     assert decoded_example["array"].shape == (48000,)
     assert decoded_example["sampling_rate"] == 48000
+
+
+def test_audio_decode_example_pcm(shared_datadir):
+    sampling_rate = 16_000
+    audio_path = str(shared_datadir / "test_audio_16000.pcm")
+    audio_input = {"path": audio_path, "sampling_rate": sampling_rate}
+    audio = Audio(sampling_rate=16_000)
+    decoded_example = audio.decode_example(audio.encode_example(audio_input))
+    assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+    assert decoded_example["path"] == audio_path
+    assert decoded_example["array"].shape == (16208,)
+    assert decoded_example["sampling_rate"] == 16000
 
 
 @require_sox
