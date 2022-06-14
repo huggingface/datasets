@@ -49,7 +49,9 @@ _METADATA_DOWNLOAD_URL = "https://zenodo.org/record/6615455/files/pass_metadata.
 class PASS(datasets.GeneratorBasedBuilder):
     """PASS dataset."""
 
-    VERSION = datasets.Version("1.0.0")
+    # 1.0.0 - v2 from https://github.com/yukimasano/PASS/blob/6226b456d23efa56b44e79648a9913e086d57335/version_history.txt
+    # 2.0.0 - v3 from https://github.com/yukimasano/PASS/blob/6226b456d23efa56b44e79648a9913e086d57335/version_history.txt
+    VERSION = datasets.Version("2.0.0")
 
     def _info(self):
         return datasets.DatasetInfo(
