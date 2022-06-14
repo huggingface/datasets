@@ -1,8 +1,10 @@
 # Use with PyTorch
 
-## Tensors
+This document is a quick introduction to using `datasets` with PyTorch, with a particular focus on how to get
+`torch.Tensor` objects out of our datasets, and how to use a PyTorch `DataLoader` and a Hugging Face `Dataset`
+with the best performance.
 
-### Dataset format
+## Dataset format
 
 By default, datasets return regular python objects: integers, floats, strings, lists, etc.
 
@@ -12,7 +14,7 @@ To get PyTorch tensors instead, you can set the format of the dataset to `pytorc
 >>> from datasets import Dataset
 >>> data = [[1, 2],[3, 4]]
 >>> ds = Dataset.from_dict({"data": data})
->>> ds = ds.with_format("pytorch")
+>>> ds = ds.with_format("torch")
 >>> ds[0]
 {'data': tensor([1, 2])}
 >>> ds[:2]
@@ -31,12 +33,12 @@ To load the data as tensors on a GPU, specify the `device` argument:
 ```py
 >>> import torch
 >>> device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
->>> ds = ds.with_format("pytorch", device=device)
+>>> ds = ds.with_format("torch", device=device)
 >>> ds[0]
 {'data': tensor([1, 2], device='cuda:0')}
 ```
 
-### N-dimensional arrays
+## N-dimensional arrays
 
 If your dataset consists of N-dimensional arrays, you will see that by default they are considered as nested lists.
 In particular, a PyTorch formatted dataset outputs nested lists instead of a single tensor:
@@ -45,7 +47,7 @@ In particular, a PyTorch formatted dataset outputs nested lists instead of a sin
 >>> from datasets import Dataset
 >>> data = [[[1, 2],[3, 4]],[[5, 6],[7, 8]]]
 >>> ds = Dataset.from_dict({"data": data})
->>> ds = ds.with_format("pytorch")
+>>> ds = ds.with_format("torch")
 >>> ds[0]
 {'data': [tensor([1, 2]), tensor([3, 4])]}
 ```
@@ -57,7 +59,7 @@ To get a single tensor, you must explicitly use the [`Array`] feature type and s
 >>> data = [[[1, 2],[3, 4]],[[5, 6],[7, 8]]]
 >>> features = Features({"data": Array2D(shape=(2, 2), dtype='int32')})
 >>> ds = Dataset.from_dict({"data": data}, features=features)
->>> ds = ds.with_format("pytorch")
+>>> ds = ds.with_format("torch")
 >>> ds[0]
 {'data': tensor([[1, 2],
          [3, 4]])}
@@ -70,7 +72,7 @@ To get a single tensor, you must explicitly use the [`Array`] feature type and s
 ```
 
 
-### Other feature types
+## Other feature types
 
 [`ClassLabel`] data are properly converted to tensors:
 
@@ -79,7 +81,7 @@ To get a single tensor, you must explicitly use the [`Array`] feature type and s
 >>> data = [0, 0, 1]
 >>> features = Features({"data": ClassLabel(names=["negative", "positive"])})
 >>> ds = Dataset.from_dict({"data": data}, features=features) 
->>> ds = ds.with_format("pytorch")  
+>>> ds = ds.with_format("torch")  
 >>> ds[:3]
 {'data': tensor([0, 0, 1])}
 ```
@@ -92,7 +94,7 @@ Instead, you can explicitly format certain columns and leave the other columns u
 >>> text = ["foo", "bar"]
 >>> data = [0, 1] 
 >>> ds = Dataset.from_dict({"text": text, "data": data})  
->>> ds = ds.with_format("pytorch", columns=["data"], output_all_columns=True) 
+>>> ds = ds.with_format("torch", columns=["data"], output_all_columns=True) 
 >>> ds[:2]                                                                                                                                                     
 {'data': tensor([0, 1]), 'text': ['foo', 'bar']}
 ```
@@ -109,7 +111,7 @@ Like `torch.utils.data.Dataset` objects, a [`Dataset`] can be passed directly to
 >>> from torch.utils.data import DataLoader
 >>> data = np.random.rand(16)
 >>> label = np.random.randint(0, 2, size=16)
->>> ds = Dataset.from_dict({"data": data, "label": label}).with_format("pytorch")
+>>> ds = Dataset.from_dict({"data": data, "label": label}).with_format("torch")
 >>> dataloader = DataLoader(ds, batch_size=4)
 >>> for batch in dataloader:
 ...     print(batch)                                                                                            
@@ -121,7 +123,10 @@ Like `torch.utils.data.Dataset` objects, a [`Dataset`] can be passed directly to
 
 ### Optimize data loading
 
-#### Use multiple workers
+There are several ways you can increase the speed your data is loaded which can save you time, especially if you are working with large datasets.
+PyTorch offers parallelized data loading, retrieving batches of indices instead of individually, and streaming to progressively download datasets.
+
+#### Use multiple Workers
 
 You can parallelize data loading with the `num_workers` argument of a PyTorch `DataLoader` and get a higher throughput.
 
