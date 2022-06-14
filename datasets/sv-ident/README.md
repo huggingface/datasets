@@ -10,7 +10,6 @@ licenses:
 - mit
 multilinguality:
 - multilingual
-pretty_name: sv-ident
 size_categories:
 - 1K<n<10K
 source_datasets:
