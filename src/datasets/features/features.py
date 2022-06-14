@@ -810,7 +810,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
     def take(
         self, indices: Sequence_[int], allow_fill: bool = False, fill_value: bool = None
     ) -> "PandasArrayExtensionArray":
-        indices: np.ndarray = np.asarray(indices, dtype=np.int)
+        indices: np.ndarray = np.asarray(indices, dtype=int)
         if allow_fill:
             fill_value = (
                 self.dtype.na_value if fill_value is None else np.asarray(fill_value, dtype=self.dtype.value_type)

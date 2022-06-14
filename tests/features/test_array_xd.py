@@ -335,7 +335,7 @@ def test_array_xd_with_none():
     dummy_array = np.array([[1, 2], [3, 4]], dtype="int32")
     dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array]}, features=features)
     arr = NumpyArrowExtractor().extract_column(dataset._data)
-    assert isinstance(arr, np.ndarray) and arr.dtype == np.object and arr.shape == (3,)
+    assert isinstance(arr, np.ndarray) and arr.dtype == object and arr.shape == (3,)
     np.testing.assert_equal(arr[0], dummy_array)
     np.testing.assert_equal(arr[2], dummy_array)
     assert np.isnan(arr[1])  # a single np.nan value - np.all not needed
