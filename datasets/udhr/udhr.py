@@ -17,7 +17,6 @@
 """Universal Declaration of Human Rights"""
 
 
-import glob
 import os
 import xml.etree.ElementTree as ET
 
