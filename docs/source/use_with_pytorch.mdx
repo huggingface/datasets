@@ -175,7 +175,7 @@ You must use a `BatchSampler` if you want the transform to be given full batches
 ### Stream data
 
 Loading a dataset in streaming mode is useful to progressively download the data you need while iterating over the dataset.
-Set the format of a streaming dataset to `pytorch`, and it inherits from `torch.utils.data.IterableDataset` so you can pass it to a `DataLoader`:
+Set the format of a streaming dataset to `torch`, and it inherits from `torch.utils.data.IterableDataset` so you can pass it to a `DataLoader`:
 
 ```py
 >>> import numpy as np
