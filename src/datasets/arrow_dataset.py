@@ -1427,6 +1427,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return dset
 
+    @transmit_format
     @fingerprint_transform(inplace=False)
     def flatten(self, new_fingerprint: Optional[str] = None, max_depth=16) -> "Dataset":
         """Flatten the table.
@@ -1635,6 +1636,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset
 
     @transmit_tasks
+    @transmit_format
     @fingerprint_transform(inplace=False)
     def rename_column(
         self, original_column_name: str, new_column_name: str, new_fingerprint: Optional[str] = None
@@ -1699,6 +1701,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset
 
     @transmit_tasks
+    @transmit_format
     @fingerprint_transform(inplace=False)
     def rename_columns(self, column_mapping: Dict[str, str], new_fingerprint: Optional[str] = None) -> "Dataset":
         """
