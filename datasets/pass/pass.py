@@ -41,9 +41,9 @@ _HOMEPAGE = "https://www.robots.ox.ac.uk/~vgg/research/pass/"
 
 _LICENSE = "Creative Commons Attribution 4.0 International"
 
-_IMAGE_ARCHIVE_DOWNLOAD_URL_TEMPLATE = "https://zenodo.org/record/5570664/files/PASS.{idx}.tar?download=1"
+_IMAGE_ARCHIVE_DOWNLOAD_URL_TEMPLATE = "https://zenodo.org/record/6615455/files/PASS.{idx}.tar?download=1"
 
-_METADATA_DOWNLOAD_URL = "https://zenodo.org/record/5570664/files/pass_metadata.csv?download=1"
+_METADATA_DOWNLOAD_URL = "https://zenodo.org/record/6615455/files/pass_metadata.csv?download=1"
 
 
 class PASS(datasets.GeneratorBasedBuilder):
