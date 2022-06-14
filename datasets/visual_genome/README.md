@@ -14,17 +14,17 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-  region_descriptions:
-  - image-to-text
-  objects:
-  - object-detection
-  question_answers:
-  - visual-question-answering
+- image-to-text
+- object-detection
+- visual-question-answering
 task_ids:
-  region_descriptions:
-  - image-captioning
+- image-captioning
 paperswithcode_id: visual-genome
 pretty_name: VisualGenome
+configs:
+- objects
+- question_answers
+- region_descriptions
 ---
 
 # Dataset Card for Visual Genome

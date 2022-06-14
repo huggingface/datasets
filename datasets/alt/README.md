@@ -23,20 +23,8 @@ multilinguality:
 - multilingual
 - translation
 size_categories:
-  alt-en:
-  - 10K<n<100K
-  alt-jp:
-  - 10K<n<100K
-  alt-km:
-  - 10K<n<100K
-  alt-my:
-  - 10K<n<100K
-  alt-my-transliteration:
-  - 10K<n<100K
-  alt-my-west-transliteration:
-  - 100K<n<1M
-  alt-parallel:
-  - 10K<n<100K
+- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -46,6 +34,14 @@ task_ids:
 - parsing
 paperswithcode_id: alt
 pretty_name: Asian Language Treebank
+configs:
+- alt-en
+- alt-jp
+- alt-km
+- alt-my
+- alt-my-transliteration
+- alt-my-west-transliteration
+- alt-parallel
 ---
 
 # Dataset Card for Asian Language Treebank (ALT)

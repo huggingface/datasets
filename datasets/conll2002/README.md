@@ -4,10 +4,8 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  es:
-  - es
-  nl:
-  - nl
+- es
+- nl
 licenses:
 - unknown
 multilinguality:
@@ -23,6 +21,9 @@ task_ids:
 - part-of-speech-tagging
 paperswithcode_id: conll-2002
 pretty_name: CoNLL-2002
+configs:
+- es
+- nl
 ---
 
 # Dataset Card for CoNLL-2002

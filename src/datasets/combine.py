@@ -36,8 +36,6 @@ def interleave_datasets(
         probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructued by sampling
             examples from one source at a time according to these probabilities.
         seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
-        **kwargs: For map-style datasets:
-            Keyword arguments to be passed to :meth:`Dataset.select` when selecting the indices used to interleave the datasets.
 
     Returns:
         :class:`Dataset` or :class:`IterableDataset`: Return type depends on the input `datasets`
@@ -112,7 +110,7 @@ def _interleave_map_style_datasets(
         probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructued by sampling
             examples from one source at a time according to these probabilities.
         seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
-        **kwargs: Keyword arguments to be passed to :meth:`datasets.Datasets.select` when selecting the indices used to interleave the datasets.
+        **kwargs (additional keyword arguments): Keyword arguments to be passed to :meth:`datasets.Datasets.select` when selecting the indices used to interleave the datasets.
 
     Output:
         :class:`datasets.Dataset`

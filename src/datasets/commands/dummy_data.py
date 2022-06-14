@@ -10,11 +10,11 @@ from typing import Optional
 
 from datasets import config
 from datasets.commands import BaseDatasetsCLICommand
+from datasets.download.download_config import DownloadConfig
+from datasets.download.download_manager import DownloadManager
+from datasets.download.mock_download_manager import MockDownloadManager
 from datasets.load import dataset_module_factory, import_main_class
-from datasets.utils.download_manager import DownloadManager
-from datasets.utils.file_utils import DownloadConfig
 from datasets.utils.logging import get_logger, set_verbosity_warning
-from datasets.utils.mock_download_manager import MockDownloadManager
 from datasets.utils.py_utils import map_nested
 
 
@@ -295,14 +295,9 @@ class DummyDataCommand(BaseDatasetsCLICommand):
         auto_generate_results = []
         with tempfile.TemporaryDirectory() as tmp_dir:
             for builder_config in builder_configs:
-                if builder_config is None:
-                    name = None
-                    version = builder_cls.VERSION
-                else:
-                    version = builder_config.version
-                    name = builder_config.name
-
-                dataset_builder = builder_cls(name=name, hash=dataset_module.hash, cache_dir=tmp_dir)
+                config_name = builder_config.name if builder_config else None
+                dataset_builder = builder_cls(config_name=config_name, hash=dataset_module.hash, cache_dir=tmp_dir)
+                version = builder_config.version if builder_config else dataset_builder.config.version
                 mock_dl_manager = MockDownloadManager(
                     dataset_name=self._dataset_name,
                     config=builder_config,

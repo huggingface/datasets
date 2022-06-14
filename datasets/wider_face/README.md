@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 licenses:
-- unknown
+- cc-by-nc-nd-4.0
 multilinguality:
 - monolingual
 size_categories:
@@ -191,7 +191,7 @@ Shuo Yang, Ping Luo, Chen Change Loy and Xiaoou Tang
 
 ### Licensing Information
 
-[More Information Needed]
+[Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)](https://creativecommons.org/licenses/by-nc-nd/4.0/).
 
 ### Citation Information
 

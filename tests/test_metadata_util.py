@@ -1,7 +1,7 @@
 import re
 import tempfile
 import unittest
-from dataclasses import asdict
+from dataclasses import _MISSING_TYPE, asdict, fields
 from pathlib import Path
 
 from datasets.utils.metadata import (
@@ -186,6 +186,11 @@ class TestMetadataUtils(unittest.TestCase):
             self.assertIsNone(metadata_dict)
 
     def test_from_yaml_string(self):
+
+        default_optional_keys = {
+            field.name: field.default for field in fields(DatasetMetadata) if type(field.default) is _MISSING_TYPE
+        }
+
         valid_yaml_string = _dedent(
             """\
             annotations_creators:
@@ -429,77 +434,7 @@ class TestMetadataUtils(unittest.TestCase):
             metadata = DatasetMetadata.from_yaml_string(valid_yaml_string_with_list_paperswithcode_id)
             metadata.validate()
 
-    def test_get_metadata_by_config_name(self):
-        valid_yaml_with_multiple_configs = _dedent(
-            """\
-            annotations_creators:
-            - found
-            language_creators:
-            - found
-            languages:
-              en:
-              - en
-              fr:
-              - fr
-            licenses:
-            - unknown
-            multilinguality:
-            - monolingual
-            pretty_name:
-              en: English Test Dataset
-              fr: French Test Dataset
-            size_categories:
-            - 10K<n<100K
-            source_datasets:
-            - extended|other-yahoo-webscope-l6
-            task_categories:
-            - question-answering
-            task_ids:
-            - open-domain-qa
-            paperswithcode_id:
-            - squad
-            """
-        )
-
-        metadata = DatasetMetadata.from_yaml_string(valid_yaml_with_multiple_configs)
-        en_metadata = metadata.get_metadata_by_config_name("en")
-        self.assertEqual(
-            asdict(en_metadata),
-            {
-                "annotations_creators": ["found"],
-                "language_creators": ["found"],
-                "languages": ["en"],
-                "licenses": ["unknown"],
-                "multilinguality": ["monolingual"],
-                "pretty_name": "English Test Dataset",
-                "size_categories": ["10K<n<100K"],
-                "source_datasets": ["extended|other-yahoo-webscope-l6"],
-                "task_categories": ["question-answering"],
-                "task_ids": ["open-domain-qa"],
-                "paperswithcode_id": ["squad"],
-                "train_eval_index": None,
-            },
-        )
-        fr_metadata = metadata.get_metadata_by_config_name("fr")
-        self.assertEqual(
-            asdict(fr_metadata),
-            {
-                "annotations_creators": ["found"],
-                "language_creators": ["found"],
-                "languages": ["fr"],
-                "licenses": ["unknown"],
-                "multilinguality": ["monolingual"],
-                "pretty_name": "French Test Dataset",
-                "size_categories": ["10K<n<100K"],
-                "source_datasets": ["extended|other-yahoo-webscope-l6"],
-                "task_categories": ["question-answering"],
-                "task_ids": ["open-domain-qa"],
-                "paperswithcode_id": ["squad"],
-                "train_eval_index": None,
-            },
-        )
-
-        valid_yaml_with_single_configs = _dedent(
+        valid_yaml_with_optional_keys = _dedent(
             """\
             annotations_creators:
             - found
@@ -517,117 +452,82 @@ class TestMetadataUtils(unittest.TestCase):
             source_datasets:
             - extended|other-yahoo-webscope-l6
             task_categories:
-            - question-answering
+            - text-classification
             task_ids:
-            - open-domain-qa
+            - multi-class-classification
             paperswithcode_id:
             - squad
+            configs:
+            - en
+            train-eval-index:
+            - config: en
+              task: text-classification
+              task_id: multi_class_classification
+              splits:
+                train_split: train
+                eval_split: test
+              col_mapping:
+                text: text
+                label: target
+              metrics:
+                - type: accuracy
+                  name: Accuracy
+            extra_gated_prompt: |
+              By clicking on “Access repository” below, you also agree to ImageNet Terms of Access:
+              [RESEARCHER_FULLNAME] (the "Researcher") has requested permission to use the ImageNet database (the "Database") at Princeton University and Stanford University. In exchange for such permission, Researcher hereby agrees to the following terms and conditions:
+              1. Researcher shall use the Database only for non-commercial research and educational purposes.
+            extra_gated_fields:
+              Company: text
+              Country: text
+              I agree to use this model for non-commerical use ONLY: checkbox
             """
         )
 
-        metadata = DatasetMetadata.from_yaml_string(valid_yaml_with_single_configs)
-        en_metadata = metadata.get_metadata_by_config_name("en")
-        self.assertEqual(
-            asdict(en_metadata),
-            {
-                "annotations_creators": ["found"],
-                "language_creators": ["found"],
-                "languages": ["en"],
-                "licenses": ["unknown"],
-                "multilinguality": ["monolingual"],
-                "pretty_name": "Test Dataset",
-                "size_categories": ["10K<n<100K"],
-                "source_datasets": ["extended|other-yahoo-webscope-l6"],
-                "task_categories": ["question-answering"],
-                "task_ids": ["open-domain-qa"],
-                "paperswithcode_id": ["squad"],
-                "train_eval_index": None,
+        metadata = DatasetMetadata.from_yaml_string(valid_yaml_with_optional_keys)
+        metadata_dict = asdict(metadata)
+        expected = {
+            **default_optional_keys,
+            "annotations_creators": ["found"],
+            "language_creators": ["found"],
+            "languages": ["en"],
+            "licenses": ["unknown"],
+            "multilinguality": ["monolingual"],
+            "pretty_name": "Test Dataset",
+            "size_categories": ["10K<n<100K"],
+            "source_datasets": ["extended|other-yahoo-webscope-l6"],
+            "task_categories": ["text-classification"],
+            "task_ids": ["multi-class-classification"],
+            "paperswithcode_id": ["squad"],
+            "configs": ["en"],
+            "train_eval_index": [
+                {
+                    "config": "en",
+                    "task": "text-classification",
+                    "task_id": "multi_class_classification",
+                    "splits": {"train_split": "train", "eval_split": "test"},
+                    "col_mapping": {"text": "text", "label": "target"},
+                    "metrics": [{"type": "accuracy", "name": "Accuracy"}],
+                },
+            ],
+            "extra_gated_prompt": (
+                "By clicking on “Access repository” below, you also agree to ImageNet Terms of Access:\n"
+                '[RESEARCHER_FULLNAME] (the "Researcher") has requested permission to use the ImageNet database '
+                '(the "Database") at Princeton University and Stanford University. In exchange for such permission, '
+                "Researcher hereby agrees to the following terms and conditions:\n"
+                "1. Researcher shall use the Database only for non-commercial research and educational purposes.\n"
+            ),
+            "extra_gated_fields": {
+                "Company": "text",
+                "Country": "text",
+                "I agree to use this model for non-commerical use ONLY": "checkbox",
             },
-        )
-        fr_metadata = metadata.get_metadata_by_config_name("fr")
-        self.assertEqual(
-            asdict(fr_metadata),
-            {
-                "annotations_creators": ["found"],
-                "language_creators": ["found"],
-                "languages": ["en"],
-                "licenses": ["unknown"],
-                "multilinguality": ["monolingual"],
-                "pretty_name": "Test Dataset",
-                "size_categories": ["10K<n<100K"],
-                "source_datasets": ["extended|other-yahoo-webscope-l6"],
-                "task_categories": ["question-answering"],
-                "task_ids": ["open-domain-qa"],
-                "paperswithcode_id": ["squad"],
-                "train_eval_index": None,
-            },
-        )
-
-        invalid_yaml_with_multiple_configs = _dedent(
-            """\
-            annotations_creators:
-            - found
-            language_creators:
-            - found
-            languages:
-              en:
-              - en
-              zh:
-              - zh
-            licenses:
-            - unknown
-            multilinguality:
-            - monolingual
-            pretty_name: Test Dataset
-            size_categories:
-            - 10K<n<100K
-            source_datasets:
-            - extended|other-yahoo-webscope-l6
-            task_categories:
-            - question-answering
-            task_ids:
-            - open-domain-qa
-            paperswithcode_id:
-            - squad
-            """
-        )
-
-        metadata = DatasetMetadata.from_yaml_string(invalid_yaml_with_multiple_configs)
-        en_metadata = metadata.get_metadata_by_config_name("en")
-        self.assertEqual(
-            asdict(en_metadata),
-            {
-                "annotations_creators": ["found"],
-                "language_creators": ["found"],
-                "languages": ["en"],
-                "licenses": ["unknown"],
-                "multilinguality": ["monolingual"],
-                "pretty_name": "Test Dataset",
-                "size_categories": ["10K<n<100K"],
-                "source_datasets": ["extended|other-yahoo-webscope-l6"],
-                "task_categories": ["question-answering"],
-                "task_ids": ["open-domain-qa"],
-                "paperswithcode_id": ["squad"],
-                "train_eval_index": None,
-            },
-        )
-        zh_metadata = metadata.get_metadata_by_config_name("zh")
-        self.assertEqual(
-            asdict(zh_metadata),
-            {
-                "annotations_creators": ["found"],
-                "language_creators": ["found"],
-                "languages": ["zh"],
-                "licenses": ["unknown"],
-                "multilinguality": ["monolingual"],
-                "pretty_name": "Test Dataset",
-                "size_categories": ["10K<n<100K"],
-                "source_datasets": ["extended|other-yahoo-webscope-l6"],
-                "task_categories": ["question-answering"],
-                "task_ids": ["open-domain-qa"],
-                "paperswithcode_id": ["squad"],
-                "train_eval_index": None,
-            },
-        )
-        with self.assertRaises(TypeError):
-            fr_metadata = metadata.get_metadata_by_config_name("fr")
+        }
+        self.assertEqual(sorted(metadata_dict), sorted(expected))
+        for key in expected:
+            if key == "train_eval_index":
+                self.assertEqual(len(metadata_dict[key]), len(expected[key]))
+                for tei, expected_tei in zip(metadata_dict[key], expected[key]):
+                    for subkey in expected_tei:
+                        self.assertEqual(tei[subkey], expected_tei[subkey], msg=f"failed at {subkey}")
+            else:
+                self.assertEqual(metadata_dict[key], expected[key], msg=f"failed at {key}")
