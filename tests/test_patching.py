@@ -142,3 +142,11 @@ def test_patch_submodule_successive():
     assert _test_patching.os.path.join is original_join
     assert _test_patching.os.path.dirname is original_dirname
     assert _test_patching.os.rename is original_rename
+
+
+def test_patch_submodule_doesnt_exist():
+    mock = "__test_patch_submodule_doesnt_exist_mock__"
+    with patch_submodule(_test_patching, "__module_that_doesn_exist__.__attribute_that_doesn_exist__", mock):
+        pass
+    with patch_submodule(_test_patching, "os.__attribute_that_doesn_exist__", mock):
+        pass
