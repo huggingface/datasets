@@ -69,4 +69,12 @@ from .splits import (
 )
 from .tasks import *
 from .utils import *
+from .utils import download_manager as _deprecated_download_manager
 from .utils import logging
+
+
+# deprecated modules
+
+
+_deprecated_download_manager.DownloadMode = DownloadMode
+_deprecated_download_manager.DownloadManager = DownloadManager
