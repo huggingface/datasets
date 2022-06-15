@@ -112,7 +112,7 @@ The data annotations have the following fields:
 
 - `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`.
 - `objects`: a dictionary containing bounding boxes and labels of the cell objects 
-  - `bbox`: a list of bounding boxes (in the [coco](https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/#coco) format) corresponding to the digits present on the image
+  - `bbox`: a list of bounding boxes (in the [coco](https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/#coco) format) corresponding to the objects present on the image
   - `label`: a list of integers representing the category (7 categories to describe the objects in total; two to differentiate nucleolus organizer regions), with the possible values including `BACKGROUND` (0), `NUCLEUS` (1), `CLUSTER` (2), `SATELLITE` (3), `NUCLEUS_OUT_OF_FOCUS` (4), `OVERLAPPED_NUCLEI` (5), `NON_VIABLE_NUCLEUS` (6) and `LEUKOCYTE_NUCLEUS` (7).
 
 
@@ -174,11 +174,16 @@ The dataset was built using images from examinations (a gynecological exam, colp
 
 #### Annotation process
 
-The instances were annotated using the [labelbox](https://labelbox.com/) tool. The satellite category was labeled as a single dot, and the other categories were labeled as polygons.
+The instances were annotated using the [labelbox](https://labelbox.com/) tool. The satellite category was labeled as a single dot, and the other categories were labeled as polygons. After the annotation process, all annotations was reviewed.
 
 #### Who are the annotators?
 
-[More Information Needed]
+Members of the Clinical Analyses Department and the Image Processing and Computer Graphics Lab. — LAPiX from [Universidade Federal de Santa Catarina (UFSC)](https://en.ufsc.br/). 
+
+- Tainee Bottamedi
+- Vinícius Sanches
+- João H. Telles de Carvalho
+- Ricardo Pereira
 
 ### Personal and Sensitive Information
 
