@@ -74,7 +74,7 @@ def size_str(size_in_bytes):
     if not size_in_bytes:
         return "Unknown size"
 
-    _NAME_LIST = [("PiB", 2**50), ("TiB", 2**40), ("GiB", 2**30), ("MiB", 2**20), ("KiB", 2**10)]
+    _NAME_LIST = [("PiB", 2 ** 50), ("TiB", 2 ** 40), ("GiB", 2 ** 30), ("MiB", 2 ** 20), ("KiB", 2 ** 10)]
 
     size_in_bytes = float(size_in_bytes)
     for (name, size_bytes) in _NAME_LIST:
@@ -101,19 +101,19 @@ def convert_file_size_to_int(size: Union[int, str]) -> int:
     if isinstance(size, int):
         return size
     if size.upper().endswith("GIB"):
-        return int(size[:-3]) * (2**30)
+        return int(size[:-3]) * (2 ** 30)
     if size.upper().endswith("MIB"):
-        return int(size[:-3]) * (2**20)
+        return int(size[:-3]) * (2 ** 20)
     if size.upper().endswith("KIB"):
-        return int(size[:-3]) * (2**10)
+        return int(size[:-3]) * (2 ** 10)
     if size.upper().endswith("GB"):
-        int_size = int(size[:-2]) * (10**9)
+        int_size = int(size[:-2]) * (10 ** 9)
         return int_size // 8 if size.endswith("b") else int_size
     if size.upper().endswith("MB"):
-        int_size = int(size[:-2]) * (10**6)
+        int_size = int(size[:-2]) * (10 ** 6)
         return int_size // 8 if size.endswith("b") else int_size
     if size.upper().endswith("KB"):
-        int_size = int(size[:-2]) * (10**3)
+        int_size = int(size[:-2]) * (10 ** 3)
         return int_size // 8 if size.endswith("b") else int_size
     raise ValueError("`size` is not in a valid format. Use an integer followed by the unit, e.g., '5GB'.")
 
