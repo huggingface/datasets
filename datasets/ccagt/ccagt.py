@@ -13,7 +13,6 @@ logger = datasets.logging.get_logger(__name__)
 
 CCAGT_CLASSES = OrderedDict(
     {
-        0: "BACKGROUND",
         1: "NUCLEUS",
         2: "CLUSTER",
         3: "SATELLITE",
@@ -159,10 +158,8 @@ class CCAgT(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIG_CLASS = CCAgTConfig
     BUILDER_CONFIGS = [
-        CCAgTConfig(
-            name="semantic_segmentation", version=VERSION, description="The scene semantic segmentation variant."
-        ),
-        CCAgTConfig(name="object_detection", version=VERSION, description="The instance segmentation variant."),
+        CCAgTConfig(name="semantic_segmentation", version=VERSION, description="The semantic segmentation variant."),
+        CCAgTConfig(name="object_detection", version=VERSION, description="The object detection variant."),
     ]
 
     DEFAULT_CONFIG_NAME = "semantic_segmentation"
