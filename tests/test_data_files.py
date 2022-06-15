@@ -152,6 +152,12 @@ def test_resolve_patterns_locally_or_by_urls_with_absolute_path(tmp_path, comple
     assert len(resolved_data_files) == 1
 
 
+def test_resolve_patterns_locally_or_by_urls_with_double_dots(tmp_path, complex_data_dir):
+    path_with_double_dots = os.path.join(complex_data_dir, "data", "subdir", "..", "train.txt")
+    resolved_data_files = resolve_patterns_locally_or_by_urls(str(tmp_path / "blabla"), [path_with_double_dots])
+    assert len(resolved_data_files) == 1
+
+
 @pytest.mark.parametrize("pattern,size,extensions", [("**", 4, ["txt"]), ("**", 4, None), ("**", 0, ["blablabla"])])
 def test_resolve_patterns_locally_or_by_urls_with_extensions(complex_data_dir, pattern, size, extensions):
     if size > 0:
