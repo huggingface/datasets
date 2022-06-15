@@ -20,6 +20,7 @@ task_categories:
 - object-detection
 task_ids:
 - semantic-segmentation
+- instance-segmentation
 ---
 
 # Dataset Card for Images of Cervical Cells with AgNOR Stain Technique
@@ -62,8 +63,8 @@ The CCAgT (Images of Cervical Cells with AgNOR Stain Technique) dataset contains
 
 ### Supported Tasks and Leaderboards
 
-- `image-segmentation`: The dataset can be used to train a model for semantic segmentation. Semantic segmentation consists in classifying each pixel of the image. Success on this task is typically measured by achieving high values of [mean iou](https://huggingface.co/spaces/evaluate-metric/mean_iou) or [f-score](https://huggingface.co/spaces/evaluate-metric/f1) for pixels results. 
-  - Instance segmentation and panoptic segmentation require an additional conversion of the original dataset. Instance segmentation consists of doing object detection first and then using a semantic segmentation model inside detected objects. Panoptic segmentation is the combination of instance segmentation and semantic segmentation. For instances results, this task is typically measured by achieving high values of [recall](https://huggingface.co/spaces/evaluate-metric/recall), [precision](https://huggingface.co/spaces/evaluate-metric/precision) and [f-score](https://huggingface.co/spaces/evaluate-metric/f1).
+- `image-segmentation`: The dataset can be used to train a model for semantic segmentation or instance segmentation. Semantic segmentation consists in classifying each pixel of the image. Instance segmentation consists of doing object detection first and then using a semantic segmentation model inside detected objects. Success on this task is typically measured by achieving high values of [mean iou](https://huggingface.co/spaces/evaluate-metric/mean_iou) or [f-score](https://huggingface.co/spaces/evaluate-metric/f1) for pixels results. For instances results, this task is typically measured by achieving high values of [recall](https://huggingface.co/spaces/evaluate-metric/recall), [precision](https://huggingface.co/spaces/evaluate-metric/precision) and [f-score](https://huggingface.co/spaces/evaluate-metric/f1).
+  - Panoptic segmentation require an additional conversion of the original dataset. Panoptic segmentation is the combination of instance segmentation and semantic segmentation.
 
 - `object-detection`: The dataset can be used to train a model for object detection to detect the nuclei categories or the nucleolus organizer regions (NORs), which consists of locating instances of objects and then classifying each one. This task is typically measured by achieving a high values of [recall](https://huggingface.co/spaces/evaluate-metric/recall), [precision](https://huggingface.co/spaces/evaluate-metric/precision) and [f-score](https://huggingface.co/spaces/evaluate-metric/f1).
 
@@ -113,8 +114,16 @@ The data annotations have the following fields:
 #### `object detection`
 
 - `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`.
-- `objects`: a dictionary containing bounding boxes and labels of the cell objects 
+- `objects`: a dictionary containing bounding boxes and labels of the cell objects
   - `bbox`: a list of bounding boxes (in the [coco](https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/#coco) format) corresponding to the objects present on the image
+  - `label`: a list of integers representing the category (7 categories to describe the objects in total; two to differentiate nucleolus organizer regions), with the possible values including `NUCLEUS` (0), `CLUSTER` (1), `SATELLITE` (2), `NUCLEUS_OUT_OF_FOCUS` (3), `OVERLAPPED_NUCLEI` (4), `NON_VIABLE_NUCLEUS` (5) and `LEUKOCYTE_NUCLEUS` (6).
+
+#### `instance segmentation`
+
+- `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`.
+- `instances`: a dictionary containing bounding boxes and labels of the cell objects
+  - `bbox`: a list of bounding boxes (in the [coco](https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/#coco) format) corresponding to the objects present on the image
+  - `segment`: a list of segments in format of `[polygon_0, ..., polygon_n]`, where each polygon is `[x0, y0, ..., xn, yn]`.
   - `label`: a list of integers representing the category (7 categories to describe the objects in total; two to differentiate nucleolus organizer regions), with the possible values including `NUCLEUS` (0), `CLUSTER` (1), `SATELLITE` (2), `NUCLEUS_OUT_OF_FOCUS` (3), `OVERLAPPED_NUCLEI` (4), `NON_VIABLE_NUCLEUS` (5) and `LEUKOCYTE_NUCLEUS` (6).
 
 
@@ -146,7 +155,7 @@ The data is split randomly using the fixed seed into training, test and validati
   |     O     |     AC      |  262   |    2904     |   792   |   1549   |    228    |         133          |        88         |        52         |    62     |
   | **Total** |      -      |  9339  |    63190    |  14013  |  25710   |   6478    |         9270         |       1373        |       1412        |   4934    |
 
-  Lision types:
+  Lesion types:
   - Cervical intraepithelial neoplasia 1 - CIN 1
   - Cervical intraepithelial neoplasia 2 - CIN 2
   - Cervical intraepithelial neoplasia 3 - CIN 3

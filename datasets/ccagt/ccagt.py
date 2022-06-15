@@ -160,12 +160,13 @@ class CCAgT(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         CCAgTConfig(name="semantic_segmentation", version=VERSION, description="The semantic segmentation variant."),
         CCAgTConfig(name="object_detection", version=VERSION, description="The object detection variant."),
+        CCAgTConfig(name="instance_segmentation", version=VERSION, description="The instance segmentation variant."),
     ]
 
     DEFAULT_CONFIG_NAME = "semantic_segmentation"
 
     def _info(self):
-        assert len(CCAGT_CLASSES) == 8
+        assert len(CCAGT_CLASSES) == 7
 
         if self.config.name == "semantic_segmentation":
             features = datasets.Features(
@@ -180,7 +181,20 @@ class CCAgT(datasets.GeneratorBasedBuilder):
                     "image": datasets.Image(),
                     "objects": datasets.Sequence(
                         {
-                            "bbox": datasets.Sequence(datasets.Value("int32"), length=4),
+                            "bbox": datasets.Sequence(datasets.Value("float32"), length=4),
+                            "label": datasets.ClassLabel(names=list(CCAGT_CLASSES.values())),
+                        }
+                    ),
+                }
+            )
+        elif self.config.name == "instance_segmentation":
+            features = datasets.Features(
+                {
+                    "image": datasets.Image(),
+                    "objects": datasets.Sequence(
+                        {
+                            "bbox": datasets.Sequence(datasets.Value("float32"), length=4),
+                            "segment": datasets.Sequence(datasets.Sequence(datasets.Value("float32"))),
                             "label": datasets.ClassLabel(names=list(CCAGT_CLASSES.values())),
                         }
                     ),
@@ -218,7 +232,7 @@ class CCAgT(datasets.GeneratorBasedBuilder):
                 os.path.join(self.masks_base_dir, fn) for fn in os.listdir(self.masks_base_dir) if fn.endswith(".zip")
             ]
             self.masks_extracted = extracted_by_slide(masks_to_extract)
-        elif self.config.name == "object_detection":
+        elif self.config.name in {"object_detection", "instance_segmentation"}:
             logger.info("Reading COCO OD file...")
             ccagt_OD_COCO_path = os.path.join(base_path, "CCAgT_COCO_OD.json")
             with open(ccagt_OD_COCO_path, "r", encoding="utf-8") as json_file:
@@ -264,6 +278,20 @@ class CCAgT(datasets.GeneratorBasedBuilder):
 
                 yield build_path(bn), labels
 
+        def images_and_instances(basenames):
+            for bn in basenames:
+                image_id = self._bn_to_imageid[bn]
+                instances = [
+                    {
+                        "bbox": annotation["bbox"],
+                        "label": annotation["category_id"] - 1,
+                        "segment": annotation["segmentation"],
+                    }
+                    for annotation in self._imageid_to_coco_OD_annotations[image_id]
+                ]
+
+                yield build_path(bn), instances
+
         self._download_and_extract_all(dl_manager)
 
         logger.info("Splitting dataset based on the NORs quantity by image...")
@@ -282,6 +310,10 @@ class CCAgT(datasets.GeneratorBasedBuilder):
             train_data = images_and_boxes(train_bn_images)
             valid_data = images_and_boxes(valid_bn_images)
             test_data = images_and_boxes(test_bn_images)
+        elif self.config.name == "instance_segmentation":
+            train_data = images_and_instances(train_bn_images)
+            valid_data = images_and_instances(valid_bn_images)
+            test_data = images_and_instances(test_bn_images)
         else:
             raise NotImplementedError
 
@@ -314,5 +346,10 @@ class CCAgT(datasets.GeneratorBasedBuilder):
                 img_basename = get_basename(img_path)
                 image_id = self._bn_to_imageid[img_basename]
                 yield image_id, {"image": img_path, "objects": labels}
+        elif self.config.name == "instance_segmentation":
+            for img_path, instances in data:
+                img_basename = get_basename(img_path)
+                image_id = self._bn_to_imageid[img_basename]
+                yield image_id, {"image": img_path, "instances": instances}
         else:
             raise NotImplementedError
