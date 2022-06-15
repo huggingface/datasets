@@ -258,7 +258,7 @@ class CCAgT(datasets.GeneratorBasedBuilder):
             for bn in basenames:
                 image_id = self._bn_to_imageid[bn]
                 labels = [
-                    {"bbox": annotation["bbox"], "label": annotation["category_id"]}
+                    {"bbox": annotation["bbox"], "label": annotation["category_id"] - 1}
                     for annotation in self._imageid_to_coco_OD_annotations[image_id]
                 ]
 
