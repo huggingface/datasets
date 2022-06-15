@@ -183,7 +183,7 @@ Members of the Clinical Analyses Department and the Image Processing and Compute
 - Tainee Bottamedi
 - Vinícius Sanches
 - João H. Telles de Carvalho
-- Ricardo Pereira
+- Ricardo Thisted
 
 ### Personal and Sensitive Information
 
