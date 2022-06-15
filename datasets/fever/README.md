@@ -54,9 +54,6 @@ task_ids:
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Size of downloaded dataset files:** 1677.26 MB
-- **Size of the generated dataset:** 6959.34 MB
-- **Total amount of disk used:** 8636.60 MB
 
 ### Dataset Summary
 
@@ -79,7 +76,13 @@ adversarial examples that induce classification errors for the existing systems.
 1000 instances with equal number of instances for each of the three classes (Supported, Refuted NotEnoughInfo). Only
 novel claims (i.e. not contained in the original FEVER dataset) were considered as valid entries to the shared task.
 The submissions were then manually evaluated for Correctness (grammatical, appropriately labeled and meet the FEVER
-- annotation guidelines requirements).
+annotation guidelines requirements).
+
+- FEVEROUS: FEVEROUS (Fact Extraction and VERification Over Unstructured and Structured information) is a fact
+verification dataset which consists of 87,026 verified claims. Each claim is annotated with evidence in the form of
+sentences and/or cells from tables in Wikipedia, as well as a label indicating whether this evidence supports, refutes,
+or does not provide enough information to reach a verdict. The dataset also contains annotation metadata such as
+annotator actions (query keywords, clicks on page, time signatures), and the type of challenge each claim poses.
 
 ### Supported Tasks and Leaderboards
 
@@ -100,8 +103,8 @@ The dataset is in English.
 #### v1.0
 
 - **Size of downloaded dataset files:** 42.78 MB
-- **Size of the generated dataset:** 38.39 MB
-- **Total amount of disk used:** 81.17 MB
+- **Size of the generated dataset:** 38.19 MB
+- **Total amount of disk used:** 80.96 MB
 
 An example of 'train' looks as follows.
 ```
@@ -134,14 +137,118 @@ An example of 'validation' looks as follows.
 #### wiki_pages
 
 - **Size of downloaded dataset files:** 1634.11 MB
-- **Size of the generated dataset:** 6920.65 MB
-- **Total amount of disk used:** 8554.76 MB
+- **Size of the generated dataset:** 6918.06 MB
+- **Total amount of disk used:** 8552.17 MB
 
 An example of 'wikipedia_pages' looks as follows.
 ```
 {'text': 'The following are the football -LRB- soccer -RRB- events of the year 1928 throughout the world . ',
   'lines': '0\tThe following are the football -LRB- soccer -RRB- events of the year 1928 throughout the world .\n1\t',
   'id': '1928_in_association_football'}
+```
+
+#### feverous
+
+- **Size of downloaded dataset files:** 187.82 MB
+- **Size of the generated dataset:** 123.25 MB
+- **Total amount of disk used:** 311.07 MB
+
+An example of 'wikipedia_pages' looks as follows:
+```
+{'id': 24435,
+ 'label': 1,
+ 'claim': 'Michael Folivi competed with ten teams from 2016 to 2021, appearing in 54 games and making seven goals in total.',
+ 'evidence': [{'content': ['Michael Folivi_cell_1_2_0',
+    'Michael Folivi_cell_1_7_0',
+    'Michael Folivi_cell_1_8_0',
+    'Michael Folivi_cell_1_9_0',
+    'Michael Folivi_cell_1_12_0'],
+   'context': [['Michael Folivi_title',
+     'Michael Folivi_section_4',
+     'Michael Folivi_header_cell_1_0_0'],
+    ['Michael Folivi_title',
+     'Michael Folivi_section_4',
+     'Michael Folivi_header_cell_1_0_0'],
+    ['Michael Folivi_title',
+     'Michael Folivi_section_4',
+     'Michael Folivi_header_cell_1_0_0'],
+    ['Michael Folivi_title',
+     'Michael Folivi_section_4',
+     'Michael Folivi_header_cell_1_0_0'],
+    ['Michael Folivi_title',
+     'Michael Folivi_section_4',
+     'Michael Folivi_header_cell_1_0_0']]},
+  {'content': ['Michael Folivi_cell_0_13_1',
+    'Michael Folivi_cell_0_14_1',
+    'Michael Folivi_cell_0_15_1',
+    'Michael Folivi_cell_0_16_1',
+    'Michael Folivi_cell_0_18_1'],
+   'context': [['Michael Folivi_title',
+     'Michael Folivi_header_cell_0_13_0',
+     'Michael Folivi_header_cell_0_11_0'],
+    ['Michael Folivi_title',
+     'Michael Folivi_header_cell_0_14_0',
+     'Michael Folivi_header_cell_0_11_0'],
+    ['Michael Folivi_title',
+     'Michael Folivi_header_cell_0_15_0',
+     'Michael Folivi_header_cell_0_11_0'],
+    ['Michael Folivi_title',
+     'Michael Folivi_header_cell_0_16_0',
+     'Michael Folivi_header_cell_0_11_0'],
+    ['Michael Folivi_title',
+     'Michael Folivi_header_cell_0_18_0',
+     'Michael Folivi_header_cell_0_11_0']]}],
+ 'annotator_operations': [{'operation': 'start',
+   'value': 'start',
+   'time': 0.0},
+  {'operation': 'Now on', 'value': '?search=', 'time': 0.78},
+  {'operation': 'search', 'value': 'Michael Folivi', 'time': 78.101},
+  {'operation': 'Now on', 'value': 'Michael Folivi', 'time': 78.822},
+  {'operation': 'Highlighting',
+   'value': 'Michael Folivi_cell_1_2_0',
+   'time': 96.202},
+  {'operation': 'Highlighting',
+   'value': 'Michael Folivi_cell_1_7_0',
+   'time': 96.9},
+  {'operation': 'Highlighting',
+   'value': 'Michael Folivi_cell_1_8_0',
+   'time': 97.429},
+  {'operation': 'Highlighting',
+   'value': 'Michael Folivi_cell_1_9_0',
+   'time': 97.994},
+  {'operation': 'Highlighting',
+   'value': 'Michael Folivi_cell_1_12_0',
+   'time': 99.02},
+  {'operation': 'Highlighting',
+   'value': 'Michael Folivi_cell_0_13_1',
+   'time': 106.108},
+  {'operation': 'Highlighting',
+   'value': 'Michael Folivi_cell_0_14_1',
+   'time': 106.702},
+  {'operation': 'Highlighting',
+   'value': 'Michael Folivi_cell_0_15_1',
+   'time': 107.423},
+  {'operation': 'Highlighting',
+   'value': 'Michael Folivi_cell_0_16_1',
+   'time': 108.186},
+  {'operation': 'Highlighting',
+   'value': 'Michael Folivi_cell_0_17_1',
+   'time': 108.788},
+  {'operation': 'Highlighting',
+   'value': 'Michael Folivi_header_cell_0_17_0',
+   'time': 108.8},
+  {'operation': 'Highlighting',
+   'value': 'Michael Folivi_cell_0_18_1',
+   'time': 109.469},
+  {'operation': 'Highlighting deleted',
+   'value': 'Michael Folivi_cell_0_17_1',
+   'time': 124.28},
+  {'operation': 'Highlighting deleted',
+   'value': 'Michael Folivi_header_cell_0_17_0',
+   'time': 124.293},
+  {'operation': 'finish', 'value': 'finish', 'time': 141.351}],
+ 'expected_challenge': '',
+ 'challenge': 'Numerical Reasoning'}
 ```
 
 ### Data Fields
@@ -174,25 +281,66 @@ The data fields are the same among all splits.
 - `text`: a `string` feature.
 - `lines`: a `string` feature.
 
+#### feverous
+
+- `id` (int): ID of the sample.
+- `label` (ClassLabel): Annotated label for the claim. Can be one of {"SUPPORTS", "REFUTES", "NOT ENOUGH INFO"}.
+- `claim` (str): Text of the claim.
+- `evidence` (list of dict): Evidence sets (at maximum three). Each set consists of dictionaries with two fields:
+  - `content` (list of str): List of element IDs serving as the evidence for the claim. Each element ID is in the format
+      `"[PAGE ID]_[EVIDENCE TYPE]_[NUMBER ID]"`, where `[EVIDENCE TYPE]` can be: `sentence`, `cell`, `header_cell`,
+      `table_caption`, `item`.
+  - `context` (list of list of str): List (for each element ID in `content`) of a list of Wikipedia elements that are
+      automatically associated with that element ID and serve as context. This includes an article's title, relevant
+      sections (the section and sub-section(s) the element is located in), and for cells the closest row and column
+      header (multiple row/column headers if they follow each other).
+- `annotator_operations` (list of dict): List of operations an annotator used to find the evidence and reach a verdict,
+    given the claim. Each element in the list is a dictionary with the fields:
+  - `operation` (str): Operation name. Any of the following:
+    - `start`, `finish`: Annotation started/finished. The value is the name of the operation.
+    - `search`: Annotator used the Wikipedia search function. The value is the entered search term or the term selected
+        from the automatic suggestions. If the annotator did not select any of the suggestions but instead went into
+        advanced search, the term is prefixed with "contains...".
+    - `hyperlink`: Annotator clicked on a hyperlink in the page. The value is the anchor text of the hyperlink.
+    - `Now on`: The page the annotator has landed after a search or a hyperlink click. The value is the PAGE ID.
+    - `Page search`: Annotator search on a page. The value is the search term.
+    - `page-search-reset`: Annotator cleared the search box. The value is the name of the operation.
+    - `Highlighting`, `Highlighting deleted`: Annotator selected/unselected an element on the page. The value is
+        `ELEMENT ID`.
+    - `back-button-clicked`: Annotator pressed the back button. The value is the name of the operation.
+  - `value` (str): Value associated with the operation.
+  - `time` (float): Time in seconds from the start of the annotation.
+- `expected_challenge` (str): The challenge the claim generator selected will be faced when verifying the claim, one
+    out of the following: `Numerical Reasoning`, `Multi-hop Reasoning`, `Entity Disambiguation`,
+    `Combining Tables and Text`, `Search terms not in claim`, `Other`.
+- `challenge` (str): Main challenge to verify the claim, one out of the following: `Numerical Reasoning`,
+    `Multi-hop Reasoning`, `Entity Disambiguation`, `Combining Tables and Text`, `Search terms not in claim`, `Other`.
+
 ### Data Splits
 
 #### v1.0
 
-|    |train |unlabelled_dev|labelled_dev|paper_dev|unlabelled_test|paper_test|
-|----|-----:|-------------:|-----------:|--------:|--------------:|---------:|
-|v1.0|311431|         19998|       37566|    18999|          19998|     18567|
+|      |  train | unlabelled_dev | labelled_dev | paper_dev | unlabelled_test | paper_test |
+|------|-------:|---------------:|-------------:|----------:|----------------:|-----------:|
+| v1.0 | 311431 |          19998 |        37566 |     18999 |           19998 |      18567 |
 
 #### v2.0
 
-|    |validation|
-|----|---------:|
-|v2.0|      2384|
+|      | validation |
+|------|-----------:|
+| v2.0 |       2384 |
 
 #### wiki_pages
 
-|          |wikipedia_pages|
-|----------|--------------:|
-|wiki_pages|        5416537|
+|            | wikipedia_pages |
+|------------|----------------:|
+| wiki_pages |         5416537 |
+
+#### feverous
+
+|          | train | validation | test |
+|----------|------:|-----------:|-----:|
+| feverous | 71291 |       7890 | 7845 |
 
 ## Dataset Creation
 
@@ -274,6 +422,20 @@ If you use "FEVER 2.0 Adversarial Attacks Dataset", please cite:
 }
 ```
 
+If you use "FEVEROUS Dataset", please cite:
+```bibtex
+@inproceedings{Aly21Feverous,
+    author = {Aly, Rami and Guo, Zhijiang and Schlichtkrull, Michael Sejr and Thorne, James and Vlachos, Andreas and Christodoulopoulos, Christos and Cocarascu, Oana and Mittal, Arpit},
+    title = {{FEVEROUS}: Fact Extraction and {VERification} Over Unstructured and Structured information},
+    eprint={2106.05707},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL},
+    year = {2021}
+}
+```
+
 ### Contributions
 
-Thanks to [@thomwolf](https://github.com/thomwolf), [@lhoestq](https://github.com/lhoestq), [@mariamabarham](https://github.com/mariamabarham), [@lewtun](https://github.com/lewtun) for adding this dataset.
+Thanks to [@thomwolf](https://github.com/thomwolf), [@lhoestq](https://github.com/lhoestq),
+[@mariamabarham](https://github.com/mariamabarham), [@lewtun](https://github.com/lewtun),
+[@albertvillanova](https://github.com/albertvillanova) for adding this dataset.
