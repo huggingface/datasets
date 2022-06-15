@@ -12,7 +12,7 @@ multilinguality:
 paperswithcode_id: null
 pretty_name: Images of Cervical Cells with AgNOR Stain Technique
 size_categories:
-- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -56,25 +56,28 @@ task_ids:
 
 ### Dataset Summary
 
-The CCAgT dataset contains 9339 images with resolution of 1600X1200 where each pixel is 0.111µmX0.111µm from 15 different slides stained with AgNOR technique, having at least one label per image. Have more than sixty-three thousand annotations. The images from patients of Gynecology and Colonoscopy Outpatient Clinic of the Polydoro Ernani de São Thiago University Hospital of the Universidade Federal de Santa Catarina (HU-UFSC). This research was approved by the UFSC Research Ethics Committee (CEPSH), protocol number 57423616.3.0000.0121. First, all patients involved were informed about the objectives of the study, and those who agreed to participate signed an informed consent form.
+The CCAgT (Images of Cervical Cells with AgNOR Stain Technique) dataset contains 9339 images (1600x1200 resolution where each pixel is 0.111µmX0.111µm) from 15 different slides stained using the AgNOR technique. Each image has at least one label. In total, this dataset has more than 63K instances of annotated object. The images are from the patients of the Gynecology and Colonoscopy Outpatient Clinic of the [Polydoro Ernani de São Thiago University Hospital of the Universidade Federal de Santa Catarina (HU-UFSC)](https://unihospital.ufsc.br/).
 
 ### Supported Tasks and Leaderboards
 
-- image-segmentation: The dataset can be used to train a model for semantic segmentation. Semantic segmentation consists in classify each pixel of the images; Success on this task is typically measured by achieving a high values of [mean iou](https://huggingface.co/spaces/evaluate-metric/mean_iou) or [f-score](https://huggingface.co/spaces/evaluate-metric/f1) for pixels results. 
-  - For instance segmentation's or panoptic segmentation needs to convert the original dataset. Instance segmentation consists in firstly do object detection, and then uses a semantic segmentation model inside detected object; panoptic segmentation is the combination of instance segmentation and semantic segmentation. For instances results,  this task is typically measured by achieving a high values of [recall](https://huggingface.co/spaces/evaluate-metric/recall),  [precision](https://huggingface.co/spaces/evaluate-metric/precision) and [f-score](https://huggingface.co/spaces/evaluate-metric/f1).
+- `image-segmentation`: The dataset can be used to train a model for semantic segmentation. Semantic segmentation consists in classifying each pixel of the image. Success on this task is typically measured by achieving high values of [mean iou](https://huggingface.co/spaces/evaluate-metric/mean_iou) or [f-score](https://huggingface.co/spaces/evaluate-metric/f1) for pixels results. 
+  - Instance segmentation and panoptic segmentation require an additional conversion of the original dataset. Instance segmentation consists of doing object detection first and then using a semantic segmentation model inside detected objects. Panoptic segmentation is the combination of instance segmentation and semantic segmentation. For instances results, this task is typically measured by achieving high values of [recall](https://huggingface.co/spaces/evaluate-metric/recall), [precision](https://huggingface.co/spaces/evaluate-metric/precision) and [f-score](https://huggingface.co/spaces/evaluate-metric/f1).
 
-- object-detection: The dataset can be used to train a model for object detection to detect the nuclei categories, or the tiny objects (NORs), which consists of locating instances of objects and then classifying each one. This task is typically measured by achieving a high values of [recall](https://huggingface.co/spaces/evaluate-metric/recall),  [precision](https://huggingface.co/spaces/evaluate-metric/precision) and [f-score](https://huggingface.co/spaces/evaluate-metric/f1).
+- `object-detection`: The dataset can be used to train a model for object detection to detect the nuclei categories or the nucleolus organizer regions (NORs), which consists of locating instances of objects and then classifying each one. This task is typically measured by achieving a high values of [recall](https://huggingface.co/spaces/evaluate-metric/recall), [precision](https://huggingface.co/spaces/evaluate-metric/precision) and [f-score](https://huggingface.co/spaces/evaluate-metric/f1).
 
-### languages
+
+### Languages
+
 The class labels in the dataset are in English.
 
 ## Dataset Structure
 
 ### Data Instances
 
-An example looks like below: 
+An example looks like the one below:
 
-#### For semantic segmentation
+#### `semantic segmentation` (default configuration)
+
 ```
 {
   'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=1200x1600 at 0x276021C5EB8>,
@@ -82,13 +85,12 @@ An example looks like below:
 }
 ```
 
-#### For object detection
-From the dataset into COCO format we use:
+#### `object detection`
 
 ```
 {
   'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=1200x1600 at 0x276021C5EB8>,
-  'digits': {
+  'objects': {
     'bbox': [
       [36, 7, 13, 32],
       [50, 7, 12, 32]
@@ -99,56 +101,98 @@ From the dataset into COCO format we use:
 
 ### Data Fields
 
-
-#### For semantic segmentation
-
 The data annotations have the following fields:
 
-- `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`.
+#### `semantic segmentation` (default configuration)
 
+- `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`.
 - `annotation`: A `PIL.Image.Image` object containing the annotation mask.
 
+#### `object detection`
 
-#### For object detection
-- `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
-- `digits`: a dictionary containing digits' bounding boxes and labels
+- `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`.
+- `objects`: a dictionary containing bounding boxes and labels of the cell objects 
   - `bbox`: a list of bounding boxes (in the [coco](https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/#coco) format) corresponding to the digits present on the image
-  - `label`: a list of integers between 1 and 7 representing the each category.
-
+  - `label`: a list of integers representing the category (7 categories to describe the objects in total; two to differentiate nucleolus organizer regions), with the possible values including `BACKGROUND` (0), `NUCLEUS` (1), `CLUSTER` (2), `SATELLITE` (3), `NUCLEUS_OUT_OF_FOCUS` (4), `OVERLAPPED_NUCLEI` (5), `NON_VIABLE_NUCLEUS` (6) and `LEUKOCYTE_NUCLEUS` (7).
 
 
 ### Data Splits
 
-The data is random split into training, test and validation set. The training data contains 70% of the images, the testing and the validation data contains 15% of the images each.
+The data is split randomly using the fixed seed into training, test and validation set. The training data contains 70% of the images and the testing and the validation data contain 15% of the images each. In total, the training set contains 6533 images and the testing and the validation set 1403 images each.
+
+<details>
+  <summary>
+  Click here to see additional statistics:
+  </summary>
+
+  | Slide id  | Diagnostics | images | annotations | NUCLEUS | CLUSTER | SATELLITE | NUCLEUS_OUT_OF_FOCUS | OVERLAPPED_NUCLEI | NON_VIABLE_NUCLEUS | LEUKOCYTE_NUCLEUS |
+  | :-------: | :---------: | :----: | :---------: | :-----: | :------: | :-------: | :------------------: | :---------------: | :---------------: | :-------: |
+  |     A     |    CIN 3    |  1311  |    3164     |   763   |   1038   |    922    |         381          |        46         |        14         |     0     |
+  |     B     |     SCC     |  561   |     911     |   224   |   307    |    112    |         132          |         5         |         1         |    130    |
+  |     C     |     AC      |  385   |    11420    |  2420   |   3584   |   1112    |         1692         |        228        |        477        |   1907    |
+  |     D     |    CIN 3    |  2125  |    1258     |   233   |   337    |    107    |         149          |        12         |         8         |    412    |
+  |     E     |    CIN 3    |  506   |    11131    |  2611   |   6249   |   1648    |         476          |        113        |        34         |     0     |
+  |     F     |    CIN 1    |  318   |    3365     |   954   |   1406   |    204    |         354          |        51         |        326        |    70     |
+  |     G     |    CIN 2    |  249   |    2759     |   691   |   1279   |    336    |         268          |        49         |        51         |    85     |
+  |     H     |    CIN 2    |  650   |    5216     |   993   |   983    |    425    |         2562         |        38         |        214        |     1     |
+  |     I     |  No lesion  |  309   |     474     |   56    |    55    |    19     |         170          |         2         |        23         |    149    |
+  |     J     |    CIN 1    |  261   |    1786     |   355   |   304    |    174    |         743          |        18         |        33         |    159    |
+  |     K     |  No lesion  |  1503  |    13102    |  2464   |   6669   |    638    |         620          |        670        |        138        |   1903    |
+  |     L     |    CIN 2    |  396   |    3289     |   842   |   796    |    387    |         1209         |        27         |        23         |     5     |
+  |     M     |    CIN 2    |  254   |    1500     |   357   |   752    |    99     |         245          |        16         |        12         |    19     |
+  |     N     |    CIN 3    |  248   |     911     |   258   |   402    |    67     |         136          |        10         |         6         |    32     |
+  |     O     |     AC      |  262   |    2904     |   792   |   1549   |    228    |         133          |        88         |        52         |    62     |
+  | **Total** |      -      |  9339  |    63190    |  14013  |  25710   |   6478    |         9270         |       1373        |       1412        |   4934    |
+
+  Lision types:
+  - Cervical intraepithelial neoplasia 1 - CIN 1
+  - Cervical intraepithelial neoplasia 2 - CIN 2
+  - Cervical intraepithelial neoplasia 3 - CIN 3
+  - Squamous cell carcinoma - SCC
+  - Adenocarcinoma - AC
+  - No lesion
+
+</details>
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-CCAgT was built to provide a dataset for machines to learn how to identify nucleus and nucleolus organizer regions (NORs). The dataset was build with samples of patients of (university hospital - UFSC)[https://unihospital.ufsc.br/], who had different diagnoses in their oncological exams.
+CCAgT was built to provide a dataset for machines to learn how to identify nucleus and nucleolus organizer regions (NORs).
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
+The images are collected as patches/tiles of whole slide images (WSIs) from cervical samples stained with AgNOR technique to allow the detection of nucleolus organizer regions (NORs). NORs are DNA loops containing genes responsible for the transcription of ribosomal RNA located in the cell nucleolus. They contain a set of argyrophilic proteins, selectively stained by silver nitrate, which can be identified as black dots located throughout the nucleoli area and called AgNORs.
+
+#### Who are the source language producers?
+
+The dataset was built using images from examinations (a gynecological exam, colposcopy and biopsy) of 15 women patients who were treated at the Gynecology and Colposcopy Outpatient Clinic of the [University Hospital Professor Polydoro Ernani de São Thiago of Federal University of Santa Catarina (HU-UFSC)](https://unihospital.ufsc.br/) and had 6 different diagnoses in their oncological exams. The samples were collected by the members of the Clinical Analyses Department: Ane Francyne Costa, Fabiana Botelho De Miranda Onofre, and Alexandre Sherlley Casimiro Onofre.
 
 ### Annotations
 
 #### Annotation process
 
-The (labelbox tool)[labelbox.com/] have been employed to annotate the instances. The satellite category has been labeled as a single dot, and the other categories were labeled as  polygons
+The instances were annotated using the [labelbox](https://labelbox.com/) tool. The satellite category was labeled as a single dot, and the other categories were labeled as polygons.
 
+#### Who are the annotators?
+
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
-This research was approved by the UFSC Research Ethics Committee (CEPSH), protocol number 57423616.3.0000.0121. First, all patients involved were informed about the objectives of the study, and those who agreed to participate signed an informed consent form.
+This research was approved by the UFSC Research Ethics Committee (CEPSH), protocol number 57423616.3.0000.0121. All involved patients were informed about the study's objectives, and those who agreed to participate signed an informed consent form.
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-The purpose of this dataset is to help to spread the AgNOR as a support method for cancer diagnosis, since it is not a standardized method among pathologists.
+This dataset's purpose is to help spread the AgNOR as a support method for cancer diagnosis since this method is not standardized among pathologists.
 
+### Discussion of Biases
+
+[More Information Needed]
 
 ### Other Known Limitations
 
@@ -158,15 +202,13 @@ Satellite annotation is not as accurate for pixel-level representation due to si
 
 ### Dataset Curators
 
-The dataset samples was collected by member of clinical Analyses Department from Universidade Federal de Santa Catarina ((UFSC)[https://ufsc.br/]): Ane Francyne Costa, Fabiana Botelho De Miranda Onofre, and Alexandre Sherlley Casimiro Onofre
+Members of the Clinical Analyses Department from [Universidade Federal de Santa Catarina (UFSC)](https://en.ufsc.br/) collected the dataset samples: Ane Francyne Costa, Fabiana Botelho De Miranda Onofre, and Alexandre Sherlley Casimiro Onofre.
 
 ### Licensing Information
 
-CC BY NC 3.0 license description
-The files associated with this dataset are licensed under a Attribution-NonCommercial 3.0 Unported license.
+The files associated with this dataset are licensed under an [Attribution-NonCommercial 3.0 Unported](https://creativecommons.org/licenses/by-nc/3.0/) license.
 
-What does this mean?
-You are free to adapt, copy or redistribute the material, providing you attribute appropriately and do not use the material for commercial purposes.
+Users are free to adapt, copy or redistribute the material as long as they attribute it appropriately and do not use it for commercial purposes.
 
 ### Citation Information
 
@@ -208,5 +250,8 @@ You are free to adapt, copy or redistribute the material, providing you attribut
     doi={10.1109/CBMS49503.2020.00110},
     url={https://doi.org/10.1109/CBMS49503.2020.00110}
 }
-
 ```
+
+### Contributions
+
+Thanks to [@johnnv1](https://github.com/johnnv1) for adding this dataset.
