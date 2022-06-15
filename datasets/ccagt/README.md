@@ -174,7 +174,7 @@ The dataset was built using images from examinations (a gynecological exam, colp
 
 #### Annotation process
 
-The instances were annotated using the [labelbox](https://labelbox.com/) tool. The satellite category was labeled as a single dot, and the other categories were labeled as polygons. After the annotation process, all annotations was reviewed.
+The instances were annotated using the [labelbox](https://labelbox.com/) tool. The satellite category was labeled as a single dot, and the other categories were labeled as polygons. After the annotation process, all annotations were reviewed.
 
 #### Who are the annotators?
 
