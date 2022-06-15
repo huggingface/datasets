@@ -1,4 +1,5 @@
 import copy
+from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass
 from itertools import cycle, islice
@@ -168,6 +169,92 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def shard_data_sources(self, shard_idx: int) -> "CyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         raise NotImplementedError("Sharding a CyclingMultiSourcesExamplesIterable is not implemented")
+
+
+class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
+    def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
+        self.ex_iterables = ex_iterables
+
+    def __iter__(self):
+        _example_from_previous_iterable = None
+        for ex_iterable in self.ex_iterables:
+            for example_idx, (key, example) in enumerate(ex_iterable):
+                if example_idx == 0 and _example_from_previous_iterable is not None:
+                    if sorted(example) != sorted(_example_from_previous_iterable):
+                        raise ValueError(
+                            f"The examples iterables must have the same columns but one has {sorted(_example_from_previous_iterable)} and the next has {sorted(example)}."
+                        )
+                yield key, example
+            _example_from_previous_iterable = example
+
+    def shuffle_data_sources(
+        self, generator: np.random.Generator
+    ) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
+        """Shuffle the list of examples iterable, as well as each underlying examples iterable."""
+        rng = deepcopy(generator)
+        ex_iterables = list(self.ex_iterables)
+        rng.shuffle(ex_iterables)
+        ex_iterables = [ex_iterable.shuffle_data_sources(generator) for ex_iterable in ex_iterables]
+        return VerticallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
+
+    @property
+    def n_shards(self) -> int:
+        return sum(ex_iterable.n_shards for ex_iterable in self.ex_iterables)
+
+    def shard_data_sources(self, shard_idx: int) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
+        """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        raise NotImplementedError("Sharding a VerticallyConcatenatedMultiSourcesExamplesIterable is not implemented")
+
+
+def _check_column_names(column_names: List[str]):
+    """Check the column names to make sure they don't contain duplicates."""
+    counter = Counter(column_names)
+    if not all(count == 1 for count in counter.values()):
+        duplicated_columns = [col for col in counter if counter[col] > 1]
+        raise ValueError(
+            f"The examples iterables can't have duplicated columns but columns {duplicated_columns} are duplicated."
+        )
+
+
+class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
+    def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
+        self.ex_iterables = ex_iterables
+
+    def __iter__(self):
+        ex_iterators = [iter(ex_iterable) for ex_iterable in self.ex_iterables]
+        while True:
+            keys = []
+            examples = []
+            for ex_iterator in ex_iterators:
+                try:
+                    key, example = next(ex_iterator)
+                    keys.append(key)
+                    examples.append(example)
+                except StopIteration:
+                    break
+            else:
+                _check_column_names([column_name for example in examples for column_name in example])
+                new_example = {}
+                for example in examples:
+                    new_example.update(example)
+                new_key = "_".join(str(key) for key in keys)
+                yield new_key, new_example
+                continue
+            break
+
+    def shuffle_data_sources(
+        self, generator: np.random.Generator
+    ) -> "HorizontallyConcatenatedMultiSourcesExamplesIterable":
+        """Doesn't shuffle the wrapped examples iterable since it would break the alignment between them."""
+        return self
+
+    @property
+    def n_shards(self) -> int:
+        return 1
+
+    def shard_data_sources(self, shard_idx: int) -> "HorizontallyConcatenatedMultiSourcesExamplesIterable":
+        """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        raise NotImplementedError("Sharding a HorizontallyConcatenatedMultiSourcesExamplesIterable is not implemented")
 
 
 class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIterable):
@@ -1151,3 +1238,96 @@ def iterable_dataset(
         shuffling=shuffling,
         token_per_repo_id=token_per_repo_id,
     )
+
+
+def _concatenate_iterable_datasets(
+    dsets: List[IterableDataset],
+    info: Optional[DatasetInfo] = None,
+    split: Optional[NamedSplit] = None,
+    axis: int = 0,
+) -> IterableDataset:
+    """
+    Converts a list of :class:`IterableDataset` with the same schema into a single :class:`IterableDataset`.
+
+    Args:
+        dsets (:obj:`List[datasets.IterableDataset]`): List of Datasets to concatenate.
+        info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+        split (:class:`NamedSplit`, optional): Name of the dataset split.
+        axis (``{0, 1}``, default ``0``, meaning over rows):
+            Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
+            (horizontally).
+
+            *New in version 1.6.0*
+
+    Example:
+
+    ```py
+    >>> ds3 = _concatenate_iterable_datasets([ds1, ds2])
+    ```
+    """
+    ex_iterables = [
+        TypedExamplesIterable(d._ex_iterable, d.features)
+        if not isinstance(d._ex_iterable, TypedExamplesIterable) and d.features is not None
+        else d._ex_iterable
+        for d in dsets
+    ]
+    if axis == 0:
+        ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
+    else:
+        ex_iterable = HorizontallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
+    # Set new info - we reset the features
+    if info is None:
+        info = DatasetInfo.from_merge([d.info for d in dsets])
+        info.features = None
+    # Get all the auth tokens per repository - in case the datasets come from different private repositories
+    token_per_repo_id = {repo_id: token for dataset in dsets for repo_id, token in dataset._token_per_repo_id.items()}
+    # Return new daset
+    return iterable_dataset(ex_iterable=ex_iterable, info=info, split=split, token_per_repo_id=token_per_repo_id)
+
+
+def _interleave_iterable_datasets(
+    datasets: List[IterableDataset],
+    probabilities: Optional[List[float]] = None,
+    seed: Optional[int] = None,
+    info: Optional[DatasetInfo] = None,
+    split: Optional[NamedSplit] = None,
+) -> IterableDataset:
+    """
+    Interleave several iterable datasets (sources) into a single iterable dataset.
+    The new iterable dataset alternates between the sources to yield examples.
+    If `probabilities = None` (default) the iterable dataset will cycles through the sources in order for each next example in the iteration.
+    If `probabilities` is not `None, the iterable dataset will sample a random source according to the provided probabilities for each next examples in the iteration.
+
+    Args:
+        datasets (:obj:`List[IterableDataset]`): list of datasets to interleave
+        probabilities (:obj:`List[float]`, optional, default None): If specified, the new iterable dataset samples
+            examples from one source at a time according to these probabilities.
+        seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
+
+    Output:
+        :class:`datasets.IterableDataset`
+    """
+    ex_iterables = [
+        TypedExamplesIterable(d._ex_iterable, d.features)
+        if not isinstance(d._ex_iterable, TypedExamplesIterable) and d.features is not None
+        else d._ex_iterable
+        for d in datasets
+    ]
+    # Use cycling or random cycling or sources
+    if probabilities is None:
+        ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables)
+    else:
+        generator = np.random.default_rng(seed)
+        ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
+            ex_iterables, generator=generator, probabilities=probabilities
+        )
+    # Set new info - we reset the features
+    if info is None:
+        info = DatasetInfo.from_merge([d.info for d in datasets])
+        info.features = None
+    # Get all the auth tokens per repository - in case the datasets come from different private repositories
+    token_per_repo_id = {
+        repo_id: token for dataset in datasets for repo_id, token in dataset._token_per_repo_id.items()
+    }
+    # Return new daset
+    return iterable_dataset(ex_iterable=ex_iterable, info=info, split=split, token_per_repo_id=token_per_repo_id)

@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from datasets import load_dataset
-from datasets.combine import interleave_datasets
+from datasets.combine import concatenate_datasets, interleave_datasets
 from datasets.features import ClassLabel, Features, Value
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import (
@@ -13,13 +13,16 @@ from datasets.iterable_dataset import (
     CyclingMultiSourcesExamplesIterable,
     ExamplesIterable,
     FilteredExamplesIterable,
+    HorizontallyConcatenatedMultiSourcesExamplesIterable,
     IterableDataset,
     MappedExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
+    ShardShuffledExamplesIterable,
     ShufflingConfig,
     SkipExamplesIterable,
     TakeExamplesIterable,
     TypedExamplesIterable,
+    VerticallyConcatenatedMultiSourcesExamplesIterable,
     _batch_to_examples,
     _examples_to_batch,
     iterable_dataset,
@@ -467,6 +470,47 @@ def test_take_examples_iterable():
     ), "skip examples makes the shards order fixed"
 
 
+def test_vertically_concatenated_examples_iterable():
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label": 10})
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"label": 5})
+    concatenated_ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
+    expected = list(x for _, x in ex_iterable1) + list(x for _, x in ex_iterable2)
+    assert list(x for _, x in concatenated_ex_iterable) == expected
+
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {})
+    concatenated_ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
+    with pytest.raises(ValueError):  # column "label" is missing -> raise an error
+        list(concatenated_ex_iterable)
+
+
+def test_vertically_concatenated_examples_iterable_shuffle_data_sources():
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label": 10})
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"label": 5})
+    concatenated_ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
+    rng = np.random.default_rng(42)
+    shuffled_ex_iterable = concatenated_ex_iterable.shuffle_data_sources(rng)
+    # make sure the list of examples iterables is shuffled, and each examples iterable is shuffled
+    expected = list(x for _, x in ex_iterable2.shuffle_data_sources(rng)) + list(
+        x for _, x in ex_iterable1.shuffle_data_sources(rng)
+    )
+    assert list(x for _, x in shuffled_ex_iterable) == expected
+
+
+def test_horizontally_concatenated_examples_iterable():
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label1": 10})
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"label2": 5})
+    concatenated_ex_iterable = HorizontallyConcatenatedMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
+    with pytest.raises(ValueError):  # column "id" is duplicated -> raise an error
+        list(concatenated_ex_iterable)
+    ex_iterable2 = MappedExamplesIterable(ex_iterable2, lambda x: x, remove_columns=["id"])
+    concatenated_ex_iterable = HorizontallyConcatenatedMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
+    expected = list({**x, **y} for (_, x), (_, y) in zip(ex_iterable1, ex_iterable2))
+    assert list(x for _, x in concatenated_ex_iterable) == expected
+    assert (
+        concatenated_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is concatenated_ex_iterable
+    ), "horizontally concatenated examples makes the shards order fixed"
+
+
 ############################
 #
 #   IterableDataset tests
@@ -793,6 +837,26 @@ def test_iterable_dataset_cast():
     new_features = Features({"id": Value("int64"), "label": Value("bool")})
     casted_dataset = dataset.cast(new_features)
     assert list(casted_dataset) == [new_features.encode_example(ex) for _, ex in ex_iterable]
+
+
+def test_concatenate_datasets():
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label": 10})
+    dataset1 = IterableDataset(ex_iterable1)
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"label": 5})
+    dataset2 = IterableDataset(ex_iterable2)
+    concatenated_dataset = concatenate_datasets([dataset1, dataset2])
+    assert list(concatenated_dataset) == list(dataset1) + list(dataset2)
+
+
+def test_concatenate_datasets_axis_1():
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label1": 10})
+    dataset1 = IterableDataset(ex_iterable1)
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"label2": 5})
+    dataset2 = IterableDataset(ex_iterable2)
+    with pytest.raises(ValueError):  # column "id" is duplicated -> raise an error
+        list(concatenate_datasets([dataset1, dataset2], axis=1))
+    concatenated_dataset = concatenate_datasets([dataset1, dataset2.remove_columns("id")], axis=1)
+    assert list(concatenated_dataset) == [{**x, **y} for x, y in zip(dataset1, dataset2)]
 
 
 @pytest.mark.parametrize(

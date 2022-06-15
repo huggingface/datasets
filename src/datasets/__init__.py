@@ -34,10 +34,10 @@ SCRIPTS_VERSION = "master" if version.parse(__version__).is_devrelease else __ve
 del pyarrow
 del version
 
-from .arrow_dataset import Dataset, concatenate_datasets
+from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
 from .builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
-from .combine import interleave_datasets
+from .combine import concatenate_datasets, interleave_datasets
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download import *
 from .features import *
