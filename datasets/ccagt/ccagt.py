@@ -13,7 +13,6 @@ logger = datasets.logging.get_logger(__name__)
 
 CCAGT_CLASSES = OrderedDict(
     {
-        0: "BACKGROUND",
         1: "NUCLEUS",
         2: "CLUSTER",
         3: "SATELLITE",
@@ -168,7 +167,7 @@ class CCAgT(datasets.GeneratorBasedBuilder):
     DEFAULT_CONFIG_NAME = "semantic_segmentation"
 
     def _info(self):
-        assert len(CCAGT_CLASSES) == 8
+        assert len(CCAGT_CLASSES) == 7
 
         if self.config.name == "semantic_segmentation":
             features = datasets.Features(
