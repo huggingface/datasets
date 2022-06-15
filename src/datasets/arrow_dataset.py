@@ -1635,8 +1635,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @transmit_tasks
-    @transmit_format
+    @transmit_tasks    
     @fingerprint_transform(inplace=False)
     def rename_column(
         self, original_column_name: str, new_column_name: str, new_fingerprint: Optional[str] = None
@@ -1685,6 +1684,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return [new_column_name if col == original_column_name else col for col in columns]
 
         new_column_names = rename(self._data.column_names)
+        # `transmit_format` doesn't handle column renaming, so update the format columns manually
+        if self._format_columns is not None:
+            dataset._format_columns = rename(self._format_columns)
+
         dataset._info.features = Features(
             {
                 new_column_name if col == original_column_name else col: feature
@@ -1698,7 +1701,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset
 
     @transmit_tasks
-    @transmit_format
     @fingerprint_transform(inplace=False)
     def rename_columns(self, column_mapping: Dict[str, str], new_fingerprint: Optional[str] = None) -> "Dataset":
         """
@@ -1749,6 +1751,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return [column_mapping[col] if col in column_mapping else col for col in columns]
 
         new_column_names = rename(self._data.column_names)
+        # `transmit_format` doesn't handle column renaming, so update the format columns manually
+        if self._format_columns is not None:
+            dataset._format_columns = rename(self._format_columns)
+
         dataset._info.features = Features(
             {
                 column_mapping[col] if col in column_mapping else col: feature
