@@ -9,6 +9,8 @@ import pandas as pd
 import datasets
 
 
+logger = datasets.logging.get_logger(__name__)
+
 CCAGT_CLASSES = OrderedDict(
     {
         0: "BACKGROUND",
@@ -22,10 +24,9 @@ CCAGT_CLASSES = OrderedDict(
     }
 )
 
-
 _LICENSE = "CC BY NC 3.0 License"
 
-_CITATION = r"""\
+_CITATION = """\
 @misc{CCAgTDataset,
   doi = {10.17632/WG4BPM33HJ.2},
   url = {https://data.mendeley.com/datasets/wg4bpm33hj/2},
@@ -40,12 +41,9 @@ _CITATION = r"""\
 _HOMEPAGE = "https://data.mendeley.com/datasets/wg4bpm33hj"
 
 _DESCRIPTION = """\
-Images of Cervical Cells with AgNOR Stain Technique - CCAgT dataset Contains 9339 images with resolution of 1600×1200 where each pixel is
-0.111µmX0.111µm from 15 different slides stained with AgNOR technique, having at least one label per image. Have more than sixty-three thousand
-annotations. The images from patients of Gynecology and Colonoscopy Outpatient Clinic of the Polydoro Ernani de São Thiago University Hospital of
-the Universidade Federal de Santa Catarina (HU-UFSC). This research was approved by the UFSC Research Ethics Committee (CEPSH), protocol number
-57423616.3.0000.0121. First, all patients involved were informed about the objectives of the study, and those who agreed to participate signed an
-informed consent form.
+The CCAgT (Images of Cervical Cells with AgNOR Stain Technique) dataset contains 9339 images (1600x1200 resolution where each pixel is 0.111µmX0.111µm) from 15 different slides stained using the AgNOR technique.
+Each image has at least one label. In total, this dataset has more than 63K instances of annotated object.
+The images are from the patients of the Gynecology and Colonoscopy Outpatient Clinic of the Polydoro Ernani de São Thiago University Hospital of the Universidade Federal de Santa Catarina (HU-UFSC).
 """
 
 _DATA_URL = "https://md-datasets-cache-zipfiles-prod.s3.eu-west-1.amazonaws.com/wg4bpm33hj-2.zip"
@@ -109,7 +107,7 @@ def tvt_by_nors(df, tvt_size=(0.7, 0.15, 0.15), **kwargs):
     based on `https://github.com/johnnv1/CCAgT-utils/blob/54ade78e4ddb2e2ed9507b8a1633940897767cac/CCAgT_utils/split.py#L64`
     """
     if sum(tvt_size) != 1:
-        raise ValueError("The sum of `tvt_size` need to be equals 1!")
+        raise ValueError("The sum of `tvt_size` need to be equal to 1!")
 
     df_describe_imgs = annotations_per_image(df)
 
@@ -123,11 +121,11 @@ def tvt_by_nors(df, tvt_size=(0.7, 0.15, 0.15), **kwargs):
     test_ids = set({})
 
     for k, ids in img_ids.items():
-        print(f"Splitting {len(ids)} images with {k} quantity...")
+        logger.info(f"Splitting {len(ids)} images with {k} quantity...")
         if len(ids) == 0:
             continue
         _train, _valid, _test = tvt(ids, tvt_size, **kwargs)
-        print(f">T: {len(_train)} V: {len(_valid)} T: {len(_test)}")
+        logger.info(f">T: {len(_train)} V: {len(_valid)} T: {len(_test)}")
         train_ids = train_ids.union(_train)
         valid_ids = valid_ids.union(_valid)
         test_ids = test_ids.union(_test)
@@ -154,6 +152,8 @@ class CCAgTConfig(datasets.BuilderConfig):
 
 class CCAgT(datasets.GeneratorBasedBuilder):
     """Images of Cervical Cells with AgNOR Stain Technique (CCAgT) dataset"""
+    test_dummy_data = False
+
 
     VERSION = datasets.Version("2.0.0")
 
@@ -181,10 +181,10 @@ class CCAgT(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "image": datasets.Image(),
-                    "digits": datasets.Sequence(
+                    "objects": datasets.Sequence(
                         {
                             "bbox": datasets.Sequence(datasets.Value("int32"), length=4),
-                            "label": datasets.ClassLabel(num_classes=len(CCAGT_CLASSES)),
+                            "label": datasets.ClassLabel(names=list(CCAGT_CLASSES.values())),
                         }
                     ),
                 }
@@ -205,10 +205,9 @@ class CCAgT(datasets.GeneratorBasedBuilder):
             return {get_slide_id(path): dl_manager.extract(path) for path in paths}
 
         data_dir = dl_manager.download_and_extract(_DATA_URL)
-        base_dir_name = os.listdir(data_dir)[0]
-        base_path = os.path.join(data_dir, base_dir_name)
+        base_path = os.path.join(data_dir, "wg4bpm33hj-2")
 
-        print("Extracting images...")
+        logger.info("Extracting images...")
         self.images_base_dir = os.path.join(base_path, "images")
         images_to_extract = [
             os.path.join(self.images_base_dir, fn) for fn in os.listdir(self.images_base_dir) if fn.endswith(".zip")
@@ -216,27 +215,26 @@ class CCAgT(datasets.GeneratorBasedBuilder):
         self.images_extracted = extracted_by_slide(images_to_extract)
 
         if self.config.name == "semantic_segmentation":
-            print("Extracting masks...")
+            logger.info("Extracting masks...")
             self.masks_base_dir = os.path.join(base_path, "masks")
             masks_to_extract = [
                 os.path.join(self.masks_base_dir, fn) for fn in os.listdir(self.masks_base_dir) if fn.endswith(".zip")
             ]
             self.masks_extracted = extracted_by_slide(masks_to_extract)
         elif self.config.name == "object_detection":
-            print("Reading COCO OD file...")
+            logger.info("Reading COCO OD file...")
             ccagt_OD_COCO_path = os.path.join(base_path, "CCAgT_COCO_OD.json")
-            with open(ccagt_OD_COCO_path, "r") as json_file:
+            with open(ccagt_OD_COCO_path, "r", encoding="utf-8") as json_file:
                 coco_OD = json.load(json_file)
 
             self._imageid_to_coco_OD_annotations = defaultdict(list)
             for labels in coco_OD["annotations"]:
                 self._imageid_to_coco_OD_annotations[labels["image_id"]].append(labels)
 
-        print("Loading dataset info...")
+        logger.info("Loading dataset info...")
         ccagt_raw_path = os.path.join(base_path, "CCAgT.parquet.gzip")
-        self._ccagt_info = pd.read_parquet(
-            ccagt_raw_path, columns=["image_name", "category_id", "image_id", "slide_id"]
-        )
+        with open(ccagt_raw_path, "rb") as f:
+            self._ccagt_info = pd.read_parquet(f, columns=["image_name", "category_id", "image_id", "slide_id"])
         self._bn_to_imageid = pd.Series(
             self._ccagt_info["image_id"].values, index=self._ccagt_info["image_name"]
         ).to_dict()
@@ -271,7 +269,7 @@ class CCAgT(datasets.GeneratorBasedBuilder):
 
         self._download_and_extract_all(dl_manager)
 
-        print("Splitting dataset based on the NORs quantity by image...")
+        logger.info("Splitting dataset based on the NORs quantity by image...")
         train_ids, valid_ids, test_ids = tvt_by_nors(
             self._ccagt_info, tvt_size=self.config.tvt_size, seed=self.config.seed
         )
@@ -288,7 +286,7 @@ class CCAgT(datasets.GeneratorBasedBuilder):
             valid_data = images_and_boxes(valid_bn_images)
             test_data = images_and_boxes(test_bn_images)
         else:
-            NotImplementedError
+            raise NotImplementedError
 
         return [
             datasets.SplitGenerator(
@@ -311,13 +309,13 @@ class CCAgT(datasets.GeneratorBasedBuilder):
                 img_basename = get_basename(img_path)
                 image_id = self._bn_to_imageid[img_basename]
                 yield image_id, {
-                    "image": {"path": img_path, "bytes": None},
-                    "annotation": {"path": msk_path, "bytes": None},
+                    "image": img_path,
+                    "annotation": msk_path,
                 }
         elif self.config.name == "object_detection":
             for img_path, labels in data:
                 img_basename = get_basename(img_path)
                 image_id = self._bn_to_imageid[img_basename]
-                yield image_id, {"image": {"path": img_path, "bytes": None}, "digits": labels}
+                yield image_id, {"image": img_path, "objects": labels}
         else:
-            NotImplementedError
+            raise NotImplementedError
