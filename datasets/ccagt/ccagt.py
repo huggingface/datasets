@@ -30,7 +30,7 @@ _CITATION = """\
 @misc{CCAgTDataset,
   doi = {10.17632/WG4BPM33HJ.2},
   url = {https://data.mendeley.com/datasets/wg4bpm33hj/2},
-  author =  {Jo{\~{a}}o Gustavo Atkinson Amorim and Andr{\'{e}} Vict{\'{o}}ria Matias and Tainee Bottamedi and Vinícius Sanches and Ane Francyne Costa and Fabiana Botelho De Miranda Onofre and Alexandre Sherlley Casimiro Onofre and Aldo von Wangenheim},
+  author =  {Jo{\\~{a}}o Gustavo Atkinson Amorim and Andr{\'{e}} Vict{\'{o}}ria Matias and Tainee Bottamedi and Vinícius Sanches and Ane Francyne Costa and Fabiana Botelho De Miranda Onofre and Alexandre Sherlley Casimiro Onofre and Aldo von Wangenheim},
   title = {CCAgT: Images of Cervical Cells with AgNOR Stain Technique},
   publisher = {Mendeley},
   year = {2022},
