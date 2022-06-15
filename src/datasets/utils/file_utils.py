@@ -283,7 +283,7 @@ def _retry(
             if retry >= max_retries or (status_codes and err.response.status_code not in status_codes):
                 raise err
             else:
-                sleep_time = min(max_wait_time, base_wait_time * 2 ** retry)  # Exponential backoff
+                sleep_time = min(max_wait_time, base_wait_time * 2**retry)  # Exponential backoff
                 logger.info(f"{func} timed out, retrying in {sleep_time}s... [{retry/max_retries}]")
                 time.sleep(sleep_time)
                 retry += 1
