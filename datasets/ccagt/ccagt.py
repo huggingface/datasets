@@ -152,8 +152,8 @@ class CCAgTConfig(datasets.BuilderConfig):
 
 class CCAgT(datasets.GeneratorBasedBuilder):
     """Images of Cervical Cells with AgNOR Stain Technique (CCAgT) dataset"""
-    test_dummy_data = False
 
+    test_dummy_data = False
 
     VERSION = datasets.Version("2.0.0")
 
