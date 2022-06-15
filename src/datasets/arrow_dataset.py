@@ -2491,7 +2491,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             ), "All shards have to be defined Datasets, none should still be missing."
 
             logger.info(f"Concatenating {num_proc} shards")
-            result = concatenate_datasets(transformed_shards)
+            result = _concatenate_map_style_datasets(transformed_shards)
             if new_fingerprint is not None:
                 result._fingerprint = new_fingerprint
             return result

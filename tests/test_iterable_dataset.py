@@ -17,7 +17,6 @@ from datasets.iterable_dataset import (
     IterableDataset,
     MappedExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
-    ShardShuffledExamplesIterable,
     ShufflingConfig,
     SkipExamplesIterable,
     TakeExamplesIterable,
