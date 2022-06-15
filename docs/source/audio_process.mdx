@@ -1,9 +1,11 @@
 # Process audio data
 
-This guide shows audio specific methods for processing audio datasets. For guides on how to process datasets in general, take a look at the <a class="bg-pink-200 dark:bg-pink-500 px-1 rounded font-bold underline decoration-pink-900 text-pink-900 dark:bg-pink-500" href="./process">general process guide</a>. Learn how to:
+This guide shows specific methods for processing audio datasets. Learn how to:
 
 - Resample the sampling rate.
 - Use [`~Dataset.map`] with audio datasets.
+
+For a guide on processing any type of dataset, take a look at the <a class="bg-pink-200 dark:bg-pink-500 px-1 rounded font-bold underline decoration-pink-900 text-pink-900 dark:bg-pink-500" href="./process">general process guide</a>.
 
 ## Cast
 
@@ -33,27 +35,27 @@ Audio files are decoded and resampled on-the-fly, so the next time you access an
 
 ## Map
 
-The [`~Dataset.map`] function is useful for preprocessing your entire dataset at once. Depending on the type of model you're working with, you'll need to either load a [feature extractor](https://huggingface.co/docs/transformers/model_doc/auto#transformers.AutoFeatureExtractor) or a [processor](https://huggingface.co/docs/transformers/model_doc/auto#transformers.AutoProcessor).
+The [`~Dataset.map`] function helps preprocess your entire dataset at once. Depending on the type of model you're working with, you'll need to either load a [feature extractor](https://huggingface.co/docs/transformers/model_doc/auto#transformers.AutoFeatureExtractor) or a [processor](https://huggingface.co/docs/transformers/model_doc/auto#transformers.AutoProcessor).
 
-For pretrained speech recognition models, load a feature extractor and tokenizer and then combine them in a `processor`:
+- For pretrained speech recognition models, load a feature extractor and tokenizer and combine them in a `processor`:
 
-```py
->>> from transformers import AutoTokenizer, AutoFeatureExtractor, AutoProcessor
+    ```py
+    >>> from transformers import AutoTokenizer, AutoFeatureExtractor, AutoProcessor
 
->>> model_checkpoint = "facebook/wav2vec2-large-xlsr-53"
-# after defining a vocab.json file you can instantiate a tokenizer object:
->>> tokenizer = AutoTokenizer("./vocab.json", unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
->>> feature_extractor = AutoFeatureExtractor.from_pretrained(model_checkpoint)
->>> processor = AutoProcessor.from_pretrained(feature_extractor=feature_extractor, tokenizer=tokenizer)
-```
+    >>> model_checkpoint = "facebook/wav2vec2-large-xlsr-53"
+    # after defining a vocab.json file you can instantiate a tokenizer object:
+    >>> tokenizer = AutoTokenizer("./vocab.json", unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
+    >>> feature_extractor = AutoFeatureExtractor.from_pretrained(model_checkpoint)
+    >>> processor = AutoProcessor.from_pretrained(feature_extractor=feature_extractor, tokenizer=tokenizer)
+    ```
 
-For fine-tuned speech recognition models, you only need to load a `processor`:
+- For fine-tuned speech recognition models, you only need to load a `processor`:
 
-```py
->>> from transformers import AutoProcessor
+    ```py
+    >>> from transformers import AutoProcessor
 
->>> processor = AutoProcessor.from_pretrained("facebook/wav2vec2-base-960h")
-```
+    >>> processor = AutoProcessor.from_pretrained("facebook/wav2vec2-base-960h")
+    ```
 
 When you use [`~Dataset.map`] with your preprocessing function, include the `audio` column to ensure you're actually resampling the audio data:
 

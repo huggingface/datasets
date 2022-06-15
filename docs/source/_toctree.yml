@@ -61,6 +61,10 @@
     - local: image_process
       title: Process image data
     title: "Vision"
+  - sections:
+    - local: nlp_process
+      title: Process text data
+    title: "Text"
   title: "How-to guides"
 - sections:
   - local: about_arrow

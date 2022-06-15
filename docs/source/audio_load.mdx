@@ -1,6 +1,6 @@
 # Load audio data
 
-Audio datasets typically have an `audio` column which contains three important fields:
+Audio datasets are loaded from the `audio` column, which contains three important fields:
 
 * `array`: the decoded audio data represented as a 1-dimensional array.
 * `path`: the path to the downloaded audio file.
@@ -21,13 +21,13 @@ When you load an audio dataset and call the `audio` column, the [`Audio`] featur
 
 <Tip warning={true}>
 
-Index into an audio dataset using the row index first and then the `audio` column - `dataset[0]["audio"]` - to avoid decoding and resampling all the audio files in the dataset. Otherwise, if you have a large dataset, this can be a slow and time-consuming process.
+Index into an audio dataset using the row index first and then the `audio` column - `dataset[0]["audio"]` - to avoid decoding and resampling all the audio files in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
 
 </Tip>
 
 ## Path
 
-The `path` is useful for loading your own dataset. Use the [`~Dataset.cast_column`] function to take a column of audio file paths, and decode it into `array`'s of the audio data with the [`Audio`] feature:
+The `path` is useful for loading your own dataset. Use the [`~Dataset.cast_column`] function to take a column of audio file paths, and decode it into `array`'s with the [`Audio`] feature:
 
 ```py
 >>> audio_dataset = audio_dataset.cast_column("paths_to_my_audio_files", Audio())

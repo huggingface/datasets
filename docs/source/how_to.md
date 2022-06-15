@@ -1,8 +1,8 @@
 # Overview
 
-The how-to guides demonstrate how to complete a specific task with your dataset. The guides offer a more comprehensive overview of all the tools 🤗 Datasets offers and how to use them. This will help you tackle some of the messier real-world datasets out there.
+The how-to guides offer a more comprehensive overview of all the tools 🤗 Datasets offers and how to use them. This will help you tackle some of the messier real-world datasets, where you may need to manipulate the dataset structure or content to get it ready for training.
 
-The guides assume you are familiar and comfortable with the 🤗 Datasets basics. We recommend new users check out our [tutorial](./tutorial) first.
+The guides assume you are familiar and comfortable with the 🤗 Datasets basics. We recommend newer users check out our [tutorials](tutorial) first.
 
 <Tip>
 

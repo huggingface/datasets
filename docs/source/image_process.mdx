@@ -1,15 +1,17 @@
 # Process image data
 
-This guide shows image specific methods for processing image datasets. For guides on how to process datasets in general, take a look at the <a class="bg-pink-200 dark:bg-pink-500 px-1 rounded font-bold underline decoration-pink-900 text-pink-900 dark:bg-pink-500" href="./process">general process guide</a>. Learn how to:
+This guide shows specific methods for processing image datasets. Learn how to:
 
 - Use [`~Dataset.map`] with image dataset.
 - Apply data augmentations to your dataset with [`~Dataset.set_transform`].
+
+For a guide on processing any type of dataset, take a look at the <a class="bg-pink-200 dark:bg-pink-500 px-1 rounded font-bold underline decoration-pink-900 text-pink-900 dark:bg-pink-500" href="./process">general process guide</a>.
 
 ## Map
 
 The [`~Dataset.map`] function can apply transforms over an entire dataset.
 
-Create a simple [`Resize`](https://pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html) function:
+For example, create a basic [`Resize`](https://pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html) function:
 
 ```py
 >>> def transforms(examples):
@@ -17,7 +19,7 @@ Create a simple [`Resize`](https://pytorch.org/vision/stable/generated/torchvisi
 ...     return examples
 ```
 
-Now [`~Dataset.map`] the function over the entire dataset and set `batched=True`. The transform returns `pixel_values` as a cacheable `PIL.Image` object:
+Now use the [`~Dataset.map`] function to resize the entire dataset, and set `batched=True` to speed up the process by accepting batches of examples. The transform returns `pixel_values` as a cacheable `PIL.Image` object:
 
 ```py
 >>> dataset = dataset.map(transforms, remove_columns=["image"], batched=True)
@@ -26,7 +28,7 @@ Now [`~Dataset.map`] the function over the entire dataset and set `batched=True`
  'pixel_values': <PIL.PngImagePlugin.PngImageFile image mode=RGB size=100x100 at 0x7F058237BB10>}
 ```
 
-The cache file saves time because you don't have to execute the same transform twice. It is best to use [`~Dataset.map`] for operations you only run once per training - like resizing an image - instead of using it for operations executed for each epoch, like data augmentations.
+The cache file saves time because you don't have to execute the same transform twice. The [`~Dataset.map`] function is best for operations you only run once per training - like resizing an image - instead of using it for operations executed for each epoch, like data augmentations.
 
 [`~Dataset.map`] takes up some memory, but you can reduce its memory requirements with the following parameters:
 
@@ -37,7 +39,7 @@ Both parameter values default to 1000, which can be expensive if you are storing
 
 ## Data augmentation
 
-🤗 Datasets can apply data augmentations from any library or package you use to your dataset. This guide will use the transforms from [torchvision](https://pytorch.org/vision/stable/transforms.html).
+🤗 Datasets can apply data augmentations from any library or package to your dataset. This guide will use the transforms from [torchvision](https://pytorch.org/vision/stable/transforms.html).
 
 <Tip>
 
@@ -45,7 +47,7 @@ Feel free to use other data augmentation libraries like [Albumentations](https:/
 
 </Tip>
 
-Add the [`ColorJitter`](https://pytorch.org/vision/stable/transforms.html#torchvision.transforms.ColorJitter) transform to change the color properties of the image randomly:
+As an example, try to apply a [`ColorJitter`](https://pytorch.org/vision/stable/transforms.html#torchvision.transforms.ColorJitter) transform to change the color properties of the image randomly:
 
 ```py
 >>> from torchvision.transforms import Compose, ColorJitter, ToTensor
@@ -72,7 +74,7 @@ Use the [`~Dataset.set_transform`] function to apply the transform on-the-fly wh
 >>> dataset.set_transform(transforms)
 ```
 
-Take a look at the transformed image by indexing into the `pixel_values`:
+Now you can take a look at the augmented image by indexing into the `pixel_values`:
 
 ```py
 >>> import numpy as np
