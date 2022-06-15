@@ -20,6 +20,7 @@ task_ids:
 - multi-label-classification
 - semantic-similarity-classification
 pretty_name: SV-Ident
+paperswithcode_id: sv-ident
 ---
 
 # Dataset Card for SV-Ident
