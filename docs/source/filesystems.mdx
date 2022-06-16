@@ -38,28 +38,6 @@ Access a private S3 bucket by entering your `aws_access_key_id` and `aws_secret_
 ['dataset_info.json.json','dataset.arrow','state.json']
 ```
 
-### Google Cloud Storage
-
-Other filesystem implementations, like Google Cloud Storage, are used similarly:
-
-1. Install the Google Cloud Storage implementation:
-
-```
->>> conda install -c conda-forge gcsfs
-# or install with pip
->>> pip install gcsfs
-```
-
-2. Load your dataset:
-
-```py
->>> import gcsfs
->>> gcs = gcsfs.GCSFileSystem(project='my-google-project') 
-
->>> # saves encoded_dataset to your s3 bucket
->>> encoded_dataset.save_to_disk('gcs://my-private-datasets/imdb/train', fs=gcs)
-```
-
 ## Saving datasets
 
 After you have processed your dataset, you can save it to S3 with [`Dataset.save_to_disk`]:
@@ -131,4 +109,45 @@ Load with `botocore.session.Session` and custom AWS profile:
 
 >>> print(len(dataset))
 >>> # 25000
+```
+
+---
+
+## Other filesystems
+
+### Google Cloud Storage
+
+Other filesystem implementations, like Google Cloud Storage, are used similarly:
+
+1. Install the Google Cloud Storage implementation:
+
+```
+>>> conda install -c conda-forge gcsfs
+# or install with pip
+>>> pip install gcsfs
+```
+
+2. Save your dataset:
+
+```py
+>>> import gcsfs
+
+>>> # create GCSFileSystem instance using default gcloud credentials with project
+>>> gcs = gcsfs.GCSFileSystem(project='my-google-project')
+
+>>> # saves dataset to your gcs bucket
+>>> dataset.save_to_disk('gcs://my-private-datasets/imdb/train', fs=gcs)
+```
+
+3. Load your dataset:
+
+```py
+>>> import gcsfs
+>>> from datasets import load_from_disk
+
+>>> # create GCSFileSystem instance using default gcloud credentials with project
+>>> gcs = gcsfs.GCSFileSystem(project='my-google-project')
+
+>>> # loads dataset from your gcs bucket
+>>> dataset = load_from_disk('gcs://my-private-datasets/imdb/train', fs=gcs)
 ```
