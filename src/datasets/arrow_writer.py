@@ -484,7 +484,7 @@ class ArrowWriter:
         Args:
             batch_examples: the batch of examples to add.
         """
-        if not batch_examples and len(next(iter(batch_examples.values()))) == 0:
+        if not batch_examples or len(next(iter(batch_examples.values()))) == 0:
             return
         features = None if self.pa_writer is None and self.update_features else self._features
         try_features = self._features if self.pa_writer is None and self.update_features else None
