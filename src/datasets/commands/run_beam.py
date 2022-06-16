@@ -23,6 +23,7 @@ def run_beam_command_factory(args, **kwargs):
         args.save_infos,
         args.ignore_verifications,
         args.force_redownload,
+        args.skip_parquet_to_arrow,
         **kwargs,
     )
 
@@ -57,6 +58,9 @@ class RunBeamCommand(BaseDatasetsCLICommand):
             "--ignore_verifications", action="store_true", help="Run the test without checksums and splits checks"
         )
         run_beam_parser.add_argument("--force_redownload", action="store_true", help="Force dataset redownload")
+        run_beam_parser.add_argument(
+            "--skip_parquet_to_arrow", action="store_true", help="Skip Parquet to Arrow conversion"
+        )
         run_beam_parser.set_defaults(func=run_beam_command_factory)
 
     def __init__(
@@ -70,6 +74,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
         save_infos: bool,
         ignore_verifications: bool,
         force_redownload: bool,
+        skip_parquet_to_arrow: bool,
         **config_kwargs,
     ):
         self._dataset = dataset
@@ -81,6 +86,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
         self._save_infos = save_infos
         self._ignore_verifications = ignore_verifications
         self._force_redownload = force_redownload
+        self._skip_parquet_to_arrow = skip_parquet_to_arrow
         self._config_kwargs = config_kwargs
 
     def run(self):
@@ -131,6 +137,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
                 download_config=DownloadConfig(cache_dir=config.DOWNLOADED_DATASETS_PATH),
                 ignore_verifications=self._ignore_verifications,
                 try_from_hf_gcs=False,
+                skip_parquet_to_arrow=self._skip_parquet_to_arrow,
             )
             if self._save_infos:
                 builder._save_infos()
