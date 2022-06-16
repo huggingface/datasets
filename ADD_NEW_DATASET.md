@@ -113,6 +113,8 @@ You can also start (or copy any part) from one of the datasets of reference list
 - multilingual: [xquad](https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py) (original data are in json)
 - multitask: [matinf](https://github.com/huggingface/datasets/blob/master/datasets/matinf/matinf.py) (original data need to be downloaded by the user because it requires authentication)
 - speech recognition: [librispeech_asr](https://github.com/huggingface/datasets/blob/master/datasets/librispeech_asr/librispeech_asr.py) (original data is in .flac format)
+- image classification: [beans](https://github.com/huggingface/datasets/blob/master/datasets/beans/beans.py) (original data are in .jpg format)
+- object detection: [wider_face](https://github.com/huggingface/datasets/blob/master/datasets/wider_face/wider_face.py) (image files are in .jpg format and metadata come from text files)
 
 While you are developing the dataset script you can list test it by opening a python interpreter and running the script (the script is dynamically updated each time you modify it):
 
