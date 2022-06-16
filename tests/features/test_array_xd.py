@@ -226,6 +226,7 @@ class ArrayXDTest(unittest.TestCase):
             dict_examples = my_features.encode_batch(dict_examples)
             with ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow")) as writer:
                 writer.write_batch(dict_examples)
+                writer.write_batch({})
                 num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             self._check_getitem_output_type(dataset, shape_1, shape_2, dict_examples["matrix"][0])
