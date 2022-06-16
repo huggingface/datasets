@@ -608,9 +608,21 @@ class BeamWriter:
         """
         import apache_beam as beam
 
+        # Convert to arrow
+        self._convert_parquet_to_arrow()
+
+        # Save metrics
+        counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
+        self._num_examples = counters_dict["num_examples"]
+        output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
+        self._num_bytes = output_file_metadata.size_in_bytes
+        return self._num_examples, self._num_bytes
+
+    def _convert_parquet_to_arrow(self):
+        import apache_beam as beam
+
         from .utils import beam_utils
 
-        # Convert to arrow
         logger.info(f"Converting parquet file {self._parquet_path} to arrow {self._path}")
         shards = [
             metadata.path
@@ -634,13 +646,6 @@ class BeamWriter:
                 beam_utils.download_remote_to_local(shard, local_parquet_path)
             parquet_to_arrow(local_shards, local_arrow_path)
             beam_utils.upload_local_to_remote(local_arrow_path, self._path)
-
-        # Save metrics
-        counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
-        self._num_examples = counters_dict["num_examples"]
-        output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
-        self._num_bytes = output_file_metadata.size_in_bytes
-        return self._num_examples, self._num_bytes
 
 
 def parquet_to_arrow(sources, destination):
