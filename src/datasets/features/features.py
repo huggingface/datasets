@@ -1024,7 +1024,9 @@ class ClassLabel:
                     f"Class label {min_max['max']} greater than configured num_classes {self.num_classes}"
                 )
         elif isinstance(storage, pa.StringArray):
-            storage = pa.array(self.str2int(storage.to_pylist()))
+            storage = pa.array(
+                [self._strval2int(label) if label is not None else None for label in storage.to_pylist()]
+            )
         return array_cast(storage, self.pa_type)
 
     @staticmethod

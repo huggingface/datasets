@@ -328,6 +328,11 @@ def test_classlabel_cast_storage():
     arr = pa.array(["__label_that_doesnt_exist__"])
     with pytest.raises(ValueError):
         classlabel.cast_storage(arr)
+    # from nulls
+    arr = pa.array([None])
+    result = classlabel.cast_storage(arr)
+    assert result.type == pa.int64()
+    assert result.to_pylist() == [None]
     # from empty
     arr = pa.array([])
     result = classlabel.cast_storage(arr)
