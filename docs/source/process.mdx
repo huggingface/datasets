@@ -505,36 +505,32 @@ You can also concatenate two datasets horizontally by setting `axis=1` as long a
 
 ## Format
 
-Set a dataset to a TensorFlow compatible format with [`Dataset.set_format`]. Specify `type=tensorflow` and the columns that should be formatted:
+The [`~Dataset.set_format`] function changes the format of a column to be compatible with some common data formats. Specify the output you'd like in the `type` parameter and the columns you want to format. Formatting is applied on-the-fly.
+
+For example, create PyTorch tensors by setting `type="torch"`:
 
 ```py
->>> import tensorflow as tf
->>> dataset.set_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
+>>> import torch
+>>> dataset.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "label"])
 ```
 
-Then you can wrap the dataset with `tf.data.Dataset`. This method gives you more control over how to create a [TensorFlow Dataset](https://www.tensorflow.org/api_docs/python/tf/data/Dataset). In the example below, the dataset is created `from_tensor_slices`:
+The [`~Dataset.with_format`] function also changes the format of a column, except it returns a new [`Dataset`] object:
 
 ```py
->>> tfdataset = tf.data.Dataset.from_tensor_slices((features, dataset["label"])).batch(32)
-```
-
-[`Dataset.with_format`] provides an alternative method to set the format. This method will return a new [`Dataset`] object with your specified format:
-
-```py
->>> dataset = dataset.with_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
+>>> dataset = dataset.with_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "label"])
 ```
 
 <Tip>
 
-🤗 Datasets also provides support for other common data formats such as NumPy, PyTorch, Pandas, and JAX.
+🤗 Datasets also provides support for other common data formats such as NumPy, Pandas, and JAX. Check out the [Using Datasets with TensorFlow](https://huggingface.co/docs/datasets/master/en/use_with_tensorflow#using-totfdataset) guide for more details on how to efficiently create a TensorFlow dataset.
 
 </Tip>
 
-Use [`Dataset.reset_format`] if you need to reset the dataset to the original format:
+If you need to reset the dataset to its original format, use the [`~Dataset.reset_format`] function:
 
 ```py
 >>> dataset.format
-{'type': 'tensorflow', 'format_kwargs': {}, 'columns': ['label'], 'output_all_columns': False}
+{'type': 'torch', 'format_kwargs': {}, 'columns': ['label'], 'output_all_columns': False}
 >>> dataset.reset_format()
 >>> dataset.format
 {'type': 'python', 'format_kwargs': {}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
@@ -542,22 +538,18 @@ Use [`Dataset.reset_format`] if you need to reset the dataset to the original fo
 
 ### Format transform
 
-[`Dataset.set_transform`] allows you to apply a custom formatting transform on-the-fly. This will replace any previously specified format. For example, you can use this method to tokenize and pad tokens on-the-fly:
+The [`~Dataset.set_transform`] function applies a custom formatting transform on-the-fly. This function replaces any previously specified format. For example, you can use this function to tokenize and pad tokens on-the-fly. Tokenization is only applied when examples are accessed:
 
 ```py
->>> from transformers import BertTokenizer
->>> tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+>>> from transformers import AutoTokenizer
+
+>>> tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 >>> def encode(batch):
 ...     return tokenizer(batch["sentence1"], padding="longest", truncation=True, max_length=512, return_tensors="pt")
 >>> dataset.set_transform(encode)
 >>> dataset.format
 {'type': 'custom', 'format_kwargs': {'transform': <function __main__.encode(batch)>}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
->>> dataset[:2]
-{'input_ids': tensor([[  101,  2572,  3217, ... 102]]), 'token_type_ids': tensor([[0, 0, 0, ... 0]]), 'attention_mask': tensor([[1, 1, 1, ... 1]])}
 ```
-
-In this case, the tokenization is applied only when the examples are accessed.
-
 
 ## Save
 
@@ -573,7 +565,7 @@ Use the [`load_from_disk`] function to reload the dataset:
 
 ```py
 >>> from datasets import load_from_disk
->>> reloaded_encoded_dataset = load_from_disk("path/of/my/dataset/directory")
+>>> reloaded_dataset = load_from_disk("path/of/my/dataset/directory")
 ```
 
 <Tip>
