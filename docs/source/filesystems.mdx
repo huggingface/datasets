@@ -151,3 +151,40 @@ Other filesystem implementations, like Google Cloud Storage, are used similarly:
 >>> # loads dataset from your gcs bucket
 >>> dataset = load_from_disk('gcs://my-private-datasets/imdb/train', fs=gcs)
 ```
+
+### Azure Blob Storage
+
+Other filesystem implementations, like Azure Blob Storage, are used similarly:
+
+1. Install the Azure Blob Storage implementation:
+
+```
+>>> conda install -c conda-forge adlfs
+# or install with pip
+>>> pip install adlfs
+```
+
+2. Load your dataset:
+
+```py
+>>> import adlfs
+
+>>> # create AzureBlobFileSystem instance with account_name and account_key
+>>> abfs = adlfs.AzureBlobFileSystem(account_name="XXXX", account_key="XXXX")
+
+>>> # saves dataset to your azure container
+>>> dataset.save_to_disk('abfs://my-private-datasets/imdb/train', fs=abfs)
+```
+
+3. Load your dataset:
+
+```py
+>>> import adlfs
+>>> from datasets import load_from_disk
+
+>>> # create AzureBlobFileSystem instance with account_name and account_key
+>>> abfs = adlfs.AzureBlobFileSystem(account_name="XXXX", account_key="XXXX")
+
+>>> # loads dataset from your azure container
+>>> dataset = load_from_disk('abfs://my-private-datasets/imdb/train', fs=abfs)
+```
