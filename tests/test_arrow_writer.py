@@ -179,6 +179,7 @@ def test_write_batch(fields, writer_batch_size):
     schema = pa.schema(fields) if fields else None
     with ArrowWriter(stream=output, schema=schema, writer_batch_size=writer_batch_size) as writer:
         writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
+        writer.write_batch({"col_1": [], "col_2": []})
         num_examples, num_bytes = writer.finalize()
     assert num_examples == 2
     assert num_bytes > 0
