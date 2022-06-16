@@ -618,10 +618,10 @@ class BeamWriter:
         counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
         self._num_examples = counters_dict["num_examples"]
         if not skip_parquet_to_arrow:
-            output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
-            self._num_bytes = output_file_metadata.size_in_bytes
+            matched_output_files = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0]
         else:
-            self._num_bytes = 0  # TODO
+            matched_output_files = beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0]
+        self._num_bytes = sum(file_metadata.size_in_bytes for file_metadata in matched_output_files.metadata_list)
 
     def _convert_parquet_to_arrow(self):
         import apache_beam as beam
