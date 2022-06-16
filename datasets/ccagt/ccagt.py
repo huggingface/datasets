@@ -350,6 +350,6 @@ class CCAgT(datasets.GeneratorBasedBuilder):
             for img_path, instances in data:
                 img_basename = get_basename(img_path)
                 image_id = self._bn_to_imageid[img_basename]
-                yield image_id, {"image": img_path, "instances": instances}
+                yield image_id, {"image": img_path, "objects": instances}
         else:
             raise NotImplementedError

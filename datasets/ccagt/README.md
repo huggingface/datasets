@@ -121,7 +121,7 @@ The data annotations have the following fields:
 #### `instance segmentation`
 
 - `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`.
-- `instances`: a dictionary containing bounding boxes and labels of the cell objects
+- `objects`: a dictionary containing bounding boxes and labels of the cell objects
   - `bbox`: a list of bounding boxes (in the [coco](https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/#coco) format) corresponding to the objects present on the image
   - `segment`: a list of segments in format of `[polygon_0, ..., polygon_n]`, where each polygon is `[x0, y0, ..., xn, yn]`.
   - `label`: a list of integers representing the category (7 categories to describe the objects in total; two to differentiate nucleolus organizer regions), with the possible values including `NUCLEUS` (0), `CLUSTER` (1), `SATELLITE` (2), `NUCLEUS_OUT_OF_FOCUS` (3), `OVERLAPPED_NUCLEI` (4), `NON_VIABLE_NUCLEUS` (5) and `LEUKOCYTE_NUCLEUS` (6).
