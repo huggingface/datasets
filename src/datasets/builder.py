@@ -1345,7 +1345,7 @@ class BeamBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
-    def _download_and_prepare(self, dl_manager, verify_infos):
+    def _download_and_prepare(self, dl_manager, verify_infos, skip_parquet_to_arrow: bool = False):
         # Create the Beam pipeline and forward it to _prepare_split
         import apache_beam as beam
 
@@ -1392,7 +1392,9 @@ class BeamBasedBuilder(DatasetBuilder):
         split_dict = self.info.splits
         for split_name, beam_writer in self._beam_writers.items():
             m_filter = beam.metrics.MetricsFilter().with_namespace(namespace=split_name)
-            num_examples, num_bytes = beam_writer.finalize(metrics.query(m_filter))
+            num_examples, num_bytes = beam_writer.finalize(
+                metrics.query(m_filter), skip_parquet_to_arrow=skip_parquet_to_arrow
+            )
             split_info = split_dict[split_name]
             split_info.num_examples = num_examples
             split_info.num_bytes = num_bytes
