@@ -127,7 +127,7 @@ else:
 
 # Optional tools for feature decoding
 PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None
-
+ENCODED_VIDEO_AVAILABLE = importlib.util.find_spec("encoded_video") is not None
 
 # Optional compression tools
 RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None

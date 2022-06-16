@@ -41,6 +41,7 @@ from ..utils.py_utils import first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
 from .translation import Translation, TranslationVariableLanguages
+from .video import Video, encode_video
 
 
 logger = logging.get_logger(__name__)
@@ -293,6 +294,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
     if config.PIL_AVAILABLE and "PIL" in sys.modules:
         import PIL.Image
 
+    if config.ENCODED_VIDEO_AVAILABLE and "encoded_video" in sys.modules:
+        import EncodedVideo
+
     if isinstance(obj, np.ndarray):
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj, False
@@ -335,6 +339,12 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             ], True
     elif config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(obj, PIL.Image.Image):
         return encode_pil_image(obj), True
+    elif (
+        config.ENCODED_VIDEO_AVAILABLE
+        and "encoded_video" in sys.modules
+        and isinstance(obj, encoded_video.EncodedVideo)
+    ):
+        return encode_video(obj), True
     elif isinstance(obj, pd.Series):
         return obj.values.tolist(), True
     elif isinstance(obj, pd.DataFrame):
@@ -1241,7 +1251,7 @@ def decode_nested_example(schema, obj, token_per_repo_id=None):
         else:
             return decode_nested_example([schema.feature], obj)
     # Object with special decoding:
-    elif isinstance(schema, (Audio, Image)):
+    elif isinstance(schema, (Audio, Image, Video)):
         # we pass the token to read and decode files from private repositories in streaming mode
         return schema.decode_example(obj, token_per_repo_id=token_per_repo_id) if obj is not None else None
     return obj

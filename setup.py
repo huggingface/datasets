@@ -100,6 +100,7 @@ AUDIO_REQUIRE = [
 
 VISION_REQURE = [
     "Pillow>=6.2.1",
+    "encoded_video"
 ]
 
 BENCHMARKS_REQUIRE = [
