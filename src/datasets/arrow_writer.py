@@ -597,7 +597,7 @@ class BeamWriter:
             )
         )
 
-    def finalize(self, metrics_query_result: dict):
+    def finalize(self, metrics_query_result: dict, skip_parquet_to_arrow: bool = False):
         """
         Run after the pipeline has finished.
         It converts the resulting parquet files to arrow and it completes the info from the pipeline metrics.
@@ -605,17 +605,21 @@ class BeamWriter:
         Args:
             metrics_query_result: `dict` obtained from pipeline_results.metrics().query(m_filter). Make sure
                 that the filter keeps only the metrics for the considered split, under the namespace `split_name`.
+            skip_parquet_to_arrow (`bool`, default `False`): Whether to skip Parquet to Arrow conversion.
         """
         import apache_beam as beam
 
-        # Convert to arrow
-        self._convert_parquet_to_arrow()
+        if not skip_parquet_to_arrow:
+            self._convert_parquet_to_arrow()
 
         # Save metrics
         counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
         self._num_examples = counters_dict["num_examples"]
-        output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
-        self._num_bytes = output_file_metadata.size_in_bytes
+        if not skip_parquet_to_arrow:
+            output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
+            self._num_bytes = output_file_metadata.size_in_bytes
+        else:
+            self._num_bytes = 0  # TODO
         return self._num_examples, self._num_bytes
 
     def _convert_parquet_to_arrow(self):
