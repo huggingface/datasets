@@ -854,6 +854,9 @@ class ClassLabel:
      * `names`: List of label strings.
      * `names_file`: File containing the list of labels.
 
+    Under the hood the labels are stored as integers.
+    You can use negative integers to represent unknown/missing labels.
+
     Args:
         num_classes (:obj:`int`, optional): Number of classes. All labels must be < `num_classes`.
         names (:obj:`list` of :obj:`str`, optional): String names for the integer classes.
@@ -910,7 +913,7 @@ class ClassLabel:
     def __call__(self):
         return self.pa_type
 
-    def str2int(self, values: Union[str, Iterable]):
+    def str2int(self, values: Union[str, Iterable]) -> Union[int, Iterable]:
         """Conversion class name string => integer.
 
         Example:
@@ -934,7 +937,7 @@ class ClassLabel:
         output = [self._strval2int(value) for value in values]
         return output if return_list else output[0]
 
-    def _strval2int(self, value: str):
+    def _strval2int(self, value: str) -> int:
         failed_parse = False
         value = str(value)
         # first attempt - raw string value
@@ -955,8 +958,10 @@ class ClassLabel:
             raise ValueError(f"Invalid string class label {value}")
         return int_value
 
-    def int2str(self, values: Union[int, Iterable]):
+    def int2str(self, values: Union[int, Iterable]) -> Union[str, Iterable]:
         """Conversion integer => class name string.
+
+        Regarding unknown/missing labels: passing negative integers raises ValueError.
 
         Example:
 
@@ -1014,16 +1019,12 @@ class ClassLabel:
         """
         if isinstance(storage, pa.IntegerArray):
             min_max = pc.min_max(storage).as_py()
-            if min_max["min"] < -1:
-                raise ValueError(f"Class label {min_max['min']} less than -1")
             if min_max["max"] >= self.num_classes:
                 raise ValueError(
                     f"Class label {min_max['max']} greater than configured num_classes {self.num_classes}"
                 )
         elif isinstance(storage, pa.StringArray):
-            storage = pa.array(
-                [self._strval2int(label) if label is not None else None for label in storage.to_pylist()]
-            )
+            storage = pa.array(self.str2int(storage.to_pylist()))
         return array_cast(storage, self.pa_type)
 
     @staticmethod

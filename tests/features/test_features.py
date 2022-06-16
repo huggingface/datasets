@@ -288,6 +288,8 @@ def test_classlabel_str2int():
         classlabel.str2int("__bad_label_name__")
     with pytest.raises(ValueError):
         classlabel.str2int(1)
+    with pytest.raises(ValueError):
+        classlabel.str2int(None)
 
 
 def test_classlabel_int2str():
@@ -297,6 +299,40 @@ def test_classlabel_int2str():
         assert classlabel.int2str(i) == names[i]
     with pytest.raises(ValueError):
         classlabel.int2str(len(names))
+    with pytest.raises(ValueError):
+        classlabel.int2str(-1)
+    with pytest.raises(ValueError):
+        classlabel.int2str(None)
+
+
+def test_classlabel_cast_storage():
+    names = ["negative", "positive"]
+    classlabel = ClassLabel(names=names)
+    # from integers
+    arr = pa.array([0, 1, -1, -100], type=pa.int64())
+    result = classlabel.cast_storage(arr)
+    assert result.type == pa.int64()
+    assert result.to_pylist() == [0, 1, -1, -100]
+    arr = pa.array([0, 1, -1, -100], type=pa.int32())
+    result = classlabel.cast_storage(arr)
+    assert result.type == pa.int64()
+    assert result.to_pylist() == [0, 1, -1, -100]
+    arr = pa.array([3])
+    with pytest.raises(ValueError):
+        classlabel.cast_storage(arr)
+    # from strings
+    arr = pa.array(["negative", "positive"])
+    result = classlabel.cast_storage(arr)
+    assert result.type == pa.int64()
+    assert result.to_pylist() == [0, 1]
+    arr = pa.array(["__label_that_doesnt_exist__"])
+    with pytest.raises(ValueError):
+        classlabel.cast_storage(arr)
+    # from empty
+    arr = pa.array([])
+    result = classlabel.cast_storage(arr)
+    assert result.type == pa.int64()
+    assert result.to_pylist() == []
 
 
 @pytest.mark.parametrize("class_label_arg", ["names", "names_file"])
