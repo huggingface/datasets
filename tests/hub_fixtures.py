@@ -3,14 +3,14 @@ from unittest.mock import patch
 
 import pytest
 import requests
-from huggingface_hub.hf_api import HfApi
+from huggingface_hub.hf_api import HfApi, HfFolder
 
 
 USER = "__DUMMY_TRANSFORMERS_USER__"
 FULL_NAME = "Dummy User"
-PASS = "__DUMMY_TRANSFORMERS_PASS__"
+TOKEN = "hf_94wBhPGp6KrrTH3KDchhKpRxZwd6dmHWLL"
 
-ENDPOINT_STAGING = "https://moon-staging.huggingface.co"
+ENDPOINT_STAGING = "https://hub-ci.huggingface.co"
 ENDPOINT_STAGING_DATASETS_URL = ENDPOINT_STAGING + "/datasets/{repo_id}/resolve/{revision}/{path}"
 
 
@@ -21,10 +21,12 @@ def hf_api():
 
 @pytest.fixture(scope="session")
 def hf_token(hf_api: HfApi):
-    hf_token = hf_api.login(username=USER, password=PASS)
-    yield hf_token
+    hf_api.set_access_token(TOKEN)
+    HfFolder.save_token(TOKEN)
+
+    yield TOKEN
     try:
-        hf_api.logout(hf_token)
+        hf_api.unset_access_token()
     except requests.exceptions.HTTPError:
         pass
 
@@ -43,7 +45,7 @@ def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
     )
     yield repo_id
     try:
-        hf_api.delete_repo(token=hf_token, name=repo_name, repo_type="dataset")
+        hf_api.delete_repo(repo_name, token=hf_token, repo_type="dataset")
     except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 
@@ -69,7 +71,7 @@ def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_pa
     )
     yield repo_id
     try:
-        hf_api.delete_repo(token=hf_token, name=repo_name, repo_type="dataset")
+        hf_api.delete_repo(repo_name, token=hf_token, repo_type="dataset")
     except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 
@@ -95,7 +97,7 @@ def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_
     )
     yield repo_id
     try:
-        hf_api.delete_repo(token=hf_token, name=repo_name, repo_type="dataset")
+        hf_api.delete_repo(repo_name, token=hf_token, repo_type="dataset")
     except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 
