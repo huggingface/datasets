@@ -30,10 +30,12 @@ from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
 from shutil import disk_usage
 from types import CodeType, FunctionType
-from typing import Callable, ClassVar, Dict, Generic, Optional, Tuple, Union
+from typing import Callable, ClassVar, Dict, Generic, List, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 import dill
 import numpy as np
+from packaging import version
 from tqdm.auto import tqdm
 
 from .. import config
@@ -135,11 +137,14 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
 
     Returns:
         Dict[str, str]: dictionary of variable -> value, retrieved from the input using the pattern
+
+    Raises:
+        ValueError: if the string doesn't match the pattern
     """
     regex = re.sub(r"{(.+?)}", r"(?P<_\1>.+)", pattern)
     result = re.search(regex, string)
     if result is None:
-        raise ValueError(f"Pattern {pattern} doesn't match {string}")
+        raise ValueError(f"String {string} doesn't match the pattern {pattern}")
     values = list(result.groups())
     keys = re.findall(r"{(.+?)}", pattern)
     _dict = dict(zip(keys, values))
@@ -413,6 +418,98 @@ def has_sufficient_disk_space(needed_bytes, directory="."):
     return needed_bytes < free_bytes
 
 
+def _convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
+    """Convert a link to a file on a github repo in a link to the raw github object."""
+    parsed = urlparse(url_path)
+    sub_directory = None
+    if parsed.scheme in ("http", "https", "s3") and parsed.netloc == "github.com":
+        if "blob" in url_path:
+            if not url_path.endswith(".py"):
+                raise ValueError(f"External import from github at {url_path} should point to a file ending with '.py'")
+            url_path = url_path.replace("blob", "raw")  # Point to the raw file
+        else:
+            # Parse github url to point to zip
+            github_path = parsed.path[1:]
+            repo_info, branch = github_path.split("/tree/") if "/tree/" in github_path else (github_path, "master")
+            repo_owner, repo_name = repo_info.split("/")
+            url_path = f"https://github.com/{repo_owner}/{repo_name}/archive/{branch}.zip"
+            sub_directory = f"{repo_name}-{branch}"
+    return url_path, sub_directory
+
+
+def get_imports(file_path: str) -> Tuple[str, str, str, str]:
+    """Find whether we should import or clone additional files for a given processing script.
+        And list the import.
+
+    We allow:
+    - library dependencies,
+    - local dependencies and
+    - external dependencies whose url is specified with a comment starting from "# From:' followed by the raw url to a file, an archive or a github repository.
+        external dependencies will be downloaded (and extracted if needed in the dataset folder).
+        We also add an `__init__.py` to each sub-folder of a downloaded folder so the user can import from them in the script.
+
+    Note that only direct import in the dataset processing script will be handled
+    We don't recursively explore the additional import to download further files.
+
+    Example::
+
+        import tensorflow
+        import .c4_utils
+        import .clicr.dataset-code.build_json_dataset  # From: https://raw.githubusercontent.com/clips/clicr/master/dataset-code/build_json_dataset
+    """
+    lines = []
+    with open(file_path, encoding="utf-8") as f:
+        lines.extend(f.readlines())
+
+    logger.debug(f"Checking {file_path} for additional imports.")
+    imports: List[Tuple[str, str, str, Optional[str]]] = []
+    is_in_docstring = False
+    for line in lines:
+        docstr_start_match = re.findall(r'[\s\S]*?"""[\s\S]*?', line)
+
+        if len(docstr_start_match) == 1:
+            # flip True <=> False only if doctstring
+            # starts at line without finishing
+            is_in_docstring = not is_in_docstring
+
+        if is_in_docstring:
+            # import statements in doctstrings should
+            # not be added as required dependencies
+            continue
+
+        match = re.match(r"^import\s+(\.?)([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)", line, flags=re.MULTILINE)
+        if match is None:
+            match = re.match(
+                r"^from\s+(\.?)([^\s\.]+)(?:[^\s]*)\s+import\s+[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)",
+                line,
+                flags=re.MULTILINE,
+            )
+            if match is None:
+                continue
+        if match.group(1):
+            # The import starts with a '.', we will download the relevant file
+            if any(imp[1] == match.group(2) for imp in imports):
+                # We already have this import
+                continue
+            if match.group(3):
+                # The import has a comment with 'From:', we'll retrieve it from the given url
+                url_path = match.group(3)
+                url_path, sub_directory = _convert_github_url(url_path)
+                imports.append(("external", match.group(2), url_path, sub_directory))
+            elif match.group(2):
+                # The import should be at the same place as the file
+                imports.append(("internal", match.group(2), match.group(2), None))
+        else:
+            if match.group(3):
+                # The import has a comment with `From: git+https:...`, asks user to pip install from git.
+                url_path = match.group(3)
+                imports.append(("library", match.group(2), url_path, None))
+            else:
+                imports.append(("library", match.group(2), match.group(2), None))
+
+    return imports
+
+
 class Pickler(dill.Pickler):
     """Same Pickler as the one from dill, but improved for notebooks and shells"""
 
@@ -604,78 +701,216 @@ def _save_code(pickler, obj):
     return
 
 
-@pklregister(FunctionType)
-def save_function(pickler, obj):
-    """
-    From dill._dill.save_function
-    This is a modified version that make globs deterministic since the order of
-    the keys in the output dictionary of globalvars can change.
-    """
-    if not dill._dill._locate_function(obj):
-        dill._dill.log.info(f"F1: {obj}")
-        if getattr(pickler, "_recurse", False):
-            # recurse to get all globals referred to by obj
-            globalvars = dill.detect.globalvars
-            globs = globalvars(obj, recurse=True, builtin=True)
-            if id(obj) in dill._dill.stack:
+if config.DILL_VERSION < version.parse("0.3.5"):
+
+    @pklregister(FunctionType)
+    def save_function(pickler, obj):
+        """
+        From dill._dill.save_function
+        This is a modified version that make globs deterministic since the order of
+        the keys in the output dictionary of globalvars can change.
+        """
+        if not dill._dill._locate_function(obj):
+            dill._dill.log.info(f"F1: {obj}")
+            if getattr(pickler, "_recurse", False):
+                # recurse to get all globals referred to by obj
+                globalvars = dill.detect.globalvars
+                globs = globalvars(obj, recurse=True, builtin=True)
+                if id(obj) in dill._dill.stack:
+                    globs = obj.__globals__ if dill._dill.PY3 else obj.func_globals
+            else:
                 globs = obj.__globals__ if dill._dill.PY3 else obj.func_globals
-        else:
-            globs = obj.__globals__ if dill._dill.PY3 else obj.func_globals
-        # globs is a dictionary with keys = var names (str) and values = python objects
-        # however the dictionary is not always loaded in the same order
-        # therefore we have to sort the keys to make deterministic.
-        # This is important to make `dump` deterministic.
-        # Only this line is different from the original implementation:
-        globs = {k: globs[k] for k in sorted(globs.keys())}
-        # The rest is the same as in the original dill implementation
-        _byref = getattr(pickler, "_byref", None)
-        _recurse = getattr(pickler, "_recurse", None)
-        _memo = (id(obj) in dill._dill.stack) and (_recurse is not None)
-        dill._dill.stack[id(obj)] = len(dill._dill.stack), obj
-        if dill._dill.PY3:
-            _super = ("super" in getattr(obj.__code__, "co_names", ())) and (_byref is not None)
+            # globs is a dictionary with keys = var names (str) and values = python objects
+            # however the dictionary is not always loaded in the same order
+            # therefore we have to sort the keys to make deterministic.
+            # This is important to make `dump` deterministic.
+            # Only this line is different from the original implementation:
+            globs = {k: globs[k] for k in sorted(globs.keys())}
+            # The rest is the same as in the original dill implementation
+            _byref = getattr(pickler, "_byref", None)
+            _recurse = getattr(pickler, "_recurse", None)
+            _memo = (id(obj) in dill._dill.stack) and (_recurse is not None)
+            dill._dill.stack[id(obj)] = len(dill._dill.stack), obj
+            if dill._dill.PY3:
+                _super = ("super" in getattr(obj.__code__, "co_names", ())) and (_byref is not None)
+                if _super:
+                    pickler._byref = True
+                if _memo:
+                    pickler._recurse = False
+                fkwdefaults = getattr(obj, "__kwdefaults__", None)
+                pickler.save_reduce(
+                    dill._dill._create_function,
+                    (obj.__code__, globs, obj.__name__, obj.__defaults__, obj.__closure__, obj.__dict__, fkwdefaults),
+                    obj=obj,
+                )
+            else:
+                _super = (
+                    ("super" in getattr(obj.func_code, "co_names", ()))
+                    and (_byref is not None)
+                    and getattr(pickler, "_recurse", False)
+                )
+                if _super:
+                    pickler._byref = True
+                if _memo:
+                    pickler._recurse = False
+                pickler.save_reduce(
+                    dill._dill._create_function,
+                    (obj.func_code, globs, obj.func_name, obj.func_defaults, obj.func_closure, obj.__dict__),
+                    obj=obj,
+                )
             if _super:
-                pickler._byref = True
+                pickler._byref = _byref
             if _memo:
-                pickler._recurse = False
-            fkwdefaults = getattr(obj, "__kwdefaults__", None)
-            pickler.save_reduce(
-                dill._dill._create_function,
-                (obj.__code__, globs, obj.__name__, obj.__defaults__, obj.__closure__, obj.__dict__, fkwdefaults),
-                obj=obj,
-            )
+                pickler._recurse = _recurse
+            if (
+                dill._dill.OLDER
+                and not _byref
+                and (_super or (not _super and _memo) or (not _super and not _memo and _recurse))
+            ):
+                pickler.clear_memo()
+            dill._dill.log.info("# F1")
         else:
-            _super = (
-                ("super" in getattr(obj.func_code, "co_names", ()))
-                and (_byref is not None)
-                and getattr(pickler, "_recurse", False)
-            )
-            if _super:
-                pickler._byref = True
-            if _memo:
-                pickler._recurse = False
-            pickler.save_reduce(
-                dill._dill._create_function,
-                (obj.func_code, globs, obj.func_name, obj.func_defaults, obj.func_closure, obj.__dict__),
-                obj=obj,
-            )
-        if _super:
-            pickler._byref = _byref
-        if _memo:
-            pickler._recurse = _recurse
-        if (
-            dill._dill.OLDER
-            and not _byref
-            and (_super or (not _super and _memo) or (not _super and not _memo and _recurse))
-        ):
-            pickler.clear_memo()
-        dill._dill.log.info("# F1")
-    else:
-        dill._dill.log.info(f"F2: {obj}")
-        name = getattr(obj, "__qualname__", getattr(obj, "__name__", None))
-        dill._dill.StockPickler.save_global(pickler, obj, name=name)
-        dill._dill.log.info("# F2")
-    return
+            dill._dill.log.info(f"F2: {obj}")
+            name = getattr(obj, "__qualname__", getattr(obj, "__name__", None))
+            dill._dill.StockPickler.save_global(pickler, obj, name=name)
+            dill._dill.log.info("# F2")
+        return
+
+else:  # config.DILL_VERSION >= version.parse("0.3.5")
+
+    # https://github.com/uqfoundation/dill/blob/dill-0.3.5.1/dill/_dill.py
+    @pklregister(FunctionType)
+    def save_function(pickler, obj):
+        if not dill._dill._locate_function(obj, pickler):
+            dill._dill.log.info("F1: %s" % obj)
+            _recurse = getattr(pickler, "_recurse", None)
+            # _byref = getattr(pickler, "_byref", None)  # TODO: not used
+            _postproc = getattr(pickler, "_postproc", None)
+            _main_modified = getattr(pickler, "_main_modified", None)
+            _original_main = getattr(pickler, "_original_main", dill._dill.__builtin__)  # 'None'
+            postproc_list = []
+            if _recurse:
+                # recurse to get all globals referred to by obj
+                from dill.detect import globalvars
+
+                globs_copy = globalvars(obj, recurse=True, builtin=True)
+
+                # Add the name of the module to the globs dictionary to prevent
+                # the duplication of the dictionary. Pickle the unpopulated
+                # globals dictionary and set the remaining items after the function
+                # is created to correctly handle recursion.
+                globs = {"__name__": obj.__module__}
+            else:
+                globs_copy = obj.__globals__ if dill._dill.PY3 else obj.func_globals
+
+                # If the globals is the __dict__ from the module being saved as a
+                # session, substitute it by the dictionary being actually saved.
+                if _main_modified and globs_copy is _original_main.__dict__:
+                    globs_copy = getattr(pickler, "_main", _original_main).__dict__
+                    globs = globs_copy
+                # If the globals is a module __dict__, do not save it in the pickle.
+                elif (
+                    globs_copy is not None
+                    and obj.__module__ is not None
+                    and getattr(dill._dill._import_module(obj.__module__, True), "__dict__", None) is globs_copy
+                ):
+                    globs = globs_copy
+                else:
+                    globs = {"__name__": obj.__module__}
+
+            if globs_copy is not None and globs is not globs_copy:
+                # In the case that the globals are copied, we need to ensure that
+                # the globals dictionary is updated when all objects in the
+                # dictionary are already created.
+                if dill._dill.PY3:
+                    glob_ids = {id(g) for g in globs_copy.values()}
+                else:
+                    glob_ids = {id(g) for g in globs_copy.itervalues()}
+                for stack_element in _postproc:
+                    if stack_element in glob_ids:
+                        _postproc[stack_element].append((dill._dill._setitems, (globs, globs_copy)))
+                        break
+                else:
+                    postproc_list.append((dill._dill._setitems, (globs, globs_copy)))
+
+            # DONE: globs is a dictionary with keys = var names (str) and values = python objects
+            # however the dictionary is not always loaded in the same order
+            # therefore we have to sort the keys to make deterministic.
+            # This is important to make `dump` deterministic.
+            # Only this line is different from the original implementation:
+            globs = {k: globs[k] for k in sorted(globs.keys())}
+
+            if dill._dill.PY3:
+                closure = obj.__closure__
+                state_dict = {}
+                for fattrname in ("__doc__", "__kwdefaults__", "__annotations__"):
+                    fattr = getattr(obj, fattrname, None)
+                    if fattr is not None:
+                        state_dict[fattrname] = fattr
+                if obj.__qualname__ != obj.__name__:
+                    state_dict["__qualname__"] = obj.__qualname__
+                if "__name__" not in globs or obj.__module__ != globs["__name__"]:
+                    state_dict["__module__"] = obj.__module__
+
+                state = obj.__dict__
+                if type(state) is not dict:
+                    state_dict["__dict__"] = state
+                    state = None
+                if state_dict:
+                    state = state, state_dict
+
+                dill._dill._save_with_postproc(
+                    pickler,
+                    (
+                        dill._dill._create_function,
+                        (obj.__code__, globs, obj.__name__, obj.__defaults__, closure),
+                        state,
+                    ),
+                    obj=obj,
+                    postproc_list=postproc_list,
+                )
+            else:
+                closure = obj.func_closure
+                if obj.__doc__ is not None:
+                    postproc_list.append((setattr, (obj, "__doc__", obj.__doc__)))
+                if "__name__" not in globs or obj.__module__ != globs["__name__"]:
+                    postproc_list.append((setattr, (obj, "__module__", obj.__module__)))
+                if obj.__dict__:
+                    postproc_list.append((setattr, (obj, "__dict__", obj.__dict__)))
+
+                dill._dill._save_with_postproc(
+                    pickler,
+                    (dill._dill._create_function, (obj.func_code, globs, obj.func_name, obj.func_defaults, closure)),
+                    obj=obj,
+                    postproc_list=postproc_list,
+                )
+
+            # Lift closure cell update to earliest function (#458)
+            if _postproc:
+                topmost_postproc = next(iter(_postproc.values()), None)
+                if closure and topmost_postproc:
+                    for cell in closure:
+                        possible_postproc = (setattr, (cell, "cell_contents", obj))
+                        try:
+                            topmost_postproc.remove(possible_postproc)
+                        except ValueError:
+                            continue
+
+                        # Change the value of the cell
+                        pickler.save_reduce(*possible_postproc)
+                        # pop None created by calling preprocessing step off stack
+                        if dill._dill.PY3:
+                            pickler.write(bytes("0", "UTF-8"))
+                        else:
+                            pickler.write("0")
+
+            dill._dill.log.info("# F1")
+        else:
+            dill._dill.log.info("F2: %s" % obj)
+            name = getattr(obj, "__qualname__", getattr(obj, "__name__", None))
+            dill._dill.StockPickler.save_global(pickler, obj, name=name)
+            dill._dill.log.info("# F2")
+        return
 
 
 def copyfunc(func):

@@ -8,6 +8,8 @@ The how-to guides will cover eight key areas of 🤗 Datasets:
 
 * How to process a dataset.
 
+* How to use a dataset with your favorite ML/DL framework.
+
 * How to stream large datasets.
 
 * How to upload and share a dataset.

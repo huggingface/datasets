@@ -5,15 +5,8 @@ from unittest.mock import patch
 import pytest
 import zstandard as zstd
 
-from datasets.utils.file_utils import (
-    DownloadConfig,
-    OfflineModeIsEnabled,
-    cached_path,
-    ftp_get,
-    ftp_head,
-    http_get,
-    http_head,
-)
+from datasets.download.download_config import DownloadConfig
+from datasets.utils.file_utils import OfflineModeIsEnabled, cached_path, ftp_get, ftp_head, http_get, http_head
 
 
 FILE_CONTENT = """\

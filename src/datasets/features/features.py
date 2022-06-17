@@ -29,11 +29,13 @@ from typing import Tuple, Union
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+import pyarrow.compute as pc
 import pyarrow.types
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from .. import config
+from ..table import array_cast
 from ..utils import logging
 from ..utils.py_utils import first_non_null_value, zip_dict
 from .audio import Audio
@@ -429,6 +431,15 @@ class Value:
     large_binary
     string
     large_string
+
+    Example:
+
+    ```py
+    >>> from datasets import Features
+    >>> features = Features({'stars': Value(dtype='int32')})
+    >>> features
+    {'stars': Value(dtype='int32', id=None)}
+    ```
     """
 
     dtype: str
@@ -476,6 +487,20 @@ class _ArrayXD:
 
 @dataclass
 class Array2D(_ArrayXD):
+    """Create a two-dimensional array.
+
+    Args:
+        shape (`tuple`): The size of each dimension.
+        dtype (`str`): The value of the data type.
+
+    Example:
+
+    ```py
+    >>> from datasets import Features
+    >>> features = Features({'x': Array2D(shape=(1, 3), dtype='int32')})
+    ```
+    """
+
     shape: tuple
     dtype: str
     id: Optional[str] = None
@@ -485,6 +510,20 @@ class Array2D(_ArrayXD):
 
 @dataclass
 class Array3D(_ArrayXD):
+    """Create a three-dimensional array.
+
+    Args:
+        shape (`tuple`): The size of each dimension.
+        dtype (`str`): The value of the data type.
+
+    Example:
+
+    ```py
+    >>> from datasets import Features
+    >>> features = Features({'x': Array3D(shape=(1, 2, 3), dtype='int32')})
+    ```
+    """
+
     shape: tuple
     dtype: str
     id: Optional[str] = None
@@ -494,6 +533,20 @@ class Array3D(_ArrayXD):
 
 @dataclass
 class Array4D(_ArrayXD):
+    """Create a four-dimensional array.
+
+    Args:
+        shape (`tuple`): The size of each dimension.
+        dtype (`str`): The value of the data type.
+
+    Example:
+
+    ```py
+    >>> from datasets import Features
+    >>> features = Features({'x': Array4D(shape=(1, 2, 2, 3), dtype='int32')})
+    ```
+    """
+
     shape: tuple
     dtype: str
     id: Optional[str] = None
@@ -503,6 +556,20 @@ class Array4D(_ArrayXD):
 
 @dataclass
 class Array5D(_ArrayXD):
+    """Create a five-dimensional array.
+
+    Args:
+        shape (`tuple`): The size of each dimension.
+        dtype (`str`): The value of the data type.
+
+    Example:
+
+    ```py
+    >>> from datasets import Features
+    >>> features = Features({'x': Array5D(shape=(1, 2, 2, 3, 3), dtype='int32')})
+    ```
+    """
+
     shape: tuple
     dtype: str
     id: Optional[str] = None
@@ -787,11 +854,23 @@ class ClassLabel:
      * `names`: List of label strings.
      * `names_file`: File containing the list of labels.
 
+    Under the hood the labels are stored as integers.
+    You can use negative integers to represent unknown/missing labels.
+
     Args:
         num_classes (:obj:`int`, optional): Number of classes. All labels must be < `num_classes`.
         names (:obj:`list` of :obj:`str`, optional): String names for the integer classes.
             The order in which the names are provided is kept.
         names_file (:obj:`str`, optional): Path to a file with names for the integer classes, one per line.
+
+    Example:
+
+    ```py
+    >>> from datasets Features
+    >>> features = Features({'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'])})
+    >>> features
+    {'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'], id=None)}
+    ```
     """
 
     num_classes: int = None
@@ -834,8 +913,18 @@ class ClassLabel:
     def __call__(self):
         return self.pa_type
 
-    def str2int(self, values: Union[str, Iterable]):
-        """Conversion class name string => integer."""
+    def str2int(self, values: Union[str, Iterable]) -> Union[int, Iterable]:
+        """Conversion class name string => integer.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds.features["label"].str2int('neg')
+        0
+        ```
+        """
         if not isinstance(values, str) and not isinstance(values, Iterable):
             raise ValueError(
                 f"Values {values} should be a string or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
@@ -845,26 +934,44 @@ class ClassLabel:
             values = [values]
             return_list = False
 
-        output = []
-        for value in values:
-            if self._str2int:
-                # strip key if not in dict
-                if value not in self._str2int:
-                    value = str(value).strip()
-                output.append(self._str2int[str(value)])
-            else:
-                # No names provided, try to integerize
-                failed_parse = False
-                try:
-                    output.append(int(value))
-                except ValueError:
-                    failed_parse = True
-                if failed_parse or not 0 <= value < self.num_classes:
-                    raise ValueError(f"Invalid string class label {value}")
+        output = [self._strval2int(value) for value in values]
         return output if return_list else output[0]
 
-    def int2str(self, values: Union[int, Iterable]):
-        """Conversion integer => class name string."""
+    def _strval2int(self, value: str) -> int:
+        failed_parse = False
+        value = str(value)
+        # first attempt - raw string value
+        int_value = self._str2int.get(value)
+        if int_value is None:
+            # second attempt - strip whitespace
+            int_value = self._str2int.get(value.strip())
+            if int_value is None:
+                # third attempt - convert str to int
+                try:
+                    int_value = int(value)
+                except ValueError:
+                    failed_parse = True
+                else:
+                    if int_value < -1 or int_value >= self.num_classes:
+                        failed_parse = True
+        if failed_parse:
+            raise ValueError(f"Invalid string class label {value}")
+        return int_value
+
+    def int2str(self, values: Union[int, Iterable]) -> Union[str, Iterable]:
+        """Conversion integer => class name string.
+
+        Regarding unknown/missing labels: passing negative integers raises ValueError.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds.features["label"].int2str(0)
+        'neg'
+        ```
+        """
         if not isinstance(values, int) and not isinstance(values, Iterable):
             raise ValueError(
                 f"Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
@@ -878,11 +985,7 @@ class ClassLabel:
             if not 0 <= v < self.num_classes:
                 raise ValueError(f"Invalid integer class label {v:d}")
 
-        if self._int2str:
-            output = [self._int2str[int(v)] for v in values]
-        else:
-            # No names provided, return str(values)
-            output = [str(v) for v in values]
+        output = [self._int2str[int(v)] for v in values]
         return output if return_list else output[0]
 
     def encode_example(self, example_data):
@@ -901,6 +1004,31 @@ class ClassLabel:
             raise ValueError(f"Class label {example_data:d} greater than configured num_classes {self.num_classes}")
         return example_data
 
+    def cast_storage(self, storage: Union[pa.StringArray, pa.IntegerArray]) -> pa.Int64Array:
+        """Cast an Arrow array to the ClassLabel arrow storage type.
+        The Arrow types that can be converted to the ClassLabel pyarrow storage type are:
+
+        - pa.string()
+        - pa.int()
+
+        Args:
+            storage (Union[pa.StringArray, pa.IntegerArray]): PyArrow array to cast.
+
+        Returns:
+            pa.Int64Array: Array in the ClassLabel arrow storage type
+        """
+        if isinstance(storage, pa.IntegerArray):
+            min_max = pc.min_max(storage).as_py()
+            if min_max["max"] >= self.num_classes:
+                raise ValueError(
+                    f"Class label {min_max['max']} greater than configured num_classes {self.num_classes}"
+                )
+        elif isinstance(storage, pa.StringArray):
+            storage = pa.array(
+                [self._strval2int(label) if label is not None else None for label in storage.to_pylist()]
+            )
+        return array_cast(storage, self.pa_type)
+
     @staticmethod
     def _load_names_from_file(names_filepath):
         with open(names_filepath, encoding="utf-8") as f:
@@ -911,6 +1039,19 @@ class ClassLabel:
 class Sequence:
     """Construct a list of feature from a single type or a dict of types.
     Mostly here for compatiblity with tfds.
+
+    Args:
+        feature: A list of features of a single type or a dictionary of types.
+        length (`int`): Length of the sequence.
+
+    Example:
+
+    ```py
+    >>> from datasets import Features, Sequence, Value, ClassLabel
+    >>> features = Features({'post': Sequence(feature={'text': Value(dtype='string'), 'upvotes': Value(dtype='int32'), 'label': ClassLabel(num_classes=2, names=['hot', 'cold'])})})
+    >>> features
+    {'post': Sequence(feature={'text': Value(dtype='string', id=None), 'upvotes': Value(dtype='int32', id=None), 'label': ClassLabel(num_classes=2, names=['hot', 'cold'], id=None)}, length=-1, id=None)}
+    ```
     """
 
     feature: Any
@@ -1265,6 +1406,24 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
         return hasattr(feature, "decode_example") and (feature.decode if not ignore_decode_attribute else True)
 
 
+def require_storage_cast(feature: FeatureType) -> bool:
+    """Check if a (possibly nested) feature requires storage casting.
+
+    Args:
+        feature (FeatureType): the feature type to be checked
+    Returns:
+        :obj:`bool`
+    """
+    if isinstance(feature, dict):
+        return any(require_storage_cast(f) for f in feature.values())
+    elif isinstance(feature, (list, tuple)):
+        return require_storage_cast(feature[0])
+    elif isinstance(feature, Sequence):
+        return require_storage_cast(feature.feature)
+    else:
+        return hasattr(feature, "cast_storage")
+
+
 def keep_features_dicts_synced(func):
     """
     Wrapper to keep the secondary dictionary, which tracks whether keys are decodable, of the :class:`datasets.Features` object
@@ -1502,6 +1661,17 @@ class Features(dict):
 
         Returns:
             :class:`Features`
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> copy_of_features = ds.features.copy()
+        >>> copy_of_features
+        {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None),
+         'text': Value(dtype='string', id=None)}
+        ```
         """
         return copy.deepcopy(self)
 
@@ -1576,6 +1746,20 @@ class Features(dict):
 
         Returns:
             Features: the flattened features
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("squad", split="train")
+        >>> ds.features.flatten()
+        {'answers.answer_start': Sequence(feature=Value(dtype='int32', id=None), length=-1, id=None),
+         'answers.text': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None),
+         'context': Value(dtype='string', id=None),
+         'id': Value(dtype='string', id=None),
+         'question': Value(dtype='string', id=None),
+         'title': Value(dtype='string', id=None)}
+        ```
         """
         for depth in range(1, max_depth):
             no_change = True

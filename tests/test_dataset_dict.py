@@ -217,6 +217,15 @@ class DatasetDictTest(TestCase):
         dset = dset.remove_columns(column_names=["col_1", "col_2"])
         for dset_split in dset.values():
             self.assertEqual(dset_split.num_columns, 0)
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        for dset_split in dset.values():
+            dset_split._format_columns = ["col_1", "col_2"]
+        dset = dset.remove_columns(column_names=["col_1"])
+        for dset_split in dset.values():
+            self.assertListEqual(dset_split._format_columns, ["col_2"])
+            self.assertEqual(dset_split.num_columns, 1)
+            self.assertListEqual(list(dset_split.column_names), ["col_2"])
         del dset
 
     def test_rename_column(self):
@@ -655,6 +664,10 @@ def test_datasetdict_from_text_split(split, text_path, tmp_path):
     assert all(dataset[split].split == split for split in path.keys())
 
 
+@pytest.mark.skipif(
+    os.name == "nt" and os.getenv("CIRCLECI") == "true",
+    reason='On Windows CircleCI, it raises botocore.exceptions.EndpointConnectionError: Could not connect to the endpoint URL: "http://127.0.0.1:5555/test"',
+)  # TODO(QL): find what's wrong with CircleCI
 @require_s3
 def test_dummy_dataset_serialize_s3(s3, dataset):
     dsets = DatasetDict({"train": dataset, "test": dataset.select(range(2))})

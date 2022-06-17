@@ -49,26 +49,9 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-  de-pl:
-  - 100K<n<1M
-  el-en:
-  - 1M<n<10M
-  en-ha:
-  - 10K<n<100K
-  en-ig:
-  - 10K<n<100K
-  en-km:
-  - 10K<n<100K
-  en-so:
-  - 10K<n<100K
-  en-sw:
-  - 100K<n<1M
-  en-tl:
-  - 100K<n<1M
-  es-gl:
-  - 1M<n<10M
-  fr-nl:
-  - 1M<n<10M
+- 100K<n<1M
+- 10K<n<100K
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -76,6 +59,17 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: OpusParaCrawl
+configs:
+- de-pl
+- el-en
+- en-ha
+- en-ig
+- en-km
+- en-so
+- en-sw
+- en-tl
+- es-gl
+- fr-nl
 ---
 
 # Dataset Card Creation Guide

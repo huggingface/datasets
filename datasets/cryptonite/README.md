@@ -10,10 +10,8 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-  cryptonite:
-  - 100K<n<1M
-  default:
-  - 1K<n<10K
+- 100K<n<1M
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -22,6 +20,9 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: null
 pretty_name: Cryptonite
+configs:
+- cryptonite
+- default
 ---
 
 # Dataset Card for Cryptonite

@@ -18,7 +18,6 @@
 import csv
 
 import datasets
-from datasets.utils.download_manager import DownloadManager
 
 
 _CITATION = """
@@ -133,7 +132,7 @@ class AmericasNLI(datasets.GeneratorBasedBuilder):
             citation=_CITATION,
         )
 
-    def _split_generators(self, dl_manager: DownloadManager):
+    def _split_generators(self, dl_manager):
         dl_paths = dl_manager.download(
             {
                 "dev_data": _DEV_DATA_URL,

@@ -2,9 +2,17 @@ import json
 import logging
 import re
 from collections import Counter
-from dataclasses import asdict, dataclass, fields
+from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, Type, Union
+
+
+try:  # Python >= 3.8
+    from typing import get_args
+except ImportError:
+
+    def get_args(tp):
+        return tp.__args__
 
 
 # loading package files: https://stackoverflow.com/a/20885799
@@ -132,7 +140,7 @@ def validate_type(value: Any, expected_type: Type):
     # Add more `elif` statements if primitive type checking is needed
     else:
         expected_type_name = str(expected_type).split(".", 1)[-1].split("[")[0]  # typing.List[str] -> List
-        expected_type_args = expected_type.__args__
+        expected_type_args = get_args(expected_type)
 
         if expected_type_name == "Union":
             for type_arg in expected_type_args:
@@ -161,7 +169,7 @@ def validate_type(value: Any, expected_type: Type):
             if expected_type_name == "Dict":
                 if not isinstance(value, dict):
                     return f"Expected `{expected_type}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
-                if expected_type_args != Dict.__args__:  # if we specified types for keys and values
+                if expected_type_args != get_args(Dict):  # if we specified types for keys and values
                     key_type, value_type = expected_type_args
                     key_error_string = ""
                     value_error_string = ""
@@ -174,7 +182,7 @@ def validate_type(value: Any, expected_type: Type):
             else:  # `List`/`Tuple`
                 if not isinstance(value, (list, tuple)):
                     return f"Expected `{expected_type}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
-                if expected_type_args != List.__args__:  # if we specified types for the items in the list
+                if expected_type_args != get_args(List):  # if we specified types for the items in the list
                     value_type = expected_type_args[0]
                     value_error_string = ""
                     for v in value:
@@ -208,21 +216,25 @@ EmptyList = List[_nothing]
 
 @dataclass
 class DatasetMetadata:
-    annotations_creators: Union[List[str], Dict[str, List[str]]]
-    language_creators: Union[EmptyList, List[str], Dict[str, List[str]]]
-    languages: Union[EmptyList, List[str], Dict[str, List[str]]]
-    licenses: Union[List[str], Dict[str, List[str]]]
-    multilinguality: Union[List[str], Dict[str, List[str]]]
-    pretty_name: Union[str, Dict[str, str]]
-    size_categories: Union[List[str], Dict[str, List[str]]]
-    source_datasets: Union[List[str], Dict[str, List[str]]]
-    task_categories: Union[List[str], Dict[str, List[str]]]
-    task_ids: Union[EmptyList, List[str], Dict[str, List[str]]]
+    annotations_creators: List[str]
+    language_creators: Union[EmptyList, List[str]]
+    languages: Union[EmptyList, List[str]]
+    licenses: List[str]
+    multilinguality: List[str]
+    pretty_name: str
+    size_categories: List[str]
+    source_datasets: List[str]
+    task_categories: List[str]
+    task_ids: Union[EmptyList, List[str]]
     paperswithcode_id: Optional[str] = None
     train_eval_index: Optional[List[Dict]] = None
+    configs: Optional[List[str]] = None
+    extra_gated_fields: Optional[Dict] = None
+    extra_gated_prompt: Optional[str] = None
 
     # class attributes
     _FIELDS_WITH_DASHES: ClassVar[set] = {"train_eval_index"}  # train-eval-index in the YAML metadata
+    _ALLOWED_YAML_KEYS: ClassVar[set] = set()  # populated later
 
     def validate(self):
         validate_metadata_type(metadata_dict=vars(self))
@@ -288,8 +300,40 @@ class DatasetMetadata:
             raise TypeError(f"Unable to find a yaml block in '{path}'")
 
     @classmethod
-    def from_yaml_string(cls, string: str) -> "DatasetMetadata":
+    def _metadata_dict_from_yaml_string(cls, string: str) -> dict:
         """Loads and validates the dataset metadat from a YAML string
+
+        Args:
+            string (:obj:`str`): The YAML string
+
+        Returns:
+            :class:`dict`: The dataset's metadata as a dictionary
+
+        Raises:
+            :obj:`TypeError`: If the dataset's metadata is invalid
+        """
+        metadata_dict = yaml.load(string, Loader=NoDuplicateSafeLoader) or dict()
+
+        # Check if the YAML keys are all correct
+        bad_keys = [k for k in metadata_dict if k not in cls._ALLOWED_YAML_KEYS]
+        if bad_keys:
+            raise ValueError(f"Bad YAML keys: {bad_keys}. Allowed fields: {cls._ALLOWED_YAML_KEYS}")
+
+        # Check if config names are valid
+        bad_keys = [k for k in metadata_dict if k not in cls._ALLOWED_YAML_KEYS]
+        if bad_keys:
+            raise ValueError(f"Bad YAML keys: {bad_keys}. Allowed fields: {cls._ALLOWED_YAML_KEYS}")
+
+        # Convert the YAML keys to DatasetMetadata fields
+        metadata_dict = {
+            (key.replace("-", "_") if key.replace("-", "_") in cls._FIELDS_WITH_DASHES else key): value
+            for key, value in metadata_dict.items()
+        }
+        return metadata_dict
+
+    @classmethod
+    def from_yaml_string(cls, string: str) -> "DatasetMetadata":
+        """Loads and validates the dataset metadata from a YAML string
 
         Args:
             string (:obj:`str`): The YAML string
@@ -299,29 +343,10 @@ class DatasetMetadata:
 
         Raises:
             :obj:`TypeError`: If the dataset's metadata is invalid
+            :obj:`ValueError`: If the dataset's metadata is invalid
         """
-        metada_dict = yaml.load(string, Loader=NoDuplicateSafeLoader) or dict()
-
-        # In general the allowed YAML keys are the fields of the DatasetMetadata dataclass.
-        # However it is not the case certain fields like train_eval_index,
-        # for which the YAML key must use dashes and not underscores.
-        # Fields that corresponds to YAML keys with dashes are defined in DatasetMetadata._FIELDS_WITH_DASHES
-        allowed_yaml_keys = [
-            field.name.replace("_", "-") if field.name in cls._FIELDS_WITH_DASHES else field.name
-            for field in fields(cls)
-        ]
-
-        # Check if the YAML keys are all correct
-        bad_keys = [k for k in metada_dict if k not in allowed_yaml_keys]
-        if bad_keys:
-            raise ValueError(f"Bad YAML keys: {bad_keys}. Allowed fields: {allowed_yaml_keys}")
-
-        # Convert the YAML keys to DatasetMetadata fields
-        metada_dict = {
-            (key.replace("-", "_") if key.replace("-", "_") in cls._FIELDS_WITH_DASHES else key): value
-            for key, value in metada_dict.items()
-        }
-        return cls(**metada_dict)
+        metadata_dict = cls._metadata_dict_from_yaml_string(string)
+        return cls(**metadata_dict)
 
     @staticmethod
     def validate_annotations_creators(annotations_creators: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
@@ -433,31 +458,15 @@ class DatasetMetadata:
         else:
             return train_eval_index, None
 
-    def get_metadata_by_config_name(self, name: str) -> "DatasetMetadata":
-        metadata_dict = asdict(self)
-        config_name_hit = []
-        has_multi_configs = []
-        result_dict = {}
-        for tag_key, tag_value in metadata_dict.items():
-            if isinstance(tag_value, str) or isinstance(tag_value, list):
-                result_dict[tag_key] = tag_value
-            elif isinstance(tag_value, dict):
-                has_multi_configs.append(tag_key)
-                for config_name, value in tag_value.items():
-                    if config_name == name:
-                        result_dict[tag_key] = value
-                        config_name_hit.append(tag_key)
 
-        if len(has_multi_configs) > 0 and has_multi_configs != config_name_hit:
-            raise TypeError(
-                f"The following tags have multiple configs: {has_multi_configs} but the config `{name}`  was found only in: {config_name_hit}."
-            )
-        if config_name_hit == 0:
-            logger.warning(
-                "No matching config names found in the metadata, using the common values to create metadata."
-            )
-
-        return DatasetMetadata(**result_dict)
+# In general the allowed YAML keys are the fields of the DatasetMetadata dataclass.
+# However it is not the case certain fields like train_eval_index,
+# for which the YAML key must use dashes and not underscores.
+# Fields that corresponds to YAML keys with dashes are defined in DatasetMetadata._FIELDS_WITH_DASHES
+DatasetMetadata._ALLOWED_YAML_KEYS = {
+    field.name.replace("_", "-") if field.name in DatasetMetadata._FIELDS_WITH_DASHES else field.name
+    for field in fields(DatasetMetadata)
+}
 
 
 if __name__ == "__main__":

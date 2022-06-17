@@ -4,10 +4,8 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  ca:
-  - ca
-  eu:
-  - eu
+- ca
+- eu
 licenses:
 - cc-by-3.0
 multilinguality:
@@ -22,6 +20,9 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: multibooked
 pretty_name: MultiBooked
+configs:
+- ca
+- eu
 ---
 
 # Dataset Card for MultiBooked
