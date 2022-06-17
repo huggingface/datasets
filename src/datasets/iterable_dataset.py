@@ -176,16 +176,8 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
         self.ex_iterables = ex_iterables
 
     def __iter__(self):
-        _example_from_previous_iterable = None
         for ex_iterable in self.ex_iterables:
-            for example_idx, (key, example) in enumerate(ex_iterable):
-                if example_idx == 0 and _example_from_previous_iterable is not None:
-                    if sorted(example) != sorted(_example_from_previous_iterable):
-                        raise ValueError(
-                            f"The examples iterables must have the same columns but one has {sorted(_example_from_previous_iterable)} and the next has {sorted(example)}."
-                        )
-                yield key, example
-            _example_from_previous_iterable = example
+            yield from ex_iterable
 
     def shuffle_data_sources(
         self, generator: np.random.Generator
@@ -578,6 +570,11 @@ class TypedExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         for key, example in self.ex_iterable:
+            example = dict(example)
+            # add missing columns
+            for column_name in self.features:
+                if column_name not in example:
+                    example[column_name] = None
             # we encode the example for ClassLabel feature types for example
             encoded_example = self.features.encode_example(example)
             # Decode example for Audio feature, e.g.
@@ -674,6 +671,11 @@ class IterableDataset(DatasetInfoMixin):
 
     def _apply_feature_types(self, example):
         if self.features:
+            example = dict(example)
+            # add missing columns
+            for column_name in self.features:
+                if column_name not in example:
+                    example[column_name] = None
             # we encode the example for ClassLabel feature types for example
             encoded_example = self.features.encode_example(example)
             # Decode example for Audio feature, e.g.
@@ -1214,6 +1216,25 @@ class IterableDataset(DatasetInfoMixin):
             shuffling=copy.deepcopy(self._shuffling),
             token_per_repo_id=self._token_per_repo_id,
         )
+    
+    def _resolve_features(self):
+        if self.features is not None:
+            return self
+        elif isinstance(self._ex_iterable, TypedExamplesIterable):
+            features = self._ex_iterable.features
+        else:
+            features = _infer_features_from_batch(self._head())
+        info = self.info.copy()
+        info.features = features
+        return iterable_dataset(
+            ex_iterable=self._ex_iterable,
+            info=info,
+            split=self._split,
+            format_type=self._format_type,
+            shuffling=copy.deepcopy(self._shuffling),
+            token_per_repo_id=self._token_per_repo_id,
+        )
+
 
 
 def iterable_dataset(
@@ -1265,20 +1286,21 @@ def _concatenate_iterable_datasets(
     >>> ds3 = _concatenate_iterable_datasets([ds1, ds2])
     ```
     """
-    ex_iterables = [
-        TypedExamplesIterable(d._ex_iterable, d.features)
-        if not isinstance(d._ex_iterable, TypedExamplesIterable) and d.features is not None
-        else d._ex_iterable
-        for d in dsets
-    ]
+    dsets = [d._resolve_features() for d in dsets]
+    features = Features()
+    for dset in dsets:
+        features.update(dset.features)
+    ex_iterables = [d._ex_iterable for d in dsets]
     if axis == 0:
         ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
     else:
         ex_iterable = HorizontallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
-    # Set new info - we reset the features
+    # Set new info - we update the features
     if info is None:
         info = DatasetInfo.from_merge([d.info for d in dsets])
-        info.features = None
+    else:
+        info = info.copy()
+    info.features = features
     # Get all the auth tokens per repository - in case the datasets come from different private repositories
     token_per_repo_id = {repo_id: token for dataset in dsets for repo_id, token in dataset._token_per_repo_id.items()}
     # Return new daset
