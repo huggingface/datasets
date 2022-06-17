@@ -5,7 +5,6 @@ paperswithcode_id: aeslc
 pretty_name: AESLC
 task_categories:
 - text-classification
-arxiv: "1906.03497"
 task_ids:
 - "summarization"
 - "summarization-other-conversations-summarization"
