@@ -295,7 +295,7 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         import PIL.Image
 
     if config.ENCODED_VIDEO_AVAILABLE and "encoded_video" in sys.modules:
-        import EncodedVideo
+        import encoded_video
 
     if isinstance(obj, np.ndarray):
         if not only_1d_for_numpy or obj.ndim == 1:
