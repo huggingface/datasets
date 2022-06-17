@@ -115,9 +115,9 @@ Load with `botocore.session.Session` and custom AWS profile:
 
 ## Other filesystems
 
-### Google Cloud Storage
+Other filesystem implementations, like Google Cloud Storage or Azure Blob Storage, are used similarly:
 
-Other filesystem implementations, like Google Cloud Storage, are used similarly:
+### Google Cloud Storage
 
 1. Install the Google Cloud Storage implementation:
 
@@ -135,8 +135,8 @@ Other filesystem implementations, like Google Cloud Storage, are used similarly:
 >>> # create GCSFileSystem instance using default gcloud credentials with project
 >>> gcs = gcsfs.GCSFileSystem(project='my-google-project')
 
->>> # saves dataset to your gcs bucket
->>> dataset.save_to_disk('gcs://my-private-datasets/imdb/train', fs=gcs)
+>>> # saves encoded_dataset to your gcs bucket
+>>> encoded_dataset.save_to_disk('gcs://my-private-datasets/imdb/train', fs=gcs)
 ```
 
 3. Load your dataset:
@@ -148,13 +148,11 @@ Other filesystem implementations, like Google Cloud Storage, are used similarly:
 >>> # create GCSFileSystem instance using default gcloud credentials with project
 >>> gcs = gcsfs.GCSFileSystem(project='my-google-project')
 
->>> # loads dataset from your gcs bucket
+>>> # loads encoded_dataset from your gcs bucket
 >>> dataset = load_from_disk('gcs://my-private-datasets/imdb/train', fs=gcs)
 ```
 
 ### Azure Blob Storage
-
-Other filesystem implementations, like Azure Blob Storage, are used similarly:
 
 1. Install the Azure Blob Storage implementation:
 
@@ -164,7 +162,7 @@ Other filesystem implementations, like Azure Blob Storage, are used similarly:
 >>> pip install adlfs
 ```
 
-2. Load your dataset:
+2. Save your dataset:
 
 ```py
 >>> import adlfs
@@ -172,8 +170,8 @@ Other filesystem implementations, like Azure Blob Storage, are used similarly:
 >>> # create AzureBlobFileSystem instance with account_name and account_key
 >>> abfs = adlfs.AzureBlobFileSystem(account_name="XXXX", account_key="XXXX")
 
->>> # saves dataset to your azure container
->>> dataset.save_to_disk('abfs://my-private-datasets/imdb/train', fs=abfs)
+>>> # saves encoded_dataset to your azure container
+>>> encoded_dataset.save_to_disk('abfs://my-private-datasets/imdb/train', fs=abfs)
 ```
 
 3. Load your dataset:
@@ -185,6 +183,6 @@ Other filesystem implementations, like Azure Blob Storage, are used similarly:
 >>> # create AzureBlobFileSystem instance with account_name and account_key
 >>> abfs = adlfs.AzureBlobFileSystem(account_name="XXXX", account_key="XXXX")
 
->>> # loads dataset from your azure container
+>>> # loads encoded_dataset from your azure container
 >>> dataset = load_from_disk('abfs://my-private-datasets/imdb/train', fs=abfs)
 ```
