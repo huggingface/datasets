@@ -45,10 +45,10 @@ After you have processed your dataset, you can save it to S3 with [`Dataset.save
 ```py
 >>> from datasets.filesystems import S3FileSystem
 
->>> # create S3FileSystem instance
+# create S3FileSystem instance
 >>> s3 = S3FileSystem(anon=True)  
 
->>> # saves encoded_dataset to your s3 bucket
+# saves encoded_dataset to your s3 bucket
 >>> encoded_dataset.save_to_disk('s3://my-private-datasets/imdb/train', fs=s3)
 ```
 
@@ -64,13 +64,13 @@ Save your dataset with `botocore.session.Session` and a custom AWS profile:
 >>> import botocore
 >>> from datasets.filesystems import S3FileSystem
 
->>> # creates a botocore session with the provided AWS profile
+# creates a botocore session with the provided AWS profile
 >>> s3_session = botocore.session.Session(profile='my_profile_name')
 
->>> # create S3FileSystem instance with s3_session
+# create S3FileSystem instance with s3_session
 >>> s3 = S3FileSystem(session=s3_session)  
 
->>> # saves encoded_dataset to your s3 bucket
+# saves encoded_dataset to your s3 bucket
 >>> encoded_dataset.save_to_disk('s3://my-private-datasets/imdb/train',fs=s3)
 ```
 
@@ -82,10 +82,10 @@ When you are ready to use your dataset again, reload it with [`Dataset.load_from
 >>> from datasets import load_from_disk
 >>> from datasets.filesystems import S3FileSystem
 
->>> # create S3FileSystem without credentials
+# create S3FileSystem without credentials
 >>> s3 = S3FileSystem(anon=True)  
 
->>> # load encoded_dataset to from s3 bucket
+# load encoded_dataset to from s3 bucket
 >>> dataset = load_from_disk('s3://a-public-datasets/imdb/train',fs=s3)  
 
 >>> print(len(dataset))
@@ -98,13 +98,13 @@ Load with `botocore.session.Session` and custom AWS profile:
 >>> import botocore
 >>> from datasets.filesystems import S3FileSystem
 
->>> # create S3FileSystem instance with aws_access_key_id and aws_secret_access_key
+# create S3FileSystem instance with aws_access_key_id and aws_secret_access_key
 >>> s3_session = botocore.session.Session(profile='my_profile_name')
 
->>> # create S3FileSystem instance with s3_session
+# create S3FileSystem instance with s3_session
 >>> s3 = S3FileSystem(session=s3_session)
 
->>> # load encoded_dataset to from s3 bucket
+# load encoded_dataset to from s3 bucket
 >>> dataset = load_from_disk('s3://my-private-datasets/imdb/train',fs=s3)  
 
 >>> print(len(dataset))
@@ -130,10 +130,10 @@ Other filesystem implementations, like Google Cloud Storage or Azure Blob Storag
 ```py
 >>> import gcsfs
 
->>> # create GCSFileSystem instance using default gcloud credentials with project
+# create GCSFileSystem instance using default gcloud credentials with project
 >>> gcs = gcsfs.GCSFileSystem(project='my-google-project')
 
->>> # saves encoded_dataset to your gcs bucket
+# saves encoded_dataset to your gcs bucket
 >>> encoded_dataset.save_to_disk('gcs://my-private-datasets/imdb/train', fs=gcs)
 ```
 
@@ -143,10 +143,10 @@ Other filesystem implementations, like Google Cloud Storage or Azure Blob Storag
 >>> import gcsfs
 >>> from datasets import load_from_disk
 
->>> # create GCSFileSystem instance using default gcloud credentials with project
+# create GCSFileSystem instance using default gcloud credentials with project
 >>> gcs = gcsfs.GCSFileSystem(project='my-google-project')
 
->>> # loads encoded_dataset from your gcs bucket
+# loads encoded_dataset from your gcs bucket
 >>> dataset = load_from_disk('gcs://my-private-datasets/imdb/train', fs=gcs)
 ```
 
@@ -165,10 +165,10 @@ Other filesystem implementations, like Google Cloud Storage or Azure Blob Storag
 ```py
 >>> import adlfs
 
->>> # create AzureBlobFileSystem instance with account_name and account_key
+# create AzureBlobFileSystem instance with account_name and account_key
 >>> abfs = adlfs.AzureBlobFileSystem(account_name="XXXX", account_key="XXXX")
 
->>> # saves encoded_dataset to your azure container
+# saves encoded_dataset to your azure container
 >>> encoded_dataset.save_to_disk('abfs://my-private-datasets/imdb/train', fs=abfs)
 ```
 
@@ -178,9 +178,9 @@ Other filesystem implementations, like Google Cloud Storage or Azure Blob Storag
 >>> import adlfs
 >>> from datasets import load_from_disk
 
->>> # create AzureBlobFileSystem instance with account_name and account_key
+# create AzureBlobFileSystem instance with account_name and account_key
 >>> abfs = adlfs.AzureBlobFileSystem(account_name="XXXX", account_key="XXXX")
 
->>> # loads encoded_dataset from your azure container
+# loads encoded_dataset from your azure container
 >>> dataset = load_from_disk('abfs://my-private-datasets/imdb/train', fs=abfs)
 ```
