@@ -1,4 +1,5 @@
 from copy import deepcopy
+from curses import noecho
 from itertools import chain, islice
 
 import numpy as np
@@ -476,10 +477,15 @@ def test_vertically_concatenated_examples_iterable():
     expected = list(x for _, x in ex_iterable1) + list(x for _, x in ex_iterable2)
     assert list(x for _, x in concatenated_ex_iterable) == expected
 
+    
+def test_vertically_concatenated_examples_iterable_with_different_columns():
+    # having different columns is supported
+    # Though iterable datasets fill the missing data with nulls
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label": 10})
     ex_iterable2 = ExamplesIterable(generate_examples_fn, {})
     concatenated_ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
-    with pytest.raises(ValueError):  # column "label" is missing -> raise an error
-        list(concatenated_ex_iterable)
+    expected = list(x for _, x in ex_iterable1) + list(x for _, x in ex_iterable2)
+    assert list(x for _, x in concatenated_ex_iterable) == expected
 
 
 def test_vertically_concatenated_examples_iterable_shuffle_data_sources():
@@ -845,6 +851,28 @@ def test_concatenate_datasets():
     dataset2 = IterableDataset(ex_iterable2)
     concatenated_dataset = concatenate_datasets([dataset1, dataset2])
     assert list(concatenated_dataset) == list(dataset1) + list(dataset2)
+    
+
+def test_concatenate_datasets_resolves_features():
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label": 10})
+    dataset1 = IterableDataset(ex_iterable1)
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"label": 5})
+    dataset2 = IterableDataset(ex_iterable2)
+    concatenated_dataset = concatenate_datasets([dataset1, dataset2])
+    assert concatenated_dataset.features is not None
+    assert sorted(concatenated_dataset.features) == ["id", "label"]
+
+
+def test_concatenate_datasets_with_different_columns():
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label": 10})
+    dataset1 = IterableDataset(ex_iterable1)
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {})  # missing column "label" -> it should be replaced with nulls
+    dataset2 = IterableDataset(ex_iterable2)
+    concatenated_dataset = concatenate_datasets([dataset1, dataset2])
+    assert list(concatenated_dataset) == list(dataset1) + [{"label": None, **x} for x in dataset2]
+    # change order
+    concatenated_dataset = concatenate_datasets([dataset2, dataset1])
+    assert list(concatenated_dataset) == [{"label": None, **x} for x in dataset2] + list(dataset1)
 
 
 def test_concatenate_datasets_axis_1():
@@ -853,9 +881,36 @@ def test_concatenate_datasets_axis_1():
     ex_iterable2 = ExamplesIterable(generate_examples_fn, {"label2": 5})
     dataset2 = IterableDataset(ex_iterable2)
     with pytest.raises(ValueError):  # column "id" is duplicated -> raise an error
-        list(concatenate_datasets([dataset1, dataset2], axis=1))
+        concatenate_datasets([dataset1, dataset2], axis=1)
     concatenated_dataset = concatenate_datasets([dataset1, dataset2.remove_columns("id")], axis=1)
     assert list(concatenated_dataset) == [{**x, **y} for x, y in zip(dataset1, dataset2)]
+
+
+def test_concatenate_datasets_axis_1_resolves_features():
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label1": 10})
+    dataset1 = IterableDataset(ex_iterable1)
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"label2": 5})
+    dataset2 = IterableDataset(ex_iterable2).remove_columns("id")
+    concatenated_dataset = concatenate_datasets([dataset1, dataset2], axis=1)
+    assert concatenated_dataset.features is not None
+    assert sorted(concatenated_dataset.features) == ["id", "label1", "label2"]
+
+
+def test_concatenate_datasets_axis_1_with_different_lengths():
+    n1 = 10
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label1": 10, "n": n1})
+    dataset1 = IterableDataset(ex_iterable1)
+    n2 = 5
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"label2": 5, "n": n2})
+    dataset2 = IterableDataset(ex_iterable2).remove_columns("id")
+    # missing rows -> they should be replaced with nulls
+    extended_dataset2_list = list(dataset2) + [{"label2": None}] * (n1 - n2)
+
+    concatenated_dataset = concatenate_datasets([dataset1, dataset2], axis=1)
+    assert list(concatenated_dataset) == [{**x, **y} for x, y in zip(dataset1, extended_dataset2_list)]
+    # change order
+    concatenated_dataset = concatenate_datasets([dataset2, dataset1], axis=1)
+    assert list(concatenated_dataset) == [{**x, **y} for x, y in zip(extended_dataset2_list, dataset1)]
 
 
 @pytest.mark.parametrize(

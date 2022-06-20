@@ -9,7 +9,7 @@ import numpy as np
 import pyarrow as pa
 
 from .arrow_dataset import DatasetInfoMixin
-from .features import Features
+from .features import Features, Value
 from .features.features import FeatureType
 from .formatting import PythonFormatter
 from .info import DatasetInfo
@@ -217,22 +217,22 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
         while True:
             keys = []
             examples = []
-            for ex_iterator in ex_iterators:
+            for ex_iterator in list(ex_iterators):
                 try:
                     key, example = next(ex_iterator)
                     keys.append(key)
                     examples.append(example)
                 except StopIteration:
-                    break
-            else:
+                    ex_iterators.remove(ex_iterator)
+            if ex_iterators:
                 _check_column_names([column_name for example in examples for column_name in example])
                 new_example = {}
                 for example in examples:
                     new_example.update(example)
                 new_key = "_".join(str(key) for key in keys)
                 yield new_key, new_example
-                continue
-            break
+            else:
+                break
 
     def shuffle_data_sources(
         self, generator: np.random.Generator
@@ -1260,6 +1260,25 @@ def iterable_dataset(
         token_per_repo_id=token_per_repo_id,
     )
 
+    
+def _check_if_features_can_be_aligned(features_list: List[Features]):
+    """Check if the dictionaries of features can be aligned.
+
+    Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
+    """
+    name2feature = {}
+    for features in features_list:
+        for k, v in features.items():
+            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+                name2feature[k] = v
+
+    for features in features_list:
+        for k, v in features.items():
+            if not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
+                raise ValueError(
+                    f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
+                )
+
 
 def _concatenate_iterable_datasets(
     dsets: List[IterableDataset],
@@ -1287,9 +1306,17 @@ def _concatenate_iterable_datasets(
     ```
     """
     dsets = [d._resolve_features() for d in dsets]
+    
+    # Perform checks (and a potentional cast if axis=0)
+    if axis == 0:
+        _check_if_features_can_be_aligned([dset.features for dset in dsets])
+    else:
+        _check_column_names([col_name for dset in dsets for col_name in dset.features])
+
     features = Features()
     for dset in dsets:
         features.update(dset.features)
+
     ex_iterables = [d._ex_iterable for d in dsets]
     if axis == 0:
         ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
