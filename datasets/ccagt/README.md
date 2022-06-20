@@ -101,6 +101,24 @@ An example looks like the one below:
   }
 ```
 
+#### `instance segmentation`
+
+```
+{
+  'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=1200x1600 at 0x276021C5EB8>,
+  'objects': {
+    'bbox': [
+      [13.3, 7.5, 47.6, 38.3],
+      [10.2, 7.5, 50.7, 38.3]
+    ], 
+    'segment': [
+      [[36.2, 7.5, 13.3, 32.1, 52.1, 40.6, 60.9, 45.8, 50.1, 40, 40, 33.2, 35.2]],
+      [[10.2, 7.5, 10.3, 32.1, 52.1, 40.6, 60.9, 45.8, 50.1, 40, 40, 33.2, 35.2]],
+    ],
+    'label': [1, 5]
+  }
+```
+
 ### Data Fields
 
 The data annotations have the following fields:
