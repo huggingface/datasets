@@ -42,7 +42,7 @@ def count_path_segments(path):
 
 @dataclass
 class AudioFolderConfig(datasets.BuilderConfig):
-    """Builder Config for AudioFolder. """
+    """Builder Config for AudioFolder."""
 
     features: Optional[datasets.Features] = None
     drop_labels: bool = True  # usually we don't need labels as classification is not the main audio task
