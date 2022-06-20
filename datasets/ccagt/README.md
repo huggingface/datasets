@@ -108,7 +108,7 @@ The data annotations have the following fields:
 #### `semantic segmentation` (default configuration)
 
 - `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`.
-- `annotation`: A `PIL.Image.Image` object containing the annotation mask. The mask has the category id values, with the possible values including `BACKGROUND` (0), `NUCLEUS` (1), `CLUSTER` (2), `SATELLITE` (3), `NUCLEUS_OUT_OF_FOCUS` (4), `OVERLAPPED_NUCLEI` (5), `NON_VIABLE_NUCLEUS` (6) and `LEUKOCYTE_NUCLEUS` (7).
+- `annotation`: A `PIL.Image.Image` object containing the annotation mask. The mask has a single channel and the following pixel values are possible: `BACKGROUND` (0), `NUCLEUS` (1), `CLUSTER` (2), `SATELLITE` (3), `NUCLEUS_OUT_OF_FOCUS` (4), `OVERLAPPED_NUCLEI` (5), `NON_VIABLE_NUCLEUS` (6) and `LEUKOCYTE_NUCLEUS` (7).
 
 #### `object detection`
 
