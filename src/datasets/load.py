@@ -111,11 +111,13 @@ def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetB
     # Find the main class in our imported module
     module_main_cls = None
     for name, obj in module.__dict__.items():
-        if isinstance(obj, type) and issubclass(obj, main_cls_type):
+        if inspect.isclass(obj) and issubclass(obj, main_cls_type):
             if inspect.isabstract(obj):
                 continue
             module_main_cls = obj
-            break
+            obj_module = inspect.getmodule(obj)
+            if obj_module is not None and module == obj_module:
+                break
 
     return module_main_cls
 
