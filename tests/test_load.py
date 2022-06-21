@@ -781,9 +781,6 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
         mock_head.assert_called()
 
 
-@pytest.mark.skipif(
-    os.name == "nt", reason="skip on windows because of SSL issues with moon-staging.huggingface.co:443"
-)
 def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
     with pytest.raises(FileNotFoundError):
         load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
@@ -791,9 +788,6 @@ def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_da
     assert next(iter(ds)) is not None
 
 
-@pytest.mark.skipif(
-    os.name == "nt", reason="skip on windows because of SSL issues with moon-staging.huggingface.co:443"
-)
 def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_dataset_repo_zipped_txt_data):
     with pytest.raises(FileNotFoundError):
         load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
