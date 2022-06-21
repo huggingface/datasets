@@ -1,15 +1,12 @@
-import os
 import shutil
 import textwrap
 
 import librosa
-import numpy as np
 import pytest
 import soundfile as sf
 
 from datasets import Audio, Features, Value
 from datasets.data_files import DataFilesDict, get_patterns_locally
-from datasets.download.streaming_download_manager import xopen
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder
 from datasets.streaming import extend_module_for_streaming
 
@@ -223,28 +220,6 @@ def test_generate_examples_with_metadata_in_wrong_location(audio_file, audio_fil
     if not drop_metadata:
         with pytest.raises(ValueError):
             list(generator)
-    else:
-        assert all(
-            example.keys() == {"audio"} and all(val is not None for val in example.values())
-            for _, example in generator
-        )
-
-
-@require_sndfile
-@pytest.mark.parametrize("drop_metadata", [True, False])
-def test_generate_examples_with_metadata_in_wrong_location(audio_file, audio_file_with_metadata, drop_metadata):
-    _, audio_metadata_file = audio_file_with_metadata
-    if not drop_metadata:
-        features = Features({"audio": Audio(), "text": Value("string")})
-    else:
-        features = Features({"audio": Audio()})
-    audiofolder = AudioFolder(drop_metadata=drop_metadata, features=features)
-    generator = audiofolder._generate_examples(
-        [(audio_file, audio_file)], {"train": [(audio_metadata_file, audio_metadata_file)]}, "train"
-    )
-    if not drop_metadata:
-        with pytest.raises(ValueError):
-            _ = list(generator)
     else:
         assert all(
             example.keys() == {"audio"} and all(val is not None for val in example.values())
