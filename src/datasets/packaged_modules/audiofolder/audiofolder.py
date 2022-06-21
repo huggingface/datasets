@@ -87,7 +87,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                     for original_file, downloaded_file in zip(original_files, downloaded_files):
                         original_file, downloaded_file = str(original_file), str(downloaded_file)
                         _, original_file_ext = os.path.splitext(original_file)
-                        if original_file_ext.lower() in self.AUDIO_EXTENSIONS:
+                        if original_file_ext.lower() in self.AUDIO_EXTENSIONS:  # and not self.config.drop_labels
                             labels.add(os.path.basename(os.path.dirname(original_file)))
                         elif os.path.basename(original_file) == self.METADATA_FILENAME:
                             metadata_files[split].append((original_file, downloaded_file))

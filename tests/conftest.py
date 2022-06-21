@@ -474,6 +474,11 @@ def image_file():
     return os.path.join(os.path.dirname(__file__), "features", "data", "test_image_rgb.jpg")
 
 
+@pytest.fixture
+def audio_file():
+    return os.path.join(os.path.dirname(__file__), "features", "data", "test_audio_44100.wav")
+
+
 @pytest.fixture(scope="session")
 def zip_image_path(image_file, tmp_path_factory):
     import zipfile
