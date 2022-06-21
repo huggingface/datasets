@@ -783,7 +783,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision=self.revision,
-            token=token,
+            token=token if token else "no-token",
             timeout=100.0,
         )
         patterns = (
@@ -1140,7 +1140,7 @@ def dataset_module_factory(
                     dataset_info = hf_api.dataset_info(
                         repo_id=path,
                         revision=revision,
-                        token=token,
+                        token=token if token else "no-token",
                         timeout=100.0,
                     )
                 except Exception as e:  # noqa: catch any exception of hf_hub and consider that the dataset doesn't exist
@@ -1149,7 +1149,6 @@ def dataset_module_factory(
                         (
                             OfflineModeIsEnabled,
                             requests.exceptions.ConnectTimeout,
-                            requests.exceptions.ConnectionError,
                         ),
                     ):
                         raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({type(e).__name__})")
@@ -1159,7 +1158,10 @@ def dataset_module_factory(
                     elif "401" in str(e):
                         msg = f"Dataset '{path}' doesn't exist on the Hub"
                         msg = msg + f" at revision '{revision}'" if revision else msg
-                        raise FileNotFoundError(msg + ". If the repo is private, make sure you are authenticated.")
+                        raise FileNotFoundError(
+                            msg
+                            + ". If the repo is private, make sure you are authenticated with ``use_auth_token=True`` after logging in with ``huggingface-cli login```."
+                        )
                     else:
                         raise e
                 if filename in [sibling.rfilename for sibling in dataset_info.siblings]:
