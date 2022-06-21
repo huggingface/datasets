@@ -3,6 +3,7 @@ from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass
 from itertools import cycle, islice
+import itertools
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Union
 
 import numpy as np
@@ -214,7 +215,7 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
 
     def __iter__(self):
         ex_iterators = [iter(ex_iterable) for ex_iterable in self.ex_iterables]
-        while True:
+        for i in itertools.count():
             keys = []
             examples = []
             for ex_iterator in list(ex_iterators):
@@ -225,7 +226,8 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
                 except StopIteration:
                     ex_iterators.remove(ex_iterator)
             if ex_iterators:
-                _check_column_names([column_name for example in examples for column_name in example])
+                if i == 0:
+                    _check_column_names([column_name for example in examples for column_name in example])
                 new_example = {}
                 for example in examples:
                     new_example.update(example)
