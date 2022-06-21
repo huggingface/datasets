@@ -66,9 +66,8 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
         # Do an early pass if:
         # * `features` are not specified, to infer them
         # * `drop_metadata` is False, to find the metadata files
-        # TODO: remove self.config.drop_metadata from this condition? as we want to infer labels only when it is explicitly stated
         # audio classification is not the most common audio task,
-        # but we preserve th option of inferring labels from data directories names to be consistent with ImageFolder
+        # but we preserve the option of inferring labels from data directories names to be consistent with ImageFolder
         # it's just not the default behaviour
         do_analyze = (self.config.features is None and not self.config.drop_labels) or not self.config.drop_metadata
         if do_analyze:
@@ -76,8 +75,6 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
             metadata_files = collections.defaultdict(list)
 
             def analyze(files_or_archives, downloaded_files_or_dirs, split):
-                # TODO: maybe two separate funcs (`analyze_files` and `analyze_archives`) for readability?
-                # TODO: OR analyze_labels and analyze_metadata
                 if len(downloaded_files_or_dirs) == 0:
                     return
                 # The files are separated from the archives at this point, so check the first sample
@@ -87,9 +84,11 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                     for original_file, downloaded_file in zip(original_files, downloaded_files):
                         original_file, downloaded_file = str(original_file), str(downloaded_file)
                         _, original_file_ext = os.path.splitext(original_file)
-                        if original_file_ext.lower() in self.AUDIO_EXTENSIONS:  # and not self.config.drop_labels
+                        if original_file_ext.lower() in self.AUDIO_EXTENSIONS and not self.config.drop_labels:
                             labels.add(os.path.basename(os.path.dirname(original_file)))
-                        elif os.path.basename(original_file) == self.METADATA_FILENAME:
+                        elif (
+                            os.path.basename(original_file) == self.METADATA_FILENAME and not self.config.drop_metadata
+                        ):
                             metadata_files[split].append((original_file, downloaded_file))
                         else:
                             original_file_name = os.path.basename(original_file)
@@ -102,9 +101,12 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                         archive, downloaded_dir = str(archive), str(downloaded_dir)
                         for downloaded_dir_file in dl_manager.iter_files(downloaded_dir):
                             _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
-                            if downloaded_dir_file_ext in self.AUDIO_EXTENSIONS:
+                            if downloaded_dir_file_ext in self.AUDIO_EXTENSIONS and not self.config.drop_labels:
                                 labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
-                            elif os.path.basename(downloaded_dir_file) == self.METADATA_FILENAME:
+                            elif (
+                                os.path.basename(downloaded_dir_file) == self.METADATA_FILENAME
+                                and not self.config.drop_metadata
+                            ):
                                 metadata_files[split].append((None, downloaded_dir_file))
                             else:
                                 archive_file_name = os.path.basename(archive)
@@ -174,9 +176,6 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                 self.info.features = datasets.Features(
                     {"audio": datasets.Audio(), "label": datasets.ClassLabel(names=sorted(labels))}
                 )
-                # task_template = ImageClassification(image_column="image", label_column="label")
-                # task_template = task_template.align_with_features(self.info.features)
-                # self.info.task_templates = [task_template]
             else:
                 self.info.features = datasets.Features({"audio": datasets.Audio()})
 
@@ -192,7 +191,6 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
         return splits
 
     def _split_files_and_archives(self, data_files):
-        # TODO: what???? what did you want to do you crazy bitch why can't you write down your thoughts immediately when they come
         files, archives = [], []
         for data_file in data_files:
             _, data_file_ext = os.path.splitext(data_file)
@@ -220,7 +218,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                     _, original_file_ext = os.path.splitext(original_file)
                     if original_file_ext.lower() in self.AUDIO_EXTENSIONS:
                         # If the file is an audio file, and we've just entered a new directory,
-                        # find the nereast metadata file (by counting path segments) for the directory
+                        # find the nearest metadata file (by counting path segments) for the directory
                         current_dir = os.path.dirname(original_file)
                         if last_checked_dir is None or last_checked_dir != current_dir:
                             last_checked_dir = current_dir
@@ -232,7 +230,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                                 )
                                 for metadata_file_candidate, downloaded_metadata_file in split_metadata_files
                                 if metadata_file_candidate
-                                is not None  # ignore metadata_files that are inside archives TODO WHY
+                                is not None  # ignore metadata_files that are inside archives
                                 and not os.path.relpath(
                                     original_file, os.path.dirname(metadata_file_candidate)
                                 ).startswith("..")
@@ -374,7 +372,18 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                             file_idx += 1
 
 
-# TODO: add info on how these extensions were obtained
+# Obtained with:
+# ```
+# import soundfile as sf
+#
+# AUDIO_EXTENSIONS = [f".{format.lower()}" for format in sf.available_formats().keys()]
+#
+# # .mp3 is currently decoded via `torchaudio`, opus is decoded via `librosa`:
+# AUDIO_EXTENSIONS.extend([".mp3", ".opus"])
+# ```
+# We intentionally do not run this code on launch because:
+# (1) Soundfile is an optional dependency, so importing it in global namespace is not allowed
+# (2) To ensure the list of supported extensions is deterministic
 AudioFolder.AUDIO_EXTENSIONS = [
     ".aiff",
     ".au",
@@ -386,9 +395,7 @@ AudioFolder.AUDIO_EXTENSIONS = [
     ".mat4",
     ".mat5",
     ".mpc2k",
-    ".mp3",
     ".ogg",
-    ".opus",
     ".paf",
     ".pvf",
     ".raw",
@@ -403,4 +410,6 @@ AudioFolder.AUDIO_EXTENSIONS = [
     ".wavex",
     ".wve",
     ".xi",
+    ".mp3",
+    ".opus",
 ]
