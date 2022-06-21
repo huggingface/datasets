@@ -1,5 +1,4 @@
 from copy import deepcopy
-from curses import noecho
 from itertools import chain, islice
 
 import numpy as np
