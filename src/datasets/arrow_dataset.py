@@ -1119,7 +1119,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Get json serializable dataset info
         dataset_info = asdict(dataset._info)
 
-        # Save dataset + indices + state + info
+        # Save dataset + state + info
         fs.makedirs(dataset_path, exist_ok=True)
         with fs.open(Path(dataset_path, config.DATASET_ARROW_FILENAME).as_posix(), "wb") as dataset_file:
             with ArrowWriter(stream=dataset_file) as writer:
