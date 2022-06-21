@@ -78,7 +78,7 @@ def interleave_datasets(
     map_style = isinstance(datasets[0], Dataset)
     if not (iterable ^ map_style):
         raise ValueError(
-            f"Expected a list Dataset objects or a list of IterableDataset objects, but first element is a {type(datasets[0])}"
+            f"Expected a list of Dataset objects or a list of IterableDataset objects, but first element is a {type(datasets[0])}"
         )
     for dataset in datasets[1:]:
         if (map_style and not isinstance(dataset, Dataset)) or (iterable and not isinstance(dataset, IterableDataset)):
@@ -118,17 +118,17 @@ def concatenate_datasets(
     """
 
     if not dsets:
-        raise ValueError("Unable to interleave an empty list of datasets.")
+        raise ValueError("Unable to concatenate an empty list of datasets.")
     iterable = isinstance(dsets[0], IterableDataset)
     map_style = isinstance(dsets[0], Dataset)
     if not (iterable ^ map_style):
         raise ValueError(
-            f"Expected a list Dataset objects or a list of IterableDataset objects, but first element is a {type(dsets[0])}"
+            f"Expected a list of Dataset objects or a list of IterableDataset objects, but first element is a {type(dsets[0])}"
         )
     for dataset in dsets[1:]:
         if (map_style and not isinstance(dataset, Dataset)) or (iterable and not isinstance(dataset, IterableDataset)):
             raise ValueError(
-                f"Unable to interleave a {type(dsets[0])} with a {type(dataset)}. Expected a list of Dataset objects or a list of IterableDataset objects."
+                f"Unable to concatenate a {type(dsets[0])} with a {type(dataset)}. Expected a list of Dataset objects or a list of IterableDataset objects."
             )
     if map_style:
         return _concatenate_map_style_datasets(dsets, info=info, split=split, axis=axis)
