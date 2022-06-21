@@ -73,10 +73,11 @@ from .utils import logging
 
 
 # deprecated modules
+from datasets import arrow_dataset as _arrow_dataset  # isort:skip
 from datasets import utils as _utils  # isort:skip
 from datasets.utils import download_manager as _deprecated_download_manager  # isort:skip
 
-
+_arrow_dataset.concatenate_datasets = concatenate_datasets
 _utils.DownloadConfig = DownloadConfig
 _utils.DownloadManager = DownloadManager
 _utils.DownloadMode = DownloadMode
@@ -84,4 +85,4 @@ _deprecated_download_manager.DownloadConfig = DownloadConfig
 _deprecated_download_manager.DownloadMode = DownloadMode
 _deprecated_download_manager.DownloadManager = DownloadManager
 
-del _utils, _deprecated_download_manager
+del _arrow_dataset, _utils, _deprecated_download_manager
