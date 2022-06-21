@@ -477,7 +477,7 @@ def test_vertically_concatenated_examples_iterable():
     expected = list(x for _, x in ex_iterable1) + list(x for _, x in ex_iterable2)
     assert list(x for _, x in concatenated_ex_iterable) == expected
 
-    
+
 def test_vertically_concatenated_examples_iterable_with_different_columns():
     # having different columns is supported
     # Though iterable datasets fill the missing data with nulls
@@ -851,7 +851,7 @@ def test_concatenate_datasets():
     dataset2 = IterableDataset(ex_iterable2)
     concatenated_dataset = concatenate_datasets([dataset1, dataset2])
     assert list(concatenated_dataset) == list(dataset1) + list(dataset2)
-    
+
 
 def test_concatenate_datasets_resolves_features():
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label": 10})
@@ -866,13 +866,16 @@ def test_concatenate_datasets_resolves_features():
 def test_concatenate_datasets_with_different_columns():
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label": 10})
     dataset1 = IterableDataset(ex_iterable1)
-    ex_iterable2 = ExamplesIterable(generate_examples_fn, {})  # missing column "label" -> it should be replaced with nulls
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {})
     dataset2 = IterableDataset(ex_iterable2)
+    # missing column "label" -> it should be replaced with nulls
+    extended_dataset2_list = [{"label": None, **x} for x in dataset2]
+
     concatenated_dataset = concatenate_datasets([dataset1, dataset2])
-    assert list(concatenated_dataset) == list(dataset1) + [{"label": None, **x} for x in dataset2]
+    assert list(concatenated_dataset) == list(dataset1) + extended_dataset2_list
     # change order
     concatenated_dataset = concatenate_datasets([dataset2, dataset1])
-    assert list(concatenated_dataset) == [{"label": None, **x} for x in dataset2] + list(dataset1)
+    assert list(concatenated_dataset) == extended_dataset2_list + list(dataset1)
 
 
 def test_concatenate_datasets_axis_1():

@@ -4586,6 +4586,7 @@ def _concatenate_map_style_datasets(
 ):
     """
     Converts a list of :class:`Dataset` with the same schema into a single :class:`Dataset`.
+    When you concatenate on axis 0, missing data are filled with None values.
 
     Args:
         dsets (:obj:`List[datasets.Dataset]`): List of Datasets to concatenate.

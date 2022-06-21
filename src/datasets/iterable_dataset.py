@@ -1216,7 +1216,7 @@ class IterableDataset(DatasetInfoMixin):
             shuffling=copy.deepcopy(self._shuffling),
             token_per_repo_id=self._token_per_repo_id,
         )
-    
+
     def _resolve_features(self):
         if self.features is not None:
             return self
@@ -1234,7 +1234,6 @@ class IterableDataset(DatasetInfoMixin):
             shuffling=copy.deepcopy(self._shuffling),
             token_per_repo_id=self._token_per_repo_id,
         )
-
 
 
 def iterable_dataset(
@@ -1260,7 +1259,7 @@ def iterable_dataset(
         token_per_repo_id=token_per_repo_id,
     )
 
-    
+
 def _check_if_features_can_be_aligned(features_list: List[Features]):
     """Check if the dictionaries of features can be aligned.
 
@@ -1288,6 +1287,7 @@ def _concatenate_iterable_datasets(
 ) -> IterableDataset:
     """
     Converts a list of :class:`IterableDataset` with the same schema into a single :class:`IterableDataset`.
+    Missing data are filled with None values.
 
     Args:
         dsets (:obj:`List[datasets.IterableDataset]`): List of Datasets to concatenate.
@@ -1306,7 +1306,7 @@ def _concatenate_iterable_datasets(
     ```
     """
     dsets = [d._resolve_features() for d in dsets]
-    
+
     # Perform checks (and a potentional cast if axis=0)
     if axis == 0:
         _check_if_features_can_be_aligned([dset.features for dset in dsets])
