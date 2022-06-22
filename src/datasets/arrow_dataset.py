@@ -1684,7 +1684,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return [new_column_name if col == original_column_name else col for col in columns]
 
         new_column_names = rename(self._data.column_names)
-        # `transmit_format` doesn't handle column renaming, so update the format columns manually
         if self._format_columns is not None:
             dataset._format_columns = rename(self._format_columns)
 
@@ -1751,7 +1750,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return [column_mapping[col] if col in column_mapping else col for col in columns]
 
         new_column_names = rename(self._data.column_names)
-        # `transmit_format` doesn't handle column renaming, so update the format columns manually
         if self._format_columns is not None:
             dataset._format_columns = rename(self._format_columns)
 
