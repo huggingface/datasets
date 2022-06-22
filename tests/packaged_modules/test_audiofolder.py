@@ -2,9 +2,7 @@ import os
 import shutil
 import textwrap
 
-import librosa
 import pytest
-import soundfile as sf
 
 from datasets import Audio, Features, Value
 from datasets.data_files import DataFilesDict, get_patterns_locally
