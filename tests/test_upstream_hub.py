@@ -14,7 +14,7 @@ from huggingface_hub.hf_api import HfFolder
 
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
 from datasets.utils._hf_hub_fixes import delete_repo
-from tests.hub_fixtures import ENDPOINT_STAGING, USER, TOKEN
+from tests.hub_fixtures import ENDPOINT_STAGING, TOKEN, USER
 from tests.utils import require_pil, require_sndfile
 
 
