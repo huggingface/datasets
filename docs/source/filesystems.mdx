@@ -10,9 +10,11 @@
 | Dropbox              | [dropboxdrivefs](https://github.com/MarineChap/dropboxdrivefs)|
 | Google Drive         | [gdrivefs](https://github.com/intake/gdrivefs)                |
 
-This guide will show you how to save and load datasets with **s3fs** to a S3 bucket, but other filesystem implementations can be used similarly.
+This guide will show you how to save and load datasets with **s3fs** to a S3 bucket, but other filesystem implementations can be used similarly. An example is shown also for Google Cloud Storage and Azure Blob Storage.
 
-## Listing datasets
+## Amazon S3
+
+### Listing datasets
 
 1. Install the S3 dependency with 🤗 Datasets:
 
@@ -38,7 +40,7 @@ Access a private S3 bucket by entering your `aws_access_key_id` and `aws_secret_
 ['dataset_info.json.json','dataset.arrow','state.json']
 ```
 
-## Saving datasets
+### Saving datasets
 
 After you have processed your dataset, you can save it to S3 with [`Dataset.save_to_disk`]:
 
@@ -74,7 +76,7 @@ Save your dataset with `botocore.session.Session` and a custom AWS profile:
 >>> encoded_dataset.save_to_disk('s3://my-private-datasets/imdb/train',fs=s3)
 ```
 
-## Loading datasets
+### Loading datasets
 
 When you are ready to use your dataset again, reload it with [`Dataset.load_from_disk`]:
 
@@ -111,11 +113,7 @@ Load with `botocore.session.Session` and custom AWS profile:
 >>> # 25000
 ```
 
-## Other filesystems
-
-Other filesystem implementations, like Google Cloud Storage or Azure Blob Storage, are used similarly:
-
-### Google Cloud Storage
+## Google Cloud Storage
 
 1. Install the Google Cloud Storage implementation:
 
@@ -150,7 +148,7 @@ Other filesystem implementations, like Google Cloud Storage or Azure Blob Storag
 >>> dataset = load_from_disk('gcs://my-private-datasets/imdb/train', fs=gcs)
 ```
 
-### Azure Blob Storage
+## Azure Blob Storage
 
 1. Install the Azure Blob Storage implementation:
 
