@@ -158,7 +158,7 @@ TESTS_REQUIRE = [
     "scipy",
     "sentencepiece",  # for bleurt
     "seqeval",
-    "setuptools-scm>=7.0.2",  # for seqeval, see https://github.com/huggingface/datasets/issues/4544
+    "setuptools-scm==6.4.2",  # for seqeval, see https://github.com/huggingface/datasets/issues/4544
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
