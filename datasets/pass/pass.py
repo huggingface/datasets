@@ -41,15 +41,17 @@ _HOMEPAGE = "https://www.robots.ox.ac.uk/~vgg/research/pass/"
 
 _LICENSE = "Creative Commons Attribution 4.0 International"
 
-_IMAGE_ARCHIVE_DOWNLOAD_URL_TEMPLATE = "https://zenodo.org/record/5570664/files/PASS.{idx}.tar?download=1"
+_IMAGE_ARCHIVE_DOWNLOAD_URL_TEMPLATE = "https://zenodo.org/record/6615455/files/PASS.{idx}.tar?download=1"
 
-_METADATA_DOWNLOAD_URL = "https://zenodo.org/record/5570664/files/pass_metadata.csv?download=1"
+_METADATA_DOWNLOAD_URL = "https://zenodo.org/record/6615455/files/pass_metadata.csv?download=1"
 
 
 class PASS(datasets.GeneratorBasedBuilder):
     """PASS dataset."""
 
-    VERSION = datasets.Version("1.0.0")
+    # 1.0.0 - v2 from https://github.com/yukimasano/PASS/blob/6226b456d23efa56b44e79648a9913e086d57335/version_history.txt
+    # 2.0.0 - v3 from https://github.com/yukimasano/PASS/blob/6226b456d23efa56b44e79648a9913e086d57335/version_history.txt
+    VERSION = datasets.Version("2.0.0")
 
     def _info(self):
         return datasets.DatasetInfo(

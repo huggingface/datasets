@@ -53,7 +53,10 @@ class patch_submodule:
         # in this case we need to patch "os" and "os.path"
 
         for i in range(len(submodules)):
-            submodule = import_module(".".join(submodules[: i + 1]))
+            try:
+                submodule = import_module(".".join(submodules[: i + 1]))
+            except ModuleNotFoundError:
+                continue
             # We iterate over all the globals in self.obj in case we find "os" or "os.path"
             for attr in self.obj.__dir__():
                 obj_attr = getattr(self.obj, attr)
@@ -79,7 +82,10 @@ class patch_submodule:
         # itself if it was imported as "from os.path import join".
 
         if submodules:  # if it's an attribute of a submodule like "os.path.join"
-            attr_value = getattr(import_module(".".join(submodules)), target_attr)
+            try:
+                attr_value = getattr(import_module(".".join(submodules)), target_attr)
+            except (AttributeError, ModuleNotFoundError):
+                return
             # We iterate over all the globals in self.obj in case we find "os.path.join"
             for attr in self.obj.__dir__():
                 # We don't check for the name of the global, but rather if its value *is* "os.path.join".
