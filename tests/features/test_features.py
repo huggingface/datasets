@@ -482,6 +482,26 @@ class CastToPythonObjectsTest(TestCase):
         casted_obj = cast_to_python_objects(obj)
         self.assertDictEqual(casted_obj, expected_obj)
 
+    def test_cast_to_python_objects_pandas_timestamp(self):
+        obj = pd.Timestamp(2020, 1, 1)
+        expected_obj = obj.to_pydatetime()
+        casted_obj = cast_to_python_objects(obj)
+        self.assertEqual(casted_obj, expected_obj)
+        casted_obj = cast_to_python_objects(pd.Series([obj]))
+        self.assertListEqual(casted_obj, [expected_obj])
+        casted_obj = cast_to_python_objects(pd.DataFrame({"a": [obj]}))
+        self.assertDictEqual(casted_obj, {"a": [expected_obj]})
+
+    def test_cast_to_python_objects_pandas_timedelta(self):
+        obj = pd.Timedelta(seconds=1)
+        expected_obj = obj.to_pytimedelta()
+        casted_obj = cast_to_python_objects(obj)
+        self.assertEqual(casted_obj, expected_obj)
+        casted_obj = cast_to_python_objects(pd.Series([obj]))
+        self.assertListEqual(casted_obj, [expected_obj])
+        casted_obj = cast_to_python_objects(pd.DataFrame({"a": [obj]}))
+        self.assertDictEqual(casted_obj, {"a": [expected_obj]})
+
     @require_torch
     def test_cast_to_python_objects_torch(self):
         import torch
