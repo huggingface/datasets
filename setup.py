@@ -143,7 +143,7 @@ TESTS_REQUIRE = [
     "openpyxl",
     "py7zr",
     "tldextract",
-    "zstandard",
+    "zstandard==0.17.0",  # pin for https://github.com/huggingface/datasets/issues/4544
     "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz",
     "sentencepiece",  # bigbench requires t5 which requires seqio which requires sentencepiece
     "sacremoses",
