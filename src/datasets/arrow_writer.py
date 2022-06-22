@@ -454,9 +454,13 @@ class ArrowWriter:
     def check_duplicate_keys(self):
         """Raises error if duplicates found in a batch"""
         tmp_record = set()
-        for hash, key in self.hkey_record:
+        for hkey_index, (hash, key) in enumerate(self.hkey_record):
             if hash in tmp_record:
-                raise DuplicatedKeysError(key)
+                duplicate_key_indices = [
+                    str(index) for index, (duplicate_hash, _) in enumerate(self.hkey_record) if duplicate_hash == hash
+                ]
+
+                raise DuplicatedKeysError(key, hkey_index, duplicate_key_indices)
             else:
                 tmp_record.add(hash)
 

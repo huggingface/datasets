@@ -70,11 +70,17 @@ class InvalidKeyError(Exception):
 class DuplicatedKeysError(Exception):
     """Raise an error when duplicate key found."""
 
-    def __init__(self, key):
-        self.prefix = "FAILURE TO GENERATE DATASET !"
-        self.err_msg = f"\nFound duplicate Key: {key}"
-        self.suffix = "\nKeys should be unique and deterministic in nature"
-        super().__init__(f"{self.prefix}{self.err_msg}{self.suffix}")
+    def __init__(self, key, index=None, duplicate_key_indices=None):
+        if index and duplicate_key_indices:
+            self.prefix = f"Found multiple examples with duplicate key: {key}"
+            self.err_msg = f"\nThe following examples {' ,'.join(duplicate_key_indices)} have the same key {key} "
+            self.suffix = "\nPlease fix the dataset script at <Path to Dataset>"
+            super().__init__(f"{self.prefix}{self.err_msg}{self.suffix}")
+        else:
+            self.prefix = "FAILURE TO GENERATE DATASET !"
+            self.err_msg = f"\nFound duplicate Key: {key}"
+            self.suffix = "\nKeys should be unique and deterministic in nature"
+            super().__init__(f"{self.prefix}{self.err_msg}{self.suffix}")
 
 
 class KeyHasher:
