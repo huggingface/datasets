@@ -378,7 +378,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
 #
 # AUDIO_EXTENSIONS = [f".{format.lower()}" for format in sf.available_formats().keys()]
 #
-# # .mp3 is currently decoded via `torchaudio`, opus is decoded via `librosa`:
+# # .mp3 is currently decoded via `torchaudio`, .opus decoding is supported if version of `libsndfile` >= 1.0.30:
 # AUDIO_EXTENSIONS.extend([".mp3", ".opus"])
 # ```
 # We intentionally do not run this code on launch because:
