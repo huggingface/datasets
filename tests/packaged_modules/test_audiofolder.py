@@ -1,7 +1,10 @@
 import shutil
 import textwrap
 
+import librosa
+import numpy as np
 import pytest
+import soundfile as sf
 
 from datasets import Audio, Features, Value
 from datasets.data_files import DataFilesDict, get_patterns_locally
@@ -136,7 +139,7 @@ def data_files_with_zip_archives(tmp_path, audio_file):
     audio_filename2 = subdir / "audio_file2.wav"  # in subdir
     # make sure they're two different audios
     # Indeed we won't be able to compare the audio filenames, since the archive is not extracted in streaming mode
-    array, sampling_rate = librosa.load(str(audio_filename), sr=16000)
+    array, sampling_rate = librosa.load(str(audio_filename), sr=16000)  # original sampling rate is 44100
     sf.write(str(audio_filename2), array, samplerate=16000)
 
     audio_metadata_filename = archive_dir / "metadata.jsonl"
@@ -286,8 +289,11 @@ def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_
         assert split in datasets
         dataset = list(datasets[split])
         assert len(dataset) == expected_num_of_audios
-        # make sure each sample has its own audio and metadata, take first 10 numbers in array just in case
-        assert len(set([tuple(example["audio"]["array"][:10]) for example in dataset])) == expected_num_of_audios
+        # make sure each sample has its own audio (all arrays are different) and metadata
+        assert (
+            sum(np.array_equal(dataset[0]["audio"]["array"], example["audio"]["array"]) for example in dataset[1:])
+            == 0
+        )
         assert len(set(example["text"] for example in dataset)) == expected_num_of_audios
         assert all(example["text"] is not None for example in dataset)
 

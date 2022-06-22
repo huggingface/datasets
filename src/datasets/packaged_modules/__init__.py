@@ -47,3 +47,4 @@ _EXTENSION_TO_MODULE = {
 _EXTENSION_TO_MODULE.update({ext[1:]: ("imagefolder", {}) for ext in imagefolder.ImageFolder.IMAGE_EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext[1:].upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.IMAGE_EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext[1:]: ("audiofolder", {}) for ext in audiofolder.AudioFolder.AUDIO_EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext[1:].upper(): ("audiofolder", {}) for ext in audiofolder.AudioFolder.AUDIO_EXTENSIONS})
