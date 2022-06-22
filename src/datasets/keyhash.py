@@ -70,8 +70,8 @@ class InvalidKeyError(Exception):
 class DuplicatedKeysError(Exception):
     """Raise an error when duplicate key found."""
 
-    def __init__(self, key, index=None, duplicate_key_indices=None):
-        if index and duplicate_key_indices:
+    def __init__(self, key, duplicate_key_indices=None):
+        if duplicate_key_indices:
             self.prefix = f"Found multiple examples with duplicate key: {key}"
             self.err_msg = f"\nThe following examples {' ,'.join(duplicate_key_indices)} have the same key {key} "
             self.suffix = "\nPlease fix the dataset script at <Path to Dataset>"
