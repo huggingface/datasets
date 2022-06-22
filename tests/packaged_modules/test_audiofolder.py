@@ -1,3 +1,4 @@
+import os
 import shutil
 import textwrap
 
@@ -16,6 +17,11 @@ from ..utils import require_sndfile
 @pytest.fixture
 def cache_dir(tmp_path):
     return str(tmp_path / "audiofolder_cache_dir")
+
+
+@pytest.fixture
+def second_audio_file():
+    return os.path.join(os.path.dirname(__file__), "..", "features", "data", "test_audio_16000.wav")
 
 
 @pytest.fixture
@@ -125,7 +131,7 @@ def data_files_with_two_splits_and_metadata(tmp_path, audio_file):
 
 
 @pytest.fixture
-def data_files_with_zip_archives(tmp_path, audio_file):
+def data_files_with_zip_archives(tmp_path, audio_file, second_audio_file):
     data_dir = tmp_path / "audiofolder_data_dir_with_zip_archives"
     data_dir.mkdir(parents=True, exist_ok=True)
     archive_dir = data_dir / "archive"
@@ -136,10 +142,11 @@ def data_files_with_zip_archives(tmp_path, audio_file):
     audio_filename = archive_dir / "audio_file.wav"
     shutil.copyfile(audio_file, audio_filename)
     audio_filename2 = subdir / "audio_file2.wav"  # in subdir
+    shutil.copyfile(second_audio_file, audio_filename2)
     # make sure they're two different audios
     # Indeed we won't be able to compare the audio filenames, since the archive is not extracted in streaming mode
-    array, sampling_rate = librosa.load(str(audio_filename), sr=16000)
-    sf.write(str(audio_filename2), array, samplerate=16000)
+    # array, sampling_rate = librosa.load(str(audio_filename), sr=16000)
+    # sf.write(str(audio_filename2), array, samplerate=16000)
 
     audio_metadata_filename = archive_dir / "metadata.jsonl"
     audio_metadata = textwrap.dedent(
