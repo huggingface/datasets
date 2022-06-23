@@ -48,7 +48,7 @@ def approximate_mode(class_counts, n_draws, rng):
             need_to_add -= add_now
             if need_to_add == 0:
                 break
-    return floored.astype(np.int)
+    return floored.astype(np.int64)
 
 
 def stratified_shuffle_split_generate_indices(y, n_train, n_test, rng, n_splits=10):
