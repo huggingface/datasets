@@ -15,6 +15,7 @@ jobs:
             - run: pip install --upgrade pip
             - run: python -m venv venv
             - run: source venv/bin/activate
+            - run: echo "installing pinned version of setuptools-scm to fix seqeval installation on 3.6" && pip install "setuptools-scm==6.4.2"
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow --upgrade
@@ -31,6 +32,7 @@ jobs:
             - run: pip install --upgrade pip
             - run: python -m venv venv
             - run: source venv/bin/activate
+            - run: echo "installing pinned version of setuptools-scm to fix seqeval installation on 3.6" && pip install "setuptools-scm==6.4.2"
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow==6.0.0
