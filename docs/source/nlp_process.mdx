@@ -5,7 +5,7 @@ This guide shows specific methods for processing text datasets. Learn how to:
 - Tokenize a dataset with [`~Dataset.map`].
 - Align dataset labels with label ids for NLI datasets.
 
-For a guide on processing any type of dataset, take a look at the <a class="bg-pink-200 dark:bg-pink-500 px-1 rounded font-bold underline decoration-pink-900 text-pink-900 dark:bg-pink-500" href="./process">general process guide</a>.
+For a guide on processing any type of dataset, take a look at the [general process guide](./process).
 
 ## Map
 
@@ -16,7 +16,7 @@ Load a tokenizer from 🤗 [Transformers](https://huggingface.co/transformers/):
 ```py
 >>> from transformers import AutoTokenizer
 
->>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
+>>> tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
 ```
 
 Set the `batched` parameter to `True` in the [`~Dataset.map`] function to apply the tokenizer to batches of examples:
@@ -36,7 +36,7 @@ Set the `batched` parameter to `True` in the [`~Dataset.map`] function to apply 
 The [`~Dataset.align_labels_with_mapping`] function aligns a dataset label id with the label name. Not all 🤗 Transformers models follow the prescribed label mapping of the original dataset, especially for NLI datasets. For example, the [MNLI](https://huggingface.co/datasets/glue) dataset uses the following label mapping:
 
 ```py
->>> label2id = {'entailment': 0, 'neutral': 1, 'contradiction': 2}
+>>> label2id = {"entailment": 0, "neutral": 1, "contradiction": 2}
 ```
 
 To align the dataset label mapping with the mapping used by a model, create a dictionary of the label name and id to align on:

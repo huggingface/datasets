@@ -11,13 +11,13 @@ This guide will show you how to load a dataset from:
 - Offline
 - A specific slice of a split
 
-For more details specific to loading audio datasets, take a look at the <a class="bg-yellow-200 text-yellow-900 dark:bg-yellow-500 px-1 rounded font-bold" href="./audio_load">load audio data</a> guide. If you're working with image datasets, check out the <a class="bg-green-200 text-green-900 dark:bg-green-500 px-1 rounded font-bold" href="./image_load">load image data</a> guide.
+For more details specific to loading other dataset modalities, take a look at the [load audio dataset guide](./audio_load) or the [load image dataset guide](./image_load).
 
 <a id='load-from-the-hub'></a>
 
 ## Hugging Face Hub
 
-Datasets are loaded from a dataset loading script that downloads and generates the dataset. However, you can also load a dataset from any dataset repository on the Hub **without** a loading script! Begin by [creating a dataset repository](share#create-the-repository) and upload your data files. Now you can use the [`load_dataset`] function to load the dataset. 
+Datasets are loaded from a dataset loading script that downloads and generates the dataset. However, you can also load a dataset from any dataset repository on the Hub without a loading script! Begin by [creating a dataset repository](share#create-the-repository) and upload your data files. Now you can use the [`load_dataset`] function to load the dataset. 
 
 For example, try loading the files from this [demo repository](https://huggingface.co/datasets/lhoestq/demo1) by providing the repository namespace and dataset name. This dataset repository contains CSV files, and the code below loads the dataset from the CSV files:
 
@@ -370,7 +370,7 @@ Now when you look at your dataset features, you can see it uses the custom label
 
 <Tip warning={true}>
 
-Metrics will soon be deprecated in 🤗 Datasets. To learn more about how to use metrics, take a look at our newest library 🤗 Evaluate! In addition to metrics, we've also added more tools for evaluating models and datasets.
+Metrics will soon be deprecated in 🤗 Datasets. To learn more about how to use metrics, take a look at our newest library 🤗 [Evaluate](https://huggingface.co/docs/evaluate/index)! In addition to metrics, we've also added more tools for evaluating models and datasets.
 
 </Tip>
 

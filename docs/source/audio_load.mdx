@@ -36,7 +36,7 @@ The `path` is useful for loading your own dataset. Use the [`~Dataset.cast_colum
 If you only want to load the underlying path to the audio dataset without decoding the audio file into an `array`, set `decode=False` in the [`Audio`] feature:
 
 ```py
->>> dataset = load_dataset("PolyAI/minds14", "en-US", split="train").cast_column('audio', Audio(decode=False))
+>>> dataset = load_dataset("PolyAI/minds14", "en-US", split="train").cast_column("audio", Audio(decode=False))
 >>> dataset[0]
 {'audio': {'bytes': None,
   'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav'},
