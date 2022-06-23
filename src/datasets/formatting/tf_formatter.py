@@ -66,7 +66,7 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
         # support for nested types like struct of list of struct
         if isinstance(data_struct, (list, np.ndarray)):
             if (
-                data_struct.dtype == np.object
+                data_struct.dtype == np.dtype("object")
             ):  # tensorflow tensors can sometimes be instantied from an array of objects
                 try:
                     return self._tensorize(data_struct)
