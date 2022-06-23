@@ -123,7 +123,10 @@ def _resolve_single_pattern_locally(
         Path(filepath).resolve()
         for filepath in glob_iter
         if filepath.name not in data_files_ignore
-        and not any(part.startswith((".", "__")) and set(part) != {"."} for part in filepath.parts)
+        and not any(
+            part.startswith((".", "__")) and set(part) != {"."}
+            for part in PurePath(os.path.relpath(filepath, base_path)).parts
+        )
     ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [
@@ -309,7 +312,10 @@ def _resolve_single_pattern_in_dataset_repository(
         filepath
         for filepath in glob_iter
         if filepath.name not in data_files_ignore
-        and not any(part.startswith((".", "__")) and set(part) != {"."} for part in filepath.parts)
+        and not any(
+            part.startswith((".", "__")) and set(part) != {"."}
+            for part in PurePath(os.path.relpath(filepath, base_path)).parts
+        )
     ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [

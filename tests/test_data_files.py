@@ -146,6 +146,14 @@ def test_resolve_patterns_locally_or_by_urls(complex_data_dir, pattern, pattern_
         assert len(pattern_results[pattern]) == 0
 
 
+def test_resolve_patterns_locally_or_by_urls_with_dot_in_base_path(complex_data_dir):
+    base_path_with_dot = os.path.join(complex_data_dir, "data", ".dummy_subdir")
+    resolved_data_files = resolve_patterns_locally_or_by_urls(
+        base_path_with_dot, [os.path.join(base_path_with_dot, "train.txt")]
+    )
+    assert len(resolved_data_files) == 1
+
+
 def test_resolve_patterns_locally_or_by_urls_with_absolute_path(tmp_path, complex_data_dir):
     abs_path = os.path.join(complex_data_dir, "data", "train.txt")
     resolved_data_files = resolve_patterns_locally_or_by_urls(str(tmp_path / "blabla"), [abs_path])
