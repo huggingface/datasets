@@ -2,13 +2,13 @@
   - local: index
     title: 🤗 Datasets
   - local: quickstart
-    title: Quick start
+    title: Quickstart
+  - local: installation
+    title: Installation
   title: Get started
 - sections:
   - local: tutorial
     title: Overview
-  - local: installation
-    title: Installation
   - local: load_hub
     title: Load a dataset from the Hub
   - local: access
