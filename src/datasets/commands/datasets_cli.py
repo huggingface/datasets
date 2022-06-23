@@ -5,7 +5,7 @@ from datasets.commands.convert import ConvertCommand
 from datasets.commands.dummy_data import DummyDataCommand
 from datasets.commands.env import EnvironmentCommand
 from datasets.commands.run_beam import RunBeamCommand
-from datasets.commands.test import TestCommand
+from datasets.commands.test import CLITestCommand
 from datasets.utils.logging import set_verbosity_info
 
 
@@ -23,7 +23,7 @@ def main():
     # Register commands
     ConvertCommand.register_subcommand(commands_parser)
     EnvironmentCommand.register_subcommand(commands_parser)
-    TestCommand.register_subcommand(commands_parser)
+    CLITestCommand.register_subcommand(commands_parser)
     RunBeamCommand.register_subcommand(commands_parser)
     DummyDataCommand.register_subcommand(commands_parser)
 
