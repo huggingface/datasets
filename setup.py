@@ -157,7 +157,6 @@ TESTS_REQUIRE = [
     "scikit-learn",
     "scipy",
     "sentencepiece",  # for bleurt
-    "setuptools-scm==6.4.2",  # for seqeval, see https://github.com/huggingface/datasets/issues/4544
     "seqeval",
     # to speed up pip backtracking
     "toml>=0.10.1",
