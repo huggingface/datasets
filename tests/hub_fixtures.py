@@ -8,7 +8,7 @@ from huggingface_hub.hf_api import HfApi, HfFolder
 
 USER = "__DUMMY_TRANSFORMERS_USER__"
 FULL_NAME = "Dummy User"
-TOKEN = "hf_94wBhPGp6KrrTH3KDchhKpRxZwd6dmHWLL"
+TOKEN = "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"
 
 ENDPOINT_STAGING = "https://hub-ci.huggingface.co"
 ENDPOINT_STAGING_DATASETS_URL = ENDPOINT_STAGING + "/datasets/{repo_id}/resolve/{revision}/{path}"
