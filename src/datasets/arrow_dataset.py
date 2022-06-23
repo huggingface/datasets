@@ -281,7 +281,7 @@ class TensorflowDatasetMixin:
                 else:
                     np_arrays.append(np.array(array))
 
-            if np.issubdtype(np_arrays[0].dtype, np.integer) or np_arrays[0].dtype == np.bool:
+            if np.issubdtype(np_arrays[0].dtype, np.integer) or np_arrays[0].dtype == np.dtype("bool"):
                 tf_dtype = tf.int64
                 np_dtype = np.int64
             elif np.issubdtype(np_arrays[0].dtype, np.number):
@@ -3804,7 +3804,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     return _float_feature([values.item()])
                 elif np.issubdtype(values.dtype, np.integer):
                     return _int64_feature([values.item()])
-                elif np.issubdtype(values.dtype, np.str):
+                elif np.issubdtype(values.dtype, str):
                     return _bytes_feature([values.item().encode()])
                 else:
                     raise ValueError(f"values={values} has dtype {values.dtype}, which cannot be serialized")
