@@ -3,8 +3,9 @@ from unittest.mock import patch
 
 import pytest
 import requests
-from datasets.utils._hf_hub_fixes import create_repo, delete_repo
 from huggingface_hub.hf_api import HfApi, HfFolder
+
+from datasets.utils._hf_hub_fixes import create_repo, delete_repo
 
 
 USER = "__DUMMY_TRANSFORMERS_USER__"
