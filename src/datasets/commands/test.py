@@ -16,8 +16,8 @@ from datasets.utils.logging import ERROR, get_logger
 logger = get_logger(__name__)
 
 
-def test_command_factory(args):
-    return TestCommand(
+def cli_test_command_factory(args):
+    return CLITestCommand(
         args.dataset,
         args.name,
         args.cache_dir,
@@ -30,7 +30,7 @@ def test_command_factory(args):
     )
 
 
-class TestCommand(BaseDatasetsCLICommand):
+class CLITestCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("test", help="Test dataset implementation.")
@@ -59,7 +59,7 @@ class TestCommand(BaseDatasetsCLICommand):
             help="Remove downloaded files and cached datasets after each config test",
         )
         test_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
-        test_parser.set_defaults(func=test_command_factory)
+        test_parser.set_defaults(func=cli_test_command_factory)
 
     def __init__(
         self,
