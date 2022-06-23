@@ -1034,3 +1034,14 @@ def test_cast_array_to_features_nested_with_null_values():
     assert casted_array.to_pylist() == [
         {"foo": [[], [0]]}
     ]  # empty list because of https://github.com/huggingface/datasets/issues/3676
+
+
+def test_cast_array_to_features_to_null_type():
+    # same type
+    arr = pa.array([[None, None]])
+    assert cast_array_to_feature(arr, Sequence(Value("null"))).type == pa.list_(pa.null())
+
+    # different type
+    arr = pa.array([[None, 1]])
+    with pytest.raises(TypeError):
+        cast_array_to_feature(arr, Sequence(Value("null")))
