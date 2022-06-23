@@ -1149,6 +1149,7 @@ def dataset_module_factory(
                         (
                             OfflineModeIsEnabled,
                             requests.exceptions.ConnectTimeout,
+                            requests.exceptions.ConnectionError,
                         ),
                     ):
                         raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({type(e).__name__})")
