@@ -265,9 +265,11 @@ class TensorflowDatasetMixin:
             indices = sample(range(len(dataset)), test_batch_size)
             test_batch = dataset[indices]
             if cols_to_retain is not None:
-                test_batch = {key: value for key, value in test_batch.items()
-                              if key in cols_to_retain
-                              or key in ("label_ids", "label")}
+                test_batch = {
+                    key: value
+                    for key, value in test_batch.items()
+                    if key in cols_to_retain or key in ("label_ids", "label")
+                }
             test_batch = [{key: value[i] for key, value in test_batch.items()} for i in range(test_batch_size)]
             test_batch = collate_fn(test_batch, **collate_fn_args)
             test_batches.append(test_batch)
@@ -429,9 +431,11 @@ class TensorflowDatasetMixin:
             # TODO(Matt, QL): deprecate the retention of label_ids and label
             batch = dataset[indices]
             if cols_to_retain is not None:
-                batch = {key: value for key, value in batch.items()
-                         if key in cols_to_retain
-                         or key in ("label_ids", "label")}
+                batch = {
+                    key: value
+                    for key, value in batch.items()
+                    if key in cols_to_retain or key in ("label_ids", "label")
+                }
             actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
             # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
             batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
