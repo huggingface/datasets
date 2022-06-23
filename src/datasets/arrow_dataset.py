@@ -403,8 +403,6 @@ class TensorflowDatasetMixin:
             cols_to_retain = None  # Indicates keeping all non-numerical columns
             columns = []
 
-        breakpoint()
-
         if self.format["type"] != "custom":
             dataset = self.with_format("numpy")
         else:
