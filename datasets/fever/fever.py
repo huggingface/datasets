@@ -133,37 +133,6 @@ class Fever(datasets.GeneratorBasedBuilder):
                 "wikipedia_pages": "wiki-pages.zip",
             },
         ),
-        FeverConfig(
-            name="feverous",
-            version=datasets.Version("3.0.0"),
-            description=textwrap.dedent(
-                "FEVEROUS:\n"
-                "FEVEROUS (Fact Extraction and VERification Over Unstructured and Structured information) is a fact "
-                "verification dataset which consists of 87,026 verified claims. Each claim is annotated with evidence "
-                "in the form of sentences and/or cells from tables in Wikipedia, as well as a label indicating whether "
-                "this evidence supports, refutes, or does not provide enough information to reach a verdict. The "
-                "dataset also contains annotation metadata such as annotator actions (query keywords, clicks on page, "
-                "time signatures), and the type of challenge each claim poses."
-            ),
-            homepage="https://fever.ai/dataset/feverous.html",
-            citation=textwrap.dedent(
-                """\
-                @inproceedings{Aly21Feverous,
-                    author = {Aly, Rami and Guo, Zhijiang and Schlichtkrull, Michael Sejr and Thorne, James and Vlachos, Andreas and Christodoulopoulos, Christos and Cocarascu, Oana and Mittal, Arpit},
-                    title = {{FEVEROUS}: Fact Extraction and {VERification} Over Unstructured and Structured information},
-                    eprint={2106.05707},
-                    archivePrefix={arXiv},
-                    primaryClass={cs.CL},
-                    year = {2021}
-                }"""
-            ),
-            base_url="https://fever.ai/download/feverous",
-            urls={
-                datasets.Split.TRAIN: "feverous_train_challenges.jsonl",
-                datasets.Split.VALIDATION: "feverous_dev_challenges.jsonl",
-                datasets.Split.TEST: "feverous_test_unlabeled.jsonl",
-            },
-        ),
     ]
 
     def _info(self):
@@ -182,27 +151,6 @@ class Fever(datasets.GeneratorBasedBuilder):
                 "evidence_id": datasets.Value("int32"),
                 "evidence_wiki_url": datasets.Value("string"),
                 "evidence_sentence_id": datasets.Value("int32"),
-            }
-        elif self.config.name == "feverous":
-            features = {
-                "id": datasets.Value("int32"),
-                "label": datasets.ClassLabel(names=["SUPPORTS", "REFUTES", "NOT ENOUGH INFO"]),
-                "claim": datasets.Value("string"),
-                "evidence": [
-                    {
-                        "content": [datasets.Value("string")],
-                        "context": [[datasets.Value("string")]],
-                    }
-                ],
-                "annotator_operations": [
-                    {
-                        "operation": datasets.Value("string"),
-                        "value": datasets.Value("string"),
-                        "time": datasets.Value("float"),
-                    }
-                ],
-                "expected_challenge": datasets.Value("string"),
-                "challenge": datasets.Value("string"),
             }
         return datasets.DatasetInfo(
             description=self.config.description,
@@ -268,25 +216,3 @@ class Fever(datasets.GeneratorBasedBuilder):
                     for row_id, row in enumerate(f):
                         data = json.loads(row)
                         yield f"{file_id}_{row_id}", data
-        elif self.config.name == "feverous":
-            with open(filepath, encoding="utf-8") as f:
-                for id_, row in enumerate(f):
-                    data = json.loads(row)
-                    # First item in "train" has all values equal to empty strings
-                    if [value for value in data.values() if value]:
-                        evidence = data.get("evidence", [])
-                        if evidence:
-                            for evidence_set in evidence:
-                                # Transform "context" from dict to list (analogue to "content")
-                                evidence_set["context"] = [
-                                    evidence_set["context"][element_id] for element_id in evidence_set["content"]
-                                ]
-                        yield id_, {
-                            "id": data.get("id"),
-                            "label": data.get("label", -1),
-                            "claim": data.get("claim", ""),
-                            "evidence": evidence,
-                            "annotator_operations": data.get("annotator_operations", []),
-                            "expected_challenge": data.get("expected_challenge", ""),
-                            "challenge": data.get("challenge", ""),
-                        }
