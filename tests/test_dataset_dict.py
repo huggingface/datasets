@@ -46,6 +46,7 @@ class DatasetDictTest(TestCase):
             {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
             features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
         )
+        dset_split._format_columns = ["a.b.c", "foo"]
         dset = DatasetDict({"train": dset_split, "test": dset_split})
         dset = dset.flatten()
         self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
@@ -53,6 +54,7 @@ class DatasetDictTest(TestCase):
         self.assertDictEqual(
             dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
         )
+        self.assertListEqual(dset["train"]._format_columns, ["a.b.c", "foo"])
         del dset
 
     def test_set_format_numpy(self):
