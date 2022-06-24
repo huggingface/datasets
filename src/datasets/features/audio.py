@@ -107,7 +107,7 @@ class Audio:
 
                 buffer = BytesIO(bytes())
                 wavfile.write(buffer, self.sampling_rate, bytes_value)
-                return {"bytes": buffer.getvalue(), "path": value.get("path")}
+                return {"bytes": buffer.getvalue(), "path": None}
             else:
                 return {"bytes": None, "path": value.get("path")}
         elif value.get("bytes") is not None or value.get("path") is not None:
