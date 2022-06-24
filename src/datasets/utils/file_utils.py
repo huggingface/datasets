@@ -309,7 +309,7 @@ def _request_with_retry(
         base_wait_time (float): Duration (in seconds) to wait before retrying the first time. Wait time between
             retries then grows exponentially, capped by max_wait_time.
         max_wait_time (float): Maximum amount of time between two retries, in seconds.
-        **params: Params to pass to :obj:`requests.request`.
+        **params (additional keyword arguments): Params to pass to :obj:`requests.request`.
     """
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
     tries, success = 0, False

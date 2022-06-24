@@ -29,11 +29,13 @@ from typing import Tuple, Union
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+import pyarrow.compute as pc
 import pyarrow.types
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from .. import config
+from ..table import array_cast
 from ..utils import logging
 from ..utils.py_utils import first_non_null_value, zip_dict
 from .audio import Audio
@@ -334,9 +336,23 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
     elif config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(obj, PIL.Image.Image):
         return encode_pil_image(obj), True
     elif isinstance(obj, pd.Series):
-        return obj.values.tolist(), True
+        return (
+            _cast_to_python_objects(
+                obj.tolist(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+            )[0],
+            True,
+        )
     elif isinstance(obj, pd.DataFrame):
-        return obj.to_dict("list"), True
+        return {
+            key: _cast_to_python_objects(
+                value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+            )[0]
+            for key, value in obj.to_dict("list").items()
+        }, True
+    elif isinstance(obj, pd.Timestamp):
+        return obj.to_pydatetime(), True
+    elif isinstance(obj, pd.Timedelta):
+        return obj.to_pytimedelta(), True
     elif isinstance(obj, Mapping):  # check for dict-like to handle nested LazyDict objects
         has_changed = not isinstance(obj, dict)
         output = {}
@@ -852,6 +868,9 @@ class ClassLabel:
      * `names`: List of label strings.
      * `names_file`: File containing the list of labels.
 
+    Under the hood the labels are stored as integers.
+    You can use negative integers to represent unknown/missing labels.
+
     Args:
         num_classes (:obj:`int`, optional): Number of classes. All labels must be < `num_classes`.
         names (:obj:`list` of :obj:`str`, optional): String names for the integer classes.
@@ -908,7 +927,7 @@ class ClassLabel:
     def __call__(self):
         return self.pa_type
 
-    def str2int(self, values: Union[str, Iterable]):
+    def str2int(self, values: Union[str, Iterable]) -> Union[int, Iterable]:
         """Conversion class name string => integer.
 
         Example:
@@ -929,26 +948,34 @@ class ClassLabel:
             values = [values]
             return_list = False
 
-        output = []
-        for value in values:
-            if self._str2int:
-                # strip key if not in dict
-                if value not in self._str2int:
-                    value = str(value).strip()
-                output.append(self._str2int[str(value)])
-            else:
-                # No names provided, try to integerize
-                failed_parse = False
-                try:
-                    output.append(int(value))
-                except ValueError:
-                    failed_parse = True
-                if failed_parse or not 0 <= value < self.num_classes:
-                    raise ValueError(f"Invalid string class label {value}")
+        output = [self._strval2int(value) for value in values]
         return output if return_list else output[0]
 
-    def int2str(self, values: Union[int, Iterable]):
+    def _strval2int(self, value: str) -> int:
+        failed_parse = False
+        value = str(value)
+        # first attempt - raw string value
+        int_value = self._str2int.get(value)
+        if int_value is None:
+            # second attempt - strip whitespace
+            int_value = self._str2int.get(value.strip())
+            if int_value is None:
+                # third attempt - convert str to int
+                try:
+                    int_value = int(value)
+                except ValueError:
+                    failed_parse = True
+                else:
+                    if int_value < -1 or int_value >= self.num_classes:
+                        failed_parse = True
+        if failed_parse:
+            raise ValueError(f"Invalid string class label {value}")
+        return int_value
+
+    def int2str(self, values: Union[int, Iterable]) -> Union[str, Iterable]:
         """Conversion integer => class name string.
+
+        Regarding unknown/missing labels: passing negative integers raises ValueError.
 
         Example:
 
@@ -972,11 +999,7 @@ class ClassLabel:
             if not 0 <= v < self.num_classes:
                 raise ValueError(f"Invalid integer class label {v:d}")
 
-        if self._int2str:
-            output = [self._int2str[int(v)] for v in values]
-        else:
-            # No names provided, return str(values)
-            output = [str(v) for v in values]
+        output = [self._int2str[int(v)] for v in values]
         return output if return_list else output[0]
 
     def encode_example(self, example_data):
@@ -994,6 +1017,31 @@ class ClassLabel:
         if not -1 <= example_data < self.num_classes:
             raise ValueError(f"Class label {example_data:d} greater than configured num_classes {self.num_classes}")
         return example_data
+
+    def cast_storage(self, storage: Union[pa.StringArray, pa.IntegerArray]) -> pa.Int64Array:
+        """Cast an Arrow array to the ClassLabel arrow storage type.
+        The Arrow types that can be converted to the ClassLabel pyarrow storage type are:
+
+        - pa.string()
+        - pa.int()
+
+        Args:
+            storage (Union[pa.StringArray, pa.IntegerArray]): PyArrow array to cast.
+
+        Returns:
+            pa.Int64Array: Array in the ClassLabel arrow storage type
+        """
+        if isinstance(storage, pa.IntegerArray):
+            min_max = pc.min_max(storage).as_py()
+            if min_max["max"] >= self.num_classes:
+                raise ValueError(
+                    f"Class label {min_max['max']} greater than configured num_classes {self.num_classes}"
+                )
+        elif isinstance(storage, pa.StringArray):
+            storage = pa.array(
+                [self._strval2int(label) if label is not None else None for label in storage.to_pylist()]
+            )
+        return array_cast(storage, self.pa_type)
 
     @staticmethod
     def _load_names_from_file(names_filepath):
@@ -1370,6 +1418,24 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
         return require_decoding(feature.feature)
     else:
         return hasattr(feature, "decode_example") and (feature.decode if not ignore_decode_attribute else True)
+
+
+def require_storage_cast(feature: FeatureType) -> bool:
+    """Check if a (possibly nested) feature requires storage casting.
+
+    Args:
+        feature (FeatureType): the feature type to be checked
+    Returns:
+        :obj:`bool`
+    """
+    if isinstance(feature, dict):
+        return any(require_storage_cast(f) for f in feature.values())
+    elif isinstance(feature, (list, tuple)):
+        return require_storage_cast(feature[0])
+    elif isinstance(feature, Sequence):
+        return require_storage_cast(feature.feature)
+    else:
+        return hasattr(feature, "cast_storage")
 
 
 def keep_features_dicts_synced(func):

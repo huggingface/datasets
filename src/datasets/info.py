@@ -110,7 +110,7 @@ class DatasetInfo:
         dataset_size (int, optional): The combined size in bytes of the Arrow tables for all splits.
         size_in_bytes (int, optional): The combined size in bytes of all files associated with the dataset (downloaded files + Arrow files).
         task_templates (List[TaskTemplate], optional): The task templates to prepare the dataset for during training and evaluation. Each template casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
-        **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
+        **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
     """
 
     # Set in the dataset scripts
@@ -211,10 +211,10 @@ class DatasetInfo:
     @classmethod
     def from_merge(cls, dataset_infos: List["DatasetInfo"]):
         dataset_infos = [dset_info.copy() for dset_info in dataset_infos if dset_info is not None]
-        description = "\n\n".join(unique_values(info.description for info in dataset_infos))
-        citation = "\n\n".join(unique_values(info.citation for info in dataset_infos))
-        homepage = "\n\n".join(unique_values(info.homepage for info in dataset_infos))
-        license = "\n\n".join(unique_values(info.license for info in dataset_infos))
+        description = "\n\n".join(unique_values(info.description for info in dataset_infos)).strip()
+        citation = "\n\n".join(unique_values(info.citation for info in dataset_infos)).strip()
+        homepage = "\n\n".join(unique_values(info.homepage for info in dataset_infos)).strip()
+        license = "\n\n".join(unique_values(info.license for info in dataset_infos)).strip()
         features = None
         supervised_keys = None
         task_templates = None

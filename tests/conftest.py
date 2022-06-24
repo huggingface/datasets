@@ -470,16 +470,39 @@ def text_path_with_unicode_new_lines(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
-def image_path():
+def image_file():
     return os.path.join(os.path.dirname(__file__), "features", "data", "test_image_rgb.jpg")
 
 
 @pytest.fixture(scope="session")
-def zip_image_path(image_path, tmp_path_factory):
+def zip_image_path(image_file, tmp_path_factory):
     import zipfile
 
     path = tmp_path_factory.mktemp("data") / "dataset.img.zip"
     with zipfile.ZipFile(path, "w") as f:
-        f.write(image_path, arcname=os.path.basename(image_path))
-        f.write(image_path, arcname=os.path.basename(image_path).replace(".jpg", "2.jpg"))
+        f.write(image_file, arcname=os.path.basename(image_file))
+        f.write(image_file, arcname=os.path.basename(image_file).replace(".jpg", "2.jpg"))
     return path
+
+
+@pytest.fixture(scope="session")
+def data_dir_with_hidden_files(tmp_path_factory):
+    data_dir = tmp_path_factory.mktemp("data_dir")
+
+    (data_dir / "subdir").mkdir()
+    with open(data_dir / "subdir" / "train.txt", "w") as f:
+        f.write("foo\n" * 10)
+    with open(data_dir / "subdir" / "test.txt", "w") as f:
+        f.write("bar\n" * 10)
+    # hidden file
+    with open(data_dir / "subdir" / ".test.txt", "w") as f:
+        f.write("bar\n" * 10)
+
+    # hidden directory
+    (data_dir / ".subdir").mkdir()
+    with open(data_dir / ".subdir" / "train.txt", "w") as f:
+        f.write("foo\n" * 10)
+    with open(data_dir / ".subdir" / "test.txt", "w") as f:
+        f.write("bar\n" * 10)
+
+    return data_dir
