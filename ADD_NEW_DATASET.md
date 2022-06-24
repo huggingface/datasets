@@ -11,7 +11,7 @@ You can share your dataset on https://huggingface.co/datasets directly using you
 
 Datasets used to be hosted in this GitHub repository, but all datasets have now been migrated to the Hugging Face Hub.
 The legacy GitHub datasets were added originally on the GitHub repository and therefore don't have a namespace: "squad", "glue", etc. unlike the other datasets that are named "username/dataset_name" or "org/dataset_name".
-Those datasets are still maintained, and if you'd like to edit them, please open a Pull Request on the huggingface/datasets repository.
+Those datasets are still maintained on GitHub, and if you'd like to edit them, please open a Pull Request on the huggingface/datasets repository.
 
 Sharing your dataset to the Hub is the recommended way of adding a dataset.
 
