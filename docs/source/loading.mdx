@@ -11,7 +11,7 @@ This guide will show you how to load a dataset from:
 - Offline
 - A specific slice of a split
 
-For more details specific to loading other dataset modalities, take a look at the [load audio dataset guide](./audio_load) or the [load image dataset guide](./image_load).
+For more details specific to loading other dataset modalities, take a look at the [load audio dataset guide](./audio_load), the [load image dataset guide](./image_load), or the [load text dataset guide](./nlp_load).
 
 <a id='load-from-the-hub'></a>
 
@@ -26,7 +26,7 @@ For example, try loading the files from this [demo repository](https://huggingfa
 >>> dataset = load_dataset("lhoestq/demo1")
 ```
 
-Some datasets may have more than one version, based on Git tags, branches or commits. Use the `revision` parameter to specify the dataset version you want to load:
+Some datasets may have more than one version based on Git tags, branches, or commits. Use the `revision` parameter to specify the dataset version you want to load:
 
 ```py
 >>> dataset = load_dataset(
@@ -41,7 +41,7 @@ Refer to the [Upload a dataset to the Hub](./upload_dataset) tutorial for more d
 
 </Tip>
 
-A dataset without a loading script will by default load all the data into the `train` split. Use the `data_files` parameter to map data files to splits like `train`, `validation` and `test`:
+A dataset without a loading script by default loads all the data into the `train` split. Use the `data_files` parameter to map data files to splits like `train`, `validation` and `test`:
 
 ```py
 >>> data_files = {"train": "train.csv", "test": "test.csv"}
@@ -50,11 +50,11 @@ A dataset without a loading script will by default load all the data into the `t
 
 <Tip warning={true}>
 
-If you don't specify which data files to use, [`load_dataset`] will return all the data files. This can take a long time if you are loading a large dataset like C4, which is approximately 13TB of data.
+If you don't specify which data files to use, [`load_dataset`] will return all the data files. This can take a long time if you load a large dataset like C4, which is approximately 13TB of data.
 
 </Tip>
 
-You can also load a specific subset of the files with the `data_files` parameter. The example below only loads a single file from the [C4 dataset](https://huggingface.co/datasets/allenai/c4/tree/main/en):
+You can also load a specific subset of the files with the `data_files` parameter. The example below only loads files that match the grep pattern:
 
 ```py
 >>> from datasets import load_dataset
@@ -82,7 +82,7 @@ You may have a 🤗 Datasets loading script locally on your computer. In this ca
 
 ## Local and remote files
 
-Datasets can be loaded from local files stored on your computer, and also from remote files. The datasets are most likely stored as a `csv`, `json`, `txt` or `parquet` file. The [`load_dataset`] function is able to load each of these file types.
+Datasets can be loaded from local files stored on your computer and from remote files. The datasets are most likely stored as a `csv`, `json`, `txt` or `parquet` file. The [`load_dataset`] function can load each of these file types.
 
 ### CSV
 
@@ -136,7 +136,7 @@ JSON files have diverse formats, but we think the most efficient format is to ha
 {"a": 4, "b": -5.5, "c": null, "d": true}
 ```
 
-Another JSON format you may encounter is a nested field, in which case you will need to specify the `field` argument as shown in the following:
+Another JSON format you may encounter is a nested field, in which case you'll need to specify the `field` argument as shown in the following:
 
 ```py
 {"version": "0.1.0",
@@ -155,11 +155,11 @@ To load remote JSON files via HTTP, pass the URLs instead:
 >>> dataset = load_dataset("json", data_files={"train": base_url + "train-v1.1.json", "validation": base_url + "dev-v1.1.json"}, field="data")
 ```
 
-While these are the most common JSON formats, you will see other datasets that are formatted differently. 🤗 Datasets recognizes these other formats, and will fallback accordingly on the Python JSON loading methods to handle them.
+While these are the most common JSON formats, you'll see other datasets that are formatted differently. 🤗 Datasets recognizes these other formats and will fallback accordingly on the Python JSON loading methods to handle them.
 
 ### Parquet
 
-Parquet files are stored in a columnar format unlike row-based files like CSV. Large datasets may be stored in a Parquet file because it is more efficient, and faster at returning your query. 
+Parquet files are stored in a columnar format, unlike row-based files like a CSV. Large datasets may be stored in a Parquet file because it is more efficient and faster at returning your query. 
 
 To load a Parquet file:
 
@@ -203,7 +203,7 @@ Load Pandas DataFrames with [`~Dataset.from_pandas`]:
 
 <Tip warning={true}>
 
-An object data type in [pandas.Series](https://pandas.pydata.org/docs/reference/api/pandas.Series.html) doesn't always carry enough information for Arrow to automatically infer a data type. For example, if a DataFrame is of length `0` or the Series only contains `None/NaN` objects, the type is set to `null`. Avoid potential errors by constructing an explicit schema with [`Features`] using the `from_dict` or `from_pandas` methods. See the [troubleshoot](./loading#specify-features) for more details on how to explicitly specify your own features.
+An object data type in [pandas.Series](https://pandas.pydata.org/docs/reference/api/pandas.Series.html) doesn't always carry enough information for Arrow to automatically infer a data type. For example, if a DataFrame is of length `0` or the Series only contains `None/NaN` objects, the type is set to `null`. Avoid potential errors by constructing an explicit schema with [`Features`] using the `from_dict` or `from_pandas` methods. See the [troubleshoot](./loading#specify-features) section for more details on how to explicitly specify your own features.
 
 </Tip>
 
@@ -215,7 +215,7 @@ If you know you won't have internet access, you can run 🤗 Datasets in full of
 
 ## Slice splits
 
-For more granular loading, you can load specific slices of a split. There are two options for slicing a split: using strings or the [`ReadInstruction`] API. Strings are more compact and readable for simple cases, while [`ReadInstruction`] is easier to use with variable slicing parameters.
+You can also choose only to load specific slices of a split. There are two options for slicing a split: using strings or the [`ReadInstruction`] API. Strings are more compact and readable for simple cases, while [`ReadInstruction`] is easier to use with variable slicing parameters.
 
 Concatenate a `train` and `test` split by:
 
@@ -242,7 +242,7 @@ Or select a percentage of a split with:
 >>> train_10_20_ds = datasets.load_dataset("bookcorpus", split=datasets.ReadInstruction("train", to=10, unit="%"))
 ```
 
-You can even select a combination of percentages from each split:
+Select a combination of percentages from each split:
 
 ```py
 >>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split="tr"in[:10%]+train[-80%:]")
@@ -251,36 +251,21 @@ You can even select a combination of percentages from each split:
 >>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split=ri)
 ```
 
-Finally, create cross-validated splits by:
+Finally, you can even create cross-validated splits. The example below creates 10-fold cross-validated splits. Each validation dataset is a 10% chunk, and the training dataset makes up the remaining complementary 90% chunk:
 
 ```py
-# 10-fold cross-validation (see also next section on rounding behavior):
-# The validation datasets are each going to be 10%:
-# [0%:10%], [10%:20%], ..., [90%:100%].
-# And the training datasets are each going to be the complementary 90%:
-# [10%:100%] (for a corresponding validation set of [0%:10%]),
-# [0%:10%] + [20%:100%] (for a validation set of [10%:20%]), ...,
-# [0%:90%] (for a validation set of [90%:100%]).
->>> vals_ds = datasets.load_dataset("bookcorpus", split=[f"train[{k}%:{k+10}%]" for k in range(0, 100, 10)])
->>> trains_ds = datasets.load_dataset("bookcorpus", split=[f"train[:{k}%]+train[{k+10}%:]" for k in range(0, 100, 10)])
+>>> val_ds = datasets.load_dataset("bookcorpus", split=[f"train[{k}%:{k+10}%]" for k in range(0, 100, 10)])
+>>> train_ds = datasets.load_dataset("bookcorpus", split=[f"train[:{k}%]+train[{k+10}%:]" for k in range(0, 100, 10)])
 ===STRINGAPI-READINSTRUCTION-SPLIT===
-# 10-fold cross-validation (see also next section on rounding behavior):
-# The validation datasets are each going to be 10%:
-# [0%:10%], [10%:20%], ..., [90%:100%].
-# And the training datasets are each going to be the complementary 90%:
-# [10%:100%] (for a corresponding validation set of [0%:10%]),
-# [0%:10%] + [20%:100%] (for a validation set of [10%:20%]), ...,
-# [0%:90%] (for a validation set of [90%:100%]).
->>> vals_ds = datasets.load_dataset("bookcorpus", [datasets.ReadInstruction("train", from_=k, to=k+10, unit="%") for k in range(0, 100, 10)])
->>> trains_ds = datasets.load_dataset("bookcorpus", [(datasets.ReadInstruction("train", to=k, unit="%") + datasets.ReadInstruction("train", from_=k+10, unit="%")) for k in range(0, 100, 10)])
+>>> val_ds = datasets.load_dataset("bookcorpus", [datasets.ReadInstruction("train", from_=k, to=k+10, unit="%") for k in range(0, 100, 10)])
+>>> train_ds = datasets.load_dataset("bookcorpus", [(datasets.ReadInstruction("train", to=k, unit="%") + datasets.ReadInstruction("train", from_=k+10, unit="%")) for k in range(0, 100, 10)])
 ```
 
 ### Percent slicing and rounding
 
-For datasets where the requested slice boundaries do not divide evenly by 100, the default behavior is to round the boundaries to the nearest integer. As a result, some slices may contain more examples than others as shown below:
+The default behavior is to round the boundaries to the nearest integer for datasets where the requested slice boundaries do not divide evenly by 100. As shown below, some slices may contain more examples than others. For instance, if the following train split includes 999 records, then:
 
 ```py
-# Assuming train split contains 999 records.
 # 19 records, from 500 (included) to 519 (excluded).
 >>> train_50_52_ds = datasets.load_dataset("bookcorpus", split="train[50%:52%]")
 # 20 records, from 519 (included) to 539 (excluded).
@@ -309,11 +294,11 @@ If you want equal sized splits, use `pct1_dropremainder` rounding instead. This 
 
 ## Troubleshooting
 
-Sometimes, you may get unexpected results when you load a dataset. Two of the most common issues you may encounter are manually downloading a dataset, and specifying features of a dataset.
+Sometimes, you may get unexpected results when you load a dataset. Two of the most common issues you may encounter are manually downloading a dataset and specifying features of a dataset.
 
 ### Manual download
 
-Certain datasets require you to manually download the dataset files due to licensing incompatibility, or if the files are hidden behind a login page. This causes [`load_dataset`] to throw an `AssertionError`. But 🤗 Datasets provides detailed instructions for downloading the missing files. After you have downloaded the files, use the `data_dir` argument to specify the path to the files you just downloaded.
+Certain datasets require you to manually download the dataset files due to licensing incompatibility or if the files are hidden behind a login page. This causes [`load_dataset`] to throw an `AssertionError`. But 🤗 Datasets provides detailed instructions for downloading the missing files. After you've downloaded the files, use the `data_dir` argument to specify the path to the files you just downloaded.
 
 For example, if you try to download a configuration from the [MATINF](https://huggingface.co/datasets/matinf) dataset:
 
@@ -328,7 +313,7 @@ Manual data can be loaded with `datasets.load_dataset(matinf, data_dir='<path/to
 
 ### Specify features
 
-When you create a dataset from local files, the [`Features`] are automatically inferred by [Apache Arrow](https://arrow.apache.org/docs/). However, the features of the dataset may not always align with your expectations or you may want to define the features yourself. The following example shows how you can add custom labels with the [`ClassLabel`] feature. 
+When you create a dataset from local files, the [`Features`] are automatically inferred by [Apache Arrow](https://arrow.apache.org/docs/). However, the dataset's features may not always align with your expectations, or you may want to define the features yourself. The following example shows how you can add custom labels with the [`ClassLabel`] feature. 
 
 Start by defining your own labels with the [`Features`] class:
 

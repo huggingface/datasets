@@ -11,9 +11,9 @@ This guide will show you how to:
 - Apply a custom formatting transform.
 - Save and export processed datasets.
 
-For more details specific to processing other dataset modalities, take a look at the [process audio dataset guide](./audio_process), the [process image dataset guide](./image_process) or the [process text dataset guide](./nlp_process).
+For more details specific to processing other dataset modalities, take a look at the [process audio dataset guide](./audio_process), the [process image dataset guide](./image_process), or the [process text dataset guide](./nlp_process).
 
-The examples use the MRPC dataset, but feel free to load any dataset of your choice and following along!
+The examples in this guide use the MRPC dataset, but feel free to load any dataset of your choice and follow along!
 
 ```py
 >>> from datasets import load_dataset
@@ -94,7 +94,7 @@ There are two options for filtering rows in a dataset: [`~Dataset.select`] and [
 
 ### Split
 
-The [`~Dataset.train_test_split`] function creates train and test splits, if your dataset doesn't already have them. This allows you to adjust the relative proportions or absolute number of samples in each split. In the example below, use the `test_size` parameter to create a test split that is 10% of the original dataset:
+The [`~Dataset.train_test_split`] function creates train and test splits if your dataset doesn't already have them. This allows you to adjust the relative proportions or an absolute number of samples in each split. In the example below, use the `test_size` parameter to create a test split that is 10% of the original dataset:
 
 ```py
 >>> dataset.train_test_split(test_size=0.1)
@@ -122,7 +122,7 @@ Dataset({
 })
 ```
 
-After sharding the dataset into four chunks, the first shard only has 6250 examples:
+After sharding the dataset into four chunks, the first shard will only have 6250 examples:
 
 ```py
 >>> dataset.shard(num_shards=4, index=0)
@@ -161,7 +161,7 @@ Dataset({
 
 ### Remove
 
-When you need to remove one or more columns, provide the name of the column to remove to the [`~Dataset.remove_columns`] function. Remove more than one column by providing a list of column names:
+When you need to remove one or more columns, provide the column name to remove to the [`~Dataset.remove_columns`] function. Remove more than one column by providing a list of column names:
 
 ```py
 >>> dataset = dataset.remove_columns("label")
@@ -220,7 +220,7 @@ Use the [`~Dataset.cast_column`] function to change the feature type of a single
 
 ### Flatten
 
-Sometimes a column can be a nested structure of several types. Use the [`~Dataset.flatten`] function to extract the subfields into their own separate columns. Take a look at the nested structure below from the SQuAD dataset:
+Sometimes a column can be a nested structure of several types. Take a look at the nested structure below from the SQuAD dataset:
 
 ```py
 >>> from datasets import load_dataset
@@ -233,7 +233,7 @@ Sometimes a column can be a nested structure of several types. Use the [`~Datase
 'title': Value(dtype='string', id=None)}
 ```
 
-The `answers` field contains two subfields: `text` and `answer_start`. Flatten them with the [`~Dataset.flatten`] function:
+The `answers` field contains two subfields: `text` and `answer_start`. Use the [`~Dataset.flatten`] function to extract the subfields into their own separate columns:
 
 ```py
 >>> flat_dataset = dataset.flatten()
@@ -334,7 +334,7 @@ Multiprocessing significantly speeds up processing by parallelizing processes on
 
 ### Batch processing
 
-The [`~Dataset.map`] function also supports working with batches of examples. Operate on batches by setting `batched=True`. The default batch size is 1000, but you can adjust it with the `batch_size` parameter. Batch processing enables interesting applications such as splitting long sentences into shorter chunks and data augmentation.
+The [`~Dataset.map`] function supports working with batches of examples. Operate on batches by setting `batched=True`. The default batch size is 1000, but you can adjust it with the `batch_size` parameter. Batch processing enables interesting applications such as splitting long sentences into shorter chunks and data augmentation.
 
 #### Split long examples
 
@@ -383,7 +383,7 @@ Dataset(schema: {'chunks': 'string'}, num_rows: 10470)
 
 #### Data augmentation
 
-Another application is data augmentation. The following example generates additional words for a masked token in a sentence.
+The [`~Dataset.map`] function could also be used for data augmentation. The following example generates additional words for a masked token in a sentence.
 
 Load and use the [RoBERTA](https://huggingface.co/roberta-base) model in 🤗 Transformer's [FillMaskPipeline](https://huggingface.co/transformers/main_classes/pipelines#transformers.FillMaskPipeline):
 
@@ -428,7 +428,7 @@ Use [`~Dataset.map`] to apply the function over the whole dataset:
 ]
 ```
 
-For each original sentence, RoBERTA augmented a random word with three alternatives. In the first sentence, the word `distorting` is supplemented by `withholding`, `suppressing`, and `destroying`.
+For each original sentence, RoBERTA augmented a random word with three alternatives. The original word `distorting` is supplemented by `withholding`, `suppressing`, and `destroying`.
 
 ### Process multiple splits
 
