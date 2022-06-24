@@ -7,6 +7,8 @@ from typing_extensions import Literal
 
 import datasets
 import datasets.config
+from datasets.features.features import require_storage_cast
+from datasets.table import table_cast
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -146,19 +148,37 @@ class Csv(datasets.ArrowBasedBuilder):
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": dl_manager.iter_files(files)}))
         return splits
 
+    def _cast_table(self, pa_table: pa.Table) -> pa.Table:
+        if self.config.features is not None:
+            schema = self.config.features.arrow_schema
+            if all(not require_storage_cast(feature) for feature in self.config.features.values()):
+                # cheaper cast
+                pa_table = pa.Table.from_arrays([pa_table[field.name] for field in schema], schema=schema)
+            else:
+                # more expensive cast; allows str <-> int/float or str to Audio for example
+                pa_table = table_cast(pa_table, schema)
+        return pa_table
+
     def _generate_tables(self, files):
-        schema = pa.schema(self.config.features.type) if self.config.features is not None else None
+        schema = self.config.features.arrow_schema if self.config.features else None
         # dtype allows reading an int column as str
-        dtype = {name: dtype.to_pandas_dtype() for name, dtype in zip(schema.names, schema.types)} if schema else None
+        dtype = (
+            {
+                name: dtype.to_pandas_dtype() if not require_storage_cast(feature) else object
+                for name, dtype, feature in zip(schema.names, schema.types, self.config.features.values())
+            }
+            if schema is not None
+            else None
+        )
         for file_idx, file in enumerate(files):
             csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.read_csv_kwargs)
             try:
                 for batch_idx, df in enumerate(csv_file_reader):
-                    pa_table = pa.Table.from_pandas(df, schema=schema)
+                    pa_table = pa.Table.from_pandas(df)
                     # Uncomment for debugging (will print the Arrow table size and elements)
                     # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                     # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                    yield (file_idx, batch_idx), pa_table
+                    yield (file_idx, batch_idx), self._cast_table(pa_table)
             except ValueError as e:
                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                 raise

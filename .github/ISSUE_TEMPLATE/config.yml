@@ -1,4 +1,7 @@
 contact_links:
+  - name: Datasets on the Hugging Face Hub
+    url: https://huggingface.co/datasets
+    about: Open a Pull request / Discussion related to a specific dataset on the Hugging Face Hub (PRs for datasets with no namespace still have to be on GitHub though)
   - name: Forum
     url: https://discuss.huggingface.co/c/datasets/10
     about: Please ask and answer questions here, and engage with other community members
