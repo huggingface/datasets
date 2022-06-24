@@ -474,7 +474,9 @@ class IndexableMixin:
         faiss_index = FaissIndex(
             device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index
         )
-        faiss_index.add_vectors(self, column=column, batch_size=batch_size, train_size=train_size, faiss_verbose=faiss_verbose)
+        faiss_index.add_vectors(
+            self, column=column, batch_size=batch_size, train_size=train_size, faiss_verbose=faiss_verbose
+        )
         self._indexes[index_name] = faiss_index
 
     def add_faiss_index_from_external_arrays(
@@ -511,7 +513,9 @@ class IndexableMixin:
         faiss_index = FaissIndex(
             device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index
         )
-        faiss_index.add_vectors(external_arrays, column=None, batch_size=batch_size, train_size=train_size, faiss_verbose=faiss_verbose)
+        faiss_index.add_vectors(
+            external_arrays, column=None, batch_size=batch_size, train_size=train_size, faiss_verbose=faiss_verbose
+        )
         self._indexes[index_name] = faiss_index
 
     def save_faiss_index(self, index_name: str, file: Union[str, PurePath]):
