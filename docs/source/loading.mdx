@@ -1,6 +1,6 @@
 # Load
 
-Datasets are stored in various places; a dataset can be on your local machine's disk, in a Github repository, and in in-memory data structures like Python dictionaries and Pandas DataFrames. Wherever a dataset is stored, 🤗 Datasets can help you load it.
+Your data can be stored in various places; they can be on your local machine's disk, in a Github repository, and in in-memory data structures like Python dictionaries and Pandas DataFrames. Wherever a dataset is stored, 🤗 Datasets can help you load it.
 
 This guide will show you how to load a dataset from:
 
@@ -156,21 +156,6 @@ To load remote JSON files via HTTP, pass the URLs instead:
 ```
 
 While these are the most common JSON formats, you will see other datasets that are formatted differently. 🤗 Datasets recognizes these other formats, and will fallback accordingly on the Python JSON loading methods to handle them.
-
-### Text files
-
-Text files are one of the most common file types for storing a dataset. 🤗 Datasets will read the text file line by line to build the dataset.
-
-```py
->>> from datasets import load_dataset
->>> dataset = load_dataset("text", data_files={"train": ["my_text_1.txt", "my_text_2.txt"], "test": "my_test_file.txt"})
-```
-
-To load remote text files via HTTP, pass the URLs instead:
-
-```py
->>> dataset = load_dataset("text", data_files="https://huggingface.co/datasets/lhoestq/test/resolve/main/some_text.txt")
-```
 
 ### Parquet
 

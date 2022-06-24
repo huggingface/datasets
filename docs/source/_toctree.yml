@@ -34,14 +34,6 @@
       title: Use with TensorFlow
     - local: use_with_pytorch
       title: Use with PyTorch
-    - local: share
-      title: Share
-    - local: dataset_script
-      title: Create a dataset loading script
-    - local: dataset_card
-      title: Create a dataset card
-    - local: repository_structure
-      title: Structure your repository
     - local: cache
       title: Cache management
     - local: filesystems
@@ -66,9 +58,21 @@
       title: Process image data
     title: "Vision"
   - sections:
+    - local: nlp_load
+      title: Load text data
     - local: nlp_process
       title: Process text data
     title: "Text"
+  - sections:
+    - local: share
+      title: Share
+    - local: dataset_script
+      title: Create a dataset loading script
+    - local: dataset_card
+      title: Create a dataset card
+    - local: repository_structure
+      title: Structure your repository
+    title: "Dataset repository"
   title: "How-to guides"
 - sections:
   - local: about_arrow

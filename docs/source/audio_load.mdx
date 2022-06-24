@@ -25,12 +25,12 @@ Index into an audio dataset using the row index first and then the `audio` colum
 
 </Tip>
 
-## Path
+## Local files
 
 The `path` is useful for loading your own dataset. Use the [`~Dataset.cast_column`] function to take a column of audio file paths, and decode it into `array`'s with the [`Audio`] feature:
 
 ```py
->>> audio_dataset = audio_dataset.cast_column("paths_to_my_audio_files", Audio())
+>>> audio_dataset = Dataset.from_dict({"audio": ["path/to/audio_1", "path/to/audio_2", ..., "path/to/audio_n"]}).cast_column("audio", Audio())
 ```
 
 If you only want to load the underlying path to the audio dataset without decoding the audio file into an `array`, set `decode=False` in the [`Audio`] feature:
