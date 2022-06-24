@@ -39,10 +39,10 @@ Versions exist for different years using a combination of data
 sources. The base `wmt` allows you to create a custom dataset by choosing
 your own data/language pair. This can be done as follows:
 
-```
+```python
 from datasets import inspect_dataset, load_dataset_builder
 
-inspect_dataset("<insert the dataset name", "path/to/scripts")
+inspect_dataset("wmt_t2t", "path/to/scripts")
 builder = load_dataset_builder(
     "path/to/scripts/wmt_utils.py",
     language_pair=("fr", "de"),
