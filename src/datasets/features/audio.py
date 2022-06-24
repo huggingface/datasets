@@ -148,8 +148,6 @@ class Audio:
                 array, sampling_rate = self._decode_non_mp3_path_like(
                     path, "opus", token_per_repo_id=token_per_repo_id
                 )
-        elif path is not None and path.endswith("pcm"):
-            sampling_rate, array = wavfile.read(file)
         else:
             if file:
                 array, sampling_rate = self._decode_non_mp3_file_like(file)
