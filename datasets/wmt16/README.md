@@ -6,6 +6,15 @@ multilinguality:
 task_categories:
 - translation
 task_ids: []
+train-eval-index:
+- config: de-en
+  task: translation
+  task_id: translation
+  splits:
+    eval_split: test
+  col_mapping:
+    translation.de: source
+    translation.en: target
 ---
 
 # Dataset Card for "wmt16"
