@@ -19,6 +19,15 @@ task_categories:
 - image-classification
 task_ids:
 - multi-class-image-classification
+train-eval-index:
+- config: default
+  task: image-classification
+  task_id: image_multi_class_classification
+  splits:
+    eval_split: test
+  col_mapping:
+    image: image
+    label: target
 extra_gated_prompt: |
   By clicking on “Access repository” below, you also agree to ImageNet Terms of Access:
   [RESEARCHER_FULLNAME] (the "Researcher") has requested permission to use the ImageNet database (the "Database") at Princeton University and Stanford University. In exchange for such permission, Researcher hereby agrees to the following terms and conditions:
