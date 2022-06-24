@@ -336,9 +336,23 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
     elif config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(obj, PIL.Image.Image):
         return encode_pil_image(obj), True
     elif isinstance(obj, pd.Series):
-        return obj.values.tolist(), True
+        return (
+            _cast_to_python_objects(
+                obj.tolist(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+            )[0],
+            True,
+        )
     elif isinstance(obj, pd.DataFrame):
-        return obj.to_dict("list"), True
+        return {
+            key: _cast_to_python_objects(
+                value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+            )[0]
+            for key, value in obj.to_dict("list").items()
+        }, True
+    elif isinstance(obj, pd.Timestamp):
+        return obj.to_pydatetime(), True
+    elif isinstance(obj, pd.Timedelta):
+        return obj.to_pytimedelta(), True
     elif isinstance(obj, Mapping):  # check for dict-like to handle nested LazyDict objects
         has_changed = not isinstance(obj, dict)
         output = {}
@@ -854,6 +868,9 @@ class ClassLabel:
      * `names`: List of label strings.
      * `names_file`: File containing the list of labels.
 
+    Under the hood the labels are stored as integers.
+    You can use negative integers to represent unknown/missing labels.
+
     Args:
         num_classes (:obj:`int`, optional): Number of classes. All labels must be < `num_classes`.
         names (:obj:`list` of :obj:`str`, optional): String names for the integer classes.
@@ -910,7 +927,7 @@ class ClassLabel:
     def __call__(self):
         return self.pa_type
 
-    def str2int(self, values: Union[str, Iterable]):
+    def str2int(self, values: Union[str, Iterable]) -> Union[int, Iterable]:
         """Conversion class name string => integer.
 
         Example:
@@ -934,7 +951,7 @@ class ClassLabel:
         output = [self._strval2int(value) for value in values]
         return output if return_list else output[0]
 
-    def _strval2int(self, value: str):
+    def _strval2int(self, value: str) -> int:
         failed_parse = False
         value = str(value)
         # first attempt - raw string value
@@ -955,8 +972,10 @@ class ClassLabel:
             raise ValueError(f"Invalid string class label {value}")
         return int_value
 
-    def int2str(self, values: Union[int, Iterable]):
+    def int2str(self, values: Union[int, Iterable]) -> Union[str, Iterable]:
         """Conversion integer => class name string.
+
+        Regarding unknown/missing labels: passing negative integers raises ValueError.
 
         Example:
 
@@ -1014,8 +1033,6 @@ class ClassLabel:
         """
         if isinstance(storage, pa.IntegerArray):
             min_max = pc.min_max(storage).as_py()
-            if min_max["min"] < -1:
-                raise ValueError(f"Class label {min_max['min']} less than -1")
             if min_max["max"] >= self.num_classes:
                 raise ValueError(
                     f"Class label {min_max['max']} greater than configured num_classes {self.num_classes}"
