@@ -42,6 +42,15 @@ configs:
 - fr
 - ja
 - zh
+train-eval-index:
+- config: en
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    eval_split: test
+  col_mapping:
+    review_body: text
+    stars: target
 ---
 
 # Dataset Card for The Multilingual Amazon Reviews Corpus
