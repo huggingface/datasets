@@ -18,7 +18,6 @@
 
 
 import json
-import os
 import re
 
 import datasets
@@ -69,7 +68,7 @@ class CfqConfig(datasets.BuilderConfig):
         super(CfqConfig, self).__init__(
             name=name, version=datasets.Version("1.0.1"), description=_DESCRIPTION, **kwargs
         )
-        self.split_file = os.path.join(directory, name + ".json")
+        self.splits_path = f"cfq/{directory}/{name}.json"
 
 
 _QUESTION = "question"
@@ -108,21 +107,16 @@ class Cfq(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_DATA_URL)
-        data_dir = os.path.join(data_dir, "cfq")
+        archive_path = dl_manager.download(_DATA_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "base_directory": data_dir,
-                    "splits_file": self.config.split_file,
-                    "split_id": "trainIdxs",
+                    "data_files": dl_manager.iter_archive(archive_path),
+                    "split_id": f"{split}Idxs",
                 },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"base_directory": data_dir, "splits_file": self.config.split_file, "split_id": "testIdxs"},
-            ),
+            )
+            for split in [datasets.Split.TRAIN, datasets.Split.TEST]
         ]
 
     def _scrub_json(self, content):
@@ -136,17 +130,20 @@ class Cfq(datasets.GeneratorBasedBuilder):
         regex = re.compile(r'("%s":\s*"[^"]*").*?("%s":\s*"[^"]*")' % (_QUESTION_FIELD, _QUERY_FIELD), re.DOTALL)
         return "[" + ",".join(["{" + m.group(1) + "," + m.group(2) + "}" for m in regex.finditer(content)]) + "]"
 
-    def _generate_examples(self, base_directory, splits_file, split_id):
+    def _generate_examples(self, data_files, split_id):
         """Yields examples."""
-        samples_path = os.path.join(base_directory, "dataset.json")
-        splits_path = os.path.join(base_directory, splits_file)
-        with open(samples_path, encoding="utf-8") as samples_file:
-            with open(splits_path, encoding="utf-8") as splits_file:
+        samples_path = f"cfq/dataset.json"
+        splits = samples = None
+        for path, file in data_files:
+            if path == self.config.splits_path:
+                splits = json.load(file)
+            elif path == samples_path:
                 logger.info("Reading json from %s into memory...", samples_path)
-                samples = json.loads(self._scrub_json(samples_file.read()))
+                samples = json.loads(self._scrub_json(file.read().decode("utf-8")))
                 logger.info("%d samples loaded", len(samples))
                 logger.info("Loaded json data from %s.", samples_path)
-                splits = json.load(splits_file)
-                for idx in splits[split_id]:
-                    sample = samples[idx]
-                    yield idx, {_QUESTION: sample[_QUESTION_FIELD], _QUERY: sample[_QUERY_FIELD]}
+            elif splits and samples:
+                break
+        for idx in splits[split_id]:
+            sample = samples[idx]
+            yield idx, {_QUESTION: sample[_QUESTION_FIELD], _QUERY: sample[_QUERY_FIELD]}
