@@ -4403,7 +4403,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
         custom_index: Optional["faiss.Index"] = None,  # noqa: F821
-        batch_size: Optional[int] = 1000,
+        batch_size: int = 1000,
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
         dtype=np.float32,
@@ -4479,7 +4479,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
         custom_index: Optional["faiss.Index"] = None,  # noqa: F821
-        batch_size: Optional[int] = 1000,
+        batch_size: int = 1000,
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
         dtype=np.float32,

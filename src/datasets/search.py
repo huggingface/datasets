@@ -447,7 +447,7 @@ class IndexableMixin:
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
         custom_index: Optional["faiss.Index"] = None,
-        batch_size: Optional[int] = 1000,
+        batch_size: int = 1000,
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
     ):
@@ -487,7 +487,7 @@ class IndexableMixin:
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
         custom_index: Optional["faiss.Index"] = None,
-        batch_size: Optional[int] = 1000,
+        batch_size: int = 1000,
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
     ):
