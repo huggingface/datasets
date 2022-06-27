@@ -132,7 +132,7 @@ class Cfq(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, data_files, split_id):
         """Yields examples."""
-        samples_path = f"cfq/dataset.json"
+        samples_path = "cfq/dataset.json"
         splits = samples = None
         for path, file in data_files:
             if path == self.config.splits_path:
