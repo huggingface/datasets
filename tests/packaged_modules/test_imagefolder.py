@@ -51,7 +51,7 @@ def image_files_with_metadata_that_misses_one_image(tmp_path, image_file):
 
 @pytest.fixture
 def data_files_with_one_split_and_metadata(tmp_path, image_file):
-    data_dir = tmp_path / "imagefolder_data_dir_with_metadata"
+    data_dir = tmp_path / "imagefolder_data_dir_with_metadata_one_split"
     data_dir.mkdir(parents=True, exist_ok=True)
     subdir = data_dir / "subdir"
     subdir.mkdir(parents=True, exist_ok=True)
@@ -83,7 +83,7 @@ def data_files_with_one_split_and_metadata(tmp_path, image_file):
 
 @pytest.fixture
 def data_files_with_two_splits_and_metadata(tmp_path, image_file):
-    data_dir = tmp_path / "imagefolder_data_dir_with_metadata"
+    data_dir = tmp_path / "imagefolder_data_dir_with_metadata_two_splits"
     data_dir.mkdir(parents=True, exist_ok=True)
     train_dir = data_dir / "train"
     train_dir.mkdir(parents=True, exist_ok=True)
