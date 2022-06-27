@@ -71,9 +71,9 @@ class DuplicatedKeysError(Exception):
     """Raise an error when duplicate key found."""
 
     def __init__(self, key, duplicate_key_indices):
-        self.prefix = f"Found multiple examples generated with the same key"
+        self.prefix = "Found multiple examples generated with the same key"
         self.err_msg = f"\nThe following examples {', '.join(duplicate_key_indices)} have the key {key}"
-        self.suffix = "\nPlease fix the dataset script at <Path to Dataset> to avoid duplicate keys"
+        self.suffix = "\nTo avoid duplicate keys, please fix the dataset script at "
         super().__init__(f"{self.prefix}{self.err_msg}{self.suffix}")
 
 

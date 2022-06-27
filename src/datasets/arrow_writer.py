@@ -457,7 +457,7 @@ class ArrowWriter:
         for hash, key in self.hkey_record:
             if hash in tmp_record:
                 duplicate_key_indices = [
-                    str(index) for index, (duplicate_hash, _) in enumerate(self.hkey_record) if duplicate_hash == hash
+                    str( self._num_examples + index) for index, (duplicate_hash, _) in enumerate(self.hkey_record) if duplicate_hash == hash
                 ]
 
                 raise DuplicatedKeysError(key, duplicate_key_indices)
