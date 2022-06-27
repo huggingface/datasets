@@ -1,6 +1,27 @@
 # How to add one (or several) new datasets to 🤗 Datasets
 
-## Start by preparing your environment
+ADD DATASETS DIRECTLY ON THE 🤗 HUGGING FACE HUB !
+
+You can share your dataset on https://huggingface.co/datasets directly using your account, see the documentation:
+
+* [Create a dataset and upload files](https://huggingface.co/docs/datasets/upload_dataset)
+* [Advanced guide using dataset scripts](https://huggingface.co/docs/datasets/share)
+
+## What about the datasets scripts in this GitHub repository then ?
+
+Datasets used to be hosted in this GitHub repository, but all datasets have now been migrated to the Hugging Face Hub.
+The legacy GitHub datasets were added originally on the GitHub repository and therefore don't have a namespace: "squad", "glue", etc. unlike the other datasets that are named "username/dataset_name" or "org/dataset_name".
+Those datasets are still maintained on GitHub, and if you'd like to edit them, please open a Pull Request on the huggingface/datasets repository.
+
+Sharing your dataset to the Hub is the recommended way of adding a dataset.
+
+In some rare cases it makes more sense to open a PR on GitHub. For example when you are not the author of the dataset and there is no clear organization / namespace that you can put the dataset under.
+
+The following presents how to open a Pull Request on GitHub to add a new dataset to this repository.
+
+## Add a new dataset to this repository (legacy)
+
+### Start by preparing your environment
 
 1. Fork the [repository](https://github.com/huggingface/datasets) by clicking on the 'Fork' button on the repository's page.
 This creates a copy of the code under your GitHub user account.
@@ -29,9 +50,9 @@ This creates a copy of the code under your GitHub user account.
 
 Now you are ready, each time you want to add a new dataset, follow the steps in the following section:
 
-## Adding a new dataset
+### Adding a new dataset
 
-### Understand the structure of the dataset
+#### Understand the structure of the dataset
 
 1. Find a short-name for the dataset:
 
@@ -82,7 +103,7 @@ You are now ready to start the process of adding the dataset. We will create the
 		Don't spend too much time completing the dataset card, just copy what you find when exploring the dataset documentation. If you can't find all the information it's ok. You can always spend more time completing the dataset card while we are reviewing your PR (see below) and the dataset card will be open for everybody to complete them afterwards. If you don't know what to write in a section, just leave the `[More Information Needed]` text.
 
 
-### Write the loading/processing code
+#### Write the loading/processing code
 
 Now let's get coding :-)
 
@@ -155,7 +176,7 @@ datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs --da
 ```
 To have the configs use the path from `--data_dir` when generating them.
 
-### Automatically add code metadata
+#### Automatically add code metadata
 
 Now that your dataset script runs and create a dataset with the format you expected, you can add the JSON metadata and test data.
 
@@ -222,7 +243,7 @@ Note: You can use the CLI tool from the root of the repository with the followin
 python src/datasets/commands/datasets_cli.py <command>
 ```
 
-### Open a Pull Request on the main HuggingFace repo and share your work!!
+#### Open a Pull Request on the main HuggingFace repo and share your work!!
 
 Here are the step to open the Pull-Request on the main repo.
 
@@ -291,7 +312,7 @@ Congratulation you have open a PR to add a new dataset 🙏
 
 **Important note:** In order to merge your Pull Request the maintainers will require you to tag and add a dataset card. Here is now how to do this last step:
 
-### Tag the dataset and write the dataset card
+#### Tag the dataset and write the dataset card
 
 Each dataset is provided with a dataset card.
 

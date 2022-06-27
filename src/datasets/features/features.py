@@ -336,9 +336,23 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
     elif config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(obj, PIL.Image.Image):
         return encode_pil_image(obj), True
     elif isinstance(obj, pd.Series):
-        return obj.values.tolist(), True
+        return (
+            _cast_to_python_objects(
+                obj.tolist(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+            )[0],
+            True,
+        )
     elif isinstance(obj, pd.DataFrame):
-        return obj.to_dict("list"), True
+        return {
+            key: _cast_to_python_objects(
+                value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+            )[0]
+            for key, value in obj.to_dict("list").items()
+        }, True
+    elif isinstance(obj, pd.Timestamp):
+        return obj.to_pydatetime(), True
+    elif isinstance(obj, pd.Timedelta):
+        return obj.to_pytimedelta(), True
     elif isinstance(obj, Mapping):  # check for dict-like to handle nested LazyDict objects
         has_changed = not isinstance(obj, dict)
         output = {}
