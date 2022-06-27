@@ -801,7 +801,7 @@ class DatasetBuilder:
                 ) from None
             # If check_duplicates is set to True , then except DuplicatedKeysError
             except DuplicatedKeysError as e:
-                e.args = ( e.args[0] + f"datasets/{self.name}/{self.name}.py" ,)
+                e.args = (e.args[0] + f"datasets/{self.name}/{self.name}.py",)
                 raise (e) from None
             dl_manager.manage_extracted_files()
 
