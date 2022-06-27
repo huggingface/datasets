@@ -377,12 +377,6 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
             "test": "data/test.txt",
             "validation": "data/valid.txt",
         },
-        # file named after split in a directory + metadata file
-        {
-            "train": ["data/train.jpg", "data/metadata.jsonl"],
-            "test": ["data/test.jpg", "data/metadata.jsonl"],
-            "validation": ["data/valid.jpg", "data/metadata.jsonl"],
-        },
         # directory named after split
         {
             "train": "train/split.txt",
@@ -438,10 +432,6 @@ def test_get_data_files_patterns(data_file_per_split):
     patterns_per_split = _get_data_files_patterns(resolver)
     assert sorted(patterns_per_split.keys()) == sorted(data_file_per_split.keys())
     for split, patterns in patterns_per_split.items():
-        # remove extra metadata pattern to avoid an error due to the difference
-        # in behavior of fsspec's glob and pathlib's match
-        if "**/metadata.jsonl" in patterns:
-            patterns.remove("**/metadata.jsonl")
         matched = [
             path
             for path in set(chain(*data_file_per_split.values()))

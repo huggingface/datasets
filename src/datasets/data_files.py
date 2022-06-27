@@ -48,7 +48,7 @@ ALL_DEFAULT_PATTERNS = [
     DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
     DEFAULT_PATTERNS_ALL,
 ]
-METADATA_PATTERNS = ["metadata.jsonl", "**/metadata.jsonl"]  # metadata file for ImageFolder and AudioFolder
+METADATA_PATTERN = "metadata.jsonl"  # metadata file for ImageFolder and AudioFolder
 WILDCARD_CHARACTERS = "*[]"
 FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data.zip", "dataset_dict.json"]
 
@@ -83,8 +83,6 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) 
 
     In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
     """
-    from .packaged_modules import _EXTENSION_WITH_OPTIONAL_METADATA
-
     # first check the split patterns like data/{split}-00000-of-00001.parquet
     for split_pattern in ALL_SPLIT_PATTERNS:
         pattern = split_pattern.replace("{split}", "*")
@@ -96,40 +94,27 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) 
     # then check the default patterns based on train/valid/test splits
     for patterns_dict in ALL_DEFAULT_PATTERNS:
         non_empty_splits = []
-        include_metadata_pattern_if_non_empty = False
-        data_files_support_metadata = True
-        # check if the current pattern is eligible for the metadata pattern check
-        if patterns_dict != DEFAULT_PATTERNS_ALL:
-            for pattern in METADATA_PATTERNS:
-                try:
-                    pattern_resolver(pattern)
-                except FileNotFoundError:
-                    pass
-                else:
-                    include_metadata_pattern_if_non_empty = True
-                    break
         for split, patterns in patterns_dict.items():
             try:
                 for pattern in patterns:
                     data_files = pattern_resolver(pattern)
                     if len(data_files) > 0:
                         non_empty_splits.append(split)
-                        # check if data files support metadata
-                        # (if the current pattern supports them and metadata files are present)
-                        if include_metadata_pattern_if_non_empty and data_files_support_metadata:
-                            for data_file in data_files:
-                                _, ext = os.path.splitext(data_file)
-                                if ext[1:] in _EXTENSION_WITH_OPTIONAL_METADATA:
-                                    break
-                            else:
-                                data_files_support_metadata = False
                         break
             except FileNotFoundError:
                 pass
         if non_empty_splits:
-            include_metadata_pattern = include_metadata_pattern_if_non_empty and data_files_support_metadata
+            include_metadata_pattern = False
+            if patterns_dict != DEFAULT_PATTERNS_ALL:
+                try:
+                    pattern_resolver(METADATA_PATTERN)
+                except FileNotFoundError:
+                    pass
+                else:
+                    include_metadata_pattern = True
+
             return {
-                split: patterns_dict[split] + METADATA_PATTERNS if include_metadata_pattern else patterns_dict[split]
+                split: patterns_dict[split] + [METADATA_PATTERN] if include_metadata_pattern else patterns_dict[split]
                 for split in non_empty_splits
             }
     raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
