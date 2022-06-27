@@ -48,6 +48,7 @@ ALL_DEFAULT_PATTERNS = [
     DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
     DEFAULT_PATTERNS_ALL,
 ]
+METADATA_PATTERN = "metadata.jsonl"  # metadata file for ImageFolder and AudioFolder
 WILDCARD_CHARACTERS = "*[]"
 FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data.zip", "dataset_dict.json"]
 
@@ -103,7 +104,19 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) 
             except FileNotFoundError:
                 pass
         if non_empty_splits:
-            return {split: patterns_dict[split] for split in non_empty_splits}
+            include_metadata_pattern = False
+            if patterns_dict != DEFAULT_PATTERNS_ALL:
+                try:
+                    pattern_resolver(METADATA_PATTERN)
+                except FileNotFoundError:
+                    pass
+                else:
+                    include_metadata_pattern = True
+
+            return {
+                split: patterns_dict[split] + [METADATA_PATTERN] if include_metadata_pattern else patterns_dict[split]
+                for split in non_empty_splits
+            }
     raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
 
 

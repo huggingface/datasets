@@ -364,8 +364,13 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
     "data_file_per_split",
     [
         # === Main cases ===
-        # file named afetr split at the root
+        # file named after split at the root
         {"train": "train.txt", "test": "test.txt", "validation": "valid.txt"},
+        # file named after split and metadata file at the root
+        {
+            "train": ["train.jpg", "metadata.jsonl"],
+            "test": ["test.jpg", "metadata.jsonl"],
+        },
         # file named after split in a directory
         {
             "train": "data/train.txt",
@@ -377,6 +382,12 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
             "train": "train/split.txt",
             "test": "test/split.txt",
             "validation": "valid/split.txt",
+        },
+        # directory named after split + metadata file at the root
+        {
+            "train": ["train/image.jpg", "metadata.jsonl"],
+            "test": ["test/image.jpg", "metadata.jsonl"],
+            "validation": ["valid/image.jpg", "metadata.jsonl"],
         },
         # sharded splits
         {
@@ -392,6 +403,7 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
         # Default to train split
         {"train": "dataset.txt"},
         {"train": "data/dataset.txt"},
+        {"train": ["data/image.jpg", "metadata.jsonl"]},
         # With prefix or suffix in directory or file names
         {"train": "my_train_dir/dataset.txt"},
         {"train": "data/my_train_file.txt"},
@@ -415,16 +427,16 @@ def test_get_data_files_patterns(data_file_per_split):
     data_file_per_split = {k: v if isinstance(v, list) else [v] for k, v in data_file_per_split.items()}
 
     def resolver(pattern):
-        return [PurePath(path) for path in chain(*data_file_per_split.values()) if PurePath(path).match(pattern)]
+        return [PurePath(path) for path in set(chain(*data_file_per_split.values())) if PurePath(path).match(pattern)]
 
     patterns_per_split = _get_data_files_patterns(resolver)
     assert sorted(patterns_per_split.keys()) == sorted(data_file_per_split.keys())
     for split, patterns in patterns_per_split.items():
         matched = [
             path
-            for path in chain(*data_file_per_split.values())
+            for path in set(chain(*data_file_per_split.values()))
             for pattern in patterns
             if PurePath(path).match(pattern)
         ]
         assert len(matched) == len(data_file_per_split[split])
-        assert matched == data_file_per_split[split]
+        assert sorted(matched) == sorted(data_file_per_split[split])
