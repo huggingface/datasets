@@ -4073,7 +4073,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if token is None:
             raise OSError(
-                "You need to provide a `token` or be logged in to Hugging Face with " "`huggingface-cli login`."
+                "You need to provide a `token` or be logged in to Hugging Face with `huggingface-cli login`."
             )
 
         if split is None:
