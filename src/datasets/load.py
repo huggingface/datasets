@@ -1161,7 +1161,7 @@ def dataset_module_factory(
                         msg = msg + f" at revision '{revision}'" if revision else msg
                         raise FileNotFoundError(
                             msg
-                            + ". If the repo is private, make sure you are authenticated with ``use_auth_token=True`` after logging in with ``huggingface-cli login```."
+                            + ". If the repo is private, make sure you are authenticated with `use_auth_token=True` after logging in with `huggingface-cli login`."
                         )
                     else:
                         raise e
