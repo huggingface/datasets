@@ -49,6 +49,7 @@ from .features import Features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
+from .keyhash import DuplicatedKeysError
 from .naming import camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator
 from .streaming import extend_dataset_builder_for_streaming
@@ -798,7 +799,13 @@ class DatasetBuilder:
                     + "\nOriginal error:\n"
                     + str(e)
                 ) from None
-
+            # If check_duplicates is set to True , then except DuplicatedKeysError
+            except DuplicatedKeysError as e:
+                raise DuplicatedKeysError(
+                    e.key,
+                    e.duplicate_key_indices,
+                    fix_msg=f"To avoid duplicate keys, please fix the dataset script {self.name}.py",
+                ) from None
             dl_manager.manage_extracted_files()
 
         if verify_infos:

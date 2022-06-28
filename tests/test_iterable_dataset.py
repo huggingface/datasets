@@ -2,6 +2,7 @@ from copy import deepcopy
 from itertools import chain, islice
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from datasets import load_dataset
@@ -699,6 +700,21 @@ def test_iterable_dataset_features(features):
     else:
         expected = [x for _, x in ex_iterable]
     assert list(dataset) == expected
+
+
+def test_iterable_dataset_features_cast_to_python():
+    ex_iterable = ExamplesIterable(
+        generate_examples_fn, {"timestamp": pd.Timestamp(2020, 1, 1), "array": np.ones(5), "n": 1}
+    )
+    features = Features(
+        {
+            "id": Value("int64"),
+            "timestamp": Value("timestamp[us]"),
+            "array": [Value("int64")],
+        }
+    )
+    dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
+    assert list(dataset) == [{"timestamp": pd.Timestamp(2020, 1, 1).to_pydatetime(), "array": [1] * 5, "id": 0}]
 
 
 @require_torch
