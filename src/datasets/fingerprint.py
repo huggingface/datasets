@@ -344,6 +344,27 @@ def update_fingerprint(fingerprint, transform, transform_args):
     return hasher.hexdigest()
 
 
+def validate_fingerprint(fingerprint: str, max_length=64):
+    """
+    Make sure the fingerprint is a non-empty string that is not longer that max_length=64 by default,
+    so that the fingerprint can be used to name cache files without issues.
+    """
+    invalid_windows_characters_in_path = r"<>:/\|?*"
+    if not isinstance(fingerprint, str) or not fingerprint:
+        raise ValueError(f"Invalid fingerprint '{fingerprint}': it should be a non-empty string.")
+    for invalid_char in invalid_windows_characters_in_path:
+        if invalid_char in fingerprint:
+            raise ValueError(
+                f"Invalid fingerprint. Bad characters from black list '{invalid_windows_characters_in_path}' found in '{fingerprint}'. "
+                f"They could create issues when creating cache files."
+            )
+    if len(fingerprint) > max_length:
+        raise ValueError(
+            f"Invalid fingerprint. Maximum lenth is {max_length} but '{fingerprint}' has length {len(fingerprint)}."
+            "It could create issues when creating cache files."
+        )
+
+
 def fingerprint_transform(
     inplace: bool,
     use_kwargs: Optional[List[str]] = None,
@@ -452,6 +473,8 @@ def fingerprint_transform(
                         kwargs[fingerprint_name] = update_fingerprint(
                             self._fingerprint, transform, kwargs_for_fingerprint
                         )
+                    else:
+                        validate_fingerprint(kwargs[fingerprint_name])
 
             # Call actual function
 
