@@ -367,11 +367,6 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
         # === Main cases ===
         # file named after split at the root
         {"train": "train.txt", "test": "test.txt", "validation": "valid.txt"},
-        # # file named after split and metadata file at the root
-        # {
-        #     "train": ["train.jpg", "metadata.jsonl"],
-        #     "test": ["test.jpg", "metadata.jsonl"],
-        # },
         # file named after split in a directory
         {
             "train": "data/train.txt",
