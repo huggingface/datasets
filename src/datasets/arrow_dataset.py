@@ -281,7 +281,7 @@ class TensorflowDatasetMixin:
                 else:
                     np_arrays.append(np.array(array))
 
-            if np.issubdtype(np_arrays[0].dtype, np.integer) or np_arrays[0].dtype == np.dtype("bool"):
+            if np.issubdtype(np_arrays[0].dtype, np.integer) or np_arrays[0].dtype == bool:
                 tf_dtype = tf.int64
                 np_dtype = np.int64
             elif np.issubdtype(np_arrays[0].dtype, np.number):
