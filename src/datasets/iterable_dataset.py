@@ -184,6 +184,7 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
     This is done with `_apply_feature_types`.
     """
+
     def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
         self.ex_iterables = ex_iterables
 
@@ -235,6 +236,7 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
     This is done with `_apply_feature_types`.
     """
+
     def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
         self.ex_iterables = ex_iterables
 
