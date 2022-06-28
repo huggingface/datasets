@@ -374,9 +374,11 @@ class ModuleFactoryTest(TestCase):
             self._data_dir_with_metadata
         )
         assert any(
-            data_file == "metadata.jsonl" for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
+            data_file.name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
         ) and any(
-            data_file == "metadata.jsonl" for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
+            data_file.name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
         )
 
     def test_HubDatasetModuleFactoryWithoutScript(self):
