@@ -423,7 +423,8 @@ class ModuleFactoryTest(TestCase):
         assert any(
             Path(data_file).name == "metadata.jsonl"
             for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
-        ) and any(
+        )
+        assert any(
             Path(data_file).name == "metadata.jsonl"
             for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
         )
