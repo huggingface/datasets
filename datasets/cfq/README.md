@@ -15,8 +15,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- question-answering
+- other
 task_ids:
+- open-domain-qa
+- closed-domain-qa
 - other-multi-turn
 paperswithcode_id: cfq
 ---
