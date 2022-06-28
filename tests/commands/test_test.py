@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from packaging import version
 
 from datasets import config
-from datasets.commands.test import CLITestCommand
+from datasets.commands.test import TestCommand
 
 
 if config.PY_VERSION >= version.parse("3.7"):
@@ -45,7 +45,7 @@ else:
 
 def test_test_command(dataset_loading_script_dir):
     args = _TestCommandArgs(dataset=dataset_loading_script_dir, all_configs=True, save_infos=True)
-    test_command = CLITestCommand(*args)
+    test_command = TestCommand(*args)
     test_command.run()
     dataset_infos_path = os.path.join(dataset_loading_script_dir, config.DATASETDICT_INFOS_FILENAME)
     assert os.path.exists(dataset_infos_path)
