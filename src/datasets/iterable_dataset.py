@@ -173,6 +173,17 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
 
 class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
+    """
+    VerticallyConcatenatedMultiSourcesExamplesIterable simply chains the input iterables.
+    It doesn't require the examples iterables to always yield the same columns.
+    Instead, this is handled by the `IterableDataset` class or `TypedExamplesIterable`.
+
+    For information, `IterableDataset` merges the features of all the datasets to concatenate into one.
+    We use `IterableDataset._resolve_features` to obtain the features of all the datasets to concatenate.
+
+    Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
+    This is done with `_apply_feature_types`.
+    """
     def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
         self.ex_iterables = ex_iterables
 
@@ -210,6 +221,20 @@ def _check_column_names(column_names: List[str]):
 
 
 class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
+    """
+    HorizontallyConcatenatedMultiSourcesExamplesIterable merges examples together for the input list of iterables.
+    It also checks that there are no duplicate columns (otherwise we don't know which one to keep).
+    This check is done once when yielding the first example.
+
+    However it doesn't fill missing columns with None.
+    Instead, this is handled by the `IterableDataset` class or `TypedExamplesIterable`.
+
+    For information, `IterableDataset` merges the features of all the datasets to concatenate into one.
+    We use `IterableDataset._resolve_features` to obtain the features of all the datasets to concatenate.
+
+    Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
+    This is done with `_apply_feature_types`.
+    """
     def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
         self.ex_iterables = ex_iterables
 
@@ -565,29 +590,44 @@ class TakeExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.n_shards
 
 
+def _apply_feature_types(
+    example: dict, features: Features, token_per_repo_id: Dict[str, Union[str, bool, None]]
+) -> dict:
+    example = dict(example)
+    # add missing columns
+    for column_name in features:
+        if column_name not in example:
+            example[column_name] = None
+    # we encode the example for ClassLabel feature types for example
+    encoded_example = features.encode_example(example)
+    # Decode example for Audio feature, e.g.
+    decoded_example = features.decode_example(encoded_example, token_per_repo_id=token_per_repo_id)
+    return decoded_example
+
+
 class TypedExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterable: _BaseExamplesIterable, features: Features):
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        features: Features,
+        token_per_repo_id: Dict[str, Union[str, bool, None]],
+    ):
         self.ex_iterable = ex_iterable
         self.features = features
+        self.token_per_repo_id = token_per_repo_id
 
     def __iter__(self):
+        # Then for each example, `TypedExamplesIterable` automatically fills missing columns with None.
+        # This is done with `_apply_feature_types`.
         for key, example in self.ex_iterable:
-            example = dict(example)
-            # add missing columns
-            for column_name in self.features:
-                if column_name not in example:
-                    example[column_name] = None
-            # we encode the example for ClassLabel feature types for example
-            encoded_example = self.features.encode_example(example)
-            # Decode example for Audio feature, e.g.
-            decoded_example = self.features.decode_example(encoded_example)
-            yield key, decoded_example
+            yield key, _apply_feature_types(example, self.features, token_per_repo_id=self.token_per_repo_id)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "TypedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
         return TypedExamplesIterable(
             self.ex_iterable.shuffle_data_sources(generator),
             features=self.features,
+            token_per_repo_id=self.token_per_repo_id,
         )
 
     def shard_data_sources(self, shard_idx: int) -> "TypedExamplesIterable":
@@ -595,6 +635,7 @@ class TypedExamplesIterable(_BaseExamplesIterable):
         return TypedExamplesIterable(
             self.ex_iterable.shard_data_sources(shard_idx),
             features=self.features,
+            token_per_repo_id=self.token_per_repo_id,
         )
 
     @property
@@ -637,7 +678,7 @@ class IterableDataset(DatasetInfoMixin):
         self._format_type = format_type
         self._shuffling = shuffling
         self._epoch = 0
-        self._token_per_repo_id = token_per_repo_id or {}
+        self._token_per_repo_id: Dict[str, Union[str, bool, None]] = token_per_repo_id or {}
 
     def _head(self, n=5):
         return _examples_to_batch([x for key, x in islice(self._iter(), n)])
@@ -671,24 +712,14 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = self._ex_iterable
         yield from ex_iterable.shard_data_sources(shard_idx)
 
-    def _apply_feature_types(self, example):
-        if self.features:
-            example = dict(example)
-            # add missing columns
-            for column_name in self.features:
-                if column_name not in example:
-                    example[column_name] = None
-            # we encode the example for ClassLabel feature types for example
-            encoded_example = self.features.encode_example(example)
-            # Decode example for Audio feature, e.g.
-            decoded_example = self.features.decode_example(encoded_example, token_per_repo_id=self._token_per_repo_id)
-            return decoded_example
-        else:
-            return example
-
     def __iter__(self):
         for key, example in self._iter():
-            yield self._apply_feature_types(example)
+            if self.features:
+                # `IterableDataset` automatically fills missing columns with None.
+                # This is done with `_apply_feature_types`.
+                yield _apply_feature_types(example, self.features, token_per_repo_id=self._token_per_repo_id)
+            else:
+                yield example
 
     def with_format(
         self,
@@ -790,7 +821,7 @@ class IterableDataset(DatasetInfoMixin):
         info = self._info.copy()
         info.features = None
         ex_iterable = MappedExamplesIterable(
-            TypedExamplesIterable(self._ex_iterable, self._info.features)
+            TypedExamplesIterable(self._ex_iterable, self._info.features, token_per_repo_id=self._token_per_repo_id)
             if self._info.features is not None
             else self._ex_iterable,
             function=function,
@@ -859,7 +890,7 @@ class IterableDataset(DatasetInfoMixin):
 
         # We need the examples to be decoded for certain feature types like Image or Audio, so we use TypedExamplesIterable here
         ex_iterable = FilteredExamplesIterable(
-            TypedExamplesIterable(self._ex_iterable, self._info.features)
+            TypedExamplesIterable(self._ex_iterable, self._info.features, token_per_repo_id=self._token_per_repo_id)
             if self._info.features is not None
             else self._ex_iterable,
             function=function,
@@ -1325,6 +1356,7 @@ def _concatenate_iterable_datasets(
     else:
         ex_iterable = HorizontallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
     # Set new info - we update the features
+    # setting the features also ensures to fill missing columns with None
     if info is None:
         info = DatasetInfo.from_merge([d.info for d in dsets])
     else:
@@ -1358,8 +1390,9 @@ def _interleave_iterable_datasets(
     Output:
         :class:`datasets.IterableDataset`
     """
+    # TODO(QL): merge the features as in _concatenate_iterable_datasets() and don't use TypedExamplesIterable
     ex_iterables = [
-        TypedExamplesIterable(d._ex_iterable, d.features)
+        TypedExamplesIterable(d._ex_iterable, d.features, token_per_repo_id=d._token_per_repo_id)
         if not isinstance(d._ex_iterable, TypedExamplesIterable) and d.features is not None
         else d._ex_iterable
         for d in datasets
@@ -1373,6 +1406,7 @@ def _interleave_iterable_datasets(
             ex_iterables, generator=generator, probabilities=probabilities
         )
     # Set new info - we reset the features
+    # TODO(QL): merge the features as in _concatenate_iterable_datasets() and use them here
     if info is None:
         info = DatasetInfo.from_merge([d.info for d in datasets])
         info.features = None
