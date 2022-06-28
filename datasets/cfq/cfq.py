@@ -125,10 +125,21 @@ class Cfq(datasets.GeneratorBasedBuilder):
         # For the 4GB dataset file it requires more than 40GB of RAM and takes 3min.
         # There are more efficient libraries but in order to avoid additional
         # dependencies we use a simple (perhaps somewhat brittle) regexp to reduce
-        # the content to only what is needed. This takes 1min to execute but
-        # afterwards loading requires only 500MB or RAM and is done in 2s.
-        regex = re.compile(r'("%s":\s*"[^"]*").*?("%s":\s*"[^"]*")' % (_QUESTION_FIELD, _QUERY_FIELD), re.DOTALL)
-        return "[" + ",".join(["{" + m.group(1) + "," + m.group(2) + "}" for m in regex.finditer(content)]) + "]"
+        # the content to only what is needed.
+        question_regex = re.compile(r'("%s":\s*"[^"]*")' % _QUESTION_FIELD)
+        query_regex = re.compile(r'("%s":\s*"[^"]*")' % _QUERY_FIELD)
+        question_match = None
+        result = []
+        for line in content:
+            line = line.decode("utf-8")
+            if not question_match:
+                question_match = question_regex.match(line)
+            else:
+                query_match = query_regex.match(line)
+                if query_match:
+                    result.append((question_match.group(1), query_match.group(1)))
+                    question_match = None
+        return "[" + ",".join(["{" + match[0] + "," + match[1] + "}" for match in result]) + "]"
 
     def _generate_examples(self, data_files, split_id):
         """Yields examples."""
@@ -139,7 +150,7 @@ class Cfq(datasets.GeneratorBasedBuilder):
                 splits = json.load(file)
             elif path == samples_path:
                 logger.info("Reading json from %s into memory...", samples_path)
-                samples = json.loads(self._scrub_json(file.read().decode("utf-8")))
+                samples = json.loads(self._scrub_json(file))
                 logger.info("%d samples loaded", len(samples))
                 logger.info("Loaded json data from %s.", samples_path)
             elif splits and samples:
