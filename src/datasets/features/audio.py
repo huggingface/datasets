@@ -123,7 +123,9 @@ class Audio:
         if path is None and file is None:
             raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
         elif path is not None and path.endswith("mp3"):
-            array, sampling_rate = self._decode_mp3(file if file else path)
+            array, sampling_rate = self._decode_torchaudio(file if file else path)
+        elif path is not None and path.endswith("flac"):
+            array, sampling_rate = self._decode_torchaudio(file if file else path,audio_format="flac")
         elif path is not None and path.endswith("opus"):
             if file:
                 array, sampling_rate = self._decode_non_mp3_file_like(file, "opus")
@@ -271,6 +273,40 @@ class Audio:
             raise ImportError("To support decoding 'mp3' audio files, please install 'sox'.") from err
 
         array, sampling_rate = torchaudio.load(path_or_file, format="mp3")
+        if self.sampling_rate and self.sampling_rate != sampling_rate:
+            if not hasattr(self, "_resampler") or self._resampler.orig_freq != sampling_rate:
+                self._resampler = T.Resample(sampling_rate, self.sampling_rate)
+            array = self._resampler(array)
+            sampling_rate = self.sampling_rate
+        array = array.numpy()
+        if self.mono:
+            array = array.mean(axis=0)
+        return array, sampling_rate
+
+    def _decode_torchaudio(self, path_or_file,audio_format="mp3"):
+        """
+        Decode audio file depending on the audio_format value. It evaluate the Sampling rate in order to execute resampling if necessary
+        Arg:
+            path_or_file (:obj:`str`): Path to the audio file endswith audio_format
+            audio_format (:obj:`str`,optional): Audio formats support by Torchaudio
+        returns:
+            array (np.array): numerical representation of the decoded audio
+            sampling_rate (:obj:`int`): sampling rate of the decoding audio
+
+        """
+        try:
+            import torchaudio
+            import torchaudio.transforms as T
+        except ImportError as err:
+            err_msg = "To support decoding '{}' audio files, please install 'torchaudio'.".format(audio_format)
+            raise ImportError(err_msg) from err
+        try:
+            torchaudio.set_audio_backend("sox_io")
+        except RuntimeError as err:
+            err_msg = "To support decoding '{}' audio files, please install 'sox'.".format(audio_format)
+            raise ImportError(err_msg) from err
+
+        array, sampling_rate = torchaudio.load(path_or_file, format=audio_format)
         if self.sampling_rate and self.sampling_rate != sampling_rate:
             if not hasattr(self, "_resampler") or self._resampler.orig_freq != sampling_rate:
                 self._resampler = T.Resample(sampling_rate, self.sampling_rate)
