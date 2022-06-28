@@ -26,6 +26,10 @@ import datasets
 logger = datasets.logging.get_logger(__name__)
 
 
+_HOMEPAGE = "https://github.com/google-research/google-research/tree/master/cfq"
+
+_LICENSE = "CC BY 4.0"
+
 _CITATION = """
 @inproceedings{Keysers2020,
   title={Measuring Compositional Generalization: A Comprehensive Method on
@@ -101,7 +105,8 @@ class Cfq(datasets.GeneratorBasedBuilder):
                 }
             ),
             supervised_keys=(_QUESTION, _QUERY),
-            homepage="https://github.com/google-research/google-research/tree/master/cfq",
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
             citation=_CITATION,
         )
 
