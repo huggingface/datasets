@@ -79,8 +79,6 @@ languages:
 - pcm
 - pl
 - pt
-- qhe
-- qtd
 - ro
 - ru
 - sa
@@ -117,10 +115,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- token-classification
 task_ids:
-- constituency-parsing
-- dependency-parsing
+- parsing
+- token-classification-other-constituency-parsing
+- token-classification-other-dependency-parsing
 paperswithcode_id: universal-dependencies
 pretty_name: Universal Dependencies Treebank
 configs:

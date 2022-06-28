@@ -837,8 +837,8 @@ class DummyBuilderWithCustomBuilderConfigs(GeneratorBasedBuilder):
     "builder_class, kwargs",
     [
         (DummyBuilderWithVersion, {}),
-        (DummyBuilderWithBuilderConfigs, {"name": "custom"}),
-        (DummyBuilderWithCustomBuilderConfigs, {"name": "20220501.en"}),
+        (DummyBuilderWithBuilderConfigs, {"config_name": "custom"}),
+        (DummyBuilderWithCustomBuilderConfigs, {"config_name": "20220501.en"}),
         (DummyBuilderWithCustomBuilderConfigs, {"date": "20220501", "language": "ca"}),
     ],
 )
