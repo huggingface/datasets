@@ -725,7 +725,7 @@ if config.DILL_VERSION < version.parse("0.3.5"):
             # therefore we have to sort the keys to make deterministic.
             # This is important to make `dump` deterministic.
             # Only this line is different from the original implementation:
-            globs = {k: globs[k] for k in sorted(globs.keys())}
+            globs = dict(sorted(globs.items()))
             # The rest is the same as in the original dill implementation
             _byref = getattr(pickler, "_byref", None)
             _recurse = getattr(pickler, "_recurse", None)
@@ -827,11 +827,11 @@ else:  # config.DILL_VERSION >= version.parse("0.3.5")
             # Only these line are different from the original implementation:
             # START
             globs_is_globs_copy = globs is globs_copy
-            globs = {k: globs[k] for k in sorted(globs.keys())}
+            globs = dict(sorted(globs.items()))
             if globs_is_globs_copy:
                 globs_copy = globs
             elif globs_copy is not None:
-                globs_copy = {k: globs_copy[k] for k in sorted(globs_copy.keys())}
+                globs_copy = dict(sorted(globs_copy.items()))
             # END
 
             if globs_copy is not None and globs is not globs_copy:
