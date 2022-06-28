@@ -53,7 +53,6 @@ pretty_name: Persian News Summary (PnSummary)
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/hooshvare/pn-summary/
 - **Repository:** https://github.com/hooshvare/pn-summary/
 - **Paper:** https://arxiv.org/abs/2012.11204
 - **Leaderboard:** [More Information Needed]
