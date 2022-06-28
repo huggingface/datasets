@@ -35,7 +35,8 @@
         "type": "cv",
         "subtasks": [
             "multi-label-image-classification",
-            "multi-class-image-classification"
+            "multi-class-image-classification",
+            "binary-image-classification"
         ]
     },
     "image-segmentation": {
@@ -104,7 +105,8 @@
         "subtasks": [
             "tabular-multi-class-classification",
             "tabular-multi-label-classification",
-            "tabular-single-column-regression"
+            "tabular-single-column-regression",
+            "tabular-binary-classification"
         ]
     },
     "tabular-to-text": {
@@ -120,6 +122,7 @@
             "entity-linking-classification",
             "fact-checking",
             "intent-classification",
+            "binary-classification",
             "multi-class-classification",
             "multi-label-classification",
             "natural-language-inference",
