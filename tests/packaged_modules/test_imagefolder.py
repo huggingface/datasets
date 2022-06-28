@@ -106,13 +106,13 @@ def data_files_with_two_splits_and_metadata(tmp_path, image_file):
     )
     with open(train_image_metadata_filename, "w", encoding="utf-8") as f:
         f.write(image_metadata)
-    train_image_metadata_filename = test_dir / "metadata.jsonl"
+    test_image_metadata_filename = test_dir / "metadata.jsonl"
     image_metadata = textwrap.dedent(
         """\
         {"file_name": "image_rgb3.jpg", "caption": "Nice test image"}
         """
     )
-    with open(train_image_metadata_filename, "w", encoding="utf-8") as f:
+    with open(test_image_metadata_filename, "w", encoding="utf-8") as f:
         f.write(image_metadata)
     data_files_with_two_splits_and_metadata = DataFilesDict.from_local_or_remote(
         get_data_patterns_locally(data_dir), data_dir

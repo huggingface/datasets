@@ -120,7 +120,9 @@ def _get_metadata_files_patterns(pattern_resolver: Callable[[str], List[PurePath
                 non_empty_patterns.append(pattern)
         except FileNotFoundError:
             pass
-    return non_empty_patterns
+    if non_empty_patterns:
+        return non_empty_patterns
+    raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
 
 
 def _resolve_single_pattern_locally(
