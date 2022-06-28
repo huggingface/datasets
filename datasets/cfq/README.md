@@ -20,7 +20,7 @@ task_categories:
 task_ids:
 - open-domain-qa
 - closed-domain-qa
-- other-multi-turn
+- other-compositionality
 paperswithcode_id: cfq
 ---
 
