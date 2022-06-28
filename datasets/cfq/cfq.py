@@ -110,7 +110,7 @@ class Cfq(datasets.GeneratorBasedBuilder):
         archive_path = dl_manager.download(_DATA_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
+                name=split,
                 gen_kwargs={
                     "data_files": dl_manager.iter_archive(archive_path),
                     "split_id": f"{split}Idxs",
