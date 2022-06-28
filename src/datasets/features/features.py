@@ -1222,7 +1222,7 @@ def encode_nested_example(schema, obj, level=0):
     return obj
 
 
-def decode_nested_example(schema, obj, token_per_repo_id=None):
+def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
     """Decode a nested example.
     This is used since some features (in particular Audio and Image) have some logic during decoding.
 
@@ -1613,7 +1613,7 @@ class Features(dict):
             encoded_batch[key] = [encode_nested_example(self[key], obj) for obj in column]
         return encoded_batch
 
-    def decode_example(self, example: dict, token_per_repo_id=None):
+    def decode_example(self, example: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
         """Decode example with custom feature decoding.
 
         Args:
