@@ -50,7 +50,7 @@ from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
 from .keyhash import DuplicatedKeysError
-from .naming import camelcase_to_snakecase
+from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator
 from .streaming import extend_dataset_builder_for_streaming
 from .utils import logging
@@ -105,11 +105,10 @@ class BuilderConfig:
 
     def __post_init__(self):
         # The config name is used to name the cache directory.
-        invalid_windows_characters_in_path = r"<>:/\|?*"
-        for invalid_char in invalid_windows_characters_in_path:
+        for invalid_char in INVALID_WINDOWS_CHARACTERS_IN_PATH:
             if invalid_char in self.name:
                 raise InvalidConfigName(
-                    f"Bad characters from black list '{invalid_windows_characters_in_path}' found in '{self.name}'. "
+                    f"Bad characters from black list '{INVALID_WINDOWS_CHARACTERS_IN_PATH}' found in '{self.name}'. "
                     f"They could create issues when creating a directory for this config on Windows filesystem."
                 )
         if self.data_files is not None and not isinstance(self.data_files, DataFilesDict):

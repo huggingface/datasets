@@ -15,6 +15,7 @@ import pyarrow as pa
 import xxhash
 
 from .info import DatasetInfo
+from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH
 from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
 from .utils.deprecation_utils import deprecated
 from .utils.logging import get_logger
@@ -349,13 +350,12 @@ def validate_fingerprint(fingerprint: str, max_length=64):
     Make sure the fingerprint is a non-empty string that is not longer that max_length=64 by default,
     so that the fingerprint can be used to name cache files without issues.
     """
-    invalid_windows_characters_in_path = r"<>:/\|?*"
     if not isinstance(fingerprint, str) or not fingerprint:
         raise ValueError(f"Invalid fingerprint '{fingerprint}': it should be a non-empty string.")
-    for invalid_char in invalid_windows_characters_in_path:
+    for invalid_char in INVALID_WINDOWS_CHARACTERS_IN_PATH:
         if invalid_char in fingerprint:
             raise ValueError(
-                f"Invalid fingerprint. Bad characters from black list '{invalid_windows_characters_in_path}' found in '{fingerprint}'. "
+                f"Invalid fingerprint. Bad characters from black list '{INVALID_WINDOWS_CHARACTERS_IN_PATH}' found in '{fingerprint}'. "
                 f"They could create issues when creating cache files."
             )
     if len(fingerprint) > max_length:
