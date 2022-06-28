@@ -77,7 +77,7 @@ SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"  # has dataset script
 SAMPLE_DATASET_IDENTIFIER2 = "lhoestq/test2"  # only has data files
 SAMPLE_DATASET_IDENTIFIER3 = "mariosasko/test_multi_dir_dataset"  # has multiple data directories
 SAMPLE_DATASET_IDENTIFIER4 = (
-    "mariosasko/test_imagefolder_with_metadata"  # imagefolder with a metadata file outside of it
+    "mariosasko/test_imagefolder_with_metadata"  # imagefolder with a metadata file outside of the train/test directories
 )
 SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "lhoestq/_dummy"
 SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
