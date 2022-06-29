@@ -1,5 +1,5 @@
-from email.mime import base
 import os
+from email.mime import base
 from functools import partial
 from pathlib import Path, PurePath
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
@@ -103,14 +103,8 @@ def _is_inside_unrequested_special_dir_to_ignore(matched_rel_path: str, pattern:
     # We just need to check if every special directories from the path is present explicly in the pattern.
     # Since we assume that the path matches the pattern, it's equivalent to counting that both
     # the path and the pattern have the same number of special directories.
-    data_dirs_to_ignore_in_path = [
-        part for part in PurePath(matched_rel_path).parts
-        if part in SPECIAL_DIRS_TO_IGNORE
-    ]
-    data_dirs_to_ignore_in_pattern = [
-        part for part in PurePath(pattern).parts
-        if part in SPECIAL_DIRS_TO_IGNORE
-    ]
+    data_dirs_to_ignore_in_path = [part for part in PurePath(matched_rel_path).parts if part in SPECIAL_DIRS_TO_IGNORE]
+    data_dirs_to_ignore_in_pattern = [part for part in PurePath(pattern).parts if part in SPECIAL_DIRS_TO_IGNORE]
     return len(data_dirs_to_ignore_in_path) != len(data_dirs_to_ignore_in_pattern)
 
 
@@ -168,12 +162,10 @@ def _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(matched_rel_
     # Since we assume that the path matches the pattern, it's equivalent to counting that both
     # the path and the pattern have the same number of hidden parts.
     hidden_directories_in_path = [
-        part for part in PurePath(matched_rel_path).parts
-        if part.startswith(".") and not set(part) == {"."}
+        part for part in PurePath(matched_rel_path).parts if part.startswith(".") and not set(part) == {"."}
     ]
     hidden_directories_in_pattern = [
-        part for part in PurePath(pattern).parts
-        if part.startswith(".") and not set(part) == {"."}
+        part for part in PurePath(pattern).parts if part.startswith(".") and not set(part) == {"."}
     ]
     return len(hidden_directories_in_path) != len(hidden_directories_in_pattern)
 
@@ -219,19 +211,19 @@ def _resolve_single_pattern_locally(
     If an URL is passed, it is returned as is.
     """
     if is_relative_path(pattern):
-        abs_pattern = os.path.join(base_path, pattern)
-        effective_base_path = base_path
+        pattern = os.path.join(base_path, pattern)
     else:
-        abs_pattern = pattern
-        effective_base_path = "/"
+        base_path = "/"
     fs = LocalFileSystem()
-    glob_iter = [PurePath(filepath) for filepath in fs.glob(abs_pattern) if fs.isfile(filepath)]
+    glob_iter = [PurePath(filepath) for filepath in fs.glob(pattern) if fs.isfile(filepath)]
     matched_paths = [
         Path(filepath).resolve()
         for filepath in glob_iter
         if (filepath.name not in FILES_TO_IGNORE or PurePath(pattern).name == filepath.name)
-        and not _is_inside_unrequested_special_dir_to_ignore(os.path.relpath(filepath, effective_base_path), pattern)
-        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(os.path.relpath(filepath, effective_base_path), pattern)
+        and not _is_inside_unrequested_special_dir_to_ignore(os.path.relpath(filepath, base_path), pattern)
+        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
+            os.path.relpath(filepath, base_path), pattern
+        )
     ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [
@@ -419,7 +411,9 @@ def _resolve_single_pattern_in_dataset_repository(
         for filepath in glob_iter
         if (filepath.name not in FILES_TO_IGNORE or PurePath(pattern).name == filepath.name)
         and not _is_inside_unrequested_special_dir_to_ignore(os.path.relpath(filepath, base_path), pattern)
-        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(os.path.relpath(filepath, base_path), pattern)
+        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
+            os.path.relpath(filepath, base_path), pattern
+        )
     ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [
