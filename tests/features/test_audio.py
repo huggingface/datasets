@@ -155,7 +155,7 @@ def test_audio_decode_example_pcm(shared_datadir):
     assert decoded_example.keys() == {"path", "array", "sampling_rate"}
     assert decoded_example["path"] is None
     assert decoded_example["array"].shape == (16208 * sampling_rate // 16_000,)
-    assert decoded_example["sampling_rate"] == 16000
+    assert decoded_example["sampling_rate"] == sampling_rate
 
 
 @require_sox
