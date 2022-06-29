@@ -96,7 +96,7 @@ class Audio:
             # we set "bytes": None to not duplicate the data if they're already available locally
             if value["path"].endswith("pcm"):
                 # "PCM" only has raw audio bytes
-                if self.sampling_rate is None:
+                if value.get("sampling_rate") is None:
                     # At least, If you want to convert "PCM-byte" to "WAV-byte", you have to know sampling rate
                     raise KeyError("To use PCM files, please specify a 'sampling_rate' in Audio object")
                 if value.get("bytes"):
