@@ -81,9 +81,9 @@ def test_audio_feature_encode_example(shared_datadir, build_example):
 @pytest.mark.parametrize(
     "build_example",
     [
-        lambda audio_path: {"path": audio_path},
-        lambda audio_path: {"path": audio_path, "bytes": None},
-        lambda audio_path: {"path": audio_path, "bytes": open(audio_path, "rb").read()},
+        lambda audio_path: {"path": audio_path, "sampling_rate": 16_000},
+        lambda audio_path: {"path": audio_path, "bytes": None, "sampling_rate": 16_000},
+        lambda audio_path: {"path": audio_path, "bytes": open(audio_path, "rb").read(), "sampling_rate": 16_000},
         lambda audio_path: {"array": [0.1, 0.2, 0.3], "sampling_rate": 16_000},
     ],
 )
