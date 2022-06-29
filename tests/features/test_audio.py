@@ -146,8 +146,8 @@ def test_audio_decode_example_opus(shared_datadir):
     assert decoded_example["sampling_rate"] == 48000
 
 
-def test_audio_decode_example_pcm(shared_datadir):
-    sampling_rate = 16_000
+@pytest.mark.parametrize("sampling_rate", [16_000, 48_000])
+def test_audio_decode_example_pcm(shared_datadir, sampling_rate):
     audio_path = str(shared_datadir / "test_audio_16000.pcm")
     audio_input = {"path": audio_path, "sampling_rate": 16_000}
     audio = Audio(sampling_rate=sampling_rate)
