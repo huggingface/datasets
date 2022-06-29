@@ -149,8 +149,8 @@ def test_audio_decode_example_opus(shared_datadir):
 def test_audio_decode_example_pcm(shared_datadir):
     sampling_rate = 16_000
     audio_path = str(shared_datadir / "test_audio_16000.pcm")
-    audio_input = {"path": audio_path, "sampling_rate": sampling_rate}
-    audio = Audio(sampling_rate=16_000)
+    audio_input = {"path": audio_path, "sampling_rate": 16_000}
+    audio = Audio(sampling_rate=sampling_rate)
     decoded_example = audio.decode_example(audio.encode_example(audio_input))
     assert decoded_example.keys() == {"path", "array", "sampling_rate"}
     assert decoded_example["path"] is None
