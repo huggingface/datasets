@@ -81,9 +81,9 @@ def test_audio_feature_encode_example(shared_datadir, build_example):
 @pytest.mark.parametrize(
     "build_example",
     [
-        lambda audio_path: {"path": audio_path},
-        lambda audio_path: {"path": audio_path, "bytes": None},
-        lambda audio_path: {"path": audio_path, "bytes": open(audio_path, "rb").read()},
+        lambda audio_path: {"path": audio_path, "sampling_rate": 16_000},
+        lambda audio_path: {"path": audio_path, "bytes": None, "sampling_rate": 16_000},
+        lambda audio_path: {"path": audio_path, "bytes": open(audio_path, "rb").read(), "sampling_rate": 16_000},
         lambda audio_path: {"array": [0.1, 0.2, 0.3], "sampling_rate": 16_000},
     ],
 )
@@ -146,16 +146,16 @@ def test_audio_decode_example_opus(shared_datadir):
     assert decoded_example["sampling_rate"] == 48000
 
 
-def test_audio_decode_example_pcm(shared_datadir):
-    sampling_rate = 16_000
+@pytest.mark.parametrize("sampling_rate", [16_000, 48_000])
+def test_audio_decode_example_pcm(shared_datadir, sampling_rate):
     audio_path = str(shared_datadir / "test_audio_16000.pcm")
-    audio_input = {"path": audio_path, "sampling_rate": sampling_rate}
-    audio = Audio(sampling_rate=16_000)
+    audio_input = {"path": audio_path, "sampling_rate": 16_000}
+    audio = Audio(sampling_rate=sampling_rate)
     decoded_example = audio.decode_example(audio.encode_example(audio_input))
     assert decoded_example.keys() == {"path", "array", "sampling_rate"}
     assert decoded_example["path"] is None
-    assert decoded_example["array"].shape == (16208,)
-    assert decoded_example["sampling_rate"] == 16000
+    assert decoded_example["array"].shape == (16208 * sampling_rate // 16_000,)
+    assert decoded_example["sampling_rate"] == sampling_rate
 
 
 @require_sox
