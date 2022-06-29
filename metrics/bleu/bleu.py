@@ -104,7 +104,7 @@ class Bleu(datasets.Metric):
                     ),
                 }
             ),
-            codebase_urls=["https://github.com/tensorflow/nmt/blob/master/nmt/scripts/bleu.py"],
+            codebase_urls=["https://github.com/Aktsvigun/nmt/blob/master/nmt/scripts/bleu.py"],
             reference_urls=[
                 "https://en.wikipedia.org/wiki/BLEU",
                 "https://towardsdatascience.com/evaluating-text-output-in-nlp-bleu-at-your-own-risk-e8609665a213",
