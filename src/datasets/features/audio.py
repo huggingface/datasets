@@ -106,7 +106,7 @@ class Audio:
                     bytes_value = np.memmap(value["path"], dtype="h", mode="r").astype(np.float32) / 32767
 
                 buffer = BytesIO(bytes())
-                wavfile.write(buffer, self.sampling_rate, bytes_value)
+                wavfile.write(buffer, value["sampling_rate"], bytes_value)
                 return {"bytes": buffer.getvalue(), "path": None}
             else:
                 return {"bytes": None, "path": value.get("path")}
