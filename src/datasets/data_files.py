@@ -1,3 +1,4 @@
+from email.mime import base
 import os
 from functools import partial
 from pathlib import Path, PurePath
@@ -10,7 +11,7 @@ from tqdm.contrib.concurrent import thread_map
 from .filesystems.hffilesystem import HfFileSystem
 from .splits import Split
 from .utils import logging
-from .utils.file_utils import hf_hub_url, is_remote_url, request_etag
+from .utils.file_utils import hf_hub_url, is_relative_path, is_remote_url, request_etag
 from .utils.py_utils import string_to_dict
 
 
@@ -50,6 +51,7 @@ ALL_DEFAULT_PATTERNS = [
 ]
 WILDCARD_CHARACTERS = "*[]"
 FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data.zip", "dataset_dict.json"]
+SPECIAL_DIRS_TO_IGNORE = ["__pycache__"]
 
 
 def contains_wildcards(pattern: str) -> bool:
@@ -73,6 +75,107 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
         return {DEFAULT_SPLIT: patterns}
     else:
         return {DEFAULT_SPLIT: list(patterns)}
+
+
+def _is_inside_unrequested_special_dir_to_ignore(matched_rel_path: str, pattern: str) -> bool:
+    """
+    When a path matches a pattern, we additionnally check if it's inside a directory we ignore
+    by default, e.g. "__pycache__".
+
+    Users can still explicitly request a filepath inside such a directory if "__pycache__" is
+    mentioned explicitly in the requested pattern.
+
+    Some examples:
+
+    base directory:
+
+        ./
+        └── __pycache__
+            └── b.txt
+
+    >>> _is_inside_unrequested_special_dir_to_ignore("__pycache__/b.txt", "**")
+    True
+    >>> _is_inside_unrequested_special_dir_to_ignore("__pycache__/b.txt", "*/b.txt")
+    True
+    >>> _is_inside_unrequested_special_dir_to_ignore("__pycache__/b.txt", "__pycache__/*")
+    False
+    """
+    # We just need to check if every special directories from the path is present explicly in the pattern.
+    # Since we assume that the path matches the pattern, it's equivalent to counting that both
+    # the path and the pattern have the same number of special directories.
+    data_dirs_to_ignore_in_path = [
+        part for part in PurePath(matched_rel_path).parts
+        if part in SPECIAL_DIRS_TO_IGNORE
+    ]
+    data_dirs_to_ignore_in_pattern = [
+        part for part in PurePath(pattern).parts
+        if part in SPECIAL_DIRS_TO_IGNORE
+    ]
+    return len(data_dirs_to_ignore_in_path) != len(data_dirs_to_ignore_in_pattern)
+
+
+def _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(matched_rel_path: str, pattern: str) -> bool:
+    """
+    When a path matches a pattern, we additionnally check if it's a hidden file or if it's inside
+    a hidden directory we ignore by default, i.e. if the file name or a parent directory name starts with a dot.
+
+    Users can still explicitly request a filepath that is hidden or is inside a hidden directory
+    if the hidden part is mentioned explicitly in the requested pattern.
+
+    Some examples:
+
+    base directory:
+
+        ./
+        └── .hidden_file.txt
+
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_file.txt", "**")
+    True
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_file.txt", ".*")
+    False
+
+    base directory:
+
+        ./
+        └── .hidden_dir
+            └── a.txt
+
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/a.txt", "**")
+    True
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/a.txt", ".*/*")
+    False
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/a.txt", ".hidden_dir/*")
+    False
+
+    base directory:
+
+        ./
+        └── .hidden_dir
+            └── .hidden_file.txt
+
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/.hidden_file.txt", "**")
+    True
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/.hidden_file.txt", ".*/*")
+    True
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/.hidden_file.txt", ".*/.*")
+    False
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/.hidden_file.txt", ".hidden_dir/*")
+    True
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/.hidden_file.txt", ".hidden_dir/.*")
+    False
+    """
+    # We just need to check if every hidden part from the path is present explicly in the pattern.
+    # Since we assume that the path matches the pattern, it's equivalent to counting that both
+    # the path and the pattern have the same number of hidden parts.
+    hidden_directories_in_path = [
+        part for part in PurePath(matched_rel_path).parts
+        if part.startswith(".") and not set(part) == {"."}
+    ]
+    hidden_directories_in_pattern = [
+        part for part in PurePath(pattern).parts
+        if part.startswith(".") and not set(part) == {"."}
+    ]
+    return len(hidden_directories_in_path) != len(hidden_directories_in_pattern)
 
 
 def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) -> Dict[str, List[str]]:
@@ -115,18 +218,20 @@ def _resolve_single_pattern_locally(
     It also supports absolute paths in patterns.
     If an URL is passed, it is returned as is.
     """
-    pattern = os.path.join(base_path, pattern)
-    data_files_ignore = FILES_TO_IGNORE
+    if is_relative_path(pattern):
+        abs_pattern = os.path.join(base_path, pattern)
+        effective_base_path = base_path
+    else:
+        abs_pattern = pattern
+        effective_base_path = "/"
     fs = LocalFileSystem()
-    glob_iter = [PurePath(filepath) for filepath in fs.glob(pattern) if fs.isfile(filepath)]
+    glob_iter = [PurePath(filepath) for filepath in fs.glob(abs_pattern) if fs.isfile(filepath)]
     matched_paths = [
         Path(filepath).resolve()
         for filepath in glob_iter
-        if filepath.name not in data_files_ignore
-        and not any(
-            part.startswith((".", "__")) and set(part) != {"."}
-            for part in PurePath(os.path.relpath(filepath, base_path)).parts
-        )
+        if (filepath.name not in FILES_TO_IGNORE or PurePath(pattern).name == filepath.name)
+        and not _is_inside_unrequested_special_dir_to_ignore(os.path.relpath(filepath, effective_base_path), pattern)
+        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(os.path.relpath(filepath, effective_base_path), pattern)
     ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [
@@ -303,19 +408,18 @@ def _resolve_single_pattern_in_dataset_repository(
     base_path: Optional[str] = None,
     allowed_extensions: Optional[list] = None,
 ) -> List[PurePath]:
-    data_files_ignore = FILES_TO_IGNORE
     fs = HfFileSystem(repo_info=dataset_info)
     if base_path:
         pattern = f"{base_path}/{pattern}"
+    else:
+        base_path = "/"
     glob_iter = [PurePath(filepath) for filepath in fs.glob(PurePath(pattern).as_posix()) if fs.isfile(filepath)]
     matched_paths = [
         filepath
         for filepath in glob_iter
-        if filepath.name not in data_files_ignore
-        and not any(
-            part.startswith((".", "__")) and set(part) != {"."}
-            for part in PurePath(os.path.relpath(filepath, base_path)).parts
-        )
+        if (filepath.name not in FILES_TO_IGNORE or PurePath(pattern).name == filepath.name)
+        and not _is_inside_unrequested_special_dir_to_ignore(os.path.relpath(filepath, base_path), pattern)
+        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(os.path.relpath(filepath, base_path), pattern)
     ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [
