@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 DEFAULT_ENCODING = "utf-8"
 
 
-def test_command_factory(args):
+def dummy_data_command_factory(args):
     return DummyDataCommand(
         args.path_to_dataset,
         args.auto_generate,
@@ -256,7 +256,7 @@ class DummyDataCommand(BaseDatasetsCLICommand):
             help=f"Encoding to use when auto-generating dummy data. Defaults to {DEFAULT_ENCODING}",
         )
         test_parser.add_argument("path_to_dataset", type=str, help="Path to the dataset (example: ./datasets/squad)")
-        test_parser.set_defaults(func=test_command_factory)
+        test_parser.set_defaults(func=dummy_data_command_factory)
 
     def __init__(
         self,

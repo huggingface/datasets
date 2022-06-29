@@ -6,6 +6,12 @@ The script can download data files from any website, or from the same dataset re
 
 Any dataset script, for example `my_dataset.py`, can be placed in a folder or a repository named `my_dataset` and be loaded with:
 
+```
+my_dataset/
+├── README.md
+└── my_dataset.py
+```
+
 ```py
 >>> from datasets import load_dataset
 >>> load_dataset("path/to/my_dataset")
@@ -20,7 +26,7 @@ The following guide includes instructions for dataset scripts for how to:
 - Create a Dataset card.
 - Upload a dataset to the Hugging Face Hub or GitHub.
 
-Open the [SQuAD dataset loading script](https://github.com/huggingface/datasets/blob/master/datasets/squad/squad.py) template to follow along on how to share a dataset.
+Open the [SQuAD dataset loading script](https://huggingface.co/datasets/squad/blob/main/squad.py) template to follow along on how to share a dataset.
 
 <Tip>
 
@@ -277,14 +283,11 @@ Make sure you run all of the following commands **from the root** of your local 
 1. Run the following command to create the metadata file, `dataset_infos.json`. This will also test your new dataset loading script and make sure it works correctly.
 
 ```
-datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
+datasets-cli test path/to/<your-dataset-folder> --save_infos --all_configs
 ```
 
 2. If your dataset loading script passed the test, you should now have a `dataset_infos.json` file in your dataset folder. This file contains information about the dataset, like its `features` and `download_size`.
 
-### (Optional) Dummy data
-
-If you want to be able to test your dataset script without downloading the full dataset, you need to create some dummy data for automated testing. There are two methods for generating dummy data: automatically and manually. 
 
 #### Automatic
 
@@ -341,19 +344,13 @@ There should be two new files in your dataset folder:
 
 - `dummy_data.zip` is a file used to test the behavior of the loading script without having to download the full dataset.
 
+## Upload to the Hub
 
-#### Run the tests
+Once your script is ready, you can [create a dataset card](dataset_card) and [upload it to the Hub](share).
 
-The last step is to actually test dataset generation with the real and dummy data. Clone the `huggingface/datasets` repository and run the following command to test the real data:
+Congrats ! you can now load your dataset using
 
+```py
+>>> from datasets import load_dataset
+>>> load_dataset("<username>/my_dataset")
 ```
-RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_real_dataset_<your_dataset_name>
-```
-
-Test the dummy data:
-
-```
-RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your_dataset_name>
-```
-
-If both tests pass, your dataset was generated correctly!

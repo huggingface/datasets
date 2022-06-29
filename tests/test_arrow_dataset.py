@@ -1045,8 +1045,12 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:  # new_fingerprint
             new_fingerprint = "foobar"
+            invalid_new_fingerprint = "foobar/hey"
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 fingerprint = dset._fingerprint
+                self.assertRaises(
+                    ValueError, dset.map, picklable_map_function, num_proc=2, new_fingerprint=invalid_new_fingerprint
+                )
                 with dset.map(picklable_map_function, num_proc=2, new_fingerprint=new_fingerprint) as dset_test:
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))

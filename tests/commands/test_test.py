@@ -10,8 +10,8 @@ from datasets.commands.test import TestCommand
 
 
 if config.PY_VERSION >= version.parse("3.7"):
-    TestCommandArgs = namedtuple(
-        "TestCommandArgs",
+    _TestCommandArgs = namedtuple(
+        "_TestCommandArgs",
         [
             "dataset",
             "name",
@@ -28,7 +28,7 @@ if config.PY_VERSION >= version.parse("3.7"):
 else:
 
     @dataclass
-    class TestCommandArgs:
+    class _TestCommandArgs:
         dataset: str
         name: str = None
         cache_dir: str = None
@@ -44,7 +44,7 @@ else:
 
 
 def test_test_command(dataset_loading_script_dir):
-    args = TestCommandArgs(dataset=dataset_loading_script_dir, all_configs=True, save_infos=True)
+    args = _TestCommandArgs(dataset=dataset_loading_script_dir, all_configs=True, save_infos=True)
     test_command = TestCommand(*args)
     test_command.run()
     dataset_infos_path = os.path.join(dataset_loading_script_dir, config.DATASETDICT_INFOS_FILENAME)
