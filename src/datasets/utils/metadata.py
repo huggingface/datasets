@@ -219,9 +219,9 @@ class DatasetMetadata:
     annotations_creators: List[str]
     language_creators: Union[EmptyList, List[str]]
     language: Union[EmptyList, List[str]]
-    languages: Union[EmptyList, List[str]] # deprecated
+    languages: Union[EmptyList, List[str]]  # deprecated
     license: List[str]
-    licenses: List[str] # deprecated
+    licenses: List[str]  # deprecated
     multilinguality: List[str]
     pretty_name: str
     size_categories: List[str]
