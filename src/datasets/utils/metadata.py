@@ -245,8 +245,8 @@ class DatasetMetadata:
             self.annotations_creators
         )
         self.language_creators, language_creators_errors = self.validate_language_creators(self.language_creators)
-        self.language, language_errors = self.validate_language_codes(self.language)
-        self.license, license_errors = self.validate_licences(self.license)
+        self.language, language_errors = self.validate_language_codes(self.language or self.languages)
+        self.license, license_errors = self.validate_licences(self.license or self.licenses)
         self.multilinguality, multilinguality_errors = self.validate_mulitlinguality(self.multilinguality)
         self.size_categories, size_categories_errors = self.validate_size_catgeories(self.size_categories)
         self.source_datasets, source_datasets_errors = self.validate_source_datasets(self.source_datasets)
