@@ -152,8 +152,16 @@ class Cfq(datasets.GeneratorBasedBuilder):
                 splits = json.load(file)[split_id]
             elif path == samples_path:
                 # The samples_path is the last path inside the archive
+                generator = enumerate(self._scrub_json(file))
+                samples = {}
                 splits_set = set(splits)
-                samples = {idx: sample for idx, sample in enumerate(self._scrub_json(file)) if idx in splits_set}
-        for idx in splits:
-            sample = samples.pop(idx)
-            yield idx, {_QUESTION: sample[_QUESTION_FIELD], _QUERY: sample[_QUERY_FIELD]}
+                for split_idx in splits:
+                    if split_idx in samples:
+                        sample = samples.pop(split_idx)
+                    else:
+                        for sample_idx, sample in generator:
+                            if sample_idx == split_idx:
+                                break
+                            elif sample_idx in splits_set:
+                                samples[sample_idx] = sample
+                    yield split_idx, {_QUESTION: sample[_QUESTION_FIELD], _QUERY: sample[_QUERY_FIELD]}
