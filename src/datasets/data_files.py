@@ -1,5 +1,4 @@
 import os
-from email.mime import base
 from functools import partial
 from pathlib import Path, PurePath
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
@@ -51,7 +50,6 @@ ALL_DEFAULT_PATTERNS = [
 ]
 WILDCARD_CHARACTERS = "*[]"
 FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data.zip", "dataset_dict.json"]
-SPECIAL_DIRS_TO_IGNORE = ["__pycache__"]
 
 
 def contains_wildcards(pattern: str) -> bool:
@@ -77,7 +75,7 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
         return {DEFAULT_SPLIT: list(patterns)}
 
 
-def _is_inside_unrequested_special_dir_to_ignore(matched_rel_path: str, pattern: str) -> bool:
+def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> bool:
     """
     When a path matches a pattern, we additionnally check if it's inside a directory we ignore
     by default, e.g. "__pycache__".
@@ -93,18 +91,18 @@ def _is_inside_unrequested_special_dir_to_ignore(matched_rel_path: str, pattern:
         └── __pycache__
             └── b.txt
 
-    >>> _is_inside_unrequested_special_dir_to_ignore("__pycache__/b.txt", "**")
+    >>> _is_inside_unrequested_special_dir("__pycache__/b.txt", "**")
     True
-    >>> _is_inside_unrequested_special_dir_to_ignore("__pycache__/b.txt", "*/b.txt")
+    >>> _is_inside_unrequested_special_dir("__pycache__/b.txt", "*/b.txt")
     True
-    >>> _is_inside_unrequested_special_dir_to_ignore("__pycache__/b.txt", "__pycache__/*")
+    >>> _is_inside_unrequested_special_dir("__pycache__/b.txt", "__pycache__/*")
     False
     """
     # We just need to check if every special directories from the path is present explicly in the pattern.
     # Since we assume that the path matches the pattern, it's equivalent to counting that both
-    # the path and the pattern have the same number of special directories.
-    data_dirs_to_ignore_in_path = [part for part in PurePath(matched_rel_path).parts if part in SPECIAL_DIRS_TO_IGNORE]
-    data_dirs_to_ignore_in_pattern = [part for part in PurePath(pattern).parts if part in SPECIAL_DIRS_TO_IGNORE]
+    # the parent path and the parent pattern have the same number of special directories.
+    data_dirs_to_ignore_in_path = [part for part in PurePath(matched_rel_path).parent.parts if part.startswith("__")]
+    data_dirs_to_ignore_in_pattern = [part for part in PurePath(pattern).parent.parts if part.startswith("__")]
     return len(data_dirs_to_ignore_in_path) != len(data_dirs_to_ignore_in_pattern)
 
 
@@ -220,7 +218,7 @@ def _resolve_single_pattern_locally(
         Path(filepath).resolve()
         for filepath in glob_iter
         if (filepath.name not in FILES_TO_IGNORE or PurePath(pattern).name == filepath.name)
-        and not _is_inside_unrequested_special_dir_to_ignore(os.path.relpath(filepath, base_path), pattern)
+        and not _is_inside_unrequested_special_dir(os.path.relpath(filepath, base_path), pattern)
         and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
             os.path.relpath(filepath, base_path), pattern
         )
@@ -269,9 +267,15 @@ def resolve_patterns_locally_or_by_urls(
     - '*' matches any character except a forward-slash (to match just the file or directory name)
     - '**' matches any character including a forward-slash /
 
+    Hidden files and directories (i.e. whose names start with a dot) are ignored, unless they are explicitly requested.
+    The same applies to special directories that start with a double underscore like "__pycache__".
+    You can still include one if the pattern explicilty mentions it:
+    - to include a hidden file: "*/.hidden.txt" or "*/.*"
+    - to include a hidden directory: ".hidden/*" or ".*/*"
+    - to include a special directory: "__special__/*" or "__*/*"
+
     Example::
 
-        >>> import huggingface_hub
         >>> from datasets.data_files import resolve_patterns_locally_or_by_urls
         >>> base_path = "."
         >>> resolve_patterns_locally_or_by_urls(base_path, ["src/**/*.yaml"])
@@ -410,7 +414,7 @@ def _resolve_single_pattern_in_dataset_repository(
         filepath
         for filepath in glob_iter
         if (filepath.name not in FILES_TO_IGNORE or PurePath(pattern).name == filepath.name)
-        and not _is_inside_unrequested_special_dir_to_ignore(os.path.relpath(filepath, base_path), pattern)
+        and not _is_inside_unrequested_special_dir(os.path.relpath(filepath, base_path), pattern)
         and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
             os.path.relpath(filepath, base_path), pattern
         )
@@ -460,6 +464,13 @@ def resolve_patterns_in_dataset_repository(
     More generally:
     - '*' matches any character except a forward-slash (to match just the file or directory name)
     - '**' matches any character including a forward-slash /
+
+    Hidden files and directories (i.e. whose names start with a dot) are ignored, unless they are explicitly requested.
+    The same applies to special directories that start with a double underscore like "__pycache__".
+    You can still include one if the pattern explicilty mentions it:
+    - to include a hidden file: "*/.hidden.txt" or "*/.*"
+    - to include a hidden directory: ".hidden/*" or ".*/*"
+    - to include a special directory: "__special__/*" or "__*/*"
 
     Example::
 
