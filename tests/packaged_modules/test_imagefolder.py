@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from datasets import Features, Image, Value
-from datasets.data_files import DataFilesDict, get_patterns_locally
+from datasets.data_files import DataFilesDict, get_data_patterns_locally
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder
 from datasets.streaming import extend_module_for_streaming
 
@@ -51,7 +51,7 @@ def image_files_with_metadata_that_misses_one_image(tmp_path, image_file):
 
 @pytest.fixture
 def data_files_with_one_split_and_metadata(tmp_path, image_file):
-    data_dir = tmp_path / "imagefolder_data_dir_with_metadata"
+    data_dir = tmp_path / "imagefolder_data_dir_with_metadata_one_split"
     data_dir.mkdir(parents=True, exist_ok=True)
     subdir = data_dir / "subdir"
     subdir.mkdir(parents=True, exist_ok=True)
@@ -74,7 +74,7 @@ def data_files_with_one_split_and_metadata(tmp_path, image_file):
     with open(image_metadata_filename, "w", encoding="utf-8") as f:
         f.write(image_metadata)
     data_files_with_one_split_and_metadata = DataFilesDict.from_local_or_remote(
-        get_patterns_locally(data_dir), data_dir
+        get_data_patterns_locally(data_dir), data_dir
     )
     assert len(data_files_with_one_split_and_metadata) == 1
     assert len(data_files_with_one_split_and_metadata["train"]) == 4
@@ -83,7 +83,7 @@ def data_files_with_one_split_and_metadata(tmp_path, image_file):
 
 @pytest.fixture
 def data_files_with_two_splits_and_metadata(tmp_path, image_file):
-    data_dir = tmp_path / "imagefolder_data_dir_with_metadata"
+    data_dir = tmp_path / "imagefolder_data_dir_with_metadata_two_splits"
     data_dir.mkdir(parents=True, exist_ok=True)
     train_dir = data_dir / "train"
     train_dir.mkdir(parents=True, exist_ok=True)
@@ -106,16 +106,16 @@ def data_files_with_two_splits_and_metadata(tmp_path, image_file):
     )
     with open(train_image_metadata_filename, "w", encoding="utf-8") as f:
         f.write(image_metadata)
-    train_image_metadata_filename = test_dir / "metadata.jsonl"
+    test_image_metadata_filename = test_dir / "metadata.jsonl"
     image_metadata = textwrap.dedent(
         """\
         {"file_name": "image_rgb3.jpg", "caption": "Nice test image"}
         """
     )
-    with open(train_image_metadata_filename, "w", encoding="utf-8") as f:
+    with open(test_image_metadata_filename, "w", encoding="utf-8") as f:
         f.write(image_metadata)
     data_files_with_two_splits_and_metadata = DataFilesDict.from_local_or_remote(
-        get_patterns_locally(data_dir), data_dir
+        get_data_patterns_locally(data_dir), data_dir
     )
     assert len(data_files_with_two_splits_and_metadata) == 2
     assert len(data_files_with_two_splits_and_metadata["train"]) == 3
@@ -154,7 +154,7 @@ def data_files_with_zip_archives(tmp_path, image_file):
     shutil.make_archive(archive_dir, "zip", archive_dir)
     shutil.rmtree(str(archive_dir))
 
-    data_files_with_zip_archives = DataFilesDict.from_local_or_remote(get_patterns_locally(data_dir), data_dir)
+    data_files_with_zip_archives = DataFilesDict.from_local_or_remote(get_data_patterns_locally(data_dir), data_dir)
 
     assert len(data_files_with_zip_archives) == 1
     assert len(data_files_with_zip_archives["train"]) == 1
@@ -305,7 +305,7 @@ def test_data_files_with_wrong_metadata_file_name(cache_dir, tmp_path, image_fil
     with open(image_metadata_filename, "w", encoding="utf-8") as f:
         f.write(image_metadata)
 
-    data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(get_patterns_locally(data_dir), data_dir)
+    data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(get_data_patterns_locally(data_dir), data_dir)
     imagefolder = ImageFolder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
     imagefolder.download_and_prepare()
     dataset = imagefolder.as_dataset(split="train")
@@ -327,7 +327,7 @@ def test_data_files_with_wrong_image_file_name_column_in_metadata_file(cache_dir
     with open(image_metadata_filename, "w", encoding="utf-8") as f:
         f.write(image_metadata)
 
-    data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(get_patterns_locally(data_dir), data_dir)
+    data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(get_data_patterns_locally(data_dir), data_dir)
     imagefolder = ImageFolder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
     with pytest.raises(ValueError) as exc_info:
         imagefolder.download_and_prepare()
