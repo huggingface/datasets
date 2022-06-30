@@ -234,10 +234,14 @@ def xisfile(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
     if is_local_path(main_hop):
         return os.path.isfile(path)
     else:
-        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
-            storage_options = {
-                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
-            }
+        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
+            main_hop, http_kwargs = _prepare_http_url_kwargs(main_hop, use_auth_token=use_auth_token)
+            storage_options = http_kwargs
+        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
+            url = rest_hops[0]
+            url, http_kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
+            storage_options = {"https": http_kwargs}
+            path = "::".join([main_hop, url, *rest_hops[1:]])
         else:
             storage_options = None
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
@@ -257,10 +261,14 @@ def xgetsize(path, use_auth_token: Optional[Union[str, bool]] = None) -> int:
     if is_local_path(main_hop):
         return os.path.getsize(path)
     else:
-        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
-            storage_options = {
-                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
-            }
+        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
+            main_hop, http_kwargs = _prepare_http_url_kwargs(main_hop, use_auth_token=use_auth_token)
+            storage_options = http_kwargs
+        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
+            url = rest_hops[0]
+            url, http_kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
+            storage_options = {"https": http_kwargs}
+            path = "::".join([main_hop, url, *rest_hops[1:]])
         else:
             storage_options = None
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
@@ -285,10 +293,14 @@ def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
     if is_local_path(main_hop):
         return os.path.isdir(path)
     else:
-        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
-            storage_options = {
-                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
-            }
+        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
+            main_hop, http_kwargs = _prepare_http_url_kwargs(main_hop, use_auth_token=use_auth_token)
+            storage_options = http_kwargs
+        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
+            url = rest_hops[0]
+            url, http_kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
+            storage_options = {"https": http_kwargs}
+            path = "::".join([main_hop, url, *rest_hops[1:]])
         else:
             storage_options = None
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
@@ -463,14 +475,18 @@ def xlistdir(path: str, use_auth_token: Optional[Union[str, bool]] = None) -> Li
         return os.listdir(path)
     else:
         # globbing inside a zip in a private repo requires authentication
-        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
-            storage_options = {
-                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
-            }
+        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
+            main_hop, http_kwargs = _prepare_http_url_kwargs(main_hop, use_auth_token=use_auth_token)
+            storage_options = http_kwargs
+        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
+            url = rest_hops[0]
+            url, http_kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
+            storage_options = {"https": http_kwargs}
+            path = "::".join([main_hop, url, *rest_hops[1:]])
         else:
             storage_options = None
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        objects = fs.listdir(main_hop.split("://")[1])
+        objects = fs.listdir(main_hop)
         return [os.path.basename(obj["name"]) for obj in objects]
 
 
