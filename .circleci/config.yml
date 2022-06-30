@@ -51,7 +51,8 @@ jobs:
                 conda create -n py37 python=3.7 pytorch --yes
             - run: |
                 conda activate py37
-                pip install .[tests] -v
+                pip install --upgrade pip
+                pip install .[tests]
                 pip install -r additional-tests-requirements.txt --no-deps
                 pip install pyarrow --upgrade
             - run: |
@@ -72,7 +73,8 @@ jobs:
                 conda create -n py37 python=3.7 pytorch --yes
             - run: |
                 conda activate py37
-                pip install .[tests] -v
+                pip install --upgrade pip
+                pip install .[tests]
                 pip install -r additional-tests-requirements.txt --no-deps
                 pip install pyarrow==6.0.0
             - run: |
