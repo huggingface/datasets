@@ -4,7 +4,7 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - de
 license:
 - cc-by-sa-3.0

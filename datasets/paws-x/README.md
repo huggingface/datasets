@@ -6,7 +6,7 @@ annotations_creators:
 language_creators:
 - expert-generated
 - machine-generated
-languages:
+language:
 - de
 - en
 - es

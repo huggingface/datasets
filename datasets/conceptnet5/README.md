@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - found
-languages:
+language:
 - de
 - en
 - es

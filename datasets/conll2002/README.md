@@ -3,7 +3,7 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - es
 - nl
 license:

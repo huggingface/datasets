@@ -4,7 +4,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - id
 license:
 - other-nergrit-license

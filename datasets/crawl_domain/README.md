@@ -5,7 +5,7 @@ language_creators:
 - crowdsourced
 - expert-generated
 - found
-languages:
+language:
 - en
 license:
 - mit

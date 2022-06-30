@@ -3,7 +3,7 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - en
 license:
 - gnu-gpl-v3.0

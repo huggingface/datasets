@@ -3,7 +3,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - expert-generated
-languages:
+language:
 - es
 license:
 - mit

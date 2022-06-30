@@ -5,7 +5,7 @@ task_ids:
 - text2text-generation-other-long-range-dependency
 multilinguality:
 - monolingual
-languages:
+language:
 - en
 language_creators:
 - found

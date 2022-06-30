@@ -3,7 +3,7 @@ annotations_creators:
 - machine-generated
 language_creators:
 - machine-generated
-languages:
+language:
 - en
 license:
 - cc-by-nc-4.0

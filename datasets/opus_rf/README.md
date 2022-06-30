@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - expert-generated
-languages:
+language:
 - de
 - en
 - es

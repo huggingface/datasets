@@ -8,7 +8,7 @@ language_creators:
 - expert-generated
 - found
 - machine-generated
-languages:
+language:
 - en
 - th
 license:

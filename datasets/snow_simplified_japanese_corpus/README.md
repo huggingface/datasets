@@ -4,7 +4,7 @@ annotations_creators:
 - other
 language_creators:
 - found
-languages:
+language:
 - en
 - ja
 license:

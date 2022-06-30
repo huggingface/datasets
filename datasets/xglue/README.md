@@ -9,7 +9,7 @@ language_creators:
 - expert-generated
 - found
 - machine-generated
-languages:
+language:
 - ar
 - bg
 - de

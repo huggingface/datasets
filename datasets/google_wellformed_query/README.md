@@ -5,7 +5,7 @@ multilinguality:
 - monolingual
 task_ids:
 - text-scoring
-languages:
+language:
 - en
 annotations_creators:
 - crowdsourced

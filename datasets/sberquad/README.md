@@ -5,7 +5,7 @@ annotations_creators:
 language_creators:
 - found
 - crowdsourced
-languages:
+language:
 - ru
 license:
 - unknown

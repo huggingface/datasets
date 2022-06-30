@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - found
-languages:
+language:
 - fr
 license:
 - cc-by-nc-sa-3.0

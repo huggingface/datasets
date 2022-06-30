@@ -24,7 +24,7 @@ size_categories:
 - 10K<n<100K
 - 100K<n<1M
 - 1M<n<10M
-languages:
+language:
 - "no"
 - aa
 - ab

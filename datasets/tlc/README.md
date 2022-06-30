@@ -5,7 +5,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - expert-generated
-languages:
+language:
 - th
 license:
 - unknown

@@ -3,7 +3,7 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - zh
 license:
 - cc-by-sa-4.0

@@ -8,7 +8,7 @@ task_ids:
 - masked-language-modeling
 multilinguality:
 - translation
-languages:
+language:
 - en
 - hi
 - ta

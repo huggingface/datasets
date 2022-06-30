@@ -22,7 +22,7 @@ multilinguality:
 - multilingual
 size_categories:
 - 10M<n<100M
-languages:
+language:
 - en
 ---
 

@@ -8,7 +8,7 @@ multilinguality:
 task_ids:
 - language-modeling
 - masked-language-modeling
-languages:
+language:
 - 'no'
 - af
 - am

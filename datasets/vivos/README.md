@@ -5,7 +5,7 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - vi
 license:
 - cc-by-nc-sa-4.0

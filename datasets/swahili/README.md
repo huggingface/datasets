@@ -3,7 +3,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - expert-generated
-languages:
+language:
 - sw
 license:
 - cc-by-4.0

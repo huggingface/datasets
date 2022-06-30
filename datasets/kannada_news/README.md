@@ -3,7 +3,7 @@ annotations_creators:
 - other
 language_creators:
 - other
-languages:
+language:
 - kn
 license:
 - cc-by-sa-4.0

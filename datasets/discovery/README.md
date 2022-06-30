@@ -3,7 +3,7 @@ annotations_creators:
 - other
 language_creators:
 - other
-languages:
+language:
 - en
 license:
 - unknown

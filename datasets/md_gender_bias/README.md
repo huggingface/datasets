@@ -7,7 +7,7 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - found
-languages:
+language:
 - en
 license:
 - mit

@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - machine-generated
-languages:
+language:
 - ur
 license:
 - odbl-1.0

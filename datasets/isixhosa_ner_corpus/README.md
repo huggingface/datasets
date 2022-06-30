@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - xh
 license:
 - other-Creative Commons Attribution 2.5 South Africa License

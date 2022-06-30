@@ -4,7 +4,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
 license:
 - cc-by-nc-4.0

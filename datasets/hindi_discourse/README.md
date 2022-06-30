@@ -3,7 +3,7 @@ annotations_creators:
 - other
 language_creators:
 - found
-languages:
+language:
 - hi
 license:
 - other-MIDAS-LAB-IIITD-Delhi

@@ -5,7 +5,7 @@ multilinguality:
 - multilingual
 task_ids:
 - text-classification-other-language-identification
-languages:
+language:
 - hi
 - awa
 - bho

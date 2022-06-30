@@ -3,7 +3,7 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - de
 license:
 - apache-2.0

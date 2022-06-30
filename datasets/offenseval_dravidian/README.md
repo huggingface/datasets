@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
 - kn
 - ml

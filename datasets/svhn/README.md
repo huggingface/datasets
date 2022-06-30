@@ -4,7 +4,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - machine-generated
-languages:
+language:
 - en
 license:
 - other

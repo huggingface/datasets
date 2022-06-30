@@ -6,7 +6,7 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - ru-RU
 license:
 - mit

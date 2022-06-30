@@ -4,7 +4,7 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - zh
 license:
 - apache-2.0

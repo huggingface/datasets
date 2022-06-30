@@ -5,7 +5,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - chr
 - en
 license:

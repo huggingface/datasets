@@ -3,7 +3,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - sa
 license:
 - other-Public Domain Mark 1.0

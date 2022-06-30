@@ -5,7 +5,7 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - expert-generated
-languages:
+language:
 - id
 license:
 - cc-by-sa-4.0

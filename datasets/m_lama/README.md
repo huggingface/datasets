@@ -7,7 +7,7 @@ language_creators:
 - crowdsourced
 - expert-generated
 - machine-generated
-languages:
+language:
 - af
 - ar
 - az

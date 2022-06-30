@@ -4,7 +4,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
 license:
 - unknown

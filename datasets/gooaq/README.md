@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - machine-generated
-languages:
+language:
 - en
 license:
 - apache-2.0

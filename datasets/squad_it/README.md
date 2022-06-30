@@ -3,7 +3,7 @@ annotations_creators:
 - machine-generated
 language_creators:
 - machine-generated
-languages:
+language:
 - it-IT
 license:
 - unknown

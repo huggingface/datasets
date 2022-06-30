@@ -6,7 +6,7 @@ language_creators:
 - crowdsourced
 - found
 - machine-generated
-languages:
+language:
 - cs
 - de
 - en

@@ -3,7 +3,7 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - af
 - ar
 - az

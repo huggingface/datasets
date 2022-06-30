@@ -20,7 +20,7 @@ def _dedent(string: str) -> str:
 
 README_YAML = """\
 ---
-languages:
+language:
 - zh
 - en
 task_ids:
@@ -142,7 +142,7 @@ class TestMetadataUtils(unittest.TestCase):
                 yaml_block,
                 _dedent(
                     """\
-                    languages:
+                    language:
                     - zh
                     - en
                     task_ids:
@@ -197,7 +197,7 @@ class TestMetadataUtils(unittest.TestCase):
             - found
             language_creators:
             - found
-            languages:
+            language:
             - en
             license:
             - unknown
@@ -222,7 +222,7 @@ class TestMetadataUtils(unittest.TestCase):
             - found
             language_creators:
             - found
-            languages:
+            language:
               en:
               - en
               fr:
@@ -250,7 +250,7 @@ class TestMetadataUtils(unittest.TestCase):
             - found
             language_creators:
             - some guys in Panama
-            languages:
+            language:
             - en
             license:
             - unknown
@@ -275,7 +275,7 @@ class TestMetadataUtils(unittest.TestCase):
             """\
             annotations_creators:
             - found
-            languages:
+            language:
             - en
             license:
             - unknown
@@ -300,7 +300,7 @@ class TestMetadataUtils(unittest.TestCase):
             """\
             annotations_creators:
             - found
-            languages:
+            language:
             - en
             license:
             - unknown
@@ -329,7 +329,7 @@ class TestMetadataUtils(unittest.TestCase):
             - found
             language_creators:
             - found
-            languages:
+            language:
               en:
               - en
               en:
@@ -359,7 +359,7 @@ class TestMetadataUtils(unittest.TestCase):
             - found
             language_creators:
             - found
-            languages:
+            language:
             - en
             license:
             - unknown
@@ -385,7 +385,7 @@ class TestMetadataUtils(unittest.TestCase):
             - found
             language_creators:
             - found
-            languages:
+            language:
             - en
             license:
             - unknown
@@ -411,7 +411,7 @@ class TestMetadataUtils(unittest.TestCase):
             - found
             language_creators:
             - found
-            languages:
+            language:
             - en
             license:
             - unknown
@@ -440,7 +440,7 @@ class TestMetadataUtils(unittest.TestCase):
             - found
             language_creators:
             - found
-            languages:
+            language:
             - en
             license:
             - unknown

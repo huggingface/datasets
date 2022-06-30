@@ -4,7 +4,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - ar
 - en
 license:

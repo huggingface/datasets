@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - pl
 license:
 - cc-by-nc-sa-1.0

@@ -3,7 +3,7 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - ro
 license:
 - cc-by-4.0

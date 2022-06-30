@@ -5,7 +5,7 @@ language_creators:
 - found
 multilinguality:
 - multilingual
-languages:
+language:
 - en
 - vi
 license:

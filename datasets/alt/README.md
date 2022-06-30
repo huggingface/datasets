@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - bn
 - en
 - fil
@@ -89,7 +89,7 @@ Machine Translation, Dependency Parsing
 
 ### Languages
 
-It supports 13 languages: 
+It supports 13 language: 
   * Bengali
   * English
   * Filipino

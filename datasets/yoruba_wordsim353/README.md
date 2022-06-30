@@ -3,7 +3,7 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - expert-generated
-languages:
+language:
 - en
 - yo
 license:

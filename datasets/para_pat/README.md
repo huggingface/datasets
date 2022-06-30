@@ -3,7 +3,7 @@ annotations_creators:
 - machine-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - cs
 - de
 - el

@@ -4,7 +4,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - pt
 license:
 - cc-by-4.0

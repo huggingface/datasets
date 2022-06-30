@@ -5,7 +5,7 @@ language_creators:
 - expert-generated
 - found
 - machine-generated
-languages:
+language:
 - ko
 license:
 - cc-by-sa-4.0

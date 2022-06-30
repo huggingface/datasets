@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - other
-languages:
+language:
 - pl
 license:
 - bsd-3-clause
