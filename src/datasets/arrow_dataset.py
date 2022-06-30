@@ -281,7 +281,7 @@ class TensorflowDatasetMixin:
                 else:
                     np_arrays.append(np.array(array))
 
-            if np.issubdtype(np_arrays[0].dtype, np.integer) or np_arrays[0].dtype == np.bool:
+            if np.issubdtype(np_arrays[0].dtype, np.integer) or np_arrays[0].dtype == bool:
                 tf_dtype = tf.int64
                 np_dtype = np.int64
             elif np.issubdtype(np_arrays[0].dtype, np.number):
@@ -827,8 +827,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cls,
         mapping: dict,
         features: Optional[Features] = None,
-        info: Optional[Any] = None,
-        split: Optional[Any] = None,
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
     ) -> "Dataset":
         """
         Convert :obj:`dict` to a :obj:`pyarrow.Table` to create a :class:`Dataset`.
@@ -1119,7 +1119,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Get json serializable dataset info
         dataset_info = asdict(dataset._info)
 
-        # Save dataset + indices + state + info
+        # Save dataset + state + info
         fs.makedirs(dataset_path, exist_ok=True)
         with fs.open(Path(dataset_path, config.DATASET_ARROW_FILENAME).as_posix(), "wb") as dataset_file:
             with ArrowWriter(stream=dataset_file) as writer:
@@ -2493,7 +2493,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             ), "All shards have to be defined Datasets, none should still be missing."
 
             logger.info(f"Concatenating {num_proc} shards")
-            result = concatenate_datasets(transformed_shards)
+            result = _concatenate_map_style_datasets(transformed_shards)
             if new_fingerprint is not None:
                 result._fingerprint = new_fingerprint
             return result
@@ -3804,7 +3804,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     return _float_feature([values.item()])
                 elif np.issubdtype(values.dtype, np.integer):
                     return _int64_feature([values.item()])
-                elif np.issubdtype(values.dtype, np.str):
+                elif np.issubdtype(values.dtype, str):
                     return _bytes_feature([values.item().encode()])
                 else:
                     raise ValueError(f"values={values} has dtype {values.dtype}, which cannot be serialized")
@@ -4073,7 +4073,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if token is None:
             raise OSError(
-                "You need to provide a `token` or be logged in to Hugging Face with " "`huggingface-cli login`."
+                "You need to provide a `token` or be logged in to Hugging Face with `huggingface-cli login`."
             )
 
         if split is None:
@@ -4403,6 +4403,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
         custom_index: Optional["faiss.Index"] = None,  # noqa: F821
+        batch_size: int = 1000,
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
         dtype=np.float32,
@@ -4430,6 +4431,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
             custom_index (Optional :obj:`faiss.Index`):
                 Custom Faiss index that you already have instantiated and configured for your needs.
+            batch_size (Optional :obj:`int`): Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.
             train_size (Optional :obj:`int`):
                 If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False):
@@ -4463,6 +4465,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 string_factory=string_factory,
                 metric_type=metric_type,
                 custom_index=custom_index,
+                batch_size=batch_size,
                 train_size=train_size,
                 faiss_verbose=faiss_verbose,
             )
@@ -4476,6 +4479,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
         custom_index: Optional["faiss.Index"] = None,  # noqa: F821
+        batch_size: int = 1000,
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
         dtype=np.float32,
@@ -4503,6 +4507,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
             custom_index (Optional :obj:`faiss.Index`):
                 Custom Faiss index that you already have instantiated and configured for your needs.
+            batch_size (Optional :obj:`int`): Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.
             train_size (Optional :obj:`int`):
                 If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False):
@@ -4516,6 +4521,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             string_factory=string_factory,
             metric_type=metric_type,
             custom_index=custom_index,
+            batch_size=batch_size,
             train_size=train_size,
             faiss_verbose=faiss_verbose,
         )
@@ -4719,14 +4725,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return self.map(process_label_ids, features=features, batched=True, desc="Aligning the labels")
 
 
-def concatenate_datasets(
+def _concatenate_map_style_datasets(
     dsets: List[Dataset],
-    info: Optional[Any] = None,
-    split: Optional[Any] = None,
+    info: Optional[DatasetInfo] = None,
+    split: Optional[NamedSplit] = None,
     axis: int = 0,
 ):
     """
     Converts a list of :class:`Dataset` with the same schema into a single :class:`Dataset`.
+    When you concatenate on axis 0, missing data are filled with None values.
 
     Args:
         dsets (:obj:`List[datasets.Dataset]`): List of Datasets to concatenate.
@@ -4741,7 +4748,7 @@ def concatenate_datasets(
     Example:
 
     ```py
-    >>> ds3 = concatenate_datasets([ds1, ds2])
+    >>> ds3 = _concatenate_map_style_datasets([ds1, ds2])
     ```
     """
     # Ignore datasets with no rows
@@ -4817,7 +4824,7 @@ def concatenate_datasets(
     if info is None:
         info = DatasetInfo.from_merge([dset.info for dset in dsets])
     fingerprint = update_fingerprint(
-        "".join(dset._fingerprint for dset in dsets), concatenate_datasets, {"info": info, "split": split}
+        "".join(dset._fingerprint for dset in dsets), _concatenate_map_style_datasets, {"info": info, "split": split}
     )
 
     # Make final concatenated dataset
@@ -4830,6 +4837,64 @@ def concatenate_datasets(
     )
     concatenated_dataset.set_format(**format)
     return concatenated_dataset
+
+
+def _interleave_map_style_datasets(
+    datasets: List["Dataset"],
+    probabilities: Optional[List[float]] = None,
+    seed: Optional[int] = None,
+    info: Optional[DatasetInfo] = None,
+    split: Optional[NamedSplit] = None,
+    **kwargs,
+) -> "Dataset":
+    """
+    Interleave several map-style datasets (sources) into a single map-style dataset.
+    The new dataset is constructed by alternating between the sources to get the examples.
+    If `probabilities = None` (default) the new dataset is constructed by cycling between each source to get the examples.
+    If `probabilities` is not `None, the new dataset is constructed by getting examples from a random source at a time according to the provided probabilities.
+
+    Args:
+        datasets (:obj:`List[Dataset]`): list of datasets to interleave
+        probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructued by sampling
+            examples from one source at a time according to these probabilities.
+        seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
+        info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+        split (:class:`NamedSplit`, optional): Name of the dataset split.
+        **kwargs (additional keyword arguments): Keyword arguments to be passed to :meth:`datasets.Datasets.select` when selecting the indices used to interleave the datasets.
+
+    Output:
+        :class:`datasets.Dataset`
+    """
+
+    # To interleave the datasets, we concatenate them and then we re-order the indices
+    concatenated_datasets = _concatenate_map_style_datasets(datasets, info=info, split=split)
+
+    # Let's now build the indices to pass to .select()
+    lengths = [len(dset) for dset in datasets]
+    offsets = np.cumsum([0] + lengths[:-1])
+    if probabilities is None:
+        # Example:: If lengths of the datasets are [3, 4, 5]
+        # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 6, 9]
+        # Note that we only have 3 examples per dataset since the first dataset ran out of examples
+        indices = (offsets.reshape(1, -1) + np.arange(min(lengths)).reshape(-1, 1)).flatten().tolist()
+    else:
+
+        def iter_random_indices():
+            """Get an infinite iterator that randomly samples the index of the source to pick examples from."""
+            rng = np.random.default_rng(seed)
+            while True:
+                yield from (int(i) for i in rng.choice(len(datasets), size=1000, p=probabilities))
+
+        current_index = [0] * len(datasets)
+        indices = []
+        for source_idx in iter_random_indices():
+            # we ran out of examples, let's stop
+            if current_index[source_idx] >= lengths[source_idx]:
+                break
+            # let's add the example at the current index of the `source_idx`-th dataset
+            indices.append(current_index[source_idx] + offsets[source_idx])
+            current_index[source_idx] += 1
+    return concatenated_datasets.select(indices, **kwargs)
 
 
 # This is outside Dataset.filter as it needs to be picklable for multiprocessing

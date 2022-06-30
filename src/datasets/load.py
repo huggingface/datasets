@@ -34,10 +34,13 @@ from . import config
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .data_files import (
+    DEFAULT_PATTERNS_ALL,
     DataFilesDict,
     DataFilesList,
-    get_patterns_in_dataset_repository,
-    get_patterns_locally,
+    get_data_patterns_in_dataset_repository,
+    get_data_patterns_locally,
+    get_metadata_patterns_in_dataset_repository,
+    get_metadata_patterns_locally,
     sanitize_patterns,
 )
 from .dataset_dict import DatasetDict, IterableDatasetDict
@@ -49,7 +52,12 @@ from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
 from .metric import Metric
-from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, _hash_python_lines
+from .packaged_modules import (
+    _EXTENSION_TO_MODULE,
+    _MODULE_SUPPORTS_METADATA,
+    _PACKAGED_DATASETS_MODULES,
+    _hash_python_lines,
+)
 from .splits import Split
 from .tasks import TaskTemplate
 from .utils.file_utils import (
@@ -72,8 +80,6 @@ from .utils.version import Version
 
 
 logger = get_logger(__name__)
-
-DEFAULT_SPLIT = str(Split.TRAIN)
 
 ALL_ALLOWED_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + ["zip"]
 
@@ -677,16 +683,17 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.download_mode = download_mode
 
     def get_module(self) -> DatasetModule:
+        base_path = os.path.join(self.path, self.data_dir) if self.data_dir else self.path
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
-            else get_patterns_locally(os.path.join(self.path, self.data_dir))
+            else get_data_patterns_locally(base_path)
             if self.data_dir is not None
-            else get_patterns_locally(self.path)
+            else get_data_patterns_locally(base_path)
         )
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
-            base_path=os.path.join(self.path, self.data_dir) if self.data_dir else self.path,
+            base_path=base_path,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         module_names = {
@@ -697,6 +704,19 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         module_name, builder_kwargs = next(iter(module_names.values()))
         if not module_name:
             raise FileNotFoundError(f"No data files or dataset script found in {self.path}")
+        # Collect metadata files if the module supports them
+        if self.data_files is None and module_name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
+            try:
+                metadata_patterns = get_metadata_patterns_locally(base_path)
+            except FileNotFoundError:
+                metadata_patterns = None
+            if metadata_patterns is not None:
+                metadata_files = DataFilesList.from_local_or_remote(metadata_patterns, base_path=base_path)
+                for key in data_files:
+                    data_files[key] = DataFilesList(
+                        data_files[key] + metadata_files,
+                        data_files[key].origin_metadata + metadata_files.origin_metadata,
+                    )
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
         builder_kwargs = {
             "hash": hash,
@@ -733,18 +753,33 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
+        base_path = str(Path(self.data_dir).resolve()) if self.data_dir is not None else str(Path().resolve())
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
-            else get_patterns_locally(str(Path(self.data_dir).resolve()))
+            else get_data_patterns_locally(base_path)
             if self.data_dir is not None
-            else get_patterns_locally(str(Path().resolve()))
+            else get_data_patterns_locally(base_path)
         )
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
             use_auth_token=self.download_config.use_auth_token,
-            base_path=str(Path(self.data_dir).resolve()) if self.data_dir else None,
+            base_path=base_path,
         )
+        if self.data_files is None and self.name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
+            try:
+                metadata_patterns = get_metadata_patterns_locally(base_path)
+            except FileNotFoundError:
+                metadata_patterns = None
+            if metadata_patterns is not None:
+                metadata_files = DataFilesList.from_local_or_remote(
+                    metadata_patterns, use_auth_token=self.download_config.use_auth_token, base_path=base_path
+                )
+                for key in data_files:
+                    data_files[key] = DataFilesList(
+                        data_files[key] + metadata_files,
+                        data_files[key].origin_metadata + metadata_files.origin_metadata,
+                    )
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
         builder_kwargs = {"hash": hash, "data_files": data_files}
         return DatasetModule(module_path, hash, builder_kwargs)
@@ -783,13 +818,13 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision=self.revision,
-            token=token,
+            token=token if token else "no-token",
             timeout=100.0,
         )
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
-            else get_patterns_in_dataset_repository(hfh_dataset_info, self.data_dir)
+            else get_data_patterns_in_dataset_repository(hfh_dataset_info, self.data_dir)
         )
         data_files = DataFilesDict.from_hf_repo(
             patterns,
@@ -806,6 +841,21 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         module_name, builder_kwargs = next(iter(module_names.values()))
         if not module_name:
             raise FileNotFoundError(f"No data files or dataset script found in {self.name}")
+        # Collect metadata files if the module supports them
+        if self.data_files is None and module_name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
+            try:
+                metadata_patterns = get_metadata_patterns_in_dataset_repository(hfh_dataset_info, self.data_dir)
+            except FileNotFoundError:
+                metadata_patterns = None
+            if metadata_patterns is not None:
+                metadata_files = DataFilesList.from_hf_repo(
+                    metadata_patterns, dataset_info=hfh_dataset_info, base_path=self.data_dir
+                )
+                for key in data_files:
+                    data_files[key] = DataFilesList(
+                        data_files[key] + metadata_files,
+                        data_files[key].origin_metadata + metadata_files.origin_metadata,
+                    )
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
         builder_kwargs = {
             "hash": hash,
@@ -1140,7 +1190,7 @@ def dataset_module_factory(
                     dataset_info = hf_api.dataset_info(
                         repo_id=path,
                         revision=revision,
-                        token=token,
+                        token=token if token else "no-token",
                         timeout=100.0,
                     )
                 except Exception as e:  # noqa: catch any exception of hf_hub and consider that the dataset doesn't exist
@@ -1159,7 +1209,10 @@ def dataset_module_factory(
                     elif "401" in str(e):
                         msg = f"Dataset '{path}' doesn't exist on the Hub"
                         msg = msg + f" at revision '{revision}'" if revision else msg
-                        raise FileNotFoundError(msg + ". If the repo is private, make sure you are authenticated.")
+                        raise FileNotFoundError(
+                            msg
+                            + ". If the repo is private, make sure you are authenticated with `use_auth_token=True` after logging in with `huggingface-cli login`."
+                        )
                     else:
                         raise e
                 if filename in [sibling.rfilename for sibling in dataset_info.siblings]:

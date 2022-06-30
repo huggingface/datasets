@@ -76,6 +76,7 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
 SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"  # has dataset script
 SAMPLE_DATASET_IDENTIFIER2 = "lhoestq/test2"  # only has data files
 SAMPLE_DATASET_IDENTIFIER3 = "mariosasko/test_multi_dir_dataset"  # has multiple data directories
+SAMPLE_DATASET_IDENTIFIER4 = "mariosasko/test_imagefolder_with_metadata"  # imagefolder with a metadata file outside of the train/test directories
 SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "lhoestq/_dummy"
 SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
 
@@ -105,6 +106,24 @@ def data_dir(tmp_path):
         f.write("foo\n" * 10)
     with open(data_dir / "test.txt", "w") as f:
         f.write("bar\n" * 10)
+    return str(data_dir)
+
+
+@pytest.fixture
+def data_dir_with_metadata(tmp_path):
+    data_dir = tmp_path / "data_dir_with_metadata"
+    data_dir.mkdir()
+    with open(data_dir / "train.jpg", "wb") as f:
+        f.write(b"train_image_bytes")
+    with open(data_dir / "test.jpg", "wb") as f:
+        f.write(b"test_image_bytes")
+    with open(data_dir / "metadata.jsonl", "w") as f:
+        f.write(
+            """\
+        {"file_name": "train.jpg", "caption": "Cool tran image"}
+        {"file_name": "test.jpg", "caption": "Cool test image"}
+        """
+        )
     return str(data_dir)
 
 
@@ -211,10 +230,17 @@ def test_infer_module_for_data_files_in_archives(data_file, expected_module, zip
 class ModuleFactoryTest(TestCase):
     @pytest.fixture(autouse=True)
     def inject_fixtures(
-        self, jsonl_path, data_dir, sub_data_dirs, dataset_loading_script_dir, metric_loading_script_dir
+        self,
+        jsonl_path,
+        data_dir,
+        data_dir_with_metadata,
+        sub_data_dirs,
+        dataset_loading_script_dir,
+        metric_loading_script_dir,
     ):
         self._jsonl_path = jsonl_path
         self._data_dir = data_dir
+        self._data_dir_with_metadata = data_dir_with_metadata
         self._data_dir2 = sub_data_dirs[0]
         self._sub_data_dir = sub_data_dirs[1]
         self._dataset_loading_script_dir = dataset_loading_script_dir
@@ -292,6 +318,24 @@ class ModuleFactoryTest(TestCase):
             + module_factory_result.builder_kwargs["data_files"]["test"]
         )
 
+    def test_LocalDatasetModuleFactoryWithoutScript_with_metadata(self):
+        factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir_with_metadata)
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert (
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
+            and len(module_factory_result.builder_kwargs["data_files"]["test"]) > 0
+        )
+        assert any(
+            data_file.name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
+        )
+        assert any(
+            data_file.name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
+        )
+
     def test_PackagedDatasetModuleFactory(self):
         factory = PackagedDatasetModuleFactory(
             "json", data_files=self._jsonl_path, download_config=self.download_config
@@ -310,6 +354,32 @@ class ModuleFactoryTest(TestCase):
         )
         assert Path(module_factory_result.builder_kwargs["data_files"]["train"][0]).parent.samefile(self._data_dir)
         assert Path(module_factory_result.builder_kwargs["data_files"]["test"][0]).parent.samefile(self._data_dir)
+
+    def test_PackagedDatasetModuleFactory_with_data_dir_and_metadata(self):
+        factory = PackagedDatasetModuleFactory(
+            "imagefolder", data_dir=self._data_dir_with_metadata, download_config=self.download_config
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert (
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
+            and len(module_factory_result.builder_kwargs["data_files"]["test"]) > 0
+        )
+        assert Path(module_factory_result.builder_kwargs["data_files"]["train"][0]).parent.samefile(
+            self._data_dir_with_metadata
+        )
+        assert Path(module_factory_result.builder_kwargs["data_files"]["test"][0]).parent.samefile(
+            self._data_dir_with_metadata
+        )
+        assert any(
+            data_file.name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
+        )
+        assert any(
+            data_file.name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
+        )
 
     def test_HubDatasetModuleFactoryWithoutScript(self):
         factory = HubDatasetModuleFactoryWithoutScript(
@@ -336,6 +406,27 @@ class ModuleFactoryTest(TestCase):
             data_dir in Path(data_file).parts
             for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
             + module_factory_result.builder_kwargs["data_files"]["test"]
+        )
+
+    def test_HubDatasetModuleFactoryWithoutScript_with_metadata(self):
+        factory = HubDatasetModuleFactoryWithoutScript(
+            SAMPLE_DATASET_IDENTIFIER4, download_config=self.download_config
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert (
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
+            and len(module_factory_result.builder_kwargs["data_files"]["test"]) > 0
+        )
+        assert any(
+            Path(data_file).name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
+        )
+        assert any(
+            Path(data_file).name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
         )
 
     def test_HubDatasetModuleFactoryWithScript(self):
@@ -781,9 +872,6 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
         mock_head.assert_called()
 
 
-@pytest.mark.skipif(
-    os.name == "nt", reason="skip on windows because of SSL issues with moon-staging.huggingface.co:443"
-)
 def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
     with pytest.raises(FileNotFoundError):
         load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
@@ -791,9 +879,6 @@ def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_da
     assert next(iter(ds)) is not None
 
 
-@pytest.mark.skipif(
-    os.name == "nt", reason="skip on windows because of SSL issues with moon-staging.huggingface.co:443"
-)
 def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_dataset_repo_zipped_txt_data):
     with pytest.raises(FileNotFoundError):
         load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)

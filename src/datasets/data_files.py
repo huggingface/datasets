@@ -48,6 +48,7 @@ ALL_DEFAULT_PATTERNS = [
     DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
     DEFAULT_PATTERNS_ALL,
 ]
+METADATA_PATTERNS = ["metadata.jsonl", "**/metadata.jsonl"]  # metadata file for ImageFolder and AudioFolder
 WILDCARD_CHARACTERS = "*[]"
 FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data.zip", "dataset_dict.json"]
 
@@ -104,6 +105,23 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) 
                 pass
         if non_empty_splits:
             return {split: patterns_dict[split] for split in non_empty_splits}
+    raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
+
+
+def _get_metadata_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) -> Dict[str, List[str]]:
+    """
+    Get the supported metadata patterns from a directory or repository.
+    """
+    non_empty_patterns = []
+    for pattern in METADATA_PATTERNS:
+        try:
+            metadata_files = pattern_resolver(pattern)
+            if len(metadata_files) > 0:
+                non_empty_patterns.append(pattern)
+        except FileNotFoundError:
+            pass
+    if non_empty_patterns:
+        return non_empty_patterns
     raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
 
 
@@ -203,7 +221,7 @@ def resolve_patterns_locally_or_by_urls(
     return data_files
 
 
-def get_patterns_locally(base_path: str) -> Dict[str, List[str]]:
+def get_data_patterns_locally(base_path: str) -> Dict[str, List[str]]:
     """
     Get the default pattern from a directory testing all the supported patterns.
     The first patterns to return a non-empty list of data files is returned.
@@ -292,6 +310,17 @@ def get_patterns_locally(base_path: str) -> Dict[str, List[str]]:
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:
         raise FileNotFoundError(f"The directory at {base_path} doesn't contain any data file") from None
+
+
+def get_metadata_patterns_locally(base_path: str) -> List[str]:
+    """
+    Get the supported metadata patterns from a local directory.
+    """
+    resolver = partial(_resolve_single_pattern_locally, base_path)
+    try:
+        return _get_metadata_files_patterns(resolver)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"The directory at {base_path} doesn't contain any metadata file") from None
 
 
 def _resolve_single_pattern_in_dataset_repository(
@@ -393,7 +422,7 @@ def resolve_patterns_in_dataset_repository(
     return data_files_urls
 
 
-def get_patterns_in_dataset_repository(
+def get_data_patterns_in_dataset_repository(
     dataset_info: huggingface_hub.hf_api.DatasetInfo, base_path: str
 ) -> Dict[str, List[str]]:
     """
@@ -485,6 +514,21 @@ def get_patterns_in_dataset_repository(
     except FileNotFoundError:
         raise FileNotFoundError(
             f"The dataset repository at '{dataset_info.id}' doesn't contain any data file."
+        ) from None
+
+
+def get_metadata_patterns_in_dataset_repository(
+    dataset_info: huggingface_hub.hf_api.DatasetInfo, base_path: str
+) -> List[str]:
+    """
+    Get the supported metadata patterns from a remote repository.
+    """
+    resolver = partial(_resolve_single_pattern_in_dataset_repository, dataset_info, base_path=base_path)
+    try:
+        return _get_metadata_files_patterns(resolver)
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            f"The dataset repository at '{dataset_info.id}' doesn't contain any metadata file."
         ) from None
 
 

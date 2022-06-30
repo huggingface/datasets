@@ -101,7 +101,9 @@ class Audio:
                 f"An audio sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
             )
 
-    def decode_example(self, value: dict, token_per_repo_id=None) -> dict:
+    def decode_example(
+        self, value: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None
+    ) -> dict:
         """Decode example audio file into audio data.
 
         Args:
@@ -211,7 +213,9 @@ class Audio:
         storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
         return array_cast(storage, self.pa_type)
 
-    def _decode_non_mp3_path_like(self, path, format=None, token_per_repo_id=None):
+    def _decode_non_mp3_path_like(
+        self, path, format=None, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None
+    ):
         try:
             import librosa
         except ImportError as err:
