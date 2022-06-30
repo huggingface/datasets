@@ -149,6 +149,7 @@ def test_is_inside_unrequested_special_dir(complex_data_dir, pattern_results):
     assert f("__pycache__/b.txt", "*/b.txt") is True
     assert f("__pycache__/b.txt", "__pycache__/*") is False
     assert f("__pycache__/__b.txt", "__pycache__/*") is False
+    assert f("__pycache__/__b.txt", "__*/*") is False
     assert f("__b.txt", "*") is False
 
 
@@ -215,6 +216,14 @@ def test_resolve_patterns_locally_or_by_urls_returns_hidden_file_only_if_request
     assert len(resolved_data_files) == 1
 
 
+def test_resolve_patterns_locally_or_by_urls_hidden_base_path(tmp_path):
+    hidden = tmp_path / ".test_hidden_base_path"
+    hidden.mkdir()
+    (tmp_path / ".test_hidden_base_path" / "a.txt").touch()
+    resolved_data_files = resolve_patterns_locally_or_by_urls(str(hidden), ["*"])
+    assert len(resolved_data_files) == 1
+
+
 def test_resolve_patterns_locally_or_by_urls_returns_hidden_dir_only_if_requested(complex_data_dir):
     with pytest.raises(FileNotFoundError):
         resolve_patterns_locally_or_by_urls(complex_data_dir, ["data/*dummy_subdir/train.txt"])
@@ -230,6 +239,14 @@ def test_resolve_patterns_locally_or_by_urls_returns_special_dir_only_if_request
     resolved_data_files = resolve_patterns_locally_or_by_urls(complex_data_dir, ["data/.dummy_subdir/train.txt"])
     assert len(resolved_data_files) == 1
     resolved_data_files = resolve_patterns_locally_or_by_urls(complex_data_dir, ["*/.dummy_subdir/train.txt"])
+    assert len(resolved_data_files) == 1
+
+
+def test_resolve_patterns_locally_or_by_urls_special_base_path(tmp_path):
+    special = tmp_path / "__test_special_base_path__"
+    special.mkdir()
+    (tmp_path / "__test_special_base_path__" / "a.txt").touch()
+    resolved_data_files = resolve_patterns_locally_or_by_urls(str(special), ["*"])
     assert len(resolved_data_files) == 1
 
 
@@ -320,6 +337,13 @@ def test_resolve_patterns_in_dataset_repository_returns_hidden_file_only_if_requ
     assert len(resolved_data_files) == 1
 
 
+def test_resolve_patterns_in_dataset_repository_hidden_base_path():
+    siblings = [{"rfilename": ".hidden/a.txt"}]
+    datasets_infos = DatasetInfo(id="test_hidden_base_path", siblings=siblings, sha="foobar")
+    resolved_data_files = resolve_patterns_in_dataset_repository(datasets_infos, ["*"], base_path=".hidden")
+    assert len(resolved_data_files) == 1
+
+
 def test_resolve_patterns_in_dataset_repository_returns_hidden_dir_only_if_requested(hub_dataset_info):
     with pytest.raises(FileNotFoundError):
         resolve_patterns_in_dataset_repository(hub_dataset_info, ["data/*dummy_subdir/train.txt"])
@@ -335,6 +359,13 @@ def test_resolve_patterns_in_dataset_repository_returns_special_dir_only_if_requ
     resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, ["data/.dummy_subdir/train.txt"])
     assert len(resolved_data_files) == 1
     resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, ["*/.dummy_subdir/train.txt"])
+    assert len(resolved_data_files) == 1
+
+
+def test_resolve_patterns_in_dataset_repository_special_base_path():
+    siblings = [{"rfilename": "__special__/a.txt"}]
+    datasets_infos = DatasetInfo(id="test_hidden_base_path", siblings=siblings, sha="foobar")
+    resolved_data_files = resolve_patterns_in_dataset_repository(datasets_infos, ["*"], base_path="__special__")
     assert len(resolved_data_files) == 1
 
 

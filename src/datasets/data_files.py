@@ -78,8 +78,8 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
 
 def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> bool:
     """
-    When a path matches a pattern, we additionnally check if it's inside a directory we ignore
-    by default, e.g. "__pycache__".
+    When a path matches a pattern, we additionnally check if it's inside a special directory
+    we ignore by default (if it starts with a double underscore).
 
     Users can still explicitly request a filepath inside such a directory if "__pycache__" is
     mentioned explicitly in the requested pattern.
@@ -97,6 +97,8 @@ def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> b
     >>> _is_inside_unrequested_special_dir("__pycache__/b.txt", "*/b.txt")
     True
     >>> _is_inside_unrequested_special_dir("__pycache__/b.txt", "__pycache__/*")
+    False
+    >>> _is_inside_unrequested_special_dir("__pycache__/b.txt", "__*/*")
     False
     """
     # We just need to check if every special directories from the path is present explicly in the pattern.
@@ -236,9 +238,11 @@ def _resolve_single_pattern_locally(
         Path(filepath).resolve()
         for filepath in glob_iter
         if (filepath.name not in FILES_TO_IGNORE or PurePath(pattern).name == filepath.name)
-        and not _is_inside_unrequested_special_dir(os.path.relpath(filepath, base_path), pattern)
+        and not _is_inside_unrequested_special_dir(
+            os.path.relpath(filepath, base_path), os.path.relpath(pattern, base_path)
+        )
         and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
-            os.path.relpath(filepath, base_path), pattern
+            os.path.relpath(filepath, base_path), os.path.relpath(pattern, base_path)
         )
     ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
@@ -443,9 +447,11 @@ def _resolve_single_pattern_in_dataset_repository(
         filepath
         for filepath in glob_iter
         if (filepath.name not in FILES_TO_IGNORE or PurePath(pattern).name == filepath.name)
-        and not _is_inside_unrequested_special_dir(os.path.relpath(filepath, base_path), pattern)
+        and not _is_inside_unrequested_special_dir(
+            os.path.relpath(filepath, base_path), os.path.relpath(pattern, base_path)
+        )
         and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
-            os.path.relpath(filepath, base_path), pattern
+            os.path.relpath(filepath, base_path), os.path.relpath(pattern, base_path)
         )
     ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
