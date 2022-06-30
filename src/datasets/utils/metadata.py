@@ -218,8 +218,10 @@ EmptyList = List[_nothing]
 class DatasetMetadata:
     annotations_creators: List[str]
     language_creators: Union[EmptyList, List[str]]
-    languages: Union[EmptyList, List[str]]
-    licenses: List[str]
+    language: Union[EmptyList, List[str]]
+    languages: Union[EmptyList, List[str]] # deprecated
+    license: List[str]
+    licenses: List[str] # deprecated
     multilinguality: List[str]
     pretty_name: str
     size_categories: List[str]
@@ -243,8 +245,8 @@ class DatasetMetadata:
             self.annotations_creators
         )
         self.language_creators, language_creators_errors = self.validate_language_creators(self.language_creators)
-        self.languages, languages_errors = self.validate_language_codes(self.languages)
-        self.licenses, licenses_errors = self.validate_licences(self.licenses)
+        self.language, language_errors = self.validate_language_codes(self.language)
+        self.license, license_errors = self.validate_licences(self.license)
         self.multilinguality, multilinguality_errors = self.validate_mulitlinguality(self.multilinguality)
         self.size_categories, size_categories_errors = self.validate_size_catgeories(self.size_categories)
         self.source_datasets, source_datasets_errors = self.validate_source_datasets(self.source_datasets)
@@ -258,13 +260,13 @@ class DatasetMetadata:
         errors = {
             "annotations_creators": annotations_creators_errors,
             "language_creators": language_creators_errors,
-            "licenses": licenses_errors,
+            "license": license_errors,
             "multilinguality": multilinguality_errors,
             "size_categories": size_categories_errors,
             "source_datasets": source_datasets_errors,
             "task_categories": task_categories_errors,
             "task_ids": task_ids_errors,
-            "languages": languages_errors,
+            "language": language_errors,
             "paperswithcode_id": paperswithcode_id_errors,
             "train_eval_index": train_eval_index_errors,
         }
@@ -363,7 +365,7 @@ class DatasetMetadata:
         return tagset_validator(
             languages,
             known_language_codes.keys(),
-            "languages",
+            "language",
             known_language_codes_url,
             lambda lang: lang == "unknown",
         )
@@ -373,7 +375,7 @@ class DatasetMetadata:
         validated, error = tagset_validator(
             licenses,
             list(known_licenses.keys()),
-            "licenses",
+            "license",
             known_licenses_url,
             lambda e: "-other-" in e or e.startswith("other-"),
         )
