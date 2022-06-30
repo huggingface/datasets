@@ -6,7 +6,7 @@ language_creators:
 - expert-generated
 languages:
 - id
-licenses:
+license:
 - other-nergrit-license
 multilinguality:
 - monolingual

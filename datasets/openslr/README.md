@@ -34,7 +34,7 @@ languages:
 - ve
 - xh
 - yo
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - multilingual

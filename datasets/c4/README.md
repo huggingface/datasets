@@ -6,7 +6,7 @@ language_creators:
 - found
 languages:
 - en
-licenses:
+license:
 - odc-by-1.0
 multilinguality:
 - multilingual

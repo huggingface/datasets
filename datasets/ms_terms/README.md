@@ -119,7 +119,7 @@ languages:
 - cy
 - wo
 - yo
-licenses:
+license:
 - ms-pl
 multilinguality:
 - multilingual

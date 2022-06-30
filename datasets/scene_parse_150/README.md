@@ -6,7 +6,7 @@ language_creators:
 - found
 languages:
 - en
-licenses:
+license:
 - bsd-3-clause
 multilinguality:
 - monolingual

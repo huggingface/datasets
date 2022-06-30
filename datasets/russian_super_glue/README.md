@@ -8,7 +8,7 @@ language_creators:
 - expert-generated
 languages:
 - ru-RU
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual

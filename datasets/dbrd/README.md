@@ -6,7 +6,7 @@ language_creators:
 - found
 languages:
 - nl
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual

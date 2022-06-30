@@ -15,7 +15,7 @@ languages:
 - pt
 - ru
 - zh
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual

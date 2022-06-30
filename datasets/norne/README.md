@@ -5,7 +5,7 @@ language_creators:
 - crowdsourced
 languages:
 - "no"
-licenses:
+license:
 - other-national-library-of-norway
 multilinguality:
 - monolingual

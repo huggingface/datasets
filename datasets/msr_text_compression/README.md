@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - en
-licenses:
+license:
 - other-Microsoft Research Data License
 multilinguality:
 - monolingual

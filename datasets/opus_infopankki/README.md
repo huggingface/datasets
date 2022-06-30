@@ -16,7 +16,7 @@ languages:
 - sv
 - tr
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

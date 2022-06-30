@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - ar
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - multilingual

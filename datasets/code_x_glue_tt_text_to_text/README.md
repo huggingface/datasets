@@ -9,7 +9,7 @@ languages:
 - lv
 - zh
 - en
-licenses:
+license:
 - other-C-UDA
 multilinguality:
 - multilingual

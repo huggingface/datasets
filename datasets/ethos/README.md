@@ -6,7 +6,7 @@ language_creators:
 - found, other
 languages:
 - en
-licenses:
+license:
 - agpl-3.0-or-later
 multilinguality:
 - monolingual

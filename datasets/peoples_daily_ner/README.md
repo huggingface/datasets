@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

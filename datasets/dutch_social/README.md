@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 - nl
-licenses:
+license:
 - cc-by-nc-4.0
 multilinguality:
 - multilingual

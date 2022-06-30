@@ -180,7 +180,7 @@ languages:
 - yue
 - zea
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

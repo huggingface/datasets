@@ -6,7 +6,7 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-licenses:
+license:
 - cc-by-sa-3.0
 - gpl-3.0
 multilinguality:

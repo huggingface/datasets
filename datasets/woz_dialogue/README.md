@@ -7,7 +7,7 @@ languages:
 - de
 - en
 - it
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

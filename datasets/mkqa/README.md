@@ -28,7 +28,7 @@ languages:
 - tr
 - vi
 - zh
-licenses:
+license:
 - cc-by-3.0
 multilinguality:
 - multilingual

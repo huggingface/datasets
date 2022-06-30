@@ -5,7 +5,7 @@ language_creators:
 - expert-generated
 languages:
 - zh
-licenses:
+license:
 - other-non-commercial-research
 multilinguality:
 - monolingual

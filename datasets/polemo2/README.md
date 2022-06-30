@@ -5,7 +5,7 @@ language_creators:
 - other
 languages:
 - pl
-licenses:
+license:
 - bsd-3-clause
 multilinguality:
 - monolingual

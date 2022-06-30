@@ -29,7 +29,7 @@ languages:
 - sk
 - sl
 - sv
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - translation

@@ -30,7 +30,7 @@ languages:
 - sl
 - sv
 - tr
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - translation

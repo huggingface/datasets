@@ -6,7 +6,7 @@ language_creators:
 languages:
 - fil
 - tl
-licenses:
+license:
 - gpl-3.0
 multilinguality:
 - monolingual

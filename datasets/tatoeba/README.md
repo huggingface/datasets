@@ -363,7 +363,7 @@ languages:
 - zsm
 - zu
 - zza
-licenses:
+license:
 - cc-by-2.0
 multilinguality:
 - multilingual

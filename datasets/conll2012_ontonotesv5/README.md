@@ -7,7 +7,7 @@ languages:
 - ar
 - en
 - zh
-licenses:
+license:
 - cc-by-nc-nd-4.0
 multilinguality:
 - multilingual

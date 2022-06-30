@@ -5,7 +5,7 @@ language_creators:
 - expert-generated
 languages:
 - en
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual

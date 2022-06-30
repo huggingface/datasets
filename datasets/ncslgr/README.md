@@ -6,7 +6,7 @@ language_creators:
 languages:
 - ase
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - translation

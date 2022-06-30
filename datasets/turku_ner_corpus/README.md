@@ -6,7 +6,7 @@ language_creators:
 - expert-generated
 languages:
 - fi
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual

@@ -6,7 +6,7 @@ language_creators:
 - found
 languages:
 - en
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual

@@ -27,7 +27,7 @@ languages:
 - tw
 - zh
 - zh_TW
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

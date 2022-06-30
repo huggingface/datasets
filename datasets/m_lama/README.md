@@ -61,7 +61,7 @@ languages:
 - ur
 - vi
 - zh
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - translation

@@ -114,7 +114,7 @@ languages:
 - xno
 - yi
 - zu
-licenses:
+license:
 - cc-by-sa-3.0
 multilinguality:
 - monolingual

@@ -7,7 +7,7 @@ language_creators:
 languages:
 - en
 - yo
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - translation

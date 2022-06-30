@@ -15,7 +15,7 @@ languages:
 - sq
 - sr
 - tr
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - multilingual

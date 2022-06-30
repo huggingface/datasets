@@ -199,7 +199,7 @@ class TestMetadataUtils(unittest.TestCase):
             - found
             languages:
             - en
-            licenses:
+            license:
             - unknown
             multilinguality:
             - monolingual
@@ -227,7 +227,7 @@ class TestMetadataUtils(unittest.TestCase):
               - en
               fr:
               - fr
-            licenses:
+            license:
             - unknown
             multilinguality:
             - monolingual
@@ -252,7 +252,7 @@ class TestMetadataUtils(unittest.TestCase):
             - some guys in Panama
             languages:
             - en
-            licenses:
+            license:
             - unknown
             multilinguality:
             - monolingual
@@ -277,7 +277,7 @@ class TestMetadataUtils(unittest.TestCase):
             - found
             languages:
             - en
-            licenses:
+            license:
             - unknown
             multilinguality:
             - monolingual
@@ -302,7 +302,7 @@ class TestMetadataUtils(unittest.TestCase):
             - found
             languages:
             - en
-            licenses:
+            license:
             - unknown
             multilinguality:
             - monolingual
@@ -334,7 +334,7 @@ class TestMetadataUtils(unittest.TestCase):
               - en
               en:
               - en
-            licenses:
+            license:
             - unknown
             multilinguality:
             - monolingual
@@ -361,7 +361,7 @@ class TestMetadataUtils(unittest.TestCase):
             - found
             languages:
             - en
-            licenses:
+            license:
             - unknown
             multilinguality:
             - monolingual
@@ -387,7 +387,7 @@ class TestMetadataUtils(unittest.TestCase):
             - found
             languages:
             - en
-            licenses:
+            license:
             - unknown
             multilinguality:
             - monolingual
@@ -413,7 +413,7 @@ class TestMetadataUtils(unittest.TestCase):
             - found
             languages:
             - en
-            licenses:
+            license:
             - unknown
             multilinguality:
             - monolingual
@@ -442,7 +442,7 @@ class TestMetadataUtils(unittest.TestCase):
             - found
             languages:
             - en
-            licenses:
+            license:
             - unknown
             multilinguality:
             - monolingual

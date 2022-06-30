@@ -8,7 +8,7 @@ languages:
 - el
 - en
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

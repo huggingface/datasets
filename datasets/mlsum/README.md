@@ -9,7 +9,7 @@ languages:
 - fr
 - ru
 - tr
-licenses:
+license:
 - other-research-only
 multilinguality:
 - multilingual

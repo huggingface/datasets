@@ -6,7 +6,7 @@ language_creators:
 languages:
 - rn
 - rw
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual

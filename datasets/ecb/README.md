@@ -23,7 +23,7 @@ languages:
 - pt
 - sk
 - sl
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

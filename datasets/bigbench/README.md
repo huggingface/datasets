@@ -10,7 +10,7 @@ language_creators:
 - other
 languages:
 - en
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - multilingual

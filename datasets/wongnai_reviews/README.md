@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - th
-licenses:
+license:
 - lgpl-3.0-only
 multilinguality:
 - monolingual

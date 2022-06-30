@@ -5,7 +5,7 @@ language_creators:
 - crowdsourced
 languages:
 - en
-licenses:
+license:
 - upl-1.0
 multilinguality:
 - monolingual

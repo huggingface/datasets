@@ -50,7 +50,7 @@ languages:
 - zh-CN
 - zh-HK
 - zh-TW
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - multilingual

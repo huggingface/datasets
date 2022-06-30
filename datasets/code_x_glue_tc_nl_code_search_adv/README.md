@@ -6,7 +6,7 @@ language_creators:
 languages:
 - code
 - en
-licenses:
+license:
 - other-C-UDA
 multilinguality:
 - other-programming-languages

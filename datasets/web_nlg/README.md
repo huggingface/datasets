@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 - ru
-licenses:
+license:
 - cc-by-sa-3.0
 - cc-by-nc-sa-4.0
 - gfdl-1.1

@@ -8,7 +8,7 @@ language_creators:
 languages:
 - chr
 - en
-licenses:
+license:
 - other-different-license-per-source
 multilinguality:
 - monolingual

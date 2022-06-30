@@ -14,7 +14,7 @@ languages:
 - ja
 - ko
 - zh
-licenses:
+license:
 - other
 multilinguality:
 - multilingual

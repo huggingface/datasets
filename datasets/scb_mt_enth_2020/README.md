@@ -11,7 +11,7 @@ language_creators:
 languages:
 - en
 - th
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - translation

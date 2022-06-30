@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - sa
-licenses:
+license:
 - other-Public Domain Mark 1.0
 multilinguality:
 - monolingual

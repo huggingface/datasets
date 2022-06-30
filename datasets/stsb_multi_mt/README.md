@@ -16,7 +16,7 @@ languages:
 - pt
 - ru
 - zh
-licenses:
+license:
 - custom
 multilinguality:
 - multilingual

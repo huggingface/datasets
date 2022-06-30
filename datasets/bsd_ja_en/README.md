@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 - ja
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - translation

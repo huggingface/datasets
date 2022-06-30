@@ -7,7 +7,7 @@ language_creators:
 - expert-generated
 languages:
 - th
-licenses:
+license:
 - cc-by-3.0
 multilinguality:
 - monolingual

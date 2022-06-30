@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - ja
-licenses:
+license:
 - cc-by-nd-4.0
 multilinguality:
 - monolingual

@@ -191,7 +191,7 @@ languages:
 - zh_HK
 - zh_TW
 - zu
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

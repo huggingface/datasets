@@ -29,7 +29,7 @@ languages:
 - ur
 - vi
 - zh
-licenses:
+license:
 - cc-by-nc-4.0
 - cc-by-sa-4.0
 - other-Licence Universal Dependencies v2.5

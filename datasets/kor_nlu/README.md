@@ -7,7 +7,7 @@ language_creators:
 - machine-generated
 languages:
 - ko
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

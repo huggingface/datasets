@@ -15,7 +15,7 @@ languages:
 - tr
 - vi
 - zh
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - multilingual

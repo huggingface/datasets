@@ -9,7 +9,7 @@ languages:
 - ca
 - en
 - es
-licenses:
+license:
 - gfdl-1.1
 multilinguality:
 - monolingual

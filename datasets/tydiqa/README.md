@@ -16,7 +16,7 @@ languages:
 - ru
 - te
 - th
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - multilingual

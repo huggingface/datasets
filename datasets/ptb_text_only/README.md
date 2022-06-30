@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - en
-licenses:
+license:
 - other-LDC User Agreement for Non-Members
 multilinguality:
 - monolingual

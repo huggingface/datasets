@@ -20,7 +20,7 @@ languages:
 - uk
 - zh
 - hu
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - translation

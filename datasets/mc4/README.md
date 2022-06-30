@@ -114,7 +114,7 @@ languages:
 - zh
 - zh-Latn
 - zu
-licenses:
+license:
 - odc-by-1.0
 multilinguality:
 - multilingual

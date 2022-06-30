@@ -229,7 +229,7 @@ languages:
 - zam
 - zh
 - zul
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

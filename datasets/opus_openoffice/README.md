@@ -12,7 +12,7 @@ languages:
 - ru
 - sv
 - zh_CN
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

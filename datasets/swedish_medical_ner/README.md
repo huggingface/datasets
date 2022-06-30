@@ -6,7 +6,7 @@ language_creators:
 - found
 languages:
 - sv-SE
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

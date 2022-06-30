@@ -119,7 +119,7 @@ size_categories:
 - 1K<n<10K
 - 1M<n<10M
 - n<1K
-licenses:
+license:
 - unknown
 paperswithcode_id: opus-100
 configs:

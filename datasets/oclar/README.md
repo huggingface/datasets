@@ -5,7 +5,7 @@ language_creators:
 - crowdsourced
 languages:
 - ar
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

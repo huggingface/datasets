@@ -10,7 +10,7 @@ languages:
 - fr
 - ja
 - zh
-licenses:
+license:
 - other-amazon-license
 multilinguality:
 - monolingual

@@ -24,7 +24,7 @@ languages:
 - sl
 - tr
 - vi
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

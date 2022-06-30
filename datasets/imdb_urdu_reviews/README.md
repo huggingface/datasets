@@ -5,7 +5,7 @@ language_creators:
 - machine-generated
 languages:
 - ur
-licenses:
+license:
 - odbl-1.0
 multilinguality:
 - monolingual

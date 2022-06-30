@@ -14,7 +14,7 @@ languages:
 - ru
 - si
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - translation

@@ -5,7 +5,7 @@ language_creators:
 - expert-generated
 languages:
 - en
-licenses:
+license:
 - other-requires-accepting-data-licensing-terms-for-non-commercial-research-and-educational-purposes-only
 multilinguality:
 - monolingual

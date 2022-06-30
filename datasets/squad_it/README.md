@@ -5,7 +5,7 @@ language_creators:
 - machine-generated
 languages:
 - it-IT
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

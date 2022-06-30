@@ -9,7 +9,7 @@ languages:
 - es
 - fr
 - sv
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

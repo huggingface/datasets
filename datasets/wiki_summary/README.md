@@ -5,7 +5,7 @@ language_creators:
 - crowdsourced
 languages:
 - fa
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual

@@ -5,7 +5,7 @@ language_creators:
 - machine-generated
 languages:
 - code
-licenses:
+license:
 - other-several-licenses
 multilinguality:
 - multilingual

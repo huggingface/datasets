@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - code
-licenses:
+license:
 - other-C-UDA
 multilinguality:
 - other-programming-languages

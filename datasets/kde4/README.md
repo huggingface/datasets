@@ -96,7 +96,7 @@ languages:
 - zh_CN
 - zh_HK
 - zh_TW
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

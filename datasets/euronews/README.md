@@ -7,7 +7,7 @@ languages:
 - de
 - fr
 - nl
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - multilingual

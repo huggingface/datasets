@@ -6,7 +6,7 @@ language_creators:
 languages:
 - apc
 - apj
-licenses:
+license:
 - other-Copyright-2018-by-[American-University-of-Beirut]
 multilinguality:
 - monolingual

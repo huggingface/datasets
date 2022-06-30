@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - ko
-licenses:
+license:
 - cc-by-nd-2.0
 multilinguality:
 - monolingual

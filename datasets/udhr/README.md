@@ -458,7 +458,7 @@ languages:
 - zro
 - ztu
 - zu
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

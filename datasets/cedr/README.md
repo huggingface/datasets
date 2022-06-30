@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - ru
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual

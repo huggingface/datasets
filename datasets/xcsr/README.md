@@ -21,7 +21,7 @@ languages:
 - hi
 - sw
 - ur
-licenses:
+license:
 - mit
 multilinguality:
 - multilingual

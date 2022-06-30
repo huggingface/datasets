@@ -44,7 +44,7 @@ languages:
 - sl
 - th
 - uk
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

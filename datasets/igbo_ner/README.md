@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - ig
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

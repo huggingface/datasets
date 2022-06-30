@@ -25,7 +25,7 @@ languages:
 - sk
 - sl
 - sv
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

@@ -5,7 +5,7 @@ language_creators:
 - expert-generated
 languages:
 - af
-licenses:
+license:
 - other-Creative Commons Attribution 2.5 South Africa License
 multilinguality:
 - monolingual

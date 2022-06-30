@@ -6,7 +6,7 @@ language_creators:
 languages:
 - ca
 - eu
-licenses:
+license:
 - cc-by-3.0
 multilinguality:
 - monolingual

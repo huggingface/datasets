@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - aeb
-licenses:
+license:
 - lgpl-3.0
 multilinguality:
 - monolingual

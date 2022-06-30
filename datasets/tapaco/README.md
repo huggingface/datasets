@@ -77,7 +77,7 @@ languages:
 - war
 - wuu
 - yue
-licenses:
+license:
 - cc-by-2.0
 multilinguality:
 - multilingual

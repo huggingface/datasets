@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 - ig
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

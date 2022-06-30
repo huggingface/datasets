@@ -6,7 +6,7 @@ language_creators:
 - machine-generated
 languages:
 - en
-licenses:
+license:
 - ms-pl
 multilinguality:
 - monolingual

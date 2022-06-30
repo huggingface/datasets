@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - hi
-licenses:
+license:
 - other-MIDAS-LAB-IIITD-Delhi
 multilinguality:
 - monolingual

@@ -5,7 +5,7 @@ language_creators:
 - expert-generated
 languages:
 - ur
-licenses:
+license:
 - other-my-license
 multilinguality:
 - monolingual

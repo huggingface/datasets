@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - th
-licenses:
+license:
 - cc-by-nc-3.0
 multilinguality:
 - monolingual

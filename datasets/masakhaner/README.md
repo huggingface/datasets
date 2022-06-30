@@ -15,7 +15,7 @@ languages:
 - wo
 - yo
 
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

@@ -28,7 +28,7 @@ languages:
 - sk
 - sl
 - sv
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - translation

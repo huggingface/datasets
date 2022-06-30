@@ -6,7 +6,7 @@ language_creators:
 - found
 languages:
 - en
-licenses:
+license:
 - gfdl-1.3
 multilinguality:
 - monolingual

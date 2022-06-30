@@ -5,7 +5,7 @@ language_creators:
 - crowdsourced
 languages:
 - pt-BR
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

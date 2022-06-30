@@ -5,7 +5,7 @@ language_creators:
 - crowdsourced
 languages:
 - eu
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

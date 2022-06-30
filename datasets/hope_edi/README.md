@@ -7,7 +7,7 @@ languages:
 - en
 - ml
 - ta
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual

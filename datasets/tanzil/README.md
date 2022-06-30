@@ -46,7 +46,7 @@ languages:
 - ur
 - uz
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

@@ -247,7 +247,7 @@ languages:
 - zh-TW
 - zu
 - zza
-licenses:
+license:
 - bsd-3-clause
 multilinguality:
 - multilingual

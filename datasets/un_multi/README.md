@@ -11,7 +11,7 @@ languages:
 - fr
 - ru
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

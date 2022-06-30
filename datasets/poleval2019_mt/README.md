@@ -8,7 +8,7 @@ languages:
 - en
 - pl
 - ru
-licenses:
+license:
 - unknown
 multilinguality:
 - translation

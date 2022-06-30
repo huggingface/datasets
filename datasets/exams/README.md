@@ -21,7 +21,7 @@ languages:
 - sr
 - tr
 - vi
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

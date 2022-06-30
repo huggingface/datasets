@@ -5,7 +5,7 @@ language_creators:
 - expert-generated
 languages:
 - zu
-licenses:
+license:
 - other-Creative Commons Attribution 2.5 South Africa
 multilinguality:
 - monolingual

@@ -6,7 +6,7 @@ language_creators:
 - found
 languages:
 - ko
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

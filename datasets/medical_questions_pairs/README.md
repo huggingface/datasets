@@ -5,7 +5,7 @@ language_creators:
 - other
 languages:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

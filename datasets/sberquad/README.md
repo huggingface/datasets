@@ -7,7 +7,7 @@ language_creators:
 - crowdsourced
 languages:
 - ru
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

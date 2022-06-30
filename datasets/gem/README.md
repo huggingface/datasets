@@ -14,7 +14,7 @@ languages:
 - ru
 - tr
 - vi
-licenses:
+license:
 - other-research-only
 multilinguality:
 - monolingual

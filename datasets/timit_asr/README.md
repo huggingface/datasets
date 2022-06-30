@@ -6,7 +6,7 @@ language_creators:
 - expert-generated
 languages:
 - en
-licenses:
+license:
 - other-LDC-User-Agreement-for-Non-Members
 multilinguality:
 - monolingual

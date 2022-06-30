@@ -15,7 +15,7 @@ source_datasets:
 - extended|bookcorpus
 size_categories:
 - 10K<n<100K
-licenses:
+license:
 - cc-by-4.0
 paperswithcode_id: lambada
 pretty_name: LAMBADA

@@ -8,7 +8,7 @@ language_creators:
 languages:
 - en
 - fr
-licenses:
+license:
 - mit
 multilinguality:
 - translation

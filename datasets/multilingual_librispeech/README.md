@@ -13,7 +13,7 @@ languages:
 - es
 - pt
 - pl
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - multilingual

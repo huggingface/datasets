@@ -6,7 +6,7 @@ language_creators:
 - expert-generated
 languages:
 - mn
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

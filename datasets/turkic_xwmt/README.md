@@ -14,7 +14,7 @@ languages:
 - sah
 - tr
 - uz
-licenses:
+license:
 - mit
 multilinguality:
 - translation

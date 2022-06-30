@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - th
-licenses:
+license:
 - other-aiforthai
 multilinguality:
 - monolingual

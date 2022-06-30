@@ -6,7 +6,7 @@ language_creators:
 - found
 languages:
 - fr
-licenses:
+license:
 - cc-by-nc-sa-3.0
 multilinguality:
 - monolingual

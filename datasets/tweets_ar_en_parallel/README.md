@@ -7,7 +7,7 @@ language_creators:
 languages:
 - ar
 - en
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - translation

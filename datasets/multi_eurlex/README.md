@@ -28,7 +28,7 @@ languages:
 - lv 
 - el 
 - mt
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - multilingual

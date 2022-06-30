@@ -7,7 +7,7 @@ language_creators:
 languages:
 - en
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

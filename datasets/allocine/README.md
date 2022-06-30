@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - fr
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual

@@ -9,7 +9,7 @@ languages:
 - de
 - en
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - translation

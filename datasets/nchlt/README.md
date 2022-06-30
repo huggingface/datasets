@@ -13,7 +13,7 @@ languages:
 - ve
 - xh
 - zu
-licenses:
+license:
 - cc-by-2.5
 multilinguality:
 - multilingual

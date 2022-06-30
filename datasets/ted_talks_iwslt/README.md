@@ -114,7 +114,7 @@ languages:
 - zh
 - ur
 - gl
-licenses:
+license:
 - cc-by-nc-4.0
 multilinguality:
 - translation

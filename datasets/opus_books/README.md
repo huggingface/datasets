@@ -20,7 +20,7 @@ languages:
 - pt
 - ru
 - sv
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

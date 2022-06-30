@@ -132,7 +132,7 @@ languages:
 - zh
 - zu
 - zza
-licenses:
+license:
 - unknown
 multilinguality:
 - translation

@@ -120,7 +120,7 @@ languages:
 - zh-Hans
 - zh-Hant
 - zu
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

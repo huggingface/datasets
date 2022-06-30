@@ -6,7 +6,7 @@ language_creators:
 - machine-generated
 languages:
 - sv
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

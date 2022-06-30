@@ -5,7 +5,7 @@ language_creators:
 - crowdsourced
 languages:
 - ar-SA
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual

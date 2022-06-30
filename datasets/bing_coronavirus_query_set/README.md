@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - en
-licenses:
+license:
 - o-uda-1.0
 multilinguality:
 - monolingual

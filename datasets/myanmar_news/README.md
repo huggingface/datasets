@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - my
-licenses:
+license:
 - gpl-3.0
 multilinguality:
 - monolingual

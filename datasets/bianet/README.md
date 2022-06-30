@@ -7,7 +7,7 @@ languages:
 - en
 - ku
 - tr
-licenses:
+license:
 - unknown
 multilinguality:
 - translation

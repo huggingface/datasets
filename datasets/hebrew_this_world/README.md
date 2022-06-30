@@ -5,7 +5,7 @@ language_creators:
 - found
 languages:
 - he
-licenses:
+license:
 - agpl-3.0-or-later
 multilinguality:
 - monolingual

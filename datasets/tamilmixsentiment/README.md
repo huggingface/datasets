@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 - ta
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

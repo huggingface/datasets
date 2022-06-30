@@ -6,7 +6,7 @@ language_creators:
 - crowdsourced
 languages:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

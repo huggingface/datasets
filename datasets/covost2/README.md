@@ -26,7 +26,7 @@ languages:
 - ja
 - id
 - cy
-licenses:
+license:
 - cc-by-nc-4.0
 multilinguality:
 - multilingual

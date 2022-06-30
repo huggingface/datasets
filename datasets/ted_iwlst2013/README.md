@@ -19,7 +19,7 @@ languages:
 - sl
 - tr
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

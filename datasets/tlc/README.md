@@ -7,7 +7,7 @@ language_creators:
 - expert-generated
 languages:
 - th
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

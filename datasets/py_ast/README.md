@@ -6,7 +6,7 @@ language_creators:
 - found
 languages:
 - code
-licenses:
+license:
 - 0bsd
 - mit
 multilinguality:

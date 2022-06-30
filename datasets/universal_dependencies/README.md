@@ -106,7 +106,7 @@ languages:
 - yo
 - yue
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

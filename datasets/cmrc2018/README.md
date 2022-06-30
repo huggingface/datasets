@@ -5,7 +5,7 @@ language_creators:
 - crowdsourced
 languages:
 - zh
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

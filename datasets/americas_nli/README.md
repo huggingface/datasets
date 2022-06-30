@@ -14,7 +14,7 @@ languages:
 - qu
 - shp
 - tar
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

@@ -5,7 +5,7 @@ language_creators:
 - crowdsourced
 languages:
 - en
-licenses:
+license:
 - cc-by-sa-3.0
 - gfdl-1.3-or-later
 multilinguality:

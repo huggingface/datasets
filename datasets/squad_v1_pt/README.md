@@ -5,7 +5,7 @@ language_creators:
 - crowdsourced
 languages:
 - pt
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual

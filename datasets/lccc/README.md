@@ -5,7 +5,7 @@ language_creators:
 - other
 languages:
 - zh
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual

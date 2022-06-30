@@ -6,7 +6,7 @@ language_creators:
 - found
 languages:
 - ro
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual

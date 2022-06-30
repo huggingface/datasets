@@ -9,7 +9,7 @@ language_creators:
 - found
 languages:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual

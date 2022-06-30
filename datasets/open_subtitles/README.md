@@ -66,7 +66,7 @@ languages:
 - ze_zh
 - zh_cn
 - zh_tw
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

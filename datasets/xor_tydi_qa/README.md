@@ -12,7 +12,7 @@ languages:
 - ko
 - ru
 - te
-licenses:
+license:
 - mit
 multilinguality:
 - multilingual

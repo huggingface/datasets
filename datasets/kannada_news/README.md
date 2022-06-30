@@ -5,7 +5,7 @@ language_creators:
 - other
 languages:
 - kn
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

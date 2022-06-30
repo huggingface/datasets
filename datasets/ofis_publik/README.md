@@ -6,7 +6,7 @@ language_creators:
 languages:
 - br
 - fr
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

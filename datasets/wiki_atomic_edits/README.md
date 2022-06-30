@@ -12,7 +12,7 @@ languages:
 - jp
 - ru
 - zh
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - multilingual
