@@ -173,7 +173,7 @@ class TestMetadataUtils(unittest.TestCase):
             with open(path, "w+") as readme_file:
                 readme_file.write(README_YAML)
             metadata_dict = metadata_dict_from_readme(path)
-            self.assertDictEqual(metadata_dict, {"languages": ["zh", "en"], "task_ids": ["sentiment-classification"]})
+            self.assertDictEqual(metadata_dict, {"language": ["zh", "en"], "task_ids": ["sentiment-classification"]})
 
             with open(path, "w+") as readme_file:
                 readme_file.write(README_EMPTY_YAML)
@@ -188,7 +188,15 @@ class TestMetadataUtils(unittest.TestCase):
     def test_from_yaml_string(self):
 
         default_optional_keys = {
-            field.name: field.default for field in fields(DatasetMetadata) if type(field.default) is _MISSING_TYPE
+            field.name: field.default
+            for field in fields(DatasetMetadata)
+            if type(field.default) is _MISSING_TYPE and field.name not in DatasetMetadata._DEPRECATED_YAML_KEYS
+        }
+
+        default_deprecated_keys = {
+            field.name: field.default
+            for field in fields(DatasetMetadata)
+            if field.name in DatasetMetadata._DEPRECATED_YAML_KEYS
         }
 
         valid_yaml_string = _dedent(
@@ -487,10 +495,11 @@ class TestMetadataUtils(unittest.TestCase):
         metadata_dict = asdict(metadata)
         expected = {
             **default_optional_keys,
+            **default_deprecated_keys,
             "annotations_creators": ["found"],
             "language_creators": ["found"],
-            "languages": ["en"],
-            "licenses": ["unknown"],
+            "language": ["en"],
+            "license": ["unknown"],
             "multilinguality": ["monolingual"],
             "pretty_name": "Test Dataset",
             "size_categories": ["10K<n<100K"],

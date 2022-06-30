@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import warnings
 from collections import Counter
 from dataclasses import dataclass, fields
 from pathlib import Path
@@ -219,9 +220,7 @@ class DatasetMetadata:
     annotations_creators: List[str]
     language_creators: Union[EmptyList, List[str]]
     language: Union[EmptyList, List[str]]
-    languages: Union[EmptyList, List[str]]  # deprecated
     license: List[str]
-    licenses: List[str]  # deprecated
     multilinguality: List[str]
     pretty_name: str
     size_categories: List[str]
@@ -233,10 +232,19 @@ class DatasetMetadata:
     configs: Optional[List[str]] = None
     extra_gated_fields: Optional[Dict] = None
     extra_gated_prompt: Optional[str] = None
+    licenses: Optional[Union[EmptyList, List[str]]] = None  # deprecated
+    languages: Optional[Union[EmptyList, List[str]]] = None  # deprecated
 
     # class attributes
     _FIELDS_WITH_DASHES: ClassVar[set] = {"train_eval_index"}  # train-eval-index in the YAML metadata
     _ALLOWED_YAML_KEYS: ClassVar[set] = set()  # populated later
+    _DEPRECATED_YAML_KEYS = ["licenses", "languages"]
+
+    def __post_init__(self):
+        if self.licenses is not None:
+            warnings.warning("The 'licenses' YAML field is deprecated, please use 'license' instead.")
+        if self.languages is not None:
+            warnings.warning("The 'languages' YAML field is deprecated, please use 'language' instead.")
 
     def validate(self):
         validate_metadata_type(metadata_dict=vars(self))
@@ -272,9 +280,9 @@ class DatasetMetadata:
         }
 
         exception_msg_dict = dict()
-        for field, errs in errors.items():
+        for yaml_field, errs in errors.items():
             if errs is not None:
-                exception_msg_dict[field] = errs
+                exception_msg_dict[yaml_field] = errs
         if len(exception_msg_dict) > 0:
             raise TypeError(
                 "Could not validate the metadata, found the following errors:\n"
