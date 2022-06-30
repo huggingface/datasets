@@ -134,7 +134,6 @@ class Cfq(datasets.GeneratorBasedBuilder):
         question_regex = re.compile(r'("%s":\s*"[^"]*")' % _QUESTION_FIELD)
         query_regex = re.compile(r'("%s":\s*"[^"]*")' % _QUERY_FIELD)
         question_match = None
-        result = []
         for line in content:
             line = line.decode("utf-8")
             if not question_match:
@@ -142,24 +141,19 @@ class Cfq(datasets.GeneratorBasedBuilder):
             else:
                 query_match = query_regex.match(line)
                 if query_match:
-                    result.append((question_match.group(1), query_match.group(1)))
+                    yield json.loads("{" + question_match.group(1) + "," + query_match.group(1) + "}")
                     question_match = None
-        return "[" + ",".join(["{" + match[0] + "," + match[1] + "}" for match in result]) + "]"
 
     def _generate_examples(self, data_files, split_id):
         """Yields examples."""
         samples_path = "cfq/dataset.json"
-        splits = samples = None
         for path, file in data_files:
             if path == self.config.splits_path:
-                splits = json.load(file)
+                splits = json.load(file)[split_id]
             elif path == samples_path:
-                logger.info("Reading json from %s into memory...", samples_path)
-                samples = json.loads(self._scrub_json(file))
-                logger.info("%d samples loaded", len(samples))
-                logger.info("Loaded json data from %s.", samples_path)
-            elif splits and samples:
-                break
-        for idx in splits[split_id]:
-            sample = samples[idx]
+                # The samples_path is the last path inside the archive
+                splits_set = set(splits)
+                samples = {idx: sample for idx, sample in enumerate(self._scrub_json(file)) if idx in splits_set}
+        for idx in splits:
+            sample = samples.pop(idx)
             yield idx, {_QUESTION: sample[_QUESTION_FIELD], _QUERY: sample[_QUERY_FIELD]}
