@@ -12,6 +12,7 @@ from datasets.data_files import (
     DataFilesList,
     Url,
     _get_data_files_patterns,
+    _get_metadata_files_patterns,
     resolve_patterns_in_dataset_repository,
     resolve_patterns_locally_or_by_urls,
 )
@@ -364,7 +365,7 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
     "data_file_per_split",
     [
         # === Main cases ===
-        # file named afetr split at the root
+        # file named after split at the root
         {"train": "train.txt", "test": "test.txt", "validation": "valid.txt"},
         # file named after split in a directory
         {
@@ -392,6 +393,7 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
         # Default to train split
         {"train": "dataset.txt"},
         {"train": "data/dataset.txt"},
+        {"train": ["data/image.jpg", "metadata.jsonl"]},
         # With prefix or suffix in directory or file names
         {"train": "my_train_dir/dataset.txt"},
         {"train": "data/my_train_file.txt"},
@@ -428,3 +430,23 @@ def test_get_data_files_patterns(data_file_per_split):
         ]
         assert len(matched) == len(data_file_per_split[split])
         assert matched == data_file_per_split[split]
+
+
+@pytest.mark.parametrize(
+    "metadata_files",
+    [
+        # metadata files at the root
+        ["metadata.jsonl"],
+        # nested metadata files
+        ["data/metadata.jsonl", "data/train/metadata.jsonl"],
+    ],
+)
+def test_get_metadata_files_patterns(metadata_files):
+    def resolver(pattern):
+        return [PurePath(path) for path in set(metadata_files) if PurePath(path).match(pattern)]
+
+    patterns = _get_metadata_files_patterns(resolver)
+    matched = [path for path in metadata_files for pattern in patterns if PurePath(path).match(pattern)]
+    # Use set to remove the difference between in behavior between PurePath.match and mathcing via fsspec.glob
+    assert len(set(matched)) == len(metadata_files)
+    assert sorted(set(matched)) == sorted(metadata_files)
