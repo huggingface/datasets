@@ -216,7 +216,8 @@ class MockDownloadManager:
             with ZipFile(self.local_path_to_dummy_data) as zip_file:
                 members = zip_file.namelist()
             for member in members:
-                yield path.parent.joinpath(member)
+                member_path = path.parent.joinpath(member)
+                yield member_path if member_path.exists() else path.parent.parent.joinpath(member)
 
         path = Path(path)
         file_paths = _iter_archive_members(path) if self.use_local_dummy_data else path.rglob("*")
