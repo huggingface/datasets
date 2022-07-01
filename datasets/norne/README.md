@@ -6,7 +6,7 @@ language_creators:
 language:
 - "no"
 license:
-- other-national-library-of-norway
+- other
 multilinguality:
 - monolingual
 size_categories:

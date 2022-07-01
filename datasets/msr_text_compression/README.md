@@ -6,7 +6,8 @@ language_creators:
 language:
 - en
 license:
-- other-Microsoft Research Data License
+- other
+license_details: "Microsoft Research Data License Agreement"
 multilinguality:
 - monolingual
 size_categories:

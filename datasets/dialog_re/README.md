@@ -6,7 +6,7 @@ language_creators:
 language:
 - en
 license:
-- other-non-commercial-research-purpose-only
+- other
 multilinguality:
 - monolingual
 size_categories:

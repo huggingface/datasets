@@ -6,7 +6,8 @@ language_creators:
 language:
 - en
 license:
-- other-imagenet-agreement
+- other
+license_details: imagenet-agreement
 multilinguality:
 - monolingual
 paperswithcode_id: imagenet

@@ -11,7 +11,7 @@ language:
 - ja
 - zh
 license:
-- other-amazon-license
+- other
 multilinguality:
 - monolingual
 - multilingual

@@ -7,7 +7,8 @@ language_creators:
 language:
 - en
 license:
-- other-LDC-User-Agreement-for-Non-Members
+- other
+license_details: "LDC-User-Agreement-for-Non-Members"
 multilinguality:
 - monolingual
 size_categories:

@@ -6,7 +6,7 @@ language_creators:
 language:
 - en
 license:
-- gnu-gpl-v3.0
+- gpl-3.0
 multilinguality:
 - monolingual
 size_categories:

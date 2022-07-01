@@ -6,7 +6,7 @@ language_creators:
 language:
 - zh
 license:
-- other-non-commercial-research
+- other
 multilinguality:
 - monolingual
 size_categories:

@@ -7,7 +7,7 @@ language_creators:
 language:
 - en
 license:
-- agpl-3.0-or-later
+- agpl-3.0
 multilinguality:
 - monolingual
 size_categories:

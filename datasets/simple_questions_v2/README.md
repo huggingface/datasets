@@ -6,7 +6,7 @@ language_creators:
 language:
 - en
 license:
-- cc-by-3.0-at
+- cc-by-3.0
 multilinguality:
 - monolingual
 size_categories:

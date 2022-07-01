@@ -240,7 +240,7 @@ language:
 - other-nds-nl
 - other-be-tarask
 license:
-- odbl-1.0
+- odbl
 multilinguality:
 - multilingual
 size_categories:

@@ -6,7 +6,7 @@ language_creators:
 language:
 - en
 license:
-- other-public-domain
+- unlicense
 multilinguality:
 - monolingual
 paperswithcode_id: ljspeech

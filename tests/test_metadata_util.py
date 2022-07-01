@@ -190,7 +190,7 @@ class TestMetadataUtils(unittest.TestCase):
         default_optional_keys = {
             field.name: field.default
             for field in fields(DatasetMetadata)
-            if type(field.default) is _MISSING_TYPE and field.name not in DatasetMetadata._DEPRECATED_YAML_KEYS
+            if type(field.default) is not _MISSING_TYPE and field.name not in DatasetMetadata._DEPRECATED_YAML_KEYS
         }
 
         default_deprecated_keys = {

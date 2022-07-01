@@ -6,7 +6,7 @@ language_creators:
 language:
 - en
 license:
-- other-for-non-commercial-research-and-educational-purposes-only
+- other
 multilinguality:
 - monolingual
 pretty_name: Multi-News

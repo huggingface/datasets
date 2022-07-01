@@ -6,7 +6,8 @@ language_creators:
 language:
 - af
 license:
-- other-Creative Commons Attribution 2.5 South Africa License
+- other
+license_details: "Creative Commons Attribution 2.5 South Africa License"
 multilinguality:
 - monolingual
 size_categories:

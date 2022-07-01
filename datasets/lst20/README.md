@@ -6,7 +6,7 @@ language_creators:
 language:
 - th
 license:
-- other-aiforthai
+- other
 multilinguality:
 - monolingual
 size_categories:

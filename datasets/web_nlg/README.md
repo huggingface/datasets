@@ -9,7 +9,7 @@ language:
 license:
 - cc-by-sa-3.0
 - cc-by-nc-sa-4.0
-- gfdl-1.1
+- gfdl
 multilinguality:
 - monolingual
 size_categories:

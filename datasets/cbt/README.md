@@ -7,7 +7,7 @@ language_creators:
 language:
 - en
 license:
-- gfdl-1.3
+- gfdl
 multilinguality:
 - monolingual
 size_categories:

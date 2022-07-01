@@ -6,7 +6,8 @@ language_creators:
 language:
 - en
 license:
-- other-yelp-licence
+- other
+license_details: yelp-licence
 multilinguality:
 - monolingual
 size_categories:

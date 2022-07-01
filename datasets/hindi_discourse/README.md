@@ -6,7 +6,7 @@ language_creators:
 language:
 - hi
 license:
-- other-MIDAS-LAB-IIITD-Delhi
+- other
 multilinguality:
 - monolingual
 size_categories:

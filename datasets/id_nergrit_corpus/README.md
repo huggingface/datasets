@@ -7,7 +7,7 @@ language_creators:
 language:
 - id
 license:
-- other-nergrit-license
+- other
 multilinguality:
 - monolingual
 size_categories:
