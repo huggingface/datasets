@@ -225,11 +225,10 @@ class MockDownloadManager:
         file_paths = _iter_archive_members(path) if self.use_local_dummy_data else path.rglob("*")
         for file_path in file_paths:
             if file_path.is_file() and not file_path.name.startswith((".", "__")):
-                relative_file_path = (
-                    file_path.relative_to(path)
-                    if file_path.is_relative_to(path)
-                    else file_path.relative_to(path.parent)
-                )
+                try:
+                    relative_file_path = file_path.relative_to(path)
+                except ValueError:
+                    relative_file_path = file_path.relative_to(path.parent)
                 yield relative_file_path.as_posix(), file_path.open("rb")
 
     def iter_files(self, paths):
