@@ -6,7 +6,7 @@ language_creators:
 language:
 - th
 license:
-- lgpl-3.0-only
+- lgpl-3.0
 multilinguality:
 - monolingual
 size_categories:

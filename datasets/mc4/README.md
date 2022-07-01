@@ -115,7 +115,7 @@ language:
 - zh-Latn
 - zu
 license:
-- odc-by-1.0
+- odc-by
 multilinguality:
 - multilingual
 size_categories:

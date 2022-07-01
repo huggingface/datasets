@@ -6,7 +6,7 @@ language_creators:
 language:
 - en
 license:
-- o-uda-1.0
+- other
 multilinguality:
 - monolingual
 size_categories:

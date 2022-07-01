@@ -6,7 +6,7 @@ language_creators:
 language:
 - ur
 license:
-- odbl-1.0
+- odbl
 multilinguality:
 - monolingual
 size_categories:

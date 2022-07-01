@@ -6,7 +6,7 @@ language_creators:
 language:
 - en
 license:
-- upl-1.0
+- cc0-1.0
 multilinguality:
 - monolingual
 pretty_name: consumer-finance-complaints

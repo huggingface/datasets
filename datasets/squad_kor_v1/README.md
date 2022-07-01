@@ -6,7 +6,7 @@ language_creators:
 language:
 - ko
 license:
-- cc-by-nd-2.0
+- cc-by-nd-4.0
 multilinguality:
 - monolingual
 size_categories:
