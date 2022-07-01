@@ -2379,8 +2379,9 @@ class BaseDatasetTest(TestCase):
             # Check that when we use a transform that creates a new column from existing column values
             # but don't load the old columns that the new column depends on in the final dataset,
             # that they're still kept around long enough to be used in the transform
-            transform_dset = dset.with_transform(lambda x: {"new_col": [val * 2 for val in x["col_1"]],
-                                                            "col_1": x["col_1"]})
+            transform_dset = dset.with_transform(
+                lambda x: {"new_col": [val * 2 for val in x["col_1"]], "col_1": x["col_1"]}
+            )
             tf_dataset = transform_dset.to_tf_dataset(columns="new_col", batch_size=4)
             batch = next(iter(tf_dataset))
             self.assertEqual(batch.shape.as_list(), [4])
