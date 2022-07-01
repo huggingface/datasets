@@ -6,7 +6,7 @@ language_creators:
 language:
 - code
 license:
-- other-C-UDA
+- c-uda
 multilinguality:
 - other-programming-languages
 size_categories:

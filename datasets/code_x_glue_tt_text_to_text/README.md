@@ -10,7 +10,7 @@ language:
 - zh
 - en
 license:
-- other-C-UDA
+- c-uda
 multilinguality:
 - multilingual
 size_categories:
