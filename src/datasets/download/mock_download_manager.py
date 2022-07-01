@@ -211,14 +211,15 @@ class MockDownloadManager:
         pass
 
     def iter_archive(self, path):
-        def _list_archive_members(path):
+        def _yield_archive_members(path):
             # this preserves the order of the members inside the ZIP archive
             with ZipFile(self.local_path_to_dummy_data) as zip_file:
                 members = zip_file.namelist()
-            return [path.joinpath(*member.split("/")[1:]) for member in members[1:]]
+            for member in members:
+                yield path.parent.joinpath(member)
 
         path = Path(path)
-        file_paths = _list_archive_members(path) if self.use_local_dummy_data else path.rglob("*")
+        file_paths = _yield_archive_members(path) if self.use_local_dummy_data else path.rglob("*")
         for file_path in file_paths:
             if file_path.is_file() and not file_path.name.startswith((".", "__")):
                 yield file_path.relative_to(path).as_posix(), file_path.open("rb")
