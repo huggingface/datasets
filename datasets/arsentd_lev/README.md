@@ -7,7 +7,7 @@ language:
 - apc
 - apj
 license:
-- other-Copyright-2018-by-[American-University-of-Beirut]
+- other
 multilinguality:
 - monolingual
 size_categories:

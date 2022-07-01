@@ -6,7 +6,7 @@ language_creators:
 language:
 - en
 license:
-- other-
+- other
 multilinguality:
 - monolingual
 pretty_name: The Pile
