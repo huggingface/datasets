@@ -20,6 +20,7 @@ import re
 import urllib.parse
 from pathlib import Path
 from typing import Callable, List, Optional, Union
+from zipfile import ZipFile
 
 from ..utils.file_utils import cached_path, hf_github_url
 from ..utils.logging import get_logger
@@ -210,8 +211,15 @@ class MockDownloadManager:
         pass
 
     def iter_archive(self, path):
+        def _list_archive_members(path):
+            # this preserves the order of the members inside the ZIP archive
+            with ZipFile(self.local_path_to_dummy_data) as zip_file:
+                members = zip_file.namelist()
+            return [path.joinpath(*member.split("/")[1:]) for member in members[1:]]
+
         path = Path(path)
-        for file_path in path.rglob("*"):
+        file_paths = _list_archive_members(path) if self.use_local_dummy_data else path.rglob("*")
+        for file_path in file_paths:
             if file_path.is_file() and not file_path.name.startswith((".", "__")):
                 yield file_path.relative_to(path).as_posix(), file_path.open("rb")
 
