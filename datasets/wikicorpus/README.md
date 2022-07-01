@@ -10,7 +10,7 @@ language:
 - en
 - es
 license:
-- gfdl-1.1
+- gfdl
 multilinguality:
 - monolingual
 size_categories:

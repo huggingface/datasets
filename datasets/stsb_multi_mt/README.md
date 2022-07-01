@@ -17,7 +17,7 @@ language:
 - ru
 - zh
 license:
-- custom
+- other
 multilinguality:
 - multilingual
 size_categories:

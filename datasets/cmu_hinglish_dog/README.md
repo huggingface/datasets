@@ -8,7 +8,7 @@ language:
 - hi
 license:
 - cc-by-sa-3.0
-- gfdl-1.3-or-later
+- gfdl
 multilinguality:
 - multilingual
 - translation

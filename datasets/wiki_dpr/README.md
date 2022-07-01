@@ -7,7 +7,7 @@ pretty_name: Wiki-DPR
 paperswithcode_id: null
 license:
 - cc-by-sa-3.0
-- gfdl-1.3-or-later
+- gfdl
 task_categories:
 - text-generation
 - fill-mask
