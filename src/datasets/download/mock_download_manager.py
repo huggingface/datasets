@@ -213,23 +213,19 @@ class MockDownloadManager:
     def iter_archive(self, path):
         def _iter_archive_members(path):
             # this preserves the order of the members inside the ZIP archive
+            dummy_parent_path = Path(self.dummy_file).parent
+            relative_path = path.relative_to(dummy_parent_path)
             with ZipFile(self.local_path_to_dummy_data) as zip_file:
                 members = zip_file.namelist()
             for member in members:
-                member_path = path.parent.joinpath(member)
-                member_path = member_path if member_path.exists() else path.parent.parent.joinpath(member)
-                if member_path.exists():
-                    yield member_path
+                if member.startswith(relative_path.as_posix()):
+                    yield dummy_parent_path.joinpath(member)
 
         path = Path(path)
         file_paths = _iter_archive_members(path) if self.use_local_dummy_data else path.rglob("*")
         for file_path in file_paths:
             if file_path.is_file() and not file_path.name.startswith((".", "__")):
-                try:
-                    relative_file_path = file_path.relative_to(path)
-                except ValueError:
-                    relative_file_path = file_path.relative_to(path.parent)
-                yield relative_file_path.as_posix(), file_path.open("rb")
+                yield file_path.relative_to(path).as_posix(), file_path.open("rb")
 
     def iter_files(self, paths):
         if not isinstance(paths, list):
