@@ -3,7 +3,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - aa
 - ab
 - ace
@@ -458,7 +458,7 @@ languages:
 - zro
 - ztu
 - zu
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

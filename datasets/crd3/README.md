@@ -4,9 +4,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

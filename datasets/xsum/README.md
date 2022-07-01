@@ -1,6 +1,6 @@
 ---
 pretty_name: Extreme Summarization (XSum)
-languages:
+language:
 - en
 paperswithcode_id: xsum
 task_categories:

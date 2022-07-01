@@ -3,7 +3,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - af
 - am
 - an
@@ -239,7 +239,7 @@ languages:
 - other-map-bms
 - other-nds-nl
 - other-be-tarask
-licenses:
+license:
 - odbl-1.0
 multilinguality:
 - multilingual

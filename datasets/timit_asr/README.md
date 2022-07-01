@@ -4,9 +4,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - other-LDC-User-Agreement-for-Non-Members
 multilinguality:
 - monolingual

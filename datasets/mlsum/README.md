@@ -3,13 +3,13 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - de
 - es
 - fr
 - ru
 - tr
-licenses:
+license:
 - other-research-only
 multilinguality:
 - multilingual

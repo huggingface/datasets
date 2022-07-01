@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: cfq
 pretty_name: Compositional Freebase Questions

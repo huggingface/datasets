@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import warnings
 from collections import Counter
 from dataclasses import dataclass, fields
 from pathlib import Path
@@ -218,8 +219,8 @@ EmptyList = List[_nothing]
 class DatasetMetadata:
     annotations_creators: List[str]
     language_creators: Union[EmptyList, List[str]]
-    languages: Union[EmptyList, List[str]]
-    licenses: List[str]
+    language: Union[EmptyList, List[str]]
+    license: List[str]
     multilinguality: List[str]
     pretty_name: str
     size_categories: List[str]
@@ -231,10 +232,19 @@ class DatasetMetadata:
     configs: Optional[List[str]] = None
     extra_gated_fields: Optional[Dict] = None
     extra_gated_prompt: Optional[str] = None
+    licenses: Optional[Union[EmptyList, List[str]]] = None  # deprecated
+    languages: Optional[Union[EmptyList, List[str]]] = None  # deprecated
 
     # class attributes
     _FIELDS_WITH_DASHES: ClassVar[set] = {"train_eval_index"}  # train-eval-index in the YAML metadata
     _ALLOWED_YAML_KEYS: ClassVar[set] = set()  # populated later
+    _DEPRECATED_YAML_KEYS = ["licenses", "languages"]
+
+    def __post_init__(self):
+        if self.licenses is not None:
+            warnings.warning("The 'licenses' YAML field is deprecated, please use 'license' instead.")
+        if self.languages is not None:
+            warnings.warning("The 'languages' YAML field is deprecated, please use 'language' instead.")
 
     def validate(self):
         validate_metadata_type(metadata_dict=vars(self))
@@ -243,8 +253,8 @@ class DatasetMetadata:
             self.annotations_creators
         )
         self.language_creators, language_creators_errors = self.validate_language_creators(self.language_creators)
-        self.languages, languages_errors = self.validate_language_codes(self.languages)
-        self.licenses, licenses_errors = self.validate_licences(self.licenses)
+        self.language, language_errors = self.validate_language_codes(self.language or self.languages)
+        self.license, license_errors = self.validate_licences(self.license or self.licenses)
         self.multilinguality, multilinguality_errors = self.validate_mulitlinguality(self.multilinguality)
         self.size_categories, size_categories_errors = self.validate_size_catgeories(self.size_categories)
         self.source_datasets, source_datasets_errors = self.validate_source_datasets(self.source_datasets)
@@ -258,21 +268,21 @@ class DatasetMetadata:
         errors = {
             "annotations_creators": annotations_creators_errors,
             "language_creators": language_creators_errors,
-            "licenses": licenses_errors,
+            "license": license_errors,
             "multilinguality": multilinguality_errors,
             "size_categories": size_categories_errors,
             "source_datasets": source_datasets_errors,
             "task_categories": task_categories_errors,
             "task_ids": task_ids_errors,
-            "languages": languages_errors,
+            "language": language_errors,
             "paperswithcode_id": paperswithcode_id_errors,
             "train_eval_index": train_eval_index_errors,
         }
 
         exception_msg_dict = dict()
-        for field, errs in errors.items():
+        for yaml_field, errs in errors.items():
             if errs is not None:
-                exception_msg_dict[field] = errs
+                exception_msg_dict[yaml_field] = errs
         if len(exception_msg_dict) > 0:
             raise TypeError(
                 "Could not validate the metadata, found the following errors:\n"
@@ -363,7 +373,7 @@ class DatasetMetadata:
         return tagset_validator(
             languages,
             known_language_codes.keys(),
-            "languages",
+            "language",
             known_language_codes_url,
             lambda lang: lang == "unknown",
         )
@@ -373,7 +383,7 @@ class DatasetMetadata:
         validated, error = tagset_validator(
             licenses,
             list(known_licenses.keys()),
-            "licenses",
+            "license",
             known_licenses_url,
             lambda e: "-other-" in e or e.startswith("other-"),
         )

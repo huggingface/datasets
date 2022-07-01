@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - af
 - ar
 - bg
@@ -45,7 +45,7 @@ languages:
 - vi
 - yo
 - zh
-licenses:
+license:
 - apache-2.0
 - cc-by-4.0
 - cc-by-2.0

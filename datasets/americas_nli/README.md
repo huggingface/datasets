@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - ay
 - bzd
 - cni
@@ -14,7 +14,7 @@ languages:
 - qu
 - shp
 - tar
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

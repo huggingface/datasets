@@ -5,7 +5,7 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - de
 - en
 - et
@@ -14,7 +14,7 @@ languages:
 - ru
 - si
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - translation

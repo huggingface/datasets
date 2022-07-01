@@ -4,9 +4,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - odc-by-1.0
 multilinguality:
 - multilingual

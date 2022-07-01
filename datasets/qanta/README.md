@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: quizbowl
 pretty_name: Quizbowl

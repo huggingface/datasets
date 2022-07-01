@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - other-locness-license
 - other-wi-license
 multilinguality:

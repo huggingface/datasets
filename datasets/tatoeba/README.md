@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - ab
 - acm
 - ady
@@ -363,7 +363,7 @@ languages:
 - zsm
 - zu
 - zza
-licenses:
+license:
 - cc-by-2.0
 multilinguality:
 - multilingual

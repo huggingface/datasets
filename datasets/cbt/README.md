@@ -4,9 +4,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - gfdl-1.3
 multilinguality:
 - monolingual

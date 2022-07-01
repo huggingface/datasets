@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - mr
 - eu
 - hr
@@ -114,7 +114,7 @@ languages:
 - zh
 - ur
 - gl
-licenses:
+license:
 - cc-by-nc-4.0
 multilinguality:
 - translation

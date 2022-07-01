@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: asnq
 pretty_name: Answer Sentence Natural Questions

@@ -5,10 +5,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - chr
 - en
-licenses:
+license:
 - other-different-license-per-source
 multilinguality:
 - monolingual

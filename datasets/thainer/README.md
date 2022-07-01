@@ -5,9 +5,9 @@ annotations_creators:
 language_creators:
 - found
 - expert-generated
-languages:
+language:
 - th
-licenses:
+license:
 - cc-by-3.0
 multilinguality:
 - monolingual

@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - code
-licenses:
+license:
 - other-C-UDA
 multilinguality:
 - other-programming-languages

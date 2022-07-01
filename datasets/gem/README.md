@@ -6,7 +6,7 @@ language_creators:
 - crowdsourced
 - found
 - machine-generated
-languages:
+language:
 - cs
 - de
 - en
@@ -14,7 +14,7 @@ languages:
 - ru
 - tr
 - vi
-licenses:
+license:
 - other-research-only
 multilinguality:
 - monolingual

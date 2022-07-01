@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - aa
 - ab
 - ae
@@ -229,7 +229,7 @@ languages:
 - zam
 - zh
 - zul
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

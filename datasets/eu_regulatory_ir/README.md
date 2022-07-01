@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual

@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - zh
-licenses:
+license:
 - other-non-commercial-research
 multilinguality:
 - monolingual

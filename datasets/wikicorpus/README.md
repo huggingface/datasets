@@ -5,11 +5,11 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - ca
 - en
 - es
-licenses:
+license:
 - gfdl-1.1
 multilinguality:
 - monolingual

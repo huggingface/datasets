@@ -3,9 +3,9 @@ annotations_creators:
 - other
 language_creators:
 - other
-languages:
+language:
 - kn
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

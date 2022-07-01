@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - gpl-3.0
 multilinguality:
 - monolingual

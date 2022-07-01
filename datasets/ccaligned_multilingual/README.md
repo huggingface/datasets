@@ -3,7 +3,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - af
 - ak
 - am
@@ -132,7 +132,7 @@ languages:
 - zh
 - zu
 - zza
-licenses:
+license:
 - unknown
 multilinguality:
 - translation

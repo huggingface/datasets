@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - sa
-licenses:
+license:
 - other-Public Domain Mark 1.0
 multilinguality:
 - monolingual

@@ -3,10 +3,10 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - apc
 - apj
-licenses:
+license:
 - other-Copyright-2018-by-[American-University-of-Beirut]
 multilinguality:
 - monolingual

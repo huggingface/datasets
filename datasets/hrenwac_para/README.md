@@ -3,10 +3,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - en
 - hr
-licenses:
+license:
 - cc-by-sa-3.0
 multilinguality:
 - translation

@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - zu
-licenses:
+license:
 - other-Creative Commons Attribution 2.5 South Africa
 multilinguality:
 - monolingual

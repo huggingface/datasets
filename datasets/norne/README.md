@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - "no"
-licenses:
+license:
 - other-national-library-of-norway
 multilinguality:
 - monolingual

@@ -3,13 +3,13 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - da
 - nb
 - lv
 - zh
 - en
-licenses:
+license:
 - other-C-UDA
 multilinguality:
 - multilingual

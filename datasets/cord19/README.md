@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-nc-sa-2.0
 - cc-by-nc-2.0
 - cc-by-nd-2.0

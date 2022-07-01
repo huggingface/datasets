@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - other-Microsoft Research Data License
 multilinguality:
 - monolingual

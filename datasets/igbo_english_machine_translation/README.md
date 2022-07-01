@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
 - ig
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

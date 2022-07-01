@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - th
-licenses:
+license:
 - lgpl-3.0-only
 multilinguality:
 - monolingual

@@ -3,9 +3,9 @@ annotations_creators:
 - other
 language_creators:
 - found
-languages:
+language:
 - hi
-licenses:
+license:
 - other-MIDAS-LAB-IIITD-Delhi
 multilinguality:
 - monolingual

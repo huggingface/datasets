@@ -4,9 +4,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - code
-licenses:
+license:
 - 0bsd
 - mit
 multilinguality:

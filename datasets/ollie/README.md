@@ -3,9 +3,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - other-university-of-washington-academic
 multilinguality:
 - monolingual

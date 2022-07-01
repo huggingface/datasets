@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - machine-generated
-languages:
+language:
 - ur
-licenses:
+license:
 - odbl-1.0
 multilinguality:
 - monolingual

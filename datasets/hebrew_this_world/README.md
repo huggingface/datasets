@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - he
-licenses:
+license:
 - agpl-3.0-or-later
 multilinguality:
 - monolingual

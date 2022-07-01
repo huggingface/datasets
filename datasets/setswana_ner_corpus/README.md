@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - tn
-licenses:
+license:
 - other-Creative Commons Attribution 2.5 South Africa License
 multilinguality:
 - monolingual
