@@ -7,7 +7,7 @@ language_creators:
 language:
 - code
 license:
-- 0bsd
+- bsd-2-clause
 - mit
 multilinguality:
 - monolingual

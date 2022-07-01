@@ -50,8 +50,9 @@ license:
 - cc-by-4.0
 - cc-by-2.0
 - cc-by-sa-4.0
-- other-Licence Universal Dependencies v2.5
+- other
 - cc-by-nc-4.0
+license_details: "Licence Universal Dependencies v2.5"
 multilinguality:
 - multilingual
 - translation
