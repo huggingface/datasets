@@ -6,7 +6,7 @@ language_creators:
 language:
 - en
 license:
-- other-bsd
+- bsd
 multilinguality:
 - monolingual
 pretty_name: SCAN

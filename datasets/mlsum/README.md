@@ -10,7 +10,7 @@ language:
 - ru
 - tr
 license:
-- other-research-only
+- other
 multilinguality:
 - multilingual
 size_categories:
