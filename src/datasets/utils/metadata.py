@@ -241,6 +241,7 @@ class DatasetMetadata:
     configs: Optional[List[str]] = None
     extra_gated_fields: Optional[Dict] = None
     extra_gated_prompt: Optional[str] = None
+    license_details: Optional[str] = None
     licenses: Optional[Union[EmptyList, List[str]]] = None  # deprecated
     languages: Optional[Union[EmptyList, List[str]]] = None  # deprecated
 
