@@ -41,8 +41,7 @@ def load_json_resource(resource: str) -> Tuple[Any, str]:
 def load_tsv_licenses(resource: str) -> Tuple[Any, str]:
     content = pkg_resources.read_text(resources, resource)
     licenses = {
-        line.split("\t")[1].strip(): line.split("\t")[0].strip()
-        for line in content.splitlines() if "\t" in line
+        line.split("\t")[1].strip(): line.split("\t")[0].strip() for line in content.splitlines() if "\t" in line
     }
     return licenses, f"{BASE_REF_URL}/resources/{resource}"
 
