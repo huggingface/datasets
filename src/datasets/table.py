@@ -1488,7 +1488,7 @@ class ConcatenationTable(Table):
                 for name in subtable.column_names:
                     subfields.append(fields.pop(next(i for i, field in enumerate(fields) if field.name == name)))
                 subschema = pa.schema(subfields)
-                subschema.with_metadata(target_schema.metadata)
+                subschema = subschema.with_metadata(target_schema.metadata)
                 new_tables.append(subtable.cast(subschema, *args, **kwargs))
             blocks.append(new_tables)
         return ConcatenationTable(table, blocks)
