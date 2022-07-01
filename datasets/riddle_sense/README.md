@@ -6,7 +6,7 @@ language_creators:
 language:
 - en
 license:
-- other-non-commercial
+- other
 multilinguality:
 - monolingual
 pretty_name: RiddleSense

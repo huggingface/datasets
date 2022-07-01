@@ -6,8 +6,7 @@ language_creators:
 language:
 - en
 license:
-- other-locness-license
-- other-wi-license
+- other
 multilinguality:
 - monolingual
 - other-language-learner

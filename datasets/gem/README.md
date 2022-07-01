@@ -15,7 +15,7 @@ language:
 - tr
 - vi
 license:
-- other-research-only
+- other
 multilinguality:
 - monolingual
 - multilingual

@@ -6,7 +6,7 @@ language_creators:
 language:
 - en
 license:
-- other-requires-accepting-data-licensing-terms-for-non-commercial-research-and-educational-purposes-only
+- other
 multilinguality:
 - monolingual
 pretty_name: CORNELL NEWSROOM

@@ -9,7 +9,7 @@ language:
 - chr
 - en
 license:
-- other-different-license-per-source
+- other
 multilinguality:
 - monolingual
 - multilingual

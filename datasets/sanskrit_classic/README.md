@@ -6,7 +6,7 @@ language_creators:
 language:
 - sa
 license:
-- other-Public Domain Mark 1.0
+- other
 multilinguality:
 - monolingual
 size_categories:
