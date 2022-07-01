@@ -38,11 +38,23 @@ def load_json_resource(resource: str) -> Tuple[Any, str]:
     return json.loads(content), f"{BASE_REF_URL}/resources/{resource}"
 
 
+def load_tsv_licenses(resource: str) -> Tuple[Any, str]:
+    content = pkg_resources.read_text(resources, resource)
+    licenses = dict(
+        map(
+            lambda arr: reversed(arr),
+            filter(lambda arr: len(arr) == 2, map(lambda l: l.split("\t"), content.splitlines())),
+        )
+    )
+    return licenses, f"{BASE_REF_URL}/resources/{resource}"
+
+
 # Source of languages.json:
 # https://datahub.io/core/language-codes/r/ietf-language-tags.csv
 # Language names were obtained with langcodes: https://github.com/LuminosoInsight/langcodes
 known_language_codes, known_language_codes_url = load_json_resource("languages.json")
-known_licenses, known_licenses_url = load_json_resource("licenses.json")
+# standard_licenses.tsv is to be kept in sync with the same file in `moon-landing` and `hub-docs`
+known_licenses, known_licenses_url = load_tsv_licenses("standard_licenses.tsv")
 known_task_ids, known_task_ids_url = load_json_resource("tasks.json")
 known_creators, known_creators_url = load_json_resource("creators.json")
 known_size_categories, known_size_categories_url = load_json_resource("size_categories.json")
