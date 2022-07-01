@@ -394,7 +394,6 @@ class DatasetMetadata:
             list(known_licenses.keys()),
             "license",
             known_licenses_url,
-            lambda e: "-other-" in e or e.startswith("other-"),
         )
         return validated, error
 
