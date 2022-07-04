@@ -50,14 +50,14 @@ class Json(datasets.ArrowBasedBuilder):
             files = data_files
             if isinstance(files, str):
                 files = [files]
-            return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_files(files)})
-            ]
+            files = [dl_manager.iter_files(file) for file in files]
+            return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
         splits = []
         for split_name, files in data_files.items():
             if isinstance(files, str):
                 files = [files]
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": dl_manager.iter_files(files)}))
+            files = [dl_manager.iter_files(file) for file in files]
+            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:

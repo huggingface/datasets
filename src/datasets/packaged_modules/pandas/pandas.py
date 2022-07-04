@@ -31,15 +31,15 @@ class Pandas(datasets.ArrowBasedBuilder):
             if isinstance(files, str):
                 files = [files]
             # Use `dl_manager.iter_files` to skip hidden files in an extracted archive
-            return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_files(files)})
-            ]
+            files = [dl_manager.iter_files(file) for file in files]
+            return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
         splits = []
         for split_name, files in data_files.items():
             if isinstance(files, str):
                 files = [files]
             # Use `dl_manager.iter_files` to skip hidden files in an extracted archive
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": dl_manager.iter_files(files)}))
+            files = [dl_manager.iter_files(file) for file in files]
+            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
