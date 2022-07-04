@@ -215,10 +215,13 @@ def test_generate_examples_drop_labels(image_file, drop_labels):
 
 @require_pil
 @pytest.mark.parametrize("drop_metadata", [True, False])
-def test_generate_examples_drop_metadata(image_file_with_metadata, drop_metadata):
+@pytest.mark.parametrize("drop_labels", [True, False])
+def test_generate_examples_drop_metadata(image_file_with_metadata, drop_metadata, drop_labels):
     image_file, image_metadata_file = image_file_with_metadata
     if not drop_metadata:
         features = Features({"image": Image(), "caption": Value("string")})
+    elif not drop_labels:
+        features = Features({"image": Image(), "label": ClassLabel(num_classes=1)})
     else:
         features = Features({"image": Image()})
     imagefolder = ImageFolder(drop_metadata=drop_metadata, features=features)
@@ -228,6 +231,11 @@ def test_generate_examples_drop_metadata(image_file_with_metadata, drop_metadata
     if not drop_metadata:
         assert all(
             example.keys() == {"image", "caption"} and all(val is not None for val in example.values())
+            for _, example in generator
+        )
+    elif not drop_metadata:
+        assert all(
+            example.keys() == {"image", "label"} and all(val is not None for val in example.values())
             for _, example in generator
         )
     else:
