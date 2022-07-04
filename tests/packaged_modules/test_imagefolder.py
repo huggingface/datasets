@@ -18,8 +18,8 @@ def cache_dir(tmp_path):
 
 
 @pytest.fixture
-def data_files_with_no_metadata(tmp_path, image_file):
-    data_dir = tmp_path / "imagefolder_data_dir_with_labels"
+def data_files_with_labels_no_metadata(tmp_path, image_file):
+    data_dir = tmp_path / "data_files_with_labels_no_metadata"
     data_dir.mkdir(parents=True, exist_ok=True)
     subdir_class_0 = data_dir / "cat"
     subdir_class_0.mkdir(parents=True, exist_ok=True)
@@ -32,7 +32,11 @@ def data_files_with_no_metadata(tmp_path, image_file):
     image_filename2 = subdir_class_1 / "image_dog.jpg"
     shutil.copyfile(image_file, image_filename2)
 
-    return str(data_dir)
+    data_files_with_labels_no_metadata = DataFilesDict.from_local_or_remote(
+        get_data_patterns_locally(str(data_dir)), str(data_dir)
+    )
+
+    return data_files_with_labels_no_metadata
 
 
 @pytest.fixture
@@ -181,12 +185,9 @@ def data_files_with_zip_archives(tmp_path, image_file):
 
 @require_pil
 # check that labels are inferred correctly from dir names
-def test_generate_examples_with_labels(data_dir_with_labels, cache_dir):
-    data_files_with_labels = DataFilesDict.from_local_or_remote(
-        get_data_patterns_locally(data_dir_with_labels), data_dir_with_labels
-    )
+def test_generate_examples_with_labels(data_files_with_labels_no_metadata, cache_dir):
     # there are no metadata.jsonl files in this test case
-    imagefolder = ImageFolder(data_files=data_files_with_labels, cache_dir=cache_dir, drop_labels=False)
+    imagefolder = ImageFolder(data_files=data_files_with_labels_no_metadata, cache_dir=cache_dir, drop_labels=False)
     imagefolder.download_and_prepare()
     assert imagefolder.info.features == Features({"image": Image(), "label": ClassLabel(names=["cat", "dog"])})
     dataset = list(imagefolder.as_dataset()["train"])
@@ -224,7 +225,7 @@ def test_generate_examples_drop_metadata(image_file_with_metadata, drop_metadata
         features = Features({"image": Image(), "label": ClassLabel(num_classes=1)})
     else:
         features = Features({"image": Image()})
-    imagefolder = ImageFolder(drop_metadata=drop_metadata, features=features)
+    imagefolder = ImageFolder(drop_metadata=drop_metadata, drop_labels=drop_labels, features=features)
     generator = imagefolder._generate_examples(
         [(image_file, image_file)], {"train": [(image_metadata_file, image_metadata_file)]}, "train"
     )
@@ -262,7 +263,7 @@ def test_generate_examples_with_metadata_in_wrong_location(image_file, image_fil
             list(generator)
     else:
         assert all(
-            example.keys() == {"image"} and all(val is not None for val in example.values())
+            example.keys() == {"image", "label"} and all(val is not None for val in example.values())
             for _, example in generator
         )
 
@@ -288,7 +289,7 @@ def test_generate_examples_with_metadata_that_misses_one_image(
             list(generator)
     else:
         assert all(
-            example.keys() == {"image"} and all(val is not None for val in example.values())
+            example.keys() == {"image", "label"} and all(val is not None for val in example.values())
             for _, example in generator
         )
 

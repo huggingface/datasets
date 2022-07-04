@@ -343,11 +343,11 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 if original_file is not None:
                     _, original_file_ext = os.path.splitext(original_file)
                     if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
-                        if self.config.drop_labels or metadata_files:
+                        if self.config.drop_labels:
                             yield file_idx, {
                                 "image": downloaded_file_or_dir,
                             }
-                        else:
+                        else:  # self.config.drop_labels is False, self.config.drop_metadata is True
                             yield file_idx, {
                                 "image": downloaded_file_or_dir,
                                 "label": os.path.basename(os.path.dirname(original_file)),
@@ -357,11 +357,11 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                     for downloaded_dir_file in downloaded_file_or_dir:
                         _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
                         if downloaded_dir_file_ext.lower() in self.IMAGE_EXTENSIONS:
-                            if self.config.drop_labels or metadata_files:
+                            if self.config.drop_labels:
                                 yield file_idx, {
                                     "image": downloaded_dir_file,
                                 }
-                            else:
+                            else:  # self.config.drop_labels is False, self.config.drop_metadata is True
                                 yield file_idx, {
                                     "image": downloaded_dir_file,
                                     "label": os.path.basename(os.path.dirname(downloaded_dir_file)),
