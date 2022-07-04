@@ -4,7 +4,7 @@ import textwrap
 import numpy as np
 import pytest
 
-from datasets import Features, Image, Value
+from datasets import ClassLabel, Features, Image, Value
 from datasets.data_files import DataFilesDict, get_data_patterns_locally
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder
 from datasets.streaming import extend_module_for_streaming
@@ -15,6 +15,23 @@ from ..utils import require_pil
 @pytest.fixture
 def cache_dir(tmp_path):
     return str(tmp_path / "imagefolder_cache_dir")
+
+
+@pytest.fixture
+def data_dir_with_labels(tmp_path, image_file):
+    data_dir = tmp_path / "imagefolder_data_dir_with_labels"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    subdir_class_0 = data_dir / "cat"
+    subdir_class_0.mkdir(parents=True, exist_ok=True)
+    subdir_class_1 = data_dir / "subdir" / "dog"
+    subdir_class_1.mkdir(parents=True, exist_ok=True)
+
+    image_filename = subdir_class_0 / "image_cat.jpg"
+    shutil.copyfile(image_file, image_filename)
+    image_filename2 = subdir_class_1 / "image_dog.jpg"
+    shutil.copyfile(image_file, image_filename2)
+
+    return str(data_dir)
 
 
 @pytest.fixture
@@ -159,6 +176,23 @@ def data_files_with_zip_archives(tmp_path, image_file):
     assert len(data_files_with_zip_archives) == 1
     assert len(data_files_with_zip_archives["train"]) == 1
     return data_files_with_zip_archives
+
+
+@require_pil
+# check that labels are inferred correctly from dir names
+def test_generate_examples_with_labels(data_dir_with_labels, cache_dir):
+    data_files_with_labels = DataFilesDict.from_local_or_remote(
+        get_data_patterns_locally(data_dir_with_labels), data_dir_with_labels
+    )
+    # there are no metadata.jsonl files in this test case
+    imagefolder = ImageFolder(data_files=data_files_with_labels, cache_dir=cache_dir, drop_labels=False)
+    imagefolder.download_and_prepare()
+    assert imagefolder.info.features == Features({"image": Image(), "label": ClassLabel(names=["cat", "dog"])})
+    dataset = list(imagefolder.as_dataset()["train"])
+    label_feature = imagefolder.info.features["label"]
+
+    assert dataset[0]["label"] == label_feature._str2int["cat"]
+    assert dataset[1]["label"] == label_feature._str2int["dog"]
 
 
 @require_pil
