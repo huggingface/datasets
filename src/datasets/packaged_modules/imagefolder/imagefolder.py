@@ -82,9 +82,11 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                     for original_file, downloaded_file in zip(original_files, downloaded_files):
                         original_file, downloaded_file = str(original_file), str(downloaded_file)
                         _, original_file_ext = os.path.splitext(original_file)
-                        if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
+                        if original_file_ext.lower() in self.IMAGE_EXTENSIONS and not self.config.drop_labels:
                             labels.add(os.path.basename(os.path.dirname(original_file)))
-                        elif os.path.basename(original_file) == self.METADATA_FILENAME:
+                        elif (
+                            os.path.basename(original_file) == self.METADATA_FILENAME and not self.config.drop_metadata
+                        ):
                             metadata_files[split].add((original_file, downloaded_file))
                         else:
                             original_file_name = os.path.basename(original_file)
@@ -97,9 +99,12 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                         archive, downloaded_dir = str(archive), str(downloaded_dir)
                         for downloaded_dir_file in dl_manager.iter_files(downloaded_dir):
                             _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
-                            if downloaded_dir_file_ext in self.IMAGE_EXTENSIONS:
+                            if downloaded_dir_file_ext in self.IMAGE_EXTENSIONS and not self.config.drop_labels:
                                 labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
-                            elif os.path.basename(downloaded_dir_file) == self.METADATA_FILENAME:
+                            elif (
+                                os.path.basename(downloaded_dir_file) == self.METADATA_FILENAME
+                                and not self.config.drop_metadata
+                            ):
                                 metadata_files[split].add((None, downloaded_dir_file))
                             else:
                                 archive_file_name = os.path.basename(archive)
