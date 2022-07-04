@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: event2mind
 pretty_name: Event2Mind

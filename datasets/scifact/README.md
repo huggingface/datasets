@@ -1,6 +1,6 @@
 ---
 pretty_name: SciFact
-languages:
+language:
 - en
 paperswithcode_id: null
 ---

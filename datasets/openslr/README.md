@@ -4,7 +4,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - af
 - bn
 - ca
@@ -34,7 +34,7 @@ languages:
 - ve
 - xh
 - yo
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - multilingual

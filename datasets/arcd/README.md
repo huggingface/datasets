@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - ar-SA
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual

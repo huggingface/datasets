@@ -1,6 +1,6 @@
 ---
 pretty_name: RACE
-languages:
+language:
 - en
 paperswithcode_id: race
 ---

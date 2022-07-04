@@ -4,7 +4,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - af
 - als
 - am
@@ -171,7 +171,7 @@ languages:
 - yo
 - yue
 - zh
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - multilingual

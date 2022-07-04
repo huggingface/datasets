@@ -5,7 +5,7 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - de
 - nl
 - fr
@@ -13,7 +13,7 @@ languages:
 - es
 - pt
 - pl
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - multilingual

@@ -4,7 +4,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - ace
 - af
 - ak
@@ -247,7 +247,7 @@ languages:
 - zh-TW
 - zu
 - zza
-licenses:
+license:
 - bsd-3-clause
 multilinguality:
 - multilingual

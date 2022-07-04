@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - bg
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual

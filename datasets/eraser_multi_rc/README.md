@@ -1,6 +1,6 @@
 ---
 pretty_name: Eraser Multi Rc
-languages:
+language:
 - en
 paperswithcode_id: null
 ---

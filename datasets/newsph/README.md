@@ -3,10 +3,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - fil
 - tl
-licenses:
+license:
 - gpl-3.0
 multilinguality:
 - monolingual

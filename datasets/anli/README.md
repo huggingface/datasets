@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: anli
 pretty_name: Adversarial NLI

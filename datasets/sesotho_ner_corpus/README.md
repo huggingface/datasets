@@ -3,10 +3,11 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - st
-licenses:
-- other-Creative Commons Attribution 2.5 South Africa License
+license:
+- other
+license_details: "Creative Commons Attribution 2.5 South Africa License"
 multilinguality:
 - monolingual
 size_categories:

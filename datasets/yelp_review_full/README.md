@@ -3,10 +3,11 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
-- other-yelp-licence
+license:
+- other
+license_details: yelp-licence
 multilinguality:
 - monolingual
 size_categories:

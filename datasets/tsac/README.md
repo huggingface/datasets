@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - aeb
-licenses:
+license:
 - lgpl-3.0
 multilinguality:
 - monolingual

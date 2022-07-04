@@ -1475,6 +1475,13 @@ def load_dataset_builder(
     Returns:
         :class:`DatasetBuilder`
 
+    <Tip>
+
+    Passing `use_auth_token=True` is required when you want to access a private dataset.
+
+    </Tip>
+
+
     Example:
 
     ```py
@@ -1652,6 +1659,12 @@ def load_dataset(
 
         - if `split` is not None: the dataset requested,
         - if `split` is None, a ``datasets.streaming.IterableDatasetDict`` with each split.
+
+    <Tip>
+
+    Passing `use_auth_token=True` is required when you want to access a private dataset.
+
+    </Tip>
 
     Example:
 

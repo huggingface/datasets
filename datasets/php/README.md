@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - cs
 - de
 - en
@@ -27,7 +27,7 @@ languages:
 - tw
 - zh
 - zh_TW
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
