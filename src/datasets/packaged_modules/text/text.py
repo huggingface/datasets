@@ -1,3 +1,4 @@
+import itertools
 from dataclasses import dataclass
 from io import StringIO
 from typing import Optional
@@ -67,7 +68,7 @@ class Text(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self, files):
         pa_table_names = list(self.config.features) if self.config.features is not None else ["text"]
-        for file_idx, file in enumerate(files):
+        for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             # open in text mode, by default translates universal newlines ("\n", "\r\n" and "\r") into "\n"
             with open(file, encoding=self.config.encoding) as f:
                 if self.config.sample_by == "line":

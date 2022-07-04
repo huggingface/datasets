@@ -1,3 +1,4 @@
+import itertools
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
@@ -170,7 +171,7 @@ class Csv(datasets.ArrowBasedBuilder):
             if schema is not None
             else None
         )
-        for file_idx, file in enumerate(files):
+        for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.read_csv_kwargs)
             try:
                 for batch_idx, df in enumerate(csv_file_reader):

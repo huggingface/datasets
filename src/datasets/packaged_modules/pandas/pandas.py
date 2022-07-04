@@ -1,3 +1,4 @@
+import itertools
 from dataclasses import dataclass
 from typing import Optional
 
@@ -50,7 +51,7 @@ class Pandas(datasets.ArrowBasedBuilder):
         return pa_table
 
     def _generate_tables(self, files):
-        for i, file in enumerate(files):
+        for i, file in enumerate(itertools.chain.from_iterable(files)):
             with open(file, "rb") as f:
                 pa_table = pa.Table.from_pandas(pd.read_pickle(f))
                 yield i, self._cast_table(pa_table)
