@@ -23,6 +23,7 @@ def data_dir_with_labels(tmp_path, image_file):
     data_dir.mkdir(parents=True, exist_ok=True)
     subdir_class_0 = data_dir / "cat"
     subdir_class_0.mkdir(parents=True, exist_ok=True)
+    # data dirs can be nested but imagefolder should care only about the last part of the path:
     subdir_class_1 = data_dir / "subdir" / "dog"
     subdir_class_1.mkdir(parents=True, exist_ok=True)
 
