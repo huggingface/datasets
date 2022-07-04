@@ -233,7 +233,7 @@ def test_generate_examples_drop_metadata(image_file_with_metadata, drop_metadata
             example.keys() == {"image", "caption"} and all(val is not None for val in example.values())
             for _, example in generator
         )
-    elif not drop_metadata:
+    elif not drop_labels:
         assert all(
             example.keys() == {"image", "label"} and all(val is not None for val in example.values())
             for _, example in generator
