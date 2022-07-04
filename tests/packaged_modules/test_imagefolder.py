@@ -18,7 +18,7 @@ def cache_dir(tmp_path):
 
 
 @pytest.fixture
-def data_dir_with_labels(tmp_path, image_file):
+def data_files_with_no_metadata(tmp_path, image_file):
     data_dir = tmp_path / "imagefolder_data_dir_with_labels"
     data_dir.mkdir(parents=True, exist_ok=True)
     subdir_class_0 = data_dir / "cat"
