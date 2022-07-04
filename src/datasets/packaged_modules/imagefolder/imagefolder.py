@@ -70,7 +70,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
         do_analyze = (self.config.features is None and not self.config.drop_labels) or not self.config.drop_metadata
         if do_analyze:
             labels = set()
-            metadata_files = collections.defaultdict(list)
+            metadata_files = collections.defaultdict(set)
 
             def analyze(files_or_archives, downloaded_files_or_dirs, split):
                 if len(downloaded_files_or_dirs) == 0:
@@ -85,7 +85,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                         if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
                             labels.add(os.path.basename(os.path.dirname(original_file)))
                         elif os.path.basename(original_file) == self.METADATA_FILENAME:
-                            metadata_files[split].append((original_file, downloaded_file))
+                            metadata_files[split].add((original_file, downloaded_file))
                         else:
                             original_file_name = os.path.basename(original_file)
                             logger.debug(
@@ -100,7 +100,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                             if downloaded_dir_file_ext in self.IMAGE_EXTENSIONS:
                                 labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
                             elif os.path.basename(downloaded_dir_file) == self.METADATA_FILENAME:
-                                metadata_files[split].append((None, downloaded_dir_file))
+                                metadata_files[split].add((None, downloaded_dir_file))
                             else:
                                 archive_file_name = os.path.basename(archive)
                                 original_file_name = os.path.basename(downloaded_dir_file)

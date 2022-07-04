@@ -3,7 +3,7 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - ar
 - da
 - de
@@ -28,7 +28,7 @@ languages:
 - tr
 - vi
 - zh
-licenses:
+license:
 - cc-by-3.0
 multilinguality:
 - multilingual

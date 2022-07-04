@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - zh
-licenses:
-- other-non-commercial-research
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:

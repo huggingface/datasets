@@ -6,9 +6,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - ru-RU
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual

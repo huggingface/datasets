@@ -5,12 +5,12 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - ca
 - en
 - es
-licenses:
-- gfdl-1.1
+license:
+- gfdl
 multilinguality:
 - monolingual
 size_categories:

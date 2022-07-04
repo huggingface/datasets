@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - ar
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - multilingual

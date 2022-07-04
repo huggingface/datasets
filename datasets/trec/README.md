@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: trecqa
 pretty_name: Text Retrieval Conference Question Answering

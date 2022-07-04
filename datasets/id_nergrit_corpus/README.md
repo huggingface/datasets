@@ -4,10 +4,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - id
-licenses:
-- other-nergrit-license
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:

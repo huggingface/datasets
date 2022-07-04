@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: wikiqa
 pretty_name: Wikipedia open-domain Question Answering

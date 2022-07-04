@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: hotpotqa
 pretty_name: HotpotQA
