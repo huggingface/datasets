@@ -19,7 +19,6 @@ task_categories:
 - fill-mask
 task_ids:
 - text2text-generation-other-poem-generation
-paperswithcode_id: null
 pretty_name: Indonesian Puisi
 ---
 

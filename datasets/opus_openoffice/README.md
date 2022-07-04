@@ -23,7 +23,6 @@ source_datasets:
 task_categories:
 - translation
 task_ids: []
-paperswithcode_id: null
 pretty_name: OpusOpenoffice
 configs:
 - de-en_GB

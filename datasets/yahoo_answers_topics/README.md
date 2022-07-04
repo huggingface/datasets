@@ -17,7 +17,6 @@ task_categories:
 - text-classification
 task_ids:
 - topic-classification
-paperswithcode_id: null
 pretty_name: YahooAnswersTopics
 train-eval-index:
 - config: yahoo_answers_topics

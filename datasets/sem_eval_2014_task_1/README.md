@@ -19,7 +19,6 @@ task_ids:
 - text-scoring
 - natural-language-inference
 - semantic-similarity-scoring
-paperswithcode_id: null
 pretty_name: SemEval 2014 - Task 1
 ---
 

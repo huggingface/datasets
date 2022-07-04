@@ -17,7 +17,6 @@ task_categories:
 - text-classification
 task_ids:
 - natural-language-inference
-paperswithcode_id: null
 pretty_name: BBC Hindi NLI Dataset
 ---
 

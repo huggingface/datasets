@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - extractive-qa
 - open-domain-qa
-paperswithcode_id: null
 pretty_name: IappWikiQaSquad
 ---
 

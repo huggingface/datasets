@@ -76,7 +76,6 @@ task_ids:
 - open-domain-qa
 - text-scoring
 - text-classification-other-probing
-paperswithcode_id: null
 pretty_name: MLama
 ---
 

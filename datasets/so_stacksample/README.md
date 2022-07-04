@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - abstractive-qa
 - open-domain-abstractive-qa
-paperswithcode_id: null
 pretty_name: SO StackSample
 ---
 

@@ -21,7 +21,6 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-offensive-language
-paperswithcode_id: null
 pretty_name: Offenseval Dravidian
 configs:
 - kannada

@@ -21,7 +21,6 @@ task_categories:
 - text-generation
 - fill-mask
 - text-generation-other-code-modeling
-paperswithcode_id: null
 ---
 # Dataset Card for [py_ast]
 

@@ -20,7 +20,6 @@ task_categories:
 task_ids:
 - text2text-generation-other-explanation-generation
 - hate-speech-detection
-paperswithcode_id: null
 ---
 
 

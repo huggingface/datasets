@@ -31,7 +31,6 @@ size_categories:
 - 10K<n<100K
 license:
 - cc-by-4.0
-paperswithcode_id: null
 pretty_name: CVIT PIB
 configs:
 - bn-en

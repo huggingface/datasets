@@ -30,7 +30,6 @@ task_ids:
 - part-of-speech-tagging
 - text-classification-other-word-sense-disambiguation
 - token-classification-other-lemmatization
-paperswithcode_id: null
 configs:
 - raw_ca
 - raw_en

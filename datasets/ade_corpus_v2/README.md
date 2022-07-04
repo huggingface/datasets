@@ -21,7 +21,6 @@ task_categories:
 task_ids:
 - coreference-resolution
 - fact-checking
-paperswithcode_id: null
 pretty_name: Adverse Drug Reaction Data v2
 train-eval-index:
 - config: Ade_corpus_v2_classification

@@ -45,7 +45,6 @@ source_datasets:
 task_categories:
 - automatic-speech-recognition
 task_ids: []
-paperswithcode_id: null
 configs:
 - SLR32
 - SLR35

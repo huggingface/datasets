@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - named-entity-recognition
 - token-classification-other-relation-prediction
-paperswithcode_id: null
 pretty_name: eHealth-KD
 ---
 

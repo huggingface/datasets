@@ -62,7 +62,6 @@ task_ids:
 - text-classification-other-paraphrase-identification
 - text2text-generation-other-question-answering
 - topic-classification
-paperswithcode_id: null
 pretty_name: XGLUE
 configs:
 - mlqa

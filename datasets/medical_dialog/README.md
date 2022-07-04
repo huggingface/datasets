@@ -19,7 +19,6 @@ task_categories:
 - question-answering
 task_ids:
 - closed-domain-qa
-paperswithcode_id: null
 pretty_name: MedDialog
 configs:
 - en

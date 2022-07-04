@@ -2,7 +2,6 @@
 pretty_name: 20 Newsgroups
 language:
 - en
-paperswithcode_id: null
 ---
 
 # Dataset Card for "newsgroup"

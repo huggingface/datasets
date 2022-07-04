@@ -21,7 +21,6 @@ task_ids:
 - token-classification-other-clause-segmentation
 - token-classification-other-sentence-segmentation
 - token-classification-other-word-segmentation
-paperswithcode_id: null
 pretty_name: LST20
 ---
 

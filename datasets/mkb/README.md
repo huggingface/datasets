@@ -28,7 +28,6 @@ size_categories:
 - n<1K
 license:
 - cc-by-4.0
-paperswithcode_id: null
 pretty_name: CVIT MKB
 configs:
 - bn-en

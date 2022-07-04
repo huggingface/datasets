@@ -18,7 +18,6 @@ task_categories:
 - question-answering
 task_ids:
 - open-domain-qa
-paperswithcode_id: null
 ---
 
 # Dataset Card for nq_open

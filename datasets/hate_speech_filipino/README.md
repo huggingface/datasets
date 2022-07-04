@@ -17,7 +17,6 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-analysis
-paperswithcode_id: null
 pretty_name: Hate Speech in Filipino
 ---
 

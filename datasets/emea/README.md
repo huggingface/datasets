@@ -37,7 +37,6 @@ source_datasets:
 task_categories:
 - translation
 task_ids: []
-paperswithcode_id: null
 pretty_name: EMEA
 configs:
 - bg-el

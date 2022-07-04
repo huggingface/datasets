@@ -19,7 +19,6 @@ task_categories:
 task_ids:
 - sentiment-classification
 - multi-label-classification
-paperswithcode_id: null
 pretty_name: Dutch Social Media Collection
 ---
 

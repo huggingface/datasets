@@ -21,7 +21,6 @@ task_categories:
 task_ids:
 - language-modeling
 - other-text-search
-paperswithcode_id: null
 ---
 
 # Dataset Card for "wiki_snippets"

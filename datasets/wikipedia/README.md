@@ -4,7 +4,6 @@ annotations_creators:
 language_creators:
 - crowdsourced
 pretty_name: Wikipedia
-paperswithcode_id: null
 license:
 - cc-by-sa-3.0
 - gfdl

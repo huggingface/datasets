@@ -19,7 +19,6 @@ size_categories:
 - 10K<n<100K
 license:
 - unknown
-paperswithcode_id: null
 pretty_name: ilist
 ---
 

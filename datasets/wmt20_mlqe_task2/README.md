@@ -22,7 +22,6 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-translation-quality-estimation
-paperswithcode_id: null
 configs:
 - en-de
 - en-zh

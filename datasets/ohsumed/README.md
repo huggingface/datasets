@@ -18,7 +18,6 @@ task_categories:
 - text-classification
 task_ids:
 - multi-label-classification
-paperswithcode_id: null
 ---
 
 # Dataset Card for ohsumed

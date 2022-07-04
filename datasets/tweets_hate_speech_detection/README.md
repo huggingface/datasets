@@ -17,7 +17,6 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
-paperswithcode_id: null
 pretty_name: Tweets Hate Speech Detection
 train-eval-index:
 - config: default

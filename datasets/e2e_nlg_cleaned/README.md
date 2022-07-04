@@ -17,7 +17,6 @@ task_categories:
 - text2text-generation
 task_ids:
 - text2text-generation-other-meaning-representtion-to-text
-paperswithcode_id: null
 pretty_name: the Cleaned Version of the E2E Dataset
 ---
 

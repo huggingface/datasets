@@ -17,7 +17,6 @@ task_categories:
 - token-classification
 task_ids:
 - named-entity-recognition
-paperswithcode_id: null
 pretty_name: MSRA NER
 train-eval-index:
 - config: msra_ner

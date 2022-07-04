@@ -17,7 +17,6 @@ task_categories:
 - other
 task_ids:
 - other-other-NCI-PID-PubMed Genomics Knowledge Base Completion Dataset
-paperswithcode_id: null
 pretty_name: MsrGenomicsKbcomp
 ---
 

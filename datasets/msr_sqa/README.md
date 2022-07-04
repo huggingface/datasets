@@ -17,7 +17,6 @@ task_categories:
 - question-answering
 task_ids:
 - extractive-qa
-paperswithcode_id: null
 pretty_name: Microsoft Research Sequential Question Answering
 ---
 

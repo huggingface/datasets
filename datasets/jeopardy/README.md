@@ -1,7 +1,6 @@
 ---
 language:
 - en
-paperswithcode_id: null
 pretty_name: jeopardy
 ---
 

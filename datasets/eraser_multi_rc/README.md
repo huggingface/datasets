@@ -2,7 +2,6 @@
 pretty_name: Eraser Multi Rc
 language:
 - en
-paperswithcode_id: null
 ---
 
 # Dataset Card for "eraser_multi_rc"

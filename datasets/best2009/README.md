@@ -17,7 +17,6 @@ task_categories:
 - token-classification
 task_ids:
 - token-classification-other-word-tokenization
-paperswithcode_id: null
 pretty_name: best2009
 ---
 

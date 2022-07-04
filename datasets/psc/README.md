@@ -17,7 +17,6 @@ task_categories:
 - summarization
 task_ids:
 - news-articles-summarization
-paperswithcode_id: null
 pretty_name: psc
 ---
 

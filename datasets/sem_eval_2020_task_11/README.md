@@ -19,7 +19,6 @@ task_categories:
 task_ids:
 - text-classification-other-propaganda-technique-classification
 - token-classification-other-propaganda-span-identification
-paperswithcode_id: null
 pretty_name: "SemEval-2020 Task 11"
 ---
 

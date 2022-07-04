@@ -18,7 +18,6 @@ task_categories:
 - tabular-to-text
 task_ids:
 - rdf-to-text
-paperswithcode_id: null
 pretty_name: Enriched WebNLG
 configs:
 - de

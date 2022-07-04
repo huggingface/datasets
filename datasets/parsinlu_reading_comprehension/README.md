@@ -17,7 +17,6 @@ task_categories:
 - question-answering
 task_ids:
 - extractive-qa
-paperswithcode_id: null
 pretty_name: PersiNLU (Reading Comprehension)
 ---
 

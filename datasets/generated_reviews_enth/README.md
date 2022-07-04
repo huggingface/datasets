@@ -21,7 +21,6 @@ task_categories:
 task_ids:
 - multi-class-classification
 - semantic-similarity-classification
-paperswithcode_id: null
 pretty_name: generated_reviews_enth
 ---
 

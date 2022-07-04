@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - summarization-other-extractive-summarization
 - news-articles-summarization
-paperswithcode_id: null
 pretty_name: Large-scale Indonesian Summarization
 ---
 

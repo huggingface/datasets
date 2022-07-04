@@ -20,7 +20,6 @@ task_ids:
 - document-retrieval
 - fact-checking-retrieval
 - text-simplification
-paperswithcode_id: null
 pretty_name: Times of India News Headlines
 ---
 

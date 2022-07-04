@@ -17,7 +17,6 @@ task_categories:
 - text2text-generation
 task_ids:
 - text-simplification
-paperswithcode_id: null
 pretty_name: TURK
 ---
 

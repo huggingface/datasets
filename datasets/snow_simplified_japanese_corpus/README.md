@@ -18,7 +18,6 @@ source_datasets:
 task_categories:
 - translation
 task_ids: []
-paperswithcode_id: null
 pretty_name: SNOW T15 and T23 (simplified Japanese corpus)
 ---
 

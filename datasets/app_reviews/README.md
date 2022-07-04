@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - text-scoring
 - sentiment-scoring
-paperswithcode_id: null
 pretty_name: AppReviews
 ---
 

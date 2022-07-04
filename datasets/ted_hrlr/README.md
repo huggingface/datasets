@@ -1,6 +1,5 @@
 ---
 pretty_name: TEDHrlr
-paperswithcode_id: null
 ---
 
 # Dataset Card for "ted_hrlr"

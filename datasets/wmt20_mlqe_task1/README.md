@@ -26,7 +26,6 @@ source_datasets:
 task_categories:
 - translation
 task_ids: []
-paperswithcode_id: null
 configs:
 - en-de
 - en-zh

@@ -30,7 +30,6 @@ source_datasets:
 task_categories:
 - translation
 task_ids: []
-paperswithcode_id: null
 pretty_name: TedIwlst2013
 configs:
 - ar-en

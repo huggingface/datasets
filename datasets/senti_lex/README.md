@@ -100,7 +100,6 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
-paperswithcode_id: null
 pretty_name: SentiWS
 configs:
 - 'no'

@@ -21,7 +21,6 @@ task_categories:
 task_ids:
 - language-modeling
 - masked-language-modeling
-paperswithcode_id: null
 ---
 
 # Dataset Card for Thai Literature Corpora (TLC)

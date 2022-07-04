@@ -19,7 +19,6 @@ task_categories:
 task_ids:
 - language-modeling
 - masked-language-modeling
-paperswithcode_id: null
 pretty_name: Hebrew Projectbenyehuda
 ---
 

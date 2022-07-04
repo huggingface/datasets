@@ -27,7 +27,6 @@ task_ids:
 - text-classification-other-dialogue-act-classification
 - text-classification-other-emotion-classification
 - text-scoring
-paperswithcode_id: null
 pretty_name: SILICONE Benchmark
 configs:
 - dyda_da

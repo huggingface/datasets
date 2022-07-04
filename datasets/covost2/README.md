@@ -37,7 +37,6 @@ source_datasets:
 task_categories:
 - automatic-speech-recognition
 task_ids: []
-paperswithcode_id: null
 pretty_name: CoVoST 2
 ---
 

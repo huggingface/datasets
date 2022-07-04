@@ -9,7 +9,6 @@ license:
 - cc-by-4.0
 multilinguality:
 - monolingual
-paperswithcode_id: null
 pretty_name: Reddit Webis-TLDR-17
 size_categories:
 - 1M<n<10M

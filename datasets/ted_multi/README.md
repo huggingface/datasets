@@ -1,6 +1,5 @@
 ---
 pretty_name: TEDMulti
-paperswithcode_id: null
 ---
 
 # Dataset Card for "ted_multi"

@@ -18,7 +18,6 @@ task_categories:
 - fill-mask
 task_ids:
 - dialogue-modeling
-paperswithcode_id: null
 pretty_name: taskmaster3
 ---
 

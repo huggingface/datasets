@@ -19,7 +19,6 @@ task_ids:
 - text-scoring
 - sentiment-classification
 - sentiment-scoring
-paperswithcode_id: null
 pretty_name: OCLAR
 ---
 

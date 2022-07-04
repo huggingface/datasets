@@ -24,7 +24,6 @@ task_ids:
 - intent-classification
 - sentiment-classification
 - text-simplification
-paperswithcode_id: null
 pretty_name: Disaster Response Messages
 ---
 

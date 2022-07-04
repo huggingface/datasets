@@ -17,7 +17,6 @@ task_categories:
 - summarization
 task_ids:
 - summarization-other-hallucinations
-paperswithcode_id: null
 pretty_name: XSum Hallucination Annotations
 ---
 

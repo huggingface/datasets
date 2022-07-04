@@ -2,7 +2,6 @@
 pretty_name: MovieRationales
 language:
 - en
-paperswithcode_id: null
 ---
 
 # Dataset Card for "movie_rationales"

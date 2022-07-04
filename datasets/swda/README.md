@@ -17,7 +17,6 @@ task_categories:
 - text-classification
 task_ids:
 - multi-label-classification
-paperswithcode_id: null
 pretty_name: The Switchboard Dialog Act Corpus (SwDA)
 ---
 

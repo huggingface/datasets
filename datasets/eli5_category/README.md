@@ -9,7 +9,6 @@ license:
 - unknown
 multilinguality:
 - monolingual
-paperswithcode_id: null
 pretty_name: ELI5-Category
 size_categories:
 - 100K<n<1M

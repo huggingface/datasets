@@ -17,7 +17,6 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-question-identification
-paperswithcode_id: null
 pretty_name: JournalistsQuestions
 ---
 

@@ -23,7 +23,6 @@ task_ids:
 - explanation-generation
 - fact-checking-retrieval
 - text-simplification
-paperswithcode_id: null
 pretty_name: arXiv Dataset
 ---
 

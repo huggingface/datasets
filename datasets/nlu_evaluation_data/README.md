@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - intent-classification
 - multi-class-classification
-paperswithcode_id: null
 pretty_name: NLU Evaluation Data
 ---
 

@@ -18,7 +18,6 @@ task_categories:
 - text-retrieval
 task_ids:
 - fact-checking-retrieval
-paperswithcode_id: null
 ---
 # Dataset Card for Evidence Infer
 

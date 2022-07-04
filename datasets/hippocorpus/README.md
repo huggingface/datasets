@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - text-scoring
 - text-classification-other-narrative-flow
-paperswithcode_id: null
 pretty_name: hippocorpus
 ---
 

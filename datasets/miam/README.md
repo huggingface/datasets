@@ -26,7 +26,6 @@ task_ids:
 - language-modeling
 - masked-language-modeling
 - text-classification-other-dialogue-act-classification
-paperswithcode_id: null
 pretty_name: MIAM
 configs:
 - dihana

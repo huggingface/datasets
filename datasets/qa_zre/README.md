@@ -18,7 +18,6 @@ task_categories:
 - question-answering
 task_ids:
 - question-answering-other-zero-shot-relation-extraction
-paperswithcode_id: null
 ---
 
 # Dataset Card for QaZre

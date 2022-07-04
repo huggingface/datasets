@@ -18,7 +18,6 @@ task_categories:
 - text-classification
 task_ids:
 - fact-checking
-paperswithcode_id: null
 pretty_name: DataCommons Fact Checked claims
 configs:
 - fctchk_politifact_wapo

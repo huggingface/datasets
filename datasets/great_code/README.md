@@ -16,7 +16,6 @@ source_datasets:
 task_categories:
 - table-to-text
 task_ids: []
-paperswithcode_id: null
 pretty_name: GREAT
 ---
 

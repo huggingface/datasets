@@ -2,7 +2,6 @@
 pretty_name: SciFact
 language:
 - en
-paperswithcode_id: null
 ---
 
 # Dataset Card for "scifact"

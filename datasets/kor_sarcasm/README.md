@@ -17,7 +17,6 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-sarcasm-detection
-paperswithcode_id: null
 pretty_name: Korean Sarcasm Detection
 ---
 

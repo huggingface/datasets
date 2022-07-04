@@ -1,6 +1,5 @@
 ---
 pretty_name: Sogou News
-paperswithcode_id: null
 ---
 
 # Dataset Card for "sogou_news"

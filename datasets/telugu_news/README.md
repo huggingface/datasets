@@ -22,7 +22,6 @@ task_ids:
 - masked-language-modeling
 - multi-class-classification
 - topic-classification
-paperswithcode_id: null
 pretty_name: TeluguNews
 ---
 

@@ -32,7 +32,6 @@ task_ids:
 - sentiment-classification
 - sentiment-scoring
 - topic-classification
-paperswithcode_id: null
 pretty_name: The Multilingual Amazon Reviews Corpus
 configs:
 - all_languages

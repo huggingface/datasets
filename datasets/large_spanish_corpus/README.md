@@ -21,7 +21,6 @@ task_categories:
 - other
 task_ids:
 - other-other-pretraining-language-models
-paperswithcode_id: null
 pretty_name: The Large Spanish Corpus
 configs:
 - DGT

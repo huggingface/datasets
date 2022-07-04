@@ -17,7 +17,6 @@ task_categories:
 - text-classification
 task_ids:
 - intent-classification
-paperswithcode_id: null
 pretty_name: Poleval 2019 cyberbullying
 ---
 

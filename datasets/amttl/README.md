@@ -17,7 +17,6 @@ task_categories:
 - token-classification
 task_ids:
 - parsing
-paperswithcode_id: null
 pretty_name: AMTTL
 ---
 

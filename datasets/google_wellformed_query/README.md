@@ -15,7 +15,6 @@ size_categories:
 - 10K<n<100K
 license:
 - cc-by-sa-4.0
-paperswithcode_id: null
 pretty_name: GoogleWellformedQuery
 language_creators: 
 - found

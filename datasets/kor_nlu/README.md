@@ -21,7 +21,6 @@ task_categories:
 task_ids:
 - natural-language-inference
 - semantic-similarity-scoring
-paperswithcode_id: null
 pretty_name: KorNlu
 ---
 

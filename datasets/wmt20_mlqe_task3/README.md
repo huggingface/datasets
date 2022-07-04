@@ -19,7 +19,6 @@ source_datasets:
 task_categories:
 - translation
 task_ids: []
-paperswithcode_id: null
 ---
 
 # Dataset Card Creation Guide

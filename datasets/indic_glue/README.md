@@ -1,6 +1,5 @@
 ---
 pretty_name: IndicGLUE
-paperswithcode_id: null
 ---
 
 # Dataset Card for "indic_glue"

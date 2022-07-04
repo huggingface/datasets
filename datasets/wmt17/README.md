@@ -1,6 +1,5 @@
 ---
 pretty_name: WMT17
-paperswithcode_id: null
 multilinguality:
 - translation
 task_categories:

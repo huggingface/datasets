@@ -131,7 +131,6 @@ task_ids:
 - multi-class-classification
 - multi-label-classification
 - token-classification-other-morphology
-paperswithcode_id: null
 pretty_name: UniversalMorphologies
 configs:
 - ady

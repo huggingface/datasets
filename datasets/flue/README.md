@@ -22,7 +22,6 @@ task_ids:
 - semantic-similarity-classification
 - sentiment-classification
 - text-classification-other-Word Sense Disambiguation for Verbs
-paperswithcode_id: null
 configs:
 - CLS
 - PAWS-X

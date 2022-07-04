@@ -20,7 +20,6 @@ source_datasets:
 task_categories:
 - translation
 task_ids: []
-paperswithcode_id: null
 pretty_name: autshumato
 configs:
 - autshumato-en-tn

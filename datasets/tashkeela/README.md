@@ -20,7 +20,6 @@ task_ids:
 - language-modeling
 - masked-language-modeling
 - other-diacritics-prediction
-paperswithcode_id: null
 pretty_name: Tashkeela
 ---
 

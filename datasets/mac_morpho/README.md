@@ -18,7 +18,6 @@ task_categories:
 - token-classification
 task_ids:
 - part-of-speech-tagging
-paperswithcode_id: null
 ---
 
 # Dataset Card for Mac-Morpho

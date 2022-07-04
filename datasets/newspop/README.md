@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - text-scoring
 - text-classification-other-social-media-shares-prediction
-paperswithcode_id: null
 pretty_name: News Popularity in Multiple Social Media Platforms
 ---
 

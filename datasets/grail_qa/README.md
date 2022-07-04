@@ -17,7 +17,6 @@ task_categories:
 - question-answering
 task_ids:
 - question-answering-other-knowledge-base-qa
-paperswithcode_id: null
 pretty_name: Grail QA
 ---
 

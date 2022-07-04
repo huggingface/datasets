@@ -17,7 +17,6 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-offensive-language-classification
-paperswithcode_id: null
 pretty_name: OffensEval-TR 2020
 ---
 

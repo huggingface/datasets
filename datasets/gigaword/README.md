@@ -17,7 +17,6 @@ task_categories:
 - summarization
 task_ids:
 - summarization--other-headline-generation
-paperswithcode_id: null
 pretty_name: Gigaword
 train-eval-index:
 - config: default

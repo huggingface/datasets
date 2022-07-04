@@ -17,7 +17,6 @@ task_categories:
 - text2text-generation
 task_ids:
 - text2text-generation-other-grammatical-error-correction
-paperswithcode_id: null
 pretty_name: TMU-GFM-Dataset
 ---
 

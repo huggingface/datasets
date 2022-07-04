@@ -1,5 +1,4 @@
 ---
-paperswithcode_id: null
 pretty_name: hansards
 ---
 

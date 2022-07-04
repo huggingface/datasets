@@ -18,7 +18,6 @@ task_categories:
 - text-to-structured
 task_ids:
 - relation-extraction
-paperswithcode_id: null
 pretty_name: Ollie
 configs:
 - ollie_lemmagrep

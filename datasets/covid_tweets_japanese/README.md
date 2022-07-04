@@ -17,7 +17,6 @@ task_categories:
 - text-classification
 task_ids:
 - fact-checking
-paperswithcode_id: null
 pretty_name: COVID-19 日本語Twitterデータセット (COVID-19 Japanese Twitter Dataset)
 ---
 

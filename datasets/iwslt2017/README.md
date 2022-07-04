@@ -1,5 +1,4 @@
 ---
-paperswithcode_id: null
 pretty_name: IWSLT 2017
 license:
 - cc-by-nc-nd-4.0

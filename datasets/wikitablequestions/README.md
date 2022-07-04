@@ -9,7 +9,6 @@ license:
 - cc-by-4.0
 multilinguality:
 - monolingual
-paperswithcode_id: null
 pretty_name: WikiTableQuestions
 size_categories:
 - 10K<n<100K

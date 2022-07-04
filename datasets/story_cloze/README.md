@@ -17,7 +17,6 @@ task_categories:
 - other
 task_ids:
 - other-other-story-completion
-paperswithcode_id: null
 pretty_name: Story Cloze Test
 ---
 

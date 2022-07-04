@@ -19,7 +19,6 @@ task_categories:
 - text-generation
 - fill-mask
 - text-generation-other-discourse-analysis
-paperswithcode_id: null
 pretty_name: Discourse Analysis dataset
 ---
 
