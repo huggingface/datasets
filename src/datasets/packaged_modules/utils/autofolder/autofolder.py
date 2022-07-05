@@ -2,7 +2,7 @@ import collections
 import itertools
 import os
 from dataclasses import dataclass
-from typing import Any, List, Optional, Tuple
+from typing import ClassVar, List, Optional, Tuple
 
 import pyarrow.compute as pc
 import pyarrow.json as paj
@@ -44,9 +44,7 @@ def count_path_segments(path):
 class AutoFolderConfig(datasets.BuilderConfig):
     """BuilderConfig for AutoFolder."""
 
-    base_feature: Any = (
-        None  # i.e. datasets.Image(), datasets.Audio(), we don't have a type for Feature # TODO: ClassVar?
-    )
+    base_feature: ClassVar = None  # i.e. datasets.Image(), datasets.Audio(), we don't have a type for Feature ("FieldType") # TODO: what type?
     base_feature_name: str = ""
     label_column: str = "label"
     features: Optional[datasets.Features] = None
@@ -78,7 +76,7 @@ class AutoFolder(datasets.GeneratorBasedBuilder):
         do_analyze = (self.config.features is None and not self.config.drop_labels) or not self.config.drop_metadata
         if do_analyze:
             labels = set()
-            metadata_files = collections.defaultdict(list)
+            metadata_files = collections.defaultdict(set)
 
             def analyze(files_or_archives, downloaded_files_or_dirs, split):
                 if len(downloaded_files_or_dirs) == 0:
@@ -95,7 +93,7 @@ class AutoFolder(datasets.GeneratorBasedBuilder):
                         elif (
                             os.path.basename(original_file) == self.METADATA_FILENAME and not self.config.drop_metadata
                         ):
-                            metadata_files[split].append((original_file, downloaded_file))
+                            metadata_files[split].add((original_file, downloaded_file))
                         else:
                             original_file_name = os.path.basename(original_file)
                             logger.debug(
@@ -113,7 +111,7 @@ class AutoFolder(datasets.GeneratorBasedBuilder):
                                 os.path.basename(downloaded_dir_file) == self.METADATA_FILENAME
                                 and not self.config.drop_metadata
                             ):
-                                metadata_files[split].append((None, downloaded_dir_file))
+                                metadata_files[split].add((None, downloaded_dir_file))
                             else:
                                 archive_file_name = os.path.basename(archive)
                                 original_file_name = os.path.basename(downloaded_dir_file)
@@ -174,8 +172,6 @@ class AutoFolder(datasets.GeneratorBasedBuilder):
         else:
             metadata_features = None
 
-        # return splits, labels, metadata_files, metadata_features
-
         if self.config.features is None:
             if not self.config.drop_labels and not metadata_files:
                 self.info.features = datasets.Features(
@@ -197,7 +193,7 @@ class AutoFolder(datasets.GeneratorBasedBuilder):
                     )
                 self.info.features.update(metadata_features)
 
-        return splits
+        return splits  # labels, metadata_files, metadata_features
 
     def _split_files_and_archives(self, data_files):
         files, archives = [], []
@@ -211,7 +207,7 @@ class AutoFolder(datasets.GeneratorBasedBuilder):
                 archives.append(data_file)
         return files, archives
 
-    def _generate_examples(self, files, metadata_files, split_name):
+    def _prepare_generate_examples(self, files, metadata_files, split_name):
         if not self.config.drop_metadata and metadata_files:
             split_metadata_files = metadata_files.get(split_name, [])
             sample_empty_metadata = {k: None for k in self.info.features if k != self.config.base_feature_name}
@@ -352,7 +348,7 @@ class AutoFolder(datasets.GeneratorBasedBuilder):
                 if original_file is not None:
                     _, original_file_ext = os.path.splitext(original_file)
                     if original_file_ext.lower() in self.EXTENSIONS:
-                        if self.config.drop_labels or metadata_files:
+                        if self.config.drop_labels or metadata_files:  # TODO: align this with #4622
                             yield file_idx, {
                                 self.config.base_feature_name: downloaded_file_or_dir,
                             }
@@ -366,7 +362,7 @@ class AutoFolder(datasets.GeneratorBasedBuilder):
                     for downloaded_dir_file in downloaded_file_or_dir:
                         _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
                         if downloaded_dir_file_ext.lower() in self.EXTENSIONS:
-                            if self.config.drop_labels or metadata_files:
+                            if self.config.drop_labels or metadata_files:  # TODO: align this with #4622
                                 yield file_idx, {
                                     self.config.base_feature_name: downloaded_file_or_dir,
                                 }
