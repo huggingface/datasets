@@ -8,76 +8,67 @@ import pyarrow.compute as pc
 import pyarrow.json as paj
 
 import datasets
-from datasets.tasks import ImageClassification
-
-from ..utils.autofolder import autofolder
-from ..utils.autofolder.autofolder import count_path_segments, pa_table_to_pylist
 
 
 logger = datasets.utils.logging.get_logger(__name__)
 
 
-@dataclass
-class ImageFolderConfig(autofolder.AutoFolderConfig):
-    """BuilderConfig for ImageFolder."""
+if datasets.config.PYARROW_VERSION.major >= 7:
 
-    base_feature: Any = datasets.Image()
-    drop_labels: bool = False
-    drop_metadata: bool = False
+    def pa_table_to_pylist(table):
+        return table.to_pylist()
+
+else:
+
+    def pa_table_to_pylist(table):
+        keys = table.column_names
+        values = table.to_pydict().values()
+        return [{k: v for k, v in zip(keys, row_values)} for row_values in zip(*values)]
 
 
-class ImageFolder(autofolder.AutoFolder):
-    BUILDER_CONFIG_CLASS = ImageFolderConfig
-    # BUILDER_CONFIG = autofolder.AutoFolderConfig(base_feature=datasets.Image(), base_feature_name="image")
-    EXTENSIONS: List[str] = []  # definition at the bottom of the script
-
-    def _info(self):
-        return datasets.DatasetInfo(features=self.config.features)
-
-    def _split_generators(self, dl_manager):
-        # _prepare_split_generators sets self.config.features, self.info,
-        # infers labels, finds metadata files if needed and returns splits
-        splits = self._prepare_split_generators(dl_manager)
-
-        # to check if metadata files were found, see if they are in the first split kwargs
-        # (metadata files passed to _generate_examples() are the same for each split)
-        if not self.config.features and not self.config.drop_labels and not splits[0].gen_kwargs["metadata_files"]:
-            task_template = ImageClassification(
-                image_column=self.config.base_feature_name, label_column=self.config.label_column
-            )
-            task_template = task_template.align_with_features(self.info.features)
-            self.info.task_templates = [task_template]
-
-        return splits
-
-    # self._generate_examples() is implemented in a parent class (AutoFolder) git status
-
-    # def _generate_examples(self, files, metadata_files, split_name):
-    #     generator = self._prepare_generate_examples(files, metadata_files, split_name)
-    #     for _, example in generator:
-    #         yield _, example
+def count_path_segments(path):
+    cnt = 0
+    while True:
+        parts = os.path.split(path)
+        if parts[0] == path:
+            break
+        elif parts[1] == path:
+            break
+        else:
+            path = parts[0]
+            cnt += 1
+    return cnt
 
 
 @dataclass
-class ImageFolderConfigOld(datasets.BuilderConfig):
-    """BuilderConfig for ImageFolder."""
+class AutoFolderConfig(datasets.BuilderConfig):
+    """BuilderConfig for AutoFolder."""
 
+    base_feature: Any = (
+        None  # i.e. datasets.Image(), datasets.Audio(), we don't have a type for Feature # TODO: ClassVar?
+    )
+    base_feature_name: str = ""
+    label_column: str = "label"
     features: Optional[datasets.Features] = None
     drop_labels: bool = False
     drop_metadata: bool = False
 
+    def __post_init__(self):
+        if not self.base_feature_name:
+            # automatically infer feature name from feature if it's not provided
+            self.base_feature_name = self.base_feature._type.lower()
 
-class ImageFolderOld(datasets.GeneratorBasedBuilder):
-    BUILDER_CONFIG_CLASS = ImageFolderConfig
 
-    IMAGE_EXTENSIONS: List[str] = []  # definition at the bottom of the script
+class AutoFolder(datasets.GeneratorBasedBuilder):
+    BUILDER_CONFIG_CLASS = AutoFolderConfig
+    EXTENSIONS: List[str] = []
     SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT = True
     METADATA_FILENAME: str = "metadata.jsonl"
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
 
-    def _split_generators(self, dl_manager):
+    def _prepare_split_generators(self, dl_manager):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
 
@@ -87,7 +78,7 @@ class ImageFolderOld(datasets.GeneratorBasedBuilder):
         do_analyze = (self.config.features is None and not self.config.drop_labels) or not self.config.drop_metadata
         if do_analyze:
             labels = set()
-            metadata_files = collections.defaultdict(set)
+            metadata_files = collections.defaultdict(list)
 
             def analyze(files_or_archives, downloaded_files_or_dirs, split):
                 if len(downloaded_files_or_dirs) == 0:
@@ -99,16 +90,16 @@ class ImageFolderOld(datasets.GeneratorBasedBuilder):
                     for original_file, downloaded_file in zip(original_files, downloaded_files):
                         original_file, downloaded_file = str(original_file), str(downloaded_file)
                         _, original_file_ext = os.path.splitext(original_file)
-                        if original_file_ext.lower() in self.IMAGE_EXTENSIONS and not self.config.drop_labels:
+                        if original_file_ext.lower() in self.EXTENSIONS and not self.config.drop_labels:
                             labels.add(os.path.basename(os.path.dirname(original_file)))
                         elif (
                             os.path.basename(original_file) == self.METADATA_FILENAME and not self.config.drop_metadata
                         ):
-                            metadata_files[split].add((original_file, downloaded_file))
+                            metadata_files[split].append((original_file, downloaded_file))
                         else:
                             original_file_name = os.path.basename(original_file)
                             logger.debug(
-                                f"The file '{original_file_name}' was ignored: it is not an image, and is not {self.METADATA_FILENAME} either."
+                                f"The file '{original_file_name}' was ignored: it is not an {self.config.base_feature_name}, and is not {self.METADATA_FILENAME} either."
                             )
                 else:
                     archives, downloaded_dirs = files_or_archives, downloaded_files_or_dirs
@@ -116,18 +107,18 @@ class ImageFolderOld(datasets.GeneratorBasedBuilder):
                         archive, downloaded_dir = str(archive), str(downloaded_dir)
                         for downloaded_dir_file in dl_manager.iter_files(downloaded_dir):
                             _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
-                            if downloaded_dir_file_ext in self.IMAGE_EXTENSIONS and not self.config.drop_labels:
+                            if downloaded_dir_file_ext in self.EXTENSIONS and not self.config.drop_labels:
                                 labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
                             elif (
                                 os.path.basename(downloaded_dir_file) == self.METADATA_FILENAME
                                 and not self.config.drop_metadata
                             ):
-                                metadata_files[split].add((None, downloaded_dir_file))
+                                metadata_files[split].append((None, downloaded_dir_file))
                             else:
                                 archive_file_name = os.path.basename(archive)
                                 original_file_name = os.path.basename(downloaded_dir_file)
                                 logger.debug(
-                                    f"The file '{original_file_name}' from the archive '{archive_file_name}' was ignored: it is not an image, and is not {self.METADATA_FILENAME} either."
+                                    f"The file '{original_file_name}' from the archive '{archive_file_name}' was ignored: it is not an {self.config.base_feature_name}, and is not {self.METADATA_FILENAME} either."
                                 )
 
             if not self.config.drop_labels:
@@ -183,25 +174,26 @@ class ImageFolderOld(datasets.GeneratorBasedBuilder):
         else:
             metadata_features = None
 
-        # Normally, we would do this in _info, but we need to know the labels and/or metadata
-        # before building the features
+        # return splits, labels, metadata_files, metadata_features
+
         if self.config.features is None:
             if not self.config.drop_labels and not metadata_files:
                 self.info.features = datasets.Features(
-                    {"image": datasets.Image(), "label": datasets.ClassLabel(names=sorted(labels))}
+                    {
+                        self.config.base_feature_name: self.config.base_feature,
+                        self.config.label_column: datasets.ClassLabel(names=sorted(labels)),
+                    }
                 )
-                task_template = ImageClassification(image_column="image", label_column="label")
-                task_template = task_template.align_with_features(self.info.features)
-                self.info.task_templates = [task_template]
             else:
-                self.info.features = datasets.Features({"image": datasets.Image()})
+                self.info.features = datasets.Features({self.config.base_feature_name: self.config.base_feature})
 
             if not self.config.drop_metadata and metadata_files:
-                # Verify that there are no duplicated keys when compared to the existing features ("image", optionally "label")
+                # Verify that there are no duplicated keys when compared to the existing features
+                # (self.config.base_feature, optionally self.config.label_column)
                 duplicated_keys = set(self.info.features) & set(metadata_features)
                 if duplicated_keys:
                     raise ValueError(
-                        f"Metadata feature keys {list(duplicated_keys)} are already present as the image features"
+                        f"Metadata feature keys {list(duplicated_keys)} are already present as the {self.config.base_feature_name} features"
                     )
                 self.info.features.update(metadata_features)
 
@@ -211,7 +203,7 @@ class ImageFolderOld(datasets.GeneratorBasedBuilder):
         files, archives = [], []
         for data_file in data_files:
             _, data_file_ext = os.path.splitext(data_file)
-            if data_file_ext.lower() in self.IMAGE_EXTENSIONS:
+            if data_file_ext.lower() in self.EXTENSIONS:
                 files.append(data_file)
             elif os.path.basename(data_file) == self.METADATA_FILENAME:
                 files.append(data_file)
@@ -222,7 +214,7 @@ class ImageFolderOld(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, files, metadata_files, split_name):
         if not self.config.drop_metadata and metadata_files:
             split_metadata_files = metadata_files.get(split_name, [])
-            image_empty_metadata = {k: None for k in self.info.features if k != "image"}
+            sample_empty_metadata = {k: None for k in self.info.features if k != self.config.base_feature_name}
 
             last_checked_dir = None
             metadata_dir = None
@@ -233,8 +225,8 @@ class ImageFolderOld(datasets.GeneratorBasedBuilder):
             for original_file, downloaded_file_or_dir in files:
                 if original_file is not None:
                     _, original_file_ext = os.path.splitext(original_file)
-                    if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
-                        # If the file is an image, and we've just entered a new directory,
+                    if original_file_ext.lower() in self.EXTENSIONS:
+                        # If the file is a file of a needed type, and we've just entered a new directory,
                         # find the nereast metadata file (by counting path segments) for the directory
                         current_dir = os.path.dirname(original_file)
                         if last_checked_dir is None or last_checked_dir != current_dir:
@@ -265,8 +257,8 @@ class ImageFolderOld(datasets.GeneratorBasedBuilder):
                                 pa_metadata_table = pa_metadata_table.drop(["file_name"])
                                 metadata_dir = os.path.dirname(metadata_file)
                                 metadata_dict = {
-                                    file_name: image_metadata
-                                    for file_name, image_metadata in zip(
+                                    file_name: sample_metadata
+                                    for file_name, sample_metadata in zip(
                                         pa_file_name_array.to_pylist(), pa_table_to_pylist(pa_metadata_table)
                                     )
                                 }
@@ -279,23 +271,23 @@ class ImageFolderOld(datasets.GeneratorBasedBuilder):
                             file_relpath = file_relpath.replace("\\", "/")
                             if file_relpath not in metadata_dict:
                                 raise ValueError(
-                                    f"Image at {file_relpath} doesn't have metadata in {downloaded_metadata_file}."
+                                    f"{self.config.base_feature_name} at {file_relpath} doesn't have metadata in {downloaded_metadata_file}."
                                 )
-                            image_metadata = metadata_dict[file_relpath]
+                            sample_metadata = metadata_dict[file_relpath]
                         else:
                             raise ValueError(
                                 f"One or several metadata.jsonl were found, but not in the same directory or in a parent directory of {downloaded_file_or_dir}."
                             )
                         yield file_idx, {
-                            **image_empty_metadata,
-                            "image": downloaded_file_or_dir,
-                            **image_metadata,
+                            **sample_empty_metadata,
+                            self.config.base_feature_name: downloaded_file_or_dir,
+                            **sample_metadata,
                         }
                         file_idx += 1
                 else:
                     for downloaded_dir_file in downloaded_file_or_dir:
                         _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
-                        if downloaded_dir_file_ext.lower() in self.IMAGE_EXTENSIONS:
+                        if downloaded_dir_file_ext.lower() in self.EXTENSIONS:
                             current_dir = os.path.dirname(downloaded_dir_file)
                             if last_checked_dir is None or last_checked_dir != current_dir:
                                 last_checked_dir = current_dir
@@ -327,8 +319,8 @@ class ImageFolderOld(datasets.GeneratorBasedBuilder):
                                     pa_metadata_table = pa_metadata_table.drop(["file_name"])
                                     metadata_dir = os.path.dirname(downloaded_metadata_file)
                                     metadata_dict = {
-                                        file_name: image_metadata
-                                        for file_name, image_metadata in zip(
+                                        file_name: sample_metadata
+                                        for file_name, sample_metadata in zip(
                                             pa_file_name_array.to_pylist(), pa_table_to_pylist(pa_metadata_table)
                                         )
                                     }
@@ -341,17 +333,17 @@ class ImageFolderOld(datasets.GeneratorBasedBuilder):
                                 downloaded_dir_file_relpath = downloaded_dir_file_relpath.replace("\\", "/")
                                 if downloaded_dir_file_relpath not in metadata_dict:
                                     raise ValueError(
-                                        f"Image at {downloaded_dir_file_relpath} doesn't have metadata in {downloaded_metadata_file}."
+                                        f"{self.config.base_feature_name} at {downloaded_dir_file_relpath} doesn't have metadata in {downloaded_metadata_file}."
                                     )
-                                image_metadata = metadata_dict[downloaded_dir_file_relpath]
+                                sample_metadata = metadata_dict[downloaded_dir_file_relpath]
                             else:
                                 raise ValueError(
                                     f"One or several metadata.jsonl were found, but not in the same directory or in a parent directory of {downloaded_dir_file}."
                                 )
                             yield file_idx, {
-                                **image_empty_metadata,
-                                "image": downloaded_dir_file,
-                                **image_metadata,
+                                **sample_empty_metadata,
+                                self.config.base_feature_name: downloaded_dir_file,
+                                **sample_metadata,
                             }
                             file_idx += 1
         else:
@@ -359,108 +351,28 @@ class ImageFolderOld(datasets.GeneratorBasedBuilder):
             for original_file, downloaded_file_or_dir in files:
                 if original_file is not None:
                     _, original_file_ext = os.path.splitext(original_file)
-                    if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
-                        if self.config.drop_labels:
+                    if original_file_ext.lower() in self.EXTENSIONS:
+                        if self.config.drop_labels or metadata_files:
                             yield file_idx, {
-                                "image": downloaded_file_or_dir,
+                                self.config.base_feature_name: downloaded_file_or_dir,
                             }
-                        else:  # self.config.drop_labels is False, self.config.drop_metadata is True
+                        else:
                             yield file_idx, {
-                                "image": downloaded_file_or_dir,
-                                "label": os.path.basename(os.path.dirname(original_file)),
+                                self.config.base_feature_name: downloaded_file_or_dir,
+                                self.config.label_column: os.path.basename(os.path.dirname(original_file)),
                             }
                         file_idx += 1
                 else:
                     for downloaded_dir_file in downloaded_file_or_dir:
                         _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
-                        if downloaded_dir_file_ext.lower() in self.IMAGE_EXTENSIONS:
-                            if self.config.drop_labels:
+                        if downloaded_dir_file_ext.lower() in self.EXTENSIONS:
+                            if self.config.drop_labels or metadata_files:
                                 yield file_idx, {
-                                    "image": downloaded_dir_file,
+                                    self.config.base_feature_name: downloaded_file_or_dir,
                                 }
-                            else:  # self.config.drop_labels is False, self.config.drop_metadata is True
+                            else:
                                 yield file_idx, {
-                                    "image": downloaded_dir_file,
-                                    "label": os.path.basename(os.path.dirname(downloaded_dir_file)),
+                                    self.config.base_feature_name: downloaded_file_or_dir,
+                                    self.config.label_column: os.path.basename(os.path.dirname(downloaded_dir_file)),
                                 }
                             file_idx += 1
-
-
-# Obtained with:
-# ```
-# import PIL.Image
-# IMAGE_EXTENSIONS = []
-# PIL.Image.init()
-# for ext, format in PIL.Image.EXTENSION.items():
-#     if format in PIL.Image.OPEN:
-#         IMAGE_EXTENSIONS.append(ext[1:])
-# ```
-# We intentionally do not run this code on launch because:
-# (1) Pillow is an optional dependency, so importing Pillow in global namespace is not allowed
-# (2) To ensure the list of supported extensions is deterministic
-IMAGE_EXTENSIONS = [
-    ".blp",
-    ".bmp",
-    ".dib",
-    ".bufr",
-    ".cur",
-    ".pcx",
-    ".dcx",
-    ".dds",
-    ".ps",
-    ".eps",
-    ".fit",
-    ".fits",
-    ".fli",
-    ".flc",
-    ".ftc",
-    ".ftu",
-    ".gbr",
-    ".gif",
-    ".grib",
-    ".h5",
-    ".hdf",
-    ".png",
-    ".apng",
-    ".jp2",
-    ".j2k",
-    ".jpc",
-    ".jpf",
-    ".jpx",
-    ".j2c",
-    ".icns",
-    ".ico",
-    ".im",
-    ".iim",
-    ".tif",
-    ".tiff",
-    ".jfif",
-    ".jpe",
-    ".jpg",
-    ".jpeg",
-    ".mpg",
-    ".mpeg",
-    ".msp",
-    ".pcd",
-    ".pxr",
-    ".pbm",
-    ".pgm",
-    ".ppm",
-    ".pnm",
-    ".psd",
-    ".bw",
-    ".rgb",
-    ".rgba",
-    ".sgi",
-    ".ras",
-    ".tga",
-    ".icb",
-    ".vda",
-    ".vst",
-    ".webp",
-    ".wmf",
-    ".emf",
-    ".xbm",
-    ".xpm",
-]
-ImageFolder.EXTENSIONS = IMAGE_EXTENSIONS
