@@ -628,7 +628,7 @@ def test_get_data_files_patterns(data_file_per_split):
         patterns_per_split = _get_data_files_patterns(resolver)
         assert sorted(patterns_per_split.keys()) == sorted(data_file_per_split.keys())
         for split, patterns in patterns_per_split.items():
-            matched = [str(file_path) for pattern in patterns for file_path in resolver(pattern)]
+            matched = [file_path.as_posix() for pattern in patterns for file_path in resolver(pattern)]
             assert matched == data_file_per_split[split]
 
 
