@@ -294,7 +294,7 @@ def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
         return os.path.isdir(path)
     else:
         if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-            raise NotImplementedError(f"os.path.isdir is not extended to support URLs in streaming mode")
+            raise NotImplementedError("os.path.isdir is not extended to support URLs in streaming mode")
         elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
             url = rest_hops[0]
             url, http_kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
@@ -478,7 +478,7 @@ def xlistdir(path: str, use_auth_token: Optional[Union[str, bool]] = None) -> Li
     else:
         # globbing inside a zip in a private repo requires authentication
         if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-            raise NotImplementedError(f"os.listdir is not extended to support URLs in streaming mode")
+            raise NotImplementedError("os.listdir is not extended to support URLs in streaming mode")
         elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
             url = rest_hops[0]
             url, http_kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
@@ -511,7 +511,7 @@ def xglob(urlpath, *, recursive=False, use_auth_token: Optional[Union[str, bool]
     else:
         # globbing inside a zip in a private repo requires authentication
         if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-            raise NotImplementedError(f"glob.glob is not extended to support URLs in streaming mode")
+            raise NotImplementedError("glob.glob is not extended to support URLs in streaming mode")
         elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
             url = rest_hops[0]
             url, kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
@@ -546,7 +546,7 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
     else:
         # walking inside a zip in a private repo requires authentication
         if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-            raise NotImplementedError(f"os.walk is not extended to support URLs in streaming mode")
+            raise NotImplementedError("os.walk is not extended to support URLs in streaming mode")
         elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
             url = rest_hops[0]
             url, kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
