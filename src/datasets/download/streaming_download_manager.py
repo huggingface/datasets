@@ -294,8 +294,7 @@ def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
         return os.path.isdir(path)
     else:
         if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-            main_hop, http_kwargs = _prepare_http_url_kwargs(main_hop, use_auth_token=use_auth_token)
-            storage_options = http_kwargs
+            raise NotImplementedError(f"os.path.isdir is not extended to support URLs in streaming mode")
         elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
             url = rest_hops[0]
             url, http_kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
@@ -304,7 +303,10 @@ def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
         else:
             storage_options = None
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        return fs.isdir(main_hop)
+        inner_path = main_hop.split("://")[1]
+        if not inner_path.strip("/"):
+            return True
+        return fs.isdir(inner_path)
 
 
 def xrelpath(path, start=None):
@@ -476,8 +478,7 @@ def xlistdir(path: str, use_auth_token: Optional[Union[str, bool]] = None) -> Li
     else:
         # globbing inside a zip in a private repo requires authentication
         if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-            main_hop, http_kwargs = _prepare_http_url_kwargs(main_hop, use_auth_token=use_auth_token)
-            storage_options = http_kwargs
+            raise NotImplementedError(f"os.listdir is not extended to support URLs in streaming mode")
         elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
             url = rest_hops[0]
             url, http_kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
@@ -486,7 +487,10 @@ def xlistdir(path: str, use_auth_token: Optional[Union[str, bool]] = None) -> Li
         else:
             storage_options = None
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        objects = fs.listdir(main_hop)
+        inner_path = main_hop.split("://")[1]
+        if inner_path.strip("/") and not fs.isdir(inner_path):
+            raise FileNotFoundError(f"Directory doesn't exist: {path}")
+        objects = fs.listdir(inner_path)
         return [os.path.basename(obj["name"]) for obj in objects]
 
 
@@ -506,7 +510,9 @@ def xglob(urlpath, *, recursive=False, use_auth_token: Optional[Union[str, bool]
         return glob.glob(main_hop, recursive=recursive)
     else:
         # globbing inside a zip in a private repo requires authentication
-        if rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
+        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
+            raise NotImplementedError(f"glob.glob is not extended to support URLs in streaming mode")
+        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
             url = rest_hops[0]
             url, kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
             storage_options = {"https": kwargs}
@@ -518,7 +524,8 @@ def xglob(urlpath, *, recursive=False, use_auth_token: Optional[Union[str, bool]
         #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
         # - Also "*" in get_fs_token_paths() only matches files: we have to call `fs.glob` to match directories.
         # - If there is "**" in the pattern, `fs.glob` must be called anyway.
-        globbed_paths = fs.glob(main_hop)
+        inner_path = main_hop.split("://")[1]
+        globbed_paths = fs.glob(inner_path)
         return ["::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops) for globbed_path in globbed_paths]
 
 
@@ -538,7 +545,9 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
         yield from os.walk(main_hop)
     else:
         # walking inside a zip in a private repo requires authentication
-        if rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
+        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
+            raise NotImplementedError(f"os.walk is not extended to support URLs in streaming mode")
+        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
             url = rest_hops[0]
             url, kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
             storage_options = {"https": kwargs}
@@ -546,7 +555,10 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
         else:
             storage_options = None
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
-        for dirpath, dirnames, filenames in fs.walk(main_hop):
+        inner_path = main_hop.split("://")[1]
+        if inner_path.strip("/") and not fs.isdir(inner_path):
+            return []
+        for dirpath, dirnames, filenames in fs.walk(inner_path):
             yield "::".join([f"{fs.protocol}://{dirpath}"] + rest_hops), dirnames, filenames
 
 
