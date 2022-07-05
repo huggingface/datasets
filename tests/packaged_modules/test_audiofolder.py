@@ -7,7 +7,7 @@ import pytest
 import soundfile as sf
 
 from datasets import Audio, Features, Value
-from datasets.data_files import DataFilesDict, get_patterns_locally
+from datasets.data_files import DataFilesDict, get_data_patterns_locally
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder
 from datasets.streaming import extend_module_for_streaming
 
@@ -76,7 +76,7 @@ def data_files_with_one_split_and_metadata(tmp_path, audio_file):
     with open(audio_metadata_filename, "w", encoding="utf-8") as f:
         f.write(audio_metadata)
     data_files_with_one_split_and_metadata = DataFilesDict.from_local_or_remote(
-        get_patterns_locally(str(data_dir)), str(data_dir)
+        get_data_patterns_locally(str(data_dir)), str(data_dir)
     )
     assert len(data_files_with_one_split_and_metadata) == 1
     assert len(data_files_with_one_split_and_metadata["train"]) == 4
@@ -117,7 +117,7 @@ def data_files_with_two_splits_and_metadata(tmp_path, audio_file):
     with open(test_audio_metadata_filename, "w", encoding="utf-8") as f:
         f.write(audio_metadata)
     data_files_with_two_splits_and_metadata = DataFilesDict.from_local_or_remote(
-        get_patterns_locally(str(data_dir)), str(data_dir)
+        get_data_patterns_locally(str(data_dir)), str(data_dir)
     )
     assert len(data_files_with_two_splits_and_metadata) == 2
     assert len(data_files_with_two_splits_and_metadata["train"]) == 3
@@ -157,7 +157,7 @@ def data_files_with_zip_archives(tmp_path, audio_file):
     shutil.rmtree(str(archive_dir))
 
     data_files_with_zip_archives = DataFilesDict.from_local_or_remote(
-        get_patterns_locally(str(data_dir)), str(data_dir)
+        get_data_patterns_locally(str(data_dir)), str(data_dir)
     )
 
     assert len(data_files_with_zip_archives) == 1
@@ -313,7 +313,7 @@ def test_data_files_with_wrong_metadata_file_name(cache_dir, tmp_path, audio_fil
         f.write(audio_metadata)
 
     data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(
-        get_patterns_locally(str(data_dir)), str(data_dir)
+        get_data_patterns_locally(str(data_dir)), str(data_dir)
     )
     audiofolder = AudioFolder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
     audiofolder.download_and_prepare()
@@ -337,7 +337,7 @@ def test_data_files_with_wrong_audio_file_name_column_in_metadata_file(cache_dir
         f.write(audio_metadata)
 
     data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(
-        get_patterns_locally(str(data_dir)), str(data_dir)
+        get_data_patterns_locally(str(data_dir)), str(data_dir)
     )
     audiofolder = AudioFolder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
     with pytest.raises(ValueError) as exc_info:
