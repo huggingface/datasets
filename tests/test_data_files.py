@@ -1,10 +1,12 @@
 import os
-from itertools import chain
+from contextlib import contextmanager
 from pathlib import Path, PurePath
+from typing import List
 from unittest.mock import patch
 
 import fsspec
 import pytest
+from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
 from huggingface_hub.hf_api import DatasetInfo
 
 from datasets.data_files import (
@@ -491,6 +493,69 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
         assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
 
 
+@contextmanager
+def mock_fs(file_paths: List[str]):
+    """context manager to set up a mock:// filesystem in sfspec containing the provided files"""
+
+    dir_paths = {file_path.rsplit("/")[0] for file_path in file_paths if "/" in file_path}
+    fs_contents = [{"name": dir_path, "type": "directory"} for dir_path in dir_paths] + [
+        {"name": file_path, "type": "file", "size": 10} for file_path in file_paths
+    ]
+
+    class DummyTestFS(AbstractFileSystem):
+        protocol = "mock"
+        _file_class = AbstractBufferedFile
+        _fs_contents = fs_contents
+
+        def __getitem__(self, name):
+            for item in self._fs_contents:
+                if item["name"] == name:
+                    return item
+            raise IndexError(f"{name} not found!")
+
+        def ls(self, path, detail=True, refresh=True, **kwargs):
+            if kwargs.pop("strip_proto", True):
+                path = self._strip_protocol(path)
+
+            files = not refresh and self._ls_from_cache(path)
+            if not files:
+                files = [file for file in self._fs_contents if path == self._parent(file["name"])]
+                files.sort(key=lambda file: file["name"])
+                self.dircache[path.rstrip("/")] = files
+
+            if detail:
+                return files
+            return [file["name"] for file in files]
+
+        @classmethod
+        def get_test_paths(cls, start_with=""):
+            """Helper to return directory and file paths with no details"""
+            all = [file["name"] for file in cls._fs_contents if file["name"].startswith(start_with)]
+            return all
+
+        def _open(
+            self,
+            path,
+            mode="rb",
+            block_size=None,
+            autocommit=True,
+            cache_options=None,
+            **kwargs,
+        ):
+            return self._file_class(
+                self,
+                path,
+                mode,
+                block_size,
+                autocommit,
+                cache_options=cache_options,
+                **kwargs,
+            )
+
+    with patch.dict(fsspec.registry.target, {"mock": DummyTestFS}):
+        yield DummyTestFS()
+
+
 @pytest.mark.parametrize(
     "data_file_per_split",
     [
@@ -541,25 +606,25 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
         {"validation": "dev/dataset.txt"},
         # With other extensions
         {"train": "train.parquet", "test": "test.parquet", "validation": "valid.parquet"},
+        # With "dev" or "eval" without separators
+        {"train": "developers_list.txt"},
+        {"train": "data/seqeval_results.txt"},
     ],
 )
 def test_get_data_files_patterns(data_file_per_split):
     data_file_per_split = {k: v if isinstance(v, list) else [v] for k, v in data_file_per_split.items()}
+    with mock_fs(
+        [file_path for split_file_paths in data_file_per_split.values() for file_path in split_file_paths]
+    ) as fs:
 
-    def resolver(pattern):
-        return [PurePath(path) for path in chain(*data_file_per_split.values()) if PurePath(path).match(pattern)]
+        def resolver(pattern):
+            return [PurePath(file_path) for file_path in fs.glob(pattern) if fs.isfile(file_path)]
 
-    patterns_per_split = _get_data_files_patterns(resolver)
-    assert sorted(patterns_per_split.keys()) == sorted(data_file_per_split.keys())
-    for split, patterns in patterns_per_split.items():
-        matched = [
-            path
-            for path in chain(*data_file_per_split.values())
-            for pattern in patterns
-            if PurePath(path).match(pattern)
-        ]
-        assert len(matched) == len(data_file_per_split[split])
-        assert matched == data_file_per_split[split]
+        patterns_per_split = _get_data_files_patterns(resolver)
+        assert sorted(patterns_per_split.keys()) == sorted(data_file_per_split.keys())
+        for split, patterns in patterns_per_split.items():
+            matched = [str(file_path) for pattern in patterns for file_path in resolver(pattern)]
+            assert matched == data_file_per_split[split]
 
 
 @pytest.mark.parametrize(

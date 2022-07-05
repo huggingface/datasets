@@ -27,15 +27,29 @@ class Url(str):
 SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
 
 DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
-    str(Split.TRAIN): ["**train*"],
-    str(Split.TEST): ["**test*", "**eval*"],
-    str(Split.VALIDATION): ["**dev*", "**valid*"],
+    str(Split.TRAIN): ["**[-._/]train[-._]*", "train[-._]*", "**[-._/]training[-._]*", "training[-._]*"],
+    str(Split.TEST): ["**[-._/]test[-._]*", "test[-._]*", "**[-._/]eval[-._]*", "eval[-._]*"],
+    str(Split.VALIDATION): [
+        "**[-._/]dev[-._]*",
+        "dev[-._]*",
+        "**[-._/]valid[-._]*",
+        "valid[-._]*",
+        "**[-._/]validation[-._]*",
+        "validation[-._]*",
+    ],
 }
 
 DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
-    str(Split.TRAIN): ["**train*/**"],
-    str(Split.TEST): ["**test*/**", "**eval*/**"],
-    str(Split.VALIDATION): ["**dev*/**", "**valid*/**"],
+    str(Split.TRAIN): ["train[-._/]**", "**[-._/]train[-._/]**", "training[-._/]**", "**[-._/]training[-._/]**"],
+    str(Split.TEST): ["test[-._/]**", "**[-._/]test[-._/]**", "eval[-._/]**", "**[-._/]eval[-._/]**"],
+    str(Split.VALIDATION): [
+        "dev[-._/]**",
+        "**[-._/]dev[-._/]**",
+        "valid[-._/]**",
+        "**[-._/]valid[-._/]**",
+        "validation[-._/]**",
+        "**[-._/]validation[-._/]**",
+    ],
 }
 
 DEFAULT_PATTERNS_ALL = {
