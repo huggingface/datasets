@@ -424,8 +424,6 @@ def test_xglob_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     assert len(xglob("zip://**::" + root_url, use_auth_token=hf_token)) == 3
     assert len(xglob("zip://qwertyuiop/*::" + root_url, use_auth_token=hf_token)) == 0
-    with pytest.raises(NotImplementedError):
-        xisdir(root_url, use_auth_token=hf_token)
 
 
 @pytest.mark.parametrize(
@@ -464,8 +462,6 @@ def test_xwalk_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     assert len(list(xwalk("zip://::" + root_url, use_auth_token=hf_token))) == 2
     assert len(list(xwalk("zip://main_dir::" + root_url, use_auth_token=hf_token))) == 1
     assert len(list(xwalk("zip://qwertyuiop::" + root_url, use_auth_token=hf_token))) == 0
-    with pytest.raises(NotImplementedError):
-        xisdir(root_url, use_auth_token=hf_token)
 
 
 @pytest.mark.parametrize(
