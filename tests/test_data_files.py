@@ -609,6 +609,11 @@ def mock_fs(file_paths: List[str]):
         # With "dev" or "eval" without separators
         {"train": "developers_list.txt"},
         {"train": "data/seqeval_results.txt"},
+        # With supported separators
+        {"test": "my.test.file.txt"},
+        {"test": "my-test-file.txt"},
+        {"test": "my_test_file.txt"},
+        {"test": "my test file.txt"},
     ],
 )
 def test_get_data_files_patterns(data_file_per_split):
