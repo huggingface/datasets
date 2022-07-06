@@ -26,7 +26,7 @@ train-eval-index:
     train_split: train
     eval_split: test
   col_mapping:
-    audio: audio
+    file: path
     text: text
   metrics:
   - type: wer

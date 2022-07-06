@@ -476,11 +476,11 @@ class GithubDatasetModuleFactory(_DatasetModuleFactory):
             if revision is not None or os.getenv("HF_SCRIPTS_VERSION", None) is not None:
                 raise
             else:
-                revision = "main"
+                revision = "master"
                 local_path = self.download_loading_script(revision)
                 logger.warning(
                     f"Couldn't find a directory or a dataset named '{self.name}' in this version. "
-                    f"It was picked from the main branch on github instead."
+                    f"It was picked from the master branch on github instead."
                 )
         dataset_infos_path = self.download_dataset_infos_file(revision)
         imports = get_imports(local_path)
@@ -546,11 +546,11 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
             if revision is not None or os.getenv("HF_SCRIPTS_VERSION", None) is not None:
                 raise
             else:
-                revision = "main"
+                revision = "master"
                 local_path = self.download_loading_script(revision)
                 logger.warning(
                     f"Couldn't find a directory or a metric named '{self.name}' in this version. "
-                    f"It was picked from the main branch on github instead."
+                    f"It was picked from the master branch on github instead."
                 )
         imports = get_imports(local_path)
         local_imports = _download_additional_modules(
@@ -1095,7 +1095,7 @@ def dataset_module_factory(
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
+              You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
             - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
@@ -1278,7 +1278,7 @@ def metric_module_factory(
             If specified, the module will be loaded from the datasets repository at this version.
             By default:
             - it is set to the local version of the lib.
-            - it will also try to load it from the main branch if it's not available at the local version of the lib.
+            - it will also try to load it from the master branch if it's not available at the local version of the lib.
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
@@ -1464,7 +1464,7 @@ def load_dataset_builder(
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
+              You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
             - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
@@ -1576,7 +1576,7 @@ def load_dataset(
             Dataset scripts are small python scripts that define dataset builders. They define the citation, info and format of the dataset,
             contain the path or URL to the original data files and the code to load examples from the original data files.
 
-            You can find some of the scripts here: https://github.com/huggingface/datasets/tree/main/datasets
+            You can find some of the scripts here: https://github.com/huggingface/datasets/tree/master/datasets
             You can find the complete list of datasets in the Datasets Hub at https://huggingface.co/datasets
 
         2. Run the dataset script which will:
@@ -1635,7 +1635,7 @@ def load_dataset(
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
+              You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
             - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
