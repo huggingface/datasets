@@ -1,10 +1,17 @@
 # Load audio data
 
+
 Audio datasets are loaded from the `audio` column, which contains three important fields:
 
 * `array`: the decoded audio data represented as a 1-dimensional array.
 * `path`: the path to the downloaded audio file.
 * `sampling_rate`: the sampling rate of the audio data.
+
+<Tip>
+
+To work with audio datasets, you need to have the `audio` dependency installed. Check out the [installation](./installation#audio) guide to learn how to install it.
+
+</Tip>
 
 When you load an audio dataset and call the `audio` column, the [`Audio`] feature automatically decodes and resamples the audio file:
 

@@ -45,28 +45,24 @@
     - local: beam
       title: Beam Datasets
     title: "General usage"
-    isExpanded: true
   - sections:
     - local: audio_load
       title: Load audio data
     - local: audio_process
       title: Process audio data
     title: "Audio"
-    isExpanded: false
   - sections:
     - local: image_load
       title: Load image data
     - local: image_process
       title: Process image data
     title: "Vision"
-    isExpanded: false
   - sections:
     - local: nlp_load
       title: Load text data
     - local: nlp_process
       title: Process text data
     title: "Text"
-    isExpanded: false
   - sections:
     - local: share
       title: Share
@@ -77,7 +73,6 @@
     - local: repository_structure
       title: Structure your repository
     title: "Dataset repository"
-    isExpanded: false
   title: "How-to guides"
 - sections:
   - local: about_arrow

@@ -1,6 +1,14 @@
 # Load image data
 
-Image datasets are loaded from the `image` column, which contains a PIL object. When you load an image dataset and call the `image` column, the [`Image`] feature automatically decodes the PIL object into an image:
+Image datasets are loaded from the `image` column, which contains a PIL object. 
+
+<Tip>
+
+To work with image datasets, you need to have the `vision` dependency installed. Check out the [installation](./installation#vision) guide to learn how to install it.
+
+</Tip>
+
+When you load an image dataset and call the `image` column, the [`Image`] feature automatically decodes the PIL object into an image:
 
 ```py
 >>> from datasets import load_dataset, Image
