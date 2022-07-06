@@ -3,7 +3,7 @@ from typing import ClassVar, List
 
 import datasets
 
-from ..utils.autofolder import autofolder
+from ..base import autofolder
 
 
 logger = datasets.utils.logging.get_logger(__name__)
