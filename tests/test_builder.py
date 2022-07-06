@@ -50,7 +50,7 @@ class DummyGeneratorBasedBuilder(GeneratorBasedBuilder):
         return DatasetInfo(features=Features({"text": Value("string")}))
 
     def _split_generators(self, dl_manager):
-        return [SplitGenerator(name=Split.TRAIN)]
+        return [SplitGenerator(name=Split.TRAIN), SplitGenerator(name=Split.VALIDATION)]
 
     def _generate_examples(self):
         for i in range(100):
@@ -768,7 +768,12 @@ def test_builder_as_streaming_dataset(tmp_path):
     assert len(list(dsets["train"])) == 100
     dset = dummy_builder.as_streaming_dataset(split="train")
     assert isinstance(dset, IterableDataset)
+    assert dset.split == "train"
     assert len(list(dset)) == 100
+    dset = dummy_builder.as_streaming_dataset(split="all")
+    assert isinstance(dset, IterableDataset)
+    assert dset.split == "train+validation"
+    assert len(list(dset)) == 200
 
 
 def _run_test_builder_streaming_works_in_subprocesses(builder):
