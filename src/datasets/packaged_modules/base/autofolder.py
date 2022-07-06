@@ -364,11 +364,11 @@ class AutoFolder(datasets.GeneratorBasedBuilder):
                         if downloaded_dir_file_ext.lower() in self.EXTENSIONS:
                             if self.config.drop_labels or metadata_files:  # TODO: align this with #4622
                                 yield file_idx, {
-                                    self.config.base_feature_name: downloaded_file_or_dir,
+                                    self.config.base_feature_name: downloaded_dir_file,
                                 }
                             else:
                                 yield file_idx, {
-                                    self.config.base_feature_name: downloaded_file_or_dir,
+                                    self.config.base_feature_name: downloaded_dir_file,
                                     self.config.label_column: os.path.basename(os.path.dirname(downloaded_dir_file)),
                                 }
                             file_idx += 1
