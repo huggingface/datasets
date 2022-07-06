@@ -1,6 +1,5 @@
 # Load audio data
 
-
 Audio datasets are loaded from the `audio` column, which contains three important fields:
 
 * `array`: the decoded audio data represented as a 1-dimensional array.
@@ -31,6 +30,8 @@ When you load an audio dataset and call the `audio` column, the [`Audio`] featur
 Index into an audio dataset using the row index first and then the `audio` column - `dataset[0]["audio"]` - to avoid decoding and resampling all the audio files in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
 
 </Tip>
+
+For a guide on how to load any type of dataset, take a look at the <a class="underline decoration-sky-400 decoration-2 font-semibold" href="./loading">general loading guide</a>.
 
 ## Local files
 
