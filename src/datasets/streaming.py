@@ -112,3 +112,9 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
                 internal_import_name = imports[1]
                 internal_module_name = ".".join(builder.__module__.split(".")[:-1] + [internal_import_name])
                 extend_module_for_streaming(internal_module_name, use_auth_token=builder.use_auth_token)
+
+    # we need to patch autofolder.py manually because it's a parent of Image and Audio folder and it
+    # contains generation of examples (which uses `os` functions)
+    autofolder_module = [cls.__module__ for cls in type(builder).__mro__ if cls.__name__ == "AutoFolder"]
+    if autofolder_module:
+        extend_module_for_streaming(autofolder_module[0])
