@@ -172,6 +172,8 @@ class AutoFolder(datasets.GeneratorBasedBuilder):
         else:
             metadata_features = None
 
+        # Normally, we would do this in _info, but we need to know the labels and/or metadata
+        # before building the features
         if self.config.features is None:
             if not self.config.drop_labels and not metadata_files:
                 self.info.features = datasets.Features(
