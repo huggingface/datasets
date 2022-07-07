@@ -576,7 +576,7 @@ class BaseDatasetTest(TestCase):
             dset1, dset2, dset3 = self._to(in_memory, tmp_dir, dset1, dset2, dset3)
 
             with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
-                self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
+                self.assertTupleEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
                 self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
                 self.assertListEqual(dset_concat["id"], [0, 1, 2, 3, 4, 5, 6, 7])
                 self.assertEqual(len(dset_concat.cache_files), 0 if in_memory else 3)
@@ -618,7 +618,7 @@ class BaseDatasetTest(TestCase):
             dset1, dset2, dset3 = dset1.select([2, 1, 0]), dset2.select([2, 1, 0]), dset3
 
             with concatenate_datasets([dset3, dset2, dset1]) as dset_concat:
-                self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 3))
+                self.assertTupleEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 3))
                 self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
                 self.assertListEqual(dset_concat["id"], [6, 7, 8, 5, 4, 3, 2, 1, 0])
                 # in_memory = False:
@@ -633,7 +633,7 @@ class BaseDatasetTest(TestCase):
             dset2 = dset2.rename_columns({"id": "id2"})
             dset3 = dset3.rename_columns({"id": "id3"})
             with concatenate_datasets([dset1, dset2, dset3], axis=1) as dset_concat:
-                self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 3))
+                self.assertTupleEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 3))
                 self.assertEqual(len(dset_concat), len(dset1))
                 self.assertListEqual(dset_concat["id1"], [2, 1, 0])
                 self.assertListEqual(dset_concat["id2"], [5, 4, 3])
@@ -678,7 +678,7 @@ class BaseDatasetTest(TestCase):
             )
 
             with concatenate_datasets([dset3, dset2, dset1]) as dset_concat:
-                self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
+                self.assertTupleEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
                 self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
                 self.assertListEqual(dset_concat["id"], [7, 6, 5, 4, 3, 2, 1, 0])
                 # in_memory = False:
@@ -733,7 +733,7 @@ class BaseDatasetTest(TestCase):
                 if not in_memory:
                     dset_concat._data.table = Unpicklable()
                 with pickle.loads(pickle.dumps(dset_concat)) as dset_concat:
-                    self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
+                    self.assertTupleEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
                     self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
                     self.assertListEqual(dset_concat["id"], [7, 6, 5, 4, 3, 2, 1, 0])
                     # in_memory = True: 1 cache file for dset3
@@ -2173,8 +2173,8 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(dset[0][col], (tf.Tensor, tf.RaggedTensor))
                 self.assertIsInstance(dset[:2][col], (tf.Tensor, tf.RaggedTensor))
                 self.assertIsInstance(dset[col], (tf.Tensor, tf.RaggedTensor))
-            self.assertEqual(tuple(dset[:2]["vec"].shape), (2, 3))
-            self.assertEqual(tuple(dset["vec"][:2].shape), (2, 3))
+            self.assertTupleEqual(tuple(dset[:2]["vec"].shape), (2, 3))
+            self.assertTupleEqual(tuple(dset["vec"][:2].shape), (2, 3))
 
             dset.set_format("numpy")
             self.assertIsNotNone(dset[0])
@@ -2185,8 +2185,8 @@ class BaseDatasetTest(TestCase):
             self.assertIsInstance(dset[0]["vec"], np.ndarray)
             self.assertIsInstance(dset[:2]["vec"], np.ndarray)
             self.assertIsInstance(dset["vec"], np.ndarray)
-            self.assertEqual(dset[:2]["vec"].shape, (2, 3))
-            self.assertEqual(dset["vec"][:2].shape, (2, 3))
+            self.assertTupleEqual(dset[:2]["vec"].shape, (2, 3))
+            self.assertTupleEqual(dset["vec"][:2].shape, (2, 3))
 
             dset.set_format("torch", columns=["vec"])
             self.assertIsNotNone(dset[0])
@@ -2195,8 +2195,8 @@ class BaseDatasetTest(TestCase):
             self.assertIsInstance(dset[0]["vec"], torch.Tensor)
             self.assertIsInstance(dset[:2]["vec"], torch.Tensor)
             self.assertIsInstance(dset["vec"][:2], torch.Tensor)
-            self.assertEqual(dset[:2]["vec"].shape, (2, 3))
-            self.assertEqual(dset["vec"][:2].shape, (2, 3))
+            self.assertTupleEqual(dset[:2]["vec"].shape, (2, 3))
+            self.assertTupleEqual(dset["vec"][:2].shape, (2, 3))
 
     @require_tf
     @require_torch
@@ -2240,8 +2240,8 @@ class BaseDatasetTest(TestCase):
             self.assertIsInstance(dset[:2]["vec"], np.ndarray)
             self.assertIsInstance(dset["vec"], np.ndarray)
             # array is flat for ragged vectors in numpy
-            self.assertEqual(dset[:2]["vec"].shape, (2,))
-            self.assertEqual(dset["vec"][:2].shape, (2,))
+            self.assertTupleEqual(dset[:2]["vec"].shape, (2,))
+            self.assertTupleEqual(dset["vec"][:2].shape, (2,))
 
             dset.set_format("torch", columns=["vec"])
             self.assertIsNotNone(dset[0])
