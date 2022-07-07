@@ -247,7 +247,6 @@ def _copy_script_and_other_resources_in_importable_dir(
     # we use a hash as subdirectory_name to be able to have multiple versions of a dataset/metric processing file together
     importable_subdirectory = os.path.join(importable_directory_path, subdirectory_name)
     importable_local_file = os.path.join(importable_subdirectory, name + ".py")
-
     # Prevent parallel disk operations
     lock_path = importable_directory_path + ".lock"
     with FileLock(lock_path):
@@ -273,9 +272,9 @@ def _copy_script_and_other_resources_in_importable_dir(
         # Copy dataset.py file in hash folder if needed
         if not os.path.exists(importable_local_file):
             shutil.copyfile(original_local_path, importable_local_file)
-
         # Record metadata associating original dataset path with local unique folder
-        meta_path = importable_local_file.split(".py")[0] + ".json"
+        # Use os.path.splitext to split extenstion from importable_local_file
+        meta_path = os.path.splitext(importable_local_file)[0] + ".json"
         if not os.path.exists(meta_path):
             meta = {"original file path": original_local_path, "local file path": importable_local_file}
             # the filename is *.py in our case, so better rename to filenam.json instead of filename.py.json
