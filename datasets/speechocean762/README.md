@@ -93,7 +93,8 @@ Below is a typical meta data of an instance of the dataset:
     "words": [
         {
         "accuracy": 10,
-        "phones": ["S", "T", "IY1", "V", "AH0", "N"], "phones-accuracy": [2, 2, 2, 1.6, 2, 2],
+        "phones": ["S", "T", "IY1", "V", "AH0", "N"],
+        "phones-accuracy": [2, 2, 2, 1.6, 2, 2],
         "stress": 10,
         "text": "STEEVEN",
         "total": 10,
@@ -247,9 +248,11 @@ This dataset is free to use for both commercial and non-commercial purposes. Lic
 
 ### Citation Information
 
+```
 @inproceedings{speechocean762,
   title={speechocean762: An Open-Source Non-native English Speech Corpus For Pronunciation Assessment},
   booktitle={Proc. Interspeech 2021},
   year=2021,
   author={Junbo Zhang, Zhiwen Zhang, Yongqing Wang, Zhiyong Yan, Qiong Song, Yukai Huang, Ke Li, Daniel Povey, Yujun Wang}
 }
+```
