@@ -10,16 +10,14 @@ license:
 - cc-by-4.0
 multilinguality:
 - monolingual
-pretty_name: speechocean762
 size_categories:
 - 100M<n<1B
 source_datasets:
 - original
 task_categories:
-- automatic-speech-recognition
 - audio-classification
+task_ids:
 - pronunciation-scoring
-task_ids: []
 ---
 
 # Dataset Card for speechocean762
@@ -256,3 +254,7 @@ This dataset is free to use for both commercial and non-commercial purposes. Lic
   author={Junbo Zhang, Zhiwen Zhang, Yongqing Wang, Zhiyong Yan, Qiong Song, Yukai Huang, Ke Li, Daniel Povey, Yujun Wang}
 }
 ```
+
+### Contributions
+
+[Needs More Information]
