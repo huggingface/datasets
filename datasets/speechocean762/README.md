@@ -1,11 +1,12 @@
 ---
+pretty_name: speechocean762
 annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -56,88 +57,199 @@ task_ids: []
 
 ### Dataset Summary
 
-Pronunciation scoring is a crucial technology in computer-assisted language learning (CALL) systems. The pronunciation quality scores might be given at phoneme-level, word-level, and sentence-level for a typical pronunciation scoring task.
+This dataset aims to provide a free public dataset for the pronunciation scoring task.
 
-This corpus aims to provide a free public dataset for the pronunciation scoring task. Key features:
-
-It is available for free download for both commercial and non-commercial purposes.
-* The speaker variety encompasses young children and adults.
-* The manual annotations are in multiple aspects at sentence-level, word-level and phoneme-level.
-* This corpus consists of 5000 English sentences. All the speakers are non-native, and their mother tongue is Mandarin. Half of the speakers are Children, and the others are adults. The information on age and gender are provided.
-
-Five experts made the scores. To avoid subjective bias, each expert scores independently under the same metric.
+Five experts made the scores at phoneme-level, word-level, and sentence-level. To avoid subjective bias, each expert scores independently under the same metric.
 
 ### Supported Tasks and Leaderboards
 
 -`pronunciation scoring`: This dataset is designed for pronunciation assessment at sentence-level, word-level and phoneme-level.
 
-https://paperswithcode.com/dataset/speechocean762
+There is a [leaderboard](https://paperswithcode.com/dataset/speechocean762) for phoneme-level scoring on Papers With Code.
+
 
 
 ### Languages
 
-English. The mother tongue of the speakers is Mandarin. 
+English. Note that the mother tongue of all the speakers is Mandarin. 
 
-## Data Splits
+## Dataset Structure
 
-The dataset is split into a training and test set.
+### Data Instances
+
+Below is a typical meta data of an instance of the dataset:
+
+```
+"014350017": {    ,
+    "speaker": "1435",
+    "gender": "m",
+    "age": 7,
+    "text": "STEEVEN IS GOING TO SEE WHALE",
+    "accuracy": 7,
+    "completeness": 10,
+    "fluency": 7,
+    "prosodic": 7,
+    "total": 6,
+    "words": [
+        {
+        "accuracy": 10,
+        "phones": ["S", "T", "IY1", "V", "AH0", "N"], "phones-accuracy": [2, 2, 2, 1.6, 2, 2],
+        "stress": 10,
+        "text": "STEEVEN",
+        "total": 10,
+        "mispronunciations": []
+        },
+        {
+        "accuracy": 10,
+        "phones": ["IH0", "Z"],
+        "phones-accuracy": [2, 2],
+        "stress": 10,
+        "text": "IS",
+        "total": 10,
+        "mispronunciations": []
+        },
+        {
+        "accuracy": 10,
+        "phones": ["G", "OW0", "IH0", "NG"],
+        "phones-accuracy": [
+            2, 2, 2, 2],
+        "stress": 10,
+        "text": "GOING",
+        "total": 10,
+        "mispronunciations": []
+        },
+        {
+        "accuracy": 10,
+        "phones": ["T", "UW0"],
+        "phones-accuracy": [2, 1.8],
+        "stress": 10,
+        "text": "TO",
+        "total": 10,
+        "mispronunciations": []
+        },
+        {
+        "accuracy": 10,
+        "phones": ["S", "IY0"],
+        "phones-accuracy": [2, 2],
+        "stress": 10,
+        "text": "SEE",
+        "total": 10,
+        "mispronunciations": []
+        },
+        {
+        "accuracy": 2,
+        "mispronunciations": [
+            {
+            "canonical-phone": "W",
+            "index": 0,
+            "pronounced-phone": "<DEL>"
+            },
+            {
+            "canonical-phone": "EY",
+            "index": 1,
+            "pronounced-phone": "OW"
+            },
+            {
+            "canonical-phone": "L",
+            "index": 2,
+            "pronounced-phone": "L*"
+            }
+       ],
+        "phones": ["W", "EY0", "L"],
+        "phones-accuracy": [0, 0, 0.4],
+        "stress": 10,
+        "text": "WHALE",
+        "total": 3
+        }
+   ]
+}
+```
+
+### Data Fields
+
+- text: transcript text
+
+- accuracy: the pronunciation accuracy
+
+- completeness: the percentage of the words in the target text that are actually pronounced
+
+- fluency: intonation, stable speaking speed and rhythm
+
+- stress: whether the stress position is correct
+
+- mispronunciation: only available when phone accuracy is lower than 0.5. Indicates which phoneme the current phone was actually pronounced.
 
 
-## Scoring metric
 
-The experts score at three levels: phoneme-level, word-level, and sentence-level.
+### Data Splits
 
-### Phoneme level
-Score the pronunciation goodness of each phoneme within the words.
+Two splits: Train and Test, each with 2500 sentences.
 
-Score range: 0-2
-* 2: pronunciation is correct
-* 1: pronunciation is right but has a heavy accent
-* 0: pronunciation is incorrect or missed
+## Dataset Creation
 
-### Word level
-Score the accuracy and stress of each word's pronunciation.
+### Curation Rationale
 
-#### Accuracy
-Score range: 0 - 10
-* 10: The pronunciation of the word is perfect
-* 7-9: Most phones in this word are pronounced correctly but have accents
-* 4-6: Less than 30% of phones in this word are wrongly pronounced
-* 2-3: More than 30% of phones in this word are wrongly pronounced. In another case, the word is mispronounced as some other word. For example, the student mispronounced the word "bag" as "bike"
-* 1: The pronunciation is hard to distinguish
-* 0: no voice
+Pronunciation scoring is a crucial technology in computer-assisted language learning (CALL) systems. To our knowledge, none of the existing non-native English corpora for pronunciation assessment contains all the following features:
 
-#### Stress
-Score range: {5, 10}
-* 10: The stress is correct, or this is a mono-syllable word
-* 5: The stress is wrong
+- It is available for free download for both commercial and non-commercial purposes.
+- The speaker variety encompasses young children and adults.
+- The manual annotations are in many aspects at sentence-level, word-level and phoneme-level.
 
-### Sentence level
-Score the accuracy, fluency, completeness and prosodic at the sentence level.
+To meet these features, we created this corpus to support researchers in their pronunciation assessment studies.
 
-#### Accuracy
-Score range: 0 - 10
-* 9-10: The overall pronunciation of the sentence is excellent, with accurate phonology and no obvious pronunciation mistakes
-* 7-8: The overall pronunciation of the sentence is good, with a few pronunciation mistakes
-* 5-6: The overall pronunciation of the sentence is understandable, with many pronunciation mistakes and accent, but it does not affect the understanding of basic meanings
-* 3-4: Poor, clumsy and rigid pronunciation of the sentence as a whole, with serious pronunciation mistakes
-* 0-2: Extremely poor pronunciation and only one or two words are recognizable
+### Source Data
 
-#### Completeness
-Score range: 0.0 - 1.0
-The percentage of the words with good pronunciation.
+#### Initial Data Collection and Normalization
 
-#### Fluency
-Score range: 0 - 10
-* 8-10: Fluent without noticeable pauses or stammering
-* 6-7: Fluent in general, with a few pauses, repetition, and stammering
-* 4-5: the speech is a little influent, with many pauses, repetition, and stammering
-* 0-3: intermittent, very influent speech, with lots of pauses, repetition, and stammering
+This dataset's text script is selected from daily life text, containing about 2,600 common English words. Speakers were asked to hold their mobile phones 20cm from their mouths and read the text as accurately as possible in a quiet 3x3 meters room. The mobile phones include the popular models of Apple, Samsung, Xiaomi, and Huawei. The number of sentences reads aloud by each speaker is 20, and the total duration of the audio is about 6 hours.
 
-#### Prosodic
-Score range: 0 - 10
-* 9-10: Correct intonation at a stable speaking speed, speak with cadence, and can speak like a native
-* 7-8:  Nearly correct intonation at a stable speaking speed, nearly smooth and coherent, but with little stammering and few pauses
-* 5-6: Unstable speech speed, many stammering and pauses with a poor sense of rhythm
-* 3-4: Unstable speech speed, speak too fast or too slow, without the sense of rhythm
-* 0-2: Poor intonation and lots of stammering and pauses, unable to read a complete sentence
+#### Who are the source language producers?
+
+The speakers are 250 English learners whose mother tongue is Mandarin. The training set and test set are divided randomly, with 125 speakers for each. We carefully selected the speakers considering gender, age and proficiency in English. The experts roughly rated the speaker's English pronunciation proficiency into three levels: good, average, and poor. The gender ratio is 1:1 for both adults and children.
+
+### Annotations
+
+#### Annotation process
+
+The detail of the annotation process could be found in the [paper](https://arxiv.org/abs/2104.01378).
+
+#### Who are the annotators?
+
+Each utterance in this corpus is scored manually by five experts independently under the same metrics.
+
+### Personal and Sensitive Information
+
+[Needs More Information]
+
+## Considerations for Using the Data
+
+### Social Impact of Dataset
+
+[Needs More Information]
+
+### Discussion of Biases
+
+[Needs More Information]
+
+### Other Known Limitations
+
+[Needs More Information]
+
+## Additional Information
+
+### Dataset Curators
+
+This dataset was initially created by Xiaomi Corporation and SpeechOcean Ltd.
+
+### Licensing Information
+
+This dataset is free to use for both commercial and non-commercial purposes. License: Attribution 4.0 International (CC BY 4.0).
+
+### Citation Information
+
+@inproceedings{speechocean762,
+  title={speechocean762: An Open-Source Non-native English Speech Corpus For Pronunciation Assessment},
+  booktitle={Proc. Interspeech 2021},
+  year=2021,
+  author={Junbo Zhang, Zhiwen Zhang, Yongqing Wang, Zhiyong Yan, Qiong Song, Yukai Huang, Ke Li, Daniel Povey, Yujun Wang}
+}
