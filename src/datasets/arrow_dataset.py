@@ -223,6 +223,7 @@ class TensorflowDatasetMixin:
         dataset: "Dataset",
         collate_fn: Callable,
         collate_fn_args: dict,
+        cols_to_retain: Optional[List[str]] = None,
         batch_size: Optional[int] = None,
         num_test_batches: int = 10,
     ):
@@ -263,6 +264,12 @@ class TensorflowDatasetMixin:
         for _ in range(num_test_batches):
             indices = sample(range(len(dataset)), test_batch_size)
             test_batch = dataset[indices]
+            if cols_to_retain is not None:
+                test_batch = {
+                    key: value
+                    for key, value in test_batch.items()
+                    if key in cols_to_retain or key in ("label_ids", "label")
+                }
             test_batch = [{key: value[i] for key, value in test_batch.items()} for i in range(test_batch_size)]
             test_batch = collate_fn(test_batch, **collate_fn_args)
             test_batches.append(test_batch)
@@ -400,18 +407,6 @@ class TensorflowDatasetMixin:
             dataset = self.with_format("numpy")
         else:
             dataset = self
-        if cols_to_retain is not None:
-            # Following the logic in `transformers.Trainer`, we do not drop `label_ids` or `label` even if they
-            # are not in the list of requested columns, because the collator may rename them
-            # This might work better if moved to a method attached to our transformers Model objects, but doing so
-            # could break backward compatibility
-            # TODO(Matt, QL): deprecate the retention of label_ids and label
-            unwanted_columns = [
-                col
-                for col in dataset.features.keys()
-                if col not in cols_to_retain and col not in ("label_ids", "label")
-            ]
-            dataset = dataset.remove_columns(unwanted_columns)
         # If the user hasn't specified columns, give them all columns. This may break some data collators if columns
         # are non-numeric!
 
@@ -422,11 +417,23 @@ class TensorflowDatasetMixin:
             dataset,
             collate_fn=collate_fn,
             collate_fn_args=collate_fn_args,
+            cols_to_retain=cols_to_retain,
             batch_size=batch_size if drop_remainder else None,
         )
 
         def np_get_batch(indices):
+            # Following the logic in `transformers.Trainer`, we do not drop `label_ids` or `label` even if they
+            # are not in the list of requested columns, because the collator may rename them
+            # This might work better if moved to a method attached to our transformers Model objects, but doing so
+            # could break backward compatibility
+            # TODO(Matt, QL): deprecate the retention of label_ids and label
             batch = dataset[indices]
+            if cols_to_retain is not None:
+                batch = {
+                    key: value
+                    for key, value in batch.items()
+                    if key in cols_to_retain or key in ("label_ids", "label")
+                }
             actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
             # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
             batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]

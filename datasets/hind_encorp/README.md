@@ -4,10 +4,10 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - machine-generated
-languages:
+language:
 - en
 - hi
-licenses:
+license:
 - cc-by-nc-sa-3.0
 multilinguality:
 - translation

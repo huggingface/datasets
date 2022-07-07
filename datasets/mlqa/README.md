@@ -1,6 +1,6 @@
 ---
 pretty_name: MLQA (MultiLingual Question Answering)
-languages:
+language:
 - en
 paperswithcode_id: mlqa
 ---

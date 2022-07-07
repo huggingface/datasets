@@ -3,9 +3,9 @@ annotations_creators:
 - other
 language_creators:
 - other
-languages:
+language:
 - zh
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual

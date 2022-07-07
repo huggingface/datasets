@@ -78,9 +78,9 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
     elif pyarrow.types.is_float64(arrow_type):
         return "float64"  # pyarrow dtype is "double"
     elif pyarrow.types.is_time32(arrow_type):
-        return f"time32[{arrow_type.unit}]"
+        return f"time32[{pa.type_for_alias(str(arrow_type)).unit}]"
     elif pyarrow.types.is_time64(arrow_type):
-        return f"time64[{arrow_type.unit}]"
+        return f"time64[{pa.type_for_alias(str(arrow_type)).unit}]"
     elif pyarrow.types.is_timestamp(arrow_type):
         if arrow_type.tz is None:
             return f"timestamp[{arrow_type.unit}]"

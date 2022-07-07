@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: ubuntu-dialogue-corpus
 pretty_name: Ubuntu Dialogue Corpus

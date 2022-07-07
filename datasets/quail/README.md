@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: quail
 pretty_name: Question Answering for Artificial Intelligence

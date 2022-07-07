@@ -3,14 +3,14 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - de
 - es
 - fr
 - ru
 - tr
-licenses:
-- other-research-only
+license:
+- other
 multilinguality:
 - multilingual
 size_categories:

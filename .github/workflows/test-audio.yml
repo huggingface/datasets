@@ -3,7 +3,7 @@ name: Test audio
 on:
   pull_request:
     branches:
-    - master
+    - main
 
 jobs:
   test:
@@ -27,4 +27,4 @@ jobs:
           pip install pyarrow --upgrade
       - name: Test audio with pytest
         run: |
-          HF_SCRIPTS_VERSION=master python -m pytest -n 2 -sv ./tests/features/test_audio.py
+          HF_SCRIPTS_VERSION=main python -m pytest -n 2 -sv ./tests/features/test_audio.py

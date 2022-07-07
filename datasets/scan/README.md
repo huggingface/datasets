@@ -3,10 +3,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
-- other-bsd
+license:
+- bsd
 multilinguality:
 - monolingual
 pretty_name: SCAN

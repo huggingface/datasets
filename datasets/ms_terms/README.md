@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - af
 - sq
 - am
@@ -119,7 +119,7 @@ languages:
 - cy
 - wo
 - yo
-licenses:
+license:
 - ms-pl
 multilinguality:
 - multilingual

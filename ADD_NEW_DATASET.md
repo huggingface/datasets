@@ -70,11 +70,11 @@ You are now ready to start the process of adding the dataset. We will create the
 
 	```bash
 	git fetch upstream
-	git rebase upstream/master
+	git rebase upstream/main
 	git checkout -b a-descriptive-name-for-my-changes
 	```
 
-	**Do not** work on the `master` branch.
+	**Do not** work on the `main` branch.
 
 3. Create your dataset folder under `datasets/<your_dataset_name>`:
 
@@ -96,9 +96,9 @@ You are now ready to start the process of adding the dataset. We will create the
 	- Download/open the data to see how it looks like
 	- While you explore and read about the dataset, you can complete some sections of the dataset card (the online form or the one you have just created at `./datasets/<your_dataset_name>/README.md`). You can just copy the information you meet in your readings in the relevant sections of the dataset card (typically in `Dataset Description`, `Dataset Structure` and `Dataset Creation`).
 
-		If you need more information on a section of the dataset card, a detailed guide is in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
+		If you need more information on a section of the dataset card, a detailed guide is in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/main/templates/README_guide.md.
 
-		There is a also a (very detailed) example here: https://github.com/huggingface/datasets/tree/master/datasets/eli5.
+		There is a also a (very detailed) example here: https://github.com/huggingface/datasets/tree/main/datasets/eli5.
 
 		Don't spend too much time completing the dataset card, just copy what you find when exploring the dataset documentation. If you can't find all the information it's ok. You can always spend more time completing the dataset card while we are reviewing your PR (see below) and the dataset card will be open for everybody to complete them afterwards. If you don't know what to write in a section, just leave the `[More Information Needed]` text.
 
@@ -109,31 +109,31 @@ Now let's get coding :-)
 
 The dataset script is the main entry point to load and process the data. It is a python script under `datasets/<your_dataset_name>/<your_dataset_name>.py`.
 
-There is a detailed explanation on how the library and scripts are organized [here](https://huggingface.co/docs/datasets/master/about_dataset_load.html).
+There is a detailed explanation on how the library and scripts are organized [here](https://huggingface.co/docs/datasets/main/about_dataset_load.html).
 
 Note on naming: the dataset class should be camel case, while the dataset short_name is its snake case equivalent (ex: `class BookCorpus` for the dataset `book_corpus`).
 
-To add a new dataset, you can start from the empty template which is [in the `templates` folder](https://github.com/huggingface/datasets/blob/master/templates/new_dataset_script.py):
+To add a new dataset, you can start from the empty template which is [in the `templates` folder](https://github.com/huggingface/datasets/blob/main/templates/new_dataset_script.py):
 
 ```bash
 cp ./templates/new_dataset_script.py ./datasets/<your_dataset_name>/<your_dataset_name>.py
 ```
 
-And then go progressively through all the `TODO` in the template 🙂. If it's your first dataset addition and you are a bit lost among the information to fill in, you can take some time to read the [detailed explanation here](https://huggingface.co/docs/datasets/master/dataset_script.html).
+And then go progressively through all the `TODO` in the template 🙂. If it's your first dataset addition and you are a bit lost among the information to fill in, you can take some time to read the [detailed explanation here](https://huggingface.co/docs/datasets/main/dataset_script.html).
 
 You can also start (or copy any part) from one of the datasets of reference listed below. The main criteria for choosing among these reference dataset is the format of the data files (JSON/JSONL/CSV/TSV/text) and whether you need or don't need several configurations (see above explanations on configurations). Feel free to reuse any parts of the following examples and adapt them to your case:
 
-- question-answering: [squad](https://github.com/huggingface/datasets/blob/master/datasets/squad/squad.py) (original data are in json)
-- natural language inference: [snli](https://github.com/huggingface/datasets/blob/master/datasets/snli/snli.py) (original data are in text files with tab separated columns)
-- POS/NER: [conll2003](https://github.com/huggingface/datasets/blob/master/datasets/conll2003/conll2003.py) (original data are in text files with one token per line)
-- sentiment analysis: [allocine](https://github.com/huggingface/datasets/blob/master/datasets/allocine/allocine.py) (original data are in jsonl files)
-- text classification: [ag_news](https://github.com/huggingface/datasets/blob/master/datasets/ag_news/ag_news.py) (original data are in csv files)
-- translation: [flores](https://github.com/huggingface/datasets/blob/master/datasets/flores/flores.py) (original data come from text files - one per language)
-- summarization: [billsum](https://github.com/huggingface/datasets/blob/master/datasets/billsum/billsum.py) (original data are in json files)
-- benchmark: [glue](https://github.com/huggingface/datasets/blob/master/datasets/glue/glue.py) (original data are various formats)
-- multilingual: [xquad](https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py) (original data are in json)
-- multitask: [matinf](https://github.com/huggingface/datasets/blob/master/datasets/matinf/matinf.py) (original data need to be downloaded by the user because it requires authentication)
-- speech recognition: [librispeech_asr](https://github.com/huggingface/datasets/blob/master/datasets/librispeech_asr/librispeech_asr.py) (original data is in .flac format)
+- question-answering: [squad](https://github.com/huggingface/datasets/blob/main/datasets/squad/squad.py) (original data are in json)
+- natural language inference: [snli](https://github.com/huggingface/datasets/blob/main/datasets/snli/snli.py) (original data are in text files with tab separated columns)
+- POS/NER: [conll2003](https://github.com/huggingface/datasets/blob/main/datasets/conll2003/conll2003.py) (original data are in text files with one token per line)
+- sentiment analysis: [allocine](https://github.com/huggingface/datasets/blob/main/datasets/allocine/allocine.py) (original data are in jsonl files)
+- text classification: [ag_news](https://github.com/huggingface/datasets/blob/main/datasets/ag_news/ag_news.py) (original data are in csv files)
+- translation: [flores](https://github.com/huggingface/datasets/blob/main/datasets/flores/flores.py) (original data come from text files - one per language)
+- summarization: [billsum](https://github.com/huggingface/datasets/blob/main/datasets/billsum/billsum.py) (original data are in json files)
+- benchmark: [glue](https://github.com/huggingface/datasets/blob/main/datasets/glue/glue.py) (original data are various formats)
+- multilingual: [xquad](https://github.com/huggingface/datasets/blob/main/datasets/xquad/xquad.py) (original data are in json)
+- multitask: [matinf](https://github.com/huggingface/datasets/blob/main/datasets/matinf/matinf.py) (original data need to be downloaded by the user because it requires authentication)
+- speech recognition: [librispeech_asr](https://github.com/huggingface/datasets/blob/main/datasets/librispeech_asr/librispeech_asr.py) (original data is in .flac format)
 
 While you are developing the dataset script you can list test it by opening a python interpreter and running the script (the script is dynamically updated each time you modify it):
 
@@ -286,18 +286,18 @@ Here are the step to open the Pull-Request on the main repo.
 	It is a good idea to sync your copy of the code with the original
 	repository regularly. This way you can quickly account for changes:
 	
-	- If you haven't pushed your branch yet, you can rebase on upstream/master:
+	- If you haven't pushed your branch yet, you can rebase on upstream/main:
 
 	  ```bash
 	  git fetch upstream
-	  git rebase upstream/master
+	  git rebase upstream/main
 	  ```
 	  
 	- If you have already pushed your branch, do not rebase but merge instead:
 	
 	  ```bash
 	  git fetch upstream
-	  git merge upstream/master
+	  git merge upstream/main
 	  ```
 
    Push the changes to your account using:
@@ -334,7 +334,7 @@ Creating the dataset card goes in two steps:
 
    - **Very important as well:** On the right side of the tagging app, you will also find an expandable section called **Show Markdown Data Fields**. This gives you a starting point for the description of the fields in your dataset: you should paste it into the **Data Fields** section of the [online form](https://huggingface.co/datasets/card-creator/) (or your local README.md), then modify the description as needed. Briefly describe each of the fields and indicate if they have a default value (e.g. when there is no label). If the data has span indices, describe their attributes (character level or word level, contiguous or not, etc). If the datasets contains example IDs, state whether they have an inherent meaning, such as a mapping to other datasets or pointing to relationships between data points.
 
-        Example from the [ELI5 card](https://github.com/huggingface/datasets/tree/master/datasets/eli5#data-fields):
+        Example from the [ELI5 card](https://github.com/huggingface/datasets/tree/main/datasets/eli5#data-fields):
 
             Data Fields:
                 - q_id: a string question identifier for each example, corresponding to its ID in the Pushshift.io Reddit submission dumps.
@@ -343,9 +343,9 @@ Creating the dataset card goes in two steps:
                 - title_urls: list of the extracted URLs, the nth element of the list was replaced by URL_n
 
 
-   - **Very nice to have but optional for now:** Complete all you can find in the dataset card using the detailed instructions for completed it which are in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
+   - **Very nice to have but optional for now:** Complete all you can find in the dataset card using the detailed instructions for completed it which are in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/main/templates/README_guide.md.
 
-		Here is a completed example: https://github.com/huggingface/datasets/tree/master/datasets/eli5 for inspiration
+		Here is a completed example: https://github.com/huggingface/datasets/tree/main/datasets/eli5 for inspiration
 
 		If you don't know what to write in a field and can find it, write: `[More Information Needed]`
 

@@ -4,10 +4,10 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- gfdl-1.3
+license:
+- gfdl
 multilinguality:
 - monolingual
 size_categories:

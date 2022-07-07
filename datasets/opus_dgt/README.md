@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - bg
 - cs
 - da
@@ -29,7 +29,7 @@ languages:
 - sk
 - sl
 - sv
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

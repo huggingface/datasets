@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - yo
-licenses:
+license:
 - cc-by-nc-4.0
 multilinguality:
 - monolingual

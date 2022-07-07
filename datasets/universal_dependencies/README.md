@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - 'no'
 - af
 - aii
@@ -106,7 +106,7 @@ languages:
 - yo
 - yue
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
