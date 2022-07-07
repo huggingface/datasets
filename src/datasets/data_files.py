@@ -231,7 +231,7 @@ def _resolve_single_pattern_locally(
     if is_relative_path(pattern):
         pattern = os.path.join(base_path, pattern)
     else:
-        base_path = os.path.splitdrive(pattern)[0] + os.sep
+        base_path = "/"  # TODO: os.path.splitdrive(pattern)[0] + os.sep
     fs = LocalFileSystem()
     glob_iter = [PurePath(filepath) for filepath in fs.glob(pattern) if fs.isfile(filepath)]
     matched_paths = [
