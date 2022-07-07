@@ -50,7 +50,7 @@ def get_all_datasets(repo_path: Path) -> List[Path]:
     return [dataset_name for dataset_name in dataset_names if dataset_name not in _PACKAGED_DATASETS_MODULES]
 
 
-@pytest.mark.parametrize("dataset_name", get_changed_datasets(repo_path))
+# @pytest.mark.parametrize("dataset_name", get_changed_datasets(repo_path))
 def _test_changed_dataset_card(dataset_name):
     """Validate the content of the dataset cards that were changed"""
     card_path = repo_path / "datasets" / dataset_name / "README.md"
