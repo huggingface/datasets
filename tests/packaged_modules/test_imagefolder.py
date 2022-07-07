@@ -229,7 +229,7 @@ def test_generate_examples_drop_metadata(image_file_with_metadata, drop_metadata
         drop_metadata=drop_metadata, drop_labels=drop_labels, data_files={"train": [image_file, image_metadata_file]}
     )
     gen_kwargs = imagefolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
-    # since the dataset has metadata, removing the metdata explicitly requires drop_metadata=True
+    # since the dataset has metadata, removing the metadata explicitly requires drop_metadata=True
     assert gen_kwargs["add_metadata"] is not bool(drop_metadata)
     # since the dataset has metadata, adding the labels explicitly requires drop_labels=False
     assert gen_kwargs["add_labels"] is (drop_labels is False)
