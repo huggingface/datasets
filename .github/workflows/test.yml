@@ -13,7 +13,8 @@ jobs:
       - name: Install OS dependencies
         run: |
           sudo apt-get -y update
-          sudo apt-get install -y libsndfile1-dev
+          sudo apt-get -y install git
+          sudo apt-get -y install libsndfile1-dev
       - uses: actions/checkout@v3
       - name: Set up Python
         uses: actions/setup-python@v4
