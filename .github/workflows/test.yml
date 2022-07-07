@@ -1,0 +1,29 @@
+name: Test
+
+on:
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  test_with_pyarrow_latest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install OS dependencies
+        run: |
+          sudo apt-get -y update
+          sudo apt-get install -y libsndfile1-dev
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.6"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[tests]
+          pip install -r additional-tests-requirements.txt --no-deps
+          pip install pyarrow --upgrade
+      - name: Test with pytest
+        run: |
+          HF_SCRIPTS_VERSION=main HF_ALLOW_CODE_EVAL=1 python -m pytest -n 2 --dist loadfile -sv ./tests/
