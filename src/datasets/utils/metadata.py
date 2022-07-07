@@ -28,7 +28,7 @@ import yaml
 from . import resources
 
 
-BASE_REF_URL = "https://github.com/huggingface/datasets/tree/master/src/datasets/utils"
+BASE_REF_URL = "https://github.com/huggingface/datasets/tree/main/src/datasets/utils"
 this_url = f"{BASE_REF_URL}/{__file__}"
 logger = logging.getLogger(__name__)
 
