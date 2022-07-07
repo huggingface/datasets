@@ -51,3 +51,21 @@ jobs:
       - name: Test with pytest
         run: |
           HF_SCRIPTS_VERSION=main HF_ALLOW_CODE_EVAL=1 python -m pytest -n 2 --dist loadfile -sv ./tests/
+  test_on_windows_with_pyarrow_latest:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.6"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          echo "installing pinned version of setuptools-scm to fix seqeval installation on 3.6" && pip install "setuptools-scm==6.4.2"
+          pip install .[tests]
+          pip install -r additional-tests-requirements.txt --no-deps
+          pip install pyarrow --upgrade
+      - name: Test with pytest
+        run: |
+          HF_SCRIPTS_VERSION=main HF_ALLOW_CODE_EVAL=1 python -m pytest -n 2 --dist loadfile -sv ./tests/
