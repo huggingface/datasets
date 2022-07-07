@@ -6,7 +6,7 @@ pretty_name: AESLC
 task_categories:
 - summarization
 task_ids:
-- summarization--other-email-headline-generation
+- summarization-other-email-headline-generation
 - summarization-other-conversations-summarization
 - summarization-other-multi-document-summarization
 - summarization-other-aspect-based-summarization
