@@ -51,10 +51,6 @@ def get_all_datasets(repo_path: Path) -> List[Path]:
     return [dataset_name for dataset_name in dataset_names if dataset_name not in _PACKAGED_DATASETS_MODULES]
 
 
-@pytest.mark.skipif(
-    os.getenv("GITHUB_ACTIONS") == "true",
-    reason="On GitHub Actions, it raises subprocess.CalledProcessError: Command '['git', 'diff', '--name-only', 'origin/main...HEAD']' returned non-zero exit status 128.",
-)  # TODO: Find out why
 @pytest.mark.parametrize("dataset_name", get_changed_datasets(repo_path))
 def test_changed_dataset_card(dataset_name):
     """Validate the content of the dataset cards that were changed"""
