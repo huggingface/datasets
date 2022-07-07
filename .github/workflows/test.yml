@@ -31,6 +31,7 @@ jobs:
           flake8 tests src benchmarks datasets metrics
 
   test:
+    needs: check_code_quality
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
