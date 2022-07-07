@@ -1864,7 +1864,6 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
         TypeError: if the target type is not supported according, e.g.
 
             - if a field is missing
-            = if casting from numbers to strings and allow_number_to_str is False
 
     Returns:
          array (:obj:`pyarrow.Array`): the casted array
