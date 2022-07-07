@@ -23,6 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          echo "installing pinned version of setuptools-scm to fix seqeval installation on 3.6" && pip install "setuptools-scm==6.4.2"
           pip install .[tests]
           pip install -r additional-tests-requirements.txt --no-deps
           pip install pyarrow --upgrade
