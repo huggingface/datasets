@@ -6,6 +6,7 @@ import pytest
 
 from datasets import ClassLabel, Features, Image, Value
 from datasets.data_files import DataFilesDict, get_data_patterns_locally
+from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder
 from datasets.streaming import extend_module_for_streaming
 
@@ -198,10 +199,15 @@ def test_generate_examples_with_labels(data_files_with_labels_no_metadata, cache
 
 
 @require_pil
-@pytest.mark.parametrize("drop_labels", [True, False])
-def test_generate_examples_drop_labels(image_file, drop_labels):
-    imagefolder = ImageFolder(drop_labels=drop_labels)
-    generator = imagefolder._generate_examples([(image_file, image_file)], None, "train")
+@pytest.mark.parametrize("drop_metadata", [None, True, False])
+@pytest.mark.parametrize("drop_labels", [None, True, False])
+def test_generate_examples_drop_labels(image_file, drop_metadata, drop_labels):
+    imagefolder = ImageFolder(drop_metadata=drop_metadata, drop_labels=drop_labels, data_files={"train": [image_file]})
+    gen_kwargs = imagefolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    # removing the labels explicitly requires drop_labels=True
+    assert gen_kwargs["add_labels"] is not bool(drop_labels)
+    assert gen_kwargs["add_metadata"] is False
+    generator = imagefolder._generate_examples(**gen_kwargs)
     if not drop_labels:
         assert all(
             example.keys() == {"image", "label"} and all(val is not None for val in example.values())
@@ -215,30 +221,42 @@ def test_generate_examples_drop_labels(image_file, drop_labels):
 
 
 @require_pil
-@pytest.mark.parametrize("drop_metadata", [True, False])
-@pytest.mark.parametrize("drop_labels", [True, False])
+@pytest.mark.parametrize("drop_metadata", [None, True, False])
+@pytest.mark.parametrize("drop_labels", [None, True, False])
 def test_generate_examples_drop_metadata(image_file_with_metadata, drop_metadata, drop_labels):
     image_file, image_metadata_file = image_file_with_metadata
-    if not drop_metadata:
-        features = Features({"image": Image(), "caption": Value("string")})
-    elif not drop_labels:
-        features = Features({"image": Image(), "label": ClassLabel(num_classes=1)})
-    else:
-        features = Features({"image": Image()})
-    imagefolder = ImageFolder(drop_metadata=drop_metadata, drop_labels=drop_labels, features=features)
-    generator = imagefolder._generate_examples(
-        [(image_file, image_file)], {"train": [(image_metadata_file, image_metadata_file)]}, "train"
+    imagefolder = ImageFolder(
+        drop_metadata=drop_metadata, drop_labels=drop_labels, data_files={"train": [image_file, image_metadata_file]}
     )
+    gen_kwargs = imagefolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    # since the dataset has metadata, removing the metdata explicitly requires drop_metadata=True
+    assert gen_kwargs["add_metadata"] is not bool(drop_metadata)
+    # since the dataset has metadata, adding the labels explicitly requires drop_labels=False
+    assert gen_kwargs["add_labels"] is (drop_labels is False)
+    generator = imagefolder._generate_examples(**gen_kwargs)
+    expected_columns = {"image"}
+    if gen_kwargs["add_metadata"]:
+        expected_columns.add("caption")
+    if gen_kwargs["add_labels"]:
+        expected_columns.add("label")
+    result = [example for _, example in generator]
+    assert len(result) == 1
+    example = result[0]
+    assert example.keys() == expected_columns
+    for column in expected_columns:
+        assert example[column] is not None
+
+
+@require_pil
+@pytest.mark.parametrize("drop_metadata", [None, True, False])
+def test_generate_examples_with_metadata_in_wrong_location(image_file, image_file_with_metadata, drop_metadata):
+    _, image_metadata_file = image_file_with_metadata
+    imagefolder = ImageFolder(drop_metadata=drop_metadata, data_files={"train": [image_file, image_metadata_file]})
+    gen_kwargs = imagefolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    generator = imagefolder._generate_examples(**gen_kwargs)
     if not drop_metadata:
-        assert all(
-            example.keys() == {"image", "caption"} and all(val is not None for val in example.values())
-            for _, example in generator
-        )
-    elif not drop_labels:
-        assert all(
-            example.keys() == {"image", "label"} and all(val is not None for val in example.values())
-            for _, example in generator
-        )
+        with pytest.raises(ValueError):
+            list(generator)
     else:
         assert all(
             example.keys() == {"image"} and all(val is not None for val in example.values())
@@ -247,29 +265,7 @@ def test_generate_examples_drop_metadata(image_file_with_metadata, drop_metadata
 
 
 @require_pil
-@pytest.mark.parametrize("drop_metadata", [True, False])
-def test_generate_examples_with_metadata_in_wrong_location(image_file, image_file_with_metadata, drop_metadata):
-    _, image_metadata_file = image_file_with_metadata
-    if not drop_metadata:
-        features = Features({"image": Image(), "caption": Value("string")})
-    else:
-        features = Features({"image": Image()})
-    imagefolder = ImageFolder(drop_metadata=drop_metadata, features=features)
-    generator = imagefolder._generate_examples(
-        [(image_file, image_file)], {"train": [(image_metadata_file, image_metadata_file)]}, "train"
-    )
-    if not drop_metadata:
-        with pytest.raises(ValueError):
-            list(generator)
-    else:
-        assert all(
-            example.keys() == {"image", "label"} and all(val is not None for val in example.values())
-            for _, example in generator
-        )
-
-
-@require_pil
-@pytest.mark.parametrize("drop_metadata", [True, False])
+@pytest.mark.parametrize("drop_metadata", [None, True, False])
 def test_generate_examples_with_metadata_that_misses_one_image(
     image_files_with_metadata_that_misses_one_image, drop_metadata
 ):
@@ -278,18 +274,19 @@ def test_generate_examples_with_metadata_that_misses_one_image(
         features = Features({"image": Image(), "caption": Value("string")})
     else:
         features = Features({"image": Image()})
-    imagefolder = ImageFolder(drop_metadata=drop_metadata, features=features)
-    generator = imagefolder._generate_examples(
-        [(image_file, image_file), (image_file2, image_file2)],
-        {"train": [(image_metadata_file, image_metadata_file)]},
-        "train",
+    imagefolder = ImageFolder(
+        drop_metadata=drop_metadata,
+        features=features,
+        data_files={"train": [image_file, image_file2, image_metadata_file]},
     )
+    gen_kwargs = imagefolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    generator = imagefolder._generate_examples(**gen_kwargs)
     if not drop_metadata:
         with pytest.raises(ValueError):
             list(generator)
     else:
         assert all(
-            example.keys() == {"image", "label"} and all(val is not None for val in example.values())
+            example.keys() == {"image"} and all(val is not None for val in example.values())
             for _, example in generator
         )
 
