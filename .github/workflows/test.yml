@@ -3,7 +3,8 @@ name: Test
 on:
   pull_request:
     branches:
-    - main
+      - main
+  push:
 
 jobs:
   test_with_pyarrow_latest:
