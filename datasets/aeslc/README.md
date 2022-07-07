@@ -4,16 +4,12 @@ languages:
 paperswithcode_id: aeslc
 pretty_name: AESLC
 task_categories:
-- text-classification
+- summarization
 task_ids:
-- "summarization"
-- "summarization-other-conversations-summarization"
-- "other-other-query-based-multi-document-summarization"
-- "summarization-other-aspect-based-summarization"
-- "summarization--other-headline-generation"
-task_categories:
-- "summarization"
-- "dialogue-system"
+- summarization--other-email-headline-generation
+- summarization-other-conversations-summarization
+- summarization-other-multi-document-summarization
+- summarization-other-aspect-based-summarization
 ---
 
 # Dataset Card for "aeslc"
