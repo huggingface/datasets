@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
 import numpy as np
 import pyarrow as pa
 from packaging import version
-from scipy.io import wavfile
 
 from .. import config
 from ..download.streaming_download_manager import xopen
@@ -106,7 +105,7 @@ class Audio:
                     bytes_value = np.memmap(value["path"], dtype="h", mode="r").astype(np.float32) / 32767
 
                 buffer = BytesIO(bytes())
-                wavfile.write(buffer, value["sampling_rate"], bytes_value)
+                sf.write(buffer, bytes_value, value["sampling_rate"], format="wav")
                 return {"bytes": buffer.getvalue(), "path": None}
             else:
                 return {"bytes": None, "path": value.get("path")}
