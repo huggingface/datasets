@@ -1915,7 +1915,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
                 warnings.warn(
                     f"None values are converted to empty lists when embedding array storage with {feature}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
                 )
-            return pa.ListArray.from_arrays(array.offsets, embed_array_storage(array.values, feature[0]))
+            return pa.ListArray.from_arrays(array.offsets, _e(array.values, feature[0]))
         elif isinstance(feature, Sequence):
             if feature.length > -1:
                 if feature.length * len(array) == len(array.values):
