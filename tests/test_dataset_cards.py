@@ -51,7 +51,7 @@ def get_all_datasets(repo_path: Path) -> List[Path]:
 
 
 @pytest.mark.parametrize("dataset_name", get_changed_datasets(repo_path))
-def test_changed_dataset_card(dataset_name):
+def _test_changed_dataset_card(dataset_name):
     """Validate the content of the dataset cards that were changed"""
     card_path = repo_path / "datasets" / dataset_name / "README.md"
     assert card_path.exists()
