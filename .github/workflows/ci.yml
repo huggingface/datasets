@@ -43,6 +43,8 @@ jobs:
           sudo apt-get -y update
           sudo apt-get -y install libsndfile1-dev
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Python 3.6
         if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: actions/setup-python@v4
