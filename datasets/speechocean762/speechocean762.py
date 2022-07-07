@@ -162,7 +162,7 @@ class Speechocean762(datasets.GeneratorBasedBuilder):
         root_path = Path(local_extracted_archive) / "speechocean762"
         meta_path = root_path / f"{split}.json"
 
-        with open(meta_path) as f:
+        with open(meta_path, encoding="utf-8") as f:
             info = json.load(f)
             for utt_id in info:
                 audio = info[utt_id]
