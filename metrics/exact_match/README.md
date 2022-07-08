@@ -100,4 +100,4 @@ This metric is limited in that it outputs the same score for something that is c
 ## Citation
 
 ## Further References
-- Also used in the [SQuAD metric](https://github.com/huggingface/datasets/tree/master/metrics/squad) 
+- Also used in the [SQuAD metric](https://github.com/huggingface/datasets/tree/main/metrics/squad) 

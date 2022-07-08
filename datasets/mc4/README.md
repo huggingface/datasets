@@ -4,7 +4,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - af
 - am
 - ar
@@ -114,8 +114,8 @@ languages:
 - zh
 - zh-Latn
 - zu
-licenses:
-- odc-by-1.0
+license:
+- odc-by
 multilinguality:
 - multilingual
 size_categories:

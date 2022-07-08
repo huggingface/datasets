@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-    win: circleci/windows@2.2.0
+    win: circleci/windows@4.1.1
 
 jobs:
     run_dataset_script_tests_pyarrow_latest:
@@ -15,10 +15,11 @@ jobs:
             - run: pip install --upgrade pip
             - run: python -m venv venv
             - run: source venv/bin/activate
+            - run: echo "installing pinned version of setuptools-scm to fix seqeval installation on 3.6" && pip install "setuptools-scm==6.4.2"
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow --upgrade
-            - run: HF_SCRIPTS_VERSION=master HF_ALLOW_CODE_EVAL=1 python -m pytest -d --tx 2*popen//python=python3.6 --dist loadfile -sv ./tests/
+            - run: HF_SCRIPTS_VERSION=main HF_ALLOW_CODE_EVAL=1 python -m pytest -d --tx 2*popen//python=python3.6 --dist loadfile -sv ./tests/
 
     run_dataset_script_tests_pyarrow_6:
         working_directory: ~/datasets
@@ -31,10 +32,11 @@ jobs:
             - run: pip install --upgrade pip
             - run: python -m venv venv
             - run: source venv/bin/activate
+            - run: echo "installing pinned version of setuptools-scm to fix seqeval installation on 3.6" && pip install "setuptools-scm==6.4.2"
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow==6.0.0
-            - run: HF_SCRIPTS_VERSION=master HF_ALLOW_CODE_EVAL=1 python -m pytest -d --tx 2*popen//python=python3.6 --dist loadfile -sv ./tests/
+            - run: HF_SCRIPTS_VERSION=main HF_ALLOW_CODE_EVAL=1 python -m pytest -d --tx 2*popen//python=python3.6 --dist loadfile -sv ./tests/
 
     run_dataset_script_tests_pyarrow_latest_WIN:
         working_directory: ~/datasets
@@ -54,7 +56,7 @@ jobs:
                 pip install pyarrow --upgrade
             - run: |
                 conda activate py37
-                $env:HF_SCRIPTS_VERSION="master"
+                $env:HF_SCRIPTS_VERSION="main"
                 python -m pytest -n 2 --dist loadfile -sv ./tests/
 
     run_dataset_script_tests_pyarrow_6_WIN:
@@ -75,7 +77,7 @@ jobs:
                 pip install pyarrow==6.0.0
             - run: |
                 conda activate py37
-                $env:HF_SCRIPTS_VERSION="master"
+                $env:HF_SCRIPTS_VERSION="main"
                 python -m pytest -n 2 --dist loadfile -sv ./tests/
 
     check_code_quality:

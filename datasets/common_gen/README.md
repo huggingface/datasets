@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: commongen
 pretty_name: CommonGen

@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -19,6 +19,15 @@ task_ids:
 - token-classification-other-acronym-identification
 paperswithcode_id: acronym-identification
 pretty_name: Acronym Identification Dataset
+train-eval-index:
+- config: default
+  task: token-classification
+  task_id: entity_extraction
+  splits:
+    eval_split: test
+  col_mapping:
+    tokens: tokens
+    labels: tags
 ---
 
 # Dataset Card for Acronym Identification Dataset

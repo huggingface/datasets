@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - ady
 - ang
 - ar
@@ -114,7 +114,7 @@ languages:
 - xno
 - yi
 - zu
-licenses:
+license:
 - cc-by-sa-3.0
 multilinguality:
 - monolingual

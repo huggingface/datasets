@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: wikisql
 pretty_name: WikiSQL

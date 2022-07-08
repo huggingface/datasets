@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-3.0
 multilinguality:
 - monolingual

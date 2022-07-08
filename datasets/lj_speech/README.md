@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- other-public-domain
+license:
+- unlicense
 multilinguality:
 - monolingual
 paperswithcode_id: ljspeech

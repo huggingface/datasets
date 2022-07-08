@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

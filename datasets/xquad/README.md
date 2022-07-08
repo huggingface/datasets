@@ -4,7 +4,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
 - fr
 - es
@@ -16,7 +16,7 @@ languages:
 - ar
 - vi
 - zh
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - multilingual

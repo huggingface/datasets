@@ -3,7 +3,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - af
 - am
 - ar
@@ -120,7 +120,7 @@ languages:
 - zh-Hans
 - zh-Hant
 - zu
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

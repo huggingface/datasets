@@ -1,6 +1,6 @@
 ---
 pretty_name: SciCite
-languages:
+language:
 - en
 paperswithcode_id: scicite
 ---

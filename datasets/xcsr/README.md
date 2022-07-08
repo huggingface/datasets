@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - machine-generated
-languages:
+language:
 - en
 - zh
 - de
@@ -21,7 +21,7 @@ languages:
 - hi
 - sw
 - ur
-licenses:
+license:
 - mit
 multilinguality:
 - multilingual

@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - ca
 - eu
-licenses:
+license:
 - cc-by-3.0
 multilinguality:
 - monolingual

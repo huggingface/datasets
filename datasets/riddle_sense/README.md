@@ -3,10 +3,10 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- other-non-commercial
+license:
+- other
 multilinguality:
 - monolingual
 pretty_name: RiddleSense

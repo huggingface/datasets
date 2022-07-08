@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - ar
 - de
 - el
@@ -15,7 +15,7 @@ languages:
 - tr
 - vi
 - zh
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

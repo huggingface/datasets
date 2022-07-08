@@ -3,12 +3,12 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
 - tn
 - ts
 - zu
-licenses:
+license:
 - cc-by-2.5
 multilinguality:
 - multilingual

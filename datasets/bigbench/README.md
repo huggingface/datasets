@@ -8,9 +8,9 @@ language_creators:
 - expert-generated
 - machine-generated
 - other
-languages:
+language:
 - en
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - multilingual

@@ -565,7 +565,7 @@ class BuilderTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, data_dir=None, data_files=None)
             relative_cache_dir_parts = Path(builder._relative_data_dir()).parts
-            self.assertEqual(relative_cache_dir_parts, (builder.name, "default", "0.0.0"))
+            self.assertTupleEqual(relative_cache_dir_parts, (builder.name, "default", "0.0.0"))
 
     def test_cache_dir_for_data_files(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -837,8 +837,8 @@ class DummyBuilderWithCustomBuilderConfigs(GeneratorBasedBuilder):
     "builder_class, kwargs",
     [
         (DummyBuilderWithVersion, {}),
-        (DummyBuilderWithBuilderConfigs, {"name": "custom"}),
-        (DummyBuilderWithCustomBuilderConfigs, {"name": "20220501.en"}),
+        (DummyBuilderWithBuilderConfigs, {"config_name": "custom"}),
+        (DummyBuilderWithCustomBuilderConfigs, {"config_name": "20220501.en"}),
         (DummyBuilderWithCustomBuilderConfigs, {"date": "20220501", "language": "ca"}),
     ],
 )

@@ -7,7 +7,7 @@ import pyarrow as pa
 import pytest
 
 from datasets import Sequence, Value
-from datasets.features.features import ClassLabel, Features
+from datasets.features.features import ClassLabel, Features, Image
 from datasets.table import (
     ConcatenationTable,
     InMemoryTable,
@@ -20,7 +20,10 @@ from datasets.table import (
     _memory_mapped_arrow_table_from_file,
     cast_array_to_feature,
     concat_tables,
+    embed_array_storage,
+    embed_table_storage,
     inject_arrow_table_documentation,
+    table_cast,
 )
 
 from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, slow
@@ -1045,3 +1048,29 @@ def test_cast_array_to_features_to_null_type():
     arr = pa.array([[None, 1]])
     with pytest.raises(TypeError):
         cast_array_to_feature(arr, Sequence(Value("null")))
+
+
+def test_embed_array_storage(image_file):
+    array = pa.array([{"bytes": None, "path": image_file}], type=Image.pa_type)
+    embedded_images_array = embed_array_storage(array, Image())
+    assert embedded_images_array.to_pylist()[0]["path"] is None
+    assert isinstance(embedded_images_array.to_pylist()[0]["bytes"], bytes)
+
+
+def test_embed_array_storage_nested(image_file):
+    array = pa.array([[{"bytes": None, "path": image_file}]], type=pa.list_(Image.pa_type))
+    embedded_images_array = embed_array_storage(array, [Image()])
+    assert embedded_images_array.to_pylist()[0][0]["path"] is None
+    assert isinstance(embedded_images_array.to_pylist()[0][0]["bytes"], bytes)
+    array = pa.array([{"foo": {"bytes": None, "path": image_file}}], type=pa.struct({"foo": Image.pa_type}))
+    embedded_images_array = embed_array_storage(array, {"foo": Image()})
+    assert embedded_images_array.to_pylist()[0]["foo"]["path"] is None
+    assert isinstance(embedded_images_array.to_pylist()[0]["foo"]["bytes"], bytes)
+
+
+def test_embed_table_storage(image_file):
+    features = Features({"image": Image()})
+    table = table_cast(pa.table({"image": [image_file]}), features.arrow_schema)
+    embedded_images_table = embed_table_storage(table)
+    assert embedded_images_table.to_pydict()["image"][0]["path"] is None
+    assert isinstance(embedded_images_table.to_pydict()["image"][0]["bytes"], bytes)

@@ -34,10 +34,13 @@ from . import config
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .data_files import (
+    DEFAULT_PATTERNS_ALL,
     DataFilesDict,
     DataFilesList,
-    get_patterns_in_dataset_repository,
-    get_patterns_locally,
+    get_data_patterns_in_dataset_repository,
+    get_data_patterns_locally,
+    get_metadata_patterns_in_dataset_repository,
+    get_metadata_patterns_locally,
     sanitize_patterns,
 )
 from .dataset_dict import DatasetDict, IterableDatasetDict
@@ -49,7 +52,12 @@ from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
 from .metric import Metric
-from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, _hash_python_lines
+from .packaged_modules import (
+    _EXTENSION_TO_MODULE,
+    _MODULE_SUPPORTS_METADATA,
+    _PACKAGED_DATASETS_MODULES,
+    _hash_python_lines,
+)
 from .splits import Split
 from .tasks import TaskTemplate
 from .utils.file_utils import (
@@ -72,8 +80,6 @@ from .utils.version import Version
 
 
 logger = get_logger(__name__)
-
-DEFAULT_SPLIT = str(Split.TRAIN)
 
 ALL_ALLOWED_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + ["zip"]
 
@@ -241,7 +247,6 @@ def _copy_script_and_other_resources_in_importable_dir(
     # we use a hash as subdirectory_name to be able to have multiple versions of a dataset/metric processing file together
     importable_subdirectory = os.path.join(importable_directory_path, subdirectory_name)
     importable_local_file = os.path.join(importable_subdirectory, name + ".py")
-
     # Prevent parallel disk operations
     lock_path = importable_directory_path + ".lock"
     with FileLock(lock_path):
@@ -267,9 +272,9 @@ def _copy_script_and_other_resources_in_importable_dir(
         # Copy dataset.py file in hash folder if needed
         if not os.path.exists(importable_local_file):
             shutil.copyfile(original_local_path, importable_local_file)
-
         # Record metadata associating original dataset path with local unique folder
-        meta_path = importable_local_file.split(".py")[0] + ".json"
+        # Use os.path.splitext to split extenstion from importable_local_file
+        meta_path = os.path.splitext(importable_local_file)[0] + ".json"
         if not os.path.exists(meta_path):
             meta = {"original file path": original_local_path, "local file path": importable_local_file}
             # the filename is *.py in our case, so better rename to filenam.json instead of filename.py.json
@@ -470,11 +475,11 @@ class GithubDatasetModuleFactory(_DatasetModuleFactory):
             if revision is not None or os.getenv("HF_SCRIPTS_VERSION", None) is not None:
                 raise
             else:
-                revision = "master"
+                revision = "main"
                 local_path = self.download_loading_script(revision)
                 logger.warning(
                     f"Couldn't find a directory or a dataset named '{self.name}' in this version. "
-                    f"It was picked from the master branch on github instead."
+                    f"It was picked from the main branch on github instead."
                 )
         dataset_infos_path = self.download_dataset_infos_file(revision)
         imports = get_imports(local_path)
@@ -540,11 +545,11 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
             if revision is not None or os.getenv("HF_SCRIPTS_VERSION", None) is not None:
                 raise
             else:
-                revision = "master"
+                revision = "main"
                 local_path = self.download_loading_script(revision)
                 logger.warning(
                     f"Couldn't find a directory or a metric named '{self.name}' in this version. "
-                    f"It was picked from the master branch on github instead."
+                    f"It was picked from the main branch on github instead."
                 )
         imports = get_imports(local_path)
         local_imports = _download_additional_modules(
@@ -677,16 +682,17 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.download_mode = download_mode
 
     def get_module(self) -> DatasetModule:
+        base_path = os.path.join(self.path, self.data_dir) if self.data_dir else self.path
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
-            else get_patterns_locally(os.path.join(self.path, self.data_dir))
+            else get_data_patterns_locally(base_path)
             if self.data_dir is not None
-            else get_patterns_locally(self.path)
+            else get_data_patterns_locally(base_path)
         )
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
-            base_path=os.path.join(self.path, self.data_dir) if self.data_dir else self.path,
+            base_path=base_path,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         module_names = {
@@ -697,6 +703,19 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         module_name, builder_kwargs = next(iter(module_names.values()))
         if not module_name:
             raise FileNotFoundError(f"No data files or dataset script found in {self.path}")
+        # Collect metadata files if the module supports them
+        if self.data_files is None and module_name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
+            try:
+                metadata_patterns = get_metadata_patterns_locally(base_path)
+            except FileNotFoundError:
+                metadata_patterns = None
+            if metadata_patterns is not None:
+                metadata_files = DataFilesList.from_local_or_remote(metadata_patterns, base_path=base_path)
+                for key in data_files:
+                    data_files[key] = DataFilesList(
+                        data_files[key] + metadata_files,
+                        data_files[key].origin_metadata + metadata_files.origin_metadata,
+                    )
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
         builder_kwargs = {
             "hash": hash,
@@ -733,18 +752,33 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
+        base_path = str(Path(self.data_dir).resolve()) if self.data_dir is not None else str(Path().resolve())
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
-            else get_patterns_locally(str(Path(self.data_dir).resolve()))
+            else get_data_patterns_locally(base_path)
             if self.data_dir is not None
-            else get_patterns_locally(str(Path().resolve()))
+            else get_data_patterns_locally(base_path)
         )
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
             use_auth_token=self.download_config.use_auth_token,
-            base_path=str(Path(self.data_dir).resolve()) if self.data_dir else None,
+            base_path=base_path,
         )
+        if self.data_files is None and self.name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
+            try:
+                metadata_patterns = get_metadata_patterns_locally(base_path)
+            except FileNotFoundError:
+                metadata_patterns = None
+            if metadata_patterns is not None:
+                metadata_files = DataFilesList.from_local_or_remote(
+                    metadata_patterns, use_auth_token=self.download_config.use_auth_token, base_path=base_path
+                )
+                for key in data_files:
+                    data_files[key] = DataFilesList(
+                        data_files[key] + metadata_files,
+                        data_files[key].origin_metadata + metadata_files.origin_metadata,
+                    )
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
         builder_kwargs = {"hash": hash, "data_files": data_files}
         return DatasetModule(module_path, hash, builder_kwargs)
@@ -783,13 +817,13 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision=self.revision,
-            token=token,
+            token=token if token else "no-token",
             timeout=100.0,
         )
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
-            else get_patterns_in_dataset_repository(hfh_dataset_info, self.data_dir)
+            else get_data_patterns_in_dataset_repository(hfh_dataset_info, self.data_dir)
         )
         data_files = DataFilesDict.from_hf_repo(
             patterns,
@@ -806,6 +840,21 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         module_name, builder_kwargs = next(iter(module_names.values()))
         if not module_name:
             raise FileNotFoundError(f"No data files or dataset script found in {self.name}")
+        # Collect metadata files if the module supports them
+        if self.data_files is None and module_name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
+            try:
+                metadata_patterns = get_metadata_patterns_in_dataset_repository(hfh_dataset_info, self.data_dir)
+            except FileNotFoundError:
+                metadata_patterns = None
+            if metadata_patterns is not None:
+                metadata_files = DataFilesList.from_hf_repo(
+                    metadata_patterns, dataset_info=hfh_dataset_info, base_path=self.data_dir
+                )
+                for key in data_files:
+                    data_files[key] = DataFilesList(
+                        data_files[key] + metadata_files,
+                        data_files[key].origin_metadata + metadata_files.origin_metadata,
+                    )
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
         builder_kwargs = {
             "hash": hash,
@@ -1045,7 +1094,7 @@ def dataset_module_factory(
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
+              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
             - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
@@ -1140,7 +1189,7 @@ def dataset_module_factory(
                     dataset_info = hf_api.dataset_info(
                         repo_id=path,
                         revision=revision,
-                        token=token,
+                        token=token if token else "no-token",
                         timeout=100.0,
                     )
                 except Exception as e:  # noqa: catch any exception of hf_hub and consider that the dataset doesn't exist
@@ -1159,7 +1208,10 @@ def dataset_module_factory(
                     elif "401" in str(e):
                         msg = f"Dataset '{path}' doesn't exist on the Hub"
                         msg = msg + f" at revision '{revision}'" if revision else msg
-                        raise FileNotFoundError(msg + ". If the repo is private, make sure you are authenticated.")
+                        raise FileNotFoundError(
+                            msg
+                            + ". If the repo is private, make sure you are authenticated with `use_auth_token=True` after logging in with `huggingface-cli login`."
+                        )
                     else:
                         raise e
                 if filename in [sibling.rfilename for sibling in dataset_info.siblings]:
@@ -1225,7 +1277,7 @@ def metric_module_factory(
             If specified, the module will be loaded from the datasets repository at this version.
             By default:
             - it is set to the local version of the lib.
-            - it will also try to load it from the master branch if it's not available at the local version of the lib.
+            - it will also try to load it from the main branch if it's not available at the local version of the lib.
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
@@ -1411,7 +1463,7 @@ def load_dataset_builder(
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
+              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
             - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
@@ -1421,6 +1473,13 @@ def load_dataset_builder(
 
     Returns:
         :class:`DatasetBuilder`
+
+    <Tip>
+
+    Passing `use_auth_token=True` is required when you want to access a private dataset.
+
+    </Tip>
+
 
     Example:
 
@@ -1516,7 +1575,7 @@ def load_dataset(
             Dataset scripts are small python scripts that define dataset builders. They define the citation, info and format of the dataset,
             contain the path or URL to the original data files and the code to load examples from the original data files.
 
-            You can find some of the scripts here: https://github.com/huggingface/datasets/tree/master/datasets
+            You can find some of the scripts here: https://github.com/huggingface/datasets/tree/main/datasets
             You can find the complete list of datasets in the Datasets Hub at https://huggingface.co/datasets
 
         2. Run the dataset script which will:
@@ -1575,7 +1634,7 @@ def load_dataset(
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
+              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
             - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
@@ -1599,6 +1658,12 @@ def load_dataset(
 
         - if `split` is not None: the dataset requested,
         - if `split` is None, a ``datasets.streaming.IterableDatasetDict`` with each split.
+
+    <Tip>
+
+    Passing `use_auth_token=True` is required when you want to access a private dataset.
+
+    </Tip>
 
     Example:
 
