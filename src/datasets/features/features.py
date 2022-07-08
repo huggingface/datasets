@@ -1438,6 +1438,24 @@ def require_storage_cast(feature: FeatureType) -> bool:
         return hasattr(feature, "cast_storage")
 
 
+def require_storage_embed(feature: FeatureType) -> bool:
+    """Check if a (possibly nested) feature requires embedding data into storage.
+
+    Args:
+        feature (FeatureType): the feature type to be checked
+    Returns:
+        :obj:`bool`
+    """
+    if isinstance(feature, dict):
+        return any(require_storage_cast(f) for f in feature.values())
+    elif isinstance(feature, (list, tuple)):
+        return require_storage_cast(feature[0])
+    elif isinstance(feature, Sequence):
+        return require_storage_cast(feature.feature)
+    else:
+        return hasattr(feature, "embed_storage")
+
+
 def keep_features_dicts_synced(func):
     """
     Wrapper to keep the secondary dictionary, which tracks whether keys are decodable, of the :class:`datasets.Features` object
