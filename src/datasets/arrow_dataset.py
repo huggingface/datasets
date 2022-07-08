@@ -84,8 +84,8 @@ from .table import (
     InMemoryTable,
     MemoryMappedTable,
     Table,
-    cast_table_to_features,
     concat_tables,
+    embed_table_storage,
     list_table_cache_files,
     table_cast,
     table_visitor,
@@ -95,7 +95,7 @@ from .utils import logging
 from .utils._hf_hub_fixes import create_repo
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size, hf_hub_url
 from .utils.info_utils import is_small_dataset
-from .utils.py_utils import convert_file_size_to_int, temporary_assignment, unique_values
+from .utils.py_utils import convert_file_size_to_int, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import minimal_tf_collate_fn
 from .utils.typing import PathLike
@@ -4150,26 +4150,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if decodable_columns:
 
             def shards_with_embedded_external_files(shards):
-                # Temporarily assign the modified version of `cast_storage` before the cast to the decodable
-                # feature types to delete path information and embed file content in the arrow file.
-                with contextlib.ExitStack() as stack:
-                    for decodable_feature_type in [Audio, Image]:
-                        stack.enter_context(
-                            temporary_assignment(
-                                decodable_feature_type, "cast_storage", decodable_feature_type.embed_storage
-                            )
-                        )
-                    for shard in shards:
-                        format = shard.format
-                        shard = shard.with_format("arrow")
-                        shard = shard.map(
-                            partial(cast_table_to_features, features=shard.features),
-                            batched=True,
-                            batch_size=1000,
-                            keep_in_memory=True,
-                        )
-                        shard = shard.with_format(**format)
-                        yield shard
+                for shard in shards:
+                    format = shard.format
+                    shard = shard.with_format("arrow")
+                    shard = shard.map(
+                        embed_table_storage,
+                        batched=True,
+                        batch_size=1000,
+                        keep_in_memory=True,
+                    )
+                    shard = shard.with_format(**format)
+                    yield shard
 
             shards = shards_with_embedded_external_files(shards)
 
@@ -4224,7 +4215,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for data_file in data_files
             if data_file.startswith(f"data/{split}-") and data_file not in shards_path_in_repo
         ]
-        deleted_size = sum(xgetsize(hf_hub_url(repo_id, data_file)) for data_file in data_files_to_delete)
+        deleted_size = sum(
+            xgetsize(hf_hub_url(repo_id, data_file), use_auth_token=token) for data_file in data_files_to_delete
+        )
 
         def delete_file(file):
             api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
