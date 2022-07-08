@@ -17,7 +17,7 @@ task_categories:
 - token-classification
 task_ids:
 - named-entity-recognition
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: conll-2003
 pretty_name: CoNLL-2003
 train-eval-index:
