@@ -35,6 +35,8 @@ DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
         "testing[-._ ]*",
         "**[-._ /]eval[-._ ]*",
         "eval[-._ ]*",
+        "**[-._ /]evaluation[-._ ]*",
+        "evaluation[-._ ]*",
     ],
     str(Split.VALIDATION): [
         "**[-._ /]dev[-._ ]*",
@@ -55,6 +57,8 @@ DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
         "**[-._ /]testing[-._ /]**",
         "eval[-._ /]**",
         "**[-._ /]eval[-._ /]**",
+        "evaluation[-._ /]**",
+        "**[-._ /]evaluation[-._ /]**",
     ],
     str(Split.VALIDATION): [
         "dev[-._ /]**",
