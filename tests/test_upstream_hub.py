@@ -417,6 +417,31 @@ class TestPushToHub(TestCase):
             finally:
                 self.cleanup_repo(ds_name)
 
+    @require_pil
+    def test_push_dataset_to_hub_custom_features_image_list(self):
+        image_path = os.path.join(os.path.dirname(__file__), "features", "data", "test_image_rgb.jpg")
+        data = {"x": [[image_path], [image_path, image_path]], "y": [0, -1]}
+        features = Features({"x": [Image()], "y": Value("int32")})
+        ds = Dataset.from_dict(data, features=features)
+
+        for embed_external_files in [True, False]:
+            ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
+            try:
+                ds.push_to_hub(ds_name, embed_external_files=embed_external_files, token=self._token)
+                hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
+
+                self.assertListEqual(ds.column_names, hub_ds.column_names)
+                self.assertListEqual(list(ds.features.keys()), list(hub_ds.features.keys()))
+                self.assertDictEqual(ds.features, hub_ds.features)
+                self.assertEqual(ds[:], hub_ds[:])
+                hub_ds = hub_ds.cast_column("x", [Image(decode=False)])
+                elem = hub_ds[0]["x"][0]
+                path, bytes_ = elem["path"], elem["bytes"]
+                self.assertTrue(bool(path) == (not embed_external_files))
+                self.assertTrue(bool(bytes_) == embed_external_files)
+            finally:
+                self.cleanup_repo(ds_name)
+
     def test_push_dataset_dict_to_hub_custom_features(self):
         features = Features({"x": Value("int64"), "y": ClassLabel(names=["neg", "pos"])})
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [0, 0, 1]}, features=features)
