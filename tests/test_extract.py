@@ -1,8 +1,23 @@
 import pytest
 
-from datasets.utils.extract import Extractor, ZstdExtractor
+from datasets import config
+from datasets.utils.extract import Extractor, SevenZipExtractor, ZstdExtractor
 
 from .utils import require_zstandard
+
+
+@pytest.mark.skipif(not config.PY7ZR_AVAILABLE, reason="test requires py7zr")
+def test_seven_zip_extractor(seven_zip_file, tmp_path, text_file):
+    input_path = seven_zip_file
+    assert SevenZipExtractor.is_extractable(input_path)
+    output_path = tmp_path / "extracted"
+    SevenZipExtractor.extract(input_path, output_path)
+    assert output_path.is_dir()
+    for file_path in output_path.iterdir():
+        assert file_path.name == text_file.name
+        extracted_file_content = file_path.read_text(encoding="utf-8")
+    expected_file_content = text_file.read_text(encoding="utf-8")
+    assert extracted_file_content == expected_file_content
 
 
 @require_zstandard

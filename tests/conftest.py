@@ -150,6 +150,17 @@ def lz4_file(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def seven_zip_file(tmp_path_factory, text_file):
+    if config.PY7ZR_AVAILABLE:
+        import py7zr
+
+        path = tmp_path_factory.mktemp("data") / "file.txt.7z"
+        with py7zr.SevenZipFile(path, "w") as archive:
+            archive.write(text_file, arcname=os.path.basename(text_file))
+        return path
+
+
+@pytest.fixture(scope="session")
 def xml_file(tmp_path_factory):
     filename = tmp_path_factory.mktemp("data") / "file.xml"
     data = textwrap.dedent(
