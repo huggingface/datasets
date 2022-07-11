@@ -65,8 +65,8 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
 
         # Do an early pass if:
-        # * `drop_labels` is False, to infer the class labels
-        # * `drop_metadata` is False, to find the metadata files
+        # * `drop_labels` is None (default) or False, to infer the class labels
+        # * `drop_metadata` is None (default) False, to find the metadata files
         do_analyze = not self.config.drop_labels or not self.config.drop_metadata
         labels = set()
         metadata_files = collections.defaultdict(set)
@@ -117,21 +117,27 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
             files, archives = self._split_files_and_archives(files)
             downloaded_files = dl_manager.download(files)
             downloaded_dirs = dl_manager.download_and_extract(archives)
-            if do_analyze:
+            if do_analyze:  # drop_metadata is None or False, drop_labels is None or False
+                logger.info("Searching for labels and/or metadata files in data files...")
                 analyze(files, downloaded_files, split_name)
                 analyze(archives, downloaded_dirs, split_name)
 
                 if metadata_files:
+                    # add metadata if `metadata_files` are found and `drop_metadata` is None (default) or False
                     add_metadata = not (self.config.drop_metadata is True)
+                    # if `metadata_files` are found, add labels only if
+                    # `drop_labels` is set up to False explicitly (not-default behavior)
                     add_labels = self.config.drop_labels is False
                 else:
+                    # if `metadata_files` are not found, don't add metadata
                     add_metadata = False
+                    # if `metadata_files` are not found but `drop_labels` is None (default) or False, add them
                     add_labels = not (self.config.drop_labels is True)
 
                 if add_labels:
-                    logger.info("Inferring labels from data files...")
+                    logger.info("Labels are inferred from data directories, adding them to the dataset's features...")
                 if add_metadata:
-                    logger.info("Analyzing metadata files...")
+                    logger.info("Metadata files are found, adding extracted features to the dataset's features...")
             else:
                 add_labels, add_metadata, metadata_files = False, False, {}
 
@@ -189,12 +195,15 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
 
             if add_metadata:
                 # Verify that there are no duplicated keys when compared to the existing features ("image", optionally "label")
+                # print(self.info.features, metadata_features)
                 duplicated_keys = set(self.info.features) & set(metadata_features)
                 if duplicated_keys:
-                    raise ValueError(
-                        f"Metadata feature keys {list(duplicated_keys)} are already present as the image features"
+                    logger.warning(
+                        f"Metadata feature keys {list(duplicated_keys)} are already present as the image features, overwrite ..."
                     )
-                self.info.features.update(metadata_features)
+                self.info.features.update(
+                    {feature: metadata_features[feature] for feature in set(metadata_features) - duplicated_keys}
+                )
 
         return splits
 
