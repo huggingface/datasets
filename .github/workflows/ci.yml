@@ -32,6 +32,7 @@ jobs:
   test:
     needs: check_code_quality
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
         pyarrow_version: [latest, 6.0.1]
