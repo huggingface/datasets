@@ -25,7 +25,6 @@ import itertools
 import os
 import re
 import xml.etree.cElementTree as ElementTree
-from abc import ABC, abstractmethod
 
 import datasets
 
@@ -34,22 +33,31 @@ logger = datasets.logging.get_logger(__name__)
 
 
 _DESCRIPTION = """\
-Translate dataset based on the data from statmt.org.
+Translation dataset based on the data from statmt.org.
 
-Versions exists for the different years using a combination of multiple data
-sources. The base `wmt_translate` allows you to create your own config to choose
-your own data/language pair by creating a custom `datasets.translate.wmt.WmtConfig`.
+Versions exist for different years using a combination of data
+sources. The base `wmt` allows you to create a custom dataset by choosing
+your own data/language pair. This can be done as follows:
 
-```
-config = datasets.wmt.WmtConfig(
-    version="0.0.1",
+```python
+from datasets import inspect_dataset, load_dataset_builder
+
+inspect_dataset("wmt18", "path/to/scripts")
+builder = load_dataset_builder(
+    "path/to/scripts/wmt_utils.py",
     language_pair=("fr", "de"),
     subsets={
         datasets.Split.TRAIN: ["commoncrawl_frde"],
         datasets.Split.VALIDATION: ["euelections_dev2019"],
     },
 )
-builder = datasets.builder("wmt_translate", config=config)
+
+# Standard version
+builder.download_and_prepare()
+ds = builder.as_dataset()
+
+# Streamable version
+ds = builder.as_streaming_dataset()
 ```
 
 """
@@ -662,20 +670,15 @@ class WmtConfig(datasets.BuilderConfig):
         # +++++++++++++++++++++
 
 
-class Wmt(ABC, datasets.GeneratorBasedBuilder):
+class Wmt(datasets.GeneratorBasedBuilder):
     """WMT translation dataset."""
 
+    BUILDER_CONFIG_CLASS = WmtConfig
+
     def __init__(self, *args, **kwargs):
-        if type(self) == Wmt and "config" not in kwargs:  # pylint: disable=unidiomatic-typecheck
-            raise ValueError(
-                "The raw `wmt_translate` can only be instantiated with the config "
-                "kwargs. You may want to use one of the `wmtYY_translate` "
-                "implementation instead to get the WMT dataset for a specific year."
-            )
         super(Wmt, self).__init__(*args, **kwargs)
 
     @property
-    @abstractmethod
     def _subsets(self):
         """Subsets that make up each split of the dataset."""
         raise NotImplementedError("This is a abstract method")
@@ -685,7 +688,8 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
         """Subsets that make up each split of the dataset for the language pair."""
         source, target = self.config.language_pair
         filtered_subsets = {}
-        for split, ss_names in self._subsets.items():
+        subsets = self._subsets if self.config.subsets is None else self.config.subsets
+        for split, ss_names in subsets.items():
             filtered_subsets[split] = []
             for ss_name in ss_names:
                 dataset = DATASET_MAP[ss_name]
