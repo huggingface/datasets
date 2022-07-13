@@ -98,19 +98,11 @@ Your `metadata.jsonl` file must have a `file_name` column which links image file
 {"file_name": "0003.png", "additional_feature": "This is a third value of a text feature you added to your images"}
 ```
 
-If you want to both extract labels from directories names and use information from metadata files, set `drop_labels=False`.
-By default, if metadata files are present, inferring labels based on the directory name is skipped.
+<Tip>
 
-If you have data structure like this:
-```
-folder/train/metadata.jsonl
-folder/train/dog/golden_retriever.png
-folder/train/dog/german_shepherd.png
+If metadata files are present, the inferred labels based on the directory name are dropped by default. To include those labels, set `drop_labels=False` in `load_dataset`.
 
-folder/train/cat/maine_coon.png
-folder/train/cat/bengal.png
-```
-and your `metadata.jsonl` file looks like this:
+</Tip>
 
 ```jsonl
 {"file_name": "dog/golden_retriever.png", "text": "This is a golden retriever"}
