@@ -198,12 +198,10 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 # print(self.info.features, metadata_features)
                 duplicated_keys = set(self.info.features) & set(metadata_features)
                 if duplicated_keys:
-                    logger.warning(
-                        f"Metadata feature keys {list(duplicated_keys)} are already present as the image features, overwrite ..."
+                    raise ValueError(
+                        f"Metadata feature keys {list(duplicated_keys)} are already present as the image features"
                     )
-                self.info.features.update(
-                    {feature: metadata_features[feature] for feature in set(metadata_features) - duplicated_keys}
-                )
+                self.info.features.update(metadata_features)
 
         return splits
 
