@@ -135,7 +135,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                     add_labels = not (self.config.drop_labels is True)
 
                 if add_labels:
-                    logger.info("Labels are inferred from data directories, adding them to the dataset's features...")
+                    logger.info("Adding the labels inferred from data directories to the dataset's features...")
                 if add_metadata:
                     logger.info("Metadata files are found, adding extracted features to the dataset's features...")
             else:
