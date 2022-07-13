@@ -2443,8 +2443,8 @@ class MiscellaneousDatasetTest(TestCase):
             self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
             self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
 
-        features = Features({"col_1": Value("string"), "col_2": Value("string")})
-        self.assertRaises(pa.ArrowTypeError, Dataset.from_pandas, df, features=features)
+        features = Features({"col_1": Sequence(Value("string")), "col_2": Value("string")})
+        self.assertRaises(TypeError, Dataset.from_pandas, df, features=features)
 
     def test_from_dict(self):
         data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}

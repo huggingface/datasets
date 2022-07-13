@@ -825,8 +825,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             info = DatasetInfo()
         info.features = features
         table = InMemoryTable.from_pandas(
-            df=df, preserve_index=preserve_index, schema=features.arrow_schema if features is not None else None
+            df=df,
+            preserve_index=preserve_index,
         )
+        if features is not None:
+            # more expensive cast than InMemoryTable.from_pandas(..., schema=features.arrow_schema)
+            # needed to support str to Audio for example
+            table = table.cast(features.arrow_schema)
         return cls(table, info=info, split=split)
 
     @classmethod
