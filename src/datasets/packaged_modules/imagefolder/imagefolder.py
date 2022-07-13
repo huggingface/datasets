@@ -118,7 +118,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
             downloaded_files = dl_manager.download(files)
             downloaded_dirs = dl_manager.download_and_extract(archives)
             if do_analyze:  # drop_metadata is None or False, drop_labels is None or False
-                logger.info("Searching for labels and/or metadata files in data files...")
+                logger.info("Searching for labels and/or metadata files in {split} data files...")
                 analyze(files, downloaded_files, split_name)
                 analyze(archives, downloaded_dirs, split_name)
 
