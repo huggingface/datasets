@@ -12,6 +12,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pyarrow as pa
+import pytest
 from packaging import version
 
 from datasets import config
@@ -37,6 +38,9 @@ _run_slow_tests = parse_flag_from_env("RUN_SLOW", default=False)
 _run_remote_tests = parse_flag_from_env("RUN_REMOTE", default=False)
 _run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
 _run_packaged_tests = parse_flag_from_env("RUN_PACKAGED", default=True)
+
+
+require_py7zr = pytest.mark.skipif(not config.PY7ZR_AVAILABLE, reason="test requires py7zr")
 
 
 def require_beam(test_case):

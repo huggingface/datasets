@@ -1,12 +1,11 @@
 import pytest
 
-from datasets import config
 from datasets.utils.extract import Extractor, SevenZipExtractor, ZstdExtractor
 
-from .utils import require_zstandard
+from .utils import require_py7zr, require_zstandard
 
 
-@pytest.mark.skipif(not config.PY7ZR_AVAILABLE, reason="test requires py7zr")
+@require_py7zr
 def test_seven_zip_extractor(seven_zip_file, tmp_path, text_file):
     input_path = seven_zip_file
     assert SevenZipExtractor.is_extractable(input_path)
