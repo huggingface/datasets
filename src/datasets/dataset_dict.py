@@ -1025,6 +1025,24 @@ class DatasetDict(dict):
             }
         )
 
+    def remove_excess_nesting(self) -> "DatasetDict":
+        """
+        Flattens any leading dimensions of shape 1 for all features in the dataset.
+        """
+
+        def clean_row_nesting(row):
+            row_keys = row.keys()
+            for key in row_keys:
+                arr = np.array(row[key])
+                for _ in range(arr.ndim - 1):
+                    arr = arr[0] if arr.shape[0] == 1 else arr
+                row[key] = arr.tolist()
+            return row
+
+        claned_dataset = self.map(clean_row_nesting)
+
+        return claned_dataset
+
     def save_to_disk(self, dataset_dict_path: str, fs=None):
         """
         Saves a dataset dict to a filesystem using either :class:`~filesystems.S3FileSystem` or
