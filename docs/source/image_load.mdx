@@ -126,7 +126,7 @@ You can use both features from metadata and labels from filenames:
 ```py
 >>> dataset = load_dataset("imagefolder", data_dir="/path/to/folder", drop_labels=False, split="train")
 >>> dataset[0]
-{"image": <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=640x480 at 0x7F5182C7AD30>, "label": 0, 'text_from_metadata': "This is a golden retriever"}
+{"image": <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=640x480 at 0x7F5182C7AD30>, "label": 0, 'text': "This is a golden retriever"}
 ```
 
 Alternatively, you can add `"label"` field to your `metadata.jsonl`.
