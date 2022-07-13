@@ -1,3 +1,4 @@
+import itertools
 from dataclasses import dataclass
 from io import StringIO
 from typing import Optional
@@ -42,14 +43,14 @@ class Text(datasets.ArrowBasedBuilder):
             files = data_files
             if isinstance(files, str):
                 files = [files]
-            return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_files(files)})
-            ]
+            files = [dl_manager.iter_files(file) for file in files]
+            return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
         splits = []
         for split_name, files in data_files.items():
             if isinstance(files, str):
                 files = [files]
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": dl_manager.iter_files(files)}))
+            files = [dl_manager.iter_files(file) for file in files]
+            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
@@ -67,7 +68,7 @@ class Text(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self, files):
         pa_table_names = list(self.config.features) if self.config.features is not None else ["text"]
-        for file_idx, file in enumerate(files):
+        for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             # open in text mode, by default translates universal newlines ("\n", "\r\n" and "\r") into "\n"
             with open(file, encoding=self.config.encoding) as f:
                 if self.config.sample_by == "line":

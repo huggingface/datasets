@@ -60,13 +60,13 @@ def hf_private_dataset_repo_txt_data(hf_private_dataset_repo_txt_data_):
 
 
 @pytest.fixture(scope="session")
-def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_path):
+def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_with_dir_path):
     repo_name = f"repo_zipped_txt_data-{int(time.time() * 10e3)}"
     create_repo(hf_api, repo_name, token=hf_token, organization=USER, repo_type="dataset", private=True)
     repo_id = f"{USER}/{repo_name}"
     hf_api.upload_file(
         token=hf_token,
-        path_or_fileobj=str(zip_csv_path),
+        path_or_fileobj=str(zip_csv_with_dir_path),
         path_in_repo="data.zip",
         repo_id=repo_id,
         repo_type="dataset",

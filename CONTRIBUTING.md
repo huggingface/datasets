@@ -41,7 +41,7 @@ If you would like to work on any of the open Issues:
 	git checkout -b a-descriptive-name-for-my-changes
 	```
 
-	**do not** work on the `master` branch.
+	**do not** work on the `main` branch.
 
 4. Set up a development environment by running the following command in a virtual environment:
 
@@ -73,7 +73,7 @@ If you would like to work on any of the open Issues:
 
 	```bash
 	git fetch upstream
-	git rebase upstream/master
+	git rebase upstream/main
     ```
 
    Push the changes to your account using:
@@ -97,15 +97,15 @@ Improving the documentation of datasets is an ever increasing effort and we invi
 
 If you see that a dataset card is missing information that you are in a position to provide (as an author of the dataset or as an experienced user), the best thing you can do is to open a Pull Request on the Hugging Face Hub. To to do, go to the "Files and versions" tab of the dataset page and edit the `README.md` file. We provide:
 
-* a [template](https://github.com/huggingface/datasets/blob/master/templates/README.md)
-* a [guide](https://github.com/huggingface/datasets/blob/master/templates/README_guide.md) describing what information should go into each of the paragraphs
-* and if you need inspiration, we recommend looking through a [completed example](https://github.com/huggingface/datasets/blob/master/datasets/eli5/README.md)
+* a [template](https://github.com/huggingface/datasets/blob/main/templates/README.md)
+* a [guide](https://github.com/huggingface/datasets/blob/main/templates/README_guide.md) describing what information should go into each of the paragraphs
+* and if you need inspiration, we recommend looking through a [completed example](https://github.com/huggingface/datasets/blob/main/datasets/eli5/README.md)
 
 Note that datasets that are outside of a namespace (`squad`, `imagenet-1k`, etc.) are maintained on GitHub. In this case you have to open a Pull request on GitHub to edit the file at `datasets/<dataset-name>/README.md`.
 
 If you are a **dataset author**... you know what to do, it is your dataset after all ;) ! We would especially appreciate if you could help us fill in information about the process of creating the dataset, and take a moment to reflect on its social impact and possible limitations if you haven't already done so in the dataset paper or in another data statement.
 
-If you are a **user of a dataset**, the main source of information should be the dataset paper if it is available: we recommend pulling information from there into the relevant paragraphs of the template. We also eagerly welcome discussions on the [Considerations for Using the Data](https://github.com/huggingface/datasets/blob/master/templates/README_guide.md#considerations-for-using-the-data) based on existing scholarship or personal experience that would benefit the whole community.
+If you are a **user of a dataset**, the main source of information should be the dataset paper if it is available: we recommend pulling information from there into the relevant paragraphs of the template. We also eagerly welcome discussions on the [Considerations for Using the Data](https://github.com/huggingface/datasets/blob/main/templates/README_guide.md#considerations-for-using-the-data) based on existing scholarship or personal experience that would benefit the whole community.
 
 Finally, if you want more information on the how and why of dataset cards, we strongly recommend reading the foundational works [Datasheets for Datasets](https://arxiv.org/abs/1803.09010) and [Data Statements for NLP](https://www.aclweb.org/anthology/Q18-1041/).
 
