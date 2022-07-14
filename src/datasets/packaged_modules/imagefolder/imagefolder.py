@@ -67,7 +67,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
 
         # Do an early pass if:
         # * `drop_labels` is None (default) or False, to infer the class labels
-        # * `drop_metadata` is None (default) False, to find the metadata files
+        # * `drop_metadata` is None (default) or False, to find the metadata files
         do_analyze = not self.config.drop_labels or not self.config.drop_metadata
         labels = set()
         metadata_files = collections.defaultdict(set)
@@ -119,7 +119,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
             downloaded_files = dl_manager.download(files)
             downloaded_dirs = dl_manager.download_and_extract(archives)
             if do_analyze:  # drop_metadata is None or False, drop_labels is None or False
-                logger.info("Searching for labels and/or metadata files in data files...")
+                logger.info("Searching for labels and/or metadata files in {split} data files...")
                 analyze(files, downloaded_files, split_name)
                 analyze(archives, downloaded_dirs, split_name)
 
@@ -136,9 +136,9 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                     add_labels = not (self.config.drop_labels is True)
 
                 if add_labels:
-                    logger.info("Labels are inferred from data directories, adding them to the dataset's features...")
+                    logger.info("Adding the labels inferred from data directories to the dataset's features...")
                 if add_metadata:
-                    logger.info("Metadata files are found, adding extracted features to the dataset's features...")
+                    logger.info("Adding metadata to the dataset...")
             else:
                 add_labels, add_metadata, metadata_files = False, False, {}
 
