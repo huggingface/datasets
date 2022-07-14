@@ -119,7 +119,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
             downloaded_files = dl_manager.download(files)
             downloaded_dirs = dl_manager.download_and_extract(archives)
             if do_analyze:  # drop_metadata is None or False, drop_labels is None or False
-                logger.info("Searching for labels and/or metadata files in {split} data files...")
+                logger.info(f"Searching for labels and/or metadata files in {split_name} data files...")
                 analyze(files, downloaded_files, split_name)
                 analyze(archives, downloaded_dirs, split_name)
 
@@ -195,14 +195,14 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 self.info.features = datasets.Features({"image": datasets.Image()})
 
             if add_metadata:
-                # Verify that there are no duplicated keys when compared to the existing features ("image", optionally "label")
-                # print(self.info.features, metadata_features)
+                # Warn if there are duplicated keys in metadata compared to the existing features ("image", optionally "label")
                 duplicated_keys = set(self.info.features) & set(metadata_features)
                 if duplicated_keys:
                     warnings.warn(
                         f"Metadata feature keys {list(duplicated_keys)} are already present as the image features, "
-                        f"use image features instead of metadata ones."
+                        f"using image {list(duplicated_keys)} features instead of the metadata ones."
                     )
+                # skip metadata duplicated keys
                 self.info.features.update(
                     {feature: metadata_features[feature] for feature in set(metadata_features) - duplicated_keys}
                 )
