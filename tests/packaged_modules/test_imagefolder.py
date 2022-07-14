@@ -41,6 +41,33 @@ def data_files_with_labels_no_metadata(tmp_path, image_file):
 
 
 @pytest.fixture
+def image_files_with_labels_and_duplicated_label_key_in_metadata(tmp_path, image_file):
+    data_dir = tmp_path / "image_files_with_labels_and_label_key_in_metadata"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    subdir_class_0 = data_dir / "cat"
+    subdir_class_0.mkdir(parents=True, exist_ok=True)
+    subdir_class_1 = data_dir / "dog"
+    subdir_class_1.mkdir(parents=True, exist_ok=True)
+
+    image_filename = subdir_class_0 / "image_cat.jpg"
+    shutil.copyfile(image_file, image_filename)
+    image_filename2 = subdir_class_1 / "image_dog.jpg"
+    shutil.copyfile(image_file, image_filename2)
+
+    image_metadata_filename = tmp_path / data_dir / "metadata.jsonl"
+    image_metadata = textwrap.dedent(
+        """\
+        {"file_name": "cat/image_cat.jpg", "caption": "Nice image of a cat", "label": "Cat"}
+        {"file_name": "dog/image_dog.jpg", "caption": "Nice image of a dog", "label": "Dog"}
+        """
+    )
+    with open(image_metadata_filename, "w", encoding="utf-8") as f:
+        f.write(image_metadata)
+
+    return str(image_filename), str(image_filename2), str(image_metadata_filename)
+
+
+@pytest.fixture
 def image_file_with_metadata(tmp_path, image_file):
     image_filename = tmp_path / "image_rgb.jpg"
     shutil.copyfile(image_file, image_filename)
@@ -196,6 +223,44 @@ def test_generate_examples_with_labels(data_files_with_labels_no_metadata, cache
 
     assert dataset[0]["label"] == label_feature._str2int["cat"]
     assert dataset[1]["label"] == label_feature._str2int["dog"]
+
+
+@require_pil
+@pytest.mark.parametrize("drop_metadata", [None, True, False])
+@pytest.mark.parametrize("drop_labels", [None, True, False])
+def test_generate_examples_duplicated_label_key(
+    image_files_with_labels_and_duplicated_label_key_in_metadata, drop_metadata, drop_labels, cache_dir
+):
+    cat_image_file, dog_image_file, image_metadata_file = image_files_with_labels_and_duplicated_label_key_in_metadata
+    imagefolder = ImageFolder(
+        drop_metadata=drop_metadata,
+        drop_labels=drop_labels,
+        data_files=[cat_image_file, dog_image_file, image_metadata_file],
+        cache_dir=cache_dir,
+    )
+    if drop_labels is False:
+        # infer labels from directories even if metadata files are found
+        if drop_metadata is not True:
+            with pytest.warns(
+                UserWarning, match=r"Metadata feature keys.+?are already present as the image features.*"
+            ):
+                _ = imagefolder._split_generators(StreamingDownloadManager())
+        else:
+            _ = imagefolder._split_generators(StreamingDownloadManager())
+        generator = imagefolder._generate_examples(**_[0].gen_kwargs)
+        assert imagefolder.info.features["label"] == ClassLabel(names=["cat", "dog"])
+        assert all(example["label"] in ["cat", "dog"] for _, example in generator)
+    else:
+        _ = imagefolder._split_generators(StreamingDownloadManager())
+        generator = imagefolder._generate_examples(**_[0].gen_kwargs)
+        if drop_metadata is not True:
+            # labels are from metadata
+            assert imagefolder.info.features["label"] == Value("string")
+            assert all(example["label"] in ["Cat", "Dog"] for _, example in generator)
+        else:
+            # drop both labels and metadata
+            assert imagefolder.info.features == Features({"image": Image()})
+            assert all(example.keys() == {"image"} for _, example in generator)
 
 
 @require_pil
