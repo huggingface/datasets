@@ -104,25 +104,6 @@ If metadata files are present, the inferred labels based on the directory name a
 
 </Tip>
 
-```jsonl
-{"file_name": "dog/golden_retriever.png", "text": "This is a golden retriever"}
-{"file_name": "dog/german_shepherd.png", "text": "This is a german shepherd"}
-{"file_name": "cat/bengal.png", "text": "This is a bengal cat"}
-```
-
-you can use both features from metadata and labels from filenames:
-
-```py
->>> dataset = load_dataset("imagefolder", data_dir="/path/to/folder", drop_labels=False, split="train")
->>> dataset[0]
-{"image": <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=640x480 at 0x7F5182C7AD30>, "label": 0, "text": "This is a golden retriever"}
-```
-
-Alternatively, you can add `"label"` field to your `metadata.jsonl`.
-
-
-If you have any metadata files in your data directory, like in example above, but want to ignore them and only add labels extracted from the directories names, set `drop_metadata=True` and `drop_labels=False`.
-
 ### Image captioning
 
 Image captioning datasets have text describing an image. An example `metadata.jsonl` may look like:
