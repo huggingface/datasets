@@ -244,23 +244,23 @@ def test_generate_examples_duplicated_label_key(
             with pytest.warns(
                 UserWarning, match=r"Metadata feature keys.+?are already present as the image features.*"
             ):
-                _ = imagefolder._split_generators(StreamingDownloadManager())
+                imagefolder.download_and_prepare()
         else:
-            _ = imagefolder._split_generators(StreamingDownloadManager())
-        generator = imagefolder._generate_examples(**_[0].gen_kwargs)
+            imagefolder.download_and_prepare()
+        dataset = imagefolder.as_dataset()["train"]
         assert imagefolder.info.features["label"] == ClassLabel(names=["cat", "dog"])
-        assert all(example["label"] in ["cat", "dog"] for _, example in generator)
+        assert all(example["label"] in imagefolder.info.features["label"]._str2int.values() for example in dataset)
     else:
-        _ = imagefolder._split_generators(StreamingDownloadManager())
-        generator = imagefolder._generate_examples(**_[0].gen_kwargs)
+        imagefolder.download_and_prepare()
+        dataset = imagefolder.as_dataset()["train"]
         if drop_metadata is not True:
             # labels are from metadata
             assert imagefolder.info.features["label"] == Value("string")
-            assert all(example["label"] in ["Cat", "Dog"] for _, example in generator)
+            assert all(example["label"] in ["Cat", "Dog"] for example in dataset)
         else:
             # drop both labels and metadata
             assert imagefolder.info.features == Features({"image": Image()})
-            assert all(example.keys() == {"image"} for _, example in generator)
+            assert all(example.keys() == {"image"} for example in dataset)
 
 
 @require_pil

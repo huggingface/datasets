@@ -203,7 +203,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                         f"Metadata feature keys {list(duplicated_keys)} are already present as the image features, "
                         f"use image features instead of metadata ones."
                     )
-                self.info.feadstures.update(
+                self.info.features.update(
                     {feature: metadata_features[feature] for feature in set(metadata_features) - duplicated_keys}
                 )
 
