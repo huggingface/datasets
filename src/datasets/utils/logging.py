@@ -17,7 +17,6 @@
 import logging
 import os
 import sys
-import threading
 from logging import CRITICAL  # NOQA
 from logging import DEBUG  # NOQA
 from logging import ERROR  # NOQA
@@ -31,7 +30,6 @@ from typing import Optional
 from tqdm import auto as tqdm_lib
 
 
-_lock = threading.Lock()
 _default_handler: Optional[logging.Handler] = None
 
 log_levels = {
@@ -65,45 +63,39 @@ def _get_default_logging_level():
 
 
 def _get_library_name() -> str:
-
     return __name__.split(".")[0]
 
 
 def _get_library_root_logger() -> logging.Logger:
-
     return logging.getLogger(_get_library_name())
 
 
 def _configure_library_root_logger() -> None:
-
     global _default_handler
 
-    with _lock:
-        if _default_handler:
-            # This library has already configured the library root logger.
-            return
-        _default_handler = logging.StreamHandler()  # Set sys.stderr as stream.
-        _default_handler.flush = sys.stderr.flush
+    if _default_handler:
+        # This library has already configured the library root logger.
+        return
+    _default_handler = logging.StreamHandler()  # Set sys.stderr as stream.
+    _default_handler.flush = sys.stderr.flush
 
-        # Apply our default configuration to the library root logger.
-        library_root_logger = _get_library_root_logger()
-        library_root_logger.addHandler(_default_handler)
-        library_root_logger.setLevel(_get_default_logging_level())
-        library_root_logger.propagate = False
+    # Apply our default configuration to the library root logger.
+    library_root_logger = _get_library_root_logger()
+    library_root_logger.addHandler(_default_handler)
+    library_root_logger.setLevel(_get_default_logging_level())
+    library_root_logger.propagate = False
 
 
 def _reset_library_root_logger() -> None:
-
     global _default_handler
 
-    with _lock:
-        if not _default_handler:
-            return
+    if not _default_handler:
+        return
 
-        library_root_logger = _get_library_root_logger()
-        library_root_logger.removeHandler(_default_handler)
-        library_root_logger.setLevel(logging.NOTSET)
-        _default_handler = None
+    library_root_logger = _get_library_root_logger()
+    library_root_logger.removeHandler(_default_handler)
+    library_root_logger.setLevel(logging.NOTSET)
+    _default_handler = None
 
 
 def get_log_levels_dict():
@@ -115,11 +107,9 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     Return a logger with the specified name.
     This function is not supposed to be directly accessed unless you are writing a custom datasets module.
     """
-
     if name is None:
         name = _get_library_name()
 
-    _configure_library_root_logger()
     return logging.getLogger(name)
 
 
@@ -136,8 +126,6 @@ def get_verbosity() -> int:
     - 20: `datasets.logging.INFO`
     - 10: `datasets.logging.DEBUG`
     </Tip>"""
-
-    _configure_library_root_logger()
     return _get_library_root_logger().getEffectiveLevel()
 
 
@@ -153,8 +141,6 @@ def set_verbosity(verbosity: int) -> None:
             - `datasets.logging.INFO`
             - `datasets.logging.DEBUG`
     """
-
-    _configure_library_root_logger()
     _get_library_root_logger().setLevel(verbosity)
 
 
@@ -180,36 +166,24 @@ def set_verbosity_error():
 
 def disable_default_handler() -> None:
     """Disable the default handler of the 🤗 Datasets' root logger."""
-
-    _configure_library_root_logger()
-
     assert _default_handler is not None
     _get_library_root_logger().removeHandler(_default_handler)
 
 
 def enable_default_handler() -> None:
     """Enable the default handler of the 🤗 Datasets' root logger."""
-
-    _configure_library_root_logger()
-
     assert _default_handler is not None
     _get_library_root_logger().addHandler(_default_handler)
 
 
 def add_handler(handler: logging.Handler) -> None:
     """adds a handler to the 🤗 Datasets' root logger."""
-
-    _configure_library_root_logger()
-
     assert handler is not None
     _get_library_root_logger().addHandler(handler)
 
 
 def remove_handler(handler: logging.Handler) -> None:
     """removes given handler from the 🤗 Datasets' root logger."""
-
-    _configure_library_root_logger()
-
     assert handler is not None and handler not in _get_library_root_logger().handlers
     _get_library_root_logger().removeHandler(handler)
 
@@ -218,8 +192,6 @@ def disable_propagation() -> None:
     """
     Disable propagation of the library log outputs. Note that log propagation is disabled by default.
     """
-
-    _configure_library_root_logger()
     _get_library_root_logger().propagate = False
 
 
@@ -228,8 +200,6 @@ def enable_propagation() -> None:
     Enable propagation of the library log outputs. Please disable the 🤗 Datasets' default handler to
     prevent double logging if the root logger has been configured.
     """
-
-    _configure_library_root_logger()
     _get_library_root_logger().propagate = True
 
 
@@ -257,6 +227,10 @@ def reset_format() -> None:
 
     for handler in handlers:
         handler.setFormatter(None)
+
+
+# Configure the library root logger at the module level (singleton-like)
+_configure_library_root_logger()
 
 
 class EmptyTqdm:

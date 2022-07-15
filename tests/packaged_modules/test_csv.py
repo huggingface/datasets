@@ -76,6 +76,9 @@ def test_csv_generate_tables_raises_error_with_malformed_csv(csv_file, malformed
     with pytest.raises(ValueError, match="Error tokenizing data"):
         for _ in generator:
             pass
+    print("#" * 100)
+    print(list(caplog.records))
+    print("#" * 100)
     assert any(
         record.levelname == "ERROR"
         and "Failed to read file" in record.message
