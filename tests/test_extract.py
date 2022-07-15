@@ -33,12 +33,31 @@ def test_zstd_extractor(zstd_file, tmp_path, text_file):
 
 
 @pytest.mark.parametrize(
-    "compression_format, is_archive", [("gzip", False), ("xz", False), ("zstd", False), ("bz2", False), ("7z", True)]
+    "compression_format, is_archive",
+    [("7z", True), ("bz2", False), ("gzip", False), ("tar", True), ("xz", False), ("zip", True), ("zstd", False)],
 )
 def test_extractor(
-    compression_format, is_archive, gz_file, xz_file, zstd_file, bz2_file, seven_zip_file, tmp_path, text_file
+    compression_format,
+    is_archive,
+    bz2_file,
+    gz_file,
+    seven_zip_file,
+    tar_file,
+    xz_file,
+    zip_file,
+    zstd_file,
+    tmp_path,
+    text_file,
 ):
-    input_paths = {"gzip": gz_file, "xz": xz_file, "zstd": zstd_file, "bz2": bz2_file, "7z": seven_zip_file}
+    input_paths = {
+        "7z": seven_zip_file,
+        "bz2": bz2_file,
+        "gzip": gz_file,
+        "tar": tar_file,
+        "xz": xz_file,
+        "zip": zip_file,
+        "zstd": zstd_file,
+    }
     input_path = input_paths[compression_format]
     if input_path is None:
         reason = f"for '{compression_format}' compression_format, "
