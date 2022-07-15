@@ -32,7 +32,6 @@ def test_zstd_extractor(zstd_file, tmp_path, text_file):
     assert extracted_file_content == expected_file_content
 
 
-@require_zstandard
 @pytest.mark.parametrize(
     "compression_format, is_archive", [("gzip", False), ("xz", False), ("zstd", False), ("bz2", False), ("7z", True)]
 )
@@ -45,6 +44,8 @@ def test_extractor(
         reason = f"for '{compression_format}' compression_format, "
         if compression_format == "7z":
             reason += require_py7zr.kwargs["reason"]
+        elif compression_format == "zstd":
+            reason += require_zstandard.kwargs["reason"]
         pytest.skip(reason)
     input_path = str(input_path)
     assert Extractor.is_extractable(input_path)
