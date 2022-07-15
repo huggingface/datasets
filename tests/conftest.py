@@ -293,8 +293,6 @@ def bz2_csv_path(csv_path, tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def zip_csv_path(csv_path, csv2_path, tmp_path_factory):
-    import zipfile
-
     path = tmp_path_factory.mktemp("data") / "dataset.csv.zip"
     with zipfile.ZipFile(path, "w") as f:
         f.write(csv_path, arcname=os.path.basename(csv_path))
@@ -304,8 +302,6 @@ def zip_csv_path(csv_path, csv2_path, tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def zip_csv_with_dir_path(csv_path, csv2_path, tmp_path_factory):
-    import zipfile
-
     path = tmp_path_factory.mktemp("data") / "dataset_with_dir.csv.zip"
     with zipfile.ZipFile(path, "w") as f:
         f.write(csv_path, arcname=os.path.join("main_dir", os.path.basename(csv_path)))
@@ -409,8 +405,6 @@ def jsonl_gz_path(tmp_path_factory, jsonl_path):
 
 @pytest.fixture(scope="session")
 def zip_jsonl_path(jsonl_path, jsonl2_path, tmp_path_factory):
-    import zipfile
-
     path = tmp_path_factory.mktemp("data") / "dataset.jsonl.zip"
     with zipfile.ZipFile(path, "w") as f:
         f.write(jsonl_path, arcname=os.path.basename(jsonl_path))
@@ -420,8 +414,6 @@ def zip_jsonl_path(jsonl_path, jsonl2_path, tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def zip_jsonl_with_dir_path(jsonl_path, jsonl2_path, tmp_path_factory):
-    import zipfile
-
     path = tmp_path_factory.mktemp("data") / "dataset_with_dir.jsonl.zip"
     with zipfile.ZipFile(path, "w") as f:
         f.write(jsonl_path, arcname=os.path.join("main_dir", os.path.basename(jsonl_path)))
@@ -468,8 +460,6 @@ def text2_path(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def zip_text_path(text_path, text2_path, tmp_path_factory):
-    import zipfile
-
     path = tmp_path_factory.mktemp("data") / "dataset.text.zip"
     with zipfile.ZipFile(path, "w") as f:
         f.write(text_path, arcname=os.path.basename(text_path))
@@ -479,8 +469,6 @@ def zip_text_path(text_path, text2_path, tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def zip_text_with_dir_path(text_path, text2_path, tmp_path_factory):
-    import zipfile
-
     path = tmp_path_factory.mktemp("data") / "dataset_with_dir.text.zip"
     with zipfile.ZipFile(path, "w") as f:
         f.write(text_path, arcname=os.path.join("main_dir", os.path.basename(text_path)))
@@ -504,8 +492,6 @@ def image_file():
 
 @pytest.fixture(scope="session")
 def zip_image_path(image_file, tmp_path_factory):
-    import zipfile
-
     path = tmp_path_factory.mktemp("data") / "dataset.img.zip"
     with zipfile.ZipFile(path, "w") as f:
         f.write(image_file, arcname=os.path.basename(image_file))
