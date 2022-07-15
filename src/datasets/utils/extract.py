@@ -3,7 +3,6 @@ import gzip
 import lzma
 import os
 import shutil
-import struct
 import tarfile
 from abc import ABC, abstractmethod
 from zipfile import ZipFile
@@ -61,87 +60,65 @@ class BaseExtractor(ABC):
         ...
 
 
-class TarExtractor:
-    @staticmethod
-    def is_extractable(path):
+class TarExtractor(BaseExtractor):
+    @classmethod
+    def is_extractable(cls, path: str) -> bool:
         return tarfile.is_tarfile(path)
 
     @staticmethod
-    def extract(input_path, output_path):
+    def extract(input_path: str, output_path: str) -> None:
         os.makedirs(output_path, exist_ok=True)
         tar_file = tarfile.open(input_path)
         tar_file.extractall(output_path)
         tar_file.close()
 
 
-class GzipExtractor:
-    @staticmethod
-    def is_extractable(path: str) -> bool:
-        """from https://stackoverflow.com/a/60634210"""
-        with gzip.open(path, "r") as fh:
-            try:
-                fh.read(1)
-                return True
-            except OSError:
-                return False
+class GzipExtractor(BaseExtractor):
+    magic_number = b"\x1F\x8B"
 
     @staticmethod
-    def extract(input_path, output_path):
+    def extract(input_path: str, output_path: str) -> None:
         with gzip.open(input_path, "rb") as gzip_file:
             with open(output_path, "wb") as extracted_file:
                 shutil.copyfileobj(gzip_file, extracted_file)
 
 
-class ZipExtractor:
-    @staticmethod
-    def is_extractable(path):
+class ZipExtractor(BaseExtractor):
+    @classmethod
+    def is_extractable(cls, path: str) -> bool:
         return _is_zipfile(path)
 
     @staticmethod
-    def extract(input_path, output_path):
+    def extract(input_path: str, output_path: str) -> None:
         os.makedirs(output_path, exist_ok=True)
         with ZipFile(input_path, "r") as zip_file:
             zip_file.extractall(output_path)
             zip_file.close()
 
 
-class XzExtractor:
-    @staticmethod
-    def is_extractable(path: str) -> bool:
-        """https://tukaani.org/xz/xz-file-format-1.0.4.txt"""
-        with open(path, "rb") as f:
-            try:
-                header_magic_bytes = f.read(6)
-            except OSError:
-                return False
-            if header_magic_bytes == b"\xfd7zXZ\x00":
-                return True
-            else:
-                return False
+class XzExtractor(BaseExtractor):
+    magic_number = b"\xFD\x37\x7A\x58\x5A\x00"
 
     @staticmethod
-    def extract(input_path, output_path):
+    def extract(input_path: str, output_path: str) -> None:
         with lzma.open(input_path) as compressed_file:
             with open(output_path, "wb") as extracted_file:
                 shutil.copyfileobj(compressed_file, extracted_file)
 
 
-class RarExtractor:
-    @staticmethod
-    def is_extractable(path: str) -> bool:
+class RarExtractor(BaseExtractor):
+    RAR_ID = b"Rar!\x1a\x07\x00"
+    RAR5_ID = b"Rar!\x1a\x07\x01\x00"
+
+    @classmethod
+    def is_extractable(cls, path: str) -> bool:
         """https://github.com/markokr/rarfile/blob/master/rarfile.py"""
-        RAR_ID = b"Rar!\x1a\x07\x00"
-        RAR5_ID = b"Rar!\x1a\x07\x01\x00"
-
-        with open(path, "rb", 1024) as fd:
-            buf = fd.read(len(RAR5_ID))
-        if buf.startswith(RAR_ID) or buf.startswith(RAR5_ID):
-            return True
-        else:
-            return False
+        with open(path, "rb") as f:
+            magic_number = f.read(len(cls.RAR5_ID))
+        return magic_number == cls.RAR5_ID or magic_number.startswith(cls.RAR_ID)
 
     @staticmethod
-    def extract(input_path, output_path):
+    def extract(input_path: str, output_path: str) -> None:
         if not config.RARFILE_AVAILABLE:
             raise OSError("Please pip install rarfile")
         import rarfile
@@ -152,22 +129,11 @@ class RarExtractor:
         rf.close()
 
 
-class ZstdExtractor:
-    @staticmethod
-    def is_extractable(path: str) -> bool:
-        """https://datatracker.ietf.org/doc/html/rfc8878
-
-        Magic_Number:  4 bytes, little-endian format.  Value: 0xFD2FB528.
-        """
-        with open(path, "rb") as f:
-            try:
-                magic_number = f.read(4)
-            except OSError:
-                return False
-        return True if magic_number == struct.pack("<I", 0xFD2FB528) else False
+class ZstdExtractor(BaseExtractor):
+    magic_number = b"\x28\xb5\x2F\xFD"
 
     @staticmethod
-    def extract(input_path: str, output_path: str):
+    def extract(input_path: str, output_path: str) -> None:
         if not config.ZSTANDARD_AVAILABLE:
             raise OSError("Please pip install zstandard")
         import zstandard as zstd
@@ -177,40 +143,21 @@ class ZstdExtractor:
             dctx.copy_stream(ifh, ofh)
 
 
-class Bzip2Extractor:
-    @staticmethod
-    def is_extractable(path: str) -> bool:
-        with open(path, "rb") as f:
-            try:
-                header_magic_bytes = f.read(3)
-            except OSError:
-                return False
-            if header_magic_bytes == b"BZh":
-                return True
-            else:
-                return False
+class Bzip2Extractor(BaseExtractor):
+    magic_number = b"\x42\x5A\x68"
 
     @staticmethod
-    def extract(input_path, output_path):
+    def extract(input_path: str, output_path: str) -> None:
         with bz2.open(input_path, "rb") as compressed_file:
             with open(output_path, "wb") as extracted_file:
                 shutil.copyfileobj(compressed_file, extracted_file)
 
 
-class SevenZipExtractor:
+class SevenZipExtractor(BaseExtractor):
     magic_number = b"\x37\x7A\xBC\xAF\x27\x1C"
 
-    @classmethod
-    def is_extractable(cls, path):
-        with open(path, "rb") as f:
-            try:
-                magic_number = f.read(len(cls.magic_number))
-            except OSError:
-                return False
-        return True if magic_number == cls.magic_number else False
-
     @staticmethod
-    def extract(input_path: str, output_path: str):
+    def extract(input_path: str, output_path: str) -> None:
         if not config.PY7ZR_AVAILABLE:
             raise OSError("Please pip install py7zr")
         import py7zr
