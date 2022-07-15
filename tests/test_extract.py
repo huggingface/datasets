@@ -1,34 +1,64 @@
 import pytest
 
-from datasets.utils.extract import Extractor, SevenZipExtractor, ZstdExtractor
+from datasets.utils.extract import (
+    Bzip2Extractor,
+    Extractor,
+    GzipExtractor,
+    SevenZipExtractor,
+    TarExtractor,
+    XzExtractor,
+    ZipExtractor,
+    ZstdExtractor,
+)
 
 from .utils import require_py7zr, require_zstandard
 
 
-@require_py7zr
-def test_seven_zip_extractor(seven_zip_file, tmp_path, text_file):
-    input_path = seven_zip_file
-    assert SevenZipExtractor.is_extractable(input_path)
-    output_path = tmp_path / "extracted"
-    SevenZipExtractor.extract(input_path, output_path)
-    assert output_path.is_dir()
-    for file_path in output_path.iterdir():
-        assert file_path.name == text_file.name
-        extracted_file_content = file_path.read_text(encoding="utf-8")
+@pytest.mark.parametrize(
+    "compression_format, is_archive",
+    [("7z", True), ("bz2", False), ("gzip", False), ("tar", True), ("xz", False), ("zip", True), ("zstd", False)],
+)
+def test_base_extractors(
+    compression_format,
+    is_archive,
+    bz2_file,
+    gz_file,
+    seven_zip_file,
+    tar_file,
+    xz_file,
+    zip_file,
+    zstd_file,
+    tmp_path,
+    text_file,
+):
+    input_paths_and_base_extractors = {
+        "7z": (seven_zip_file, SevenZipExtractor),
+        "bz2": (bz2_file, Bzip2Extractor),
+        "gzip": (gz_file, GzipExtractor),
+        "tar": (tar_file, TarExtractor),
+        "xz": (xz_file, XzExtractor),
+        "zip": (zip_file, ZipExtractor),
+        "zstd": (zstd_file, ZstdExtractor),
+    }
+    input_path, base_extractor = input_paths_and_base_extractors[compression_format]
+    if input_path is None:
+        reason = f"for '{compression_format}' compression_format, "
+        if compression_format == "7z":
+            reason += require_py7zr.kwargs["reason"]
+        elif compression_format == "zstd":
+            reason += require_zstandard.kwargs["reason"]
+        pytest.skip(reason)
+    assert base_extractor.is_extractable(input_path)
+    output_path = tmp_path / ("extracted" if is_archive else "extracted.txt")
+    base_extractor.extract(input_path, output_path)
+    if is_archive:
+        assert output_path.is_dir()
+        for file_path in output_path.iterdir():
+            assert file_path.name == text_file.name
+            extracted_file_content = file_path.read_text(encoding="utf-8")
+    else:
+        extracted_file_content = output_path.read_text(encoding="utf-8")
     expected_file_content = text_file.read_text(encoding="utf-8")
-    assert extracted_file_content == expected_file_content
-
-
-@require_zstandard
-def test_zstd_extractor(zstd_file, tmp_path, text_file):
-    input_path = zstd_file
-    assert ZstdExtractor.is_extractable(input_path)
-    output_path = str(tmp_path / "extracted.txt")
-    ZstdExtractor.extract(input_path, output_path)
-    with open(output_path) as f:
-        extracted_file_content = f.read()
-    with open(text_file) as f:
-        expected_file_content = f.read()
     assert extracted_file_content == expected_file_content
 
 
