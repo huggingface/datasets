@@ -229,7 +229,7 @@ def test_generate_examples_with_labels(data_files_with_labels_no_metadata, cache
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
 def test_generate_examples_duplicated_label_key(
-    image_files_with_labels_and_duplicated_label_key_in_metadata, drop_metadata, drop_labels, cache_dir
+    image_files_with_labels_and_duplicated_label_key_in_metadata, drop_metadata, drop_labels, cache_dir, caplog
 ):
     cat_image_file, dog_image_file, image_metadata_file = image_files_with_labels_and_duplicated_label_key_in_metadata
     imagefolder = ImageFolder(
@@ -240,13 +240,9 @@ def test_generate_examples_duplicated_label_key(
     )
     if drop_labels is False:
         # infer labels from directories even if metadata files are found
-        if drop_metadata is not True:
-            with pytest.warns(
-                UserWarning, match=r"Metadata feature keys.+?are already present as the image features.*"
-            ):
-                imagefolder.download_and_prepare()
-        else:
-            imagefolder.download_and_prepare()
+        imagefolder.download_and_prepare()
+        warning_in_logs = any("Ignoring metadata columns" in record.msg for record in caplog.records)
+        assert warning_in_logs if drop_metadata is not True else not warning_in_logs
         dataset = imagefolder.as_dataset()["train"]
         assert imagefolder.info.features["label"] == ClassLabel(names=["cat", "dog"])
         assert all(example["label"] in imagefolder.info.features["label"]._str2int.values() for example in dataset)
