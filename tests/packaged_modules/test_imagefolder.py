@@ -241,7 +241,7 @@ def test_generate_examples_duplicated_label_key(
     if drop_labels is False:
         # infer labels from directories even if metadata files are found
         imagefolder.download_and_prepare()
-        warning_in_logs = any("Ignoring metadata columns" in record.msg for record in caplog.records)
+        warning_in_logs = any("ignoring metadata columns" in record.msg.lower() for record in caplog.records)
         assert warning_in_logs if drop_metadata is not True else not warning_in_logs
         dataset = imagefolder.as_dataset()["train"]
         assert imagefolder.info.features["label"] == ClassLabel(names=["cat", "dog"])
