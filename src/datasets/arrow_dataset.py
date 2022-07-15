@@ -84,8 +84,8 @@ from .table import (
     InMemoryTable,
     MemoryMappedTable,
     Table,
-    cast_table_to_features,
     concat_tables,
+    embed_table_storage,
     list_table_cache_files,
     table_cast,
     table_visitor,
@@ -95,7 +95,7 @@ from .utils import logging
 from .utils._hf_hub_fixes import create_repo
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size, hf_hub_url
 from .utils.info_utils import is_small_dataset
-from .utils.py_utils import convert_file_size_to_int, temporary_assignment, unique_values
+from .utils.py_utils import convert_file_size_to_int, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import minimal_tf_collate_fn
 from .utils.typing import PathLike
@@ -223,6 +223,7 @@ class TensorflowDatasetMixin:
         dataset: "Dataset",
         collate_fn: Callable,
         collate_fn_args: dict,
+        cols_to_retain: Optional[List[str]] = None,
         batch_size: Optional[int] = None,
         num_test_batches: int = 10,
     ):
@@ -263,6 +264,12 @@ class TensorflowDatasetMixin:
         for _ in range(num_test_batches):
             indices = sample(range(len(dataset)), test_batch_size)
             test_batch = dataset[indices]
+            if cols_to_retain is not None:
+                test_batch = {
+                    key: value
+                    for key, value in test_batch.items()
+                    if key in cols_to_retain or key in ("label_ids", "label")
+                }
             test_batch = [{key: value[i] for key, value in test_batch.items()} for i in range(test_batch_size)]
             test_batch = collate_fn(test_batch, **collate_fn_args)
             test_batches.append(test_batch)
@@ -400,18 +407,6 @@ class TensorflowDatasetMixin:
             dataset = self.with_format("numpy")
         else:
             dataset = self
-        if cols_to_retain is not None:
-            # Following the logic in `transformers.Trainer`, we do not drop `label_ids` or `label` even if they
-            # are not in the list of requested columns, because the collator may rename them
-            # This might work better if moved to a method attached to our transformers Model objects, but doing so
-            # could break backward compatibility
-            # TODO(Matt, QL): deprecate the retention of label_ids and label
-            unwanted_columns = [
-                col
-                for col in dataset.features.keys()
-                if col not in cols_to_retain and col not in ("label_ids", "label")
-            ]
-            dataset = dataset.remove_columns(unwanted_columns)
         # If the user hasn't specified columns, give them all columns. This may break some data collators if columns
         # are non-numeric!
 
@@ -422,11 +417,23 @@ class TensorflowDatasetMixin:
             dataset,
             collate_fn=collate_fn,
             collate_fn_args=collate_fn_args,
+            cols_to_retain=cols_to_retain,
             batch_size=batch_size if drop_remainder else None,
         )
 
         def np_get_batch(indices):
+            # Following the logic in `transformers.Trainer`, we do not drop `label_ids` or `label` even if they
+            # are not in the list of requested columns, because the collator may rename them
+            # This might work better if moved to a method attached to our transformers Model objects, but doing so
+            # could break backward compatibility
+            # TODO(Matt, QL): deprecate the retention of label_ids and label
             batch = dataset[indices]
+            if cols_to_retain is not None:
+                batch = {
+                    key: value
+                    for key, value in batch.items()
+                    if key in cols_to_retain or key in ("label_ids", "label")
+                }
             actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
             # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
             batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
@@ -4143,26 +4150,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if decodable_columns:
 
             def shards_with_embedded_external_files(shards):
-                # Temporarily assign the modified version of `cast_storage` before the cast to the decodable
-                # feature types to delete path information and embed file content in the arrow file.
-                with contextlib.ExitStack() as stack:
-                    for decodable_feature_type in [Audio, Image]:
-                        stack.enter_context(
-                            temporary_assignment(
-                                decodable_feature_type, "cast_storage", decodable_feature_type.embed_storage
-                            )
-                        )
-                    for shard in shards:
-                        format = shard.format
-                        shard = shard.with_format("arrow")
-                        shard = shard.map(
-                            partial(cast_table_to_features, features=shard.features),
-                            batched=True,
-                            batch_size=1000,
-                            keep_in_memory=True,
-                        )
-                        shard = shard.with_format(**format)
-                        yield shard
+                for shard in shards:
+                    format = shard.format
+                    shard = shard.with_format("arrow")
+                    shard = shard.map(
+                        embed_table_storage,
+                        batched=True,
+                        batch_size=1000,
+                        keep_in_memory=True,
+                    )
+                    shard = shard.with_format(**format)
+                    yield shard
 
             shards = shards_with_embedded_external_files(shards)
 
@@ -4217,7 +4215,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for data_file in data_files
             if data_file.startswith(f"data/{split}-") and data_file not in shards_path_in_repo
         ]
-        deleted_size = sum(xgetsize(hf_hub_url(repo_id, data_file)) for data_file in data_files_to_delete)
+        deleted_size = sum(
+            xgetsize(hf_hub_url(repo_id, data_file), use_auth_token=token) for data_file in data_files_to_delete
+        )
 
         def delete_file(file):
             api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)

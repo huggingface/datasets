@@ -15,7 +15,7 @@ except ImportError:
 from . import resources
 
 
-BASE_REF_URL = "https://github.com/huggingface/datasets/tree/master/src/datasets/utils"
+BASE_REF_URL = "https://github.com/huggingface/datasets/tree/main/src/datasets/utils"
 this_url = f"{BASE_REF_URL}/{__file__}"
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ readme_structure, known_readme_structure_url = load_yaml_resource("readme_struct
 FILLER_TEXT = [
     "[Needs More Information]",
     "[More Information Needed]",
-    "(https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)",
+    "(https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)",
 ]
 
 # Dictionary representation of section/readme, error_list, warning_list

@@ -178,9 +178,41 @@ class Bzip2Extractor:
                 shutil.copyfileobj(compressed_file, extracted_file)
 
 
+class SevenZipExtractor:
+    magic_number = b"\x37\x7A\xBC\xAF\x27\x1C"
+
+    @classmethod
+    def is_extractable(cls, path):
+        with open(path, "rb") as f:
+            try:
+                magic_number = f.read(len(cls.magic_number))
+            except OSError:
+                return False
+        return True if magic_number == cls.magic_number else False
+
+    @staticmethod
+    def extract(input_path: str, output_path: str):
+        if not config.PY7ZR_AVAILABLE:
+            raise OSError("Please pip install py7zr")
+        import py7zr
+
+        os.makedirs(output_path, exist_ok=True)
+        with py7zr.SevenZipFile(input_path, "r") as archive:
+            archive.extractall(output_path)
+
+
 class Extractor:
     #  Put zip file to the last, b/c it is possible wrongly detected as zip (I guess it means: as tar or gzip)
-    extractors = [TarExtractor, GzipExtractor, ZipExtractor, XzExtractor, RarExtractor, ZstdExtractor, Bzip2Extractor]
+    extractors = [
+        TarExtractor,
+        GzipExtractor,
+        ZipExtractor,
+        XzExtractor,
+        RarExtractor,
+        ZstdExtractor,
+        Bzip2Extractor,
+        SevenZipExtractor,
+    ]
 
     @classmethod
     def is_extractable(cls, path, return_extractor=False):
