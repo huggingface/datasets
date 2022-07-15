@@ -150,11 +150,11 @@ def tar_file(tmp_path_factory, text_file):
 
 @pytest.fixture(scope="session")
 def xz_file(tmp_path_factory):
-    filename = tmp_path_factory.mktemp("data") / "file.txt.xz"
+    path = tmp_path_factory.mktemp("data") / "file.txt.xz"
     data = bytes(FILE_CONTENT, "utf-8")
-    with lzma.open(filename, "wb") as f:
+    with lzma.open(path, "wb") as f:
         f.write(data)
-    return filename
+    return path
 
 
 @pytest.fixture(scope="session")
