@@ -52,7 +52,8 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
 
     Args:
         module_path: Path to the module to be extended.
-        use_auth_token: Whether to use authentication token.
+        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If True, will get token from `"~/.huggingface"`.
     """
 
     module = importlib.import_module(module_path)
@@ -100,8 +101,6 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
 
     Args:
         builder (:class:`DatasetBuilder`): Dataset builder instance.
-        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, will get token from `"~/.huggingface"`.
     """
     # this extends the open and os.path.join functions for data streaming
     extend_module_for_streaming(builder.__module__, use_auth_token=builder.use_auth_token)
