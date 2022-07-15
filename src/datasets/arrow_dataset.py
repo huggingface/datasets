@@ -830,7 +830,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         if features is not None:
             # more expensive cast than InMemoryTable.from_pandas(..., schema=features.arrow_schema)
-            # needed to support str to Audio for example
+            # needed to support the str to Audio conversion for instance
             table = table.cast(features.arrow_schema)
         return cls(table, info=info, split=split)
 
