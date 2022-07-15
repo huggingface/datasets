@@ -4,6 +4,7 @@ import lzma
 import os
 import tarfile
 import textwrap
+import zipfile
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -95,26 +96,6 @@ def text_file(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
-def xz_file(tmp_path_factory):
-    filename = tmp_path_factory.mktemp("data") / "file.txt.xz"
-    data = bytes(FILE_CONTENT, "utf-8")
-    with lzma.open(filename, "wb") as f:
-        f.write(data)
-    return filename
-
-
-@pytest.fixture(scope="session")
-def gz_file(tmp_path_factory):
-    import gzip
-
-    path = str(tmp_path_factory.mktemp("data") / "file.txt.gz")
-    data = bytes(FILE_CONTENT, "utf-8")
-    with gzip.open(path, "wb") as f:
-        f.write(data)
-    return path
-
-
-@pytest.fixture(scope="session")
 def bz2_file(tmp_path_factory):
     import bz2
 
@@ -126,15 +107,14 @@ def bz2_file(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
-def zstd_file(tmp_path_factory):
-    if config.ZSTANDARD_AVAILABLE:
-        import zstandard as zstd
+def gz_file(tmp_path_factory):
+    import gzip
 
-        path = tmp_path_factory.mktemp("data") / "file.txt.zst"
-        data = bytes(FILE_CONTENT, "utf-8")
-        with zstd.open(path, "wb") as f:
-            f.write(data)
-        return path
+    path = str(tmp_path_factory.mktemp("data") / "file.txt.gz")
+    data = bytes(FILE_CONTENT, "utf-8")
+    with gzip.open(path, "wb") as f:
+        f.write(data)
+    return path
 
 
 @pytest.fixture(scope="session")
@@ -157,6 +137,43 @@ def seven_zip_file(tmp_path_factory, text_file):
         path = tmp_path_factory.mktemp("data") / "file.txt.7z"
         with py7zr.SevenZipFile(path, "w") as archive:
             archive.write(text_file, arcname=os.path.basename(text_file))
+        return path
+
+
+@pytest.fixture(scope="session")
+def tar_file(tmp_path_factory, text_file):
+    path = tmp_path_factory.mktemp("data") / "file.txt.tar"
+    with tarfile.TarFile(path, "w") as f:
+        f.add(text_file, arcname=os.path.basename(text_file))
+    return path
+
+
+@pytest.fixture(scope="session")
+def xz_file(tmp_path_factory):
+    filename = tmp_path_factory.mktemp("data") / "file.txt.xz"
+    data = bytes(FILE_CONTENT, "utf-8")
+    with lzma.open(filename, "wb") as f:
+        f.write(data)
+    return filename
+
+
+@pytest.fixture(scope="session")
+def zip_file(tmp_path_factory, text_file):
+    path = tmp_path_factory.mktemp("data") / "file.txt.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(text_file, arcname=os.path.basename(text_file))
+    return path
+
+
+@pytest.fixture(scope="session")
+def zstd_file(tmp_path_factory):
+    if config.ZSTANDARD_AVAILABLE:
+        import zstandard as zstd
+
+        path = tmp_path_factory.mktemp("data") / "file.txt.zst"
+        data = bytes(FILE_CONTENT, "utf-8")
+        with zstd.open(path, "wb") as f:
+            f.write(data)
         return path
 
 
