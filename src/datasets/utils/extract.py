@@ -4,9 +4,8 @@ import lzma
 import os
 import shutil
 import tarfile
+import zipfile
 from abc import ABC, abstractmethod
-from zipfile import ZipFile
-from zipfile import is_zipfile as _is_zipfile
 
 from .. import config
 from .filelock import FileLock
@@ -86,12 +85,12 @@ class GzipExtractor(BaseExtractor):
 class ZipExtractor(BaseExtractor):
     @classmethod
     def is_extractable(cls, path: str) -> bool:
-        return _is_zipfile(path)
+        return zipfile.is_zipfile(path)
 
     @staticmethod
     def extract(input_path: str, output_path: str) -> None:
         os.makedirs(output_path, exist_ok=True)
-        with ZipFile(input_path, "r") as zip_file:
+        with zipfile.ZipFile(input_path, "r") as zip_file:
             zip_file.extractall(output_path)
             zip_file.close()
 
