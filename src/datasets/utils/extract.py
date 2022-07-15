@@ -5,6 +5,7 @@ import os
 import shutil
 import struct
 import tarfile
+from abc import ABC, abstractmethod
 from zipfile import ZipFile
 from zipfile import is_zipfile as _is_zipfile
 
@@ -40,6 +41,24 @@ class ExtractManager:
         if self._do_extract(output_path, force_extract):
             self.extractor.extract(input_path, output_path, extractor=extractor)
         return output_path
+
+
+class BaseExtractor(ABC):
+    magic_number = b""
+
+    @classmethod
+    def is_extractable(cls, path: str) -> bool:
+        with open(path, "rb") as f:
+            try:
+                magic_number = f.read(len(cls.magic_number))
+            except OSError:
+                return False
+        return magic_number == cls.magic_number
+
+    @staticmethod
+    @abstractmethod
+    def extract(input_path: str, output_path: str) -> None:
+        ...
 
 
 class TarExtractor:
