@@ -1,7 +1,6 @@
 import collections
 import itertools
 import os
-import warnings
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
@@ -198,13 +197,17 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 # Warn if there are duplicated keys in metadata compared to the existing features ("image", optionally "label")
                 duplicated_keys = set(self.info.features) & set(metadata_features)
                 if duplicated_keys:
-                    warnings.warn(
-                        f"Metadata feature keys {list(duplicated_keys)} are already present as the image features, "
-                        f"using image {list(duplicated_keys)} features instead of the metadata ones."
+                    logger.warning(
+                        f"Ignoring metadata columns {list(duplicated_keys)} as they are already present in "
+                        f"the features dictionary."
                     )
                 # skip metadata duplicated keys
                 self.info.features.update(
-                    {feature: metadata_features[feature] for feature in metadata_features if feature not in duplicated_keys}
+                    {
+                        feature: metadata_features[feature]
+                        for feature in metadata_features
+                        if feature not in duplicated_keys
+                    }
                 )
 
         return splits
