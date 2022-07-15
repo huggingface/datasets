@@ -204,7 +204,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                     )
                 # skip metadata duplicated keys
                 self.info.features.update(
-                    {feature: metadata_features[feature] for feature in set(metadata_features) - duplicated_keys}
+                    {feature: metadata_features[feature] for feature in metadata_features if feature not in duplicated_keys}
                 )
 
         return splits
