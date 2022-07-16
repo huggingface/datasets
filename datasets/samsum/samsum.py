@@ -22,11 +22,21 @@ import datasets
 
 
 _CITATION = """
-@article{gliwa2019samsum,
-  title={SAMSum Corpus: A Human-annotated Dialogue Dataset for Abstractive Summarization},
-  author={Gliwa, Bogdan and Mochol, Iwona and Biesek, Maciej and Wawer, Aleksander},
-  journal={arXiv preprint arXiv:1911.12237},
-  year={2019}
+@inproceedings{gliwa-etal-2019-samsum,
+    title = "{SAMS}um Corpus: A Human-annotated Dialogue Dataset for Abstractive Summarization",
+    author = "Gliwa, Bogdan  and
+      Mochol, Iwona  and
+      Biesek, Maciej  and
+      Wawer, Aleksander",
+    booktitle = "Proceedings of the 2nd Workshop on New Frontiers in Summarization",
+    month = nov,
+    year = "2019",
+    address = "Hong Kong, China",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/D19-5409",
+    doi = "10.18653/v1/D19-5409",
+    pages = "70--79",
+    abstract = "This paper introduces the SAMSum Corpus, a new dataset with abstractive dialogue summaries. We investigate the challenges it poses for automated summarization by testing several models and comparing their results with those obtained on a corpus of news articles. We show that model-generated summaries of dialogues achieve higher ROUGE scores than the model-generated summaries of news {--} in contrast with human evaluators{'} judgement. This suggests that a challenging task of abstractive dialogue summarization requires dedicated models and non-standard quality measures. To our knowledge, our study is the first attempt to introduce a high-quality chat-dialogues corpus, manually annotated with abstractive summarizations, which can be used by the research community for further studies.",
 }
 """
 
@@ -79,21 +89,21 @@ class Samsum(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(path,"train.json"),
+                    "filepath": os.path.join(path, "train.json"),
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(path,"test.json"),
+                    "filepath": os.path.join(path, "test.json"),
                     "split": "test",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(path,"val.json"),
+                    "filepath": os.path.join(path, "val.json"),
                     "split": "val",
                 },
             ),
