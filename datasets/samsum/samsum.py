@@ -16,8 +16,7 @@
 
 
 import json
-
-import py7zr
+import os
 
 import datasets
 
@@ -75,26 +74,26 @@ class Samsum(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        path = dl_manager.download(_URL)
+        path = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": (path, "train.json"),
+                    "filepath": os.path.join(path,"train.json"),
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": (path, "test.json"),
+                    "filepath": os.path.join(path,"test.json"),
                     "split": "test",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": (path, "val.json"),
+                    "filepath": os.path.join(path,"val.json"),
                     "split": "val",
                 },
             ),
@@ -102,11 +101,7 @@ class Samsum(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """Yields examples."""
-        path, fname = filepath
-        with open(path, "rb") as f:
-            with py7zr.SevenZipFile(f, "r") as z:
-                for name, bio in z.readall().items():
-                    if name == fname:
-                        data = json.load(bio)
-        for example in data:
-            yield example["id"], example
+        with open(filepath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            for example in data:
+                yield example["id"], example
