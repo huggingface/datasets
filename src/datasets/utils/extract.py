@@ -186,9 +186,29 @@ class Extractor:
     ]
 
     @classmethod
-    def is_extractable(cls, path, return_extractor=False):
+    def _get_magic_number_max_length(cls):
+        magic_number_max_length = 0
         for extractor in cls.extractors:
-            if extractor.is_extractable(path):
+            if hasattr(extractor, "magic_number"):
+                magic_number_length = len(extractor.magic_number)
+                magic_number_max_length = (
+                    magic_number_length if magic_number_length > magic_number_max_length else magic_number_max_length
+                )
+        return magic_number_max_length
+
+    @staticmethod
+    def _read_magic_number(path: str, magic_number_length: int):
+        try:
+            return BaseExtractor.read_magic_number(path, magic_number_length=magic_number_length)
+        except OSError:
+            return b""
+
+    @classmethod
+    def is_extractable(cls, path, return_extractor=False):
+        magic_number_max_length = cls._get_magic_number_max_length()
+        magic_number = cls._read_magic_number(path, magic_number_max_length)
+        for extractor in cls.extractors:
+            if extractor.is_extractable(path, magic_number=magic_number):
                 return True if not return_extractor else (True, extractor)
         return False if not return_extractor else (False, None)
 
