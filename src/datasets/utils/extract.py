@@ -44,14 +44,20 @@ class ExtractManager:
 class BaseExtractor(ABC):
     magic_number = b""
 
-    @classmethod
-    def is_extractable(cls, path: str) -> bool:
+    @staticmethod
+    def read_magic_number(path: str, magic_number_length: int):
         with open(path, "rb") as f:
+            return f.read(magic_number_length)
+
+    @classmethod
+    @abstractmethod
+    def is_extractable(cls, path: str, magic_number: bytes = b"") -> bool:
+        if not magic_number:
             try:
-                magic_number = f.read(len(cls.magic_number))
+                magic_number = cls.read_magic_number(path, len(cls.magic_number))
             except OSError:
                 return False
-        return magic_number == cls.magic_number
+        return magic_number.startswith(cls.magic_number)
 
     @staticmethod
     @abstractmethod
@@ -61,7 +67,7 @@ class BaseExtractor(ABC):
 
 class TarExtractor(BaseExtractor):
     @classmethod
-    def is_extractable(cls, path: str) -> bool:
+    def is_extractable(cls, path: str, **kwargs) -> bool:
         return tarfile.is_tarfile(path)
 
     @staticmethod
@@ -84,7 +90,7 @@ class GzipExtractor(BaseExtractor):
 
 class ZipExtractor(BaseExtractor):
     @classmethod
-    def is_extractable(cls, path: str) -> bool:
+    def is_extractable(cls, path: str, **kwargs) -> bool:
         return zipfile.is_zipfile(path)
 
     @staticmethod
@@ -110,7 +116,7 @@ class RarExtractor(BaseExtractor):
     RAR5_ID = b"Rar!\x1a\x07\x01\x00"
 
     @classmethod
-    def is_extractable(cls, path: str) -> bool:
+    def is_extractable(cls, path: str, **kwargs) -> bool:
         """https://github.com/markokr/rarfile/blob/master/rarfile.py"""
         with open(path, "rb") as f:
             magic_number = f.read(len(cls.RAR5_ID))
