@@ -4,6 +4,7 @@ import lzma
 import os
 import shutil
 import tarfile
+import warnings
 import zipfile
 from abc import ABC, abstractmethod
 
@@ -174,21 +175,21 @@ class SevenZipExtractor(BaseExtractor):
 
 class Extractor:
     #  Put zip file to the last, b/c it is possible wrongly detected as zip (I guess it means: as tar or gzip)
-    extractors = [
-        TarExtractor,
-        GzipExtractor,
-        ZipExtractor,
-        XzExtractor,
-        RarExtractor,
-        ZstdExtractor,
-        Bzip2Extractor,
-        SevenZipExtractor,
-    ]
+    extractors = {
+        "tar": TarExtractor,
+        "gzip": GzipExtractor,
+        "zip": ZipExtractor,
+        "xz": XzExtractor,
+        "rar": RarExtractor,
+        "zstd": ZstdExtractor,
+        "bz2": Bzip2Extractor,
+        "7z": SevenZipExtractor,
+    }
 
     @classmethod
     def _get_magic_number_max_length(cls):
         magic_number_max_length = 0
-        for extractor in cls.extractors:
+        for extractor in cls.extractors.values():
             if hasattr(extractor, "magic_number"):
                 magic_number_length = len(extractor.magic_number)
                 magic_number_max_length = (
@@ -205,22 +206,48 @@ class Extractor:
 
     @classmethod
     def is_extractable(cls, path, return_extractor=False):
-        magic_number_max_length = cls._get_magic_number_max_length()
-        magic_number = cls._read_magic_number(path, magic_number_max_length)
-        for extractor in cls.extractors:
-            if extractor.is_extractable(path, magic_number=magic_number):
-                return True if not return_extractor else (True, extractor)
+        warnings.warn(
+            "Method 'is_extractable' was deprecated in version 2.4.0 and will be removed in 3.0.0. "
+            "Use 'infer_extractor_format' instead.",
+            category=FutureWarning,
+        )
+        extractor_format = cls.infer_extractor_format(path)
+        if extractor_format:
+            return True if not return_extractor else (True, cls.extractors[extractor_format])
         return False if not return_extractor else (False, None)
 
     @classmethod
-    def extract(cls, input_path, output_path, extractor=None):
+    def infer_extractor_format(cls, path):
+        magic_number_max_length = cls._get_magic_number_max_length()
+        magic_number = cls._read_magic_number(path, magic_number_max_length)
+        for extractor_format, extractor in cls.extractors.items():
+            if extractor.is_extractable(path, magic_number=magic_number):
+                return extractor_format
+
+    @classmethod
+    def extract(cls, input_path, output_path, extractor_format=None, extractor="deprecated"):
         # Prevent parallel extractions
         lock_path = input_path + ".lock"
         with FileLock(lock_path):
             shutil.rmtree(output_path, ignore_errors=True)
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            if extractor:
+            if extractor_format or extractor != "deprecated":
+                if extractor != "deprecated" or not isinstance(extractor_format, str):  # passed as positional arg
+                    warnings.warn(
+                        "Parameter 'extractor' was deprecated in version 2.4.0 and will be removed in 3.0.0. "
+                        "Use 'extractor_format' instead.",
+                        category=FutureWarning,
+                    )
+                    extractor = extractor if extractor != "deprecated" else extractor_format
+                else:
+                    extractor = cls.extractors[extractor_format]
                 return extractor.extract(input_path, output_path)
-            for extractor in cls.extractors:
-                if extractor.is_extractable(input_path):
-                    return extractor.extract(input_path, output_path)
+            else:
+                warnings.warn(
+                    "Parameter 'extractor_format' was made required in version 2.4.0 and not passing it will raise an "
+                    "exception in 3.0.0.",
+                    category=FutureWarning,
+                )
+                for extractor in cls.extractors.values():
+                    if extractor.is_extractable(input_path):
+                        return extractor.extract(input_path, output_path)
