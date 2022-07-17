@@ -33,12 +33,12 @@ class ExtractManager:
         )
 
     def extract(self, input_path, force_extract=False):
-        is_extractable, extractor = self.extractor.is_extractable(input_path, return_extractor=True)
-        if not is_extractable:
+        extractor_format = self.extractor.infer_extractor_format(input_path)
+        if not extractor_format:
             return input_path
         output_path = self._get_output_path(input_path)
         if self._do_extract(output_path, force_extract):
-            self.extractor.extract(input_path, output_path, extractor=extractor)
+            self.extractor.extract(input_path, output_path, extractor_format)
         return output_path
 
 
