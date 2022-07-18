@@ -26,47 +26,46 @@ class Url(str):
 
 SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
 
+TRAIN_KEYWORDS = ["train", "training"]
+TEST_KEYWORDS = ["test", "testing", "eval", "evaluation"]
+VALIDATION_KEYWORDS = ["validation", "valid", "dev"]
+NON_WORDS_CHARS = "-._ 0-9"
+KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
+KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
+
 DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
-    str(Split.TRAIN): ["**[-._ /]train[-._ ]*", "train[-._ ]*", "**[-._ /]training[-._ ]*", "training[-._ ]*"],
+    str(Split.TRAIN): [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in TRAIN_KEYWORDS
+        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
+    ],
     str(Split.TEST): [
-        "**[-._ /]test[-._ ]*",
-        "test[-._ ]*",
-        "**[-._ /]testing[-._ ]*",
-        "testing[-._ ]*",
-        "**[-._ /]eval[-._ ]*",
-        "eval[-._ ]*",
-        "**[-._ /]evaluation[-._ ]*",
-        "evaluation[-._ ]*",
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in TEST_KEYWORDS
+        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
     ],
     str(Split.VALIDATION): [
-        "**[-._ /]dev[-._ ]*",
-        "dev[-._ ]*",
-        "**[-._ /]valid[-._ ]*",
-        "valid[-._ ]*",
-        "**[-._ /]validation[-._ ]*",
-        "validation[-._ ]*",
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in VALIDATION_KEYWORDS
+        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
     ],
 }
 
 DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
-    str(Split.TRAIN): ["train[-._ /]**", "**[-._ /]train[-._ /]**", "training[-._ /]**", "**[-._ /]training[-._ /]**"],
+    str(Split.TRAIN): [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in TRAIN_KEYWORDS
+        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
+    ],
     str(Split.TEST): [
-        "test[-._ /]**",
-        "**[-._ /]test[-._ /]**",
-        "testing[-._ /]**",
-        "**[-._ /]testing[-._ /]**",
-        "eval[-._ /]**",
-        "**[-._ /]eval[-._ /]**",
-        "evaluation[-._ /]**",
-        "**[-._ /]evaluation[-._ /]**",
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in TEST_KEYWORDS
+        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
     ],
     str(Split.VALIDATION): [
-        "dev[-._ /]**",
-        "**[-._ /]dev[-._ /]**",
-        "valid[-._ /]**",
-        "**[-._ /]valid[-._ /]**",
-        "validation[-._ /]**",
-        "**[-._ /]validation[-._ /]**",
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in VALIDATION_KEYWORDS
+        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
     ],
 }
 
