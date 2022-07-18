@@ -495,7 +495,19 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
 
 @contextmanager
 def mock_fs(file_paths: List[str]):
-    """context manager to set up a mock:// filesystem in sfspec containing the provided files"""
+    """
+    Context manager to set up a mock:// filesystem in fsspec containing the provided files
+
+    Example:
+
+    ```py
+    >>> with mock_fs(["data/train.txt", "data.test.txt"]) as fs:
+    ...     assert fsspec.get_filesystem_class("mock").__name__ == "DummyTestFS"
+    ...     assert type(fs).__name__ == "DummyTestFS"
+    ...     print(fs.glob("**"))
+    ["data", "data/train.txt", "data.test.txt"]
+    ```
+    """
 
     dir_paths = {file_path.rsplit("/")[0] for file_path in file_paths if "/" in file_path}
     fs_contents = [{"name": dir_path, "type": "directory"} for dir_path in dir_paths] + [
@@ -526,12 +538,6 @@ def mock_fs(file_paths: List[str]):
             if detail:
                 return files
             return [file["name"] for file in files]
-
-        @classmethod
-        def get_test_paths(cls, start_with=""):
-            """Helper to return directory and file paths with no details"""
-            all = [file["name"] for file in cls._fs_contents if file["name"].startswith(start_with)]
-            return all
 
         def _open(
             self,
@@ -609,27 +615,28 @@ def mock_fs(file_paths: List[str]):
         # With "dev" or "eval" without separators
         {"train": "developers_list.txt"},
         {"train": "data/seqeval_results.txt"},
+        {"train": "contest.txt"},
         # With supported separators
         {"test": "my.test.file.txt"},
         {"test": "my-test-file.txt"},
         {"test": "my_test_file.txt"},
         {"test": "my test file.txt"},
+        {"test": "test00001.txt"},
     ],
 )
 def test_get_data_files_patterns(data_file_per_split):
     data_file_per_split = {k: v if isinstance(v, list) else [v] for k, v in data_file_per_split.items()}
-    with mock_fs(
-        [file_path for split_file_paths in data_file_per_split.values() for file_path in split_file_paths]
-    ) as fs:
+    file_paths = [file_path for split_file_paths in data_file_per_split.values() for file_path in split_file_paths]
 
-        def resolver(pattern):
+    def resolver(pattern):
+        with mock_fs(file_paths) as fs:
             return [PurePath(file_path) for file_path in fs.glob(pattern) if fs.isfile(file_path)]
 
-        patterns_per_split = _get_data_files_patterns(resolver)
-        assert sorted(patterns_per_split.keys()) == sorted(data_file_per_split.keys())
-        for split, patterns in patterns_per_split.items():
-            matched = [file_path.as_posix() for pattern in patterns for file_path in resolver(pattern)]
-            assert matched == data_file_per_split[split]
+    patterns_per_split = _get_data_files_patterns(resolver)
+    assert sorted(patterns_per_split.keys()) == sorted(data_file_per_split.keys())
+    for split, patterns in patterns_per_split.items():
+        matched = [file_path.as_posix() for pattern in patterns for file_path in resolver(pattern)]
+        assert matched == data_file_per_split[split]
 
 
 @pytest.mark.parametrize(
