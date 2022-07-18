@@ -22,10 +22,13 @@ my_dataset_repository/
 
 ## Splits and file names
 
-🤗 Datasets automatically infer a dataset's train, validation, and test splits from the file names. Files that contain *train* in their names are considered part of the train split. The same idea applies to the test and validation split:
+🤗 Datasets automatically infer a dataset's train, validation, and test splits from the file names.
 
-- All the files that contain *test* in their names are considered part of the test split.
-- All the files that contain *valid* in their names are considered part of the validation split.
+All the files that contain a split name in their names (delimited by non-word characters, see below) are considered part of that split:
+
+- train split: `train.csv`, `my_train_file.csv`, `train1.csv`
+- validation split: `validation.csv`, `my_validation_file.csv`, `validation1.csv`
+- test split: `test.csv`, `my_test_file.csv`, `test1.csv`
 
 Here is an example where all the files are placed into a directory named `data`:
 
@@ -35,8 +38,12 @@ my_dataset_repository/
 └── data/
     ├── train.csv
     ├── test.csv
-    └── valid.csv
+    └── validation.csv
 ```
+
+Note that if a file contains *test* but is embedded in another word (e.g. `testfile.csv`), it's not counted as a test file.
+It must be delimited by non-word characters, e.g. `test_file.csv`.
+Supported delimiters are underscores, dashes, spaces, dots and numbers.
 
 ## Multiple files per split
 
@@ -58,7 +65,8 @@ Make sure all the files of your `train` set have *train* in their names (same fo
 Even if you add a prefix or suffix to `train` in the file name (like `my_train_file_00001.csv` for example),
 🤗 Datasets can still infer the appropriate split.
 
-For convenience, you can also place your data files into different directories. In this case, the split name is inferred from the directory name.
+For convenience, you can also place your data files into different directories.
+In this case, the split name is inferred from the directory name.
 
 ```
 my_dataset_repository/
@@ -79,6 +87,28 @@ my_dataset_repository/
 Eventually, you'll also be able to structure your repository to specify different dataset configurations. Stay tuned on this [issue](https://github.com/huggingface/datasets/issues/4578) for the latest updates! 
 
 </Tip>
+
+## Split names keywords
+
+Validation splits are sometimes called "dev", and test splits are called "eval".
+These other names are also supported.
+In particular, these keywords are equivalent:
+
+- train, training
+- validation, valid, dev
+- test, testing, eval, evaluation
+
+Therefore this is also a valid repository:
+
+```
+my_dataset_repository/
+├── README.md
+└── data/
+    ├── training.csv
+    ├── eval.csv
+    └── valid.csv
+```
+
 
 ## Custom split names
 
