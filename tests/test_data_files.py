@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import fsspec
 import pytest
-from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
+from fsspec.spec import AbstractFileSystem
 from huggingface_hub.hf_api import DatasetInfo
 
 from datasets.data_files import (
