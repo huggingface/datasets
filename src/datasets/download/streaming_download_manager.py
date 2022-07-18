@@ -230,6 +230,9 @@ def xisfile(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
     Returns:
         :obj:`bool`
     """
+    if path.startswith("https://huggingface.co") \
+            and os.path.splitext(os.path.basename(path))[1][1:] in BASE_KNOWN_EXTENSIONS:
+        return True
     main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
         return os.path.isfile(path)
