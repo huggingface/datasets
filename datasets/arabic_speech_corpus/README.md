@@ -123,23 +123,23 @@ An example from the dataset is:
 
 ### Curation Rationale
 
-Please refer to [PhD thesis](### Citation Information).
+Please refer to [PhD thesis](#Citation-Information).
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-Please refer to [PhD thesis](### Citation Information).
+Please refer to [PhD thesis](#Citation-Information).
 
 #### Who are the source language producers?
 
-Please refer to [PhD thesis](### Citation Information).
+Please refer to [PhD thesis](#Citation-Information).
 
 ### Annotations
 
 #### Annotation process
 
-Please refer to [PhD thesis](### Citation Information).
+Please refer to [PhD thesis](#Citation-Information).
 
 #### Who are the annotators?
 
