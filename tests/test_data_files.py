@@ -1,5 +1,4 @@
 import os
-from contextlib import contextmanager
 from pathlib import Path, PurePath
 from typing import List
 from unittest.mock import patch
@@ -493,18 +492,17 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
         assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
 
 
-@contextmanager
 def mock_fs(file_paths: List[str]):
     """
-    Context manager to set up a mock:// filesystem in fsspec containing the provided files
+    Set up a mock filesystem for fsspec containing the provided files
 
     Example:
 
     ```py
-    >>> with mock_fs(["data/train.txt", "data.test.txt"]) as fs:
-    ...     assert fsspec.get_filesystem_class("mock").__name__ == "DummyTestFS"
-    ...     assert type(fs).__name__ == "DummyTestFS"
-    ...     print(fs.glob("**"))
+    >>> fs = mock_fs(["data/train.txt", "data.test.txt"])
+    >>> assert fsspec.get_filesystem_class("mock").__name__ == "DummyTestFS"
+    >>> assert type(fs).__name__ == "DummyTestFS"
+    >>> print(fs.glob("**"))
     ["data", "data/train.txt", "data.test.txt"]
     ```
     """
@@ -516,14 +514,7 @@ def mock_fs(file_paths: List[str]):
 
     class DummyTestFS(AbstractFileSystem):
         protocol = "mock"
-        _file_class = AbstractBufferedFile
         _fs_contents = fs_contents
-
-        def __getitem__(self, name):
-            for item in self._fs_contents:
-                if item["name"] == name:
-                    return item
-            raise IndexError(f"{name} not found!")
 
         def ls(self, path, detail=True, refresh=True, **kwargs):
             if kwargs.pop("strip_proto", True):
@@ -539,27 +530,7 @@ def mock_fs(file_paths: List[str]):
                 return files
             return [file["name"] for file in files]
 
-        def _open(
-            self,
-            path,
-            mode="rb",
-            block_size=None,
-            autocommit=True,
-            cache_options=None,
-            **kwargs,
-        ):
-            return self._file_class(
-                self,
-                path,
-                mode,
-                block_size,
-                autocommit,
-                cache_options=cache_options,
-                **kwargs,
-            )
-
-    with patch.dict(fsspec.registry.target, {"mock": DummyTestFS}):
-        yield DummyTestFS()
+    return DummyTestFS()
 
 
 @pytest.mark.parametrize(
@@ -627,10 +598,10 @@ def mock_fs(file_paths: List[str]):
 def test_get_data_files_patterns(data_file_per_split):
     data_file_per_split = {k: v if isinstance(v, list) else [v] for k, v in data_file_per_split.items()}
     file_paths = [file_path for split_file_paths in data_file_per_split.values() for file_path in split_file_paths]
+    fs = mock_fs(file_paths)
 
     def resolver(pattern):
-        with mock_fs(file_paths) as fs:
-            return [PurePath(file_path) for file_path in fs.glob(pattern) if fs.isfile(file_path)]
+        return [PurePath(file_path) for file_path in fs.glob(pattern) if fs.isfile(file_path)]
 
     patterns_per_split = _get_data_files_patterns(resolver)
     assert sorted(patterns_per_split.keys()) == sorted(data_file_per_split.keys())
