@@ -123,31 +123,31 @@ An example from the dataset is:
 
 ### Curation Rationale
 
-[Needs More Information]
+Please refer to [PhD thesis](### Citation Information).
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[Needs More Information]
+Please refer to [PhD thesis](### Citation Information).
 
 #### Who are the source language producers?
 
-[Needs More Information]
+Please refer to [PhD thesis](### Citation Information).
 
 ### Annotations
 
 #### Annotation process
 
-[Needs More Information]
+Please refer to [PhD thesis](### Citation Information).
 
 #### Who are the annotators?
 
-[Needs More Information]
+Nawar Halabi and two anonymous Arabic language teachers.
 
 ### Personal and Sensitive Information
 
-The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset.
+The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset. The voice talent agreed in writing for their voice to be used in speech technologies as long as they stay anonymous.
 
 ## Considerations for Using the Data
 
@@ -186,4 +186,8 @@ The corpus was recorded in south Levantine Arabic (Damascian accent) using a pro
 
 ### Contributions
 
-Thanks to [@zaidalyafeai](https://github.com/zaidalyafeai) for adding this dataset.
+This dataset was created by:
+* Nawar Halabi [@nawarhalabi](https://github.com/nawarhalabi) main creator and annotator.
+* Two anonymous Arabic langauge teachers as annotators.
+* One anonymous voice talent.
+* Thanks to [@zaidalyafeai](https://github.com/zaidalyafeai) for adding this dataset.
