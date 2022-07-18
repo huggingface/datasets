@@ -24,11 +24,11 @@ my_dataset_repository/
 
 🤗 Datasets automatically infer a dataset's train, validation, and test splits from the file names.
 
-Files that contain *train* in their names are considered part of the train split, e.g. `train.csv`, `my_train_file.csv`, etc.
-The same idea applies to the test and validation split:
+All the files that contain a split name in their names (delimited by non-word characters, see below) are considered part of that split:
 
-- All the files that contain *test* in their names are considered part of the test split, e.g. `test.csv`, `my_test_file.csv`
-- All the files that contain *validation* in their names are considered part of the validation split, e.g. `validation.csv`, `my_validation_file.csv`
+- train split: `train.csv`, `my_train_file.csv`, `train1.csv`
+- validation split: `validation.csv`, `my_validation_file.csv`, `validation1.csv`
+- test split: `test.csv`, `my_test_file.csv`, `test1.csv`
 
 Here is an example where all the files are placed into a directory named `data`:
 
@@ -41,7 +41,9 @@ my_dataset_repository/
     └── validation.csv
 ```
 
-Note that if a file contains *test* but is embedded in another word (e.g. `contest.csv`), it's not counted as a test file.
+Note that if a file contains *test* but is embedded in another word (e.g. `testfile.csv`), it's not counted as a test file.
+It must be delimited by non-word characters, e.g. `test_file.csv`.
+Supported delimiters are underscores, dashes, spaces, dots and numbers.
 
 ## Multiple files per split
 
@@ -88,7 +90,7 @@ Eventually, you'll also be able to structure your repository to specify differen
 
 ## Split names keywords
 
-Train/validation/test splits are sometimes called train/dev/test, or sometimes train & eval sets.
+Validation splits are sometimes called "dev", and test splits are called "eval".
 These other names are also supported.
 In particular, these keywords are equivalent:
 
