@@ -205,7 +205,7 @@ def require_torchaudio(test_case):
 
     These tests are skipped when torchaudio isn't installed.
     """
-    if find_spec("sox") is None:
+    if find_spec("torchaudio") is None:
         return unittest.skip("test requires 'torchaudio'")(test_case)
     return test_case
 
