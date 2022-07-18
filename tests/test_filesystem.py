@@ -60,12 +60,18 @@ def test_is_remote_filesystem():
     assert is_remote is False
 
 
-@require_zstandard
-@require_lz4
 @pytest.mark.parametrize("compression_fs_class", COMPRESSION_FILESYSTEMS)
 def test_compression_filesystems(compression_fs_class, gz_file, bz2_file, lz4_file, zstd_file, xz_file, text_file):
     input_paths = {"gzip": gz_file, "xz": xz_file, "zstd": zstd_file, "bz2": bz2_file, "lz4": lz4_file}
-    input_path = str(input_paths[compression_fs_class.protocol])
+    input_path = input_paths[compression_fs_class.protocol]
+    if input_path is None:
+        reason = f"for '{compression_fs_class.protocol}' compression protocol, "
+        if compression_fs_class.protocol == "lz4":
+            reason += require_lz4.kwargs["reason"]
+        elif compression_fs_class.protocol == "zstd":
+            reason += require_zstandard.kwargs["reason"]
+        pytest.skip(reason)
+    input_path = str(input_path)
     fs = fsspec.filesystem(compression_fs_class.protocol, fo=input_path)
     assert isinstance(fs, compression_fs_class)
     expected_filename = os.path.basename(input_path)
