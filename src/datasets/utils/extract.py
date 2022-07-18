@@ -179,6 +179,20 @@ class SevenZipExtractor(MagicNumberBaseExtractor):
             archive.extractall(output_path)
 
 
+class Lz4Extractor(MagicNumberBaseExtractor):
+    magic_number = b"\x04\x22\x4D\x18"
+
+    @staticmethod
+    def extract(input_path: str, output_path: str) -> None:
+        if not config.LZ4_AVAILABLE:
+            raise OSError("Please pip install lz4")
+        import lz4.frame
+
+        with lz4.frame.open(input_path, "rb") as compressed_file:
+            with open(output_path, "wb") as extracted_file:
+                shutil.copyfileobj(compressed_file, extracted_file)
+
+
 class Extractor:
     #  Put zip file to the last, b/c it is possible wrongly detected as zip (I guess it means: as tar or gzip)
     extractors = {
@@ -190,6 +204,7 @@ class Extractor:
         "zstd": ZstdExtractor,
         "bz2": Bzip2Extractor,
         "7z": SevenZipExtractor,
+        "lz4": Lz4Extractor,
     }
 
     @classmethod

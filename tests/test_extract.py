@@ -4,6 +4,7 @@ from datasets.utils.extract import (
     Bzip2Extractor,
     Extractor,
     GzipExtractor,
+    Lz4Extractor,
     SevenZipExtractor,
     TarExtractor,
     XzExtractor,
@@ -11,18 +12,28 @@ from datasets.utils.extract import (
     ZstdExtractor,
 )
 
-from .utils import require_py7zr, require_zstandard
+from .utils import require_lz4, require_py7zr, require_zstandard
 
 
 @pytest.mark.parametrize(
     "compression_format, is_archive",
-    [("7z", True), ("bz2", False), ("gzip", False), ("tar", True), ("xz", False), ("zip", True), ("zstd", False)],
+    [
+        ("7z", True),
+        ("bz2", False),
+        ("gzip", False),
+        ("lz4", False),
+        ("tar", True),
+        ("xz", False),
+        ("zip", True),
+        ("zstd", False),
+    ],
 )
 def test_base_extractors(
     compression_format,
     is_archive,
     bz2_file,
     gz_file,
+    lz4_file,
     seven_zip_file,
     tar_file,
     xz_file,
@@ -35,6 +46,7 @@ def test_base_extractors(
         "7z": (seven_zip_file, SevenZipExtractor),
         "bz2": (bz2_file, Bzip2Extractor),
         "gzip": (gz_file, GzipExtractor),
+        "lz4": (lz4_file, Lz4Extractor),
         "tar": (tar_file, TarExtractor),
         "xz": (xz_file, XzExtractor),
         "zip": (zip_file, ZipExtractor),
@@ -45,6 +57,8 @@ def test_base_extractors(
         reason = f"for '{compression_format}' compression_format, "
         if compression_format == "7z":
             reason += require_py7zr.kwargs["reason"]
+        elif compression_format == "lz4":
+            reason += require_lz4.kwargs["reason"]
         elif compression_format == "zstd":
             reason += require_zstandard.kwargs["reason"]
         pytest.skip(reason)
@@ -64,13 +78,23 @@ def test_base_extractors(
 
 @pytest.mark.parametrize(
     "compression_format, is_archive",
-    [("7z", True), ("bz2", False), ("gzip", False), ("tar", True), ("xz", False), ("zip", True), ("zstd", False)],
+    [
+        ("7z", True),
+        ("bz2", False),
+        ("gzip", False),
+        ("lz4", False),
+        ("tar", True),
+        ("xz", False),
+        ("zip", True),
+        ("zstd", False),
+    ],
 )
 def test_extractor(
     compression_format,
     is_archive,
     bz2_file,
     gz_file,
+    lz4_file,
     seven_zip_file,
     tar_file,
     xz_file,
@@ -83,6 +107,7 @@ def test_extractor(
         "7z": seven_zip_file,
         "bz2": bz2_file,
         "gzip": gz_file,
+        "lz4": lz4_file,
         "tar": tar_file,
         "xz": xz_file,
         "zip": zip_file,
@@ -93,6 +118,8 @@ def test_extractor(
         reason = f"for '{compression_format}' compression_format, "
         if compression_format == "7z":
             reason += require_py7zr.kwargs["reason"]
+        elif compression_format == "lz4":
+            reason += require_lz4.kwargs["reason"]
         elif compression_format == "zstd":
             reason += require_zstandard.kwargs["reason"]
         pytest.skip(reason)

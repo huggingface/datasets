@@ -40,6 +40,7 @@ _run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
 _run_packaged_tests = parse_flag_from_env("RUN_PACKAGED", default=True)
 
 
+require_lz4 = pytest.mark.skipif(not config.LZ4_AVAILABLE, reason="test requires lz4")
 require_py7zr = pytest.mark.skipif(not config.PY7ZR_AVAILABLE, reason="test requires py7zr")
 require_zstandard = pytest.mark.skipif(not config.ZSTANDARD_AVAILABLE, reason="test requires zstandard")
 
@@ -206,18 +207,6 @@ def require_torchaudio(test_case):
     """
     if find_spec("sox") is None:
         return unittest.skip("test requires 'torchaudio'")(test_case)
-    return test_case
-
-
-def require_lz4(test_case):
-    """
-    Decorator marking a test that requires lz4.
-
-    These tests are skipped when lz4 isn't installed.
-
-    """
-    if not config.LZ4_AVAILABLE:
-        test_case = unittest.skip("test requires lz4")(test_case)
     return test_case
 
 
