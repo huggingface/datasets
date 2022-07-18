@@ -43,6 +43,18 @@ class ExtractManager:
 
 
 class BaseExtractor(ABC):
+    @classmethod
+    @abstractmethod
+    def is_extractable(cls, path: str, **kwargs) -> bool:
+        ...
+
+    @staticmethod
+    @abstractmethod
+    def extract(input_path: str, output_path: str) -> None:
+        ...
+
+
+class MagicNumberBaseExtractor(BaseExtractor, ABC):
     magic_number = b""
 
     @staticmethod
@@ -51,7 +63,6 @@ class BaseExtractor(ABC):
             return f.read(magic_number_length)
 
     @classmethod
-    @abstractmethod
     def is_extractable(cls, path: str, magic_number: bytes = b"") -> bool:
         if not magic_number:
             try:
@@ -59,11 +70,6 @@ class BaseExtractor(ABC):
             except OSError:
                 return False
         return magic_number.startswith(cls.magic_number)
-
-    @staticmethod
-    @abstractmethod
-    def extract(input_path: str, output_path: str) -> None:
-        ...
 
 
 class TarExtractor(BaseExtractor):
@@ -79,7 +85,7 @@ class TarExtractor(BaseExtractor):
         tar_file.close()
 
 
-class GzipExtractor(BaseExtractor):
+class GzipExtractor(MagicNumberBaseExtractor):
     magic_number = b"\x1F\x8B"
 
     @staticmethod
@@ -102,7 +108,7 @@ class ZipExtractor(BaseExtractor):
             zip_file.close()
 
 
-class XzExtractor(BaseExtractor):
+class XzExtractor(MagicNumberBaseExtractor):
     magic_number = b"\xFD\x37\x7A\x58\x5A\x00"
 
     @staticmethod
@@ -135,7 +141,7 @@ class RarExtractor(BaseExtractor):
         rf.close()
 
 
-class ZstdExtractor(BaseExtractor):
+class ZstdExtractor(MagicNumberBaseExtractor):
     magic_number = b"\x28\xb5\x2F\xFD"
 
     @staticmethod
@@ -149,7 +155,7 @@ class ZstdExtractor(BaseExtractor):
             dctx.copy_stream(ifh, ofh)
 
 
-class Bzip2Extractor(BaseExtractor):
+class Bzip2Extractor(MagicNumberBaseExtractor):
     magic_number = b"\x42\x5A\x68"
 
     @staticmethod
@@ -159,7 +165,7 @@ class Bzip2Extractor(BaseExtractor):
                 shutil.copyfileobj(compressed_file, extracted_file)
 
 
-class SevenZipExtractor(BaseExtractor):
+class SevenZipExtractor(MagicNumberBaseExtractor):
     magic_number = b"\x37\x7A\xBC\xAF\x27\x1C"
 
     @staticmethod
@@ -200,7 +206,7 @@ class Extractor:
     @staticmethod
     def _read_magic_number(path: str, magic_number_length: int):
         try:
-            return BaseExtractor.read_magic_number(path, magic_number_length=magic_number_length)
+            return MagicNumberBaseExtractor.read_magic_number(path, magic_number_length=magic_number_length)
         except OSError:
             return b""
 
