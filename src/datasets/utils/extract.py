@@ -179,7 +179,7 @@ class SevenZipExtractor(MagicNumberBaseExtractor):
             archive.extractall(output_path)
 
 
-class Lz4Extractor(BaseExtractor):
+class Lz4Extractor(MagicNumberBaseExtractor):
     magic_number = b"\x04\x22\x4D\x18"
 
     @staticmethod
