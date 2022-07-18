@@ -3,10 +3,10 @@ import os
 import re
 from pathlib import Path
 
+import fsspec
 import pytest
 from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
 
-import datasets
 from datasets.download.streaming_download_manager import (
     StreamingDownloadManager,
     _as_posix,
@@ -107,12 +107,6 @@ class DummyTestFS(AbstractFileSystem):
             return files
         return [file["name"] for file in files]
 
-    @classmethod
-    def get_test_paths(cls, start_with=""):
-        """Helper to return directory and file paths with no details"""
-        all = [file["name"] for file in cls._fs_contents if file["name"].startswith(start_with)]
-        return all
-
     def _open(
         self,
         path,
@@ -135,9 +129,7 @@ class DummyTestFS(AbstractFileSystem):
 
 @pytest.fixture
 def mock_fsspec(monkeypatch):
-    dummy_registry = datasets.download.streaming_download_manager.fsspec.registry.target.copy()
-    dummy_registry["mock"] = DummyTestFS
-    monkeypatch.setattr("datasets.download.streaming_download_manager.fsspec.registry.target", dummy_registry)
+    monkeypatch.setitem(fsspec.registry.target, "mock", DummyTestFS)
 
 
 def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
