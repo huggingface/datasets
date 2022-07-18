@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - token-classification
 task_ids:
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: null
 pretty_name: Arabic POS Dialect
 ---

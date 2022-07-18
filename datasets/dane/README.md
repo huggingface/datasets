@@ -17,7 +17,7 @@ task_categories:
 - token-classification
 task_ids:
 - named-entity-recognition
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: dane
 pretty_name: DaNE
 ---
