@@ -686,14 +686,20 @@ def test_streaming_dl_manager_download_and_extract_with_join(input_path, filenam
     assert output_path == expected_path
 
 
-@require_zstandard
-@require_lz4
 @pytest.mark.parametrize("compression_fs_class", COMPRESSION_FILESYSTEMS)
 def test_streaming_dl_manager_extract_all_supported_single_file_compression_types(
     compression_fs_class, gz_file, xz_file, zstd_file, bz2_file, lz4_file, text_file
 ):
     input_paths = {"gzip": gz_file, "xz": xz_file, "zstd": zstd_file, "bz2": bz2_file, "lz4": lz4_file}
-    input_path = str(input_paths[compression_fs_class.protocol])
+    input_path = input_paths[compression_fs_class.protocol]
+    if input_path is None:
+        reason = f"for '{compression_fs_class.protocol}' compression protocol, "
+        if compression_fs_class.protocol == "lz4":
+            reason += require_lz4.kwargs["reason"]
+        elif compression_fs_class.protocol == "zstd":
+            reason += require_zstandard.kwargs["reason"]
+        pytest.skip(reason)
+    input_path = str(input_path)
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.extract(input_path)
     path = os.path.basename(input_path)
