@@ -86,7 +86,7 @@ task_ids:
 - text-classification-other-paraphrase-identification
 - text-retrieval-other-parallel-sentence-retrieval
 - named-entity-recognition
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: xtreme
 configs:
 - MLQA.ar.ar
