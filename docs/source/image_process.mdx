@@ -229,7 +229,7 @@ Create a function to apply the transform to a batch of examples:
 ...     return {'image': images, 'bbox': bboxes, 'category': categories}
 ```
 
-Use the [`~Dataset.set_transform`] function to apply the transform on-the-fly which consumes less disk space. This function is useful if you only need to access the examples once:
+Use the [`~Dataset.set_transform`] function to apply the transform on-the-fly which consumes less disk space. Note that the randomness of data augmentation may return a different image if you access the same example twice. It is especially useful when training a model with several epochs.
 
 ```py
 >>> ds['train'].set_transform(transforms)
