@@ -699,7 +699,6 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
         elif compression_fs_class.protocol == "zstd":
             reason += require_zstandard.kwargs["reason"]
         pytest.skip(reason)
-    input_path = str(input_path)
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.extract(input_path)
     path = os.path.basename(input_path)
