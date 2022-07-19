@@ -951,7 +951,7 @@ class DatasetBuilder:
                     self.info.post_processed = PostProcessedInfo()
                 if self.info.post_processed.resources_checksums is None:
                     self.info.post_processed.resources_checksums = {}
-                self.info.post_processed.resources_checksums[split] = recorded_checksums
+                self.info.post_processed.resources_checksums[str(split)] = recorded_checksums
                 self.info.post_processing_size = sum(
                     checksums_dict["num_bytes"]
                     for split_checksums_dicts in self.info.post_processed.resources_checksums.values()
