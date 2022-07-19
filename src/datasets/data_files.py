@@ -14,7 +14,7 @@ from .utils.file_utils import hf_hub_url, is_relative_path, is_remote_url, reque
 from .utils.py_utils import string_to_dict
 
 
-DEFAULT_SPLIT = Split.TRAIN
+SANITIZED_DEFAULT_SPLIT = str(Split.TRAIN)
 
 
 logger = logging.get_logger(__name__)
@@ -98,13 +98,13 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
         patterns: dictionary of split_name -> list_of _atterns
     """
     if isinstance(patterns, dict):
-        return {key: value if isinstance(value, list) else [value] for key, value in patterns.items()}
+        return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}
     elif isinstance(patterns, str):
-        return {DEFAULT_SPLIT: [patterns]}
+        return {SANITIZED_DEFAULT_SPLIT: [patterns]}
     elif isinstance(patterns, list):
-        return {DEFAULT_SPLIT: patterns}
+        return {SANITIZED_DEFAULT_SPLIT: patterns}
     else:
-        return {DEFAULT_SPLIT: list(patterns)}
+        return {SANITIZED_DEFAULT_SPLIT: list(patterns)}
 
 
 def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> bool:
