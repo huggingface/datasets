@@ -95,17 +95,17 @@ Now you can take a look at the augmented image by indexing into the `pixel_value
 
 ### Object Detection
 
-Next, let's see how to apply transformations to object detection datasets. For this we'll use [Albumentations](https://albumentations.ai/docs/), following their object detection [tutorial](https://albumentations.ai/docs/examples/example_bboxes/).
+Object detection models identify something in an image, and object detection datasets are used for applications such as autonomous driving and detecting natural hazards like wildfire. This guide will show you how to apply transformations to an object detection dataset following the [tutorial](https://albumentations.ai/docs/examples/example_bboxes/) from [Albumentations](https://albumentations.ai/docs/).
 
-To run these examples, make sure you have up to date versions of `albumentations` and `cv2` installed:
+To run these examples, make sure you have up-to-date versions of `albumentations` and `cv2` installed:
 
 ```
 pip install -U albumentations opencv-python
 ```
 
-In this example, the [`cppe-5`](https://huggingface.co/datasets/cppe-5) dataset is used, which is a dataset for identifying medical personal protective equipments (PPEs) in the context of the COVID-19 pandemic.
+In this example, you'll use the [`cppe-5`](https://huggingface.co/datasets/cppe-5) dataset for identifying medical personal protective equipment (PPE) in the context of the COVID-19 pandemic.
 
-You can load the dataset and take a look at an example:
+Load the dataset and take a look at an example:
 
 ```py
 from datasets import load_dataset
@@ -129,16 +129,16 @@ from datasets import load_dataset
 The dataset has the following fields:
 
 - `image`: PIL.Image.Image object containing the image.
-- `image_id`: The image ID.
+- `image_id`: the image ID.
 - `height`: The image height.
 - `width`: The image width.
-- `objects`: a dictionary containing bounding box metadata for the objects present on the image
-  - `id`: the annotation id
+- `objects`: a dictionary containing bounding box metadata for the objects in the image:
+  - `id`: the annotation id.
   - `area`: the area of the bounding box
   - `bbox`: the object's bounding box (in the [coco](https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/#coco) format)
   - `category`: the object's category, with possible values including `Coverall (0)`, `Face_Shield (1)`, `Gloves (2)`, `Goggles (3)` and `Mask (4)`
 
-You can visualize the bboxes on the image using some internal torch utilities. But, to do that, you will need to reference the `datasets.ClassLabel` feature associated with the category IDs so you can look up the string labels.
+You can visualize the `bboxes` on the image using some internal torch utilities. To do that, you will need to reference the [`~datasets.ClassLabel`] feature associated with the category IDs so you can look up the string labels:
 
     
 ```py
@@ -167,9 +167,9 @@ You can visualize the bboxes on the image using some internal torch utilities. B
 </div>
 
 
-Using `albumentations`, we can apply transforms that will effect the Image while also updating the bounding boxes accordingly. In this case, the image is resized to (480, 480), flipped horizontally, and brightened. 
+With `albumentations`, you can apply transforms that will affect the image while also updating the `bboxes` accordingly. In this case, the image is resized to (480, 480), flipped horizontally, and brightened. 
 
-Note that `albumentations` is expecting the image to be in BGR format, not RGB, so we'll have to convert our image first before applying the transform.
+`albumentations` expects the image to be in BGR format, not RGB, so you'll have to convert the image before applying the transform.
 
 ```py
 >>> import albumentations as A
@@ -190,7 +190,7 @@ Note that `albumentations` is expecting the image to be in BGR format, not RGB, 
 ... )
 ```
 
-Now when we visualize the result, the image should be flipped but the boxes should still be in the right places.
+Now when you visualize the result, the image should be flipped, but the `bboxes` should still be in the right places.
 
 ```py
 >>> image = torch.tensor(out['image']).flip(-1).permute(2, 0, 1)
@@ -229,13 +229,13 @@ Create a function to apply the transform to a batch of examples:
 ...     return {'image': images, 'bbox': bboxes, 'category': categories}
 ```
 
-Use the [`~Dataset.set_transform`] function to apply the transform on-the-fly which consumes less disk space. Note that the randomness of data augmentation may return a different image if you access the same example twice. It is especially useful when training a model with several epochs.
+Use the [`~Dataset.set_transform`] function to apply the transform on-the-fly which consumes less disk space. The randomness of data augmentation may return a different image if you access the same example twice. It is especially useful when training a model for several epochs.
 
 ```py
 >>> ds['train'].set_transform(transforms)
 ```
 
-Verify the transform is working by visualizing the 10th example:
+You can verify the transform works by visualizing the 10th example:
 
 ```py
 >>> example = ds['train'][10]
