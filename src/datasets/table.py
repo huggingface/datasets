@@ -1478,7 +1478,10 @@ class ConcatenationTable(Table):
         Returns:
             :class:`datasets.table.Table`:
         """
+        from .features import Features
+        
         table = table_cast(self.table, target_schema, *args, **kwargs)
+        target_features = Features.from_arrow_schema(target_schema)
         blocks = []
         for subtables in self.blocks:
             new_tables = []
@@ -1487,8 +1490,8 @@ class ConcatenationTable(Table):
                 subfields = []
                 for name in subtable.column_names:
                     subfields.append(fields.pop(next(i for i, field in enumerate(fields) if field.name == name)))
-                subschema = pa.schema(subfields)
-                subschema = subschema.with_metadata(target_schema.metadata)
+                subfeatures = Features({subfield.name: target_features[subfield.name] for subfield in subfields})
+                subschema = subfeatures.arrow_schema
                 new_tables.append(subtable.cast(subschema, *args, **kwargs))
             blocks.append(new_tables)
         return ConcatenationTable(table, blocks)
