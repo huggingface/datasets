@@ -129,14 +129,14 @@ from datasets import load_dataset
 The dataset has the following fields:
 
 - `image`: PIL.Image.Image object containing the image.
-- `image_id`: the image ID.
+- `image_id`: The image ID.
 - `height`: The image height.
 - `width`: The image width.
-- `objects`: a dictionary containing bounding box metadata for the objects in the image:
-  - `id`: the annotation id.
-  - `area`: the area of the bounding box
-  - `bbox`: the object's bounding box (in the [coco](https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/#coco) format)
-  - `category`: the object's category, with possible values including `Coverall (0)`, `Face_Shield (1)`, `Gloves (2)`, `Goggles (3)` and `Mask (4)`
+- `objects`: A dictionary containing bounding box metadata for the objects in the image:
+  - `id`: The annotation id.
+  - `area`: The area of the bounding box.
+  - `bbox`: The object's bounding box (in the [coco](https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/#coco) format).
+  - `category`: The object's category, with possible values including `Coverall (0)`, `Face_Shield (1)`, `Gloves (2)`, `Goggles (3)` and `Mask (4)`.
 
 You can visualize the `bboxes` on the image using some internal torch utilities. To do that, you will need to reference the [`~datasets.ClassLabel`] feature associated with the category IDs so you can look up the string labels:
 
