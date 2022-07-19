@@ -248,7 +248,7 @@ class Extractor:
     @classmethod
     def extract(cls, input_path, output_path, extractor_format=None, extractor="deprecated"):
         # Prevent parallel extractions
-        lock_path = input_path + ".lock"
+        lock_path = str(input_path) + ".lock"
         with FileLock(lock_path):
             shutil.rmtree(output_path, ignore_errors=True)
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
