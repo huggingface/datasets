@@ -1479,7 +1479,7 @@ class ConcatenationTable(Table):
             :class:`datasets.table.Table`:
         """
         from .features import Features
-        
+
         table = table_cast(self.table, target_schema, *args, **kwargs)
         target_features = Features.from_arrow_schema(target_schema)
         blocks = []

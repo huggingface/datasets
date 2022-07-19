@@ -725,6 +725,22 @@ def test_concatenation_table_pickle(
     assert_index_attributes_equal(table, unpickled_table)
 
 
+def test_concat_tables_with_features_metadata(arrow_file, in_memory_pa_table):
+    input_features = Features.from_arrow_schema(in_memory_pa_table.schema)
+    input_features["id"] = Value("int64", id="my_id")
+    intput_schema = input_features.arrow_schema
+    t0 = in_memory_pa_table.replace_schema_metadata(intput_schema.metadata)
+    t1 = MemoryMappedTable.from_file(arrow_file)
+    tables = [t0, t1]
+    concatenated_table = concat_tables(tables, axis=0)
+    output_schema = concatenated_table.schema
+    output_features = Features.from_arrow_schema(output_schema)
+    assert output_schema == intput_schema
+    assert output_schema.metadata == intput_schema.metadata
+    assert output_features == input_features
+    assert output_features["id"].id == "my_id"
+
+
 @pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
 def test_concatenation_table_slice(
     blocks_type, in_memory_pa_table, in_memory_blocks, memory_mapped_blocks, mixed_in_memory_and_memory_mapped_blocks
@@ -811,6 +827,27 @@ def test_concatenation_table_cast(
     table = ConcatenationTable.from_blocks(blocks).cast(schema)
     assert table.table == in_memory_pa_table.cast(schema)
     assert isinstance(table, ConcatenationTable)
+
+
+@pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
+def test_concat_tables_cast_with_features_metadata(
+    blocks_type, in_memory_pa_table, in_memory_blocks, memory_mapped_blocks, mixed_in_memory_and_memory_mapped_blocks
+):
+    blocks = {
+        "in_memory": in_memory_blocks,
+        "memory_mapped": memory_mapped_blocks,
+        "mixed": mixed_in_memory_and_memory_mapped_blocks,
+    }[blocks_type]
+    input_features = Features.from_arrow_schema(in_memory_pa_table.schema)
+    input_features["id"] = Value("int64", id="my_id")
+    intput_schema = input_features.arrow_schema
+    concatenated_table = ConcatenationTable.from_blocks(blocks).cast(intput_schema)
+    output_schema = concatenated_table.schema
+    output_features = Features.from_arrow_schema(output_schema)
+    assert output_schema == intput_schema
+    assert output_schema.metadata == intput_schema.metadata
+    assert output_features == input_features
+    assert output_features["id"].id == "my_id"
 
 
 @pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
