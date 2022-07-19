@@ -689,10 +689,10 @@ def _get_single_origin_metadata_locally_or_by_urls(
 ) -> Tuple[str]:
     if isinstance(data_file, Url):
         data_file = str(data_file)
-        return request_etag(data_file, use_auth_token=use_auth_token),
+        return (request_etag(data_file, use_auth_token=use_auth_token),)
     else:
         data_file = str(data_file.resolve())
-        return str(os.path.getmtime(data_file)),
+        return (str(os.path.getmtime(data_file)),)
 
 
 def _get_origin_metadata_locally_or_by_urls(
