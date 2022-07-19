@@ -604,7 +604,7 @@ def test_get_data_files_patterns(data_file_per_split):
         return [PurePath(file_path) for file_path in fs.glob(pattern) if fs.isfile(file_path)]
 
     patterns_per_split = _get_data_files_patterns(resolver)
-    assert sorted(patterns_per_split.keys()) == sorted(data_file_per_split.keys())
+    assert patterns_per_split.keys() == data_file_per_split.keys()
     for split, patterns in patterns_per_split.items():
         matched = [file_path.as_posix() for pattern in patterns for file_path in resolver(pattern)]
         assert matched == data_file_per_split[split]
