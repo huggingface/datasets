@@ -27,7 +27,7 @@ task_categories:
 task_ids:
 - language-modeling
 - masked-language-modeling
-- part-of-speech-tagging
+- part-of-speech
 - text-classification-other-word-sense-disambiguation
 - token-classification-other-lemmatization
 paperswithcode_id: null
