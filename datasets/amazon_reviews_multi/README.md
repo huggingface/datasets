@@ -192,7 +192,7 @@ Published by Phillip Keung, Yichao Lu, György Szarvas, and Noah A. Smith. Manag
 
 ### Licensing Information
 
-Amazon has licensed this dataset under its own agreement, to be found at the dataset webpage here:
+Amazon has licensed this dataset under its own agreement for non-commercial research usage only. This licence is quite restrictive preventing use anywhere a fee is received including paid for internships etc.  A copy of the agreement can be found at the dataset webpage here:
 https://docs.opendata.aws/amazon-reviews-ml/license.txt
 
 ### Citation Information
