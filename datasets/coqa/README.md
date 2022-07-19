@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: coqa
 pretty_name: Conversational Question Answering Challenge

@@ -3,7 +3,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - ar
 - da
 - de
@@ -12,7 +12,7 @@ languages:
 - lb
 - nl
 - pt
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - multilingual

@@ -4,10 +4,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found, other
-languages:
+language:
 - en
-licenses:
-- agpl-3.0-or-later
+license:
+- agpl-3.0
 multilinguality:
 - monolingual
 size_categories:

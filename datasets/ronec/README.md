@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - expert-generated
 - found
-languages:
+language:
 - ro
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual

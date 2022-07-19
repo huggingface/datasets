@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - am
 - ha
 - ig
@@ -15,7 +15,7 @@ languages:
 - wo
 - yo
 
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

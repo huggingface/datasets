@@ -18,7 +18,6 @@
 
 
 import json
-import os
 import re
 
 import datasets
@@ -26,6 +25,10 @@ import datasets
 
 logger = datasets.logging.get_logger(__name__)
 
+
+_HOMEPAGE = "https://github.com/google-research/google-research/tree/master/cfq"
+
+_LICENSE = "CC BY 4.0"
 
 _CITATION = """
 @inproceedings{Keysers2020,
@@ -69,7 +72,7 @@ class CfqConfig(datasets.BuilderConfig):
         super(CfqConfig, self).__init__(
             name=name, version=datasets.Version("1.0.1"), description=_DESCRIPTION, **kwargs
         )
-        self.split_file = os.path.join(directory, name + ".json")
+        self.splits_path = f"cfq/{directory}/{name}.json"
 
 
 _QUESTION = "question"
@@ -102,27 +105,23 @@ class Cfq(datasets.GeneratorBasedBuilder):
                 }
             ),
             supervised_keys=(_QUESTION, _QUERY),
-            homepage="https://github.com/google-research/google-research/tree/master/cfq",
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_DATA_URL)
-        data_dir = os.path.join(data_dir, "cfq")
+        archive_path = dl_manager.download(_DATA_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
+                name=split,
                 gen_kwargs={
-                    "base_directory": data_dir,
-                    "splits_file": self.config.split_file,
-                    "split_id": "trainIdxs",
+                    "data_files": dl_manager.iter_archive(archive_path),
+                    "split_id": f"{split}Idxs",
                 },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"base_directory": data_dir, "splits_file": self.config.split_file, "split_id": "testIdxs"},
-            ),
+            )
+            for split in [datasets.Split.TRAIN, datasets.Split.TEST]
         ]
 
     def _scrub_json(self, content):
@@ -131,22 +130,38 @@ class Cfq(datasets.GeneratorBasedBuilder):
         # For the 4GB dataset file it requires more than 40GB of RAM and takes 3min.
         # There are more efficient libraries but in order to avoid additional
         # dependencies we use a simple (perhaps somewhat brittle) regexp to reduce
-        # the content to only what is needed. This takes 1min to execute but
-        # afterwards loading requires only 500MB or RAM and is done in 2s.
-        regex = re.compile(r'("%s":\s*"[^"]*").*?("%s":\s*"[^"]*")' % (_QUESTION_FIELD, _QUERY_FIELD), re.DOTALL)
-        return "[" + ",".join(["{" + m.group(1) + "," + m.group(2) + "}" for m in regex.finditer(content)]) + "]"
+        # the content to only what is needed.
+        question_regex = re.compile(r'("%s":\s*"[^"]*")' % _QUESTION_FIELD)
+        query_regex = re.compile(r'("%s":\s*"[^"]*")' % _QUERY_FIELD)
+        question_match = None
+        for line in content:
+            line = line.decode("utf-8")
+            if not question_match:
+                question_match = question_regex.match(line)
+            else:
+                query_match = query_regex.match(line)
+                if query_match:
+                    yield json.loads("{" + question_match.group(1) + "," + query_match.group(1) + "}")
+                    question_match = None
 
-    def _generate_examples(self, base_directory, splits_file, split_id):
+    def _generate_examples(self, data_files, split_id):
         """Yields examples."""
-        samples_path = os.path.join(base_directory, "dataset.json")
-        splits_path = os.path.join(base_directory, splits_file)
-        with open(samples_path, encoding="utf-8") as samples_file:
-            with open(splits_path, encoding="utf-8") as splits_file:
-                logger.info("Reading json from %s into memory...", samples_path)
-                samples = json.loads(self._scrub_json(samples_file.read()))
-                logger.info("%d samples loaded", len(samples))
-                logger.info("Loaded json data from %s.", samples_path)
-                splits = json.load(splits_file)
-                for idx in splits[split_id]:
-                    sample = samples[idx]
-                    yield idx, {_QUESTION: sample[_QUESTION_FIELD], _QUERY: sample[_QUERY_FIELD]}
+        samples_path = "cfq/dataset.json"
+        for path, file in data_files:
+            if path == self.config.splits_path:
+                splits = json.load(file)[split_id]
+            elif path == samples_path:
+                # The samples_path is the last path inside the archive
+                generator = enumerate(self._scrub_json(file))
+                samples = {}
+                splits_set = set(splits)
+                for split_idx in splits:
+                    if split_idx in samples:
+                        sample = samples.pop(split_idx)
+                    else:
+                        for sample_idx, sample in generator:
+                            if sample_idx == split_idx:
+                                break
+                            elif sample_idx in splits_set:
+                                samples[sample_idx] = sample
+                    yield split_idx, {_QUESTION: sample[_QUESTION_FIELD], _QUERY: sample[_QUERY_FIELD]}

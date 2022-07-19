@@ -1,6 +1,6 @@
 ---
 pretty_name: MovieRationales
-languages:
+language:
 - en
 paperswithcode_id: null
 ---

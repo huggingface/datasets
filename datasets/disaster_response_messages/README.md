@@ -3,13 +3,13 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
 - es
 - fr
 - ht
 - ur
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

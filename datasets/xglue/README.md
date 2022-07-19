@@ -9,7 +9,7 @@ language_creators:
 - expert-generated
 - found
 - machine-generated
-languages:
+language:
 - ar
 - bg
 - de
@@ -29,11 +29,11 @@ languages:
 - ur
 - vi
 - zh
-licenses:
+license:
 - cc-by-nc-4.0
 - cc-by-sa-4.0
-- other-Licence Universal Dependencies v2.5
-- unknown
+- other
+license_details: "Licence Universal Dependencies v2.5"
 multilinguality:
 - multilingual
 - translation

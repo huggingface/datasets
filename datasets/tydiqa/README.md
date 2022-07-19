@@ -4,7 +4,7 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
 - ar
 - bn
@@ -16,7 +16,7 @@ languages:
 - ru
 - te
 - th
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - multilingual

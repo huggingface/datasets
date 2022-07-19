@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: cos-e
 pretty_name: Commonsense Explanations Dataset

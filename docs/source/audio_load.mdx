@@ -1,0 +1,57 @@
+# Load audio data
+
+Audio datasets are loaded from the `audio` column, which contains three important fields:
+
+* `array`: the decoded audio data represented as a 1-dimensional array.
+* `path`: the path to the downloaded audio file.
+* `sampling_rate`: the sampling rate of the audio data.
+
+<Tip>
+
+To work with audio datasets, you need to have the `audio` dependency installed. Check out the [installation](./installation#audio) guide to learn how to install it.
+
+</Tip>
+
+When you load an audio dataset and call the `audio` column, the [`Audio`] feature automatically decodes and resamples the audio file:
+
+```py
+>>> from datasets import load_dataset, Audio
+
+>>> dataset = load_dataset("PolyAI/minds14", "en-US", split="train")
+>>> dataset[0]["audio"]
+{'array': array([ 0.        ,  0.00024414, -0.00024414, ..., -0.00024414,
+         0.        ,  0.        ], dtype=float32),
+ 'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav',
+ 'sampling_rate': 8000}
+```
+
+<Tip warning={true}>
+
+Index into an audio dataset using the row index first and then the `audio` column - `dataset[0]["audio"]` - to avoid decoding and resampling all the audio files in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
+
+</Tip>
+
+For a guide on how to load any type of dataset, take a look at the <a class="underline decoration-sky-400 decoration-2 font-semibold" href="./loading">general loading guide</a>.
+
+## Local files
+
+The `path` is useful for loading your own dataset. Use the [`~Dataset.cast_column`] function to take a column of audio file paths, and decode it into `array`'s with the [`Audio`] feature:
+
+```py
+>>> audio_dataset = Dataset.from_dict({"audio": ["path/to/audio_1", "path/to/audio_2", ..., "path/to/audio_n"]}).cast_column("audio", Audio())
+```
+
+If you only want to load the underlying path to the audio dataset without decoding the audio file into an `array`, set `decode=False` in the [`Audio`] feature:
+
+```py
+>>> dataset = load_dataset("PolyAI/minds14", "en-US", split="train").cast_column("audio", Audio(decode=False))
+>>> dataset[0]
+{'audio': {'bytes': None,
+  'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav'},
+ 'english_transcription': 'I would like to set up a joint account with my partner',
+ 'intent_class': 11,
+ 'lang_id': 4,
+ 'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav',
+ 'transcription': 'I would like to set up a joint account with my partner'}
+```
+

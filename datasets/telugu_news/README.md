@@ -3,9 +3,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - other
-languages:
+language:
 - te
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

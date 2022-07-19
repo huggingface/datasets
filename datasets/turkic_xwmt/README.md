@@ -3,7 +3,7 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - az
 - ba
 - en
@@ -14,7 +14,7 @@ languages:
 - sah
 - tr
 - uz
-licenses:
+license:
 - mit
 multilinguality:
 - translation

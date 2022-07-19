@@ -665,9 +665,9 @@ def test_datasetdict_from_text_split(split, text_path, tmp_path):
 
 
 @pytest.mark.skipif(
-    os.name == "nt" and os.getenv("CIRCLECI") == "true",
-    reason='On Windows CircleCI, it raises botocore.exceptions.EndpointConnectionError: Could not connect to the endpoint URL: "http://127.0.0.1:5555/test"',
-)  # TODO(QL): find what's wrong with CircleCI
+    os.name == "nt" and (os.getenv("CIRCLECI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"),
+    reason='On Windows CircleCI or GitHub Actions, it raises botocore.exceptions.EndpointConnectionError: Could not connect to the endpoint URL: "http://127.0.0.1:5555/test"',
+)  # TODO: find what's wrong with CircleCI / GitHub Actions
 @require_s3
 def test_dummy_dataset_serialize_s3(s3, dataset):
     dsets = DatasetDict({"train": dataset, "test": dataset.select(range(2))})

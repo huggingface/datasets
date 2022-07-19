@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: mathqa
 pretty_name: MathQA

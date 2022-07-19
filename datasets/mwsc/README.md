@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: null
 pretty_name: The modified Winograd Schema Challenge (MWSC)

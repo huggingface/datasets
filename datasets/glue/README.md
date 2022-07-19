@@ -3,9 +3,9 @@ annotations_creators:
 - unknown
 language_creators:
 - unknown
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual

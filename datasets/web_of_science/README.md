@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: web-of-science-dataset
 pretty_name: Web of Science Dataset

@@ -3,7 +3,7 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - ca
 - de
 - es
@@ -44,7 +44,7 @@ languages:
 - sl
 - th
 - uk
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

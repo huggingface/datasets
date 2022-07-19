@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- o-uda-1.0
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:

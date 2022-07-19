@@ -5,7 +5,7 @@ multilinguality:
 - multilingual
 task_ids:
 - text-classification-other-language-identification
-languages:
+language:
 - hi
 - awa
 - bho
@@ -17,7 +17,7 @@ source_datasets:
 - original
 size_categories:
 - 10K<n<100K
-licenses:
+license:
 - unknown
 paperswithcode_id: null
 pretty_name: ilist
