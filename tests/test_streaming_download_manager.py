@@ -790,7 +790,7 @@ def _test_jsonl(path, file):
 
 def test_iter_archive_path(tar_jsonl_path):
     dl_manager = StreamingDownloadManager()
-    archive_iterable = dl_manager.iter_archive(str(tar_jsonl_path))
+    archive_iterable = dl_manager.iter_archive(tar_jsonl_path)
     num_jsonl = 0
     for num_jsonl, (path, file) in enumerate(archive_iterable, start=1):
         _test_jsonl(path, file)
@@ -804,7 +804,7 @@ def test_iter_archive_path(tar_jsonl_path):
 
 def test_iter_archive_file(tar_nested_jsonl_path):
     dl_manager = StreamingDownloadManager()
-    files_iterable = dl_manager.iter_archive(str(tar_nested_jsonl_path))
+    files_iterable = dl_manager.iter_archive(tar_nested_jsonl_path)
     num_tar, num_jsonl = 0, 0
     for num_tar, (path, file) in enumerate(files_iterable, start=1):
         for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
