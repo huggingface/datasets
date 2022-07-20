@@ -1017,8 +1017,8 @@ class DatasetBuilder:
         Returns:
             `Dataset`
         """
-
-        dataset_kwargs = ArrowReader(self._cache_dir, self.info).read(
+        cache_dir = self._fs._strip_protocol(self._cache_dir)
+        dataset_kwargs = ArrowReader(cache_dir, self.info).read(
             name=self.name,
             instructions=split,
             split_infos=self.info.splits.values(),
@@ -1233,7 +1233,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         else:
             split_info = split_generator.split_info
 
-        file_format = file_format or "arroq"
+        file_format = file_format or "arrow"
         fname = f"{self.name}-{split_generator.name}.{file_format}"
         protocol = self._fs.protocol if isinstance(self._fs.protocol, str) else self._fs.protocol[-1]
         fpath = protocol + "://" + path_join(self._cache_dir, fname)
