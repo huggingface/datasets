@@ -271,6 +271,7 @@ class OptimizedTypedSequence(TypedSequence):
 
 class ArrowWriter:
     """Shuffles and writes Examples to Arrow files."""
+
     _WRITER_CLASS = pa.RecordBatchStreamWriter
 
     def __init__(
@@ -638,7 +639,9 @@ class BeamWriter:
             logger.info(f"Converting parquet file {self._parquet_path} to arrow {self._path}")
             shards = [
                 metadata.path
-                for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
+                for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[
+                    0
+                ].metadata_list
             ]
             try:  # stream conversion
                 sources = [beam.io.filesystems.FileSystems.open(shard) for shard in shards]
@@ -647,7 +650,9 @@ class BeamWriter:
             except OSError as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
                 if e.errno != errno.EPIPE:  # not a broken pipe
                     raise
-                logger.warning("Broken Pipe during stream conversion from parquet to arrow. Using local convert instead")
+                logger.warning(
+                    "Broken Pipe during stream conversion from parquet to arrow. Using local convert instead"
+                )
                 local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
                 os.makedirs(local_convert_dir, exist_ok=True)
                 local_arrow_path = os.path.join(local_convert_dir, hash_url_to_filename(self._parquet_path) + ".arrow")
@@ -661,10 +666,14 @@ class BeamWriter:
             output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
             num_bytes = output_file_metadata.size_in_bytes
         else:
-            num_bytes = sum([
-                metadata.size_in_bytes
-                for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
-            ])
+            num_bytes = sum(
+                [
+                    metadata.size_in_bytes
+                    for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[
+                        0
+                    ].metadata_list
+                ]
+            )
 
         # Save metrics
         counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}

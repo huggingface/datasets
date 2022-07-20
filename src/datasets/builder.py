@@ -714,7 +714,10 @@ class DatasetBuilder:
                             logger.warning("HF google storage unreachable. Downloading and preparing it from source")
                     if not downloaded_from_gcs:
                         self._download_and_prepare(
-                            dl_manager=dl_manager, verify_infos=verify_infos, file_format=file_format, **download_and_prepare_kwargs
+                            dl_manager=dl_manager,
+                            verify_infos=verify_infos,
+                            file_format=file_format,
+                            **download_and_prepare_kwargs,
                         )
                     # Sync info
                     self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
@@ -1260,7 +1263,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
         split_generator.split_info.num_bytes = num_bytes
 
     def _download_and_prepare(self, dl_manager, verify_infos, file_format=None):
-        super()._download_and_prepare(dl_manager, verify_infos, file_format=file_format, check_duplicate_keys=verify_infos)
+        super()._download_and_prepare(
+            dl_manager, verify_infos, file_format=file_format, check_duplicate_keys=verify_infos
+        )
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
         return ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
