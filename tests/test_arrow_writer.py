@@ -299,3 +299,14 @@ def test_arrow_writer_closes_stream(raise_exception, tmp_path):
         pass
     finally:
         assert writer.stream.closed
+
+
+def test_arrow_writer_with_filesystem(mockfs):
+    path = "mock://dataset-train.arrow"
+    with ArrowWriter(path=path, storage_options=mockfs.storage_options) as writer:
+        writer.write({"col_1": "foo", "col_2": 1})
+        writer.write({"col_1": "bar", "col_2": 2})
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 2
+    assert num_bytes > 0
+    assert mockfs.exists(path)
