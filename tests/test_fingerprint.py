@@ -226,21 +226,6 @@ class RecurseDumpTest(TestCase):
         self.assertEqual(hash1, hash2)
 
 
-class TypeHintDumpTest(TestCase):
-    def test_dump_type_hint(self):
-        from typing import Union
-
-        t1 = Union[str, None]  # this type is not picklable in python 3.6
-        # let's check that we can pickle it anyway using our pickler, even in 3.6
-        hash1 = md5(datasets.utils.py_utils.dumps(t1)).hexdigest()
-        t2 = Union[str]  # this type is picklable in python 3.6
-        hash2 = md5(datasets.utils.py_utils.dumps(t2)).hexdigest()
-        t3 = Union[str, None]
-        hash3 = md5(datasets.utils.py_utils.dumps(t3)).hexdigest()
-        self.assertEqual(hash1, hash3)
-        self.assertNotEqual(hash1, hash2)
-
-
 class HashingTest(TestCase):
     def test_hash_simple(self):
         hash1 = Hasher.hash("hello")
