@@ -9,6 +9,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import numpy as np
+import pytest
 from huggingface_hub import HfApi
 from huggingface_hub.hf_api import HfFolder
 
@@ -23,16 +24,7 @@ REPO_NAME = f"repo-{int(time.time() * 10e3)}"
 TOKEN_PATH_STAGING = expanduser("~/.huggingface/staging_token")
 
 
-def with_staging_testing(func):
-    config = patch.multiple(
-        "datasets.config",
-        HF_ENDPOINT=ENDPOINT_STAGING,
-        HUB_DATASETS_URL=ENDPOINT_STAGING + "/datasets/{repo_id}/resolve/{revision}/{path}",
-    )
-    return config(func)
-
-
-@with_staging_testing
+@pytest.mark.usefixtures("staging_hub_config")
 class TestPushToHub(TestCase):
     _api = HfApi(endpoint=ENDPOINT_STAGING)
 

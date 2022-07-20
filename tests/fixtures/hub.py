@@ -16,6 +16,12 @@ ENDPOINT_STAGING = "https://hub-ci.huggingface.co"
 ENDPOINT_STAGING_DATASETS_URL = ENDPOINT_STAGING + "/datasets/{repo_id}/resolve/{revision}/{path}"
 
 
+@pytest.fixture
+def staging_hub_config(monkeypatch):
+    monkeypatch.setattr("datasets.config.HF_ENDPOINT", ENDPOINT_STAGING)
+    monkeypatch.setattr("datasets.config.HUB_DATASETS_URL", ENDPOINT_STAGING_DATASETS_URL)
+
+
 @pytest.fixture(scope="session")
 def hf_api():
     return HfApi(endpoint=ENDPOINT_STAGING)
