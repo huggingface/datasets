@@ -19,8 +19,10 @@ import sys
 from dataclasses import asdict
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
+import fsspec
 import numpy as np
 import pyarrow as pa
+from fsspec.implementations.local import LocalFileSystem
 
 from . import config
 from .features import Features, Image, Value
@@ -283,6 +285,7 @@ class ArrowWriter:
         update_features: bool = False,
         with_metadata: bool = True,
         unit: str = "examples",
+        storage_options: Optional[dict] = None,
     ):
         if path is None and stream is None:
             raise ValueError("At least one of path and stream must be provided.")
@@ -305,11 +308,19 @@ class ArrowWriter:
         self._check_duplicates = check_duplicates
         self._disable_nullable = disable_nullable
 
-        self._path = path
         if stream is None:
-            self.stream = pa.OSFile(self._path, "wb")
+            fs_token_paths = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+            self._fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+            self._path = (
+                fs_token_paths[2][0]
+                if isinstance(self._fs, LocalFileSystem)
+                else self._fs.protocol + "://" + fs_token_paths[2][0]
+            )
+            self.stream = self._fs.open(fs_token_paths[2][0], "wb")
             self._closable_stream = True
         else:
+            self._fs = None
+            self._path = None
             self.stream = stream
             self._closable_stream = False
 

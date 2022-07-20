@@ -35,6 +35,8 @@ import os
 from dataclasses import asdict, dataclass, field
 from typing import Dict, List, Optional, Union
 
+from fsspec.implementations.local import LocalFileSystem
+
 from . import config
 from .features import Features, Value
 from .splits import SplitDict
@@ -176,10 +178,7 @@ class DatasetInfo:
                     template.align_with_features(self.features) for template in (self.task_templates)
                 ]
 
-    def _license_path(self, dataset_info_dir):
-        return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)
-
-    def write_to_directory(self, dataset_info_dir, pretty_print=False):
+    def write_to_directory(self, dataset_info_dir, pretty_print=False, fs=None):
         """Write `DatasetInfo` and license (if present) as JSON files to `dataset_info_dir`.
 
         Args:
@@ -194,10 +193,14 @@ class DatasetInfo:
         >>> ds.info.write_to_directory("/path/to/directory/")
         ```
         """
-        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
+        fs = fs or LocalFileSystem()
+        is_local = isinstance(fs, LocalFileSystem)
+        path_join = os.path.join if is_local else os.path.join
+
+        with fs.open(path_join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f, pretty_print=pretty_print)
         if self.license:
-            with open(os.path.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
+            with fs.open(path_join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
                 self._dump_license(f)
 
     def _dump_info(self, file, pretty_print=False):
@@ -239,7 +242,7 @@ class DatasetInfo:
         )
 
     @classmethod
-    def from_directory(cls, dataset_info_dir: str) -> "DatasetInfo":
+    def from_directory(cls, dataset_info_dir: str, fs=None) -> "DatasetInfo":
         """Create DatasetInfo from the JSON file in `dataset_info_dir`.
 
         This function updates all the dynamically generated fields (num_examples,
@@ -258,11 +261,15 @@ class DatasetInfo:
         >>> ds_info = DatasetInfo.from_directory("/path/to/directory/")
         ```
         """
+        fs = fs or LocalFileSystem()
         logger.info(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
 
-        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), encoding="utf-8") as f:
+        is_local = isinstance(fs, LocalFileSystem)
+        path_join = os.path.join if is_local else os.path.join
+
+        with fs.open(path_join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
             dataset_info_dict = json.load(f)
         return cls.from_dict(dataset_info_dict)
 

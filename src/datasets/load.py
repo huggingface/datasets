@@ -1417,6 +1417,7 @@ def load_dataset_builder(
     download_mode: Optional[DownloadMode] = None,
     revision: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
+    storage_options: Optional[dict] = None,
     **config_kwargs,
 ) -> DatasetBuilder:
     """Load a dataset builder from the Hugging Face Hub, or a local dataset. A dataset builder can be used to inspect general information that is required to build a dataset (cache directory, config, dataset info, etc.)
@@ -1470,6 +1471,7 @@ def load_dataset_builder(
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
+        storage_options (:obj:`dict`, optional): Key/value pairs to be passed on to the caching file-system backend, if any.
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig`
             and used in the :class:`DatasetBuilder`.
 
@@ -1531,6 +1533,7 @@ def load_dataset_builder(
         hash=hash,
         features=features,
         use_auth_token=use_auth_token,
+        storage_options=storage_options,
         **builder_kwargs,
         **config_kwargs,
     )
