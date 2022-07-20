@@ -5,12 +5,12 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - ca
 - en
 - es
-licenses:
-- gfdl-1.1
+license:
+- gfdl
 multilinguality:
 - monolingual
 size_categories:
@@ -27,7 +27,7 @@ task_categories:
 task_ids:
 - language-modeling
 - masked-language-modeling
-- part-of-speech-tagging
+- part-of-speech
 - text-classification-other-word-sense-disambiguation
 - token-classification-other-lemmatization
 paperswithcode_id: null

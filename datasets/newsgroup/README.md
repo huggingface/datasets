@@ -1,6 +1,6 @@
 ---
 pretty_name: 20 Newsgroups
-languages:
+language:
 - en
 paperswithcode_id: null
 ---

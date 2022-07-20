@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - crowdsourced
-languages:
+language:
 - fa
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual

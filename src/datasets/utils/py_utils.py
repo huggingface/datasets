@@ -711,7 +711,7 @@ if config.DILL_VERSION < version.parse("0.3.5"):
             # therefore we have to sort the keys to make deterministic.
             # This is important to make `dump` deterministic.
             # Only this line is different from the original implementation:
-            globs = {k: globs[k] for k in sorted(globs.keys())}
+            globs = dict(sorted(globs.items()))
             # The rest is the same as in the original dill implementation
             _byref = getattr(pickler, "_byref", None)
             _recurse = getattr(pickler, "_recurse", None)
@@ -804,6 +804,22 @@ else:  # config.DILL_VERSION >= version.parse("0.3.5")
                 else:
                     globs = {"__name__": obj.__module__}
 
+            # DONE: modified here for huggingface/datasets
+            # - globs is a dictionary with keys = var names (str) and values = python objects
+            # - globs_copy is a dictionary with keys = var names (str) and values = ids of the python objects
+            # however the dictionary is not always loaded in the same order
+            # therefore we have to sort the keys to make deterministic.
+            # This is important to make `dump` deterministic.
+            # Only these line are different from the original implementation:
+            # START
+            globs_is_globs_copy = globs is globs_copy
+            globs = dict(sorted(globs.items()))
+            if globs_is_globs_copy:
+                globs_copy = globs
+            elif globs_copy is not None:
+                globs_copy = dict(sorted(globs_copy.items()))
+            # END
+
             if globs_copy is not None and globs is not globs_copy:
                 # In the case that the globals are copied, we need to ensure that
                 # the globals dictionary is updated when all objects in the
@@ -818,13 +834,6 @@ else:  # config.DILL_VERSION >= version.parse("0.3.5")
                         break
                 else:
                     postproc_list.append((dill._dill._setitems, (globs, globs_copy)))
-
-            # DONE: globs is a dictionary with keys = var names (str) and values = python objects
-            # however the dictionary is not always loaded in the same order
-            # therefore we have to sort the keys to make deterministic.
-            # This is important to make `dump` deterministic.
-            # Only this line is different from the original implementation:
-            globs = {k: globs[k] for k in sorted(globs.keys())}
 
             if dill._dill.PY3:
                 closure = obj.__closure__

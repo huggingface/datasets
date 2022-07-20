@@ -195,7 +195,7 @@ def get_dataset_infos(
             If specified, the dataset module will be loaded from the datasets repository at this version.
             By default:
             - it is set to the local version of the lib.
-            - it will also try to load it from the master branch if it's not available at the local version of the lib.
+            - it will also try to load it from the main branch if it's not available at the local version of the lib.
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
@@ -256,7 +256,7 @@ def get_dataset_config_names(
             If specified, the dataset module will be loaded from the datasets repository at this version.
             By default:
             - it is set to the local version of the lib.
-            - it will also try to load it from the master branch if it's not available at the local version of the lib.
+            - it will also try to load it from the main branch if it's not available at the local version of the lib.
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
@@ -325,7 +325,7 @@ def get_dataset_config_info(
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
+              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
             - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
@@ -386,7 +386,7 @@ def get_dataset_split_names(
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
+              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
             - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.

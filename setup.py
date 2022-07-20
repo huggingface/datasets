@@ -24,7 +24,7 @@ To create the package for pypi.
 2. Commit these changes: "git commit -m 'Release: VERSION'"
 
 3. Add a tag in git to mark the release: "git tag VERSION -m 'Add tag VERSION for pypi'"
-   Push the tag to remote: git push --tags origin master
+   Push the tag to remote: git push --tags origin main
 
 4. Build both the sources and the wheel. Do not change anything in setup.py between
    creating the wheel and the source distribution (obviously).
@@ -196,7 +196,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.2.3.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.3.3.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
@@ -207,7 +207,7 @@ setup(
     license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),
-    package_data={"datasets": ["py.typed", "scripts/templates/*"], "datasets.utils.resources": ["*.json", "*.yaml"]},
+    package_data={"datasets": ["py.typed", "scripts/templates/*"], "datasets.utils.resources": ["*.json", "*.yaml", "*.tsv"]},
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
     python_requires=">=3.7.0",
     install_requires=REQUIRED_PKGS,

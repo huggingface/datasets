@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - ca
 - es
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual

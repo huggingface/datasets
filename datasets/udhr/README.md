@@ -3,7 +3,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - aa
 - ab
 - ace
@@ -458,7 +458,7 @@ languages:
 - zro
 - ztu
 - zu
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -501,7 +501,7 @@ pretty_name: The Universal Declaration of Human Rights (UDHR)
 
 ## Dataset Description
 
-- **Homepage:** https://www.ohchr.org/EN/UDHR/Pages/UDHRIndex.aspx, https://unicode.org/udhr/index.html
+- **Homepage:** https://www.ohchr.org/en/universal-declaration-of-human-rights, https://unicode.org/udhr/index.html
 - **Repository:** https://github.com/unicode-org/udhr
 - **Paper:**
 - **Leaderboard:**
@@ -516,7 +516,7 @@ Assembly in Paris on 10 December 1948 during its 183rd plenary meeting.
 
 © 1996 – 2009 The Office of the High Commissioner for Human Rights
 
-This plain text version prepared by the “UDHR in Unicode” project, https://www.unicode.org/udhr.
+This plain text version prepared by the "UDHR in Unicode" project, https://www.unicode.org/udhr.
 
 ### Supported Tasks and Leaderboards
 
@@ -536,15 +536,20 @@ text.
 
 ### Data Fields
 
-- `text`: The full document text with each line of text delimitted by a newline (`\n`).
+- `text`: The full document text with each line of text delimited by a newline (`\n`).
 - `lang_key`: The unique identifier of a given translation.
 - `lang_name`: The textual description of language/dialect.
 - `iso639-3`: The [iso639-3](https://iso639-3.sil.org/) language identifier.
 - `iso15924`: The [iso15924](https://unicode.org/iso15924/iso15924-codes.html) language identifier.
+- `bcp47`: The [BCP 47](https://www.rfc-editor.org/info/bcp47) language identifier.
 
 ### Data Splits
 
 Only a `train` split included which includes the full document in all languages.
+
+|                    | train |
+|--------------------|------:|
+| Number of examples |   488 |
 
 ## Dataset Creation
 
@@ -583,7 +588,7 @@ document in the world and as such can be useful for settings requiring paired te
 
 In addition to the social and political significance of the United Nations' Universal Declaration of Human Rights,
 the document set a world record in 1999 for being the most translated document in the world and as such can be useful
-for settings requiring paired text between many languagers including those that are low resource and significantly
+for settings requiring paired text between many languages including those that are low resource and significantly
 underrepresented in NLP research.
 
 ### Discussion of Biases

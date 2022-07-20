@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - "no"
-licenses:
-- other-national-library-of-norway
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:

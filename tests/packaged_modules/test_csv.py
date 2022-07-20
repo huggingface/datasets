@@ -72,7 +72,7 @@ def csv_file_with_label(tmp_path):
 
 def test_csv_generate_tables_raises_error_with_malformed_csv(csv_file, malformed_csv_file, caplog):
     csv = Csv()
-    generator = csv._generate_tables([csv_file, malformed_csv_file])
+    generator = csv._generate_tables([[csv_file, malformed_csv_file]])
     with pytest.raises(ValueError, match="Error tokenizing data"):
         for _ in generator:
             pass
@@ -89,7 +89,7 @@ def test_csv_cast_image(csv_file_with_image):
     with open(csv_file_with_image, encoding="utf-8") as f:
         image_file = f.read().splitlines()[1]
     csv = Csv(encoding="utf-8", features=Features({"image": Image()}))
-    generator = csv._generate_tables([csv_file_with_image])
+    generator = csv._generate_tables([[csv_file_with_image]])
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.schema.field("image").type == Image()()
     generated_content = pa_table.to_pydict()["image"]
@@ -101,7 +101,7 @@ def test_csv_cast_label(csv_file_with_label):
     with open(csv_file_with_label, encoding="utf-8") as f:
         labels = f.read().splitlines()[1:]
     csv = Csv(encoding="utf-8", features=Features({"label": ClassLabel(names=["good", "bad"])}))
-    generator = csv._generate_tables([csv_file_with_label])
+    generator = csv._generate_tables([[csv_file_with_label]])
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.schema.field("label").type == ClassLabel(names=["good", "bad"])()
     generated_content = pa_table.to_pydict()["label"]

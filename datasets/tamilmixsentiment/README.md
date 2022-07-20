@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
 - ta
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

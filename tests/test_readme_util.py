@@ -84,7 +84,7 @@ CORRECT_DICT = {
 
 README_CORRECT = """\
 ---
-languages:
+language:
 - zh
 - en
 ---
@@ -104,7 +104,7 @@ Language Text
 
 README_CORRECT_FOUR_LEVEL = """\
 ---
-languages:
+language:
 - zh
 - en
 ---
@@ -219,7 +219,7 @@ EXPECTED_ERROR_README_INCORRECT_YAML = "The following issues were found for the 
 
 README_MISSING_TEXT = """\
 ---
-languages:
+language:
 - zh
 - en
 ---
@@ -239,7 +239,7 @@ EXPECTED_ERROR_README_MISSING_TEXT = "The following issues were found for the RE
 
 README_NONE_SUBSECTION = """\
 ---
-languages:
+language:
 - zh
 - en
 ---
@@ -250,7 +250,7 @@ EXPECTED_ERROR_README_NONE_SUBSECTION = "The following issues were found for the
 
 README_MISSING_SUBSECTION = """\
 ---
-languages:
+language:
 - zh
 - en
 ---
@@ -271,7 +271,7 @@ EXPECTED_ERROR_README_MISSING_SUBSECTION = "The following issues were found for 
 
 README_MISSING_CONTENT = """\
 ---
-languages:
+language:
 - zh
 - en
 ---
@@ -291,7 +291,7 @@ EXPECTED_ERROR_README_MISSING_CONTENT = "The following issues were found for the
 
 README_MISSING_FIRST_LEVEL = """\
 ---
-languages:
+language:
 - zh
 - en
 ---
@@ -310,7 +310,7 @@ EXPECTED_ERROR_README_MISSING_FIRST_LEVEL = "The following issues were found for
 
 README_MULTIPLE_WRONG_FIRST_LEVEL = """\
 ---
-languages:
+language:
 - zh
 - en
 ---
@@ -332,7 +332,7 @@ EXPECTED_ERROR_README_MULTIPLE_WRONG_FIRST_LEVEL = "The following issues were fo
 
 README_WRONG_FIRST_LEVEL = """\
 ---
-languages:
+language:
 - zh
 - en
 ---
@@ -357,7 +357,7 @@ EXPECTED_ERROR_README_EMPTY = "The following issues were found for the README at
 
 README_MULTIPLE_SAME_HEADING_1 = """\
 ---
-languages:
+language:
 - zh
 - en
 ---

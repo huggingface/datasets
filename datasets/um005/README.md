@@ -3,10 +3,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - other
-languages:
+language:
 - en
 - ur
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

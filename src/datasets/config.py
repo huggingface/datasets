@@ -133,6 +133,7 @@ PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None
 RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None
 ZSTANDARD_AVAILABLE = importlib.util.find_spec("zstandard") is not None
 LZ4_AVAILABLE = importlib.util.find_spec("lz4") is not None
+PY7ZR_AVAILABLE = importlib.util.find_spec("py7zr") is not None
 
 
 # Cache location

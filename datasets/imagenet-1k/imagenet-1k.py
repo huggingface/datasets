@@ -42,10 +42,15 @@ ILSVRC 2012, commonly known as 'ImageNet' is an image dataset organized accordin
 
 _DATA_URL = {
     "train": [
-        f"https://huggingface.co/datasets/imagenet-1k/resolve/main/data/train_images_{i}.tar.gz" for i in range(5)
+        f"https://huggingface.co/datasets/imagenet-1k/resolve/1500f8c59b214ce459c0a593fa1c87993aeb7700/data/train_images_{i}.tar.gz"
+        for i in range(5)
     ],
-    "val": ["https://huggingface.co/datasets/imagenet-1k/resolve/main/data/val_images.tar.gz"],
-    "test": ["https://huggingface.co/datasets/imagenet-1k/resolve/main/data/test_images.tar.gz"],
+    "val": [
+        "https://huggingface.co/datasets/imagenet-1k/resolve/1500f8c59b214ce459c0a593fa1c87993aeb7700/data/val_images.tar.gz"
+    ],
+    "test": [
+        "https://huggingface.co/datasets/imagenet-1k/resolve/1500f8c59b214ce459c0a593fa1c87993aeb7700/data/test_images.tar.gz"
+    ],
 }
 
 

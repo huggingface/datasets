@@ -46,8 +46,8 @@ class ImageFolderConfig(datasets.BuilderConfig):
     """BuilderConfig for ImageFolder."""
 
     features: Optional[datasets.Features] = None
-    drop_labels: bool = False
-    drop_metadata: bool = False
+    drop_labels: bool = None
+    drop_metadata: bool = None
 
 
 class ImageFolder(datasets.GeneratorBasedBuilder):
@@ -65,53 +65,49 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
 
         # Do an early pass if:
-        # * `features` are not specified, to infer the class labels
-        # * `drop_metadata` is False, to find the metadata files
-        do_analyze = (self.config.features is None and not self.config.drop_labels) or not self.config.drop_metadata
-        if do_analyze:
-            labels = set()
-            metadata_files = collections.defaultdict(list)
+        # * `drop_labels` is None (default) or False, to infer the class labels
+        # * `drop_metadata` is None (default) or False, to find the metadata files
+        do_analyze = not self.config.drop_labels or not self.config.drop_metadata
+        labels = set()
+        metadata_files = collections.defaultdict(set)
 
-            def analyze(files_or_archives, downloaded_files_or_dirs, split):
-                if len(downloaded_files_or_dirs) == 0:
-                    return
-                # The files are separated from the archives at this point, so check the first sample
-                # to see if it's a file or a directory and iterate accordingly
-                if os.path.isfile(downloaded_files_or_dirs[0]):
-                    original_files, downloaded_files = files_or_archives, downloaded_files_or_dirs
-                    for original_file, downloaded_file in zip(original_files, downloaded_files):
-                        original_file, downloaded_file = str(original_file), str(downloaded_file)
-                        _, original_file_ext = os.path.splitext(original_file)
-                        if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
+        def analyze(files_or_archives, downloaded_files_or_dirs, split):
+            if len(downloaded_files_or_dirs) == 0:
+                return
+            # The files are separated from the archives at this point, so check the first sample
+            # to see if it's a file or a directory and iterate accordingly
+            if os.path.isfile(downloaded_files_or_dirs[0]):
+                original_files, downloaded_files = files_or_archives, downloaded_files_or_dirs
+                for original_file, downloaded_file in zip(original_files, downloaded_files):
+                    original_file, downloaded_file = str(original_file), str(downloaded_file)
+                    _, original_file_ext = os.path.splitext(original_file)
+                    if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
+                        if not self.config.drop_labels:
                             labels.add(os.path.basename(os.path.dirname(original_file)))
-                        elif os.path.basename(original_file) == self.METADATA_FILENAME:
-                            metadata_files[split].append((original_file, downloaded_file))
-                        else:
-                            original_file_name = os.path.basename(original_file)
-                            logger.debug(
-                                f"The file '{original_file_name}' was ignored: it is not an image, and is not {self.METADATA_FILENAME} either."
-                            )
-                else:
-                    archives, downloaded_dirs = files_or_archives, downloaded_files_or_dirs
-                    for archive, downloaded_dir in zip(archives, downloaded_dirs):
-                        archive, downloaded_dir = str(archive), str(downloaded_dir)
-                        for downloaded_dir_file in dl_manager.iter_files(downloaded_dir):
-                            _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
-                            if downloaded_dir_file_ext in self.IMAGE_EXTENSIONS:
+                    elif os.path.basename(original_file) == self.METADATA_FILENAME:
+                        metadata_files[split].add((original_file, downloaded_file))
+                    else:
+                        original_file_name = os.path.basename(original_file)
+                        logger.debug(
+                            f"The file '{original_file_name}' was ignored: it is not an image, and is not {self.METADATA_FILENAME} either."
+                        )
+            else:
+                archives, downloaded_dirs = files_or_archives, downloaded_files_or_dirs
+                for archive, downloaded_dir in zip(archives, downloaded_dirs):
+                    archive, downloaded_dir = str(archive), str(downloaded_dir)
+                    for downloaded_dir_file in dl_manager.iter_files(downloaded_dir):
+                        _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
+                        if downloaded_dir_file_ext in self.IMAGE_EXTENSIONS:
+                            if not self.config.drop_labels:
                                 labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
-                            elif os.path.basename(downloaded_dir_file) == self.METADATA_FILENAME:
-                                metadata_files[split].append((None, downloaded_dir_file))
-                            else:
-                                archive_file_name = os.path.basename(archive)
-                                original_file_name = os.path.basename(downloaded_dir_file)
-                                logger.debug(
-                                    f"The file '{original_file_name}' from the archive '{archive_file_name}' was ignored: it is not an image, and is not {self.METADATA_FILENAME} either."
-                                )
-
-            if not self.config.drop_labels:
-                logger.info("Inferring labels from data files...")
-            if not self.config.drop_metadata:
-                logger.info("Analyzing metadata files...")
+                        elif os.path.basename(downloaded_dir_file) == self.METADATA_FILENAME:
+                            metadata_files[split].add((None, downloaded_dir_file))
+                        else:
+                            archive_file_name = os.path.basename(archive)
+                            original_file_name = os.path.basename(downloaded_dir_file)
+                            logger.debug(
+                                f"The file '{original_file_name}' from the archive '{archive_file_name}' was ignored: it is not an image, and is not {self.METADATA_FILENAME} either."
+                            )
 
         data_files = self.config.data_files
         splits = []
@@ -121,22 +117,45 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
             files, archives = self._split_files_and_archives(files)
             downloaded_files = dl_manager.download(files)
             downloaded_dirs = dl_manager.download_and_extract(archives)
-            if do_analyze:
+            if do_analyze:  # drop_metadata is None or False, drop_labels is None or False
+                logger.info(f"Searching for labels and/or metadata files in {split_name} data files...")
                 analyze(files, downloaded_files, split_name)
                 analyze(archives, downloaded_dirs, split_name)
+
+                if metadata_files:
+                    # add metadata if `metadata_files` are found and `drop_metadata` is None (default) or False
+                    add_metadata = not (self.config.drop_metadata is True)
+                    # if `metadata_files` are found, add labels only if
+                    # `drop_labels` is set up to False explicitly (not-default behavior)
+                    add_labels = self.config.drop_labels is False
+                else:
+                    # if `metadata_files` are not found, don't add metadata
+                    add_metadata = False
+                    # if `metadata_files` are not found but `drop_labels` is None (default) or False, add them
+                    add_labels = not (self.config.drop_labels is True)
+
+                if add_labels:
+                    logger.info("Adding the labels inferred from data directories to the dataset's features...")
+                if add_metadata:
+                    logger.info("Adding metadata to the dataset...")
+            else:
+                add_labels, add_metadata, metadata_files = False, False, {}
+
             splits.append(
                 datasets.SplitGenerator(
                     name=split_name,
                     gen_kwargs={
                         "files": [(file, downloaded_file) for file, downloaded_file in zip(files, downloaded_files)]
                         + [(None, dl_manager.iter_files(downloaded_dir)) for downloaded_dir in downloaded_dirs],
-                        "metadata_files": metadata_files if not self.config.drop_metadata else None,
+                        "metadata_files": metadata_files,
                         "split_name": split_name,
+                        "add_labels": add_labels,
+                        "add_metadata": add_metadata,
                     },
                 )
             )
 
-        if not self.config.drop_metadata and metadata_files:
+        if add_metadata:
             # Verify that:
             # * all metadata files have the same set of features
             # * the `file_name` key is one of the metadata keys and is of type string
@@ -164,7 +183,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
         # Normally, we would do this in _info, but we need to know the labels and/or metadata
         # before building the features
         if self.config.features is None:
-            if not self.config.drop_labels and not metadata_files:
+            if add_labels:
                 self.info.features = datasets.Features(
                     {"image": datasets.Image(), "label": datasets.ClassLabel(names=sorted(labels))}
                 )
@@ -174,14 +193,22 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
             else:
                 self.info.features = datasets.Features({"image": datasets.Image()})
 
-            if not self.config.drop_metadata and metadata_files:
-                # Verify that there are no duplicated keys when compared to the existing features ("image", optionally "label")
+            if add_metadata:
+                # Warn if there are duplicated keys in metadata compared to the existing features ("image", optionally "label")
                 duplicated_keys = set(self.info.features) & set(metadata_features)
                 if duplicated_keys:
-                    raise ValueError(
-                        f"Metadata feature keys {list(duplicated_keys)} are already present as the image features"
+                    logger.warning(
+                        f"Ignoring metadata columns {list(duplicated_keys)} as they are already present in "
+                        f"the features dictionary."
                     )
-                self.info.features.update(metadata_features)
+                # skip metadata duplicated keys
+                self.info.features.update(
+                    {
+                        feature: metadata_features[feature]
+                        for feature in metadata_features
+                        if feature not in duplicated_keys
+                    }
+                )
 
         return splits
 
@@ -197,21 +224,20 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 archives.append(data_file)
         return files, archives
 
-    def _generate_examples(self, files, metadata_files, split_name):
-        if not self.config.drop_metadata and metadata_files:
-            split_metadata_files = metadata_files.get(split_name, [])
-            image_empty_metadata = {k: None for k in self.info.features if k != "image"}
+    def _generate_examples(self, files, metadata_files, split_name, add_metadata, add_labels):
+        split_metadata_files = metadata_files.get(split_name, [])
+        image_empty = {k: None for k in self.info.features if k != "image"} if self.info.features else {}
+        last_checked_dir = None
+        metadata_dir = None
+        metadata_dict = None
+        downloaded_metadata_file = None
 
-            last_checked_dir = None
-            metadata_dir = None
-            metadata_dict = None
-            downloaded_metadata_file = None
-
-            file_idx = 0
-            for original_file, downloaded_file_or_dir in files:
-                if original_file is not None:
-                    _, original_file_ext = os.path.splitext(original_file)
-                    if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
+        file_idx = 0
+        for original_file, downloaded_file_or_dir in files:
+            if original_file is not None:
+                _, original_file_ext = os.path.splitext(original_file)
+                if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
+                    if add_metadata:
                         # If the file is an image, and we've just entered a new directory,
                         # find the nereast metadata file (by counting path segments) for the directory
                         current_dir = os.path.dirname(original_file)
@@ -264,16 +290,19 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                             raise ValueError(
                                 f"One or several metadata.jsonl were found, but not in the same directory or in a parent directory of {downloaded_file_or_dir}."
                             )
-                        yield file_idx, {
-                            **image_empty_metadata,
-                            "image": downloaded_file_or_dir,
-                            **image_metadata,
-                        }
-                        file_idx += 1
-                else:
-                    for downloaded_dir_file in downloaded_file_or_dir:
-                        _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
-                        if downloaded_dir_file_ext.lower() in self.IMAGE_EXTENSIONS:
+                    else:
+                        image_metadata = {}
+                    if add_labels:
+                        image_label = {"label": os.path.basename(os.path.dirname(original_file))}
+                    else:
+                        image_label = {}
+                    yield file_idx, {**image_empty, "image": downloaded_file_or_dir, **image_metadata, **image_label}
+                    file_idx += 1
+            else:
+                for downloaded_dir_file in downloaded_file_or_dir:
+                    _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
+                    if downloaded_dir_file_ext.lower() in self.IMAGE_EXTENSIONS:
+                        if add_metadata:
                             current_dir = os.path.dirname(downloaded_dir_file)
                             if last_checked_dir is None or last_checked_dir != current_dir:
                                 last_checked_dir = current_dir
@@ -326,42 +355,19 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                                 raise ValueError(
                                     f"One or several metadata.jsonl were found, but not in the same directory or in a parent directory of {downloaded_dir_file}."
                                 )
-                            yield file_idx, {
-                                **image_empty_metadata,
-                                "image": downloaded_dir_file,
-                                **image_metadata,
-                            }
-                            file_idx += 1
-        else:
-            file_idx = 0
-            for original_file, downloaded_file_or_dir in files:
-                if original_file is not None:
-                    _, original_file_ext = os.path.splitext(original_file)
-                    if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
-                        if self.config.drop_labels or metadata_files:
-                            yield file_idx, {
-                                "image": downloaded_file_or_dir,
-                            }
                         else:
-                            yield file_idx, {
-                                "image": downloaded_file_or_dir,
-                                "label": os.path.basename(os.path.dirname(original_file)),
-                            }
+                            image_metadata = {}
+                        if add_labels:
+                            image_label = {"label": os.path.basename(os.path.dirname(downloaded_dir_file))}
+                        else:
+                            image_label = {}
+                        yield file_idx, {
+                            **image_empty,
+                            "image": downloaded_dir_file,
+                            **image_metadata,
+                            **image_label,
+                        }
                         file_idx += 1
-                else:
-                    for downloaded_dir_file in downloaded_file_or_dir:
-                        _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
-                        if downloaded_dir_file_ext.lower() in self.IMAGE_EXTENSIONS:
-                            if self.config.drop_labels or metadata_files:
-                                yield file_idx, {
-                                    "image": downloaded_dir_file,
-                                }
-                            else:
-                                yield file_idx, {
-                                    "image": downloaded_dir_file,
-                                    "label": os.path.basename(os.path.dirname(downloaded_dir_file)),
-                                }
-                            file_idx += 1
 
 
 # Obtained with:

@@ -1,7 +1,7 @@
-import fsspec
+import fsspec.asyn
 import torch
 
-from ...iterable_dataset import IterableDataset
+from ...iterable_dataset import IterableDataset, _apply_feature_types
 from ...utils.logging import get_logger
 
 
@@ -46,7 +46,12 @@ class TorchIterableDataset(IterableDataset, torch.utils.data.IterableDataset):
                 )
                 for shard_idx in shards_indices:
                     for key, example in self._iter_shard(shard_idx):
-                        yield self._apply_feature_types(example)
+                        if self.features:
+                            yield _apply_feature_types(
+                                example, self.features, token_per_repo_id=self._token_per_repo_id
+                            )
+                        else:
+                            yield example
                 logger.debug(
                     f"dataloader worker#{worker_info.id}, ': Finished iterating over {len(shards_indices)}/{self.n_shards} shards."
                 )

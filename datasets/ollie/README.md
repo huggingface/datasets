@@ -3,10 +3,10 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
-- other-university-of-washington-academic
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:

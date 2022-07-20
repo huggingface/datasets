@@ -43,3 +43,6 @@ _EXTENSION_TO_MODULE = {
     "txt": ("text", {}),
 }
 _EXTENSION_TO_MODULE.update({ext[1:]: ("imagefolder", {}) for ext in imagefolder.ImageFolder.IMAGE_EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext[1:].upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.IMAGE_EXTENSIONS})
+
+_MODULE_SUPPORTS_METADATA = {"imagefolder"}

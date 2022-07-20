@@ -3,14 +3,16 @@ from unittest.mock import patch
 
 import pytest
 import requests
-from huggingface_hub.hf_api import HfApi
+from huggingface_hub.hf_api import HfApi, HfFolder
+
+from datasets.utils._hf_hub_fixes import create_repo, delete_repo
 
 
 USER = "__DUMMY_TRANSFORMERS_USER__"
 FULL_NAME = "Dummy User"
-PASS = "__DUMMY_TRANSFORMERS_PASS__"
+TOKEN = "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"
 
-ENDPOINT_STAGING = "https://moon-staging.huggingface.co"
+ENDPOINT_STAGING = "https://hub-ci.huggingface.co"
 ENDPOINT_STAGING_DATASETS_URL = ENDPOINT_STAGING + "/datasets/{repo_id}/resolve/{revision}/{path}"
 
 
@@ -21,10 +23,12 @@ def hf_api():
 
 @pytest.fixture(scope="session")
 def hf_token(hf_api: HfApi):
-    hf_token = hf_api.login(username=USER, password=PASS)
-    yield hf_token
+    hf_api.set_access_token(TOKEN)
+    HfFolder.save_token(TOKEN)
+
+    yield TOKEN
     try:
-        hf_api.logout(hf_token)
+        hf_api.unset_access_token()
     except requests.exceptions.HTTPError:
         pass
 
@@ -32,7 +36,7 @@ def hf_token(hf_api: HfApi):
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
     repo_name = f"repo_txt_data-{int(time.time() * 10e3)}"
-    hf_api.create_repo(token=hf_token, name=repo_name, repo_type="dataset", private=True)
+    create_repo(hf_api, repo_name, token=hf_token, organization=USER, repo_type="dataset", private=True)
     repo_id = f"{USER}/{repo_name}"
     hf_api.upload_file(
         token=hf_token,
@@ -43,7 +47,7 @@ def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
     )
     yield repo_id
     try:
-        hf_api.delete_repo(token=hf_token, name=repo_name, repo_type="dataset")
+        delete_repo(hf_api, repo_name, token=hf_token, organization=USER, repo_type="dataset")
     except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 
@@ -56,20 +60,20 @@ def hf_private_dataset_repo_txt_data(hf_private_dataset_repo_txt_data_):
 
 
 @pytest.fixture(scope="session")
-def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_path):
+def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_with_dir_path):
     repo_name = f"repo_zipped_txt_data-{int(time.time() * 10e3)}"
-    hf_api.create_repo(token=hf_token, name=repo_name, repo_type="dataset", private=True)
+    create_repo(hf_api, repo_name, token=hf_token, organization=USER, repo_type="dataset", private=True)
     repo_id = f"{USER}/{repo_name}"
     hf_api.upload_file(
         token=hf_token,
-        path_or_fileobj=str(zip_csv_path),
+        path_or_fileobj=str(zip_csv_with_dir_path),
         path_in_repo="data.zip",
         repo_id=repo_id,
         repo_type="dataset",
     )
     yield repo_id
     try:
-        hf_api.delete_repo(token=hf_token, name=repo_name, repo_type="dataset")
+        delete_repo(hf_api, repo_name, token=hf_token, organization=USER, repo_type="dataset")
     except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 
@@ -84,7 +88,7 @@ def hf_private_dataset_repo_zipped_txt_data(hf_private_dataset_repo_zipped_txt_d
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_path):
     repo_name = f"repo_zipped_img_data-{int(time.time() * 10e3)}"
-    hf_api.create_repo(token=hf_token, name=repo_name, repo_type="dataset", private=True)
+    create_repo(hf_api, repo_name, token=hf_token, organization=USER, repo_type="dataset", private=True)
     repo_id = f"{USER}/{repo_name}"
     hf_api.upload_file(
         token=hf_token,
@@ -95,7 +99,7 @@ def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_
     )
     yield repo_id
     try:
-        hf_api.delete_repo(token=hf_token, name=repo_name, repo_type="dataset")
+        delete_repo(hf_api, repo_name, token=hf_token, organization=USER, repo_type="dataset")
     except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 

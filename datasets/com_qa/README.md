@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: comqa
 pretty_name: ComQA

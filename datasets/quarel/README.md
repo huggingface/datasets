@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: quarel
 pretty_name: QuaRel

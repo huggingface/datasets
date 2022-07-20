@@ -3,10 +3,11 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- other-Microsoft Research Data License
+license:
+- other
+license_details: "Microsoft Research Data License Agreement"
 multilinguality:
 - monolingual
 size_categories:
