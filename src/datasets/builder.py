@@ -41,7 +41,7 @@ from .arrow_reader import (
     MissingFilesOnHfGcsError,
     ReadInstruction,
 )
-from .arrow_writer import ArrowWriter, BeamWriter
+from .arrow_writer import ArrowWriter, BeamWriter, ParquetWriter
 from .data_files import DataFilesDict, sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
@@ -582,6 +582,7 @@ class DatasetBuilder:
         dl_manager: Optional[DownloadManager] = None,
         base_path: Optional[str] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
+        file_format: Optional[str] = None,
         **download_and_prepare_kwargs,
     ):
         """Downloads and prepares dataset for reading.
@@ -596,6 +597,8 @@ class DatasetBuilder:
                 If not specified, the value of the `base_path` attribute (`self.base_path`) will be used instead.
             use_auth_token (:obj:`Union[str, bool]`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
                 If True, will get token from ~/.huggingface.
+            file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
+                Supported formats: "arrow", "parquet". Default to "arrow" format.
             **download_and_prepare_kwargs (additional keyword arguments): Keyword arguments.
 
         Example:
@@ -610,6 +613,9 @@ class DatasetBuilder:
         verify_infos = not ignore_verifications
         base_path = base_path if base_path is not None else self.base_path
         is_local = isinstance(self._fs, LocalFileSystem)
+
+        if file_format is not None and file_format not in ["arrow", "parquet"]:
+            raise ValueError(f"Unsupported file_format: {file_format}. Expected 'arrow' or 'parquet'")
 
         if dl_manager is None:
             if download_config is None:
@@ -708,7 +714,7 @@ class DatasetBuilder:
                             logger.warning("HF google storage unreachable. Downloading and preparing it from source")
                     if not downloaded_from_gcs:
                         self._download_and_prepare(
-                            dl_manager=dl_manager, verify_infos=verify_infos, **download_and_prepare_kwargs
+                            dl_manager=dl_manager, verify_infos=verify_infos, file_format=file_format, **download_and_prepare_kwargs
                         )
                     # Sync info
                     self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
@@ -758,7 +764,7 @@ class DatasetBuilder:
                     logger.info(f"Couldn't download resourse file {resource_file_name} from Hf google storage.")
         logger.info("Dataset downloaded from Hf google storage.")
 
-    def _download_and_prepare(self, dl_manager, verify_infos, **prepare_split_kwargs):
+    def _download_and_prepare(self, dl_manager, verify_infos, file_format=None, **prepare_split_kwargs):
         """Downloads and prepares dataset for reading.
 
         This is the internal implementation to overwrite called when user calls
@@ -766,9 +772,10 @@ class DatasetBuilder:
         the pre-processed datasets files.
 
         Args:
-            dl_manager: (DownloadManager) `DownloadManager` used to download and cache
-                data.
-            verify_infos: bool, if False, do not perform checksums and size tests.
+            dl_manager: (:obj:`DownloadManager`) `DownloadManager` used to download and cache data.
+            verify_infos (:obj:`bool`): if False, do not perform checksums and size tests.
+            file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
+                Supported formats: "arrow", "parquet". Default to "arrow" format.
             prepare_split_kwargs: Additional options.
         """
         # Generating data for all splits
@@ -796,7 +803,7 @@ class DatasetBuilder:
 
             try:
                 # Prepare split will record examples associated to the split
-                self._prepare_split(split_generator, **prepare_split_kwargs)
+                self._prepare_split(split_generator, file_format=file_format, **prepare_split_kwargs)
             except OSError as e:
                 raise OSError(
                     "Cannot find data file. "
@@ -1134,11 +1141,13 @@ class DatasetBuilder:
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def _prepare_split(self, split_generator: SplitGenerator, **kwargs):
+    def _prepare_split(self, split_generator: SplitGenerator, file_format: Optional[str] = None, **kwargs):
         """Generate the examples and record them on disk.
 
         Args:
             split_generator: `SplitGenerator`, Split generator to process
+            file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
+                Supported formats: "arrow", "parquet". Default to "arrow" format.
             **kwargs: Additional kwargs forwarded from _download_and_prepare (ex:
                 beam pipeline)
         """
@@ -1209,7 +1218,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
-    def _prepare_split(self, split_generator, check_duplicate_keys):
+    def _prepare_split(self, split_generator, check_duplicate_keys, file_format=None):
         is_local = isinstance(self._fs, LocalFileSystem)
         path_join = os.path.join if is_local else posixpath.join
 
@@ -1218,12 +1227,14 @@ class GeneratorBasedBuilder(DatasetBuilder):
         else:
             split_info = split_generator.split_info
 
-        fname = f"{self.name}-{split_generator.name}.arrow"
+        file_format = file_format or "arroq"
+        fname = f"{self.name}-{split_generator.name}.{file_format}"
         fpath = self._fs.protocol + "://" + path_join(self._cache_dir, fname)
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
 
-        with ArrowWriter(
+        writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
+        with writer_class(
             features=self.info.features,
             path=fpath,
             writer_batch_size=self._writer_batch_size,
@@ -1248,8 +1259,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
 
-    def _download_and_prepare(self, dl_manager, verify_infos):
-        super()._download_and_prepare(dl_manager, verify_infos, check_duplicate_keys=verify_infos)
+    def _download_and_prepare(self, dl_manager, verify_infos, file_format=None):
+        super()._download_and_prepare(dl_manager, verify_infos, file_format=file_format, check_duplicate_keys=verify_infos)
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
         return ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
@@ -1290,15 +1301,17 @@ class ArrowBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
-    def _prepare_split(self, split_generator):
+    def _prepare_split(self, split_generator, file_format=None):
         is_local = isinstance(self._fs, LocalFileSystem)
         path_join = os.path.join if is_local else posixpath.join
 
-        fname = f"{self.name}-{split_generator.name}.arrow"
+        file_format = file_format or "arrow"
+        fname = f"{self.name}-{split_generator.name}.{file_format}"
         fpath = self._fs.protocol + "://" + path_join(self._cache_dir, fname)
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
-        with ArrowWriter(features=self.info.features, path=fpath, storage_options=self._fs.storage_options) as writer:
+        writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
+        with writer_class(features=self.info.features, path=fpath, storage_options=self._fs.storage_options) as writer:
             for key, table in logging.tqdm(
                 generator, unit=" tables", leave=False, disable=(not logging.is_progress_bar_enabled())
             ):
@@ -1379,7 +1392,7 @@ class BeamBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
-    def _download_and_prepare(self, dl_manager, verify_infos):
+    def _download_and_prepare(self, dl_manager, verify_infos, file_format=None):
         # Create the Beam pipeline and forward it to _prepare_split
         import apache_beam as beam
 
@@ -1417,6 +1430,7 @@ class BeamBasedBuilder(DatasetBuilder):
             dl_manager,
             verify_infos=False,
             pipeline=pipeline,
+            file_format=file_format,
         )  # TODO handle verify_infos in beam datasets
         # Run pipeline
         pipeline_results = pipeline.run()
@@ -1442,12 +1456,13 @@ class BeamBasedBuilder(DatasetBuilder):
             with fs.create(path_join(self._cache_dir, config.LICENSE_FILENAME)) as f:
                 self.info._dump_license(f)
 
-    def _prepare_split(self, split_generator, pipeline):
+    def _prepare_split(self, split_generator, pipeline, file_format=None):
         import apache_beam as beam
 
         # To write examples in filesystem:
         split_name = split_generator.split_info.name
-        fname = f"{self.name}-{split_name}.arrow"
+        file_format = file_format or "arrow"
+        fname = f"{self.name}-{split_name}.{file_format}"
         path_join = os.path.join if isinstance(self._fs, LocalFileSystem) else posixpath.join
         fpath = path_join(self._cache_dir, fname)
         beam_writer = BeamWriter(
