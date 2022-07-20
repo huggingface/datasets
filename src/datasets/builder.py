@@ -30,7 +30,6 @@ from functools import partial
 from typing import Dict, Mapping, Optional, Tuple, Union
 
 import fsspec
-from fsspec.implementations.local import LocalFileSystem
 
 from . import config, utils
 from .arrow_dataset import Dataset
@@ -49,6 +48,7 @@ from .download.download_manager import DownloadManager, DownloadMode
 from .download.mock_download_manager import MockDownloadManager
 from .download.streaming_download_manager import StreamingDownloadManager
 from .features import Features
+from .filesystems import is_remote_filesystem
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
@@ -326,14 +326,15 @@ class DatasetBuilder:
         )
         self._fs: fsspec.AbstractFileSystem = fs_token_paths[0]
 
-        is_local = isinstance(self._fs, LocalFileSystem)
+        is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else os.path.join
 
-        self._cache_dir_root = fs_token_paths[2][0] if is_local else self._fs.protocol + "://" + fs_token_paths[2][0]
+        protocol = self._fs.protocol if isinstance(self._fs.protocol, str) else self._fs.protocol[-1]
+        self._cache_dir_root = fs_token_paths[2][0] if is_local else protocol + "://" + fs_token_paths[2][0]
         self._cache_dir = self._build_cache_dir()
         self._cache_downloaded_dir = (
             path_join(self._cache_dir_root, config.DOWNLOADED_DATASETS_DIR)
-            if cache_dir
+            if cache_dir and is_local
             else os.path.expanduser(config.DOWNLOADED_DATASETS_PATH)
         )
 
@@ -519,7 +520,7 @@ class DatasetBuilder:
 
     def _build_cache_dir(self):
         """Return the data directory for the current version."""
-        is_local = isinstance(self._fs, LocalFileSystem)
+        is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
         builder_data_dir = path_join(
             self._cache_dir_root, self._relative_data_dir(with_version=False, is_local=is_local)
@@ -612,7 +613,7 @@ class DatasetBuilder:
         download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
         base_path = base_path if base_path is not None else self.base_path
-        is_local = isinstance(self._fs, LocalFileSystem)
+        is_local = not is_remote_filesystem(self._fs)
 
         if file_format is not None and file_format not in ["arrow", "parquet"]:
             raise ValueError(f"Unsupported file_format: {file_format}. Expected 'arrow' or 'parquet'")
@@ -690,7 +691,8 @@ class DatasetBuilder:
                     f"total: {size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
                 )
             else:
-                _dest = self._cache_dir if is_local else self._fs.protocol + "://" + self._cache_dir
+                _protocol = self._fs.protocol if isinstance(self._fs.protocol, str) else self._fs.protocol[-1]
+                _dest = self._cache_dir if is_local else _protocol + "://" + self._cache_dir
                 print(
                     f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} to {_dest}..."
                 )
@@ -808,6 +810,7 @@ class DatasetBuilder:
                 # Prepare split will record examples associated to the split
                 self._prepare_split(split_generator, file_format=file_format, **prepare_split_kwargs)
             except OSError as e:
+                raise
                 raise OSError(
                     "Cannot find data file. "
                     + (self.manual_download_instructions or "")
@@ -833,7 +836,7 @@ class DatasetBuilder:
     def download_post_processing_resources(self, dl_manager):
         for split in self.info.splits:
             for resource_name, resource_file_name in self._post_processing_resources(split).items():
-                if not isinstance(self._fs, LocalFileSystem):
+                if not not is_remote_filesystem(self._fs):
                     raise NotImplementedError(f"Post processing is not supported on filesystem {self._fs}")
                 if os.sep in resource_file_name:
                     raise ValueError(f"Resources shouldn't be in a sub-directory: {resource_file_name}")
@@ -850,14 +853,14 @@ class DatasetBuilder:
         return DatasetInfo.from_directory(self._cache_dir, fs=self._fs)
 
     def _save_info(self):
-        is_local = isinstance(self._fs, LocalFileSystem)
+        is_local = not is_remote_filesystem(self._fs)
         if is_local:
             lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path) if is_local else contextlib.nullcontext():
             self.info.write_to_directory(self._cache_dir, fs=self._fs)
 
     def _save_infos(self):
-        is_local = isinstance(self._fs, LocalFileSystem)
+        is_local = not is_remote_filesystem(self._fs)
         if is_local:
             lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path) if is_local else contextlib.nullcontext():
@@ -898,7 +901,7 @@ class DatasetBuilder:
         })
         ```
         """
-        is_local = isinstance(self._fs, LocalFileSystem)
+        is_local = not is_remote_filesystem(self._fs)
         if not is_local:
             raise NotImplementedError(f"Loading a dataset cached in a {type(self._fs).__name__} is not supported.")
         if not os.path.exists(self._cache_dir):
@@ -1040,7 +1043,7 @@ class DatasetBuilder:
         if not isinstance(self, (GeneratorBasedBuilder, ArrowBasedBuilder)):
             raise ValueError(f"Builder {self.name} is not streamable.")
 
-        is_local = isinstance(self._fs, LocalFileSystem)
+        is_local = not is_remote_filesystem(self._fs)
         if not is_local:
             raise NotImplementedError(
                 f"Loading a streaming dataset cached in a {type(self._fs).__name__} is not supported yet."
@@ -1222,7 +1225,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         raise NotImplementedError()
 
     def _prepare_split(self, split_generator, check_duplicate_keys, file_format=None):
-        is_local = isinstance(self._fs, LocalFileSystem)
+        is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
 
         if self.info.splits is not None:
@@ -1232,7 +1235,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         file_format = file_format or "arroq"
         fname = f"{self.name}-{split_generator.name}.{file_format}"
-        fpath = self._fs.protocol + "://" + path_join(self._cache_dir, fname)
+        protocol = self._fs.protocol if isinstance(self._fs.protocol, str) else self._fs.protocol[-1]
+        fpath = protocol + "://" + path_join(self._cache_dir, fname)
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
 
@@ -1307,12 +1311,13 @@ class ArrowBasedBuilder(DatasetBuilder):
         raise NotImplementedError()
 
     def _prepare_split(self, split_generator, file_format=None):
-        is_local = isinstance(self._fs, LocalFileSystem)
+        is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
 
         file_format = file_format or "arrow"
         fname = f"{self.name}-{split_generator.name}.{file_format}"
-        fpath = self._fs.protocol + "://" + path_join(self._cache_dir, fname)
+        protocol = self._fs.protocol if isinstance(self._fs.protocol, str) else self._fs.protocol[-1]
+        fpath = protocol + "://" + path_join(self._cache_dir, fname)
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
@@ -1454,7 +1459,7 @@ class BeamBasedBuilder(DatasetBuilder):
         import apache_beam as beam
 
         fs = beam.io.filesystems.FileSystems
-        path_join = os.path.join if isinstance(self._fs, LocalFileSystem) else posixpath.join
+        path_join = os.path.join if not is_remote_filesystem(self._fs) else posixpath.join
         with fs.create(path_join(self._cache_dir, config.DATASET_INFO_FILENAME)) as f:
             self.info._dump_info(f)
         if self.info.license:
@@ -1468,7 +1473,7 @@ class BeamBasedBuilder(DatasetBuilder):
         split_name = split_generator.split_info.name
         file_format = file_format or "arrow"
         fname = f"{self.name}-{split_name}.{file_format}"
-        path_join = os.path.join if isinstance(self._fs, LocalFileSystem) else posixpath.join
+        path_join = os.path.join if not is_remote_filesystem(self._fs) else posixpath.join
         fpath = path_join(self._cache_dir, fname)
         beam_writer = BeamWriter(
             features=self.info.features, path=fpath, namespace=split_name, cache_dir=self._cache_dir

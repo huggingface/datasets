@@ -23,7 +23,6 @@ import fsspec
 import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
-from fsspec.implementations.local import LocalFileSystem
 
 from . import config
 from .features import Features, Image, Value
@@ -37,6 +36,7 @@ from .features.features import (
     numpy_to_pyarrow_listarray,
     to_pyarrow_listarray,
 )
+from .filesystems import is_remote_filesystem
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .table import array_cast, cast_array_to_feature, table_cast
@@ -314,10 +314,9 @@ class ArrowWriter:
         if stream is None:
             fs_token_paths = fsspec.get_fs_token_paths(path, storage_options=storage_options)
             self._fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+            protocol = self._fs.protocol if isinstance(self._fs.protocol, str) else self._fs.protocol[-1]
             self._path = (
-                fs_token_paths[2][0]
-                if isinstance(self._fs, LocalFileSystem)
-                else self._fs.protocol + "://" + fs_token_paths[2][0]
+                fs_token_paths[2][0] if not is_remote_filesystem(self._fs) else protocol + "://" + fs_token_paths[2][0]
             )
             self.stream = self._fs.open(fs_token_paths[2][0], "wb")
             self._closable_stream = True

@@ -39,6 +39,7 @@ from fsspec.implementations.local import LocalFileSystem
 
 from . import config
 from .features import Features, Value
+from .filesystems import is_remote_filesystem
 from .splits import SplitDict
 from .tasks import TaskTemplate, task_template_from_dict
 from .utils import Version
@@ -194,7 +195,7 @@ class DatasetInfo:
         ```
         """
         fs = fs or LocalFileSystem()
-        is_local = isinstance(fs, LocalFileSystem)
+        is_local = not is_remote_filesystem(fs)
         path_join = os.path.join if is_local else os.path.join
 
         with fs.open(path_join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
@@ -266,7 +267,7 @@ class DatasetInfo:
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
 
-        is_local = isinstance(fs, LocalFileSystem)
+        is_local = not is_remote_filesystem(fs)
         path_join = os.path.join if is_local else os.path.join
 
         with fs.open(path_join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
