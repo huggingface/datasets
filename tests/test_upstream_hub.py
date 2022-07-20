@@ -3,7 +3,6 @@ import os
 import tempfile
 import time
 import unittest
-from os.path import expanduser
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
@@ -11,7 +10,6 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 from huggingface_hub import HfApi
-from huggingface_hub.hf_api import HfFolder
 
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
 from datasets.utils._hf_hub_fixes import delete_repo
@@ -19,39 +17,13 @@ from tests.fixtures.hub import ENDPOINT_STAGING, TOKEN, USER
 from tests.utils import require_pil, require_sndfile
 
 
-REPO_NAME = f"repo-{int(time.time() * 10e3)}"
-
-TOKEN_PATH_STAGING = expanduser("~/.huggingface/staging_token")
-
-
-@pytest.mark.usefixtures("staging_hub_config")
+@pytest.mark.usefixtures("set_staging_access_token")
 class TestPushToHub(TestCase):
     _api = HfApi(endpoint=ENDPOINT_STAGING)
 
     def cleanup_repo(self, ds_name):
         organization, name = ds_name.split("/")
-        delete_repo(hf_api=self._api, name=name, organization=organization, token=self._token, repo_type="dataset")
-
-    @classmethod
-    def setUpClass(cls):
-        """
-        Share this valid token in all tests below.
-        """
-        cls._hf_folder_patch = patch(
-            "huggingface_hub.hf_api.HfFolder.path_token",
-            TOKEN_PATH_STAGING,
-        )
-        cls._hf_folder_patch.start()
-
-        cls._token = TOKEN
-        cls._api.set_access_token(TOKEN)
-        HfFolder.save_token(cls._token)
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        HfFolder.delete_token()
-        cls._api.unset_access_token()
-        cls._hf_folder_patch.stop()
+        delete_repo(hf_api=self._api, name=name, organization=organization, token=TOKEN, repo_type="dataset")
 
     def test_push_dataset_dict_to_hub_no_token(self):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})

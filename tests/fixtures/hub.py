@@ -1,3 +1,4 @@
+import os.path
 import time
 from unittest.mock import patch
 
@@ -15,11 +16,28 @@ TOKEN = "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"
 ENDPOINT_STAGING = "https://hub-ci.huggingface.co"
 ENDPOINT_STAGING_DATASETS_URL = ENDPOINT_STAGING + "/datasets/{repo_id}/resolve/{revision}/{path}"
 
+STAGING_TOKEN_PATH = os.path.expanduser("~/.huggingface/staging_token")
+
 
 @pytest.fixture
 def staging_hub_config(monkeypatch):
     monkeypatch.setattr("datasets.config.HF_ENDPOINT", ENDPOINT_STAGING)
     monkeypatch.setattr("datasets.config.HUB_DATASETS_URL", ENDPOINT_STAGING_DATASETS_URL)
+
+
+@pytest.fixture
+def staging_token_path(monkeypatch):
+    monkeypatch.setattr("huggingface_hub.hf_api.HfFolder.path_token", STAGING_TOKEN_PATH)
+
+
+@pytest.fixture
+def set_staging_access_token(staging_hub_config, staging_token_path):
+    _api = HfApi(endpoint=ENDPOINT_STAGING)
+    _api.set_access_token(TOKEN)
+    HfFolder.save_token(TOKEN)
+    yield
+    HfFolder.delete_token()
+    _api.unset_access_token()
 
 
 @pytest.fixture(scope="session")
