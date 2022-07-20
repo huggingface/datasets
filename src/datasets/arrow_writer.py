@@ -22,6 +22,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 import fsspec
 import numpy as np
 import pyarrow as pa
+import pyarrow.parquet as pq
 from fsspec.implementations.local import LocalFileSystem
 
 from . import config
@@ -270,6 +271,7 @@ class OptimizedTypedSequence(TypedSequence):
 
 class ArrowWriter:
     """Shuffles and writes Examples to Arrow files."""
+    _WRITER_CLASS = pa.RecordBatchStreamWriter
 
     def __init__(
         self,
@@ -379,7 +381,7 @@ class ArrowWriter:
         if self.with_metadata:
             schema = schema.with_metadata(self._build_metadata(DatasetInfo(features=self._features), self.fingerprint))
         self._schema = schema
-        self.pa_writer = pa.RecordBatchStreamWriter(self.stream, schema)
+        self.pa_writer = self._WRITER_CLASS(self.stream, schema)
 
     @property
     def schema(self):
@@ -562,6 +564,10 @@ class ArrowWriter:
         return self._num_examples, self._num_bytes
 
 
+class ParquetWriter(ArrowWriter):
+    _WRITER_CLASS = pq.ParquetWriter
+
+
 class BeamWriter:
     """
     Shuffles and writes Examples to Arrow files.
@@ -628,35 +634,42 @@ class BeamWriter:
         from .utils import beam_utils
 
         # Convert to arrow
-        logger.info(f"Converting parquet file {self._parquet_path} to arrow {self._path}")
-        shards = [
-            metadata.path
-            for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
-        ]
-        try:  # stream conversion
-            sources = [beam.io.filesystems.FileSystems.open(shard) for shard in shards]
-            with beam.io.filesystems.FileSystems.create(self._path) as dest:
-                parquet_to_arrow(sources, dest)
-        except OSError as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
-            if e.errno != errno.EPIPE:  # not a broken pipe
-                raise
-            logger.warning("Broken Pipe during stream conversion from parquet to arrow. Using local convert instead")
-            local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
-            os.makedirs(local_convert_dir, exist_ok=True)
-            local_arrow_path = os.path.join(local_convert_dir, hash_url_to_filename(self._parquet_path) + ".arrow")
-            local_shards = []
-            for shard in shards:
-                local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(shard) + ".parquet")
-                local_shards.append(local_parquet_path)
-                beam_utils.download_remote_to_local(shard, local_parquet_path)
-            parquet_to_arrow(local_shards, local_arrow_path)
-            beam_utils.upload_local_to_remote(local_arrow_path, self._path)
+        if self._path.endswith(".arrow"):
+            logger.info(f"Converting parquet file {self._parquet_path} to arrow {self._path}")
+            shards = [
+                metadata.path
+                for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
+            ]
+            try:  # stream conversion
+                sources = [beam.io.filesystems.FileSystems.open(shard) for shard in shards]
+                with beam.io.filesystems.FileSystems.create(self._path) as dest:
+                    parquet_to_arrow(sources, dest)
+            except OSError as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
+                if e.errno != errno.EPIPE:  # not a broken pipe
+                    raise
+                logger.warning("Broken Pipe during stream conversion from parquet to arrow. Using local convert instead")
+                local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
+                os.makedirs(local_convert_dir, exist_ok=True)
+                local_arrow_path = os.path.join(local_convert_dir, hash_url_to_filename(self._parquet_path) + ".arrow")
+                local_shards = []
+                for shard in shards:
+                    local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(shard) + ".parquet")
+                    local_shards.append(local_parquet_path)
+                    beam_utils.download_remote_to_local(shard, local_parquet_path)
+                parquet_to_arrow(local_shards, local_arrow_path)
+                beam_utils.upload_local_to_remote(local_arrow_path, self._path)
+            output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
+            num_bytes = output_file_metadata.size_in_bytes
+        else:
+            num_bytes = sum([
+                metadata.size_in_bytes
+                for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
+            ])
 
         # Save metrics
         counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
         self._num_examples = counters_dict["num_examples"]
-        output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
-        self._num_bytes = output_file_metadata.size_in_bytes
+        self._num_bytes = num_bytes
         return self._num_examples, self._num_bytes
 
 
