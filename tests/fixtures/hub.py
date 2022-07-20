@@ -1,5 +1,6 @@
 import os.path
 import time
+from contextlib import contextmanager
 from unittest.mock import patch
 
 import pytest
@@ -55,6 +56,27 @@ def hf_token(hf_api: HfApi):
         hf_api.unset_access_token()
     except requests.exceptions.HTTPError:
         pass
+
+
+@pytest.fixture
+def cleanup_repo(hf_api):
+    def _cleanup_repo(repo_id):
+        organization, name = repo_id.split("/")
+        delete_repo(hf_api=hf_api, name=name, organization=organization, token=TOKEN, repo_type="dataset")
+
+    return _cleanup_repo
+
+
+@pytest.fixture
+def temporary_repo(cleanup_repo):
+    @contextmanager
+    def _temporary_repo(repo_id):
+        try:
+            yield repo_id
+        finally:
+            cleanup_repo(repo_id)
+
+    return _temporary_repo
 
 
 @pytest.fixture(scope="session")
