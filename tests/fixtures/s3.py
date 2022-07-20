@@ -7,7 +7,7 @@ import requests
 
 # From: https://github.com/dask/s3fs/blob/ffe3a5293524869df56e74973af0d2c204ae9cbf/s3fs/tests/test_s3fs.py#L25-L141
 
-s3_test_bucket_name = "test"
+S3_TEST_BUCKET_NAME = "test"
 s3_port = 5555
 s3_endpoint_uri = f"http://127.0.0.1:{s3_port}/"
 
@@ -17,6 +17,11 @@ S3_FAKE_ENV_VARS = {
     "AWS_SECURITY_TOKEN": "fake_secrurity_token",
     "AWS_SESSION_TOKEN": "fake_session_token",
 }
+
+
+@pytest.fixture(scope="session")
+def s3_test_bucket_name():
+    return S3_TEST_BUCKET_NAME
 
 
 @pytest.fixture()
@@ -57,7 +62,7 @@ def get_boto3_client():
 
 
 @pytest.fixture()
-def s3(s3_base):
+def s3(s3_base, s3_test_bucket_name):
     client = get_boto3_client()
     client.create_bucket(Bucket=s3_test_bucket_name, ACL="public-read")
 
