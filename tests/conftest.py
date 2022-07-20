@@ -15,8 +15,8 @@ from datasets import config
 from datasets.arrow_dataset import Dataset
 from datasets.features import ClassLabel, Features, Sequence, Value
 
-from .hub_fixtures import *  # noqa: load hub fixtures
-from .s3_fixtures import *  # noqa: load s3 fixtures
+from .fixtures.hub import *  # noqa: load hub fixtures
+from .fixtures.s3 import *  # noqa: load s3 fixtures
 
 
 @pytest.fixture(autouse=True)
