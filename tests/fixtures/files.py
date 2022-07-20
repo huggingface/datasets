@@ -469,7 +469,7 @@ def text_path_with_unicode_new_lines(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def image_file():
-    return os.path.join(os.path.dirname(__file__), "features", "data", "test_image_rgb.jpg")
+    return os.path.join("tests", "features", "data", "test_image_rgb.jpg")
 
 
 @pytest.fixture(scope="session")
