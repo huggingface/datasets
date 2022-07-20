@@ -20,10 +20,11 @@ from tests.utils import require_pil, require_sndfile
 @pytest.mark.usefixtures("set_staging_access_token")
 class TestPushToHub(TestCase):
     _api = HfApi(endpoint=ENDPOINT_STAGING)
+    _token = TOKEN
 
     def cleanup_repo(self, ds_name):
         organization, name = ds_name.split("/")
-        delete_repo(hf_api=self._api, name=name, organization=organization, token=TOKEN, repo_type="dataset")
+        delete_repo(hf_api=self._api, name=name, organization=organization, token=self._token, repo_type="dataset")
 
     def test_push_dataset_dict_to_hub_no_token(self):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
