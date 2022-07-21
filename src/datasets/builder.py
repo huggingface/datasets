@@ -65,6 +65,7 @@ from .utils.py_utils import (
     has_sufficient_disk_space,
     map_nested,
     memoize,
+    nullcontext,
     size_str,
     temporary_assignment,
 )
@@ -341,7 +342,7 @@ class DatasetBuilder:
         if is_local:
             os.makedirs(self._cache_dir_root, exist_ok=True)
             lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(lock_path) if is_local else contextlib.nullcontext():
+        with FileLock(lock_path) if is_local else nullcontext():
             if self._fs.exists(self._cache_dir):  # check if data exist
                 if len(self._fs.listdir(self._cache_dir)) > 0:
                     logger.info("Overwrite dataset info from restored data version.")
@@ -646,7 +647,7 @@ class DatasetBuilder:
         if is_local:
             lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         # File locking only with local paths; no file locking on GCS or S3
-        with FileLock(lock_path) if is_local else contextlib.nullcontext():
+        with FileLock(lock_path) if is_local else nullcontext():
             data_exists = self._fs.exists(self._cache_dir)
             if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
                 logger.warning(f"Found cached dataset {self.name} ({self._cache_dir})")
@@ -855,14 +856,14 @@ class DatasetBuilder:
         is_local = not is_remote_filesystem(self._fs)
         if is_local:
             lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(lock_path) if is_local else contextlib.nullcontext():
+        with FileLock(lock_path) if is_local else nullcontext():
             self.info.write_to_directory(self._cache_dir, fs=self._fs)
 
     def _save_infos(self):
         is_local = not is_remote_filesystem(self._fs)
         if is_local:
             lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(lock_path) if is_local else contextlib.nullcontext():
+        with FileLock(lock_path) if is_local else nullcontext():
             DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):

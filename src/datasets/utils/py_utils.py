@@ -17,7 +17,6 @@
 
 """
 
-import contextlib
 import functools
 import itertools
 import os
@@ -151,7 +150,19 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
     return _dict
 
 
-@contextlib.contextmanager
+@contextmanager
+def nullcontext():
+    """Context manager that does no additional processing.
+    Used as a stand-in for a normal context manager, when a particular
+    block of code is only sometimes used with a normal context manager:
+    cm = optional_cm if condition else nullcontext()
+    with cm:
+        # Perform operation, using optional_cm if condition is True
+    """
+    yield
+
+
+@contextmanager
 def temporary_assignment(obj, attr, value):
     """Temporarily assign obj.attr to value."""
     original = getattr(obj, attr, None)
@@ -540,7 +551,7 @@ def dump(obj, file):
     return
 
 
-@contextlib.contextmanager
+@contextmanager
 def _no_cache_fields(obj):
     try:
         if (
