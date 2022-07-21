@@ -118,14 +118,14 @@ TESTS_REQUIRE = [
     # optional dependencies
     "apache-beam>=2.26.0",
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElastictSearch()
-    "aiobotocore==1.4.2",  # to be compatible with boto3==1.17.106 - both have strong dependencies on botocore
-    "boto3==1.17.106",  # to be compatible with aiobotocore==1.4.2 - both have strong dependencies on botocore
-    "botocore==1.20.106",  # to be compatible with aiobotocore and boto3
+    "aiobotocore>=1.4.2",  # to be compatible with boto3==1.17.106 - both have strong dependencies on botocore
+    "boto3>=1.17.106",  # to be compatible with aiobotocore==1.4.2 - both have strong dependencies on botocore
+    "botocore>=1.20.106",  # to be compatible with aiobotocore and boto3
     "faiss-cpu>=1.6.4",
     "fsspec[s3]",
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
-    "s3fs",
+    "s3fs>=2021.08.1",
     "tensorflow>=2.3,!=2.6.0,!=2.6.1",
     "torch",
     "torchaudio",
