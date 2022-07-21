@@ -47,7 +47,6 @@ from datasets.tasks import (
 from datasets.utils.logging import WARNING
 from datasets.utils.py_utils import temp_seed
 
-from .conftest import s3_test_bucket_name
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
@@ -3123,7 +3122,7 @@ def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_param
     reason='On Windows CircleCI or GitHub Actions, it raises botocore.exceptions.EndpointConnectionError: Could not connect to the endpoint URL: "http://127.0.0.1:5555/test"',
 )  # TODO: find what's wrong with CircleCI / GitHub Actions
 @require_s3
-def test_dummy_dataset_serialize_s3(s3, dataset):
+def test_dummy_dataset_serialize_s3(s3, dataset, s3_test_bucket_name):
     mock_bucket = s3_test_bucket_name
     dataset_path = f"s3://{mock_bucket}/my_dataset"
     features = dataset.features
