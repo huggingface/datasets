@@ -536,11 +536,9 @@ class ArrowWriter:
         if self.pa_writer is None:
             self._build_writer(inferred_schema=pa_table.schema)
         pa_table = table_cast(pa_table, self._schema)
-        batches: List[pa.RecordBatch] = pa_table.to_batches(max_chunksize=writer_batch_size)
-        self._num_bytes += sum(batch.nbytes for batch in batches)
+        self._num_bytes += pa_table.nbytes
         self._num_examples += pa_table.num_rows
-        for batch in batches:
-            self.pa_writer.write_batch(batch)
+        self.pa_writer.write_table(pa_table, writer_batch_size)
 
     def finalize(self, close_stream=True):
         self.write_rows_on_file()
