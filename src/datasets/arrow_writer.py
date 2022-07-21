@@ -554,6 +554,7 @@ class ArrowWriter:
             else:
                 raise ValueError("Please pass `features` or at least one example when writing data")
         self.pa_writer.close()
+        self.pa_writer = None
         if close_stream:
             self.stream.close()
         logger.debug(
