@@ -7,8 +7,9 @@ from unittest.mock import patch
 import numpy as np
 import pyarrow as pa
 import pytest
+import pyarrow.parquet as pq
 
-from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, TypedSequence
+from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
 from datasets.features import Array2D, ClassLabel, Features, Image, Value
 from datasets.features.features import Array2DExtensionType, cast_to_python_objects
 from datasets.keyhash import DuplicatedKeysError, InvalidKeyError
@@ -304,9 +305,24 @@ def test_arrow_writer_closes_stream(raise_exception, tmp_path):
 def test_arrow_writer_with_filesystem(mockfs):
     path = "mock://dataset-train.arrow"
     with ArrowWriter(path=path, storage_options=mockfs.storage_options) as writer:
+        assert isinstance(writer._fs, type(mockfs))
+        assert writer._fs.storage_options == mockfs.storage_options
         writer.write({"col_1": "foo", "col_2": 1})
         writer.write({"col_1": "bar", "col_2": 2})
         num_examples, num_bytes = writer.finalize()
     assert num_examples == 2
     assert num_bytes > 0
     assert mockfs.exists(path)
+
+
+def test_parquet_writer_write():
+    output = pa.BufferOutputStream()
+    with ParquetWriter(stream=output) as writer:
+        writer.write({"col_1": "foo", "col_2": 1})
+        writer.write({"col_1": "bar", "col_2": 2})
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 2
+    assert num_bytes > 0
+    stream = pa.BufferReader(output.getvalue())
+    pa_table: pa.Table = pq.read_table(stream)
+    assert pa_table.to_pydict() == {"col_1": ["foo", "bar"], "col_2": [1, 2]}
