@@ -8,12 +8,14 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import numpy as np
+import pyarrow as pa
+import pyarrow.parquet as pq
 import pytest
 from multiprocess.pool import Pool
 
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_writer import ArrowWriter
-from datasets.builder import BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
+from datasets.builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.download.download_manager import DownloadMode
 from datasets.features import Features, Value
@@ -21,8 +23,9 @@ from datasets.info import DatasetInfo, PostProcessedInfo
 from datasets.iterable_dataset import IterableDataset
 from datasets.splits import Split, SplitDict, SplitGenerator, SplitInfo
 from datasets.streaming import xjoin
+from datasets.utils.file_utils import is_local_path
 
-from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_faiss
+from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_beam, require_faiss
 
 
 class DummyBuilder(DatasetBuilder):
@@ -55,6 +58,35 @@ class DummyGeneratorBasedBuilder(GeneratorBasedBuilder):
     def _generate_examples(self):
         for i in range(100):
             yield i, {"text": "foo"}
+
+
+class DummyArrowBasedBuilder(ArrowBasedBuilder):
+    def _info(self):
+        return DatasetInfo(features=Features({"text": Value("string")}))
+
+    def _split_generators(self, dl_manager):
+        return [SplitGenerator(name=Split.TRAIN)]
+
+    def _generate_tables(self):
+        for i in range(10):
+            yield i, pa.table({"text": ["foo"] * 10})
+
+
+class DummyBeamBasedBuilder(BeamBasedBuilder):
+    def _info(self):
+        return DatasetInfo(features=Features({"text": Value("string")}))
+
+    def _split_generators(self, dl_manager):
+        return [SplitGenerator(name=Split.TRAIN)]
+
+    def _build_pcollection(self, pipeline):
+        import apache_beam as beam
+
+        def _process(item):
+            for i in range(10):
+                yield f"{i}_{item}", {"text": "foo"}
+
+        return pipeline | "Initialize" >> beam.Create(range(10)) | "Extract content" >> beam.FlatMap(_process)
 
 
 class DummyGeneratorBasedBuilderWithIntegers(GeneratorBasedBuilder):
@@ -690,6 +722,41 @@ class BuilderTest(TestCase):
             self.assertNotEqual(builder.cache_dir, other_builder.cache_dir)
 
 
+def test_arrow_based_download_and_prepare(tmp_path):
+    builder = DummyArrowBasedBuilder(cache_dir=tmp_path)
+    builder.download_and_prepare()
+    assert os.path.exists(
+        os.path.join(
+            tmp_path,
+            builder.name,
+            "default",
+            "0.0.0",
+            f"{builder.name}-train.arrow",
+        )
+    )
+    assert builder.info.features, Features({"text": Value("string")})
+    assert builder.info.splits["train"].num_examples, 100
+    assert os.path.exists(os.path.join(tmp_path, builder.name, "default", "0.0.0", "dataset_info.json"))
+
+
+@require_beam
+def test_beam_based_download_and_prepare(tmp_path):
+    builder = DummyBeamBasedBuilder(cache_dir=tmp_path, beam_runner="DirectRunner")
+    builder.download_and_prepare()
+    assert os.path.exists(
+        os.path.join(
+            tmp_path,
+            builder.name,
+            "default",
+            "0.0.0",
+            f"{builder.name}-train.arrow",
+        )
+    )
+    assert builder.info.features, Features({"text": Value("string")})
+    assert builder.info.splits["train"].num_examples, 100
+    assert os.path.exists(os.path.join(tmp_path, builder.name, "default", "0.0.0", "dataset_info.json"))
+
+
 @pytest.mark.parametrize(
     "split, expected_dataset_class, expected_dataset_length",
     [
@@ -846,3 +913,62 @@ def test_builder_config_version(builder_class, kwargs, tmp_path):
     cache_dir = str(tmp_path)
     builder = builder_class(cache_dir=cache_dir, **kwargs)
     assert builder.config.version == "2.0.0"
+
+
+def test_builder_with_filesystem(mockfs):
+    builder = DummyGeneratorBasedBuilder(cache_dir="mock://", storage_options=mockfs.storage_options)
+    assert builder.cache_dir.startswith("mock://")
+    assert is_local_path(builder._cache_downloaded_dir)
+    assert isinstance(builder._fs, type(mockfs))
+    assert builder._fs.storage_options == mockfs.storage_options
+
+
+def test_builder_with_filesystem_download_and_prepare(mockfs):
+    builder = DummyGeneratorBasedBuilder(cache_dir="mock://", storage_options=mockfs.storage_options)
+    builder.download_and_prepare()
+    assert mockfs.exists(f"{builder.name}/default/0.0.0/dataset_info.json")
+    assert mockfs.exists(f"{builder.name}/default/0.0.0/{builder.name}-train.arrow")
+    assert not mockfs.exists(f"{builder.name}/default/0.0.0.incomplete")
+
+
+def test_builder_with_filesystem_download_and_prepare_reload(mockfs, caplog):
+    builder = DummyGeneratorBasedBuilder(cache_dir="mock://", storage_options=mockfs.storage_options)
+    mockfs.makedirs(f"{builder.name}/default/0.0.0")
+    DatasetInfo().write_to_directory(f"{builder.name}/default/0.0.0", fs=mockfs)
+    mockfs.touch(f"{builder.name}/default/0.0.0/{builder.name}-train.arrow")
+    caplog.clear()
+    builder.download_and_prepare()
+    assert "Found cached dataset" in caplog.text
+
+
+def test_generator_based_builder_download_and_prepare_as_parquet(tmp_path):
+    builder = DummyGeneratorBasedBuilder(cache_dir=tmp_path)
+    builder.download_and_prepare(file_format="parquet")
+    assert builder.info.splits["train"].num_examples, 100
+    parquet_path = os.path.join(
+        tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-00001.parquet"
+    )
+    assert os.path.exists(parquet_path)
+    assert pq.ParquetFile(parquet_path) is not None
+
+
+def test_arrow_based_builder_download_and_prepare_as_parquet(tmp_path):
+    builder = DummyArrowBasedBuilder(cache_dir=tmp_path)
+    builder.download_and_prepare(file_format="parquet")
+    assert builder.info.splits["train"].num_examples, 100
+    parquet_path = os.path.join(
+        tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-00001.parquet"
+    )
+    assert os.path.exists(parquet_path)
+    assert pq.ParquetFile(parquet_path) is not None
+
+
+def test_beam_based_builder_download_and_prepare_as_parquet(tmp_path):
+    builder = DummyBeamBasedBuilder(cache_dir=tmp_path, beam_runner="DirectRunner")
+    builder.download_and_prepare(file_format="parquet")
+    assert builder.info.splits["train"].num_examples, 100
+    parquet_path = os.path.join(
+        tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-00001.parquet"
+    )
+    assert os.path.exists(parquet_path)
+    assert pq.ParquetFile(parquet_path) is not None

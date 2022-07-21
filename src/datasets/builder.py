@@ -673,7 +673,7 @@ class DatasetBuilder:
                         self._fs.rm(dirname, recursive=True)
                     if is_local:
                         # LocalFileSystem.mv does copy + rm, it is more efficient to simply rename a local directory
-                        os.rename(tmp_dir, dirname)
+                        os.rename(self._fs._strip_protocol(tmp_dir), self._fs._strip_protocol(dirname))
                     else:
                         self._fs.mv(tmp_dir, dirname, recursive=True)
                 finally:
@@ -691,8 +691,7 @@ class DatasetBuilder:
                     f"total: {size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
                 )
             else:
-                _protocol = self._fs.protocol if isinstance(self._fs.protocol, str) else self._fs.protocol[-1]
-                _dest = self._cache_dir if is_local else _protocol + "://" + self._cache_dir
+                _dest = self._fs._strip_protocol(self._cache_dir) if is_local else self._cache_dir
                 print(
                     f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} to {_dest}..."
                 )
@@ -834,7 +833,7 @@ class DatasetBuilder:
         self.info.download_size = dl_manager.downloaded_size
 
     def download_post_processing_resources(self, dl_manager):
-        for split in self.info.splits:
+        for split in self.info.splits or []:
             for resource_name, resource_file_name in self._post_processing_resources(split).items():
                 if not not is_remote_filesystem(self._fs):
                     raise NotImplementedError(f"Post processing is not supported on filesystem {self._fs}")
@@ -1234,9 +1233,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
             split_info = split_generator.split_info
 
         file_format = file_format or "arrow"
-        fname = f"{self.name}-{split_generator.name}.{file_format}"
-        protocol = self._fs.protocol if isinstance(self._fs.protocol, str) else self._fs.protocol[-1]
-        fpath = protocol + "://" + path_join(self._cache_dir, fname)
+        suffix = "-00000-of-00001" if file_format == "parquet" else ""
+        fname = f"{self.name}-{split_generator.name}{suffix}.{file_format}"
+        fpath = path_join(self._cache_dir, fname)
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
 
@@ -1315,9 +1314,9 @@ class ArrowBasedBuilder(DatasetBuilder):
         path_join = os.path.join if is_local else posixpath.join
 
         file_format = file_format or "arrow"
-        fname = f"{self.name}-{split_generator.name}.{file_format}"
-        protocol = self._fs.protocol if isinstance(self._fs.protocol, str) else self._fs.protocol[-1]
-        fpath = protocol + "://" + path_join(self._cache_dir, fname)
+        suffix = "-00000-of-00001" if file_format == "parquet" else ""
+        fname = f"{self.name}-{split_generator.name}{suffix}.{file_format}"
+        fpath = path_join(self._cache_dir, fname)
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter

@@ -6,8 +6,8 @@ from unittest.mock import patch
 
 import numpy as np
 import pyarrow as pa
-import pytest
 import pyarrow.parquet as pq
+import pytest
 
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
 from datasets.features import Array2D, ClassLabel, Features, Image, Value
