@@ -1,3 +1,4 @@
+import datetime
 from dataclasses import asdict
 from unittest import TestCase
 from unittest.mock import patch
@@ -58,6 +59,7 @@ class FeaturesTest(TestCase):
             pa.string(),
             pa.int32(),
             pa.float64(),
+            pa.array([datetime.time(1, 1, 1)]).type,  # arrow type: DataType(time64[us])
         ]
         for dt in supported_pyarrow_datatypes:
             self.assertEqual(dt, string_to_arrow(_arrow_to_datasets_dtype(dt)))

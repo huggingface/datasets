@@ -5,9 +5,9 @@ language_creators:
 - crowdsourced
 pretty_name: Wikipedia
 paperswithcode_id: null
-licenses:
+license:
 - cc-by-sa-3.0
-- gfdl-1.3-or-later
+- gfdl
 task_categories:
 - text-generation
 - fill-mask
@@ -24,7 +24,7 @@ size_categories:
 - 10K<n<100K
 - 100K<n<1M
 - 1M<n<10M
-languages:
+language:
 - "no"
 - aa
 - ab

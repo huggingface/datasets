@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: searchqa
 pretty_name: SearchQA

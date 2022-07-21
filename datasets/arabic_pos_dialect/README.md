@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - ar
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - multilingual
@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - token-classification
 task_ids:
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: null
 pretty_name: Arabic POS Dialect
 ---

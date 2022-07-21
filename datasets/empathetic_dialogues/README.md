@@ -1,6 +1,6 @@
 ---
 pretty_name: EmpatheticDialogues
-languages:
+language:
 - en
 paperswithcode_id: empatheticdialogues
 ---

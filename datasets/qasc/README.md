@@ -1,6 +1,6 @@
 ---
 pretty_name: Question Answering via Sentence Composition (QASC)
-languages:
+language:
 - en
 paperswithcode_id: qasc
 ---

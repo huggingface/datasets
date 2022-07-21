@@ -509,7 +509,7 @@ def get_from_cache(
                 logger.info(f"Couldn't get ETag version for url {url}")
             elif response.status_code == 401 and config.HF_ENDPOINT in url and use_auth_token is None:
                 raise ConnectionError(
-                    f"Unauthorized for URL {url}. Please use the parameter ``use_auth_token=True`` after logging in with ``huggingface-cli login``"
+                    f"Unauthorized for URL {url}. Please use the parameter `use_auth_token=True` after logging in with `huggingface-cli login`"
                 )
         except (OSError, requests.exceptions.Timeout) as e:
             # not connected

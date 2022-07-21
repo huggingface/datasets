@@ -3,15 +3,15 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - de
 - en
 - es
 - fr
 - ja
 - zh
-licenses:
-- other-amazon-license
+license:
+- other
 multilinguality:
 - monolingual
 - multilingual

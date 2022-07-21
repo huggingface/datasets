@@ -1,25 +1,21 @@
 # Overview
 
-Our how-to guides will show you how to complete a specific task. These guides are intended to help you apply your knowledge of 🤗 Datasets to real-world problems you may encounter. Want to flatten a column or load a dataset from a local file? We got you covered! You should already be familiar and comfortable with the 🤗 Datasets basics, and if you aren't, we recommend reading our [tutorial](./tutorial) first.
+The how-to guides offer a more comprehensive overview of all the tools 🤗 Datasets offers and how to use them. This will help you tackle messier real-world datasets where you may need to manipulate the dataset structure or content to get it ready for training.
 
-The how-to guides will cover eight key areas of 🤗 Datasets:
+The guides assume you are familiar and comfortable with the 🤗 Datasets basics. We recommend newer users check out our [tutorials](tutorial) first.
 
-* How to load a dataset from other data sources.
+<Tip>
 
-* How to process a dataset.
+Interested in learning more? Take a look at [Chapter 5](https://huggingface.co/course/chapter5/1?fw=pt) of the Hugging Face course!
 
-* How to use a dataset with your favorite ML/DL framework.
+</Tip>
 
-* How to stream large datasets.
+The guides are organized into five sections:
 
-* How to upload and share a dataset.
+- <span class="underline decoration-sky-400 decoration-2 font-semibold">General usage</span>: Functions for general dataset loading and processing. The functions shown in this section are applicable across all dataset modalities.
+- <span class="underline decoration-pink-400 decoration-2 font-semibold">Audio</span>: How to load, process, and share audio datasets.
+- <span class="underline decoration-yellow-400 decoration-2 font-semibold">Vision</span>: How to load, process, and share image datasets.
+- <span class="underline decoration-green-400 decoration-2 font-semibold">Text</span>: How to load, process, and share text datasets.
+- <span class="underline decoration-indigo-400 decoration-2 font-semibold">Dataset repository</span>: How to share and upload a dataset to the <a href="https://huggingface.co/datasets">Hub</a>.
 
-* How to create a dataset loading script.
-
-* How to create a dataset card.
-
-* How to compute metrics.
-
-* How to manage the cache.
-
-You can also find guides on how to process massive datasets with Beam, how to integrate with cloud storage providers, and how to add an index to search your dataset.
+If you have any questions about 🤗 Datasets, feel free to join and ask the community on our [forum](https://discuss.huggingface.co/c/datasets/10).

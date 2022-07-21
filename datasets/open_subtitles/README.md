@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - af
 - ar
 - bg
@@ -66,7 +66,7 @@ languages:
 - ze_zh
 - zh_cn
 - zh_tw
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

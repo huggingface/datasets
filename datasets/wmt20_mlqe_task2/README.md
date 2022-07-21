@@ -5,11 +5,11 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - de
 - en
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - translation

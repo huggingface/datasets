@@ -3,10 +3,11 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- other-LDC User Agreement for Non-Members
+license:
+- other
+license_details: "LDC User Agreement for Non-Members"
 multilinguality:
 - monolingual
 size_categories:

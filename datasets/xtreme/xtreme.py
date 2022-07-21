@@ -697,29 +697,16 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                 if path.startswith(data_dir):
                     csv_content = [line.decode("utf-8") for line in file]
                     if path.endswith("en"):
-                        target_sentences = list(csv.reader(csv_content, delimiter="\t"))
+                        target_sentences = dict(list(csv.reader(csv_content, delimiter="\t", quotechar=None)))
                     elif path.endswith("gold"):
-                        source_target_ids = list(csv.reader(csv_content, delimiter="\t"))
+                        source_target_ids = list(csv.reader(csv_content, delimiter="\t", quotechar=None))
                     else:
-                        source_sentences = list(csv.reader(csv_content, delimiter="\t"))
-            for id_, pair in enumerate(source_target_ids):
-                source_id = pair[0]
-                target_id = pair[1]
-                source_sent = ""
-                target_sent = ""
-                for i in range(len(source_sentences)):
-                    if source_sentences[i][0] == source_id:
-                        source_sent = source_sentences[i][1]
-                        source_id = source_sentences[i][0]
-                        break
-                for j in range(len(target_sentences)):
-                    if target_sentences[j][0] == target_id:
-                        target_sent = target_sentences[j][1]
-                        target_id = target_sentences[j][0]
-                        break
+                        source_sentences = dict(list(csv.reader(csv_content, delimiter="\t", quotechar=None)))
+
+            for id_, (source_id, target_id) in enumerate(source_target_ids):
                 yield id_, {
-                    "source_sentence": source_sent,
-                    "target_sentence": target_sent,
+                    "source_sentence": source_sentences[source_id],
+                    "target_sentence": target_sentences[target_id],
                     "source_lang": source_id,
                     "target_lang": target_id,
                 }

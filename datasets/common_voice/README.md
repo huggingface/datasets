@@ -4,7 +4,7 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - ab
 - ar
 - as
@@ -65,7 +65,7 @@ languages:
 - zh-CN
 - zh-HK
 - zh-TW
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - multilingual

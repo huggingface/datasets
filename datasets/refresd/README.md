@@ -5,10 +5,10 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - machine-generated
-languages:
+language:
 - en
 - fr
-licenses:
+license:
 - mit
 multilinguality:
 - translation

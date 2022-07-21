@@ -7,9 +7,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual

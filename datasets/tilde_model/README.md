@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - bg
 - cs
 - da
@@ -34,7 +34,7 @@ languages:
 - sv
 - tr
 - uk
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - multilingual

@@ -3,10 +3,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - sa
-licenses:
-- other-Public Domain Mark 1.0
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:

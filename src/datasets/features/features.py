@@ -78,9 +78,9 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
     elif pyarrow.types.is_float64(arrow_type):
         return "float64"  # pyarrow dtype is "double"
     elif pyarrow.types.is_time32(arrow_type):
-        return f"time32[{arrow_type.unit}]"
+        return f"time32[{pa.type_for_alias(str(arrow_type)).unit}]"
     elif pyarrow.types.is_time64(arrow_type):
-        return f"time64[{arrow_type.unit}]"
+        return f"time64[{pa.type_for_alias(str(arrow_type)).unit}]"
     elif pyarrow.types.is_timestamp(arrow_type):
         if arrow_type.tz is None:
             return f"timestamp[{arrow_type.unit}]"
@@ -1222,7 +1222,7 @@ def encode_nested_example(schema, obj, level=0):
     return obj
 
 
-def decode_nested_example(schema, obj, token_per_repo_id=None):
+def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
     """Decode a nested example.
     This is used since some features (in particular Audio and Image) have some logic during decoding.
 
@@ -1438,6 +1438,24 @@ def require_storage_cast(feature: FeatureType) -> bool:
         return hasattr(feature, "cast_storage")
 
 
+def require_storage_embed(feature: FeatureType) -> bool:
+    """Check if a (possibly nested) feature requires embedding data into storage.
+
+    Args:
+        feature (FeatureType): the feature type to be checked
+    Returns:
+        :obj:`bool`
+    """
+    if isinstance(feature, dict):
+        return any(require_storage_cast(f) for f in feature.values())
+    elif isinstance(feature, (list, tuple)):
+        return require_storage_cast(feature[0])
+    elif isinstance(feature, Sequence):
+        return require_storage_cast(feature.feature)
+    else:
+        return hasattr(feature, "embed_storage")
+
+
 def keep_features_dicts_synced(func):
     """
     Wrapper to keep the secondary dictionary, which tracks whether keys are decodable, of the :class:`datasets.Features` object
@@ -1613,7 +1631,7 @@ class Features(dict):
             encoded_batch[key] = [encode_nested_example(self[key], obj) for obj in column]
         return encoded_batch
 
-    def decode_example(self, example: dict, token_per_repo_id=None):
+    def decode_example(self, example: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
         """Decode example with custom feature decoding.
 
         Args:

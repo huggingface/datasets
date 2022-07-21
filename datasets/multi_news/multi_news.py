@@ -19,6 +19,10 @@
 import datasets
 
 
+_HOMEPAGE = "https://github.com/Alex-Fabbri/Multi-News"
+
+_LICENSE = "For non-commercial research and educational purposes only"
+
 _CITATION = """
 @misc{alex2019multinews,
     title={Multi-News: a Large-Scale Multi-Document Summarization Dataset and Abstractive Hierarchical Model},
@@ -41,18 +45,19 @@ There are two features:
   - summary: news summary.
 """
 
+_REPO = "https://huggingface.co/datasets/multi_news/resolve/main/data"
 _URLs = {
     "train": [
-        "https://drive.google.com/uc?export=download&id=1wHAWDOwOoQWSj7HYpyJ3Aeud8WhhaJ7P",
-        "https://drive.google.com/uc?export=download&id=1QVgswwhVTkd3VLCzajK6eVkcrSWEK6kq",
+        f"{_REPO}/train.src.cleaned",
+        f"{_REPO}/train.tgt",
     ],
     "val": [
-        "https://drive.google.com/uc?export=download&id=1p_u9_jpz3Zbj0EL05QFX6wvJAahmOn6h",
-        "https://drive.google.com/uc?export=download&id=1Y1lBbBU5Q0aJMqLhYEOdEtTqQ85XnRRM",
+        f"{_REPO}/val.src.cleaned",
+        f"{_REPO}/val.tgt",
     ],
     "test": [
-        "https://drive.google.com/uc?export=download&id=1-n_6fj-1nM7sWtBSNkQCSfl5Rb3zPVfr",
-        "https://drive.google.com/uc?export=download&id=1CX_YcgQ3WwNC1fXBpMfwMXFPCqsd9Lbp",
+        f"{_REPO}/test.src.cleaned",
+        f"{_REPO}/test.tgt",
     ],
 }
 
@@ -70,7 +75,8 @@ class MultiNews(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features({_DOCUMENT: datasets.Value("string"), _SUMMARY: datasets.Value("string")}),
             supervised_keys=(_DOCUMENT, _SUMMARY),
-            homepage="https://github.com/Alex-Fabbri/Multi-News",
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
             citation=_CITATION,
         )
 
