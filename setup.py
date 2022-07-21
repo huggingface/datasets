@@ -125,7 +125,7 @@ TESTS_REQUIRE = [
     "fsspec[s3]",
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
-    "s3fs==2021.08.1",
+    "s3fs",
     "tensorflow>=2.3,!=2.6.0,!=2.6.1",
     "torch",
     "torchaudio",
