@@ -602,6 +602,7 @@ def test_load_dataset_with_audio_feature(streaming, jsonl_audio_dataset_path, sh
 
 
 @require_sndfile
+@pytest.mark.integration
 def test_dataset_with_audio_feature_loaded_from_cache():
     # load first time
     ds = load_dataset("patrickvonplaten/librispeech_asr_dummy", "clean")

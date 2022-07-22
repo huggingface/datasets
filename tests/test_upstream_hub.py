@@ -15,6 +15,9 @@ from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
 from tests.utils import require_pil, require_sndfile
 
 
+pytestmark = pytest.mark.integration
+
+
 @pytest.mark.usefixtures("set_ci_hub_access_token")
 class TestPushToHub:
     _api = HfApi(endpoint=CI_HUB_ENDPOINT)
