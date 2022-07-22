@@ -11,21 +11,21 @@ import pytest
 from huggingface_hub import HfApi
 
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
-from tests.fixtures.hub import ENDPOINT_STAGING, TOKEN, USER
+from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
 from tests.utils import require_pil, require_sndfile
 
 
-@pytest.mark.usefixtures("set_staging_access_token")
+@pytest.mark.usefixtures("set_ci_hub_access_token")
 class TestPushToHub:
-    _api = HfApi(endpoint=ENDPOINT_STAGING)
-    _token = TOKEN
+    _api = HfApi(endpoint=CI_HUB_ENDPOINT)
+    _token = CI_HUB_USER_TOKEN
 
     def test_push_dataset_dict_to_hub_no_token(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
         local_ds = DatasetDict({"train": ds})
 
-        with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -47,7 +47,7 @@ class TestPushToHub:
 
         local_ds = DatasetDict({"train": ds})
 
-        with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name.split("/")[-1], token=self._token)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -70,7 +70,7 @@ class TestPushToHub:
 
         local_ds = DatasetDict({"train": ds_train, "test": ds_test})
 
-        ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
+        ds_name = f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}"
         try:
             with pytest.raises(ValueError):
                 local_ds.push_to_hub(ds_name.split("/")[-1], token=self._token)
@@ -83,7 +83,7 @@ class TestPushToHub:
 
         local_ds = DatasetDict({"train": ds})
 
-        with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token, private=True)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload", use_auth_token=self._token)
 
@@ -105,7 +105,7 @@ class TestPushToHub:
 
         local_ds = DatasetDict({"train": ds})
 
-        with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -127,7 +127,7 @@ class TestPushToHub:
 
         local_ds = DatasetDict({"train": ds})
 
-        with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token, max_shard_size="16KB")
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -156,7 +156,7 @@ class TestPushToHub:
 
         local_ds = DatasetDict({"train": ds, "random": ds2})
 
-        ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
+        ds_name = f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}"
 
         # Push to hub two times, but the second time with a larger amount of files.
         # Verify that the new files contain the correct dataset.
@@ -255,7 +255,7 @@ class TestPushToHub:
     def test_push_dataset_to_hub(self, temporary_repo):
         local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
-        with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, split="train", token=self._token)
             local_ds_dict = {"train": local_ds}
             hub_ds_dict = load_dataset(ds_name, download_mode="force_redownload")
@@ -273,7 +273,7 @@ class TestPushToHub:
         features = Features({"x": Value("int64"), "y": ClassLabel(names=["neg", "pos"])})
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [0, 0, 1]}, features=features)
 
-        with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             ds.push_to_hub(ds_name, token=self._token)
             hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
 
@@ -290,7 +290,7 @@ class TestPushToHub:
         ds = Dataset.from_dict(data, features=features)
 
         for embed_external_files in [True, False]:
-            with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
                 ds.push_to_hub(ds_name, embed_external_files=embed_external_files, token=self._token)
                 hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
 
@@ -313,7 +313,7 @@ class TestPushToHub:
         ds = Dataset.from_dict(data, features=features)
 
         for embed_external_files in [True, False]:
-            with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
                 ds.push_to_hub(ds_name, embed_external_files=embed_external_files, token=self._token)
                 hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
 
@@ -335,7 +335,7 @@ class TestPushToHub:
         ds = Dataset.from_dict(data, features=features)
 
         for embed_external_files in [True, False]:
-            with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
                 ds.push_to_hub(ds_name, embed_external_files=embed_external_files, token=self._token)
                 hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
 
@@ -355,7 +355,7 @@ class TestPushToHub:
 
         local_ds = DatasetDict({"test": ds})
 
-        with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -366,7 +366,7 @@ class TestPushToHub:
     def test_push_dataset_to_hub_custom_splits(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
-        with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             ds.push_to_hub(ds_name, split="random", token=self._token)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -376,7 +376,7 @@ class TestPushToHub:
 
     def test_push_dataset_to_hub_skip_identical_files(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
-        with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             with patch("datasets.arrow_dataset.HfApi.upload_file", side_effect=self._api.upload_file) as mock_hf_api:
                 # Initial push
                 ds.push_to_hub(ds_name, token=self._token, max_shard_size="1KB")
@@ -401,7 +401,7 @@ class TestPushToHub:
 
     def test_push_dataset_to_hub_multiple_splits_one_by_one(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
-        with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             ds.push_to_hub(ds_name, split="train", token=self._token)
             ds.push_to_hub(ds_name, split="test", token=self._token)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
@@ -415,7 +415,7 @@ class TestPushToHub:
 
         local_ds = DatasetDict({"random": ds})
 
-        with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -431,7 +431,7 @@ class TestPushToHub:
             local_ds.save_to_disk(tmp)
             local_ds = load_dataset(tmp, streaming=True)
 
-            with temporary_repo(f"{USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
                 local_ds.push_to_hub(ds_name, token=self._token)
                 hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
