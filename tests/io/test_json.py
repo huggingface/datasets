@@ -95,7 +95,7 @@ def test_dataset_from_json_split(split, jsonl_path, tmp_path):
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     dataset = JsonDatasetReader(jsonl_path, cache_dir=cache_dir, split=split).read()
     _check_json_dataset(dataset, expected_features)
-    assert dataset.split == str(split) if split else "train"
+    assert dataset.split == split if split else "train"
 
 
 @pytest.mark.parametrize("path_type", [str, list])
