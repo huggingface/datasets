@@ -7,10 +7,14 @@ import tarfile
 import warnings
 import zipfile
 from abc import ABC, abstractmethod
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from .. import config
 from .filelock import FileLock
+
+
+if TYPE_CHECKING:
+    import pathlib
 
 
 class ExtractManager:
@@ -46,12 +50,12 @@ class ExtractManager:
 class BaseExtractor(ABC):
     @classmethod
     @abstractmethod
-    def is_extractable(cls, path: Union["Path", str], **kwargs) -> bool:
+    def is_extractable(cls, path: Union["pathlib.Path", str], **kwargs) -> bool:
         ...
 
     @staticmethod
     @abstractmethod
-    def extract(input_path: Union["Path", str], output_path: Union["Path", str]) -> None:
+    def extract(input_path: Union["pathlib.Path", str], output_path: Union["pathlib.Path", str]) -> None:
         ...
 
 
@@ -59,12 +63,12 @@ class MagicNumberBaseExtractor(BaseExtractor, ABC):
     magic_number = b""
 
     @staticmethod
-    def read_magic_number(path: Union["Path", str], magic_number_length: int):
+    def read_magic_number(path: Union["pathlib.Path", str], magic_number_length: int):
         with open(path, "rb") as f:
             return f.read(magic_number_length)
 
     @classmethod
-    def is_extractable(cls, path: Union["Path", str], magic_number: bytes = b"") -> bool:
+    def is_extractable(cls, path: Union["pathlib.Path", str], magic_number: bytes = b"") -> bool:
         if not magic_number:
             try:
                 magic_number = cls.read_magic_number(path, len(cls.magic_number))
@@ -75,11 +79,11 @@ class MagicNumberBaseExtractor(BaseExtractor, ABC):
 
 class TarExtractor(BaseExtractor):
     @classmethod
-    def is_extractable(cls, path: Union["Path", str], **kwargs) -> bool:
+    def is_extractable(cls, path: Union["pathlib.Path", str], **kwargs) -> bool:
         return tarfile.is_tarfile(path)
 
     @staticmethod
-    def extract(input_path: Union["Path", str], output_path: Union["Path", str]) -> None:
+    def extract(input_path: Union["pathlib.Path", str], output_path: Union["pathlib.Path", str]) -> None:
         os.makedirs(output_path, exist_ok=True)
         tar_file = tarfile.open(input_path)
         tar_file.extractall(output_path)
@@ -90,7 +94,7 @@ class GzipExtractor(MagicNumberBaseExtractor):
     magic_number = b"\x1F\x8B"
 
     @staticmethod
-    def extract(input_path: Union["Path", str], output_path: Union["Path", str]) -> None:
+    def extract(input_path: Union["pathlib.Path", str], output_path: Union["pathlib.Path", str]) -> None:
         with gzip.open(input_path, "rb") as gzip_file:
             with open(output_path, "wb") as extracted_file:
                 shutil.copyfileobj(gzip_file, extracted_file)
@@ -98,11 +102,11 @@ class GzipExtractor(MagicNumberBaseExtractor):
 
 class ZipExtractor(BaseExtractor):
     @classmethod
-    def is_extractable(cls, path: Union["Path", str], **kwargs) -> bool:
+    def is_extractable(cls, path: Union["pathlib.Path", str], **kwargs) -> bool:
         return zipfile.is_zipfile(path)
 
     @staticmethod
-    def extract(input_path: Union["Path", str], output_path: Union["Path", str]) -> None:
+    def extract(input_path: Union["pathlib.Path", str], output_path: Union["pathlib.Path", str]) -> None:
         os.makedirs(output_path, exist_ok=True)
         with zipfile.ZipFile(input_path, "r") as zip_file:
             zip_file.extractall(output_path)
@@ -113,7 +117,7 @@ class XzExtractor(MagicNumberBaseExtractor):
     magic_number = b"\xFD\x37\x7A\x58\x5A\x00"
 
     @staticmethod
-    def extract(input_path: Union["Path", str], output_path: Union["Path", str]) -> None:
+    def extract(input_path: Union["pathlib.Path", str], output_path: Union["pathlib.Path", str]) -> None:
         with lzma.open(input_path) as compressed_file:
             with open(output_path, "wb") as extracted_file:
                 shutil.copyfileobj(compressed_file, extracted_file)
@@ -124,14 +128,14 @@ class RarExtractor(BaseExtractor):
     RAR5_ID = b"Rar!\x1a\x07\x01\x00"
 
     @classmethod
-    def is_extractable(cls, path: Union["Path", str], **kwargs) -> bool:
+    def is_extractable(cls, path: Union["pathlib.Path", str], **kwargs) -> bool:
         """https://github.com/markokr/rarfile/blob/master/rarfile.py"""
         with open(path, "rb") as f:
             magic_number = f.read(len(cls.RAR5_ID))
         return magic_number == cls.RAR5_ID or magic_number.startswith(cls.RAR_ID)
 
     @staticmethod
-    def extract(input_path: Union["Path", str], output_path: Union["Path", str]) -> None:
+    def extract(input_path: Union["pathlib.Path", str], output_path: Union["pathlib.Path", str]) -> None:
         if not config.RARFILE_AVAILABLE:
             raise OSError("Please pip install rarfile")
         import rarfile
@@ -146,7 +150,7 @@ class ZstdExtractor(MagicNumberBaseExtractor):
     magic_number = b"\x28\xb5\x2F\xFD"
 
     @staticmethod
-    def extract(input_path: Union["Path", str], output_path: Union["Path", str]) -> None:
+    def extract(input_path: Union["pathlib.Path", str], output_path: Union["pathlib.Path", str]) -> None:
         if not config.ZSTANDARD_AVAILABLE:
             raise OSError("Please pip install zstandard")
         import zstandard as zstd
@@ -160,7 +164,7 @@ class Bzip2Extractor(MagicNumberBaseExtractor):
     magic_number = b"\x42\x5A\x68"
 
     @staticmethod
-    def extract(input_path: Union["Path", str], output_path: Union["Path", str]) -> None:
+    def extract(input_path: Union["pathlib.Path", str], output_path: Union["pathlib.Path", str]) -> None:
         with bz2.open(input_path, "rb") as compressed_file:
             with open(output_path, "wb") as extracted_file:
                 shutil.copyfileobj(compressed_file, extracted_file)
@@ -170,7 +174,7 @@ class SevenZipExtractor(MagicNumberBaseExtractor):
     magic_number = b"\x37\x7A\xBC\xAF\x27\x1C"
 
     @staticmethod
-    def extract(input_path: Union["Path", str], output_path: Union["Path", str]) -> None:
+    def extract(input_path: Union["pathlib.Path", str], output_path: Union["pathlib.Path", str]) -> None:
         if not config.PY7ZR_AVAILABLE:
             raise OSError("Please pip install py7zr")
         import py7zr
@@ -184,7 +188,7 @@ class Lz4Extractor(MagicNumberBaseExtractor):
     magic_number = b"\x04\x22\x4D\x18"
 
     @staticmethod
-    def extract(input_path: Union["Path", str], output_path: Union["Path", str]) -> None:
+    def extract(input_path: Union["pathlib.Path", str], output_path: Union["pathlib.Path", str]) -> None:
         if not config.LZ4_AVAILABLE:
             raise OSError("Please pip install lz4")
         import lz4.frame
@@ -220,14 +224,14 @@ class Extractor:
         return magic_number_max_length
 
     @staticmethod
-    def _read_magic_number(path: Union["Path", str], magic_number_length: int):
+    def _read_magic_number(path: Union["pathlib.Path", str], magic_number_length: int):
         try:
             return MagicNumberBaseExtractor.read_magic_number(path, magic_number_length=magic_number_length)
         except OSError:
             return b""
 
     @classmethod
-    def is_extractable(cls, path: Union["Path", str], return_extractor: bool = False) -> bool:
+    def is_extractable(cls, path: Union["pathlib.Path", str], return_extractor: bool = False) -> bool:
         warnings.warn(
             "Method 'is_extractable' was deprecated in version 2.4.0 and will be removed in 3.0.0. "
             "Use 'infer_extractor_format' instead.",
@@ -239,7 +243,7 @@ class Extractor:
         return False if not return_extractor else (False, None)
 
     @classmethod
-    def infer_extractor_format(cls, path: Union["Path", str]) -> str:
+    def infer_extractor_format(cls, path: Union["pathlib.Path", str]) -> str:
         magic_number_max_length = cls._get_magic_number_max_length()
         magic_number = cls._read_magic_number(path, magic_number_max_length)
         for extractor_format, extractor in cls.extractors.items():
@@ -249,8 +253,8 @@ class Extractor:
     @classmethod
     def extract(
         cls,
-        input_path: Union["Path", str],
-        output_path: Union["Path", str],
+        input_path: Union["pathlib.Path", str],
+        output_path: Union["pathlib.Path", str],
         extractor_format: Optional[str] = None,
         extractor: Optional[BaseExtractor] = "deprecated",
     ) -> None:
