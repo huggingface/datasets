@@ -47,7 +47,6 @@ from datasets.tasks import (
 from datasets.utils.logging import WARNING
 from datasets.utils.py_utils import temp_seed
 
-from .conftest import s3_test_bucket_name
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
@@ -2863,7 +2862,7 @@ def test_dataset_from_csv_split(split, csv_path, tmp_path):
     expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     dataset = Dataset.from_csv(csv_path, cache_dir=cache_dir, split=split)
     _check_csv_dataset(dataset, expected_features)
-    assert dataset.split == str(split) if split else "train"
+    assert dataset.split == split if split else "train"
 
 
 @pytest.mark.parametrize("path_type", [str, list])
@@ -2932,7 +2931,7 @@ def test_dataset_from_json_split(split, jsonl_path, tmp_path):
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     dataset = Dataset.from_json(jsonl_path, cache_dir=cache_dir, split=split)
     _check_json_dataset(dataset, expected_features)
-    assert dataset.split == str(split) if split else "train"
+    assert dataset.split == split if split else "train"
 
 
 @pytest.mark.parametrize("path_type", [str, list])
@@ -2992,7 +2991,7 @@ def test_dataset_from_parquet_split(split, parquet_path, tmp_path):
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     dataset = Dataset.from_parquet(parquet_path, cache_dir=cache_dir, split=split)
     _check_parquet_dataset(dataset, expected_features)
-    assert dataset.split == str(split) if split else "train"
+    assert dataset.split == split if split else "train"
 
 
 @pytest.mark.parametrize("path_type", [str, list])
@@ -3051,7 +3050,7 @@ def test_dataset_from_text_split(split, text_path, tmp_path):
     expected_features = {"text": "string"}
     dataset = Dataset.from_text(text_path, cache_dir=cache_dir, split=split)
     _check_text_dataset(dataset, expected_features)
-    assert dataset.split == str(split) if split else "train"
+    assert dataset.split == split if split else "train"
 
 
 @pytest.mark.parametrize("path_type", [str, list])
@@ -3123,7 +3122,7 @@ def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_param
     reason='On Windows CircleCI or GitHub Actions, it raises botocore.exceptions.EndpointConnectionError: Could not connect to the endpoint URL: "http://127.0.0.1:5555/test"',
 )  # TODO: find what's wrong with CircleCI / GitHub Actions
 @require_s3
-def test_dummy_dataset_serialize_s3(s3, dataset):
+def test_dummy_dataset_serialize_s3(s3, dataset, s3_test_bucket_name):
     mock_bucket = s3_test_bucket_name
     dataset_path = f"s3://{mock_bucket}/my_dataset"
     features = dataset.features
