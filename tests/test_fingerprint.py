@@ -8,6 +8,7 @@ from types import CodeType, FunctionType
 from unittest import TestCase
 from unittest.mock import patch
 
+import pytest
 from multiprocess import Pool
 
 import datasets
@@ -49,6 +50,7 @@ class UnpicklableCallable:
 
 class TokenizersDumpTest(TestCase):
     @require_transformers
+    @pytest.mark.integration
     def test_hash_tokenizer(self):
         from transformers import AutoTokenizer
 
@@ -76,6 +78,7 @@ class TokenizersDumpTest(TestCase):
         self.assertNotEqual(hash1_encode, hash2_encode)
 
     @require_transformers
+    @pytest.mark.integration
     def test_hash_tokenizer_with_cache(self):
         from transformers import AutoTokenizer
 

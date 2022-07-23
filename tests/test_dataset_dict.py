@@ -668,6 +668,7 @@ def test_datasetdict_from_text_split(split, text_path, tmp_path):
     reason='On Windows CircleCI or GitHub Actions, it raises botocore.exceptions.EndpointConnectionError: Could not connect to the endpoint URL: "http://127.0.0.1:5555/test"',
 )  # TODO: find what's wrong with CircleCI / GitHub Actions
 @require_s3
+@pytest.mark.integration
 def test_dummy_dataset_serialize_s3(s3, dataset, s3_test_bucket_name):
     dsets = DatasetDict({"train": dataset, "test": dataset.select(range(2))})
     mock_bucket = s3_test_bucket_name

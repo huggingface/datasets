@@ -2495,6 +2495,7 @@ class MiscellaneousDatasetTest(TestCase):
                     self.assertListEqual(concatenated_dset["id"], dset1["id"] + dset2["id"] + dset3["id"])
 
     @require_transformers
+    @pytest.mark.integration
     def test_set_format_encode(self):
         from transformers import BertTokenizer
 
@@ -3122,6 +3123,7 @@ def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_param
     reason='On Windows CircleCI or GitHub Actions, it raises botocore.exceptions.EndpointConnectionError: Could not connect to the endpoint URL: "http://127.0.0.1:5555/test"',
 )  # TODO: find what's wrong with CircleCI / GitHub Actions
 @require_s3
+@pytest.mark.integration
 def test_dummy_dataset_serialize_s3(s3, dataset, s3_test_bucket_name):
     mock_bucket = s3_test_bucket_name
     dataset_path = f"s3://{mock_bucket}/my_dataset"
