@@ -498,6 +498,7 @@ def test_module_factories(factory_class):
     assert factory.name == name
 
 
+@pytest.mark.integration
 class LoadTest(TestCase):
     @pytest.fixture(autouse=True)
     def inject_fixtures(self, caplog):
@@ -865,6 +866,7 @@ def test_loading_from_the_datasets_hub():
         del dataset
 
 
+@pytest.mark.integration
 def test_loading_from_the_datasets_hub_with_use_auth_token():
     from requests import get
 

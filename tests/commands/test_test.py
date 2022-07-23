@@ -3,6 +3,7 @@ import os
 from collections import namedtuple
 from dataclasses import dataclass
 
+import pytest
 from packaging import version
 
 from datasets import config
@@ -43,6 +44,7 @@ else:
             return iter(self.__dict__.values())
 
 
+@pytest.mark.integration
 def test_test_command(dataset_loading_script_dir):
     args = _TestCommandArgs(dataset=dataset_loading_script_dir, all_configs=True, save_infos=True)
     test_command = TestCommand(*args)

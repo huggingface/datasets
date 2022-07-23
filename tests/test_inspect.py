@@ -12,6 +12,9 @@ from datasets import (
 )
 
 
+pytestmark = pytest.mark.integration
+
+
 @pytest.mark.parametrize("path", ["paws", "csv"])
 def test_inspect_dataset(path, tmp_path):
     inspect_dataset(path, tmp_path)
@@ -53,7 +56,6 @@ def test_get_dataset_config_info_error(path, config_name, expected_exception):
         get_dataset_config_info(path, config_name=config_name)
 
 
-@pytest.mark.integration
 @pytest.mark.parametrize(
     "path, expected",
     [

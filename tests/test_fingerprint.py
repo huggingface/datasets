@@ -297,6 +297,7 @@ class HashingTest(TestCase):
         self.assertEqual(hash1, hash3)
 
 
+@pytest.mark.integration
 def test_move_script_doesnt_change_hash(tmp_path: Path):
     dir1 = tmp_path / "dir1"
     dir2 = tmp_path / "dir2"
