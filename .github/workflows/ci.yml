@@ -67,7 +67,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip install .[tests]
-          pip install -r additional-tests-requirements.txt --no-deps
       - name: Install latest PyArrow
         if: ${{ matrix.pyarrow_version == 'latest' }}
         run: pip install pyarrow --upgrade
