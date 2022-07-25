@@ -50,7 +50,7 @@ class DatasetDict(dict):
             return super().__getitem__(k)
         else:
             available_suggested_splits = [
-                str(split) for split in (Split.TRAIN, Split.TEST, Split.VALIDATION) if split in self
+                split for split in (Split.TRAIN, Split.TEST, Split.VALIDATION) if split in self
             ]
             suggested_split = available_suggested_splits[0] if available_suggested_splits else list(self)[0]
             raise KeyError(

@@ -83,8 +83,8 @@ REQUIRED_PKGS = [
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
     "importlib_metadata;python_version<'3.8'",
     # to save datasets locally or on any filesystem
-    # minimum 2021.05.0 to have the AbstractArchiveFileSystem
-    "fsspec[http]>=2021.05.0",
+    # minimum 2021.11.1 so that BlockSizeError is fixed: see https://github.com/fsspec/filesystem_spec/pull/830
+    "fsspec[http]>=2021.11.1",  # aligned s3fs with this
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
@@ -118,14 +118,14 @@ TESTS_REQUIRE = [
     # optional dependencies
     "apache-beam>=2.26.0",
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElastictSearch()
-    "aiobotocore==1.4.2",  # to be compatible with boto3==1.17.106 - both have strong dependencies on botocore
-    "boto3==1.17.106",  # to be compatible with aiobotocore==1.4.2 - both have strong dependencies on botocore
-    "botocore==1.20.106",  # to be compatible with aiobotocore and boto3
+    "aiobotocore>=2.0.1",  # required by s3fs>=2021.11.1
+    "boto3>=1.19.8",  # to be compatible with aiobotocore>=2.0.1 - both have strong dependencies on botocore
+    "botocore>=1.22.8",  # to be compatible with aiobotocore and boto3
     "faiss-cpu>=1.6.4",
     "fsspec[s3]",
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
-    "s3fs==2021.08.1",
+    "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1
     "tensorflow>=2.3,!=2.6.0,!=2.6.1",
     "torch",
     "torchaudio",
@@ -151,7 +151,7 @@ TESTS_REQUIRE = [
     "bert_score>=0.3.6",
     "jiwer",
     "mauve-text",
-    "rouge_score",
+    "rouge_score<0.0.7",
     "sacrebleu",
     "sacremoses",
     "scikit-learn",

@@ -123,7 +123,6 @@ def test_extractor(
         elif compression_format == "zstd":
             reason += require_zstandard.kwargs["reason"]
         pytest.skip(reason)
-    input_path = str(input_path)
     extractor_format = Extractor.infer_extractor_format(input_path)
     assert extractor_format is not None
     output_path = tmp_path / ("extracted" if is_archive else "extracted.txt")

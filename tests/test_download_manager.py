@@ -42,7 +42,7 @@ def test_download_manager_download(urls_type, tmp_path, monkeypatch):
         urls = {"train": url}
     dataset_name = "dummy"
     cache_subdir = "downloads"
-    cache_dir_root = str(tmp_path)
+    cache_dir_root = tmp_path
     download_config = DownloadConfig(
         cache_dir=os.path.join(cache_dir_root, cache_subdir),
         use_etag=False,

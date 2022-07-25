@@ -1,5 +1,4 @@
 import json
-import os
 
 import datasets
 
@@ -20,7 +19,8 @@ Together with English newspapers from the popular CNN/Daily mail dataset, the co
 We report cross-lingual comparative analyses based on state-of-the-art systems.
 These highlight existing biases which motivate the use of a multi-lingual dataset.
 """
-_URL = "https://gitlab.lip6.fr/scialom/mlsum_data/-/raw/master/MLSUM/"
+
+_URL = "https://gitlab.lip6.fr/scialom/mlsum_data/-/raw/master/MLSUM"
 _LANG = ["de", "es", "fr", "ru", "tu"]
 
 
@@ -65,49 +65,30 @@ class Mlsum(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
 
-        lang = str(self.config.name)
+        lang = self.config.name
         urls_to_download = {
-            "test": _URL + lang + "_test.zip",
-            "train": _URL + lang + "_train.zip",
-            "validation": _URL + lang + "_val.zip",
+            "train": f"{_URL}/{lang}_train.jsonl",
+            "validation": f"{_URL}/{lang}_val.jsonl",
+            "test": f"{_URL}/{lang}_test.jsonl",
         }
-        downloaded_files = dl_manager.download_and_extract(urls_to_download)
+        downloaded_files = dl_manager.download(urls_to_download)
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
+                name=split,
                 gen_kwargs={
-                    "filepath": os.path.join(downloaded_files["train"], lang + "_train.jsonl"),
-                    "lang": lang,
+                    "filepath": downloaded_files[split],
                 },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(downloaded_files["validation"], lang + "_val.jsonl"),
-                    "lang": lang,
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(downloaded_files["test"], lang + "_test.jsonl"),
-                    "lang": lang,
-                },
-            ),
+            )
+            for split in [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]
         ]
 
-    def _generate_examples(self, filepath, lang):
+    def _generate_examples(self, filepath):
         """Yields examples."""
         with open(filepath, encoding="utf-8") as f:
-            i = 0
-            for line in f:
+            for id_, line in enumerate(f):
                 data = json.loads(line)
-                i += 1
-                yield i, {
+                yield id_, {
                     "text": data["text"],
                     "summary": data["summary"],
                     "topic": data["topic"],
