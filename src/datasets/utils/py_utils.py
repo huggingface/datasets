@@ -325,7 +325,7 @@ def map_nested(
     map_tuple: bool = False,
     map_numpy: bool = False,
     num_proc: Optional[int] = None,
-    types=None,
+    types: Optional[tuple] = None,
     disable_tqdm: bool = True,
     desc: Optional[str] = None,
 ):
