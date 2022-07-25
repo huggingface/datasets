@@ -19,7 +19,7 @@ import json
 import re
 import sys
 from collections.abc import Iterable, Mapping
-from dataclasses import InitVar, _asdict_inner, dataclass, field, fields
+from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
 from typing import Any, ClassVar, Dict, List, Optional
@@ -37,7 +37,7 @@ from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 from .. import config
 from ..table import array_cast
 from ..utils import logging
-from ..utils.py_utils import first_non_null_value, zip_dict
+from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
 from .translation import Translation, TranslationVariableLanguages
@@ -1598,7 +1598,7 @@ class Features(dict):
         return cls(**obj)
 
     def to_dict(self):
-        return _asdict_inner(self, dict)
+        return asdict(self)
 
     def encode_example(self, example):
         """
