@@ -18,6 +18,7 @@
 """
 
 import contextlib
+import copy
 import functools
 import itertools
 import os
@@ -26,6 +27,7 @@ import re
 import sys
 import types
 from contextlib import contextmanager
+from dataclasses import fields, is_dataclass
 from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
 from shutil import disk_usage
@@ -149,6 +151,39 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
     keys = re.findall(r"{(.+?)}", pattern)
     _dict = dict(zip(keys, values))
     return _dict
+
+
+def asdict(obj):
+    """Convert an object to its dictionary representation recursively."""
+
+    def _is_dataclass_instance(obj):
+        # https://docs.python.org/3/library/dataclasses.html#dataclasses.is_dataclass
+        return is_dataclass(obj) and not isinstance(obj, type)
+
+    def _asdict_inner(obj):
+        if _is_dataclass_instance(obj):
+            result = {}
+            for f in fields(obj):
+                value = _asdict_inner(getattr(obj, f.name))
+                result[f.name] = value
+            return result
+        elif isinstance(obj, tuple) and hasattr(obj, "_fields"):
+            # obj is a namedtuple
+            return type(obj)(*[_asdict_inner(v) for v in obj])
+        elif isinstance(obj, (list, tuple)):
+            # Assume we can create an object of this type by passing in a
+            # generator (which is not true for namedtuples, handled
+            # above).
+            return type(obj)(_asdict_inner(v) for v in obj)
+        elif isinstance(obj, dict):
+            return {_asdict_inner(k): _asdict_inner(v) for k, v in obj.items()}
+        else:
+            return copy.deepcopy(obj)
+
+    if not isinstance(obj, dict) and not _is_dataclass_instance(obj):
+        raise TypeError(f"{obj} is not a dict or a dataclass")
+
+    return _asdict_inner(obj)
 
 
 @contextlib.contextmanager
