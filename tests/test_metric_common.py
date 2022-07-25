@@ -32,6 +32,9 @@ from datasets import load_metric
 from .utils import for_all_test_methods, local, slow
 
 
+pytestmark = pytest.mark.skip(reason="metrics are deprecated")
+
+
 REQUIRE_FAIRSEQ = {"comet"}
 _has_fairseq = importlib.util.find_spec("fairseq") is not None
 

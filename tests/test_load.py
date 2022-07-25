@@ -264,6 +264,7 @@ class ModuleFactoryTest(TestCase):
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
 
+    @pytest.mark.skip(reason="metrics are deprecated")
     def test_GithubMetricModuleFactory_with_internal_import(self):
         # "squad_v2" requires additional imports (internal)
         factory = GithubMetricModuleFactory(
@@ -272,6 +273,7 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
 
+    @pytest.mark.skip(reason="metrics are deprecated")
     def test_GithubMetricModuleFactory_with_external_import(self):
         # "bleu" requires additional imports (external from github)
         factory = GithubMetricModuleFactory(
@@ -280,6 +282,7 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
 
+    @pytest.mark.skip(reason="metrics are deprecated")
     def test_LocalMetricModuleFactory(self):
         path = os.path.join(self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py")
         factory = LocalMetricModuleFactory(
@@ -454,6 +457,7 @@ class ModuleFactoryTest(TestCase):
                 module_factory_result = factory.get_module()
                 assert importlib.import_module(module_factory_result.module_path) is not None
 
+    @pytest.mark.skip(reason="metrics are deprecated")
     def test_CachedMetricModuleFactory(self):
         path = os.path.join(self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py")
         factory = LocalMetricModuleFactory(
@@ -474,14 +478,14 @@ class ModuleFactoryTest(TestCase):
     "factory_class",
     [
         CachedDatasetModuleFactory,
-        CachedMetricModuleFactory,
+        pytest.param(CachedMetricModuleFactory, marks=pytest.mark.skip(reason="metrics are deprecated")),
         GithubDatasetModuleFactory,
-        GithubMetricModuleFactory,
+        pytest.param(GithubMetricModuleFactory, marks=pytest.mark.skip(reason="metrics are deprecated")),
         HubDatasetModuleFactoryWithoutScript,
         HubDatasetModuleFactoryWithScript,
         LocalDatasetModuleFactoryWithoutScript,
         LocalDatasetModuleFactoryWithScript,
-        LocalMetricModuleFactory,
+        pytest.param(LocalMetricModuleFactory, marks=pytest.mark.skip(reason="metrics are deprecated")),
         PackagedDatasetModuleFactory,
     ],
 )
