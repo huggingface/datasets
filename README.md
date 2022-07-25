@@ -85,8 +85,6 @@ For more details on using the library with NumPy, pandas, PyTorch or TensorFlow,
 
 - `datasets.list_datasets()` to list the available datasets
 - `datasets.load_dataset(dataset_name, **kwargs)` to instantiate a dataset
-- `datasets.list_metrics()` to list the available metrics
-- `datasets.load_metric(metric_name, **kwargs)` to instantiate a metric
 
 This library can be used for text/image/audio/etc. datasets. Here is an example to load a text dataset:
 
@@ -150,7 +148,7 @@ If you are familiar with the great TensorFlow Datasets, here are the main differ
 
 # Disclaimers
 
-Similar to TensorFlow Datasets, 🤗 Datasets is a utility library that downloads and prepares public datasets. We do not host or distribute these datasets, vouch for their quality or fairness, or claim that you have license to use them. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
+Similar to TensorFlow Datasets, 🤗 Datasets is a utility library that downloads and prepares public datasets. We do not host or distribute most of these datasets, vouch for their quality or fairness, or claim that you have license to use them. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
 
 If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in this library, please get in touch through a [GitHub issue](https://github.com/huggingface/datasets/issues/new). Thanks for your contribution to the ML community!
 
