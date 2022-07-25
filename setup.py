@@ -147,17 +147,6 @@ TESTS_REQUIRE = [
     "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz",
     "sentencepiece",  # bigbench requires t5 which requires seqio which requires sentencepiece
     "sacremoses",
-    # metrics dependencies
-    "bert_score>=0.3.6",
-    "jiwer",
-    "mauve-text",
-    "rouge_score<0.0.7",
-    "sacrebleu",
-    "sacremoses",
-    "scikit-learn",
-    "scipy",
-    "sentencepiece",  # for bleurt
-    "seqeval",
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
