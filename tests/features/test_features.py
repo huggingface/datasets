@@ -1,5 +1,4 @@
 import datetime
-from dataclasses import asdict
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -20,6 +19,7 @@ from datasets.features.features import (
 )
 from datasets.features.translation import Translation, TranslationVariableLanguages
 from datasets.info import DatasetInfo
+from datasets.utils.py_utils import asdict
 
 from ..utils import require_jax, require_tf, require_torch
 
@@ -97,6 +97,13 @@ class FeaturesTest(TestCase):
     def test_feature_named_type(self):
         """reference: issue #1110"""
         features = Features({"_type": Value("string")})
+        ds_info = DatasetInfo(features=features)
+        reloaded_features = Features.from_dict(asdict(ds_info)["features"])
+        assert features == reloaded_features
+
+    def test_class_label_feature_with_no_labels(self):
+        """reference: issue #4681"""
+        features = Features({"label": ClassLabel(names=[])})
         ds_info = DatasetInfo(features=features)
         reloaded_features = Features.from_dict(asdict(ds_info)["features"])
         assert features == reloaded_features
