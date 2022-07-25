@@ -278,15 +278,16 @@ class DownloadManager:
         return downloaded_path_or_paths.data
 
     def download(self, url_or_urls):
-        """Download given url(s).
+        """Download given URL(s).
+
+        By default, if there is more than one URL to download, multiprocessing is used with maximum `num_proc = 16`.
+        Pass customized `download_config.num_proc` to change this behavior.
 
         Args:
-            url_or_urls: url or `list`/`dict` of urls to download and extract. Each
-                url is a `str`.
+            url_or_urls (`str` or `list` or `dict`): URL or list/dict of URLs to download. Each URL is a `str`.
 
         Returns:
-            downloaded_path(s): `str`, The downloaded paths matching the given input
-                url_or_urls.
+            `str` or `list` or `dict`: The downloaded paths matching the given input `url_or_urls`.
 
         Example:
 
