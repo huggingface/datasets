@@ -512,7 +512,6 @@ class GithubDatasetModuleFactory(_DatasetModuleFactory):
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
-@deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
 class GithubMetricModuleFactory(_MetricModuleFactory):
     """Get the module of a metric. The metric script is downloaded from GitHub.
 
@@ -523,6 +522,7 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
     </Deprecated>
     """
 
+    @deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
     def __init__(
         self,
         name: str,
@@ -587,7 +587,6 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
         return MetricModule(module_path, hash)
 
 
-@deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
 class LocalMetricModuleFactory(_MetricModuleFactory):
     """Get the module of a local metric. The metric script is loaded from a local script.
 
@@ -598,6 +597,7 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
     </Deprecated>
     """
 
+    @deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
     def __init__(
         self,
         path: str,
@@ -1032,7 +1032,6 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
-@deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
 class CachedMetricModuleFactory(_MetricModuleFactory):
     """
     Get the module of a metric that has been loaded once already and cached.
@@ -1045,6 +1044,7 @@ class CachedMetricModuleFactory(_MetricModuleFactory):
     </Deprecated>
     """
 
+    @deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
     def __init__(
         self,
         name: str,
