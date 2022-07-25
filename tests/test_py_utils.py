@@ -1,9 +1,10 @@
+from dataclasses import dataclass
 from unittest import TestCase
 
 import numpy as np
 import pytest
 
-from datasets.utils.py_utils import NestedDataStructure, map_nested, temp_seed, temporary_assignment, zip_dict
+from datasets.utils.py_utils import NestedDataStructure, asdict, map_nested, temp_seed, temporary_assignment, zip_dict
 
 from .utils import require_tf, require_torch
 
@@ -14,6 +15,12 @@ def np_sum(x):  # picklable for multiprocessing
 
 def add_one(i):  # picklable for multiprocessing
     return i + 1
+
+
+@dataclass
+class A:
+    x: int
+    y: str
 
 
 class PyUtilsTest(TestCase):
@@ -175,3 +182,16 @@ def test_nested_data_structure_data(input_data):
 def test_flatten(data, expected_output):
     output = NestedDataStructure(data).flatten()
     assert output == expected_output
+
+
+def test_asdict():
+    input = A(x=1, y="foobar")
+    expected_output = {"x": 1, "y": "foobar"}
+    assert asdict(input) == expected_output
+
+    input = {"a": {"b": A(x=10, y="foo")}, "c": [A(x=20, y="bar")]}
+    expected_output = {"a": {"b": {"x": 10, "y": "foo"}}, "c": [{"x": 20, "y": "bar"}]}
+    assert asdict(input) == expected_output
+
+    with pytest.raises(TypeError):
+        asdict([1, A(x=10, y="foo")])

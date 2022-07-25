@@ -2442,8 +2442,8 @@ class MiscellaneousDatasetTest(TestCase):
             self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
             self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
 
-        features = Features({"col_1": Value("string"), "col_2": Value("string")})
-        self.assertRaises(pa.ArrowTypeError, Dataset.from_pandas, df, features=features)
+        features = Features({"col_1": Sequence(Value("string")), "col_2": Value("string")})
+        self.assertRaises(TypeError, Dataset.from_pandas, df, features=features)
 
     def test_from_dict(self):
         data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
@@ -2862,7 +2862,7 @@ def test_dataset_from_csv_split(split, csv_path, tmp_path):
     expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     dataset = Dataset.from_csv(csv_path, cache_dir=cache_dir, split=split)
     _check_csv_dataset(dataset, expected_features)
-    assert dataset.split == str(split) if split else "train"
+    assert dataset.split == split if split else "train"
 
 
 @pytest.mark.parametrize("path_type", [str, list])
@@ -2931,7 +2931,7 @@ def test_dataset_from_json_split(split, jsonl_path, tmp_path):
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     dataset = Dataset.from_json(jsonl_path, cache_dir=cache_dir, split=split)
     _check_json_dataset(dataset, expected_features)
-    assert dataset.split == str(split) if split else "train"
+    assert dataset.split == split if split else "train"
 
 
 @pytest.mark.parametrize("path_type", [str, list])
@@ -2991,7 +2991,7 @@ def test_dataset_from_parquet_split(split, parquet_path, tmp_path):
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     dataset = Dataset.from_parquet(parquet_path, cache_dir=cache_dir, split=split)
     _check_parquet_dataset(dataset, expected_features)
-    assert dataset.split == str(split) if split else "train"
+    assert dataset.split == split if split else "train"
 
 
 @pytest.mark.parametrize("path_type", [str, list])
@@ -3050,7 +3050,7 @@ def test_dataset_from_text_split(split, text_path, tmp_path):
     expected_features = {"text": "string"}
     dataset = Dataset.from_text(text_path, cache_dir=cache_dir, split=split)
     _check_text_dataset(dataset, expected_features)
-    assert dataset.split == str(split) if split else "train"
+    assert dataset.split == split if split else "train"
 
 
 @pytest.mark.parametrize("path_type", [str, list])

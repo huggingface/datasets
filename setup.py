@@ -151,7 +151,7 @@ TESTS_REQUIRE = [
     "bert_score>=0.3.6",
     "jiwer",
     "mauve-text",
-    "rouge_score",
+    "rouge_score<0.0.7",
     "sacrebleu",
     "sacremoses",
     "scikit-learn",
