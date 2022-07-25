@@ -28,9 +28,9 @@ jobs:
           pip install .[quality]
       - name: Check quality
         run: |
-          black --check --line-length 119 --target-version py36 tests src benchmarks datasets metrics
-          isort --check-only tests src benchmarks datasets metrics
-          flake8 tests src benchmarks datasets metrics
+          black --check --line-length 119 --target-version py36 tests src benchmarks datasets
+          isort --check-only tests src benchmarks datasets
+          flake8 tests src benchmarks datasets
 
   test:
     needs: check_code_quality
