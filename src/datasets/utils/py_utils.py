@@ -330,7 +330,36 @@ def map_nested(
     desc: Optional[str] = None,
 ):
     """Apply a function recursively to each element of a nested data struct.
-    If num_proc > 1 and the length of data_struct is longer than num_proc: use multi-processing
+
+    Use multiprocessing if num_proc > 1 and the length of data_struct is larger than 1.
+
+    <Changed version="2.4.0">
+
+    Before version 2.4.0, multiprocessing was not used if `num_proc` was greater than or equal to ``len(iterable)``.
+
+    Now, if `num_proc` is greater than or equal to ``len(iterable)``, `num_proc` is set to ``len(iterable)`` and
+    multiprocessing is used.
+
+    </Changed>
+
+    Args:
+        function (Callable): Function to be applied to `data_struct`.
+        data_struct: Data structure to apply `function` to.
+        dict_only (bool, default False): Whether only apply `function` recursively to `dict` values in `data_struct`.
+        map_list (bool, default True): Whether also apply `function` recursively to `list` elements (besides `dict`
+            values).
+        map_tuple (bool, default False): Whether also apply `function` recursively to `tuple` elements (besides `dict`
+            values).
+        map_numpy (bool, default False): Whether also apply `function` recursively to `numpy.array` elements (besides
+            `dict` values).
+        num_proc (int, optional): Number of processes.
+        types (tuple, optional): Additional types (besides `dict` values) to apply `function` recursively to their
+            elements.
+        disable_tqdm (bool, default True): Whether to disable the tqdm progressbar.
+        desc (str, optional): Prefix for the tqdm progressbar.
+
+    Returns:
+        type(data_struct)
     """
     if types is None:
         types = []
