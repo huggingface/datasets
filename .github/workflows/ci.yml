@@ -61,9 +61,6 @@ jobs:
           python-version: 3.7
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
-      - name: Pin setuptools-scm
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: echo "installing pinned version of setuptools-scm to fix seqeval installation on 3.6" && pip install "setuptools-scm==6.4.2"
       - name: Install dependencies
         run: |
           pip install .[tests]

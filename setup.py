@@ -123,6 +123,7 @@ TESTS_REQUIRE = [
     "botocore>=1.22.8",  # to be compatible with aiobotocore and boto3
     "faiss-cpu>=1.6.4",
     "fsspec[s3]",
+    "lz4",
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1
@@ -135,19 +136,14 @@ TESTS_REQUIRE = [
     "bs4",
     "conllu",
     "h5py",
-    "langdetect",
     "lxml",
-    "lz4",
     "mwparserfromhell",
-    "nltk",
     "openpyxl",
     "py7zr",
-    "tldextract",
     "zstandard",
     "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz",
     "sentencepiece",  # bigbench requires t5 which requires seqio which requires sentencepiece
     "rouge_score<0.0.7",  # required by bigbench: bigbench.api.util.bb_utils > t5.evaluation.metrics > rouge_score
-    "sacremoses",
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
