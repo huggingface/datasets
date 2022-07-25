@@ -28,6 +28,7 @@ from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager
 from .info import DatasetInfo
 from .load import dataset_module_factory, import_main_class, load_dataset_builder, metric_module_factory
+from .utils.deprecation_utils import deprecated
 from .utils.file_utils import relative_to_absolute_path
 from .utils.logging import get_logger
 from .utils.version import Version
@@ -70,8 +71,15 @@ def list_datasets(with_community_datasets=True, with_details=False):
     return datasets
 
 
+@deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
 def list_metrics(with_community_metrics=True, with_details=False):
     """List all the metrics script available on the Hugging Face Hub.
+
+    <Deprecated version="2.4.0">
+
+    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
 
     Args:
         with_community_metrics (:obj:`bool`, optional, default ``True``): Include the community provided metrics.
@@ -138,9 +146,16 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
     )
 
 
+@deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
 def inspect_metric(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
     r"""
     Allow inspection/modification of a metric script by copying it on local drive at local_path.
+
+    <Deprecated version="2.4.0">
+
+    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
 
     Args:
         path (``str``): path to the dataset processing script with the dataset builder. Can be either:

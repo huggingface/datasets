@@ -1,4 +1,5 @@
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
+# Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -60,6 +61,7 @@ from .packaged_modules import (
 )
 from .splits import Split
 from .tasks import TaskTemplate
+from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
     _raise_if_offline_mode_is_enabled,
@@ -1337,6 +1339,7 @@ def metric_module_factory(
         raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(combined_path)}.")
 
 
+@deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
 def load_metric(
     path: str,
     config_name: Optional[str] = None,
@@ -1351,6 +1354,12 @@ def load_metric(
     **metric_init_kwargs,
 ) -> Metric:
     """Load a `datasets.Metric`.
+
+    <Deprecated version="2.4.0">
+
+    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
 
     Args:
 
