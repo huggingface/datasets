@@ -352,12 +352,13 @@ def map_nested(
 
     if num_proc is None:
         num_proc = 1
-    if num_proc <= 1 or len(iterable) <= num_proc:
+    if num_proc <= 1 or len(iterable) <= 1:
         mapped = [
             _single_map_nested((function, obj, types, None, True, None))
             for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
+        num_proc = num_proc if num_proc <= len(iterable) else len(iterable)
         split_kwds = []  # We organize the splits ourselve (contiguous splits)
         for index in range(num_proc):
             div = len(iterable) // num_proc
