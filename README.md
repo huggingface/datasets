@@ -40,7 +40,7 @@
     <a href="https://hf.co/course"><img src="https://raw.githubusercontent.com/huggingface/datasets/main/docs/source/imgs/course_banner.png"></a>
 </h3>
 
-🤗 Datasets also provides access to +40 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. 
+🤗 Datasets is designed to let the community easily add and share new datasets.
 
 🤗 Datasets has many additional interesting features:
 
@@ -91,7 +91,7 @@ This library can be used for text/image/audio/etc. datasets. Here is an example 
 Here is a quick example:
 
 ```python
-from datasets import list_datasets, load_dataset, list_metrics, load_metric
+from datasets import list_datasets, load_dataset
 
 # Print all the available datasets
 print(list_datasets())
@@ -99,12 +99,6 @@ print(list_datasets())
 # Load a dataset and print the first example in the training set
 squad_dataset = load_dataset('squad')
 print(squad_dataset['train'][0])
-
-# List all the available metrics
-print(list_metrics())
-
-# Load a metric
-squad_metric = load_metric('squad')
 
 # Process the dataset - add a column with the length of the context texts
 dataset_with_length = squad_dataset.map(lambda x: {"length": len(x["context"])})
