@@ -156,6 +156,8 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
 def asdict(obj):
     """Convert an object to its dictionary representation recursively."""
 
+    # Implementation based on https://docs.python.org/3/library/dataclasses.html#dataclasses.asdict
+
     def _is_dataclass_instance(obj):
         # https://docs.python.org/3/library/dataclasses.html#dataclasses.is_dataclass
         return is_dataclass(obj) and not isinstance(obj, type)
