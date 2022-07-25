@@ -511,8 +511,16 @@ class GithubDatasetModuleFactory(_DatasetModuleFactory):
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
+@deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
 class GithubMetricModuleFactory(_MetricModuleFactory):
-    """Get the module of a metric. The metric script is downloaded from GitHub."""
+    """Get the module of a metric. The metric script is downloaded from GitHub.
+
+    <Deprecated version="2.4.0">
+
+    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
+    """
 
     def __init__(
         self,
@@ -578,8 +586,16 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
         return MetricModule(module_path, hash)
 
 
+@deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
 class LocalMetricModuleFactory(_MetricModuleFactory):
-    """Get the module of a local metric. The metric script is loaded from a local script."""
+    """Get the module of a local metric. The metric script is loaded from a local script.
+
+    <Deprecated version="2.4.0">
+
+    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
+    """
 
     def __init__(
         self,
@@ -1015,10 +1031,17 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
+@deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
 class CachedMetricModuleFactory(_MetricModuleFactory):
     """
     Get the module of a metric that has been loaded once already and cached.
     The script that is loaded from the cache is the most recent one with a matching name.
+
+    <Deprecated version="2.4.0">
+
+    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
     """
 
     def __init__(
@@ -1253,6 +1276,7 @@ def dataset_module_factory(
         )
 
 
+@deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
 def metric_module_factory(
     path: str,
     revision: Optional[Union[str, Version]] = None,
@@ -1264,7 +1288,13 @@ def metric_module_factory(
     """
     Download/extract/cache a metric module.
 
-    Metrics codes are cached inside the the dynamic modules cache to allow easy import (avoid ugly sys.path tweaks).
+    <Deprecated version="2.4.0">
+
+    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
+
+    Metrics codes are cached inside the dynamic modules cache to allow easy import (avoid ugly sys.path tweaks).
 
     Args:
 
