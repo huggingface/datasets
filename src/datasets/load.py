@@ -1373,7 +1373,7 @@ def metric_module_factory(
             raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(combined_path)}.")
 
 
-@deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
+@deprecated("Use 'evaluate.load' instead, from the new library 🤗 Evaluate: https://huggingface.co/docs/evaluate")
 def load_metric(
     path: str,
     config_name: Optional[str] = None,
@@ -1391,7 +1391,7 @@ def load_metric(
 
     <Deprecated version="2.5.0">
 
-    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+    Use `evaluate.load` instead, from the new library 🤗 Evaluate: https://huggingface.co/docs/evaluate
 
     </Deprecated>
 

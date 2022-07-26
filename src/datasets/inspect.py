@@ -71,13 +71,13 @@ def list_datasets(with_community_datasets=True, with_details=False):
     return datasets
 
 
-@deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
+@deprecated("Use 'evaluate.list_evaluation_modules' instead, from the new library 🤗 Evaluate: https://huggingface.co/docs/evaluate")
 def list_metrics(with_community_metrics=True, with_details=False):
     """List all the metrics script available on the Hugging Face Hub.
 
     <Deprecated version="2.5.0">
 
-    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+    Use `evaluate.list_evaluation_modules` instead, from the new library 🤗 Evaluate: https://huggingface.co/docs/evaluate
 
     </Deprecated>
 
@@ -146,14 +146,14 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
     )
 
 
-@deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
+@deprecated("Use 'evaluate.inspect_evaluation_module' instead, from the new library 🤗 Evaluate: https://huggingface.co/docs/evaluate")
 def inspect_metric(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
     r"""
     Allow inspection/modification of a metric script by copying it on local drive at local_path.
 
     <Deprecated version="2.5.0">
 
-    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+    Use `evaluate.inspect_evaluation_module` instead, from the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
 
     </Deprecated>
 
