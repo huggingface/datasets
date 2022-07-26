@@ -2,6 +2,8 @@ import json
 import os
 from collections import namedtuple
 
+import pytest
+
 from datasets import config
 from datasets.commands.test import TestCommand
 
@@ -23,6 +25,7 @@ _TestCommandArgs = namedtuple(
 )
 
 
+@pytest.mark.integration
 def test_test_command(dataset_loading_script_dir):
     args = _TestCommandArgs(dataset=dataset_loading_script_dir, all_configs=True, save_infos=True)
     test_command = TestCommand(*args)

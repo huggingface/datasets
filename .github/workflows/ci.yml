@@ -35,10 +35,11 @@ jobs:
   test:
     needs: check_code_quality
     strategy:
-      fail-fast: false
       matrix:
+        test: ['unit', 'integration']
         os: [ubuntu-latest, windows-latest]
         pyarrow_version: [latest, 6.0.1]
+    continue-on-error: ${{ matrix.test == 'integration' }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install OS dependencies
@@ -70,4 +71,4 @@ jobs:
         run: pip install pyarrow==${{ matrix.pyarrow_version }}
       - name: Test with pytest
         run: |
-          python -m pytest -n 2 --dist loadfile -sv ./tests/
+          python -m pytest -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
