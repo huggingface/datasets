@@ -30,7 +30,7 @@ from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
 from shutil import disk_usage
 from types import CodeType, FunctionType
-from typing import Callable, ClassVar, Dict, Generic, List, Optional, Tuple, Union
+from typing import Any, Callable, ClassVar, Dict, Generic, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import dill
@@ -318,8 +318,8 @@ def _single_map_nested(args):
 
 
 def map_nested(
-    function,
-    data_struct,
+    function: Callable[[Any], Any],
+    data_struct: Any,
     dict_only: bool = False,
     map_list: bool = True,
     map_tuple: bool = False,
@@ -328,7 +328,7 @@ def map_nested(
     types: Optional[tuple] = None,
     disable_tqdm: bool = True,
     desc: Optional[str] = None,
-):
+) -> Any:
     """Apply a function recursively to each element of a nested data struct.
 
     Use multiprocessing if num_proc > 1 and the length of data_struct is larger than 1.
@@ -343,23 +343,24 @@ def map_nested(
     </Changed>
 
     Args:
-        function (Callable): Function to be applied to `data_struct`.
-        data_struct: Data structure to apply `function` to.
-        dict_only (bool, default False): Whether only apply `function` recursively to `dict` values in `data_struct`.
-        map_list (bool, default True): Whether also apply `function` recursively to `list` elements (besides `dict`
+        function (`Callable`): Function to be applied to `data_struct`.
+        data_struct (`Any`): Data structure to apply `function` to.
+        dict_only (`bool`, default `False`): Whether only apply `function` recursively to `dict` values in
+            `data_struct`.
+        map_list (`bool`, default `True`): Whether also apply `function` recursively to `list` elements (besides `dict`
             values).
-        map_tuple (bool, default False): Whether also apply `function` recursively to `tuple` elements (besides `dict`
-            values).
-        map_numpy (bool, default False): Whether also apply `function` recursively to `numpy.array` elements (besides
+        map_tuple (`bool`, default `False`): Whether also apply `function` recursively to `tuple` elements (besides
             `dict` values).
-        num_proc (int, optional): Number of processes.
-        types (tuple, optional): Additional types (besides `dict` values) to apply `function` recursively to their
+        map_numpy (`bool, default `False`): Whether also apply `function` recursively to `numpy.array` elements (besides
+            `dict` values).
+        num_proc (`int`, *optional*): Number of processes.
+        types (`tuple`, *optional*): Additional types (besides `dict` values) to apply `function` recursively to their
             elements.
-        disable_tqdm (bool, default True): Whether to disable the tqdm progressbar.
-        desc (str, optional): Prefix for the tqdm progressbar.
+        disable_tqdm (`bool`, default `True`): Whether to disable the tqdm progressbar.
+        desc (`str`, *optional*): Prefix for the tqdm progressbar.
 
     Returns:
-        type(data_struct)
+        `Any`
     """
     if types is None:
         types = []
