@@ -108,7 +108,7 @@ def test_map_nested_num_proc(iterable_length, num_proc, expected_num_proc):
         else:
             assert not mock_single_map_nested.called
             assert mock_multiprocessing_pool.called
-            assert mock_multiprocessing_pool.call_args.args[0] == expected_num_proc
+            assert mock_multiprocessing_pool.call_args[0][0] == expected_num_proc
 
 
 class TempSeedTest(TestCase):
