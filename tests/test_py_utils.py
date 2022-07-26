@@ -94,14 +94,25 @@ class PyUtilsTest(TestCase):
 
 @pytest.mark.parametrize(
     "iterable_length, num_proc, expected_num_proc",
-    [(1, None, 1), (1, 1, 1), (2, None, 1), (2, 1, 1), (2, 2, 2), (2, 3, 2), (3, 2, 2)],
+    [
+        (1, None, 1),
+        (1, 1, 1),
+        (2, None, 1),
+        (2, 1, 1),
+        (2, 2, 1),
+        (2, 3, 1),
+        (3, 2, 1),
+        (16, 16, 16),
+        (16, 17, 16),
+        (17, 16, 16),
+    ],
 )
 def test_map_nested_num_proc(iterable_length, num_proc, expected_num_proc):
     with patch("datasets.utils.py_utils._single_map_nested") as mock_single_map_nested, patch(
         "datasets.utils.py_utils.Pool"
     ) as mock_multiprocessing_pool:
         data_struct = {f"{i}": i for i in range(iterable_length)}
-        _ = map_nested(lambda x: x + 10, data_struct, num_proc=num_proc)
+        _ = map_nested(lambda x: x + 10, data_struct, num_proc=num_proc, multiprocessing_min_length=16)
         if expected_num_proc == 1:
             assert mock_single_map_nested.called
             assert not mock_multiprocessing_pool.called

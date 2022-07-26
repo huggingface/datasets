@@ -298,7 +298,7 @@ class DownloadManager:
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = False
         # Default to using 16 parallel thread for downloading
-        # Note that if we have less than 16 files, multi-processing is not activated
+        # Note that if we have less than or equal to 16 files, multi-processing is not activated
         if download_config.num_proc is None:
             download_config.num_proc = 16
         if download_config.download_desc is None:
@@ -312,6 +312,7 @@ class DownloadManager:
             url_or_urls,
             map_tuple=True,
             num_proc=download_config.num_proc,
+            multiprocessing_min_length=16,
             disable_tqdm=not is_progress_bar_enabled(),
             desc="Downloading data files",
         )
