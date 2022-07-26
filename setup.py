@@ -125,7 +125,7 @@ TESTS_REQUIRE = [
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1
     "tensorflow>=2.3,!=2.6.0,!=2.6.1",
     "torch",
-    "torchaudio",
+    "torchaudio<0.12.0",
     "soundfile",
     "transformers",
     # datasets dependencies
