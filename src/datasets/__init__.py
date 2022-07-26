@@ -19,9 +19,16 @@
 
 __version__ = "2.4.1.dev0"
 
+import platform
+
 import pyarrow
 from packaging import version
 
+
+if version.parse(platform.python_version()) < version.parse("3.7"):
+    raise ImportWarning(
+        "To use `datasets`, Python>=3.7 is required, and the current version of Python doesn't match this condition."
+    )
 
 if version.parse(pyarrow.__version__).major < 6:
     raise ImportWarning(
@@ -31,6 +38,7 @@ if version.parse(pyarrow.__version__).major < 6:
 
 SCRIPTS_VERSION = "main" if version.parse(__version__).is_devrelease else __version__
 
+del platform
 del pyarrow
 del version
 

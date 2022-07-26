@@ -3118,7 +3118,7 @@ def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_param
 
 
 @pytest.mark.skipif(
-    os.name == "nt" and (os.getenv("CIRCLECI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"),
+    os.name in ["nt", "posix"] and (os.getenv("CIRCLECI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"),
     reason='On Windows CircleCI or GitHub Actions, it raises botocore.exceptions.EndpointConnectionError: Could not connect to the endpoint URL: "http://127.0.0.1:5555/test"',
 )  # TODO: find what's wrong with CircleCI / GitHub Actions
 @require_s3
