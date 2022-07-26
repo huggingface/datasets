@@ -1,4 +1,3 @@
-import base64
 import distutils.dir_util
 import logging
 import os

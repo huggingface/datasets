@@ -27,7 +27,6 @@ import weakref
 from collections import Counter, UserDict
 from collections.abc import Mapping
 from copy import deepcopy
-from dataclasses import asdict
 from functools import partial, wraps
 from io import BytesIO
 from math import ceil, floor
@@ -95,7 +94,7 @@ from .utils import logging
 from .utils._hf_hub_fixes import create_repo
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size, hf_hub_url
 from .utils.info_utils import is_small_dataset
-from .utils.py_utils import convert_file_size_to_int, unique_values
+from .utils.py_utils import asdict, convert_file_size_to_int, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import minimal_tf_collate_fn
 from .utils.typing import PathLike
