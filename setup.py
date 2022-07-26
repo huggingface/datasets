@@ -120,7 +120,7 @@ TESTS_REQUIRE = [
     "botocore>=1.22.8",  # to be compatible with aiobotocore and boto3
     "faiss-cpu>=1.6.4",
     "fsspec[s3]",
-    "moto[s3,server]==2.0.4",
+    "moto[s3,server]>=3.0.0",
     "rarfile>=4.0",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1
     "tensorflow>=2.3,!=2.6.0,!=2.6.1",
