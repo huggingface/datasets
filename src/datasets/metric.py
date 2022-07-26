@@ -78,9 +78,9 @@ class MetricInfoMixin:
     """This base class exposes some attributes of MetricInfo
     at the base level of the Metric for easy access.
 
-    <Deprecated version="2.4.0">
+    <Deprecated version="2.5.0">
 
-    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
 
     </Deprecated>
 
@@ -146,9 +146,9 @@ class MetricInfoMixin:
 class Metric(MetricInfoMixin):
     """A Metric is the base class and common API for all metrics.
 
-    <Deprecated version="2.4.0">
+    <Deprecated version="2.5.0">
 
-    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
 
     </Deprecated>
 

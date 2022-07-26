@@ -75,9 +75,9 @@ def list_datasets(with_community_datasets=True, with_details=False):
 def list_metrics(with_community_metrics=True, with_details=False):
     """List all the metrics script available on the Hugging Face Hub.
 
-    <Deprecated version="2.4.0">
+    <Deprecated version="2.5.0">
 
-    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
 
     </Deprecated>
 
@@ -151,9 +151,9 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
     r"""
     Allow inspection/modification of a metric script by copying it on local drive at local_path.
 
-    <Deprecated version="2.4.0">
+    <Deprecated version="2.5.0">
 
-    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
 
     </Deprecated>
 

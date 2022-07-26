@@ -515,9 +515,9 @@ class GithubDatasetModuleFactory(_DatasetModuleFactory):
 class GithubMetricModuleFactory(_MetricModuleFactory):
     """Get the module of a metric. The metric script is downloaded from GitHub.
 
-    <Deprecated version="2.4.0">
+    <Deprecated version="2.5.0">
 
-    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
 
     </Deprecated>
     """
@@ -590,9 +590,9 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
 class LocalMetricModuleFactory(_MetricModuleFactory):
     """Get the module of a local metric. The metric script is loaded from a local script.
 
-    <Deprecated version="2.4.0">
+    <Deprecated version="2.5.0">
 
-    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
 
     </Deprecated>
     """
@@ -1037,9 +1037,9 @@ class CachedMetricModuleFactory(_MetricModuleFactory):
     Get the module of a metric that has been loaded once already and cached.
     The script that is loaded from the cache is the most recent one with a matching name.
 
-    <Deprecated version="2.4.0">
+    <Deprecated version="2.5.0">
 
-    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
 
     </Deprecated>
     """
@@ -1289,9 +1289,9 @@ def metric_module_factory(
     """
     Download/extract/cache a metric module.
 
-    <Deprecated version="2.4.0">
+    <Deprecated version="2.5.0">
 
-    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
 
     </Deprecated>
 
@@ -1390,9 +1390,9 @@ def load_metric(
 ) -> Metric:
     """Load a `datasets.Metric`.
 
-    <Deprecated version="2.4.0">
+    <Deprecated version="2.5.0">
 
-    Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
 
     </Deprecated>
 
