@@ -521,7 +521,7 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
     </Deprecated>
     """
 
-    @deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
+    @deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
     def __init__(
         self,
         name: str,
@@ -596,7 +596,7 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
     </Deprecated>
     """
 
-    @deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
+    @deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
     def __init__(
         self,
         path: str,
@@ -1043,7 +1043,7 @@ class CachedMetricModuleFactory(_MetricModuleFactory):
     </Deprecated>
     """
 
-    @deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
+    @deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
     def __init__(
         self,
         name: str,
@@ -1276,7 +1276,7 @@ def dataset_module_factory(
         )
 
 
-@deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
+@deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
 def metric_module_factory(
     path: str,
     revision: Optional[Union[str, Version]] = None,

@@ -169,7 +169,7 @@ class Metric(MetricInfoMixin):
         timeout (``Union[int, float]``): Timeout in second for distributed setting synchronization.
     """
 
-    @deprecated("Use our new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
+    @deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
     def __init__(
         self,
         config_name: Optional[str] = None,

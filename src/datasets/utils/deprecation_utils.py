@@ -24,7 +24,7 @@ def deprecated(help_message: Optional[str] = None):
         # Support deprecating __init__ class method: class name instead
         name = name if name != "__init__" else deprecated_function.__qualname__.split(".")[-2]
         warning_msg = (
-            f"{name} is deprecated and will be removed " "in the next major version of datasets." + f" {help_message}"
+            f"{name} is deprecated and will be removed in the next major version of datasets." + f" {help_message}"
             if help_message
             else ""
         )
