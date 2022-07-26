@@ -74,8 +74,12 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
                         "url": datasets.Value("string"),
                         "html": datasets.Value("string"),
                         "tokens": datasets.features.Sequence(
-                            {"token": datasets.Value("string"), "is_html": datasets.Value("bool"),  
-                            "start_byte": datasets.Value("int64"), "end_byte": datasets.Value("int64")}
+                            {
+                                "token": datasets.Value("string"),
+                                "is_html": datasets.Value("bool"),
+                                "start_byte": datasets.Value("int64"),
+                                "end_byte": datasets.Value("int64"),
+                            }
                         ),
                     },
                     "question": {
