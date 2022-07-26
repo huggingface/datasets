@@ -74,10 +74,7 @@ class DummyDataAutoGenerationTest(TestCase):
                 cache_dir=cache_dir,
                 load_existing_dummy_data=False,  # dummy data don't exist yet
             )
-            # Disable multiprocessing in download to avoid: AttributeError: Can't pickle local object 'DummyDataAutoGenerationTest.test_dummy_data_autogenerate.<locals>.MockDownloadManagerWithCustomDatasetsScriptsDir'
-            download_config = DownloadConfig(
-                cache_dir=os.path.join(tmp_dir, datasets.config.DOWNLOADED_DATASETS_DIR), num_proc=1
-            )
+            download_config = DownloadConfig(cache_dir=os.path.join(tmp_dir, datasets.config.DOWNLOADED_DATASETS_DIR))
             dl_manager = DummyDataGeneratorDownloadManager(
                 dataset_name=dataset_builder.name,
                 mock_download_manager=mock_dl_manager,

@@ -322,9 +322,7 @@ class PackagedDatasetTest(parameterized.TestCase):
 
 def distributed_load_dataset(args):
     data_name, tmp_dir, datafiles = args
-    # Disable multiprocessing in download to avoid AssertionError: daemonic processes are not allowed to have children
-    download_config = DownloadConfig(num_proc=1)
-    dataset = load_dataset(data_name, cache_dir=tmp_dir, data_files=datafiles, download_config=download_config)
+    dataset = load_dataset(data_name, cache_dir=tmp_dir, data_files=datafiles)
     return dataset
 
 
