@@ -195,7 +195,13 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
                         "url": ex_json["document_url"],
                         "html": ex_json["document_html"],
                         "tokens": [
-                            {"token": t["token"], "is_html": t["html_token"], "start_byte": t["start_byte"], "end_byte": t["end_byte"]} for t in ex_json["document_tokens"]
+                            {
+                                "token": t["token"],
+                                "is_html": t["html_token"],
+                                "start_byte": t["start_byte"],
+                                "end_byte": t["end_byte"],
+                            }
+                            for t in ex_json["document_tokens"]
                         ],
                     },
                     "question": {"text": ex_json["question_text"], "tokens": ex_json["question_tokens"]},
