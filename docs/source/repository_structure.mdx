@@ -3,21 +3,15 @@
 To host and share your dataset, you can create a dataset repository on the Hugging Face Dataset Hub and upload your data files.
 
 This guide will show you how to structure your dataset repository when you upload it.
-A dataset with a supported structure can be loaded automatically with [`~datasets.load_dataset`], and it will have a preview on its dataset page on the Hub.
+A dataset with a supported structure and file format (text, JSON, JSON Lines, CSV, Parquet) can be loaded automatically with [`~datasets.load_dataset`], and it'll have a preview on its dataset page on the Hub.
 
-Note that you can also include a [python script](dataset_script) to define your dataset, for more flexibility.
-
-<Tip>
-
-The following examples use CSV files, but you can use any supported format (text, JSON, JSON Lines, CSV, Parquet).
-
-</Tip>
+For more flexibility over how to load and generate a dataset, you can also write a [dataset loading script](./dataset_script).
 
 ## Main use-case
 
-The simplest dataset structure has two files: *train.csv* and *test.csv*.
+The simplest dataset structure has two files: `train.csv` and `test.csv`.
 
-Your repository will also contain a *README.md* file, the [dataset card](dataset_card) displayed on your dataset page.
+Your repository will also contain a `README.md` file, the [dataset card](dataset_card) displayed on your dataset page.
 
 ```
 my_dataset_repository/
@@ -28,12 +22,15 @@ my_dataset_repository/
 
 ## Splits and file names
 
-🤗 Datasets automatically infers the train/validation/test splits of your dataset from the file names.
-All the files that contain **train** in their names are considered part of the train split. The same idea applies to the test and validation split: 
-- All the files that contain **test** in their names are considered part of the test split.
-- All the files that contain **valid** in their names are considered part of the validation split.
+🤗 Datasets automatically infer a dataset's train, validation, and test splits from the file names.
 
-Here is an example where all the files are placed into a directory named *data*:
+All the files that contain a split name in their names (delimited by non-word characters, see below) are considered part of that split:
+
+- train split: `train.csv`, `my_train_file.csv`, `train1.csv`
+- validation split: `validation.csv`, `my_validation_file.csv`, `validation1.csv`
+- test split: `test.csv`, `my_test_file.csv`, `test1.csv`
+
+Here is an example where all the files are placed into a directory named `data`:
 
 ```
 my_dataset_repository/
@@ -41,13 +38,17 @@ my_dataset_repository/
 └── data/
     ├── train.csv
     ├── test.csv
-    └── valid.csv
+    └── validation.csv
 ```
+
+Note that if a file contains *test* but is embedded in another word (e.g. `testfile.csv`), it's not counted as a test file.
+It must be delimited by non-word characters, e.g. `test_file.csv`.
+Supported delimiters are underscores, dashes, spaces, dots and numbers.
 
 ## Multiple files per split
 
-If one of your splits comprises several files, 🤗 Datasets can still infer whether it is the train/validation/ test split from the file name.
-For example, if your **train** and **test** splits span several files:
+If one of your splits comprises several files, 🤗 Datasets can still infer whether it is the train, validation, and test split from the file name.
+For example, if your train and test splits span several files:
 
 ```
 my_dataset_repository/
@@ -60,11 +61,12 @@ my_dataset_repository/
 └── test_1.csv
 ```
 
-Just make sure that all the files of your **train** set have **train** in their names (same for test and validation).
-It doesn’t matter if you add a prefix or suffix to **train** in the file name (like *my_train_file_00001.csv*, for example).
+Make sure all the files of your `train` set have *train* in their names (same for test and validation).
+Even if you add a prefix or suffix to `train` in the file name (like `my_train_file_00001.csv` for example),
 🤗 Datasets can still infer the appropriate split.
 
-For convenience, you can also place your data files into different directories. In this case, the split name is inferred from the directory name.
+For convenience, you can also place your data files into different directories.
+In this case, the split name is inferred from the directory name.
 
 ```
 my_dataset_repository/
@@ -80,11 +82,40 @@ my_dataset_repository/
         └── shard_1.csv
 ```
 
+<Tip>
+
+Eventually, you'll also be able to structure your repository to specify different dataset configurations. Stay tuned on this [issue](https://github.com/huggingface/datasets/issues/4578) for the latest updates! 
+
+</Tip>
+
+## Split names keywords
+
+Validation splits are sometimes called "dev", and test splits are called "eval".
+These other names are also supported.
+In particular, these keywords are equivalent:
+
+- train, training
+- validation, valid, dev
+- test, testing, eval, evaluation
+
+Therefore this is also a valid repository:
+
+```
+my_dataset_repository/
+├── README.md
+└── data/
+    ├── training.csv
+    ├── eval.csv
+    └── valid.csv
+```
+
+
 ## Custom split names
 
-If you have other data files in addition to the traditional train/validation/test sets, you must use the following structure.
-Follow the file name format exactly for this type of structure: *data/<split_name>-xxxxx-of-xxxxx.csv*.
-Here is an example with three splits: **train**, **test**, and **random**:
+If you have other data files in addition to the traditional train, validation, and test sets, you must use a different structure.
+Use this exact file name format for this structure type: `data/<split_name>-xxxxx-of-xxxxx.csv`.
+
+Here is an example with three splits: `train`, `test`, and `random`:
 
 ```
 my_dataset_repository/
@@ -97,43 +128,4 @@ my_dataset_repository/
     ├── random-00000-of-00003.csv
     ├── random-00001-of-00003.csv
     └── random-00002-of-00003.csv
-```
-
-## Multiple configuration (WIP)
-
-You can specify different configurations of your dataset (for example, if a dataset contains different languages) with one directory per configuration.
-
-These structures are not supported yet, but are a work in progress:
-
-
-```
-my_dataset_repository/
-├── README.md
-├── en/
-│   ├── train.csv
-│   └── test.csv
-└── fr/
-    ├── train.csv
-    └── test.csv
-```
-
-Or with one directory per split:
-
-```
-my_dataset_repository/
-├── README.md
-├── en/
-│   ├── train/
-│   │   ├── shard_0.csv
-│   │   └── shard_1.csv
-│   └── test/
-│       ├── shard_0.csv
-│       └── shard_1.csv
-└── fr/
-    ├── train/
-    │   ├── shard_0.csv
-    │   └── shard_1.csv
-    └── test/
-        ├── shard_0.csv
-        └── shard_1.csv
 ```

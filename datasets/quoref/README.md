@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: quoref
 pretty_name: Quoref

@@ -1,10 +1,11 @@
 import os
-from itertools import chain
 from pathlib import Path, PurePath
+from typing import List
 from unittest.mock import patch
 
 import fsspec
 import pytest
+from fsspec.spec import AbstractFileSystem
 from huggingface_hub.hf_api import DatasetInfo
 
 from datasets.data_files import (
@@ -12,6 +13,9 @@ from datasets.data_files import (
     DataFilesList,
     Url,
     _get_data_files_patterns,
+    _get_metadata_files_patterns,
+    _is_inside_unrequested_special_dir,
+    _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir,
     resolve_patterns_in_dataset_repository,
     resolve_patterns_locally_or_by_urls,
 )
@@ -21,7 +25,7 @@ from datasets.utils.file_utils import hf_hub_url
 
 _TEST_PATTERNS = ["*", "**", "**/*", "*.txt", "data/*", "**/*.txt", "**/train.txt"]
 _FILES_TO_IGNORE = {".dummy", "README.md", "dummy_data.zip", "dataset_infos.json"}
-_DIRS_TO_IGNORE = {"data/.dummy_subdir"}
+_DIRS_TO_IGNORE = {"data/.dummy_subdir", "__pycache__"}
 _TEST_PATTERNS_SIZES = dict(
     [
         ("*", 0),
@@ -63,6 +67,10 @@ def complex_data_dir(tmp_path):
         f.write("foo\n" * 10)
     with open(data_dir / "data" / ".dummy_subdir" / "test.txt", "w") as f:
         f.write("bar\n" * 10)
+
+    (data_dir / "__pycache__").mkdir()
+    with open(data_dir / "__pycache__" / "script.py", "w") as f:
+        f.write("foo\n" * 10)
 
     return str(data_dir)
 
@@ -130,6 +138,42 @@ def hub_dataset_info_patterns_results(hub_dataset_info, complex_data_dir, patter
     }
 
 
+def test_is_inside_unrequested_special_dir(complex_data_dir, pattern_results):
+    # usual patterns outside special dir work fine
+    for pattern, result in pattern_results.items():
+        if result:
+            matched_rel_path = str(Path(result[0]).relative_to(complex_data_dir))
+            assert _is_inside_unrequested_special_dir(matched_rel_path, pattern) is False
+    # check behavior for special dir
+    f = _is_inside_unrequested_special_dir
+    assert f("__pycache__/b.txt", "**") is True
+    assert f("__pycache__/b.txt", "*/b.txt") is True
+    assert f("__pycache__/b.txt", "__pycache__/*") is False
+    assert f("__pycache__/__b.txt", "__pycache__/*") is False
+    assert f("__pycache__/__b.txt", "__*/*") is False
+    assert f("__b.txt", "*") is False
+
+
+def test_is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(complex_data_dir, pattern_results):
+    # usual patterns outside hidden dir work fine
+    for pattern, result in pattern_results.items():
+        if result:
+            matched_rel_path = str(Path(result[0]).relative_to(complex_data_dir))
+            assert _is_inside_unrequested_special_dir(matched_rel_path, pattern) is False
+    # check behavior for hidden dir and file
+    f = _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir
+    assert f(".hidden_file.txt", "**") is True
+    assert f(".hidden_file.txt", ".*") is False
+    assert f(".hidden_dir/a.txt", "**") is True
+    assert f(".hidden_dir/a.txt", ".*/*") is False
+    assert f(".hidden_dir/a.txt", ".hidden_dir/*") is False
+    assert f(".hidden_dir/.hidden_file.txt", "**") is True
+    assert f(".hidden_dir/.hidden_file.txt", ".*/*") is True
+    assert f(".hidden_dir/.hidden_file.txt", ".*/.*") is False
+    assert f(".hidden_dir/.hidden_file.txt", ".hidden_dir/*") is True
+    assert f(".hidden_dir/.hidden_file.txt", ".hidden_dir/.*") is False
+
+
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
 def test_pattern_results_fixture(pattern_results, pattern):
     assert len(pattern_results[pattern]) == _TEST_PATTERNS_SIZES[pattern]
@@ -146,6 +190,14 @@ def test_resolve_patterns_locally_or_by_urls(complex_data_dir, pattern, pattern_
         assert len(pattern_results[pattern]) == 0
 
 
+def test_resolve_patterns_locally_or_by_urls_with_dot_in_base_path(complex_data_dir):
+    base_path_with_dot = os.path.join(complex_data_dir, "data", ".dummy_subdir")
+    resolved_data_files = resolve_patterns_locally_or_by_urls(
+        base_path_with_dot, [os.path.join(base_path_with_dot, "train.txt")]
+    )
+    assert len(resolved_data_files) == 1
+
+
 def test_resolve_patterns_locally_or_by_urls_with_absolute_path(tmp_path, complex_data_dir):
     abs_path = os.path.join(complex_data_dir, "data", "train.txt")
     resolved_data_files = resolve_patterns_locally_or_by_urls(str(tmp_path / "blabla"), [abs_path])
@@ -155,6 +207,47 @@ def test_resolve_patterns_locally_or_by_urls_with_absolute_path(tmp_path, comple
 def test_resolve_patterns_locally_or_by_urls_with_double_dots(tmp_path, complex_data_dir):
     path_with_double_dots = os.path.join(complex_data_dir, "data", "subdir", "..", "train.txt")
     resolved_data_files = resolve_patterns_locally_or_by_urls(str(tmp_path / "blabla"), [path_with_double_dots])
+    assert len(resolved_data_files) == 1
+
+
+def test_resolve_patterns_locally_or_by_urls_returns_hidden_file_only_if_requested(complex_data_dir):
+    with pytest.raises(FileNotFoundError):
+        resolve_patterns_locally_or_by_urls(complex_data_dir, ["*dummy"])
+    resolved_data_files = resolve_patterns_locally_or_by_urls(complex_data_dir, [".dummy"])
+    assert len(resolved_data_files) == 1
+
+
+def test_resolve_patterns_locally_or_by_urls_hidden_base_path(tmp_path):
+    hidden = tmp_path / ".test_hidden_base_path"
+    hidden.mkdir()
+    (tmp_path / ".test_hidden_base_path" / "a.txt").touch()
+    resolved_data_files = resolve_patterns_locally_or_by_urls(str(hidden), ["*"])
+    assert len(resolved_data_files) == 1
+
+
+def test_resolve_patterns_locally_or_by_urls_returns_hidden_dir_only_if_requested(complex_data_dir):
+    with pytest.raises(FileNotFoundError):
+        resolve_patterns_locally_or_by_urls(complex_data_dir, ["data/*dummy_subdir/train.txt"])
+    resolved_data_files = resolve_patterns_locally_or_by_urls(complex_data_dir, ["data/.dummy_subdir/train.txt"])
+    assert len(resolved_data_files) == 1
+    resolved_data_files = resolve_patterns_locally_or_by_urls(complex_data_dir, ["*/.dummy_subdir/train.txt"])
+    assert len(resolved_data_files) == 1
+
+
+def test_resolve_patterns_locally_or_by_urls_returns_special_dir_only_if_requested(complex_data_dir):
+    with pytest.raises(FileNotFoundError):
+        resolve_patterns_locally_or_by_urls(complex_data_dir, ["data/*dummy_subdir/train.txt"])
+    resolved_data_files = resolve_patterns_locally_or_by_urls(complex_data_dir, ["data/.dummy_subdir/train.txt"])
+    assert len(resolved_data_files) == 1
+    resolved_data_files = resolve_patterns_locally_or_by_urls(complex_data_dir, ["*/.dummy_subdir/train.txt"])
+    assert len(resolved_data_files) == 1
+
+
+def test_resolve_patterns_locally_or_by_urls_special_base_path(tmp_path):
+    special = tmp_path / "__test_special_base_path__"
+    special.mkdir()
+    (tmp_path / "__test_special_base_path__" / "a.txt").touch()
+    resolved_data_files = resolve_patterns_locally_or_by_urls(str(special), ["*"])
     assert len(resolved_data_files) == 1
 
 
@@ -236,6 +329,45 @@ def test_resolve_patterns_in_dataset_repository_sorted_files():
     resolved_data_files = resolve_patterns_in_dataset_repository(datasets_infos, ["*"])
     resolved_names = [os.path.basename(data_file) for data_file in resolved_data_files]
     assert resolved_names == sorted(unsorted_names)
+
+
+def test_resolve_patterns_in_dataset_repository_returns_hidden_file_only_if_requested(hub_dataset_info):
+    with pytest.raises(FileNotFoundError):
+        resolve_patterns_in_dataset_repository(hub_dataset_info, ["*dummy"])
+    resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, [".dummy"])
+    assert len(resolved_data_files) == 1
+
+
+def test_resolve_patterns_in_dataset_repository_hidden_base_path():
+    siblings = [{"rfilename": ".hidden/a.txt"}]
+    datasets_infos = DatasetInfo(id="test_hidden_base_path", siblings=siblings, sha="foobar")
+    resolved_data_files = resolve_patterns_in_dataset_repository(datasets_infos, ["*"], base_path=".hidden")
+    assert len(resolved_data_files) == 1
+
+
+def test_resolve_patterns_in_dataset_repository_returns_hidden_dir_only_if_requested(hub_dataset_info):
+    with pytest.raises(FileNotFoundError):
+        resolve_patterns_in_dataset_repository(hub_dataset_info, ["data/*dummy_subdir/train.txt"])
+    resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, ["data/.dummy_subdir/train.txt"])
+    assert len(resolved_data_files) == 1
+    resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, ["*/.dummy_subdir/train.txt"])
+    assert len(resolved_data_files) == 1
+
+
+def test_resolve_patterns_in_dataset_repository_returns_special_dir_only_if_requested(hub_dataset_info):
+    with pytest.raises(FileNotFoundError):
+        resolve_patterns_in_dataset_repository(hub_dataset_info, ["data/*dummy_subdir/train.txt"])
+    resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, ["data/.dummy_subdir/train.txt"])
+    assert len(resolved_data_files) == 1
+    resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, ["*/.dummy_subdir/train.txt"])
+    assert len(resolved_data_files) == 1
+
+
+def test_resolve_patterns_in_dataset_repository_special_base_path():
+    siblings = [{"rfilename": "__special__/a.txt"}]
+    datasets_infos = DatasetInfo(id="test_hidden_base_path", siblings=siblings, sha="foobar")
+    resolved_data_files = resolve_patterns_in_dataset_repository(datasets_infos, ["*"], base_path="__special__")
+    assert len(resolved_data_files) == 1
 
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
@@ -360,11 +492,52 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
         assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
 
 
+def mock_fs(file_paths: List[str]):
+    """
+    Set up a mock filesystem for fsspec containing the provided files
+
+    Example:
+
+    ```py
+    >>> fs = mock_fs(["data/train.txt", "data.test.txt"])
+    >>> assert fsspec.get_filesystem_class("mock").__name__ == "DummyTestFS"
+    >>> assert type(fs).__name__ == "DummyTestFS"
+    >>> print(fs.glob("**"))
+    ["data", "data/train.txt", "data.test.txt"]
+    ```
+    """
+
+    dir_paths = {file_path.rsplit("/")[0] for file_path in file_paths if "/" in file_path}
+    fs_contents = [{"name": dir_path, "type": "directory"} for dir_path in dir_paths] + [
+        {"name": file_path, "type": "file", "size": 10} for file_path in file_paths
+    ]
+
+    class DummyTestFS(AbstractFileSystem):
+        protocol = "mock"
+        _fs_contents = fs_contents
+
+        def ls(self, path, detail=True, refresh=True, **kwargs):
+            if kwargs.pop("strip_proto", True):
+                path = self._strip_protocol(path)
+
+            files = not refresh and self._ls_from_cache(path)
+            if not files:
+                files = [file for file in self._fs_contents if path == self._parent(file["name"])]
+                files.sort(key=lambda file: file["name"])
+                self.dircache[path.rstrip("/")] = files
+
+            if detail:
+                return files
+            return [file["name"] for file in files]
+
+    return DummyTestFS()
+
+
 @pytest.mark.parametrize(
     "data_file_per_split",
     [
         # === Main cases ===
-        # file named afetr split at the root
+        # file named after split at the root
         {"train": "train.txt", "test": "test.txt", "validation": "valid.txt"},
         # file named after split in a directory
         {
@@ -392,6 +565,7 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
         # Default to train split
         {"train": "dataset.txt"},
         {"train": "data/dataset.txt"},
+        {"train": ["data/image.jpg", "metadata.jsonl"]},
         # With prefix or suffix in directory or file names
         {"train": "my_train_dir/dataset.txt"},
         {"train": "data/my_train_file.txt"},
@@ -409,22 +583,48 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
         {"validation": "dev/dataset.txt"},
         # With other extensions
         {"train": "train.parquet", "test": "test.parquet", "validation": "valid.parquet"},
+        # With "dev" or "eval" without separators
+        {"train": "developers_list.txt"},
+        {"train": "data/seqeval_results.txt"},
+        {"train": "contest.txt"},
+        # With supported separators
+        {"test": "my.test.file.txt"},
+        {"test": "my-test-file.txt"},
+        {"test": "my_test_file.txt"},
+        {"test": "my test file.txt"},
+        {"test": "test00001.txt"},
     ],
 )
 def test_get_data_files_patterns(data_file_per_split):
     data_file_per_split = {k: v if isinstance(v, list) else [v] for k, v in data_file_per_split.items()}
+    file_paths = [file_path for split_file_paths in data_file_per_split.values() for file_path in split_file_paths]
+    fs = mock_fs(file_paths)
 
     def resolver(pattern):
-        return [PurePath(path) for path in chain(*data_file_per_split.values()) if PurePath(path).match(pattern)]
+        return [PurePath(file_path) for file_path in fs.glob(pattern) if fs.isfile(file_path)]
 
     patterns_per_split = _get_data_files_patterns(resolver)
-    assert sorted(patterns_per_split.keys()) == sorted(data_file_per_split.keys())
+    assert patterns_per_split.keys() == data_file_per_split.keys()
     for split, patterns in patterns_per_split.items():
-        matched = [
-            path
-            for path in chain(*data_file_per_split.values())
-            for pattern in patterns
-            if PurePath(path).match(pattern)
-        ]
-        assert len(matched) == len(data_file_per_split[split])
+        matched = [file_path.as_posix() for pattern in patterns for file_path in resolver(pattern)]
         assert matched == data_file_per_split[split]
+
+
+@pytest.mark.parametrize(
+    "metadata_files",
+    [
+        # metadata files at the root
+        ["metadata.jsonl"],
+        # nested metadata files
+        ["data/metadata.jsonl", "data/train/metadata.jsonl"],
+    ],
+)
+def test_get_metadata_files_patterns(metadata_files):
+    def resolver(pattern):
+        return [PurePath(path) for path in set(metadata_files) if PurePath(path).match(pattern)]
+
+    patterns = _get_metadata_files_patterns(resolver)
+    matched = [path for path in metadata_files for pattern in patterns if PurePath(path).match(pattern)]
+    # Use set to remove the difference between in behavior between PurePath.match and mathcing via fsspec.glob
+    assert len(set(matched)) == len(metadata_files)
+    assert sorted(set(matched)) == sorted(metadata_files)

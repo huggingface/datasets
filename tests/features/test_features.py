@@ -1,4 +1,4 @@
-from dataclasses import asdict
+import datetime
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -19,6 +19,7 @@ from datasets.features.features import (
 )
 from datasets.features.translation import Translation, TranslationVariableLanguages
 from datasets.info import DatasetInfo
+from datasets.utils.py_utils import asdict
 
 from ..utils import require_jax, require_tf, require_torch
 
@@ -58,6 +59,7 @@ class FeaturesTest(TestCase):
             pa.string(),
             pa.int32(),
             pa.float64(),
+            pa.array([datetime.time(1, 1, 1)]).type,  # arrow type: DataType(time64[us])
         ]
         for dt in supported_pyarrow_datatypes:
             self.assertEqual(dt, string_to_arrow(_arrow_to_datasets_dtype(dt)))
@@ -95,6 +97,13 @@ class FeaturesTest(TestCase):
     def test_feature_named_type(self):
         """reference: issue #1110"""
         features = Features({"_type": Value("string")})
+        ds_info = DatasetInfo(features=features)
+        reloaded_features = Features.from_dict(asdict(ds_info)["features"])
+        assert features == reloaded_features
+
+    def test_class_label_feature_with_no_labels(self):
+        """reference: issue #4681"""
+        features = Features({"label": ClassLabel(names=[])})
         ds_info = DatasetInfo(features=features)
         reloaded_features = Features.from_dict(asdict(ds_info)["features"])
         assert features == reloaded_features
@@ -481,6 +490,26 @@ class CastToPythonObjectsTest(TestCase):
         expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
         casted_obj = cast_to_python_objects(obj)
         self.assertDictEqual(casted_obj, expected_obj)
+
+    def test_cast_to_python_objects_pandas_timestamp(self):
+        obj = pd.Timestamp(2020, 1, 1)
+        expected_obj = obj.to_pydatetime()
+        casted_obj = cast_to_python_objects(obj)
+        self.assertEqual(casted_obj, expected_obj)
+        casted_obj = cast_to_python_objects(pd.Series([obj]))
+        self.assertListEqual(casted_obj, [expected_obj])
+        casted_obj = cast_to_python_objects(pd.DataFrame({"a": [obj]}))
+        self.assertDictEqual(casted_obj, {"a": [expected_obj]})
+
+    def test_cast_to_python_objects_pandas_timedelta(self):
+        obj = pd.Timedelta(seconds=1)
+        expected_obj = obj.to_pytimedelta()
+        casted_obj = cast_to_python_objects(obj)
+        self.assertEqual(casted_obj, expected_obj)
+        casted_obj = cast_to_python_objects(pd.Series([obj]))
+        self.assertListEqual(casted_obj, [expected_obj])
+        casted_obj = cast_to_python_objects(pd.DataFrame({"a": [obj]}))
+        self.assertDictEqual(casted_obj, {"a": [expected_obj]})
 
     @require_torch
     def test_cast_to_python_objects_torch(self):

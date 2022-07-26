@@ -3,14 +3,14 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - de
 - es
 - fr
 - ru
 - tr
-licenses:
-- other-research-only
+license:
+- other
 multilinguality:
 - multilingual
 size_categories:
@@ -20,12 +20,13 @@ source_datasets:
 - extended|cnn_dailymail
 - original
 task_categories:
+- summarization
 - translation
 - text-classification
 task_ids:
+- news-articles-summarization
 - multi-class-classification
 - multi-label-classification
-- summarization
 - topic-classification
 paperswithcode_id: mlsum
 pretty_name: MLSUM

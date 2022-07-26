@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: break
 pretty_name: BREAK

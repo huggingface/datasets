@@ -4,9 +4,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - el
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual

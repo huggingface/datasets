@@ -32,7 +32,7 @@ import copy
 import dataclasses
 import json
 import os
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Union
 
 from . import config
@@ -41,7 +41,7 @@ from .splits import SplitDict
 from .tasks import TaskTemplate, task_template_from_dict
 from .utils import Version
 from .utils.logging import get_logger
-from .utils.py_utils import unique_values
+from .utils.py_utils import asdict, unique_values
 
 
 logger = get_logger(__name__)

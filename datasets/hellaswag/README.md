@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: hellaswag
 pretty_name: HellaSwag

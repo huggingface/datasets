@@ -17,7 +17,7 @@
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
-__version__ = "2.3.3.dev0"
+__version__ = "2.4.1.dev0"
 
 import pyarrow
 from packaging import version
@@ -29,15 +29,15 @@ if version.parse(pyarrow.__version__).major < 6:
         "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
     )
 
-SCRIPTS_VERSION = "master" if version.parse(__version__).is_devrelease else __version__
+SCRIPTS_VERSION = "main" if version.parse(__version__).is_devrelease else __version__
 
 del pyarrow
 del version
 
-from .arrow_dataset import Dataset, concatenate_datasets
+from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
 from .builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
-from .combine import interleave_datasets
+from .combine import concatenate_datasets, interleave_datasets
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download import *
 from .features import *
@@ -73,10 +73,11 @@ from .utils import logging
 
 
 # deprecated modules
+from datasets import arrow_dataset as _arrow_dataset  # isort:skip
 from datasets import utils as _utils  # isort:skip
 from datasets.utils import download_manager as _deprecated_download_manager  # isort:skip
 
-
+_arrow_dataset.concatenate_datasets = concatenate_datasets
 _utils.DownloadConfig = DownloadConfig
 _utils.DownloadManager = DownloadManager
 _utils.DownloadMode = DownloadMode
@@ -84,4 +85,4 @@ _deprecated_download_manager.DownloadConfig = DownloadConfig
 _deprecated_download_manager.DownloadMode = DownloadMode
 _deprecated_download_manager.DownloadManager = DownloadManager
 
-del _utils, _deprecated_download_manager
+del _arrow_dataset, _utils, _deprecated_download_manager

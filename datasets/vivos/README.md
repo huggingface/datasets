@@ -5,9 +5,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - vi
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual

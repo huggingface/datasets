@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: gap
 pretty_name: GAP Benchmark Suite

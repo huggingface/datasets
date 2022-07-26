@@ -1,66 +1,232 @@
-# Quick Start
+# Quickstart
 
-The quick start is intended for developers who are ready to dive in to the code, and see an end-to-end example of how they can integrate 🤗 Datasets into their model training workflow. For beginners who are looking for a gentler introduction, we recommend you begin with the [tutorials](./tutorial).
+This quickstart is intended for developers who are ready to dive into the code and see an example of how to integrate 🤗 Datasets into their model training workflow. If you're a beginner, we recommend starting with our [tutorials](./tutorial), where you'll get a more thorough introduction.
 
-In the quick start, you will walkthrough all the steps to fine-tune [BERT](https://huggingface.co/bert-base-cased) on a paraphrase classification task. Depending on the specific dataset you use, these steps may vary, but the general steps of how to load a dataset and process it are the same.
+Each dataset is unique, and depending on the task, some datasets may require additional steps to prepare it for training. But you can always use 🤗 Datasets tools to load and process a dataset. The fastest and easiest way to get started is by loading an existing dataset from the [Hugging Face Hub](https://huggingface.co/datasets). There are thousands of datasets to choose from, spanning many tasks. Choose the type of dataset you want to work with, and let's get started!
+
+<div class="mt-4">
+   <div class="w-full flex flex-col space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-y-4 md:gap-x-5">
+      <a class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg" href="#audio"
+         ><div class="w-full text-center bg-gradient-to-r from-violet-300 via-sky-400 to-green-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">Audio</div>
+         <p class="text-gray-700">Resample an audio dataset and get it ready for a model to classify what type of banking issue a speaker is calling about.</p>
+      </a>
+      <a class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg" href="#vision"
+         ><div class="w-full text-center bg-gradient-to-r from-pink-400 via-purple-400 to-blue-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">Vision</div>
+         <p class="text-gray-700">Apply data augmentation to an image dataset and get it ready for a model to diagnose disease in bean plants.</p>
+      </a>
+      <a class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg" href="#nlp"
+         ><div class="w-full text-center bg-gradient-to-r from-orange-300 via-red-400 to-violet-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">NLP</div>
+         <p class="text-gray-700">Tokenize a dataset and get it ready for a model to determine whether a pair of sentences have the same meaning.</p>
+      </a>
+   </div>
+</div>
 
 <Tip>
 
-For more detailed information on loading and processing a dataset, take a look at [Chapter 3](https://huggingface.co/course/chapter3/1?fw=pt) of the Hugging Face course! It covers additional important topics like dynamic padding, and fine-tuning with the Trainer API.
+Check out [Chapter 5](https://huggingface.co/course/chapter5/1?fw=pt) of the Hugging Face course to learn more about other important topics such as loading remote or local datasets, tools for cleaning up a dataset, and creating your own dataset.
 
 </Tip>
 
-Get started by installing 🤗 Datasets:
+Start by installing 🤗 Datasets:
 
-```
+```bash
 pip install datasets
 ```
 
-## Load the dataset and model
+To work with audio datasets, install the [`Audio`] feature:
 
-Begin by loading the [Microsoft Research Paraphrase Corpus (MRPC)](https://huggingface.co/datasets/glue/viewer/mrpc) training dataset from the [General Language Understanding Evaluation (GLUE) benchmark](https://huggingface.co/datasets/glue). MRPC is a corpus of human annotated sentence pairs used to train a model to determine whether sentence pairs are semantically equivalent.
-
-```py
->>> from datasets import load_dataset
->>> dataset = load_dataset('glue', 'mrpc', split='train')
+```bash
+pip install datasets[audio]
 ```
 
-Next, import the pre-trained BERT model and its tokenizer from the [🤗 Transformers](https://huggingface.co/transformers/) library:
+To work with image datasets, install the [`Image`] feature:
+
+```bash
+pip install datasets[vision]
+```
+
+## Audio
+
+Audio datasets are loaded just like text datasets. However, an audio dataset is preprocessed a bit differently. Instead of a tokenizer, you'll need a [feature extractor](https://huggingface.co/docs/transformers/main_classes/feature_extractor#feature-extractor). An audio input may also require resampling its sampling rate to match the sampling rate of the pretrained model you're using. In this quickstart, you'll prepare the [MInDS-14](https://huggingface.co/datasets/PolyAI/minds14) dataset for a model train on and classify the banking issue a customer is having.
+
+**1**. Load the MInDS-14 dataset by providing the [`load_dataset`] function with the dataset name, dataset configuration (not all datasets will have a configuration), and a dataset split:
+
+```py
+>>> from datasets import load_dataset, Audio
+
+>>> dataset = load_dataset("PolyAI/minds14", "en-US", split="train")
+```
+
+**2**. Next, load a pretrained [Wav2Vec2](https://huggingface.co/facebook/wav2vec2-base) model and its corresponding feature extractor from the [🤗 Transformers](https://huggingface.co/transformers/) library. It is totally normal to see a warning after you load the model about some weights not being initialized. This is expected because you are loading this model checkpoint for training with another task.
+
+```py
+>>> from transformers import AutoModelForAudioClassification, AutoFeatureExtractor
+
+>>> model = AutoModelForAudioClassification.from_pretrained("facebook/wav2vec2-base")
+>>> feature_extractor = AutoFeatureExtractor.from_pretrained("facebook/wav2vec2-base")
+```
+
+**3**. The [MInDS-14](https://huggingface.co/datasets/PolyAI/minds14) dataset card indicates the sampling rate is 8kHz, but the Wav2Vec2 model was pretrained on a sampling rate of 16kHZ. You'll need to upsample the `audio` column with the [`~Dataset.cast_column`] function and [`Audio`] feature to match the model's sampling rate.
+
+```py
+>>> dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
+>>> dataset[0]["audio"]
+{'array': array([ 2.3443763e-05,  2.1729663e-04,  2.2145823e-04, ...,
+         3.8356509e-05, -7.3497440e-06, -2.1754686e-05], dtype=float32),
+ 'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav',
+ 'sampling_rate': 16000}
+```
+
+**4**. Create a function to preprocess the audio `array` with the feature extractor, and truncate and pad the sequences into tidy rectangular tensors. The most important thing to remember is to call the audio `array` in the feature extractor since the `array` - the actual speech signal - is the model input.
+
+Once you have a preprocessing function, use the [`~Dataset.map`] function to speed up processing by applying the function to batches of examples in the dataset.
+
+```py
+>>> def preprocess_function(examples):
+...     audio_arrays = [x["array"] for x in examples["audio"]]
+...     inputs = feature_extractor(
+...         audio_arrays,
+...         sampling_rate=16000,
+...         padding=True,
+...         max_length=100000,
+...         truncation=True,
+...     )
+...     return inputs
+
+>>> dataset = dataset.map(preprocess_function, batched=True)
+```
+
+**5**. Use the [`~Dataset.rename_column`] function to rename the `intent_class` column to `labels`, which is the expected input name in [Wav2Vec2ForSequenceClassification](https://huggingface.co/docs/transformers/main/en/model_doc/wav2vec2#transformers.Wav2Vec2ForSequenceClassification):
+
+```py
+>>> dataset = dataset.rename_column("intent_class", "labels")
+```
+
+**6**. Set the dataset format according to the machine learning framework you're using.
 
 <frameworkcontent>
 <pt>
+Use the [`~Dataset.set_format`] function to set the dataset format to `torch` and specify the columns you want to format. This function applies formatting on-the-fly. After converting to PyTorch tensors, wrap the dataset in [`torch.utils.data.DataLoader`](https://alband.github.io/doc_view/data.html?highlight=torch%20utils%20data%20dataloader#torch.utils.data.DataLoader):
+
 ```py
->>> from transformers import AutoModelForSequenceClassification, AutoTokenizer
->>> model = AutoModelForSequenceClassification.from_pretrained('bert-base-cased')
-Some weights of the model checkpoint at bert-base-cased were not used when initializing BertForSequenceClassification: ['cls.predictions.bias', 'cls.predictions.transform.dense.weight', 'cls.predictions.transform.dense.bias', 'cls.predictions.decoder.weight', 'cls.seq_relationship.weight', 'cls.seq_relationship.bias', 'cls.predictions.transform.LayerNorm.weight', 'cls.predictions.transform.LayerNorm.bias']
-- This IS expected if you are initializing BertForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPretraining model).
-- This IS NOT expected if you are initializing BertForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
-Some weights of BertForSequenceClassification were not initialized from the model checkpoint at bert-base-cased and are newly initialized: ['classifier.weight', 'classifier.bias']
-You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
->>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
+>>> from torch.utils.data import DataLoader
+
+>>> dataset.set_format(type="torch", columns=["input_values", "labels"])
+>>> dataloader = DataLoader(dataset, batch_size=4)
 ```
 </pt>
 <tf>
+Use the [`~Dataset.to_tf_dataset`] function to set the dataset format to be compatible with TensorFlow. You'll also need to import a [data collator](https://huggingface.co/docs/transformers/main_classes/data_collator#transformers.DataCollatorWithPadding) from 🤗 Transformers to combine the varying sequence lengths into a single batch of equal lengths:
+
 ```py
->>> from transformers import TFAutoModelForSequenceClassification, AutoTokenizer
->>> model = TFAutoModelForSequenceClassification.from_pretrained("bert-base-cased")
-Some weights of the model checkpoint at bert-base-cased were not used when initializing TFBertForSequenceClassification: ['nsp___cls', 'mlm___cls']
-- This IS expected if you are initializing TFBertForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPretraining model).
-- This IS NOT expected if you are initializing TFBertForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
-Some weights of TFBertForSequenceClassification were not initialized from the model checkpoint at bert-base-cased and are newly initialized: ['dropout_37', 'classifier']
-You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
->>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
+>>> import tensorflow as tf
+
+>>> tf_dataset = dataset.to_tf_dataset(
+...     columns=["input_values"],
+...     label_cols=["labels"],
+...     batch_size=4,
+...     shuffle=True)
 ```
 </tf>
 </frameworkcontent>
 
-## Tokenize the dataset
+**7**. Start training with your machine learning framework! Check out the 🤗 Transformers [audio classification guide](https://huggingface.co/docs/transformers/tasks/audio_classification) for an end-to-end example of how to train a model on an audio dataset.
 
-The next step is to tokenize the text in order to build sequences of integers the model can understand. Encode the entire dataset with [`Dataset.map`], and truncate and pad the inputs to the maximum length of the model. This ensures the appropriate tensor batches are built.
+## Vision
+
+Image datasets are loaded just like text datasets. However, instead of a tokenizer, you'll need a [feature extractor](https://huggingface.co/docs/transformers/main_classes/feature_extractor#feature-extractor) to preprocess the dataset. Applying data augmentation to an image is common in computer vision to make the model more robust against overfitting. You're free to use any data augmentation library you want, and then you can apply the augmentations with 🤗 Datasets. In this quickstart, you'll load the [Beans](https://huggingface.co/datasets/beans) dataset and get it ready for the model to train on and identify disease from the leaf images.
+
+**1**. Load the Beans dataset by providing the [`load_dataset`] function with the dataset name and a dataset split:
+
+```py
+>>> from datasets import load_dataset, Image
+
+>>> dataset = load_dataset("beans", split="train")
+```
+
+**2**. Now you can add some data augmentations with any library ([Albumentations](https://albumentations.ai/), [imgaug](https://imgaug.readthedocs.io/en/latest/), [Kornia](https://kornia.readthedocs.io/en/latest/)) you like. Here, you'll use [torchvision](https://pytorch.org/vision/stable/transforms.html) to randomly change the color properties of an image:
+
+```py
+>>> from torchvision.transforms import Compose, ColorJitter, ToTensor
+
+>>> jitter = Compose(
+...     [ColorJitter(brightness=0.5, hue=0.5), ToTensor()]
+... )
+```
+
+**3**. Create a function to apply your transform to the dataset and generate the model input: `pixel_values`.
+
+```python
+>>> def transforms(examples):
+...     examples["pixel_values"] = [jitter(image.convert("RGB")) for image in examples["image"]]
+...     return examples
+```
+
+**4**. Use the [`~Dataset.with_transform`] function to apply the data augmentations on-the-fly:
+
+```py
+>>> dataset = dataset.with_transform(transforms)
+```
+
+**5**. Set the dataset format according to the machine learning framework you're using.
+
+<frameworkcontent>
+<pt>
+Wrap the dataset in [`torch.utils.data.DataLoader`](https://alband.github.io/doc_view/data.html?highlight=torch%20utils%20data%20dataloader#torch.utils.data.DataLoader). You'll also need to create a collate function to collate the samples into batches:
+
+```py
+>>> from torch.utils.data import DataLoader
+
+>>> def collate_fn(examples):
+...     images = []
+...     labels = []
+...     for example in examples:
+...         images.append((example["pixel_values"]))
+...         labels.append(example["labels"])
+...         
+...     pixel_values = torch.stack(images)
+...     labels = torch.tensor(labels)
+...     return {"pixel_values": pixel_values, "labels": labels}
+>>> dataloader = DataLoader(dataset, collate_fn=collate_fn, batch_size=4)
+```
+</pt>
+</frameworkcontent>
+
+**6**. Start training with your machine learning framework! Check out the 🤗 Transformers [image classification guide](https://huggingface.co/docs/transformers/tasks/image_classification) for an end-to-end example of how to train a model on an image dataset.
+
+## NLP
+
+Text needs to be tokenized into individual tokens by a [tokenizer](https://huggingface.co/docs/transformers/main_classes/tokenizer). For the quickstart, you'll load the [Microsoft Research Paraphrase Corpus (MRPC)](https://huggingface.co/datasets/glue/viewer/mrpc) training dataset to train a model to determine whether a pair of sentences mean the same thing.
+
+**1**. Load the MRPC dataset by providing the [`load_dataset`] function with the dataset name, dataset configuration (not all datasets will have a configuration), and dataset split:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("glue", "mrpc", split="train")
+```
+
+**2**. Next, load a pretrained [BERT](https://huggingface.co/bert-base-uncased) model and its corresponding tokenizer from the [🤗 Transformers](https://huggingface.co/transformers/) library. It is totally normal to see a warning after you load the model about some weights not being initialized. This is expected because you are loading this model checkpoint for training with another task.
+
+```py
+>>> from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+>>> model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased")
+>>> tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+===PT-TF-SPLIT===
+>>> from transformers import TFAutoModelForSequenceClassification, AutoTokenizer
+
+>>> model = TFAutoModelForSequenceClassification.from_pretrained("bert-base-uncased")
+>>> tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+```
+
+**3**. Create a function to tokenize the dataset, and you should also truncate and pad the text into tidy rectangular tensors. The tokenizer generates three new columns in the dataset: `input_ids`, `token_type_ids`, and an `attention_mask`. These are the model inputs.
+
+Use the [`~Dataset.map`] function to speed up processing by applying your tokenization function to batches of examples in the dataset:
 
 ```py
 >>> def encode(examples):
-...     return tokenizer(examples['sentence1'], examples['sentence2'], truncation=True, padding='max_length')
+...     return tokenizer(examples["sentence1"], examples["sentence2"], truncation=True, padding="max_length")
 
 >>> dataset = dataset.map(encode, batched=True)
 >>> dataset[0]
@@ -73,139 +239,47 @@ The next step is to tokenize the text in order to build sequences of integers th
 'attention_mask': array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])}
 ```
 
-Notice how there are three new columns in the dataset: `input_ids`, `token_type_ids`, and `attention_mask`. These columns are the inputs to the model.
+**4**. Rename the `label` column to `labels`, which is the expected input name in [BertForSequenceClassification](https://huggingface.co/docs/transformers/main/en/model_doc/bert#transformers.BertForSequenceClassification):
 
-## Format the dataset
+```py
+>>> dataset = dataset.map(lambda examples: {"labels": examples["label"]}, batched=True)
+```
 
-Depending on whether you are using PyTorch, TensorFlow, or JAX, you will need to format the dataset accordingly. There are three changes you need to make to the dataset:
+**5**. Set the dataset format according to the machine learning framework you're using.
 
 <frameworkcontent>
 <pt>
-1. Rename the `label` column to `labels`, the expected input name in [BertForSequenceClassification](https://huggingface.co/transformers/model_doc/bert#transformers.BertForSequenceClassification.forward):
-
-```py
->>> dataset = dataset.map(lambda examples: {'labels': examples['label']}, batched=True)
-```
-
-2. Retrieve the actual tensors from the Dataset object instead of using the current Python objects.
-3. Filter the dataset to only return the model inputs: `input_ids`, `token_type_ids`, and `attention_mask`.
-
-[`Dataset.set_format`] completes the last two steps on-the-fly. After you set the format, wrap the dataset in `torch.utils.data.DataLoader`:
-
+Use the [`~Dataset.set_format`] function to set the dataset format to `torch` and specify the columns you want to format. This function applies formatting on-the-fly. After converting to PyTorch tensors, wrap the dataset in [`torch.utils.data.DataLoader`](https://alband.github.io/doc_view/data.html?highlight=torch%20utils%20data%20dataloader#torch.utils.data.DataLoader):
 
 ```py
 >>> import torch
->>> dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
+
+>>> dataset.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "labels"])
 >>> dataloader = torch.utils.data.DataLoader(dataset, batch_size=32)
->>> next(iter(dataloader))
-{'attention_mask': tensor([[1, 1, 1,  ..., 0, 0, 0],
-                        [1, 1, 1,  ..., 0, 0, 0],
-                        [1, 1, 1,  ..., 0, 0, 0],
-                        ...,
-                        [1, 1, 1,  ..., 0, 0, 0],
-                        [1, 1, 1,  ..., 0, 0, 0],
-                        [1, 1, 1,  ..., 0, 0, 0]]),
-'input_ids': tensor([[  101,  7277,  2180,  ...,     0,     0,     0],
-                  [  101, 10684,  2599,  ...,     0,     0,     0],
-                  [  101,  1220,  1125,  ...,     0,     0,     0],
-                  ...,
-                  [  101, 16944,  1107,  ...,     0,     0,     0],
-                  [  101,  1109, 11896,  ...,     0,     0,     0],
-                  [  101,  1109,  4173,  ...,     0,     0,     0]]),
-'label': tensor([1, 0, 1, 0, 1, 1, 0, 1]),
-'token_type_ids': tensor([[0, 0, 0,  ..., 0, 0, 0],
-                     [0, 0, 0,  ..., 0, 0, 0],
-                     [0, 0, 0,  ..., 0, 0, 0],
-                     ...,
-                     [0, 0, 0,  ..., 0, 0, 0],
-                     [0, 0, 0,  ..., 0, 0, 0],
-                     [0, 0, 0,  ..., 0, 0, 0]])}
 ```
 </pt>
 <tf>
-1. Rename the `label` column to `labels`, the expected input name in [TFBertForSequenceClassification](https://huggingface.co/transformers/model_doc/bert#tfbertforsequenceclassification):
-
-```py
->>> dataset = dataset.map(lambda examples: {'labels': examples['label']}, batched=True)
-```
-
-2. Retrieve the actual tensors from the Dataset object instead of using the current Python objects.
-3. Filter the dataset to only return the model inputs: `input_ids`, `token_type_ids`, and `attention_mask`.
-
-[`Dataset.set_format`] completes the last two steps on-the-fly. After you set the format, wrap the dataset in `tf.data.Dataset`:
-
+Use the [`~Dataset.to_tf_dataset`] function to set the dataset format to be compatible with TensorFlow. You'll also need to import a [data collator](https://huggingface.co/docs/transformers/main_classes/data_collator#transformers.DataCollatorWithPadding) from 🤗 Transformers to combine the varying sequence lengths into a single batch of equal lengths:
 
 ```py
 >>> import tensorflow as tf
->>> dataset.set_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
->>> features = {x: dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length]) for x in ['input_ids', 'token_type_ids', 'attention_mask']}
->>> tfdataset = tf.data.Dataset.from_tensor_slices((features, dataset["labels"])).batch(32)
->>> next(iter(tfdataset))
-({'input_ids': <tf.Tensor: shape=(32, 512), dtype=int32, numpy=
-array([[  101,  7277,  2180, ...,     0,     0,     0],
-   [  101, 10684,  2599, ...,     0,     0,     0],
-   [  101,  1220,  1125, ...,     0,     0,     0],
-   ...,
-   [  101,  1109,  2026, ...,     0,     0,     0],
-   [  101, 22263,  1107, ...,     0,     0,     0],
-   [  101,   142,  1813, ...,     0,     0,     0]], dtype=int32)>, 'token_type_ids': <tf.Tensor: shape=(32, 512), dtype=int32, numpy=
-array([[0, 0, 0, ..., 0, 0, 0],
-   [0, 0, 0, ..., 0, 0, 0],
-   [0, 0, 0, ..., 0, 0, 0],
-   ...,
-   [0, 0, 0, ..., 0, 0, 0],
-   [0, 0, 0, ..., 0, 0, 0],
-   [0, 0, 0, ..., 0, 0, 0]], dtype=int32)>, 'attention_mask': <tf.Tensor: shape=(32, 512), dtype=int32, numpy=
-array([[1, 1, 1, ..., 0, 0, 0],
-   [1, 1, 1, ..., 0, 0, 0],
-   [1, 1, 1, ..., 0, 0, 0],
-   ...,
-   [1, 1, 1, ..., 0, 0, 0],
-   [1, 1, 1, ..., 0, 0, 0],
-   [1, 1, 1, ..., 0, 0, 0]], dtype=int32)>}, <tf.Tensor: shape=(32,), dtype=int64, numpy=
-array([1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1,
-   0, 1, 1, 1, 0, 0, 1, 1, 1, 0])>)
+>>> from transformers import DataCollatorWithPadding
+
+>>> data_collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="tf")
+>>> tf_dataset = dataset.to_tf_dataset(
+...     columns=["input_ids", "token_type_ids", "attention_mask"],
+...     label_cols=["labels"],
+...     batch_size=2,
+...     collate_fn=data_collator,
+...     shuffle=True)
 ```
 </tf>
 </frameworkcontent>
 
-## Train the model
-
-<frameworkcontent>
-<pt>
-Lastly, create a simple training loop and start training:
-
-```py
->>> from tqdm import tqdm
->>> device = 'cuda' if torch.cuda.is_available() else 'cpu' 
->>> model.train().to(device)
->>> optimizer = torch.optim.AdamW(params=model.parameters(), lr=1e-5)
->>> for epoch in range(3):
-...     for i, batch in enumerate(tqdm(dataloader)):
-...         batch = {k: v.to(device) for k, v in batch.items()}
-...         outputs = model(**batch)
-...         loss = outputs[0]
-...         loss.backward()
-...         optimizer.step()
-...         optimizer.zero_grad()
-...         if i % 10 == 0:
-...             print(f"loss: {loss}")
-```
-</pt>
-<tf>
-Lastly, compile the model and start training:
-
-```py
->>> loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(reduction=tf.keras.losses.Reduction.NONE, from_logits=True)
->>> opt = tf.keras.optimizers.Adam(learning_rate=3e-5)
->>> model.compile(optimizer=opt, loss=loss_fn, metrics=["accuracy"])
->>> model.fit(tfdataset, epochs=3)
-```
-</tf>
-</frameworkcontent>
+**6**. Start training with your machine learning framework! Check out the 🤗 Transformers [text classification guide](https://huggingface.co/docs/transformers/tasks/sequence_classification) for an end-to-end example of how to train a model on a text dataset.
 
 ## What's next?
 
-This completes the basic steps of loading a dataset to train a model. You loaded and processed the MRPC dataset to fine-tune BERT to determine whether sentence pairs have the same meaning.
+This completes the 🤗 Datasets quickstart! You can load any text, audio, or image dataset with a single function and get it ready for your model to train on.
 
-For your next steps, take a look at our [How-to guides](./how_to) and learn how to achieve a specific task (e.g. load a dataset offline, add a dataset to the Hub, change the name of a column). Or if you want to deepen your knowledge of 🤗 Datasets core concepts, read our [Conceptual Guides](./about_arrow).
+For your next steps, take a look at our [How-to guides](./how_to) and learn how to do more specific things like loading different dataset formats, aligning labels, and streaming large datasets. If you're interested in learning more about 🤗 Datasets core concepts, grab a cup of coffee and read our [Conceptual Guides](./about_arrow)!

@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - de
 - en
 - es
@@ -12,7 +12,7 @@ languages:
 - jp
 - ru
 - zh
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - multilingual

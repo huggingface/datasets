@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - th
-licenses:
-- lgpl-3.0-only
+license:
+- lgpl-3.0
 multilinguality:
 - monolingual
 size_categories:

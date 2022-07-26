@@ -8,7 +8,7 @@ task_ids:
 - masked-language-modeling
 multilinguality:
 - translation
-languages:
+language:
 - en
 - hi
 - ta
@@ -29,7 +29,7 @@ source_datasets:
 size_categories:
 - 100K<n<1M
 - 10K<n<100K
-licenses:
+license:
 - cc-by-4.0
 paperswithcode_id: null
 pretty_name: CVIT PIB

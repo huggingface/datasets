@@ -4,9 +4,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - pt
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -17,7 +17,7 @@ source_datasets:
 task_categories:
 - token-classification
 task_ids:
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: null
 ---
 

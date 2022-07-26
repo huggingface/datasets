@@ -3,7 +3,7 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - 'no'
 - ace
 - af
@@ -180,7 +180,7 @@ languages:
 - yue
 - zea
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

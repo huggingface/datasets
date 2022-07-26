@@ -19,7 +19,7 @@ import json
 import re
 import sys
 from collections.abc import Iterable, Mapping
-from dataclasses import InitVar, _asdict_inner, dataclass, field, fields
+from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
 from typing import Any, ClassVar, Dict, List, Optional
@@ -37,7 +37,7 @@ from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 from .. import config
 from ..table import array_cast
 from ..utils import logging
-from ..utils.py_utils import first_non_null_value, zip_dict
+from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
 from .translation import Translation, TranslationVariableLanguages
@@ -78,9 +78,9 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
     elif pyarrow.types.is_float64(arrow_type):
         return "float64"  # pyarrow dtype is "double"
     elif pyarrow.types.is_time32(arrow_type):
-        return f"time32[{arrow_type.unit}]"
+        return f"time32[{pa.type_for_alias(str(arrow_type)).unit}]"
     elif pyarrow.types.is_time64(arrow_type):
-        return f"time64[{arrow_type.unit}]"
+        return f"time64[{pa.type_for_alias(str(arrow_type)).unit}]"
     elif pyarrow.types.is_timestamp(arrow_type):
         if arrow_type.tz is None:
             return f"timestamp[{arrow_type.unit}]"
@@ -336,9 +336,23 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
     elif config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(obj, PIL.Image.Image):
         return encode_pil_image(obj), True
     elif isinstance(obj, pd.Series):
-        return obj.values.tolist(), True
+        return (
+            _cast_to_python_objects(
+                obj.tolist(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+            )[0],
+            True,
+        )
     elif isinstance(obj, pd.DataFrame):
-        return obj.to_dict("list"), True
+        return {
+            key: _cast_to_python_objects(
+                value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+            )[0]
+            for key, value in obj.to_dict("list").items()
+        }, True
+    elif isinstance(obj, pd.Timestamp):
+        return obj.to_pydatetime(), True
+    elif isinstance(obj, pd.Timedelta):
+        return obj.to_pytimedelta(), True
     elif isinstance(obj, Mapping):  # check for dict-like to handle nested LazyDict objects
         has_changed = not isinstance(obj, dict)
         output = {}
@@ -1208,7 +1222,7 @@ def encode_nested_example(schema, obj, level=0):
     return obj
 
 
-def decode_nested_example(schema, obj, token_per_repo_id=None):
+def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
     """Decode a nested example.
     This is used since some features (in particular Audio and Image) have some logic during decoding.
 
@@ -1424,6 +1438,24 @@ def require_storage_cast(feature: FeatureType) -> bool:
         return hasattr(feature, "cast_storage")
 
 
+def require_storage_embed(feature: FeatureType) -> bool:
+    """Check if a (possibly nested) feature requires embedding data into storage.
+
+    Args:
+        feature (FeatureType): the feature type to be checked
+    Returns:
+        :obj:`bool`
+    """
+    if isinstance(feature, dict):
+        return any(require_storage_cast(f) for f in feature.values())
+    elif isinstance(feature, (list, tuple)):
+        return require_storage_cast(feature[0])
+    elif isinstance(feature, Sequence):
+        return require_storage_cast(feature.feature)
+    else:
+        return hasattr(feature, "embed_storage")
+
+
 def keep_features_dicts_synced(func):
     """
     Wrapper to keep the secondary dictionary, which tracks whether keys are decodable, of the :class:`datasets.Features` object
@@ -1566,7 +1598,7 @@ class Features(dict):
         return cls(**obj)
 
     def to_dict(self):
-        return _asdict_inner(self, dict)
+        return asdict(self)
 
     def encode_example(self, example):
         """
@@ -1599,7 +1631,7 @@ class Features(dict):
             encoded_batch[key] = [encode_nested_example(self[key], obj) for obj in column]
         return encoded_batch
 
-    def decode_example(self, example: dict, token_per_repo_id=None):
+    def decode_example(self, example: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
         """Decode example with custom feature decoding.
 
         Args:

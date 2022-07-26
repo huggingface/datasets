@@ -4,11 +4,11 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
 - ne
 - si
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - translation

@@ -3,10 +3,10 @@ annotations_creators:
 - other
 language_creators:
 - found
-languages:
+language:
 - hi
-licenses:
-- other-MIDAS-LAB-IIITD-Delhi
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:

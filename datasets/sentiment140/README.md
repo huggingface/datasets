@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: sentiment140
 pretty_name: Sentiment140

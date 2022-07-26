@@ -4,10 +4,10 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - code
-licenses:
-- 0bsd
+license:
+- bsd-2-clause
 - mit
 multilinguality:
 - monolingual

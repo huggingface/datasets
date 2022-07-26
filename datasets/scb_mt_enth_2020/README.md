@@ -8,10 +8,10 @@ language_creators:
 - expert-generated
 - found
 - machine-generated
-languages:
+language:
 - en
 - th
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - translation

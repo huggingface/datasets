@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - acu
 - af
 - agr
@@ -106,7 +106,7 @@ languages:
 - xh
 - zh
 - zu
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - multilingual

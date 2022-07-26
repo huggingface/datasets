@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - other
-languages:
+language:
 - da
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

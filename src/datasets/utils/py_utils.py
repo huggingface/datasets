@@ -18,6 +18,7 @@
 """
 
 import contextlib
+import copy
 import functools
 import itertools
 import os
@@ -26,6 +27,7 @@ import re
 import sys
 import types
 from contextlib import contextmanager
+from dataclasses import fields, is_dataclass
 from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
 from shutil import disk_usage
@@ -149,6 +151,41 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
     keys = re.findall(r"{(.+?)}", pattern)
     _dict = dict(zip(keys, values))
     return _dict
+
+
+def asdict(obj):
+    """Convert an object to its dictionary representation recursively."""
+
+    # Implementation based on https://docs.python.org/3/library/dataclasses.html#dataclasses.asdict
+
+    def _is_dataclass_instance(obj):
+        # https://docs.python.org/3/library/dataclasses.html#dataclasses.is_dataclass
+        return is_dataclass(obj) and not isinstance(obj, type)
+
+    def _asdict_inner(obj):
+        if _is_dataclass_instance(obj):
+            result = {}
+            for f in fields(obj):
+                value = _asdict_inner(getattr(obj, f.name))
+                result[f.name] = value
+            return result
+        elif isinstance(obj, tuple) and hasattr(obj, "_fields"):
+            # obj is a namedtuple
+            return type(obj)(*[_asdict_inner(v) for v in obj])
+        elif isinstance(obj, (list, tuple)):
+            # Assume we can create an object of this type by passing in a
+            # generator (which is not true for namedtuples, handled
+            # above).
+            return type(obj)(_asdict_inner(v) for v in obj)
+        elif isinstance(obj, dict):
+            return {_asdict_inner(k): _asdict_inner(v) for k, v in obj.items()}
+        else:
+            return copy.deepcopy(obj)
+
+    if not isinstance(obj, dict) and not _is_dataclass_instance(obj):
+        raise TypeError(f"{obj} is not a dict or a dataclass")
+
+    return _asdict_inner(obj)
 
 
 @contextlib.contextmanager
@@ -725,7 +762,7 @@ if config.DILL_VERSION < version.parse("0.3.5"):
             # therefore we have to sort the keys to make deterministic.
             # This is important to make `dump` deterministic.
             # Only this line is different from the original implementation:
-            globs = {k: globs[k] for k in sorted(globs.keys())}
+            globs = dict(sorted(globs.items()))
             # The rest is the same as in the original dill implementation
             _byref = getattr(pickler, "_byref", None)
             _recurse = getattr(pickler, "_recurse", None)
@@ -818,6 +855,22 @@ else:  # config.DILL_VERSION >= version.parse("0.3.5")
                 else:
                     globs = {"__name__": obj.__module__}
 
+            # DONE: modified here for huggingface/datasets
+            # - globs is a dictionary with keys = var names (str) and values = python objects
+            # - globs_copy is a dictionary with keys = var names (str) and values = ids of the python objects
+            # however the dictionary is not always loaded in the same order
+            # therefore we have to sort the keys to make deterministic.
+            # This is important to make `dump` deterministic.
+            # Only these line are different from the original implementation:
+            # START
+            globs_is_globs_copy = globs is globs_copy
+            globs = dict(sorted(globs.items()))
+            if globs_is_globs_copy:
+                globs_copy = globs
+            elif globs_copy is not None:
+                globs_copy = dict(sorted(globs_copy.items()))
+            # END
+
             if globs_copy is not None and globs is not globs_copy:
                 # In the case that the globals are copied, we need to ensure that
                 # the globals dictionary is updated when all objects in the
@@ -832,13 +885,6 @@ else:  # config.DILL_VERSION >= version.parse("0.3.5")
                         break
                 else:
                     postproc_list.append((dill._dill._setitems, (globs, globs_copy)))
-
-            # DONE: globs is a dictionary with keys = var names (str) and values = python objects
-            # however the dictionary is not always loaded in the same order
-            # therefore we have to sort the keys to make deterministic.
-            # This is important to make `dump` deterministic.
-            # Only this line is different from the original implementation:
-            globs = {k: globs[k] for k in sorted(globs.keys())}
 
             if dill._dill.PY3:
                 closure = obj.__closure__

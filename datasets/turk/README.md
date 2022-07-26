@@ -3,10 +3,10 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- gnu-gpl-v3.0
+license:
+- gpl-3.0
 multilinguality:
 - monolingual
 size_categories:

@@ -5,9 +5,9 @@ language_creators:
 - expert-generated
 - found
 - machine-generated
-languages:
+language:
 - ko
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

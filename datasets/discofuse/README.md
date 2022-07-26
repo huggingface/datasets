@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: discofuse
 pretty_name: DiscoFuse

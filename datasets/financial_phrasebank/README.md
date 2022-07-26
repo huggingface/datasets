@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-nc-sa-3.0
 multilinguality:
 - monolingual
@@ -54,7 +54,7 @@ pretty_name: FinancialPhrasebank
 - **Repository:**
 - **Paper:** [Arxiv](https://arxiv.org/abs/1307.5336)
 - **Leaderboard:** [Kaggle](https://www.kaggle.com/ankurzing/sentiment-analysis-for-financial-news/code) [PapersWithCode](https://paperswithcode.com/sota/sentiment-analysis-on-financial-phrasebank) =
-- **Point of Contact:**
+- **Point of Contact:** [Pekka Malo](mailto:pekka.malo@aalto.fi) [Ankur Sinha](mailto:ankur.sinha@aalto.fi)
 
 ### Dataset Summary
 
@@ -181,7 +181,11 @@ should be understood with this taken into account.
 
 ### Licensing Information
 
-License: Creative Commons Attribution 4.0 International License (CC-BY)
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+
+If you are interested in commercial use of the data, please contact the following authors for an appropriate license:
+- [Pekka Malo](mailto:pekka.malo@aalto.fi)
+- [Ankur Sinha](mailto:ankur.sinha@aalto.fi)
 
 ### Citation Information
 

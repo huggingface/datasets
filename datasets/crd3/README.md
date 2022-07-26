@@ -4,9 +4,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -55,9 +55,6 @@ paperswithcode_id: crd3
 - **Repository:** [CRD3 repository](https://github.com/RevanthRameshkumar/CRD3)
 - **Paper:** [Storytelling with Dialogue: A Critical Role Dungeons and Dragons Dataset](https://www.aclweb.org/anthology/2020.acl-main.459/)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Size of downloaded dataset files:** 279.93 MB
-- **Size of the generated dataset:** 4020.33 MB
-- **Total amount of disk used:** 4300.25 MB
 
 ### Dataset Summary
 
@@ -69,6 +66,7 @@ collaboration and spoken interaction. For each dialogue, there are a large numbe
 and semantic ties to the previous dialogues.
 
 ### Supported Tasks and Leaderboards
+
 `summarization`: The dataset can be used to train a model for abstractive summarization. A [fast abstractive summarization-RL](https://github.com/ChenRocks/fast_abs_rl) model was presented as a baseline, which achieves ROUGE-L-F1 of 25.18.
 
 ### Languages
@@ -79,13 +77,8 @@ The text in the dataset is in English, as spoken by actors on The Critical Role 
 
 ### Data Instances
 
-#### default
-
-- **Size of downloaded dataset files:** 279.93 MB
-- **Size of the generated dataset:** 4020.33 MB
-- **Total amount of disk used:** 4300.25 MB
-
 An example of 'train' looks as follows.
+
 ```
 {
     "alignment_score": 3.679936647415161,
@@ -105,7 +98,6 @@ An example of 'train' looks as follows.
 
 The data fields are the same among all splits.
 
-#### default
 - `chunk`: a `string` feature.
 - `chunk_id`: a `int32` feature.
 - `turn_start`: a `int32` feature.
@@ -120,7 +112,7 @@ The data fields are the same among all splits.
 
 | name  | train |validation| test  |
 |-------|------:|---------:|------:|
-|default|26,232|   3,470|4,541|
+|default|38,969|   6,327|7,500|
 
 ## Dataset Creation
 
@@ -180,8 +172,7 @@ This work is licensed under a [Creative Commons Attribution-ShareAlike 4.0 Inter
 
 ### Citation Information
 
-```
-
+```bibtex
 @inproceedings{
 title = {Storytelling with Dialogue: A Critical Role Dungeons and Dragons Dataset},
 author = {Rameshkumar, Revanth  and Bailey, Peter},
@@ -189,9 +180,7 @@ year = {2020},
 publisher = {Association for Computational Linguistics},
 conference = {ACL}
 }
-
 ```
-
 
 ### Contributions
 

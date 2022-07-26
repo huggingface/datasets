@@ -3,11 +3,11 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
 - ar
 - es
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
