@@ -177,7 +177,7 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
                         "end_token": an_json["long_answer"]["end_token"],
                         "start_byte": an_json["long_answer"]["start_byte"],
                         "end_byte": an_json["long_answer"]["end_byte"],
-                        "candidate_index": an_json["long_answer"]["candidate_index"]
+                        "candidate_index": an_json["long_answer"]["candidate_index"],
                     },
                     "short_answers": [_parse_short_answer(ans) for ans in an_json["short_answers"]],
                     "yes_no_answer": (-1 if an_json["yes_no_answer"] == "NONE" else an_json["yes_no_answer"]),
