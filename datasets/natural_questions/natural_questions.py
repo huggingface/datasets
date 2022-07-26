@@ -99,7 +99,7 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
                                 "end_token": datasets.Value("int64"),
                                 "start_byte": datasets.Value("int64"),
                                 "end_byte": datasets.Value("int64"),
-                                "candidate_index": datasets.Value("int64")
+                                "candidate_index": datasets.Value("int64"),
                             },
                             "short_answers": datasets.features.Sequence(
                                 {
