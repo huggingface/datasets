@@ -84,7 +84,7 @@ A sample from the training set is provided below:
 - text : Textual data
 - label : 150 intent classes over 10 domains, the dataset contains one label for 'out-of-scope' intent. 
 
-The Table corresponds to the label list:
+The Label Id to Label Name map is mentioned in the table below:
 
 | **Label Id** 	| **Label name** 	|
 |---	|---	|
