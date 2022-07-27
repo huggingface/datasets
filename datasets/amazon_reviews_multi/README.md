@@ -47,7 +47,6 @@ configs:
 # Dataset Card for The Multilingual Amazon Reviews Corpus
 
 ## Table of Contents
-- [Table of Contents](#table-of-contents)
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
   - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
