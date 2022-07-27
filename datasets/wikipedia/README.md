@@ -296,7 +296,6 @@ language:
 - udm
 - ug
 - uk
-- unknown
 - ur
 - uz
 - ve
