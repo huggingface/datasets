@@ -47,7 +47,7 @@ configs:
 # Dataset Card for The Multilingual Amazon Reviews Corpus
 
 ## Table of Contents
-- [Dataset Card for "amazon_reviews_multi"](#dataset-card-for-squad)
+- [Dataset Card for amazon_reviews_multi](#dataset-card-for-amazon_reviews_multi)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
