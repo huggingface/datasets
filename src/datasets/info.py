@@ -196,7 +196,7 @@ class DatasetInfo:
         """
         fs = fs or LocalFileSystem()
         is_local = not is_remote_filesystem(fs)
-        path_join = os.path.join if is_local else os.path.join
+        path_join = os.path.join if is_local else posixpath.join
 
         with fs.open(path_join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f, pretty_print=pretty_print)
@@ -268,7 +268,7 @@ class DatasetInfo:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
 
         is_local = not is_remote_filesystem(fs)
-        path_join = os.path.join if is_local else os.path.join
+        path_join = os.path.join if is_local else posixpath.join
 
         with fs.open(path_join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
             dataset_info_dict = json.load(f)

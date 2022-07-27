@@ -328,7 +328,7 @@ class DatasetBuilder:
         self._fs: fsspec.AbstractFileSystem = fs_token_paths[0]
 
         is_local = not is_remote_filesystem(self._fs)
-        path_join = os.path.join if is_local else os.path.join
+        path_join = os.path.join if is_local else posixpath.join
 
         protocol = self._fs.protocol if isinstance(self._fs.protocol, str) else self._fs.protocol[-1]
         self._cache_dir_root = fs_token_paths[2][0] if is_local else protocol + "://" + fs_token_paths[2][0]
