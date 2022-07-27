@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - crowdsourced
 language:
-- "no"
+- 'no'
 license:
 - other
 multilinguality:

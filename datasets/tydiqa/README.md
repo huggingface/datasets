@@ -5,15 +5,15 @@ annotations_creators:
 language_creators:
 - crowdsourced
 language:
-- en
 - ar
 - bn
+- en
 - fi
 - id
 - ja
-- sw
 - ko
 - ru
+- sw
 - te
 - th
 license:

@@ -11,7 +11,6 @@ language:
 - be
 - bg
 - bn
-- bn_IN
 - br
 - ca
 - crh
@@ -22,7 +21,6 @@ language:
 - de
 - el
 - en
-- en_GB
 - eo
 - es
 - et
@@ -73,7 +71,6 @@ language:
 - pl
 - ps
 - pt
-- pt_BR
 - ro
 - ru
 - rw
@@ -93,9 +90,14 @@ language:
 - vi
 - wa
 - xh
-- zh_CN
-- zh_HK
-- zh_TW
+- zh
+language_bcp47:
+- bn-IN
+- en-GB
+- pt-BR
+- zh-CN
+- zh-HK
+- zh-TW
 license:
 - unknown
 multilinguality:

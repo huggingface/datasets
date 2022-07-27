@@ -23,7 +23,6 @@ multilinguality:
 size_categories:
 - 10M<n<100M
 language:
-- en
 ---
 
 # Dataset Card for "wiki_dpr"

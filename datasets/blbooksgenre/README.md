@@ -5,8 +5,8 @@ language_creators:
 - crowdsourced
 - expert-generated
 language:
-- en
 - de
+- en
 - fr
 - nl
 license:

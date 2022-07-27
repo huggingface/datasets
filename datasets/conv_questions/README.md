@@ -4,6 +4,8 @@ annotations_creators:
 language_creators:
 - crowdsourced
 language:
+- en
+language_bcp47:
 - en-US
 license:
 - cc-by-4.0

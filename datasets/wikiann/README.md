@@ -4,7 +4,6 @@ annotations_creators:
 language_creators:
 - crowdsourced
 language:
-- 'no'
 - ace
 - af
 - als
@@ -21,7 +20,6 @@ language:
 - ba
 - bar
 - be
-- be-tarask
 - bg
 - bh
 - bn
@@ -47,7 +45,6 @@ language:
 - el
 - eml
 - en
-- en-basiceng
 - eo
 - es
 - et
@@ -83,7 +80,6 @@ language:
 - ja
 - jbo
 - jv
-- jv-x-bms
 - ka
 - kk
 - km
@@ -120,6 +116,7 @@ language:
 - ne
 - nl
 - nn
+- 'no'
 - nov
 - oc
 - or
@@ -180,6 +177,10 @@ language:
 - yue
 - zea
 - zh
+language_bcp47:
+- be-tarask
+- en-basiceng
+- jv-x-bms
 license:
 - unknown
 multilinguality:

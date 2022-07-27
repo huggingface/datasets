@@ -25,8 +25,8 @@ language:
 - fa
 - fi
 - fr
-- fy-NL
-- ga-IE
+- fy
+- ga
 - hi
 - hsb
 - hu
@@ -44,17 +44,16 @@ language:
 - mt
 - nl
 - or
-- pa-IN
+- pa
 - pl
 - pt
-- rm-sursilv
-- rm-vallader
+- rm
 - ro
 - ru
 - rw
 - sah
 - sl
-- sv-SE
+- sv
 - ta
 - th
 - tr
@@ -62,6 +61,14 @@ language:
 - uk
 - vi
 - vot
+- zh
+language_bcp47:
+- fy-NL
+- ga-IE
+- pa-IN
+- rm-sursilv
+- rm-vallader
+- sv-SE
 - zh-CN
 - zh-HK
 - zh-TW
