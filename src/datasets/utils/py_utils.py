@@ -188,18 +188,6 @@ def asdict(obj):
 
 
 @contextmanager
-def nullcontext():
-    """Context manager that does no additional processing.
-    Used as a stand-in for a normal context manager, when a particular
-    block of code is only sometimes used with a normal context manager:
-    cm = optional_cm if condition else nullcontext()
-    with cm:
-        # Perform operation, using optional_cm if condition is True
-    """
-    yield
-
-
-@contextmanager
 def temporary_assignment(obj, attr, value):
     """Temporarily assign obj.attr to value."""
     original = getattr(obj, attr, None)
