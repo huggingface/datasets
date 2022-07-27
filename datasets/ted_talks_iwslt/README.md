@@ -22,7 +22,7 @@ language:
 - sr
 - ug
 - ne
-- pt-br
+- pt-BR
 - sq
 - af
 - km
@@ -47,7 +47,7 @@ language:
 - kn
 - ar
 - hup
-- zh-tw
+- zh-TW
 - sl
 - be
 - bo
@@ -79,13 +79,13 @@ language:
 - he
 - ceb
 - bg
-- fr-ca
+- fr-CA
 - ha
 - ml
 - mt
 - as
 - pt
-- zh-cn
+- zh-CN
 - cnh
 - ro
 - hi
