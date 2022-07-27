@@ -52,7 +52,7 @@ pretty_name: CLINC150
 - **Homepage:** [Github](https://github.com/clinc/oos-eval/)
 - **Repository:** [Github](https://github.com/clinc/oos-eval/)
 - **Paper:** [Aclweb](https://www.aclweb.org/anthology/D19-1131)
-- **Leaderboard:**
+- **Leaderboard:** [PapersWithCode](https://paperswithcode.com/sota/text-classification-on-clinc-oos)
 - **Point of Contact:**
 
 ### Dataset Summary
@@ -61,7 +61,7 @@ Task-oriented dialog systems need to know when a query falls outside their range
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `intent-classification`: This dataset is for evaluating the performance of intent classification systems in the presence of "out-of-scope" queries, i.e., queries that do not fall into any of the system-supported intent classes. The dataset includes both in-scope and out-of-scope data. [here](https://paperswithcode.com/sota/text-classification-on-clinc-oos).
 
 ### Languages
 
@@ -71,11 +71,18 @@ English
 
 ### Data Instances
 
-[More Information Needed]
+A sample from the training set is provided below:
+```
+{
+    'text' : 'can you walk me through setting up direct deposits to my bank of internet savings account',
+    'label' : 108 
+}
+```
 
 ### Data Fields
 
-[More Information Needed]
+- text : Textual data
+- label : Corresponding to the 150 intent classes over 10 domains
 
 ### Data Splits
 
