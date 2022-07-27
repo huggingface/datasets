@@ -133,8 +133,14 @@ Load your own data files (see [how to load local and remote files](./loading#loc
 >>> builder.download_and_prepare(file_format="parquet")
 ```
 
-It is highly recommended to save the files as compressed Parquet files to optimize I/O by specifying `file_format="parquet"`.
+It is highly recommended to save the files as compressed sharded Parquet files to optimize I/O by specifying `file_format="parquet"`.
 Otherwize the dataset is saved as an uncompressed Arrow file.
+
+You can also specify the size of the Parquet shard using `max_shard_size` (default is 500MB):
+
+```py
+>>> builder.download_and_prepare(file_format="parquet", max_shard_size="1GB")
+```
 
 ## Saving serialized datasets
 

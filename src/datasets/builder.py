@@ -594,7 +594,8 @@ class DatasetBuilder:
         dl_manager: Optional[DownloadManager] = None,
         base_path: Optional[str] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
-        file_format: Optional[str] = None,
+        file_format: str = "arrow",
+        max_shard_size: Optional[int] = None,
         **download_and_prepare_kwargs,
     ):
         """Downloads and prepares dataset for reading.
@@ -611,14 +612,36 @@ class DatasetBuilder:
                 If True, will get token from ~/.huggingface.
             file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
                 Supported formats: "arrow", "parquet". Default to "arrow" format.
+            max_shard_size (:obj:`Union[str, int]`, optional): Maximum number of bytes written per shard.
+                Supports only the "parquet" format with a default of "500MB". The size is based on uncompressed data size,
+                so in practice your shard files may be smaller than `max_shard_size` thanks to Parquet compression.
             **download_and_prepare_kwargs (additional keyword arguments): Keyword arguments.
 
         Example:
 
+        Downdload and prepare the dataset as Arrow files that can be loaded as a Dataset using `builder.as_dataset()`
+
         ```py
         >>> from datasets import load_dataset_builder
-        >>> builder = load_dataset_builder('rotten_tomatoes')
+        >>> builder = load_dataset_builder("rotten_tomatoes")
         >>> ds = builder.download_and_prepare()
+        ```
+
+        Downdload and prepare the dataset as sharded Parquet files locally
+
+        ```py
+        >>> from datasets import load_dataset_builder
+        >>> builder = load_dataset_builder("rotten_tomatoes", cache_dir="path/to/local/datasets-cache")
+        >>> ds = builder.download_and_prepare(file_format="parquet")
+        ```
+
+        Downdload and prepare the dataset as sharded Parquet files in a cloud storage
+
+        ```py
+        >>> from datasets import load_dataset_builder
+        >>> storage_options = {"key": aws_access_key_id, "secret": aws_secret_access_key}
+        >>> builder = load_dataset_builder("rotten_tomatoes", cache_dir="s3://my-bucket/datasets-cache", storage_options=storage_options)
+        >>> ds = builder.download_and_prepare(file_format="parquet")
         ```
         """
         download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
@@ -628,6 +651,11 @@ class DatasetBuilder:
 
         if file_format is not None and file_format not in ["arrow", "parquet"]:
             raise ValueError(f"Unsupported file_format: {file_format}. Expected 'arrow' or 'parquet'")
+
+        if file_format == "arrow" and max_shard_size is not None:
+            raise NotImplementedError(
+                "Writing sharded arrow files is not supported. Please don't use max_shard_size or use parquet."
+            )
 
         if dl_manager is None:
             if download_config is None:
@@ -649,7 +677,12 @@ class DatasetBuilder:
                 else False,
             )
 
-        elif isinstance(dl_manager, MockDownloadManager) or not is_local:
+        if (
+            isinstance(dl_manager, MockDownloadManager)
+            or not is_local
+            or file_format != "arrow"
+            or max_shard_size is not None
+        ):
             try_from_hf_gcs = False
         self.dl_manager = dl_manager
 
@@ -721,11 +754,15 @@ class DatasetBuilder:
                         except ConnectionError:
                             logger.warning("HF google storage unreachable. Downloading and preparing it from source")
                     if not downloaded_from_gcs:
+                        prepare_split_kwargs = {
+                            "file_format": file_format,
+                            "max_shard_size": max_shard_size,
+                            **download_and_prepare_kwargs,
+                        }
                         self._download_and_prepare(
                             dl_manager=dl_manager,
                             verify_infos=verify_infos,
-                            file_format=file_format,
-                            **download_and_prepare_kwargs,
+                            **prepare_split_kwargs,
                         )
                     # Sync info
                     self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
@@ -775,7 +812,7 @@ class DatasetBuilder:
                     logger.info(f"Couldn't download resourse file {resource_file_name} from Hf google storage.")
         logger.info("Dataset downloaded from Hf google storage.")
 
-    def _download_and_prepare(self, dl_manager, verify_infos, file_format=None, **prepare_split_kwargs):
+    def _download_and_prepare(self, dl_manager, verify_infos, **prepare_split_kwargs):
         """Downloads and prepares dataset for reading.
 
         This is the internal implementation to overwrite called when user calls
@@ -785,9 +822,7 @@ class DatasetBuilder:
         Args:
             dl_manager: (:obj:`DownloadManager`) `DownloadManager` used to download and cache data.
             verify_infos (:obj:`bool`): if False, do not perform checksums and size tests.
-            file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
-                Supported formats: "arrow", "parquet". Default to "arrow" format.
-            prepare_split_kwargs: Additional options.
+            prepare_split_kwargs: Additional options, such as file_format, max_shard_size.
         """
         # Generating data for all splits
         split_dict = SplitDict(dataset_name=self.name)
@@ -814,7 +849,7 @@ class DatasetBuilder:
 
             try:
                 # Prepare split will record examples associated to the split
-                self._prepare_split(split_generator, file_format=file_format, **prepare_split_kwargs)
+                self._prepare_split(split_generator, **prepare_split_kwargs)
             except OSError as e:
                 raise
                 raise OSError(
@@ -1153,13 +1188,22 @@ class DatasetBuilder:
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def _prepare_split(self, split_generator: SplitGenerator, file_format: Optional[str] = None, **kwargs):
+    def _prepare_split(
+        self,
+        split_generator: SplitGenerator,
+        file_format: str = "arrow",
+        max_shard_size: Union[None, str, int] = None,
+        **kwargs,
+    ):
         """Generate the examples and record them on disk.
 
         Args:
             split_generator: `SplitGenerator`, Split generator to process
             file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
                 Supported formats: "arrow", "parquet". Default to "arrow" format.
+            max_shard_size (:obj:`Union[str, int]`, optional): Approximate maximum number of bytes written per shard.
+                Supports only the "parquet" format with a default of "500MB". The size is computed using the uncompressed data,
+                so in practice your shard files may be smaller than `max_shard_size` thanks to compression.
             **kwargs: Additional kwargs forwarded from _download_and_prepare (ex:
                 beam pipeline)
         """
@@ -1230,10 +1274,15 @@ class GeneratorBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
-    def _prepare_split(self, split_generator, check_duplicate_keys, file_format=None, max_shard_size=None):
+    def _prepare_split(
+        self,
+        split_generator: SplitGenerator,
+        check_duplicate_keys: bool,
+        file_format="arrow",
+        max_shard_size: Union[None, int, str] = None,
+    ):
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
-        file_format = file_format or "arrow"
 
         if max_shard_size is not None:
             max_shard_size = convert_file_size_to_int(max_shard_size)
@@ -1311,9 +1360,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
         if self.info.features is None:
             self.info.features = writer._features
 
-    def _download_and_prepare(self, dl_manager, verify_infos, file_format=None, **kwargs):
+    def _download_and_prepare(self, dl_manager, verify_infos, **prepare_splits_kwargs):
         super()._download_and_prepare(
-            dl_manager, verify_infos, file_format=file_format, check_duplicate_keys=verify_infos, **kwargs
+            dl_manager, verify_infos, check_duplicate_keys=verify_infos, **prepare_splits_kwargs
         )
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
@@ -1355,10 +1404,11 @@ class ArrowBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
-    def _prepare_split(self, split_generator, file_format=None, max_shard_size=None):
+    def _prepare_split(
+        self, split_generator: SplitGenerator, file_format: str = "arrow", max_shard_size: Union[None, str, int] = None
+    ):
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
-        file_format = file_format or "arrow"
 
         if max_shard_size is not None:
             if file_format == "arrow":
@@ -1491,7 +1541,7 @@ class BeamBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
-    def _download_and_prepare(self, dl_manager, verify_infos, file_format=None):
+    def _download_and_prepare(self, dl_manager, verify_infos, **prepare_splits_kwargs):
         # Create the Beam pipeline and forward it to _prepare_split
         import apache_beam as beam
 
@@ -1529,7 +1579,7 @@ class BeamBasedBuilder(DatasetBuilder):
             dl_manager,
             verify_infos=False,
             pipeline=pipeline,
-            file_format=file_format,
+            **prepare_splits_kwargs,
         )  # TODO handle verify_infos in beam datasets
         # Run pipeline
         pipeline_results = pipeline.run()
@@ -1555,8 +1605,16 @@ class BeamBasedBuilder(DatasetBuilder):
             with fs.create(path_join(self._cache_dir, config.LICENSE_FILENAME)) as f:
                 self.info._dump_license(f)
 
-    def _prepare_split(self, split_generator, pipeline, file_format=None):
+    def _prepare_split(
+        self, split_generator, pipeline, file_format="arrow", max_shard_size: Union[None, str, int] = None
+    ):
         import apache_beam as beam
+
+        if max_shard_size is not None:
+            raise NotImplementedError(
+                "max_shard_size is not supported for Beam datasets, please."
+                "Set it to None to use the default Apache Beam sharding and get the best performance."
+            )
 
         # To write examples in filesystem:
         split_name = split_generator.split_info.name
