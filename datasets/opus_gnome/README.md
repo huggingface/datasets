@@ -93,7 +93,6 @@ language:
 - mt
 - mus
 - my
-- n/o
 - nb
 - nds
 - ne

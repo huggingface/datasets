@@ -6,7 +6,7 @@ language_creators:
 language:
 - ro
 language_bcp47:
-- ro-md
+- ro-MD
 license:
 - cc-by-4.0
 multilinguality:
