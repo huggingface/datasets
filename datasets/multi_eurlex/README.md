@@ -5,29 +5,29 @@ annotations_creators:
 language_creators:
 - found
 language:
-- en
-- da 
-- de 
-- nl 
-- sv 
 - bg 
 - cs 
-- hr 
-- pl 
-- sk 
-- sl 
+- da 
+- de 
+- el 
+- en
 - es 
-- fr 
-- it 
-- pt 
-- ro 
 - et 
 - fi 
+- fr 
+- hr 
 - hu 
+- it 
 - lt 
 - lv 
-- el 
 - mt
+- nl 
+- pl 
+- pt 
+- ro 
+- sk 
+- sl 
+- sv 
 license:
 - cc-by-sa-4.0
 multilinguality:

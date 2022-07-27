@@ -381,6 +381,7 @@ class ModuleFactoryTest(TestCase):
             for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
         )
 
+    @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithoutScript(self):
         factory = HubDatasetModuleFactoryWithoutScript(
             SAMPLE_DATASET_IDENTIFIER2, download_config=self.download_config
@@ -389,6 +390,7 @@ class ModuleFactoryTest(TestCase):
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
 
+    @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithoutScript_with_data_dir(self):
         data_dir = "data2"
         factory = HubDatasetModuleFactoryWithoutScript(
@@ -408,6 +410,7 @@ class ModuleFactoryTest(TestCase):
             + module_factory_result.builder_kwargs["data_files"]["test"]
         )
 
+    @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithoutScript_with_metadata(self):
         factory = HubDatasetModuleFactoryWithoutScript(
             SAMPLE_DATASET_IDENTIFIER4, download_config=self.download_config
@@ -429,6 +432,7 @@ class ModuleFactoryTest(TestCase):
             for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
         )
 
+    @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithScript(self):
         factory = HubDatasetModuleFactoryWithScript(
             SAMPLE_DATASET_IDENTIFIER,
@@ -494,6 +498,7 @@ def test_module_factories(factory_class):
     assert factory.name == name
 
 
+@pytest.mark.integration
 class LoadTest(TestCase):
     @pytest.fixture(autouse=True)
     def inject_fixtures(self, caplog):
@@ -658,6 +663,7 @@ def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
         assert len(builder.config.data_files["test"]) > 0
 
 
+@pytest.mark.integration
 def test_load_dataset_builder_for_community_dataset_with_script():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER)
     assert isinstance(builder, DatasetBuilder)
@@ -669,6 +675,7 @@ def test_load_dataset_builder_for_community_dataset_with_script():
     assert SAMPLE_DATASET_IDENTIFIER.replace("/", "--") in builder.__module__
 
 
+@pytest.mark.integration
 def test_load_dataset_builder_for_community_dataset_without_script():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER2)
     assert isinstance(builder, DatasetBuilder)
@@ -734,6 +741,7 @@ def test_load_dataset_streaming_gz_json(jsonl_gz_path):
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize(
     "path", ["sample.jsonl", "sample.jsonl.gz", "sample.tar", "sample.jsonl.xz", "sample.zip", "sample.jsonl.zst"]
 )
@@ -767,6 +775,7 @@ def test_load_dataset_streaming_csv(path_extension, streaming, csv_path, bz2_csv
 
 
 @require_pil
+@pytest.mark.integration
 @pytest.mark.parametrize("streaming", [False, True])
 def test_load_dataset_private_zipped_images(hf_private_dataset_repo_zipped_img_data, hf_token, streaming):
     ds = load_dataset(
@@ -857,6 +866,7 @@ def test_load_dataset_text_with_unicode_new_lines(text_path_with_unicode_new_lin
     assert ds.num_rows == 3
 
 
+@pytest.mark.integration
 def test_loading_from_the_datasets_hub():
     with tempfile.TemporaryDirectory() as tmp_dir:
         dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir)
@@ -865,6 +875,7 @@ def test_loading_from_the_datasets_hub():
         del dataset
 
 
+@pytest.mark.integration
 def test_loading_from_the_datasets_hub_with_use_auth_token():
     from requests import get
 
@@ -881,6 +892,7 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
         mock_head.assert_called()
 
 
+@pytest.mark.integration
 def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
     with pytest.raises(FileNotFoundError):
         load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
@@ -888,6 +900,7 @@ def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_da
     assert next(iter(ds)) is not None
 
 
+@pytest.mark.integration
 def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_dataset_repo_zipped_txt_data):
     with pytest.raises(FileNotFoundError):
         load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
@@ -962,6 +975,7 @@ def test_load_from_disk_with_default_in_memory(
         _ = load_from_disk(dataset_path)
 
 
+@pytest.mark.integration
 def test_remote_data_files():
     repo_id = "albertvillanova/tests-raw-jsonl"
     filename = "wikiann-bn-validation.jsonl"

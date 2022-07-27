@@ -6,8 +6,8 @@ language_creators:
 - found
 - machine-generated
 language:
-- en
 - de
+- en
 - es
 - fr
 - it

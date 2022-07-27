@@ -22,7 +22,7 @@ language:
 - eu
 - fa
 - fr
-- fy-NL
+- fy
 - ia
 - id
 - it
@@ -36,17 +36,22 @@ language:
 - nl
 - pl
 - pt
-- rm-sursilv
+- rm
 - ro
 - ru
 - rw
 - sah
 - sl
-- sv-SE
+- sv
 - ta
 - tr
 - tt
 - uk
+- zh
+language_bcp47:
+- fy-NL
+- rm-sursilv
+- sv-SE
 - zh-CN
 - zh-HK
 - zh-TW

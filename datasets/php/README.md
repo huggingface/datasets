@@ -17,7 +17,7 @@ language:
 - ko
 - nl
 - pl
-- pt_BR
+- pt
 - ro
 - ru
 - sk
@@ -26,7 +26,9 @@ language:
 - tr
 - tw
 - zh
-- zh_TW
+language_bcp47:
+- pt-BR
+- zh-TW
 license:
 - unknown
 multilinguality:

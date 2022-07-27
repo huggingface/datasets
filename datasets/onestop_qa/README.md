@@ -4,6 +4,8 @@ annotations_creators:
 language_creators:
 - expert-generated
 language:
+- en
+language_bcp47:
 - en-US
 license:
 - cc-by-sa-4.0

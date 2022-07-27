@@ -4,6 +4,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 language:
+- en
+- kn
+language_bcp47:
 - en-IN
 - kn-IN
 license:

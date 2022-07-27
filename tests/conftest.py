@@ -7,6 +7,14 @@ import datasets
 pytest_plugins = ["tests.fixtures.files", "tests.fixtures.hub", "tests.fixtures.s3", "tests.fixtures.fsspec"]
 
 
+def pytest_collection_modifyitems(config, items):
+    # Mark tests as "unit" by default if not marked as "integration" (or already marked as "unit")
+    for item in items:
+        if any(marker in item.keywords for marker in ["integration", "unit"]):
+            continue
+        item.add_marker(pytest.mark.unit)
+
+
 @pytest.fixture(autouse=True)
 def set_test_cache_config(tmp_path_factory, monkeypatch):
     # test_hf_cache_home = tmp_path_factory.mktemp("cache")  # TODO: why a cache dir per test function does not work?
