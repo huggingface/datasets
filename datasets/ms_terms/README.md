@@ -12,18 +12,18 @@ language:
 - as
 - az
 - bn
-- other-bn-india
+- bn-IN
 - eu
 - be
 - bs
-- other-bs-latin
+- bs-Latn
 - bg
 - ca
 - ku
 - chr
 - zh
-- other-zh-Hant_HK
-- other-zh-Hant_TW
+- zh-Hant-HK
+- zh-Hant-TW
 - hr
 - cs
 - da
@@ -34,7 +34,7 @@ language:
 - fil
 - fi
 - fr
-- other-fr_CA
+- fr-CA
 - gl
 - ka
 - de
@@ -67,7 +67,7 @@ language:
 - lt
 - lb
 - mk
-- other-ms-brunei (Brunei Darus.)
+- ms-BN
 - ms
 - ml
 - mt
@@ -81,7 +81,7 @@ language:
 - pst
 - fa
 - pl
-- other-pt-br
+- pt-BR
 - pt
 - pa
 - pa
@@ -89,9 +89,9 @@ language:
 - ro
 - ru
 - gd
-- other-sr-bih
+- sr-BH
 - sr
-- other-sr-latin
+- sr-Latn
 - st
 - tn
 - sd
@@ -99,7 +99,7 @@ language:
 - sk
 - sl
 - es
-- other-es-MX
+- es-MX
 - sv
 - tg
 - ta
@@ -113,7 +113,6 @@ language:
 - ur
 - ug
 - uz
-- other-valencian
 - vi
 - guc
 - cy
