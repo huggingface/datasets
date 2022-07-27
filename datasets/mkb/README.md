@@ -8,17 +8,17 @@ task_ids:
 - language-modeling
 - masked-language-modeling
 language:
-- hi
-- te
-- ta
-- ml
-- gu
-- ur
 - bn
-- or
-- mr
-- pa
 - en
+- gu
+- hi
+- ml
+- mr
+- or
+- pa
+- ta
+- te
+- ur
 annotations_creators:
 - no-annotation
 source_datasets:

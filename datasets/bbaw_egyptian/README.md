@@ -5,8 +5,8 @@ language_creators:
 - found
 language:
 - de
-- en
 - egy
+- en
 license:
 - cc-by-4.0
 multilinguality:

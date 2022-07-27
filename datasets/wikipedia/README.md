@@ -25,7 +25,6 @@ size_categories:
 - 100K<n<1M
 - 1M<n<10M
 language:
-- "no"
 - aa
 - ab
 - ace
@@ -208,12 +207,12 @@ language:
 - nan
 - nap
 - nds
-- nds-nl
 - ne
 - new
 - ng
 - nl
 - nn
+- 'no'
 - nov
 - nrf
 - nso
@@ -260,7 +259,6 @@ language:
 - sgs
 - sh
 - si
-- simple
 - sk
 - sl
 - sm
@@ -322,6 +320,8 @@ language:
 - zea
 - zh
 - zu
+language_bcp47:
+- nds-nl
 configs:
 - 20220301.aa
 - 20220301.ab

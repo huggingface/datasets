@@ -11,7 +11,6 @@ language:
 - az
 - be
 - bg
-- bg-Latn
 - bn
 - ca
 - ceb
@@ -21,7 +20,6 @@ language:
 - da
 - de
 - el
-- el-Latn
 - en
 - eo
 - es
@@ -40,7 +38,6 @@ language:
 - haw
 - he
 - hi
-- hi-Latn
 - hmn
 - ht
 - hu
@@ -51,7 +48,6 @@ language:
 - it
 - iw
 - ja
-- ja-Latn
 - jv
 - ka
 - kk
@@ -76,7 +72,7 @@ language:
 - my
 - ne
 - nl
-- "no"
+- 'no'
 - ny
 - pa
 - pl
@@ -84,7 +80,6 @@ language:
 - pt
 - ro
 - ru
-- ru-Latn
 - sd
 - si
 - sk
@@ -112,8 +107,14 @@ language:
 - yi
 - yo
 - zh
-- zh-Latn
 - zu
+language_bcp47:
+- bg-Latn
+- el-Latn
+- hi-Latn
+- ja-Latn
+- ru-Latn
+- zh-Latn
 license:
 - odc-by
 multilinguality:

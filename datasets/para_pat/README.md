@@ -19,7 +19,6 @@ language:
 - sk
 - uk
 - zh
-- hu
 license:
 - cc-by-4.0
 multilinguality:

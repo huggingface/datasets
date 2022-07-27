@@ -4,7 +4,6 @@ annotations_creators:
 language_creators:
 - crowdsourced
 language:
-- 'no'
 - af
 - aii
 - ajp
@@ -72,6 +71,7 @@ language:
 - myu
 - myv
 - nl
+- 'no'
 - nyq
 - olo
 - orv

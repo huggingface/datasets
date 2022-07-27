@@ -45,7 +45,6 @@ language:
 - 'no'
 - pl
 - pt
-- pt_br
 - ro
 - ru
 - si
@@ -62,10 +61,14 @@ language:
 - uk
 - ur
 - vi
-- ze_en
-- ze_zh
-- zh_cn
-- zh_tw
+- ze
+- zh
+language_bcp47:
+- pt-BR
+- ze-EN
+- ze-ZH
+- zh-CN
+- zh-TW
 license:
 - unknown
 multilinguality:
