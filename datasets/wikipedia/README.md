@@ -259,7 +259,6 @@ language:
 - sgs
 - sh
 - si
-- simple
 - sk
 - sl
 - sm

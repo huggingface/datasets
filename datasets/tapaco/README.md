@@ -66,7 +66,7 @@ language:
 - tk
 - tl
 - tlh
-- toki
+- tok
 - tr
 - tt
 - ug
@@ -162,7 +162,7 @@ configs:
 - tk
 - tl
 - tlh
-- toki
+- tok
 - tr
 - tt
 - ug
