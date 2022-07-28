@@ -30,7 +30,7 @@ from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
 from shutil import disk_usage
 from types import CodeType, FunctionType
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import dill
@@ -353,19 +353,53 @@ def _single_map_nested(args):
 
 
 def map_nested(
-    function,
-    data_struct,
+    function: Callable[[Any], Any],
+    data_struct: Any,
     dict_only: bool = False,
     map_list: bool = True,
     map_tuple: bool = False,
     map_numpy: bool = False,
     num_proc: Optional[int] = None,
-    types=None,
+    parallel_min_length: int = 2,
+    types: Optional[tuple] = None,
     disable_tqdm: bool = True,
     desc: Optional[str] = None,
-):
+) -> Any:
     """Apply a function recursively to each element of a nested data struct.
-    If num_proc > 1 and the length of data_struct is longer than num_proc: use multi-processing
+
+    Use multiprocessing if num_proc > 1 and the length of data_struct is greater than or equal to
+    `parallel_min_length`.
+
+    <Changed version="2.4.0">
+
+    Before version 2.4.0, multiprocessing was not used if `num_proc` was greater than or equal to ``len(iterable)``.
+
+    Now, if `num_proc` is greater than or equal to ``len(iterable)``, `num_proc` is set to ``len(iterable)`` and
+    multiprocessing is used.
+
+    </Changed>
+
+    Args:
+        function (`Callable`): Function to be applied to `data_struct`.
+        data_struct (`Any`): Data structure to apply `function` to.
+        dict_only (`bool`, default `False`): Whether only apply `function` recursively to `dict` values in
+            `data_struct`.
+        map_list (`bool`, default `True`): Whether also apply `function` recursively to `list` elements (besides `dict`
+            values).
+        map_tuple (`bool`, default `False`): Whether also apply `function` recursively to `tuple` elements (besides
+            `dict` values).
+        map_numpy (`bool, default `False`): Whether also apply `function` recursively to `numpy.array` elements (besides
+            `dict` values).
+        num_proc (`int`, *optional*): Number of processes.
+        parallel_min_length (`int`, default `2`): Minimum length of `data_struct` required for parallel
+            processing.
+        types (`tuple`, *optional*): Additional types (besides `dict` values) to apply `function` recursively to their
+            elements.
+        disable_tqdm (`bool`, default `True`): Whether to disable the tqdm progressbar.
+        desc (`str`, *optional*): Prefix for the tqdm progressbar.
+
+    Returns:
+        `Any`
     """
     if types is None:
         types = []
@@ -387,12 +421,13 @@ def map_nested(
 
     if num_proc is None:
         num_proc = 1
-    if num_proc <= 1 or len(iterable) <= num_proc:
+    if num_proc <= 1 or len(iterable) < parallel_min_length:
         mapped = [
             _single_map_nested((function, obj, types, None, True, None))
             for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
+        num_proc = num_proc if num_proc <= len(iterable) else len(iterable)
         split_kwds = []  # We organize the splits ourselve (contiguous splits)
         for index in range(num_proc):
             div = len(iterable) // num_proc
