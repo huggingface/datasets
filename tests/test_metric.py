@@ -13,9 +13,6 @@ from datasets.metric import Metric, MetricInfo
 from .utils import require_tf, require_torch
 
 
-pytestmark = pytest.mark.skip(reason="metrics are deprecated")
-
-
 class DummyMetric(Metric):
     def _info(self):
         return MetricInfo(
