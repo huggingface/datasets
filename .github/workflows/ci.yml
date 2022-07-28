@@ -28,9 +28,9 @@ jobs:
           pip install .[quality]
       - name: Check quality
         run: |
-          black --check --line-length 119 --target-version py36 tests src benchmarks datasets
-          isort --check-only tests src benchmarks datasets
-          flake8 tests src benchmarks datasets
+          black --check --line-length 119 --target-version py36 tests src benchmarks datasets metrics
+          isort --check-only tests src benchmarks datasets metrics
+          flake8 tests src benchmarks datasets metrics
 
   test:
     needs: check_code_quality
@@ -61,9 +61,13 @@ jobs:
           python-version: 3.7
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
+      - name: Pin setuptools-scm
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: echo "installing pinned version of setuptools-scm to fix seqeval installation on 3.6" && pip install "setuptools-scm==6.4.2"
       - name: Install dependencies
         run: |
           pip install .[tests]
+          pip install -r additional-tests-requirements.txt --no-deps
       - name: Install latest PyArrow
         if: ${{ matrix.pyarrow_version == 'latest' }}
         run: pip install pyarrow --upgrade
