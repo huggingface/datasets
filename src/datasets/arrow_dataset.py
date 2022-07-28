@@ -420,6 +420,26 @@ class TensorflowDatasetMixin:
             batch_size=batch_size if drop_remainder else None,
         )
 
+        shape_verification_signature, _ = dataset._get_output_signature(
+            dataset,
+            collate_fn=collate_fn,
+            collate_fn_args=collate_fn_args,
+            cols_to_retain=cols_to_retain,
+            batch_size=2,
+            num_test_batches=200,
+        )
+
+        for column, tensor_spec in shape_verification_signature.items():
+            shape = tensor_spec.shape.as_list()
+            existing_shape = output_signature[column].shape.as_list()
+            for i in range(len(shape)):
+                # Look for any unexpected None dimensions in the new shape - they indicate sneakily variable dims.
+                if existing_shape[i] is not None and shape[i] is None:
+                    existing_shape[i] = None
+            if existing_shape != output_signature[column].shape.as_list():
+                new_spec = tf.TensorSpec(shape=existing_shape, dtype=tensor_spec.dtype)
+                output_signature[column] = new_spec
+
         def np_get_batch(indices):
             # Following the logic in `transformers.Trainer`, we do not drop `label_ids` or `label` even if they
             # are not in the list of requested columns, because the collator may rename them
