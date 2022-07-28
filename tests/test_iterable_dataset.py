@@ -21,7 +21,6 @@ from datasets.iterable_dataset import (
     ShufflingConfig,
     SkipExamplesIterable,
     TakeExamplesIterable,
-    TypedExamplesIterable,
     VerticallyConcatenatedMultiSourcesExamplesIterable,
     _batch_to_examples,
     _examples_to_batch,
