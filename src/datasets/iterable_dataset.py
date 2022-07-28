@@ -29,7 +29,7 @@ def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Fe
 
 
 def _examples_to_batch(examples: List[Dict[str, Any]]) -> Dict[str, list]:
-    cols = sorted(examples[0].keys())
+    cols = max(examples, key=len).keys() if examples else set()
     arrays = []
     for col in cols:
         arrays.append([example[col] for example in examples])
@@ -1348,8 +1348,10 @@ def _concatenate_iterable_datasets(
     else:
         _check_column_names([col_name for dset in dsets for col_name in dset.features])
 
+    # TODO: improve this to account for a mix of ClassLabel and Value for example
+    # right now it would keep the type of the first dataset in the list
     features = Features()
-    for dset in dsets:
+    for dset in dsets[::-1]:
         features.update(dset.features)
 
     ex_iterables = [d._ex_iterable for d in dsets]
@@ -1392,13 +1394,19 @@ def _interleave_iterable_datasets(
     Output:
         :class:`datasets.IterableDataset`
     """
-    # TODO(QL): merge the features as in _concatenate_iterable_datasets() and don't use TypedExamplesIterable
-    ex_iterables = [
-        TypedExamplesIterable(d._ex_iterable, d.features, token_per_repo_id=d._token_per_repo_id)
-        if not isinstance(d._ex_iterable, TypedExamplesIterable) and d.features is not None
-        else d._ex_iterable
-        for d in datasets
-    ]
+    datasets = [d._resolve_features() for d in datasets]
+
+    # Perform checks
+    _check_if_features_can_be_aligned([dset.features for dset in datasets])
+
+    # TODO: improve this to account for a mix of ClassLabel and Value for example
+    # right now it would keep the type of the first dataset in the list
+    features = Features()
+    for dset in datasets[::-1]:
+        features.update(dset.features)
+
+    ex_iterables = [d._ex_iterable for d in datasets]
+
     # Use cycling or random cycling or sources
     if probabilities is None:
         ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables)
@@ -1407,11 +1415,13 @@ def _interleave_iterable_datasets(
         ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
             ex_iterables, generator=generator, probabilities=probabilities
         )
-    # Set new info - we reset the features
-    # TODO(QL): merge the features as in _concatenate_iterable_datasets() and use them here
+    # Set new info - we update the features
+    # setting the features also ensures to fill missing columns with None
     if info is None:
         info = DatasetInfo.from_merge([d.info for d in datasets])
-        info.features = None
+    else:
+        info = info.copy()
+    info.features = features
     # Get all the auth tokens per repository - in case the datasets come from different private repositories
     token_per_repo_id = {
         repo_id: token for dataset in datasets for repo_id, token in dataset._token_per_repo_id.items()

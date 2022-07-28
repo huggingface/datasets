@@ -949,6 +949,10 @@ def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_le
     d3 = dataset.with_format("python")
     datasets = [d1, d2, d3]
     merged_dataset = interleave_datasets(datasets, probabilities=probas, seed=seed)
+
+    def fill_default(example):
+        return {"id": None, "id+1": None, **example}
+
     # Check the examples iterable
     assert isinstance(
         merged_dataset._ex_iterable, (CyclingMultiSourcesExamplesIterable, RandomlyCyclingMultiSourcesExamplesIterable)
@@ -957,13 +961,15 @@ def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_le
     if seed is not None:
         merged_dataset2 = interleave_datasets([d1, d2, d3], probabilities=probas, seed=seed)
         assert list(merged_dataset) == list(merged_dataset2)
+    # Check features
+    assert merged_dataset.features == Features({"id": Value("int64"), "id+1": Value("int64")})
     # Check first example
     if seed is not None:
         rng = np.random.default_rng(seed)
         i = next(iter(RandomlyCyclingMultiSourcesExamplesIterable._iter_random_indices(rng, len(datasets), p=probas)))
-        assert next(iter(merged_dataset)) == next(iter(datasets[i]))
+        assert next(iter(merged_dataset)) == fill_default(next(iter(datasets[i])))
     else:
-        assert any(next(iter(merged_dataset)) == next(iter(dataset)) for dataset in datasets)
+        assert any(next(iter(merged_dataset)) == fill_default(next(iter(dataset))) for dataset in datasets)
     # Compute length it case it's random
     if expected_length is None:
         expected_length = 0
@@ -990,8 +996,5 @@ def test_interleave_datasets_with_features(
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 0})
     dataset_with_features = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
 
-    merged_dataset = interleave_datasets([dataset, dataset_with_features], probabilities=[0, 1])
-    assert isinstance(merged_dataset._ex_iterable, CyclingMultiSourcesExamplesIterable)
-    assert isinstance(merged_dataset._ex_iterable.ex_iterables[1], TypedExamplesIterable)
-    assert merged_dataset._ex_iterable.ex_iterables[1].features == features
-    assert next(iter(merged_dataset)) == next(iter(dataset_with_features))
+    merged_dataset = interleave_datasets([dataset, dataset_with_features])
+    assert merged_dataset.features == features
