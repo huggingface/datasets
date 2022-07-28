@@ -123,7 +123,15 @@ An example from the dataset is:
 
 ### Curation Rationale
 
-Please refer to [PhD thesis](#Citation-Information).
+The corpus was created with Speech Synthesis as the main application in mind. Although it has been used as part of a larger corpus for speech recognition and speech denoising. Here are some explanations why the corpus was built the way it is:
+
+* Corpus size: Budget limitations and the research goal resulted in the decision not to gather more data. The goal was to show that high quality speech synthesis is possible with smaller corpora.
+* Phonetic diversity: Just like with many corpora, the phonetic diversity was acheived using greedy methods. Start with a core set of utterances and add more utterances which contribute to adding more phonetic diversity the most iterativly. The measure of diversity is based on the diphone frequency.
+* Content: News, sports, economics, fully diacritised content from the internet was gathered. The choice of utterances was random to avoid copyright issues. Because of corpus size, acheiving diversity of content type was difficult and was not the goal.
+* Non-sense utterances: The corpus contains a large set of utterances that are generated computationally to compensate for the diphones missing in the main part of the corpus. The usefullness of non-sense utterances was not proven in the PhD thesis.
+* The talent: The voice talent had a Syrian dialect from Damascus and spoke in formal Arabic.
+
+Please refer to [PhD thesis](#Citation-Information) for more detailed information.
 
 ### Source Data
 
