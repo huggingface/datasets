@@ -21,6 +21,7 @@ import json
 import os
 import shutil
 import time
+import warnings
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
@@ -60,6 +61,7 @@ from .packaged_modules import (
 )
 from .splits import Split
 from .tasks import TaskTemplate
+from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
     _raise_if_offline_mode_is_enabled,
@@ -510,8 +512,16 @@ class GithubDatasetModuleFactory(_DatasetModuleFactory):
 
 
 class GithubMetricModuleFactory(_MetricModuleFactory):
-    """Get the module of a metric. The metric script is downloaded from GitHub."""
+    """Get the module of a metric. The metric script is downloaded from GitHub.
 
+    <Deprecated version="2.5.0">
+
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
+    """
+
+    @deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
     def __init__(
         self,
         name: str,
@@ -577,8 +587,16 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
 
 
 class LocalMetricModuleFactory(_MetricModuleFactory):
-    """Get the module of a local metric. The metric script is loaded from a local script."""
+    """Get the module of a local metric. The metric script is loaded from a local script.
 
+    <Deprecated version="2.5.0">
+
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
+    """
+
+    @deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
     def __init__(
         self,
         path: str,
@@ -1017,8 +1035,15 @@ class CachedMetricModuleFactory(_MetricModuleFactory):
     """
     Get the module of a metric that has been loaded once already and cached.
     The script that is loaded from the cache is the most recent one with a matching name.
+
+    <Deprecated version="2.5.0">
+
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
     """
 
+    @deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
     def __init__(
         self,
         name: str,
@@ -1251,6 +1276,7 @@ def dataset_module_factory(
         )
 
 
+@deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
 def metric_module_factory(
     path: str,
     revision: Optional[Union[str, Version]] = None,
@@ -1262,7 +1288,13 @@ def metric_module_factory(
     """
     Download/extract/cache a metric module.
 
-    Metrics codes are cached inside the the dynamic modules cache to allow easy import (avoid ugly sys.path tweaks).
+    <Deprecated version="2.5.0">
+
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
+
+    Metrics codes are cached inside the dynamic modules cache to allow easy import (avoid ugly sys.path tweaks).
 
     Args:
 
@@ -1292,51 +1324,56 @@ def metric_module_factory(
     Returns:
         MetricModule
     """
-    if download_config is None:
-        download_config = DownloadConfig(**download_kwargs)
-    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
-    download_config.extract_compressed_file = True
-    download_config.force_extract = True
+    with warnings.catch_warnings():
+        # Ignore equivalent warnings to the one already issued
+        warnings.filterwarnings("ignore", message=".*https://huggingface.co/docs/evaluate$", category=FutureWarning)
 
-    filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
-    if not filename.endswith(".py"):
-        filename = filename + ".py"
-    combined_path = os.path.join(path, filename)
-    # Try locally
-    if path.endswith(filename):
-        if os.path.isfile(path):
+        if download_config is None:
+            download_config = DownloadConfig(**download_kwargs)
+        download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
+        download_config.extract_compressed_file = True
+        download_config.force_extract = True
+
+        filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
+        if not filename.endswith(".py"):
+            filename = filename + ".py"
+        combined_path = os.path.join(path, filename)
+        # Try locally
+        if path.endswith(filename):
+            if os.path.isfile(path):
+                return LocalMetricModuleFactory(
+                    path, download_mode=download_mode, dynamic_modules_path=dynamic_modules_path
+                ).get_module()
+            else:
+                raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(path)}")
+        elif os.path.isfile(combined_path):
             return LocalMetricModuleFactory(
-                path, download_mode=download_mode, dynamic_modules_path=dynamic_modules_path
+                combined_path, download_mode=download_mode, dynamic_modules_path=dynamic_modules_path
             ).get_module()
-        else:
-            raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(path)}")
-    elif os.path.isfile(combined_path):
-        return LocalMetricModuleFactory(
-            combined_path, download_mode=download_mode, dynamic_modules_path=dynamic_modules_path
-        ).get_module()
-    elif is_relative_path(path) and path.count("/") == 0:
-        try:
-            return GithubMetricModuleFactory(
-                path,
-                revision=revision,
-                download_config=download_config,
-                download_mode=download_mode,
-                dynamic_modules_path=dynamic_modules_path,
-            ).get_module()
-        except Exception as e1:  # noqa: all the attempts failed, before raising the error we should check if the module is already cached.
+        elif is_relative_path(path) and path.count("/") == 0:
             try:
-                return CachedMetricModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
-            except Exception as e2:  # noqa: if it's not in the cache, then it doesn't exist.
-                if not isinstance(e1, FileNotFoundError):
-                    raise e1 from None
-                raise FileNotFoundError(
-                    f"Couldn't find a metric script at {relative_to_absolute_path(combined_path)}. "
-                    f"Metric '{path}' doesn't exist on the Hugging Face Hub either."
-                ) from None
-    else:
-        raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(combined_path)}.")
+                return GithubMetricModuleFactory(
+                    path,
+                    revision=revision,
+                    download_config=download_config,
+                    download_mode=download_mode,
+                    dynamic_modules_path=dynamic_modules_path,
+                ).get_module()
+            except Exception as e1:  # noqa: all the attempts failed, before raising the error we should check if the module is already cached.
+                try:
+                    return CachedMetricModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
+                except Exception as e2:  # noqa: if it's not in the cache, then it doesn't exist.
+                    if not isinstance(e1, FileNotFoundError):
+                        raise e1 from None
+                    raise FileNotFoundError(
+                        f"Couldn't find a metric script at {relative_to_absolute_path(combined_path)}. "
+                        f"Metric '{path}' doesn't exist on the Hugging Face Hub either."
+                    ) from None
+        else:
+            raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(combined_path)}.")
 
 
+@deprecated("Use 'evaluate.load' instead, from the new library 🤗 Evaluate: https://huggingface.co/docs/evaluate")
 def load_metric(
     path: str,
     config_name: Optional[str] = None,
@@ -1351,6 +1388,12 @@ def load_metric(
     **metric_init_kwargs,
 ) -> Metric:
     """Load a `datasets.Metric`.
+
+    <Deprecated version="2.5.0">
+
+    Use `evaluate.load` instead, from the new library 🤗 Evaluate: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
 
     Args:
 
@@ -1385,25 +1428,29 @@ def load_metric(
     {'accuracy': 0.5}
     ```
     """
-    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
-    metric_module = metric_module_factory(
-        path, revision=revision, download_config=download_config, download_mode=download_mode
-    ).module_path
-    metric_cls = import_main_class(metric_module, dataset=False)
-    metric = metric_cls(
-        config_name=config_name,
-        process_id=process_id,
-        num_process=num_process,
-        cache_dir=cache_dir,
-        keep_in_memory=keep_in_memory,
-        experiment_id=experiment_id,
-        **metric_init_kwargs,
-    )
+    with warnings.catch_warnings():
+        # Ignore equivalent warnings to the one already issued
+        warnings.filterwarnings("ignore", message=".*https://huggingface.co/docs/evaluate$", category=FutureWarning)
 
-    # Download and prepare resources for the metric
-    metric.download_and_prepare(download_config=download_config)
+        download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
+        metric_module = metric_module_factory(
+            path, revision=revision, download_config=download_config, download_mode=download_mode
+        ).module_path
+        metric_cls = import_main_class(metric_module, dataset=False)
+        metric = metric_cls(
+            config_name=config_name,
+            process_id=process_id,
+            num_process=num_process,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            experiment_id=experiment_id,
+            **metric_init_kwargs,
+        )
 
-    return metric
+        # Download and prepare resources for the metric
+        metric.download_and_prepare(download_config=download_config)
+
+        return metric
 
 
 def load_dataset_builder(
