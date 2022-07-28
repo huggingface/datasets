@@ -325,7 +325,7 @@ def map_nested(
     map_tuple: bool = False,
     map_numpy: bool = False,
     num_proc: Optional[int] = None,
-    multiprocessing_min_length: int = 2,
+    parallel_min_length: int = 2,
     types: Optional[tuple] = None,
     disable_tqdm: bool = True,
     desc: Optional[str] = None,
@@ -333,7 +333,7 @@ def map_nested(
     """Apply a function recursively to each element of a nested data struct.
 
     Use multiprocessing if num_proc > 1 and the length of data_struct is greater than or equal to
-    `multiprocessing_min_length`.
+    `parallel_min_length`.
 
     <Changed version="2.4.0">
 
@@ -356,7 +356,8 @@ def map_nested(
         map_numpy (`bool, default `False`): Whether also apply `function` recursively to `numpy.array` elements (besides
             `dict` values).
         num_proc (`int`, *optional*): Number of processes.
-        multiprocessing_min_length (`int`, default `2`): Minimum length of `data_struct` required for multiprocessing.
+        parallel_min_length (`int`, default `2`): Minimum length of `data_struct` required for parallel
+            processing.
         types (`tuple`, *optional*): Additional types (besides `dict` values) to apply `function` recursively to their
             elements.
         disable_tqdm (`bool`, default `True`): Whether to disable the tqdm progressbar.
@@ -385,7 +386,7 @@ def map_nested(
 
     if num_proc is None:
         num_proc = 1
-    if num_proc <= 1 or len(iterable) < multiprocessing_min_length:
+    if num_proc <= 1 or len(iterable) < parallel_min_length:
         mapped = [
             _single_map_nested((function, obj, types, None, True, None))
             for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
