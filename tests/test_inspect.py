@@ -12,6 +12,9 @@ from datasets import (
 )
 
 
+pytestmark = pytest.mark.integration
+
+
 @pytest.mark.parametrize("path", ["paws", "csv"])
 def test_inspect_dataset(path, tmp_path):
     inspect_dataset(path, tmp_path)

@@ -236,6 +236,8 @@ class DatasetMetadata:
     source_datasets: List[str]
     task_categories: List[str]
     task_ids: Union[EmptyList, List[str]]
+    language_details: Optional[str] = None
+    language_bcp47: Optional[List[str]] = None
     paperswithcode_id: Optional[str] = None
     train_eval_index: Optional[List[Dict]] = None
     configs: Optional[List[str]] = None

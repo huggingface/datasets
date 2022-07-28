@@ -4,6 +4,8 @@ annotations_creators:
 language_creators:
 - crowdsourced
 language:
+- ar
+language_bcp47:
 - ar-SA
 license:
 - mit

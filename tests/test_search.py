@@ -5,11 +5,15 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import numpy as np
+import pytest
 
 from datasets.arrow_dataset import Dataset
 from datasets.search import ElasticSearchIndex, FaissIndex, MissingIndex
 
 from .utils import require_elasticsearch, require_faiss
+
+
+pytestmark = pytest.mark.integration
 
 
 @require_faiss

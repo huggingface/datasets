@@ -5,27 +5,30 @@ language_creators:
 - crowdsourced
 - expert-generated
 language:
-- fr
+- ar
+- ca
+- cy
 - de
 - es
-- ca
-- it
-- ru
-- zh-CN
-- pt
-- fa
 - et
+- fa
+- fr
+- id
+- it
+- ja
+- lv
 - mn
 - nl
-- tr
-- ar
-- sv-SE
-- lv
+- pt
+- ru
 - sl
+- sv
 - ta
-- ja
-- id
-- cy
+- tr
+- zh
+language_bcp47:
+- sv-SE
+- zh-CN
 license:
 - cc-by-nc-4.0
 multilinguality:

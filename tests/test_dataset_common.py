@@ -21,6 +21,7 @@ from multiprocessing import Pool
 from typing import List, Optional
 from unittest import TestCase
 
+import pytest
 from absl.testing import parameterized
 
 from datasets.builder import BuilderConfig, DatasetBuilder
@@ -293,6 +294,7 @@ def get_packaged_dataset_names():
 
 @parameterized.named_parameters(get_packaged_dataset_names())
 @packaged
+@pytest.mark.integration
 class PackagedDatasetTest(parameterized.TestCase):
     dataset_name = None
 

@@ -5,7 +5,6 @@ import random
 import shutil
 import tempfile
 import weakref
-from dataclasses import asdict
 from functools import wraps
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
@@ -19,7 +18,7 @@ from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH
 from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
 from .utils.deprecation_utils import deprecated
 from .utils.logging import get_logger
-from .utils.py_utils import dumps
+from .utils.py_utils import asdict, dumps
 
 
 if TYPE_CHECKING:

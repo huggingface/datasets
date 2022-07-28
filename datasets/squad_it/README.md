@@ -4,6 +4,8 @@ annotations_creators:
 language_creators:
 - machine-generated
 language:
+- it
+language_bcp47:
 - it-IT
 license:
 - unknown

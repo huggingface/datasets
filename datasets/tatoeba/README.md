@@ -62,6 +62,7 @@ language:
 - ckt
 - cmn
 - co
+- code
 - cpi
 - crh
 - crk
@@ -69,7 +70,6 @@ language:
 - csb
 - cv
 - cy
-- cycl
 - da
 - de
 - dng
@@ -327,7 +327,7 @@ language:
 - tn
 - to
 - toi
-- toki
+- tok
 - tpi
 - tpw
 - tr
