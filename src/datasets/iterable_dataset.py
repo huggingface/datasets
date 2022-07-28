@@ -29,10 +29,11 @@ def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Fe
 
 
 def _examples_to_batch(examples: List[Dict[str, Any]]) -> Dict[str, list]:
-    cols = max(examples, key=len).keys() if examples else set()
-    arrays = []
-    for col in cols:
-        arrays.append([example[col] for example in examples])
+    # we order the columns by order of appearance
+    # to do so, we use a dict as an ordered set
+    cols = {col: None for example in examples for col in example}
+    # when an example is missing a column, we set the value to None with .get()
+    arrays = [[example.get(col) for example in examples] for col in cols]
     return dict(zip(cols, arrays))
 
 

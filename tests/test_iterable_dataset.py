@@ -860,6 +860,36 @@ def test_iterable_dataset_cast():
     assert list(casted_dataset) == [new_features.encode_example(ex) for _, ex in ex_iterable]
 
 
+def test_iterable_dataset_resolve_features():
+    ex_iterable = ExamplesIterable(generate_examples_fn, {})
+    dataset = IterableDataset(ex_iterable)._resolve_features()
+    assert dataset.features == Features(
+        {
+            "id": Value("int64"),
+        }
+    )
+
+
+def test_iterable_dataset_resolve_features_keep_order():
+    def gen():
+        yield from zip(range(3), [{"a": 1}, {"c": 1}, {"b": 1}])
+
+    ex_iterable = ExamplesIterable(gen, {})
+    dataset = IterableDataset(ex_iterable)._resolve_features()
+    # columns appear in order of appearance in the dataset
+    assert list(dataset.features) == ["a", "c", "b"]
+
+
+def test_iterable_dataset_with_features_fill_with_none():
+    def gen():
+        yield from zip(range(2), [{"a": 1}, {"b": 1}])
+
+    ex_iterable = ExamplesIterable(gen, {})
+    info = DatasetInfo(features=Features({"a": Value("int32"), "b": Value("int32")}))
+    dataset = IterableDataset(ex_iterable, info=info)
+    assert list(dataset) == [{"a": 1, "b": None}, {"b": 1, "a": None}]
+
+
 def test_concatenate_datasets():
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label": 10})
     dataset1 = IterableDataset(ex_iterable1)
