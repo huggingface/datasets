@@ -137,6 +137,10 @@ Please refer to [PhD thesis](#Citation-Information) for more detailed informatio
 
 #### Initial Data Collection and Normalization
 
+News, sports, economics, fully diacritised content from the internet was gathered. The choice of utterances was random to avoid copyright issues. Because of corpus size, acheiving diversity of content type was difficult and was not the goal. We were restricted to content which was fully diacritised to make the annotation process easier.
+
+Just like with many corpora, the phonetic diversity was acheived using greedy methods. Start with a core set of utterances and add more utterances which contribute to adding more phonetic diversity the most iterativly. The measure of diversity is based on the diphone frequency.
+
 Please refer to [PhD thesis](#Citation-Information).
 
 #### Who are the source language producers?
@@ -146,6 +150,8 @@ Please refer to [PhD thesis](#Citation-Information).
 ### Annotations
 
 #### Annotation process
+
+Three annotators aligned audio with phonemes with the help of HTK forced alignment. They worked on overlapping parts as well to assess annotator agreement and the quality of the annotations. The entire corpus was checked by human annotators.
 
 Please refer to [PhD thesis](#Citation-Information).
 
