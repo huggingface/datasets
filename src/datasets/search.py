@@ -574,7 +574,7 @@ class IndexableMixin:
         Args:
             column (:obj:`str`): The column of the documents to add to the index.
             index_name (Optional :obj:`str`): The index_name/identifier of the index. This is the index name that is used to call `.get_nearest` or `.search`.
-                By defaul it corresponds to `column`.
+                By default it corresponds to `column`.
             host (Optional :obj:`str`, defaults to localhost):
                 host of where ElasticSearch is running
             port (Optional :obj:`str`, defaults to 9200):
