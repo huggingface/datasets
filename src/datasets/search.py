@@ -460,7 +460,7 @@ class IndexableMixin:
         Args:
             column (:obj:`str`): The column of the vectors to add to the index.
             index_name (Optional :obj:`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-                By defaul it corresponds to `column`.
+                By default it corresponds to `column`.
             device (Optional :obj:`Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
                 If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
             string_factory (Optional :obj:`str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
