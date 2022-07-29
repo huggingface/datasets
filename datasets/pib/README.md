@@ -9,17 +9,17 @@ task_ids:
 multilinguality:
 - translation
 language:
-- en
-- hi
-- ta
-- te
-- ml
-- ur
 - bn
-- mr
+- en
 - gu
+- hi
+- ml
+- mr
 - or
 - pa
+- ta
+- te
+- ur
 language_creators:
 - other
 annotations_creators:

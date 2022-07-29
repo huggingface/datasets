@@ -128,7 +128,7 @@ Load your own data files (see [how to load local and remote files](./loading#loc
 
 ```py
 >>> data_files = {"train": ["path/to/train.csv"]}
->>> cache_dir "s3://my-bucket/datasets-cache"
+>>> cache_dir = "s3://my-bucket/datasets-cache"
 >>> builder = load_dataset_builder("csv", data_files=data_files, cache_dir=cache_dir, storage_options=storage_options)
 >>> builder.download_and_prepare(file_format="parquet")
 ```
@@ -141,6 +141,27 @@ You can also specify the size of the Parquet shard using `max_shard_size` (defau
 ```py
 >>> builder.download_and_prepare(file_format="parquet", max_shard_size="1GB")
 ```
+
+#### Dask
+
+Dask is a parallel computing library and it has a pandas-like API for working with larger than memory Parquet datasets in parallel.
+Dask can use multiple threads or processes on a single machine, or a cluster of machines to process data in parallel.
+Dask supports local data but also data from a cloud storage.
+
+Therefore you can load a dataset saved as sharded Parquet files in Dask with
+
+```py
+import dask.dataframe as dd
+
+df = dd.read_parquet(builder.cache_dir, storage_options=storage_options)
+
+# or if your dataset is split into train/valid/test
+df_train = dd.read_parquet(builder.cache_dir + f"/{builder.name}-train-*.parquet", storage_options=storage_options)
+df_valid = dd.read_parquet(builder.cache_dir + f"/{builder.name}-validation-*.parquet", storage_options=storage_options)
+df_test = dd.read_parquet(builder.cache_dir + f"/{builder.name}-test-*.parquet", storage_options=storage_options)
+```
+
+You can find more about dask dataframes in their [documentation](https://docs.dask.org/en/stable/dataframe.html).
 
 ## Saving serialized datasets
 

@@ -6,6 +6,7 @@ from datasets.utils.file_utils import http_head
 from .utils import OfflineSimulationMode, RequestWouldHangIndefinitelyError, offline
 
 
+@pytest.mark.integration
 def test_offline_with_timeout():
     with offline(OfflineSimulationMode.CONNECTION_TIMES_OUT):
         with pytest.raises(RequestWouldHangIndefinitelyError):
@@ -14,6 +15,7 @@ def test_offline_with_timeout():
             requests.request("GET", "https://huggingface.co", timeout=1.0)
 
 
+@pytest.mark.integration
 def test_offline_with_connection_error():
     with offline(OfflineSimulationMode.CONNECTION_FAILS):
         with pytest.raises(requests.exceptions.ConnectionError):

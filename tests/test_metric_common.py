@@ -69,6 +69,7 @@ def get_local_metric_names():
 @parameterized.named_parameters(get_local_metric_names())
 @for_all_test_methods(skip_if_metric_requires_fairseq, skip_on_windows_if_not_windows_compatible)
 @local
+@pytest.mark.integration
 class LocalMetricTest(parameterized.TestCase):
     INTENSIVE_CALLS_PATCHER = {}
     metric_name = None

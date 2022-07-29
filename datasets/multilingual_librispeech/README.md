@@ -7,12 +7,12 @@ language_creators:
 - expert-generated
 language:
 - de
-- nl
+- es
 - fr
 - it
-- es
-- pt
+- nl
 - pl
+- pt
 license:
 - cc-by-4.0
 multilinguality:

@@ -8,13 +8,8 @@ language:
 - af
 - bn
 - ca
-- en-GB
-- en-IE
-- en-NG
-- es-CL
-- es-CO
-- es-PE
-- es-PR
+- en
+- es
 - eu
 - gl
 - gu
@@ -34,6 +29,14 @@ language:
 - ve
 - xh
 - yo
+language_bcp47:
+- en-GB
+- en-IE
+- en-NG
+- es-CL
+- es-CO
+- es-PE
+- es-PR
 license:
 - cc-by-sa-4.0
 multilinguality:

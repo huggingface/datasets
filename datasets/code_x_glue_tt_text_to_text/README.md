@@ -5,10 +5,10 @@ language_creators:
 - found
 language:
 - da
-- nb
-- lv
-- zh
 - en
+- lv
+- nb
+- zh
 license:
 - c-uda
 multilinguality:
