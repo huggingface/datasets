@@ -393,7 +393,6 @@ def map_nested(
         num_proc (`int`, *optional*): Number of processes.
         parallel_min_length (`int`, default `2`): Minimum length of `data_struct` required for parallel
             processing.
-
             <Added version="2.5.0"/>
         types (`tuple`, *optional*): Additional types (besides `dict` values) to apply `function` recursively to their
             elements.
