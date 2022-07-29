@@ -224,7 +224,7 @@ class TensorflowDatasetMixin:
         collate_fn_args: dict,
         cols_to_retain: Optional[List[str]] = None,
         batch_size: Optional[int] = None,
-        num_test_batches: int = 10,
+        num_test_batches: int = 200,
     ):
         """Private method used by `to_tf_dataset()` to find the shapes and dtypes of samples from this dataset
            after being passed through the collate_fn. Tensorflow needs an exact signature for tf.numpy_function, so
@@ -253,11 +253,9 @@ class TensorflowDatasetMixin:
 
         if len(dataset) == 0:
             raise ValueError("Unable to get the output signature because the dataset is empty.")
-        if batch_size is None:
-            test_batch_size = min(len(dataset), 8)
-        else:
+        if batch_size is not None:
             batch_size = min(len(dataset), batch_size)
-            test_batch_size = batch_size
+        test_batch_size = min(len(dataset), 2)
 
         test_batches = []
         for _ in range(num_test_batches):
@@ -419,26 +417,6 @@ class TensorflowDatasetMixin:
             cols_to_retain=cols_to_retain,
             batch_size=batch_size if drop_remainder else None,
         )
-
-        shape_verification_signature, _ = dataset._get_output_signature(
-            dataset,
-            collate_fn=collate_fn,
-            collate_fn_args=collate_fn_args,
-            cols_to_retain=cols_to_retain,
-            batch_size=2,
-            num_test_batches=200,
-        )
-
-        for column, tensor_spec in shape_verification_signature.items():
-            shape = tensor_spec.shape.as_list()
-            existing_shape = output_signature[column].shape.as_list()
-            for i in range(len(shape)):
-                # Look for any unexpected None dimensions in the new shape - they indicate sneakily variable dims.
-                if existing_shape[i] is not None and shape[i] is None:
-                    existing_shape[i] = None
-            if existing_shape != output_signature[column].shape.as_list():
-                new_spec = tf.TensorSpec(shape=existing_shape, dtype=tensor_spec.dtype)
-                output_signature[column] = new_spec
 
         def np_get_batch(indices):
             # Following the logic in `transformers.Trainer`, we do not drop `label_ids` or `label` even if they
