@@ -4,8 +4,8 @@
     <br>
 <p>
 <p align="center">
-    <a href="https://circleci.com/gh/huggingface/datasets">
-        <img alt="Build" src="https://img.shields.io/circleci/build/github/huggingface/datasets/main">
+    <a href="https://github.com/huggingface/datasets/actions/workflows/ci.yml?query=branch%3Amain">
+        <img alt="Build" src="https://github.com/huggingface/datasets/actions/workflows/ci.yml/badge.svg?branch=main">
     </a>
     <a href="https://github.com/huggingface/datasets/blob/main/LICENSE">
         <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/datasets.svg?color=blue">
