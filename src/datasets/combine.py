@@ -37,8 +37,11 @@ def interleave_datasets(
             examples from one source at a time according to these probabilities.
         seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
         info ([`DatasetInfo`], *optional*): Dataset information, like description, citation, etc.
+
             <Added version="2.4.0" />
+
         split ([`NamedSplit`], *optional*): Name of the dataset split.
+
             <Added version="2.4.0" />
 
     Returns:

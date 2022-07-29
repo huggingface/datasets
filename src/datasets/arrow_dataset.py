@@ -4438,6 +4438,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             batch_size (Optional :obj:`int`): Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.
 
                 <Added version="2.4.0" />
+
             train_size (Optional :obj:`int`):
                 If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False):
@@ -4516,6 +4517,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             batch_size (Optional :obj:`int`): Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.
 
                 <Added version="2.4.0" />
+
             train_size (Optional :obj:`int`):
                 If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False):
