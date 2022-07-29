@@ -68,6 +68,13 @@ The `split` parameter can also map a data file to a specific split:
 >>> c4_validation = load_dataset("allenai/c4", data_files=data_files, split="validation")
 ```
 
+Datasets hosted on the Hub can also be loaded from a relative path through the `data_dir` or `data_files` parameters. The dataset's relative path is resolved to its URL in the repository where the loading script is stored.
+
+```py
+>>> from datasets import load_dataset
+>>> ds = load_dataset("namespace/your_dataset_name", data_dir="./train-v1/")
+```
+
 ## Local loading script
 
 You may have a 🤗 Datasets loading script locally on your computer. In this case, load the dataset by passing one of the following paths to [`load_dataset`]:
