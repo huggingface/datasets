@@ -329,8 +329,7 @@ class DatasetBuilder:
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
 
-        protocol = self._fs.protocol if isinstance(self._fs.protocol, str) else self._fs.protocol[-1]
-        self._cache_dir_root = fs_token_paths[2][0] if is_local else protocol + "://" + fs_token_paths[2][0]
+        self._cache_dir_root = fs_token_paths[2][0] if is_local else self._fs.unstrip_protocol(fs_token_paths[2][0])
         self._cache_dir = self._build_cache_dir()
         self._cache_downloaded_dir = (
             path_join(self._cache_dir_root, config.DOWNLOADED_DATASETS_DIR)

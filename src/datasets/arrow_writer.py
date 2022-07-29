@@ -313,9 +313,10 @@ class ArrowWriter:
         if stream is None:
             fs_token_paths = fsspec.get_fs_token_paths(path, storage_options=storage_options)
             self._fs: fsspec.AbstractFileSystem = fs_token_paths[0]
-            protocol = self._fs.protocol if isinstance(self._fs.protocol, str) else self._fs.protocol[-1]
             self._path = (
-                fs_token_paths[2][0] if not is_remote_filesystem(self._fs) else protocol + "://" + fs_token_paths[2][0]
+                fs_token_paths[2][0]
+                if not is_remote_filesystem(self._fs)
+                else self._fs.unstrip_protocol(fs_token_paths[2][0])
             )
             self.stream = self._fs.open(fs_token_paths[2][0], "wb")
             self._closable_stream = True
