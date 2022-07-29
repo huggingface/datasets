@@ -370,9 +370,9 @@ def map_nested(
     Use multiprocessing if num_proc > 1 and the length of data_struct is greater than or equal to
     `parallel_min_length`.
 
-    <Changed version="2.4.0">
+    <Changed version="2.5.0">
 
-    Before version 2.4.0, multiprocessing was not used if `num_proc` was greater than or equal to ``len(iterable)``.
+    Before version 2.5.0, multiprocessing was not used if `num_proc` was greater than or equal to ``len(iterable)``.
 
     Now, if `num_proc` is greater than or equal to ``len(iterable)``, `num_proc` is set to ``len(iterable)`` and
     multiprocessing is used.
