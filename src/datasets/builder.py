@@ -808,7 +808,6 @@ class DatasetBuilder:
                 # Prepare split will record examples associated to the split
                 self._prepare_split(split_generator, file_format=file_format, **prepare_split_kwargs)
             except OSError as e:
-                raise
                 raise OSError(
                     "Cannot find data file. "
                     + (self.manual_download_instructions or "")
@@ -1239,6 +1238,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
         generator = self._generate_examples(**split_generator.gen_kwargs)
 
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
+
+        # TODO: embed the images/audio files inside parquet files.
         with writer_class(
             features=self.info.features,
             path=fpath,
@@ -1319,6 +1320,7 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
+        # TODO: embed the images/audio files inside parquet files.
         with writer_class(features=self.info.features, path=fpath, storage_options=self._fs.storage_options) as writer:
             for key, table in logging.tqdm(
                 generator, unit=" tables", leave=False, disable=(not logging.is_progress_bar_enabled())
