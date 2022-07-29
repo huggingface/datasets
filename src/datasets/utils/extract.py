@@ -208,8 +208,8 @@ class Extractor:
         "rar": RarExtractor,
         "zstd": ZstdExtractor,
         "bz2": Bzip2Extractor,
-        "7z": SevenZipExtractor,  # <Added version="2.4.0" />
-        "lz4": Lz4Extractor,  # <Added version="2.4.0" />
+        "7z": SevenZipExtractor,  # <Added version="2.4.0"/>
+        "lz4": Lz4Extractor,  # <Added version="2.4.0"/>
     }
 
     @classmethod
@@ -243,7 +243,7 @@ class Extractor:
         return False if not return_extractor else (False, None)
 
     @classmethod
-    def infer_extractor_format(cls, path: Union["pathlib.Path", str]) -> str:  # <Added version="2.4.0" />
+    def infer_extractor_format(cls, path: Union["pathlib.Path", str]) -> str:  # <Added version="2.4.0"/>
         magic_number_max_length = cls._get_magic_number_max_length()
         magic_number = cls._read_magic_number(path, magic_number_max_length)
         for extractor_format, extractor in cls.extractors.items():
@@ -255,7 +255,7 @@ class Extractor:
         cls,
         input_path: Union["pathlib.Path", str],
         output_path: Union["pathlib.Path", str],
-        extractor_format: Optional[str] = None,  # <Added version="2.4.0" />
+        extractor_format: Optional[str] = None,  # <Added version="2.4.0"/>
         extractor: Optional[BaseExtractor] = "deprecated",
     ) -> None:
         # Prevent parallel extractions

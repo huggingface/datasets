@@ -1860,7 +1860,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
     For custom features like Audio or Image, it takes into account the "embed_storage" methods
     they defined to enable embedding external data (e.g. an image file) into an other arrow types.
 
-    <Added version="2.4.0" />
+    <Added version="2.4.0"/>
 
     Args:
         array (pa.Array): the PyArrow array in which to embed data
@@ -1975,7 +1975,7 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
 def embed_table_storage(table: pa.Table):
     """Embed external data into a table's storage.
 
-    <Added version="2.4.0" />
+    <Added version="2.4.0"/>
 
     Args:
         table (:obj:`pyarrow.Table`): PyArrow table in which to embed data

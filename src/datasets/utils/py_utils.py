@@ -154,8 +154,7 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
 def asdict(obj):
     """Convert an object to its dictionary representation recursively.
 
-    <Added version="2.4.0" />
-
+    <Added version="2.4.0"/>
     """
 
     # Implementation based on https://docs.python.org/3/library/dataclasses.html#dataclasses.asdict
