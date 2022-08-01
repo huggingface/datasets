@@ -267,21 +267,14 @@ def _generate_examples(self, filepath):
                     }
 ```
 
-## Testing data and checksum metadata
+## Generate dataset metadata
 
-We strongly recommend adding testing data and checksum metadata to your dataset to verify and test its behavior. This ensures the generated dataset matches your expectations.
-Testing data and checksum metadata are mandatory for datasets stored in the 🤗 Datasets GitHub repository.
+Adding dataset metadata is a great way to include information about your dataset. The metadata is stored in a `dataset_infos.json` file. It includes information like data file checksums, the number of examples required to confirm the dataset was correctly generated, and information about the dataset like its `features`.
 
-<Tip warning={true}>
-
-Make sure you run the following command **from the root** of your local `datasets` repository.
-
-</Tip>
-
-The `dataset_infos.json` file stores the dataset metadata, including the data file checksums, the number of examples required to confirm the dataset was correctly generated, and information about the dataset like its `features`. Run the following command to create `dataset_infos.json` and test your new dataset loading script to make sure it works correctly:
+Run the following command to generate your dataset metadata in `dataset_infos.json` and make sure your new dataset loading script works correctly:
 
 ```
-datasets-cli test path/to/<your-dataset-folder> --save_infos --all_configs
+datasets-cli test path/to/<your-dataset-loading-script> --save_infos --all_configs
 ```
 
 If your dataset loading script passed the test, you should now have a `dataset_infos.json` file in your dataset folder.
