@@ -80,6 +80,14 @@ You may have a 🤗 Datasets loading script locally on your computer. In this ca
 >>> dataset = load_dataset("path/to/local/loading_script", split="train")  # equivalent because the file has the same name as the directory
 ```
 
+The [`~Dataset.load_dataset`] function pulls a loading script from GitHub or the Hub unless you give it a path to the script. This means if you edit a local loading script and go to load the dataset, you need to load the dataset from its local path; otherwise, it'll just download and use a copy of the loading script from GitHub. Prefix the dataset name in your [`~Dataset.load_dataset`] call with `datasets` to use the local GitHub dataset script stored inside the `datasets` directory:
+
+```py
+>>> from datasets import load_dataset
+# edit local loading script and now load the dataset
+>>> eli5 = load_dataset("datasets/eli5")
+```
+
 ## Local and remote files
 
 Datasets can be loaded from local files stored on your computer and from remote files. The datasets are most likely stored as a `csv`, `json`, `txt` or `parquet` file. The [`load_dataset`] function can load each of these file types.
