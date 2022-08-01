@@ -550,7 +550,7 @@ class BuilderTest(TestCase):
             builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir)
             with patch("datasets.builder.ArrowWriter", side_effect=ArrowWriter) as mock_arrow_writer:
                 builder.download_and_prepare(download_mode=DownloadMode.FORCE_REDOWNLOAD)
-                mock_arrow_writer.assert_called()()
+                mock_arrow_writer.assert_called()
                 args, kwargs = mock_arrow_writer.call_args_list[0]
                 self.assertTrue(kwargs["check_duplicates"])
 
