@@ -48,7 +48,12 @@ from .download.streaming_download_manager import StreamingDownloadManager
 from .features import Features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
-from .iterable_dataset import ExamplesIterable, IterableDataset, _concatenate_iterable_datasets, _generate_examples_from_tables_wrapper
+from .iterable_dataset import (
+    ExamplesIterable,
+    IterableDataset,
+    _concatenate_iterable_datasets,
+    _generate_examples_from_tables_wrapper,
+)
 from .keyhash import DuplicatedKeysError
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator
@@ -1039,8 +1044,10 @@ class DatasetBuilder:
         )
         if isinstance(datasets, dict):
             datasets = IterableDatasetDict(datasets)
-            if split=="all":
-                datasets = _concatenate_iterable_datasets(datasets.values(), info=self.info, split="+".join(splits_generator), axis=0)
+            if split == "all":
+                datasets = _concatenate_iterable_datasets(
+                    datasets.values(), info=self.info, split="+".join(splits_generator), axis=0
+                )
 
         return datasets
 
