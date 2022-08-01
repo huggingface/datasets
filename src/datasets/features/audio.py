@@ -290,7 +290,13 @@ class Audio:
         except RuntimeError as err:
             raise ImportError("To support decoding 'mp3' audio files, please install 'sox'.") from err
 
-        array, sampling_rate = torchaudio.load(path_or_file, format="mp3")
+        try:
+            array, sampling_rate = torchaudio.load(path_or_file, format="mp3")
+        except RuntimeError as err:
+            if str(err).startswith("Failed to load audio from"):
+                raise ImportError("To support decoding 'mp3' audio files, please install 'sox'.") from err
+            else:
+                raise
         if self.sampling_rate and self.sampling_rate != sampling_rate:
             if not hasattr(self, "_resampler") or self._resampler.orig_freq != sampling_rate:
                 self._resampler = T.Resample(sampling_rate, self.sampling_rate)
