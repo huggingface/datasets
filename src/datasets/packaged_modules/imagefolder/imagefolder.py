@@ -15,8 +15,8 @@ class ImageFolderConfig(autofolder.AutoFolderConfig):
     """BuilderConfig for ImageFolder."""
 
     base_feature: ClassVar = datasets.Image()
-    drop_labels: bool = False
-    drop_metadata: bool = False
+    drop_labels: bool = None
+    drop_metadata: bool = None
 
 
 class ImageFolder(autofolder.AutoFolder):
@@ -31,10 +31,8 @@ class ImageFolder(autofolder.AutoFolder):
         # infers labels, finds metadata files if needed and returns splits
         splits = self._prepare_split_generators(dl_manager)
 
-        # we need to set a task_template manually
-        # to check if metadata files were found, see if they are in the first split kwargs
-        # (metadata files passed to _generate_examples() are the same for each split)
-        if not self.config.features and not self.config.drop_labels and not splits[0].gen_kwargs["metadata_files"]:
+        add_labels = splits[0].gen_kwargs["add_labels"]
+        if self.config.features is None and add_labels:
             task_template = ImageClassification(
                 image_column=self.config.base_feature_name, label_column=self.config.label_column
             )
@@ -43,8 +41,8 @@ class ImageFolder(autofolder.AutoFolder):
 
         return splits
 
-    def _generate_examples(self, files, metadata_files, split_name):
-        generator = self._prepare_generate_examples(files, metadata_files, split_name)
+    def _generate_examples(self, files, metadata_files, split_name, add_metadata, add_labels):
+        generator = self._prepare_generate_examples(files, metadata_files, split_name, add_metadata, add_labels)
         for _, example in generator:
             yield _, example
 

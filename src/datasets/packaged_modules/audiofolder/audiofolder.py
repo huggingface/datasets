@@ -30,8 +30,8 @@ class AudioFolder(autofolder.AutoFolder):
         # infers labels, finds metadata files if needed and returns splits
         return self._prepare_split_generators(dl_manager)
 
-    def _generate_examples(self, files, metadata_files, split_name):
-        generator = self._prepare_generate_examples(files, metadata_files, split_name)
+    def _generate_examples(self, files, metadata_files, split_name, add_metadata, add_labels):
+        generator = self._prepare_generate_examples(files, metadata_files, split_name, add_metadata, add_labels)
         for _, example in generator:
             yield _, example
 
