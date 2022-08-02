@@ -5,22 +5,22 @@ language_creators:
 - crowdsourced
 - machine-generated
 language:
-- en
-- zh
+- ar
 - de
+- en
 - es
 - fr
+- hi
 - it
 - ja
 - nl
 - pl
 - pt
 - ru
-- ar
-- vi
-- hi
 - sw
 - ur
+- vi
+- zh
 license:
 - mit
 multilinguality:

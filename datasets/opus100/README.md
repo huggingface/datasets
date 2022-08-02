@@ -9,7 +9,6 @@ task_ids:
 - language-modeling
 - masked-language-modeling
 language:
-- 'no'
 - af
 - am
 - an
@@ -74,6 +73,7 @@ language:
 - ne
 - nl
 - nn
+- 'no'
 - oc
 - or
 - pa

@@ -278,15 +278,16 @@ class DownloadManager:
         return downloaded_path_or_paths.data
 
     def download(self, url_or_urls):
-        """Download given url(s).
+        """Download given URL(s).
+
+        By default, if there is more than one URL to download, multiprocessing is used with maximum `num_proc = 16`.
+        Pass customized `download_config.num_proc` to change this behavior.
 
         Args:
-            url_or_urls: url or `list`/`dict` of urls to download and extract. Each
-                url is a `str`.
+            url_or_urls (`str` or `list` or `dict`): URL or list/dict of URLs to download. Each URL is a `str`.
 
         Returns:
-            downloaded_path(s): `str`, The downloaded paths matching the given input
-                url_or_urls.
+            `str` or `list` or `dict`: The downloaded paths matching the given input `url_or_urls`.
 
         Example:
 
@@ -297,7 +298,7 @@ class DownloadManager:
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = False
         # Default to using 16 parallel thread for downloading
-        # Note that if we have less than 16 files, multi-processing is not activated
+        # Note that if we have less than or equal to 16 files, multi-processing is not activated
         if download_config.num_proc is None:
             download_config.num_proc = 16
         if download_config.download_desc is None:
@@ -311,6 +312,7 @@ class DownloadManager:
             url_or_urls,
             map_tuple=True,
             num_proc=download_config.num_proc,
+            parallel_min_length=16,
             disable_tqdm=not is_progress_bar_enabled(),
             desc="Downloading data files",
         )

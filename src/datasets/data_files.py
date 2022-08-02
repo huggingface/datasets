@@ -14,7 +14,7 @@ from .utils.file_utils import hf_hub_url, is_relative_path, is_remote_url, reque
 from .utils.py_utils import string_to_dict
 
 
-DEFAULT_SPLIT = str(Split.TRAIN)
+SANITIZED_DEFAULT_SPLIT = str(Split.TRAIN)
 
 
 logger = logging.get_logger(__name__)
@@ -26,20 +26,51 @@ class Url(str):
 
 SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
 
+TRAIN_KEYWORDS = ["train", "training"]
+TEST_KEYWORDS = ["test", "testing", "eval", "evaluation"]
+VALIDATION_KEYWORDS = ["validation", "valid", "dev"]
+NON_WORDS_CHARS = "-._ 0-9"
+KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
+KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
+
 DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
-    str(Split.TRAIN): ["**train*"],
-    str(Split.TEST): ["**test*", "**eval*"],
-    str(Split.VALIDATION): ["**dev*", "**valid*"],
+    Split.TRAIN: [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in TRAIN_KEYWORDS
+        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
+    ],
+    Split.TEST: [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in TEST_KEYWORDS
+        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
+    ],
+    Split.VALIDATION: [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in VALIDATION_KEYWORDS
+        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
+    ],
 }
 
 DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
-    str(Split.TRAIN): ["**train*/**"],
-    str(Split.TEST): ["**test*/**", "**eval*/**"],
-    str(Split.VALIDATION): ["**dev*/**", "**valid*/**"],
+    Split.TRAIN: [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in TRAIN_KEYWORDS
+        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
+    ],
+    Split.TEST: [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in TEST_KEYWORDS
+        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
+    ],
+    Split.VALIDATION: [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in VALIDATION_KEYWORDS
+        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
+    ],
 }
 
 DEFAULT_PATTERNS_ALL = {
-    str(Split.TRAIN): ["**"],
+    Split.TRAIN: ["**"],
 }
 
 ALL_SPLIT_PATTERNS = [SPLIT_PATTERN_SHARDED]
@@ -69,11 +100,11 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
     if isinstance(patterns, dict):
         return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}
     elif isinstance(patterns, str):
-        return {DEFAULT_SPLIT: [patterns]}
+        return {SANITIZED_DEFAULT_SPLIT: [patterns]}
     elif isinstance(patterns, list):
-        return {DEFAULT_SPLIT: patterns}
+        return {SANITIZED_DEFAULT_SPLIT: patterns}
     else:
-        return {DEFAULT_SPLIT: list(patterns)}
+        return {SANITIZED_DEFAULT_SPLIT: list(patterns)}
 
 
 def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> bool:

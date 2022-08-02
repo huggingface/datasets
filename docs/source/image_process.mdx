@@ -3,9 +3,9 @@
 This guide shows specific methods for processing image datasets. Learn how to:
 
 - Use [`~Dataset.map`] with image dataset.
-- Apply data augmentations to your dataset with [`~Dataset.set_transform`].
+- Apply data augmentations to a dataset with [`~Dataset.set_transform`].
 
-For a guide on how to process any type of dataset, take a look at the [general process guide](./process).
+For a guide on how to process any type of dataset, take a look at the <a class="underline decoration-sky-400 decoration-2 font-semibold" href="./process">general process guide</a>.
 
 ## Map
 
@@ -37,17 +37,17 @@ The cache file saves time because you don't have to execute the same transform t
 
 Both parameter values default to 1000, which can be expensive if you are storing images. Lower these values to use less memory when you use [`~Dataset.map`].
 
-## Data augmentation
+## Apply transforms
 
-🤗 Datasets can apply data augmentations from any library or package to your dataset. This guide will use the transforms from [torchvision](https://pytorch.org/vision/stable/transforms.html).
+🤗 Datasets applies data augmentations from any library or package to your dataset. Transforms can be applied on-the-fly on batches of data with [`~Dataset.set_transform`], which consumes less disk space.
 
 <Tip>
 
-Feel free to use other data augmentation libraries like [Albumentations](https://albumentations.ai/docs/), [Kornia](https://kornia.readthedocs.io/en/latest/), and [imgaug](https://imgaug.readthedocs.io/en/latest/).
+The following example uses [torchvision](https://pytorch.org/vision/stable/index.html), but feel free to use other data augmentation libraries like [Albumentations](https://albumentations.ai/docs/), [Kornia](https://kornia.readthedocs.io/en/latest/), and [imgaug](https://imgaug.readthedocs.io/en/latest/).
 
 </Tip>
 
-As an example, try to apply a [`ColorJitter`](https://pytorch.org/vision/stable/transforms.html#torchvision.transforms.ColorJitter) transform to change the color properties of the image randomly:
+For example, if you'd like to change the color properties of an image randomly:
 
 ```py
 >>> from torchvision.transforms import Compose, ColorJitter, ToTensor
@@ -60,7 +60,7 @@ As an example, try to apply a [`ColorJitter`](https://pytorch.org/vision/stable/
 ... )
 ```
 
-Create a function to apply the `ColorJitter` transform to an image:
+Create a function to apply the `ColorJitter` transform:
 
 ```py
 >>> def transforms(examples):
@@ -68,23 +68,8 @@ Create a function to apply the `ColorJitter` transform to an image:
 ...     return examples
 ```
 
-Use the [`~Dataset.set_transform`] function to apply the transform on-the-fly which consumes less disk space. This function is useful if you only need to access the examples once:
+Apply the transform with the [`~Dataset.set_transform`] function:
 
 ```py
 >>> dataset.set_transform(transforms)
 ```
-
-Now you can take a look at the augmented image by indexing into the `pixel_values`:
-
-```py
->>> import numpy as np
->>> import matplotlib.pyplot as plt
-
->>> img = dataset[0]["pixel_values"]
->>> plt.imshow(img.permute(1, 2, 0))
-```
-
-<div class="flex justify-center">
-    <img class="block dark:hidden" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/image_process_jitter.png">
-    <img class="hidden dark:block" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/image_process_jitter.png"/>
-</div>

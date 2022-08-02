@@ -4,8 +4,8 @@ annotations_creators:
 language_creators:
 - crowdsourced
 language:
-- ro
 - en
+- ro
 license:
 - cc-by-4.0
 multilinguality:

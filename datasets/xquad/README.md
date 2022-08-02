@@ -5,15 +5,15 @@ annotations_creators:
 language_creators:
 - expert-generated
 language:
-- en
-- fr
-- es
+- ar
+- bg
 - de
 - el
-- bg
+- en
+- es
+- fr
 - ru
 - tr
-- ar
 - vi
 - zh
 license:

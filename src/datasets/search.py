@@ -460,13 +460,14 @@ class IndexableMixin:
         Args:
             column (:obj:`str`): The column of the vectors to add to the index.
             index_name (Optional :obj:`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-                By defaul it corresponds to `column`.
+                By default it corresponds to `column`.
             device (Optional :obj:`Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
                 If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
             string_factory (Optional :obj:`str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
             metric_type (Optional :obj:`int`): Type of metric. Ex: `faiss.METRIC_INNER_PRODUCT` or `faiss.METRIC_L2`.
             custom_index (Optional :obj:`faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
             batch_size (Optional :obj:`int`): Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.
+                <Added version="2.4.0"/>
             train_size (Optional :obj:`int`): If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
@@ -507,6 +508,7 @@ class IndexableMixin:
             metric_type (Optional :obj:`int`): Type of metric. Ex: `faiss.METRIC_INNER_PRODUCT` or `faiss.METRIC_L2`.
             custom_index (Optional :obj:`faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
             batch_size (Optional :obj:`int`): Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.
+                <Added version="2.4.0"/>
             train_size (Optional :obj:`int`): If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
@@ -572,7 +574,7 @@ class IndexableMixin:
         Args:
             column (:obj:`str`): The column of the documents to add to the index.
             index_name (Optional :obj:`str`): The index_name/identifier of the index. This is the index name that is used to call `.get_nearest` or `.search`.
-                By defaul it corresponds to `column`.
+                By default it corresponds to `column`.
             host (Optional :obj:`str`, defaults to localhost):
                 host of where ElasticSearch is running
             port (Optional :obj:`str`, defaults to 9200):

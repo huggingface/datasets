@@ -1,10 +1,11 @@
 import os
-from itertools import chain
 from pathlib import Path, PurePath
+from typing import List
 from unittest.mock import patch
 
 import fsspec
 import pytest
+from fsspec.spec import AbstractFileSystem
 from huggingface_hub.hf_api import DatasetInfo
 
 from datasets.data_files import (
@@ -491,6 +492,47 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
         assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
 
 
+def mock_fs(file_paths: List[str]):
+    """
+    Set up a mock filesystem for fsspec containing the provided files
+
+    Example:
+
+    ```py
+    >>> fs = mock_fs(["data/train.txt", "data.test.txt"])
+    >>> assert fsspec.get_filesystem_class("mock").__name__ == "DummyTestFS"
+    >>> assert type(fs).__name__ == "DummyTestFS"
+    >>> print(fs.glob("**"))
+    ["data", "data/train.txt", "data.test.txt"]
+    ```
+    """
+
+    dir_paths = {file_path.rsplit("/")[0] for file_path in file_paths if "/" in file_path}
+    fs_contents = [{"name": dir_path, "type": "directory"} for dir_path in dir_paths] + [
+        {"name": file_path, "type": "file", "size": 10} for file_path in file_paths
+    ]
+
+    class DummyTestFS(AbstractFileSystem):
+        protocol = "mock"
+        _fs_contents = fs_contents
+
+        def ls(self, path, detail=True, refresh=True, **kwargs):
+            if kwargs.pop("strip_proto", True):
+                path = self._strip_protocol(path)
+
+            files = not refresh and self._ls_from_cache(path)
+            if not files:
+                files = [file for file in self._fs_contents if path == self._parent(file["name"])]
+                files.sort(key=lambda file: file["name"])
+                self.dircache[path.rstrip("/")] = files
+
+            if detail:
+                return files
+            return [file["name"] for file in files]
+
+    return DummyTestFS()
+
+
 @pytest.mark.parametrize(
     "data_file_per_split",
     [
@@ -541,24 +583,30 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
         {"validation": "dev/dataset.txt"},
         # With other extensions
         {"train": "train.parquet", "test": "test.parquet", "validation": "valid.parquet"},
+        # With "dev" or "eval" without separators
+        {"train": "developers_list.txt"},
+        {"train": "data/seqeval_results.txt"},
+        {"train": "contest.txt"},
+        # With supported separators
+        {"test": "my.test.file.txt"},
+        {"test": "my-test-file.txt"},
+        {"test": "my_test_file.txt"},
+        {"test": "my test file.txt"},
+        {"test": "test00001.txt"},
     ],
 )
 def test_get_data_files_patterns(data_file_per_split):
     data_file_per_split = {k: v if isinstance(v, list) else [v] for k, v in data_file_per_split.items()}
+    file_paths = [file_path for split_file_paths in data_file_per_split.values() for file_path in split_file_paths]
+    fs = mock_fs(file_paths)
 
     def resolver(pattern):
-        return [PurePath(path) for path in chain(*data_file_per_split.values()) if PurePath(path).match(pattern)]
+        return [PurePath(file_path) for file_path in fs.glob(pattern) if fs.isfile(file_path)]
 
     patterns_per_split = _get_data_files_patterns(resolver)
-    assert sorted(patterns_per_split.keys()) == sorted(data_file_per_split.keys())
+    assert patterns_per_split.keys() == data_file_per_split.keys()
     for split, patterns in patterns_per_split.items():
-        matched = [
-            path
-            for path in chain(*data_file_per_split.values())
-            for pattern in patterns
-            if PurePath(path).match(pattern)
-        ]
-        assert len(matched) == len(data_file_per_split[split])
+        matched = [file_path.as_posix() for pattern in patterns for file_path in resolver(pattern)]
         assert matched == data_file_per_split[split]
 
 

@@ -18,9 +18,9 @@ language:
 - br
 - bs
 - ca
+- ceb
 - ckb
 - cs
-- ceb
 - cy
 - de
 - dv
@@ -48,6 +48,7 @@ language:
 - iu
 - ja
 - ka
+- kac
 - kg
 - kk
 - km
@@ -71,7 +72,6 @@ language:
 - ms
 - mt
 - my
-- my
 - ne
 - nl
 - 'no'
@@ -83,8 +83,6 @@ language:
 - pl
 - ps
 - pt
-- shn
-- kac
 - rm
 - ro
 - ru
@@ -92,6 +90,7 @@ language:
 - sc
 - sd
 - se
+- shn
 - si
 - sk
 - sl
@@ -116,19 +115,18 @@ language:
 - tr
 - ts
 - tt
-- zgh
 - ug
 - uk
 - ur
 - uz
 - ve
 - vi
-- wo
 - war
+- wo
 - xh
 - yi
 - yo
-- zh
+- zgh
 - zh
 - zu
 - zza

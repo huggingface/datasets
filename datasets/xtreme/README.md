@@ -15,7 +15,6 @@ language:
 - et
 - eu
 - fa
-- fa-IR
 - fi
 - fr
 - he
@@ -45,6 +44,8 @@ language:
 - vi
 - yo
 - zh
+language_bcp47:
+- fa-IR
 license:
 - apache-2.0
 - cc-by-4.0
@@ -86,7 +87,7 @@ task_ids:
 - text-classification-other-paraphrase-identification
 - text-retrieval-other-parallel-sentence-retrieval
 - named-entity-recognition
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: xtreme
 configs:
 - MLQA.ar.ar

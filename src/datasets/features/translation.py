@@ -69,7 +69,7 @@ class TranslationVariableLanguages:
 
     ```python
     >>> # At construction time:
-    >>> datasets.features.Translation(languages=['en', 'fr', 'de'])
+    >>> datasets.features.TranslationVariableLanguages(languages=['en', 'fr', 'de'])
     >>> # During data generation:
     >>> yield {
     ...         'en': 'the cat',

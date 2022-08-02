@@ -1,6 +1,6 @@
 # Installation
 
-Before you start, you'll need to setup your environment and install the appropriate packages. 🤗 Datasets is tested on **Python 3.6+**.
+Before you start, you'll need to setup your environment and install the appropriate packages. 🤗 Datasets is tested on **Python 3.7+**.
 
 <Tip>
 
@@ -84,6 +84,12 @@ pip install torchaudio
 <Tip warning={true}>
 
 torchaudio's `sox_io` [backend](https://pytorch.org/audio/stable/backend.html#) supports decoding MP3 files. Unfortunately, the `sox_io` backend is only available on Linux/macOS and isn't supported by Windows.
+
+You need to install it using your distribution package manager, for example:
+
+```bash
+sudo apt-get install sox
+```
 
 </Tip>
 

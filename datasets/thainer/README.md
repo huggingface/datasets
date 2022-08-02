@@ -19,7 +19,7 @@ task_categories:
 - token-classification
 task_ids:
 - named-entity-recognition
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: null
 pretty_name: thainer
 ---

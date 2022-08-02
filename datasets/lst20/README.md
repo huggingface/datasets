@@ -17,7 +17,7 @@ task_categories:
 - token-classification
 task_ids:
 - named-entity-recognition
-- part-of-speech-tagging
+- part-of-speech
 - token-classification-other-clause-segmentation
 - token-classification-other-sentence-segmentation
 - token-classification-other-word-segmentation

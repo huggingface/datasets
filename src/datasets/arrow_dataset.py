@@ -27,7 +27,6 @@ import weakref
 from collections import Counter, UserDict
 from collections.abc import Mapping
 from copy import deepcopy
-from dataclasses import asdict
 from functools import partial, wraps
 from io import BytesIO
 from math import ceil, floor
@@ -95,7 +94,7 @@ from .utils import logging
 from .utils._hf_hub_fixes import create_repo
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size, hf_hub_url
 from .utils.info_utils import is_small_dataset
-from .utils.py_utils import convert_file_size_to_int, unique_values
+from .utils.py_utils import asdict, convert_file_size_to_int, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import minimal_tf_collate_fn
 from .utils.typing import PathLike
@@ -825,8 +824,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             info = DatasetInfo()
         info.features = features
         table = InMemoryTable.from_pandas(
-            df=df, preserve_index=preserve_index, schema=features.arrow_schema if features is not None else None
+            df=df,
+            preserve_index=preserve_index,
         )
+        if features is not None:
+            # more expensive cast than InMemoryTable.from_pandas(..., schema=features.arrow_schema)
+            # needed to support the str to Audio conversion for instance
+            table = table.cast(features.arrow_schema)
         return cls(table, info=info, split=split)
 
     @classmethod
@@ -4432,6 +4436,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             custom_index (Optional :obj:`faiss.Index`):
                 Custom Faiss index that you already have instantiated and configured for your needs.
             batch_size (Optional :obj:`int`): Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.
+                <Added version="2.4.0"/>
             train_size (Optional :obj:`int`):
                 If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False):
@@ -4508,6 +4513,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             custom_index (Optional :obj:`faiss.Index`):
                 Custom Faiss index that you already have instantiated and configured for your needs.
             batch_size (Optional :obj:`int`): Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.
+                <Added version="2.4.0"/>
             train_size (Optional :obj:`int`):
                 If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False):

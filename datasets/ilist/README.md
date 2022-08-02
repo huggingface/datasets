@@ -6,11 +6,11 @@ multilinguality:
 task_ids:
 - text-classification-other-language-identification
 language:
-- hi
 - awa
 - bho
-- mag
 - bra
+- hi
+- mag
 annotations_creators:
 - unknown
 source_datasets:

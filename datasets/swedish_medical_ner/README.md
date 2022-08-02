@@ -5,6 +5,8 @@ annotations_creators:
 language_creators:
 - found
 language:
+- sv
+language_bcp47:
 - sv-SE
 license:
 - cc-by-sa-4.0
