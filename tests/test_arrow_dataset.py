@@ -2395,88 +2395,88 @@ class BaseDatasetTest(TestCase):
 
         from datasets.utils.tf_utils import minimal_tf_collate_fn_with_renaming
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                with dset.rename_columns({"col_1": "features", "col_2": "label"}) as new_dset:
-                    tf_dataset = new_dset.to_tf_dataset(collate_fn=minimal_tf_collate_fn_with_renaming, batch_size=4)
-                    batch = next(iter(tf_dataset))
-                    self.assertTrue("labels" in batch and "features" in batch)
+        tmp_dir = tempfile.TemporaryDirectory()
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            with dset.rename_columns({"col_1": "features", "col_2": "label"}) as new_dset:
+                tf_dataset = new_dset.to_tf_dataset(collate_fn=minimal_tf_collate_fn_with_renaming, batch_size=4)
+                batch = next(iter(tf_dataset))
+                self.assertTrue("labels" in batch and "features" in batch)
 
+                tf_dataset = new_dset.to_tf_dataset(
+                    columns=["features", "labels"], collate_fn=minimal_tf_collate_fn_with_renaming, batch_size=4
+                )
+                batch = next(iter(tf_dataset))
+                self.assertTrue("labels" in batch and "features" in batch)
+
+                tf_dataset = new_dset.to_tf_dataset(
+                    columns=["features", "label"], collate_fn=minimal_tf_collate_fn_with_renaming, batch_size=4
+                )
+                batch = next(iter(tf_dataset))
+                self.assertTrue("labels" in batch and "features" in batch)  # Assert renaming was handled correctly
+
+                with pytest.raises(ValueError):
+                    # Assert that this throws an error when we don't rename columns
                     tf_dataset = new_dset.to_tf_dataset(
-                        columns=["features", "labels"], collate_fn=minimal_tf_collate_fn_with_renaming, batch_size=4
-                    )
-                    batch = next(iter(tf_dataset))
-                    self.assertTrue("labels" in batch and "features" in batch)
-
-                    tf_dataset = new_dset.to_tf_dataset(
-                        columns=["features", "label"], collate_fn=minimal_tf_collate_fn_with_renaming, batch_size=4
-                    )
-                    batch = next(iter(tf_dataset))
-                    self.assertTrue("labels" in batch and "features" in batch)  # Assert renaming was handled correctly
-
-                    with pytest.raises(ValueError):
-                        # Assert that this throws an error when we don't rename columns
-                        tf_dataset = new_dset.to_tf_dataset(
-                            columns=["features", "label"],
-                            collate_fn=minimal_tf_collate_fn_with_renaming,
-                            batch_size=4,
-                            auto_rename_labels=False,
-                        )
-                        batch = next(iter(tf_dataset))
-
-                    tf_dataset = new_dset.to_tf_dataset(
-                        columns=["features"],
-                        label_cols=["labels"],
-                        collate_fn=minimal_tf_collate_fn_with_renaming,
-                        batch_size=4,
-                    )
-                    batch = next(iter(tf_dataset))
-                    self.assertEqual(len(batch), 2)
-                    # Assert that we don't have any empty entries here
-                    self.assertTrue(isinstance(batch[0], tf.Tensor) and isinstance(batch[1], tf.Tensor))
-
-                    tf_dataset = new_dset.to_tf_dataset(
-                        columns=["features"],
-                        label_cols=["label"],
-                        collate_fn=minimal_tf_collate_fn_with_renaming,
-                        batch_size=4,
-                    )
-                    batch = next(iter(tf_dataset))
-                    self.assertEqual(len(batch), 2)
-                    # Assert that we don't have any empty entries here
-                    self.assertTrue(isinstance(batch[0], tf.Tensor) and isinstance(batch[1], tf.Tensor))
-
-                    with pytest.raises(ValueError):
-                        tf_dataset = new_dset.to_tf_dataset(
-                            columns=["features"],
-                            label_cols=["label"],
-                            collate_fn=minimal_tf_collate_fn_with_renaming,
-                            batch_size=4,
-                            auto_rename_labels=False,
-                        )
-                        batch = next(iter(tf_dataset))
-
-                    tf_dataset = new_dset.to_tf_dataset(
-                        columns=["features"],
-                        collate_fn=minimal_tf_collate_fn_with_renaming,
-                        batch_size=4,
-                        auto_rename_labels=True,
-                    )
-                    batch = next(iter(tf_dataset))
-                    # Assert that labels didn't creep in when we don't ask for them
-                    # just because the collate_fn added them
-                    self.assertTrue(isinstance(batch, tf.Tensor))
-
-                    tf_dataset = new_dset.to_tf_dataset(
-                        columns=["features"],
+                        columns=["features", "label"],
                         collate_fn=minimal_tf_collate_fn_with_renaming,
                         batch_size=4,
                         auto_rename_labels=False,
                     )
                     batch = next(iter(tf_dataset))
-                    # Assert that labels didn't creep in when we don't ask for them
-                    # just because the collate_fn added them
-                    self.assertTrue(isinstance(batch, tf.Tensor))
+
+                tf_dataset = new_dset.to_tf_dataset(
+                    columns=["features"],
+                    label_cols=["labels"],
+                    collate_fn=minimal_tf_collate_fn_with_renaming,
+                    batch_size=4,
+                )
+                batch = next(iter(tf_dataset))
+                self.assertEqual(len(batch), 2)
+                # Assert that we don't have any empty entries here
+                self.assertTrue(isinstance(batch[0], tf.Tensor) and isinstance(batch[1], tf.Tensor))
+
+                tf_dataset = new_dset.to_tf_dataset(
+                    columns=["features"],
+                    label_cols=["label"],
+                    collate_fn=minimal_tf_collate_fn_with_renaming,
+                    batch_size=4,
+                )
+                batch = next(iter(tf_dataset))
+                self.assertEqual(len(batch), 2)
+                # Assert that we don't have any empty entries here
+                self.assertTrue(isinstance(batch[0], tf.Tensor) and isinstance(batch[1], tf.Tensor))
+
+                with pytest.raises(ValueError):
+                    tf_dataset = new_dset.to_tf_dataset(
+                        columns=["features"],
+                        label_cols=["label"],
+                        collate_fn=minimal_tf_collate_fn_with_renaming,
+                        batch_size=4,
+                        auto_rename_labels=False,
+                    )
+                    batch = next(iter(tf_dataset))
+
+                tf_dataset = new_dset.to_tf_dataset(
+                    columns=["features"],
+                    collate_fn=minimal_tf_collate_fn_with_renaming,
+                    batch_size=4,
+                    auto_rename_labels=True,
+                )
+                batch = next(iter(tf_dataset))
+                # Assert that labels didn't creep in when we don't ask for them
+                # just because the collate_fn added them
+                self.assertTrue(isinstance(batch, tf.Tensor))
+
+                tf_dataset = new_dset.to_tf_dataset(
+                    columns=["features"],
+                    collate_fn=minimal_tf_collate_fn_with_renaming,
+                    batch_size=4,
+                    auto_rename_labels=False,
+                )
+                batch = next(iter(tf_dataset))
+                # Assert that labels didn't creep in when we don't ask for them
+                # just because the collate_fn added them
+                self.assertTrue(isinstance(batch, tf.Tensor))
 
         del tf_dataset  # For correct cleanup
 
