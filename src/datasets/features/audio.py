@@ -284,7 +284,13 @@ class Audio:
             import torchaudio
             import torchaudio.transforms as T
         except ImportError as err:
-            raise ImportError("To support decoding 'mp3' audio files, please install 'torchaudio'.") from err
+            raise ImportError(
+                "Decoding 'mp3' audio files, requires 'torchaudio<0.12.0': pip install 'torchaudio<0.12.0'"
+            ) from err
+        if not version.parse(torchaudio.__version__) < version.parse("0.12.0"):
+            raise RuntimeError(
+                "Decoding 'mp3' audio files, requires 'torchaudio<0.12.0': pip install 'torchaudio<0.12.0'"
+            )
         try:
             torchaudio.set_audio_backend("sox_io")
         except RuntimeError as err:
