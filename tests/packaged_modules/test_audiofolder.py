@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from datasets import Audio, Features, Value
+from datasets import Audio, ClassLabel, Features, Value
 from datasets.data_files import DataFilesDict, get_data_patterns_locally
 from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder
@@ -18,6 +18,33 @@ from ..utils import require_sndfile
 @pytest.fixture
 def cache_dir(tmp_path):
     return str(tmp_path / "audiofolder_cache_dir")
+
+
+@pytest.fixture
+def audio_files_with_labels_and_duplicated_label_key_in_metadata(tmp_path, audio_file):
+    data_dir = tmp_path / "audio_files_with_labels_and_label_key_in_metadata"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    subdir_class_0 = data_dir / "fr"
+    subdir_class_0.mkdir(parents=True, exist_ok=True)
+    subdir_class_1 = data_dir / "uk"
+    subdir_class_1.mkdir(parents=True, exist_ok=True)
+
+    audio_filename = subdir_class_0 / "audio_fr.wav"
+    shutil.copyfile(audio_file, audio_filename)
+    audio_filename2 = subdir_class_1 / "audio_uk.wav"
+    shutil.copyfile(audio_file, audio_filename2)
+
+    audio_metadata_filename = tmp_path / data_dir / "metadata.jsonl"
+    audio_metadata = textwrap.dedent(
+        """\
+        {"file_name": "fr/audio_fr.wav", "text": "Audio in French", "label": "Fr"}
+        {"file_name": "uk/audio_uk.wav", "text": "Audio in Ukrainian", "label": "Uk"}
+        """
+    )
+    with open(audio_metadata_filename, "w", encoding="utf-8") as f:
+        f.write(audio_metadata)
+
+    return str(audio_filename), str(audio_filename2), str(audio_metadata_filename)
 
 
 @pytest.fixture
@@ -164,6 +191,40 @@ def data_files_with_zip_archives(tmp_path, audio_file):
     assert len(data_files_with_zip_archives) == 1
     assert len(data_files_with_zip_archives["train"]) == 1
     return data_files_with_zip_archives
+
+
+@require_sndfile
+@pytest.mark.parametrize("drop_metadata", [None, True, False])
+@pytest.mark.parametrize("drop_labels", [None, True, False])
+def test_generate_examples_duplicated_label_key(
+    audio_files_with_labels_and_duplicated_label_key_in_metadata, drop_metadata, drop_labels, cache_dir, caplog
+):
+    fr_audio_file, uk_audio_file, audio_metadata_file = audio_files_with_labels_and_duplicated_label_key_in_metadata
+    audiofolder = AudioFolder(
+        drop_metadata=drop_metadata,
+        drop_labels=drop_labels,
+        data_files=[fr_audio_file, uk_audio_file, audio_metadata_file],
+        cache_dir=cache_dir,
+    )
+    if drop_labels is False:
+        # infer labels from directories even if metadata files are found
+        audiofolder.download_and_prepare()
+        warning_in_logs = any("ignoring metadata columns" in record.msg.lower() for record in caplog.records)
+        assert warning_in_logs if drop_metadata is not True else not warning_in_logs
+        dataset = audiofolder.as_dataset()["train"]
+        assert audiofolder.info.features["label"] == ClassLabel(names=["fr", "uk"])
+        assert all(example["label"] in audiofolder.info.features["label"]._str2int.values() for example in dataset)
+    else:
+        audiofolder.download_and_prepare()
+        dataset = audiofolder.as_dataset()["train"]
+        if drop_metadata is not True:
+            # labels are from metadata
+            assert audiofolder.info.features["label"] == Value("string")
+            assert all(example["label"] in ["Fr", "Uk"] for example in dataset)
+        else:
+            # drop both labels and metadata
+            assert audiofolder.info.features == Features({"audio": Audio()})
+            assert all(example.keys() == {"audio"} for example in dataset)
 
 
 @require_sndfile
