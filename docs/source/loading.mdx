@@ -54,19 +54,13 @@ If you don't specify which data files to use, [`load_dataset`] will return all t
 
 </Tip>
 
-You can also load a specific subset of the files with the `data_files` or `data_dir` parameter. Datasets are loaded from the Hub if you pass a relative path to `data_dir`. The relative path is transformed to a URL corresponding to where the dataset is loaded from. If you want to load a dataset from a local directory, you need to pass an absolute path instead:
+You can also load a specific subset of the files with the `data_files` or `data_dir` parameter. These parameters can accept a relative path which resolves to the base path corresponding to where the dataset is loaded from.
 
 ```py
 >>> from datasets import load_dataset
 
 # load files that match the grep pattern
 >>> c4_subset = load_dataset("allenai/c4", data_files="en/c4-train.0000*-of-01024.json.gz")
-
-# load dataset from the en directory on the Hub
->>> c4_subset = load_dataset("allenai/c4", data_dir="./en/")
-
-# load dataset from the en directory on your computer
->>> c4_subset = load_dataset("allenai/c4", data_dir="path/to/local/allenai/c4/en/")
 ```
 
 The `split` parameter can also map a data file to a specific split:
@@ -86,13 +80,6 @@ You may have a 🤗 Datasets loading script locally on your computer. In this ca
 ```py
 >>> dataset = load_dataset("path/to/local/loading_script/loading_script.py", split="train")
 >>> dataset = load_dataset("path/to/local/loading_script", split="train")  # equivalent because the file has the same name as the directory
-```
-
-You can load a specific subset of files with the `data_files` or `data_dir` parameter. Passing a relative path to these parameters will load a dataset from your local directory:
-
-```py
->>> from datasets import load_dataset
->>> c4_subset = load_dataset("path/to/local/loading_script", data_dir="./train-v1/")
 ```
 
 ## Local and remote files
