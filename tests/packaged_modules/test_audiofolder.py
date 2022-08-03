@@ -8,6 +8,7 @@ import soundfile as sf
 
 from datasets import Audio, Features, Value
 from datasets.data_files import DataFilesDict, get_data_patterns_locally
+from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder
 from datasets.streaming import extend_module_for_streaming
 
@@ -166,10 +167,15 @@ def data_files_with_zip_archives(tmp_path, audio_file):
 
 
 @require_sndfile
-@pytest.mark.parametrize("drop_labels", [True, False])
-def test_generate_examples_drop_labels(audio_file, drop_labels):
-    audiofolder = AudioFolder(drop_labels=drop_labels)
-    generator = audiofolder._generate_examples([(audio_file, audio_file)], None, "train")
+@pytest.mark.parametrize("drop_metadata", [None, True, False])
+@pytest.mark.parametrize("drop_labels", [None, True, False])
+def test_generate_examples_drop_labels(audio_file, drop_metadata, drop_labels):
+    audiofolder = AudioFolder(drop_metadata=drop_metadata, drop_labels=drop_labels, data_files={"train": [audio_file]})
+    gen_kwargs = audiofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    # removing the labels explicitly requires drop_labels=True
+    assert gen_kwargs["add_labels"] is not bool(drop_labels)
+    assert gen_kwargs["add_metadata"] is False  # metadata files is not present in this case
+    generator = audiofolder._generate_examples(**gen_kwargs)
     if not drop_labels:
         assert all(
             example.keys() == {"audio", "label"} and all(val is not None for val in example.values())
@@ -183,41 +189,39 @@ def test_generate_examples_drop_labels(audio_file, drop_labels):
 
 
 @require_sndfile
-@pytest.mark.parametrize("drop_metadata", [True, False])
-def test_generate_examples_drop_metadata(audio_file_with_metadata, drop_metadata):
+@pytest.mark.parametrize("drop_metadata", [None, True, False])
+@pytest.mark.parametrize("drop_labels", [None, True, False])
+def test_generate_examples_drop_metadata(audio_file_with_metadata, drop_metadata, drop_labels):
     audio_file, audio_metadata_file = audio_file_with_metadata
-    if not drop_metadata:
-        features = Features({"audio": Audio(), "text": Value("string")})
-    else:
-        features = Features({"audio": Audio()})
-    audiofolder = AudioFolder(drop_metadata=drop_metadata, features=features)
-    generator = audiofolder._generate_examples(
-        [(audio_file, audio_file)], {"train": [(audio_metadata_file, audio_metadata_file)]}, "train"
+    audiofolder = AudioFolder(
+        drop_metadata=drop_metadata, drop_labels=drop_labels, data_files={"train": [audio_file, audio_metadata_file]}
     )
-    if not drop_metadata:
-        assert all(
-            example.keys() == {"audio", "text"} and all(val is not None for val in example.values())
-            for _, example in generator
-        )
-    else:
-        assert all(
-            example.keys() == {"audio"} and all(val is not None for val in example.values())
-            for _, example in generator
-        )
+    gen_kwargs = audiofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    # since the dataset has metadata, removing the metadata explicitly requires drop_metadata=True
+    assert gen_kwargs["add_metadata"] is not bool(drop_metadata)
+    # since the dataset has metadata, adding the labels explicitly requires drop_labels=False
+    assert gen_kwargs["add_labels"] is (drop_labels is False)
+    generator = audiofolder._generate_examples(**gen_kwargs)
+    expected_columns = {"audio"}
+    if gen_kwargs["add_metadata"]:
+        expected_columns.add("text")
+    if gen_kwargs["add_labels"]:
+        expected_columns.add("label")
+    result = [example for _, example in generator]
+    assert len(result) == 1
+    example = result[0]
+    assert example.keys() == expected_columns
+    for column in expected_columns:
+        assert example[column] is not None
 
 
 @require_sndfile
-@pytest.mark.parametrize("drop_metadata", [True, False])
+@pytest.mark.parametrize("drop_metadata", [None, True, False])
 def test_generate_examples_with_metadata_in_wrong_location(audio_file, audio_file_with_metadata, drop_metadata):
     _, audio_metadata_file = audio_file_with_metadata
-    if not drop_metadata:
-        features = Features({"audio": Audio(), "text": Value("string")})
-    else:
-        features = Features({"audio": Audio()})
-    audiofolder = AudioFolder(drop_metadata=drop_metadata, features=features)
-    generator = audiofolder._generate_examples(
-        [(audio_file, audio_file)], {"train": [(audio_metadata_file, audio_metadata_file)]}, "train"
-    )
+    audiofolder = AudioFolder(drop_metadata=drop_metadata, data_files={"train": [audio_file, audio_metadata_file]})
+    gen_kwargs = audiofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    generator = audiofolder._generate_examples(**gen_kwargs)
     if not drop_metadata:
         with pytest.raises(ValueError):
             list(generator)
@@ -229,7 +233,7 @@ def test_generate_examples_with_metadata_in_wrong_location(audio_file, audio_fil
 
 
 @require_sndfile
-@pytest.mark.parametrize("drop_metadata", [True, False])
+@pytest.mark.parametrize("drop_metadata", [None, True, False])
 def test_generate_examples_with_metadata_that_misses_one_audio(
     audio_files_with_metadata_that_misses_one_audio, drop_metadata
 ):
@@ -238,12 +242,13 @@ def test_generate_examples_with_metadata_that_misses_one_audio(
         features = Features({"audio": Audio(), "text": Value("string")})
     else:
         features = Features({"audio": Audio()})
-    audiofolder = AudioFolder(drop_metadata=drop_metadata, features=features)
-    generator = audiofolder._generate_examples(
-        [(audio_file, audio_file), (audio_file2, audio_file2)],
-        {"train": [(audio_metadata_file, audio_metadata_file)]},
-        "train",
+    audiofolder = AudioFolder(
+        drop_metadata=drop_metadata,
+        features=features,
+        data_files={"train": [audio_file, audio_file2, audio_metadata_file]},
     )
+    gen_kwargs = audiofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    generator = audiofolder._generate_examples(**gen_kwargs)
     if not drop_metadata:
         with pytest.raises(ValueError):
             _ = list(generator)
