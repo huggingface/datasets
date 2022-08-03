@@ -21,6 +21,28 @@ def cache_dir(tmp_path):
 
 
 @pytest.fixture
+def data_files_with_labels_no_metadata(tmp_path, audio_file):
+    data_dir = tmp_path / "data_files_with_labels_no_metadata"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    subdir_class_0 = data_dir / "fr"
+    subdir_class_0.mkdir(parents=True, exist_ok=True)
+    # data dirs can be nested but audiofolder should care only about the last part of the path:
+    subdir_class_1 = data_dir / "subdir" / "uk"
+    subdir_class_1.mkdir(parents=True, exist_ok=True)
+
+    audio_filename = subdir_class_0 / "audio_fr.wav"
+    shutil.copyfile(audio_file, audio_filename)
+    audio_filename2 = subdir_class_1 / "audio_uk.wav"
+    shutil.copyfile(audio_file, audio_filename2)
+
+    data_files_with_labels_no_metadata = DataFilesDict.from_local_or_remote(
+        get_data_patterns_locally(str(data_dir)), str(data_dir)
+    )
+
+    return data_files_with_labels_no_metadata
+
+
+@pytest.fixture
 def audio_files_with_labels_and_duplicated_label_key_in_metadata(tmp_path, audio_file):
     data_dir = tmp_path / "audio_files_with_labels_and_label_key_in_metadata"
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -191,6 +213,20 @@ def data_files_with_zip_archives(tmp_path, audio_file):
     assert len(data_files_with_zip_archives) == 1
     assert len(data_files_with_zip_archives["train"]) == 1
     return data_files_with_zip_archives
+
+
+@require_sndfile
+# check that labels are inferred correctly from dir names
+def test_generate_examples_with_labels(data_files_with_labels_no_metadata, cache_dir):
+    # there are no metadata.jsonl files in this test case
+    audiofolder = AudioFolder(data_files=data_files_with_labels_no_metadata, cache_dir=cache_dir, drop_labels=False)
+    audiofolder.download_and_prepare()
+    assert audiofolder.info.features == Features({"audio": Audio(), "label": ClassLabel(names=["fr", "uk"])})
+    dataset = list(audiofolder.as_dataset()["train"])
+    label_feature = audiofolder.info.features["label"]
+
+    assert dataset[0]["label"] == label_feature._str2int["fr"]
+    assert dataset[1]["label"] == label_feature._str2int["uk"]
 
 
 @require_sndfile
