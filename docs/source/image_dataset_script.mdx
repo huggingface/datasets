@@ -18,6 +18,7 @@ This structure allows your dataset to be loaded in one line:
 This guide will show you how to create a dataset loading script for image datasets, which is a bit different from <a class="underline decoration-green-400 decoration-2 font-semibold" href="./dataset_script">creating a loading script for text datasets</a>. You'll learn how to:
 
 * Create a dataset builder class.
+* Create dataset configurations.
 * Add dataset metadata.
 * Download and define the dataset splits.
 * Generate the dataset.
@@ -44,13 +45,73 @@ Start by creating your dataset class as a subclass of [`GeneratorBasedBuilder`] 
 
 ```py
 class Food101(datasets.GeneratorBasedBuilder):
-    """Food-101 Images dataset"""
+... """Food-101 Images dataset"""
+...
+... def _info(self):
+...
+... def _split_generators(self, dl_manager):
+...
+... def _generate_examples(self, images, metadata_path):
+```
 
-    def _info(self):
+### Multiple configurations
 
-    def _split_generators(self, dl_manager):
+In some cases, a dataset may have more than one configuration. For example, if you check out the [Imagenette dataset](https://huggingface.co/datasets/frgfm/imagenette), you'll notice there are three subsets. 
 
-    def _generate_examples(self, images, metadata_path):
+To create different configurations, use the [`BuilderConfig`] class to create a subclass for your dataset. Provide the links to download the images and labels in `data_url` and `metadata_urls`:
+
+```py
+class Food101Config(datasets.BuilderConfig):
+...     """Builder Config for Food-101"""
+... 
+...     def __init__(self, data_url, metadata_urls, **kwargs):
+...         """BuilderConfig for Food-101.
+...         Args:
+...           data_url: `string`, url to download the zip file from.
+...           metadata_urls: dictionary with keys 'train' and 'validation' containing the archive metadata URLs
+...           **kwargs: keyword arguments forwarded to super.
+...         """
+...         super(Food101Config, self).__init__(version=datasets.Version("1.0.0"), **kwargs)
+...         self.data_url = data_url
+...         self.metadata_urls = metadata_urls
+```
+
+Now you can define your subsets at the top of [`GeneratorBasedBuilder`]. Imagine you want to create two subsets in the Food-101 dataset based on whether it is a breakfast or dinner food.
+
+1. Define your subsets with `Food101Config` in a list in `BUILDER_CONFIGS`.
+2. For each configuration, provide a name, description, and where to download the images and labels from.
+
+```py
+class Food101(datasets.GeneratorBasedBuilder):
+... """Food-101 Images dataset"""
+... 
+... BUILDER_CONFIGS = [
+...     Food101Config(
+...         name="breakfast",
+...         description="Food types commonly eaten during breakfast.",
+...         data_url="https://link-to-breakfast-foods.zip",
+...         metadata_urls={
+...             "train": "https://link-to-breakfast-foods-train.txt", 
+...             "validation": "https://link-to-breakfast-foods-validation.txt"
+...         },
+...      ,
+...     Food101Config(
+...         name="dinner",
+...         description="Food types commonly eaten during dinner.",
+...         data_url="https://link-to-dinner-foods.zip",
+...         metadata_urls={
+...             "train": "https://link-to-dinner-foods-train.txt", 
+...             "validation": "https://link-to-dinner-foods-validation.txt"
+...         },
+...     )...
+... ]
+```
+
+Now if users want to load the `breakfast` configuration, they can use the configuration name:
+
+```py
+>>> from datasets import load_dataset
+>>> ds = load_dataset("food101", "breakfast", split="train")
 ```
 
 ## Add dataset metadata
