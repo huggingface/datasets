@@ -3697,7 +3697,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         contiguous: bool = False,
         keep_in_memory: bool = False,
         indices_cache_file_name: Optional[str] = None,
-        writer_batch_size: Optional[int] = 1000,
+        writer_batch_size: Optional[int] = 1000
     ) -> "Dataset":
         """Return the `index`-nth shard from dataset split into `num_shards` pieces.
 
@@ -3761,6 +3761,48 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             indices_cache_file_name=indices_cache_file_name,
             writer_batch_size=writer_batch_size,
         )
+
+    def shard_generator(
+        self,
+        shard_size: int,
+        contiguous: bool = False,
+        keep_in_memory: bool = False,
+        indices_cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 1000
+    ) -> "Generator object Dataset":
+        """Return the generator object of type Datatset with approximate size of shard_size.
+        Args:
+            shard_size (:obj:`int`): Number of samples for every shard.
+            contiguous: (:obj:`bool`, default `False`): Whether to select contiguous blocks of indices for shards.
+            keep_in_memory (:obj:`bool`, default `False`): Keep the dataset in memory instead of writing it to a cache file.
+            indices_cache_file_name (:obj:`str`, optional): Provide the name of a path for the cache file. It is used to store the
+                indices of each shard instead of the automatically generated cache file name.
+            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
+                This value is a good trade-off between memory usage during the processing, and processing speed.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds
+        Dataset({
+            features: ['text', 'label'],
+            num_rows: 1066
+        })
+        >>> ds.shard(num_shards=2, index=0)
+        Dataset({
+            features: ['text', 'label'],
+            num_rows: 533
+        })
+        ```
+        """
+        num_samples = len(dataset)
+        for i in range(int(num_samples/n)):
+            shard = dataset.shard(
+                        int(num_samples/n), i, contiguous=contiguous, keep_in_memory=keep_in_memory)
+            yield shard
 
     def export(
         self,
