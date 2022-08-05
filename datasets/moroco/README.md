@@ -5,7 +5,8 @@ language_creators:
 - found
 language:
 - ro
-- ro-md
+language_bcp47:
+- ro-MD
 license:
 - cc-by-4.0
 multilinguality:

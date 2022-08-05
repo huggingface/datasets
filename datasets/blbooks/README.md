@@ -4,10 +4,10 @@ annotations_creators:
 language_creators:
 - machine-generated
 language:
-- en
-- fr
 - de
+- en
 - es
+- fr
 - it
 - nl
 license:

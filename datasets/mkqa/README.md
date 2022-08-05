@@ -15,8 +15,8 @@ language:
 - hu
 - it
 - ja
-- ko
 - km
+- ko
 - ms
 - nl
 - 'no'

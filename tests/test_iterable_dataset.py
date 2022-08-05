@@ -603,6 +603,7 @@ def test_sharded_iterable_dataset_torch_dataloader_parallel(n_shards, num_worker
 
 
 @require_torch
+@pytest.mark.integration
 @pytest.mark.parametrize("num_workers", [1, 2])
 def test_iterable_dataset_from_hub_torch_dataloader_parallel(num_workers, tmp_path):
     from torch.utils.data import DataLoader

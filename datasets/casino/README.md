@@ -21,7 +21,6 @@ task_ids:
 - dialogue-modeling
 pretty_name: Campsite Negotiation Dialogues
 paperswithcode_id: casino
-
 ---
 
 

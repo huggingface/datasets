@@ -236,12 +236,15 @@ class DatasetMetadata:
     source_datasets: List[str]
     task_categories: List[str]
     task_ids: Union[EmptyList, List[str]]
+    language_details: Optional[str] = None
+    language_bcp47: Optional[List[str]] = None
     paperswithcode_id: Optional[str] = None
     train_eval_index: Optional[List[Dict]] = None
     configs: Optional[List[str]] = None
     extra_gated_fields: Optional[Dict] = None
     extra_gated_prompt: Optional[str] = None
     license_details: Optional[str] = None
+    tags: Optional[List[str]] = None
     licenses: Optional[Union[EmptyList, List[str]]] = None  # deprecated
     languages: Optional[Union[EmptyList, List[str]]] = None  # deprecated
 

@@ -5,13 +5,16 @@ language_creators:
 - found
 language:
 - de
-- en_GB
+- en
 - es
 - fr
 - ja
 - ru
 - sv
-- zh_CN
+- zh
+language_bcp47:
+- en-GB
+- zh-CN
 license:
 - unknown
 multilinguality:

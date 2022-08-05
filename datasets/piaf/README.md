@@ -4,6 +4,8 @@ annotations_creators:
 language_creators:
 - crowdsourced
 language:
+- fr
+language_bcp47:
 - fr-FR
 license:
 - mit

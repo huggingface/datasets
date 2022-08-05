@@ -20,7 +20,7 @@ task_categories:
 task_ids:
 - text-scoring
 - sentiment-scoring
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: null
 pretty_name: SentiWS
 ---

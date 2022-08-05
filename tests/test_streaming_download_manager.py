@@ -271,6 +271,7 @@ def test_xopen_local(text_path):
         assert list(f) == list(expected_file)
 
 
+@pytest.mark.integration
 def test_xopen_remote():
     with xopen(TEST_URL, "r", encoding="utf-8") as f:
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
@@ -296,6 +297,7 @@ def test_xlistdir(input_path, expected_paths, tmp_path, mock_fsspec):
     assert output_paths == expected_paths
 
 
+@pytest.mark.integration
 def test_xlistdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     assert len(xlistdir("zip://::" + root_url, use_auth_token=hf_token)) == 1
@@ -323,6 +325,7 @@ def test_xisdir(input_path, isdir, tmp_path, mock_fsspec):
     assert xisdir(input_path) == isdir
 
 
+@pytest.mark.integration
 def test_xisdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     assert xisdir("zip://::" + root_url, use_auth_token=hf_token) is True
@@ -348,6 +351,7 @@ def test_xisfile(input_path, isfile, tmp_path, mock_fsspec):
     assert xisfile(input_path) == isfile
 
 
+@pytest.mark.integration
 def test_xisfile_private(hf_private_dataset_repo_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_txt_data, "")
     assert xisfile(root_url + "data/text_data.txt", use_auth_token=hf_token) is True
@@ -370,6 +374,7 @@ def test_xgetsize(input_path, size, tmp_path, mock_fsspec):
     assert xgetsize(input_path) == size
 
 
+@pytest.mark.integration
 def test_xgetsize_private(hf_private_dataset_repo_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_txt_data, "")
     assert xgetsize(root_url + "data/text_data.txt", use_auth_token=hf_token) == 39
@@ -412,6 +417,7 @@ def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
     assert output_paths == expected_paths
 
 
+@pytest.mark.integration
 def test_xglob_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     assert len(xglob("zip://**::" + root_url, use_auth_token=hf_token)) == 3
@@ -449,6 +455,7 @@ def test_xwalk(input_path, expected_outputs, tmp_path, mock_fsspec):
     assert outputs == expected_outputs
 
 
+@pytest.mark.integration
 def test_xwalk_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     assert len(list(xwalk("zip://::" + root_url, use_auth_token=hf_token))) == 2
@@ -686,14 +693,19 @@ def test_streaming_dl_manager_download_and_extract_with_join(input_path, filenam
     assert output_path == expected_path
 
 
-@require_zstandard
-@require_lz4
 @pytest.mark.parametrize("compression_fs_class", COMPRESSION_FILESYSTEMS)
 def test_streaming_dl_manager_extract_all_supported_single_file_compression_types(
     compression_fs_class, gz_file, xz_file, zstd_file, bz2_file, lz4_file, text_file
 ):
     input_paths = {"gzip": gz_file, "xz": xz_file, "zstd": zstd_file, "bz2": bz2_file, "lz4": lz4_file}
-    input_path = str(input_paths[compression_fs_class.protocol])
+    input_path = input_paths[compression_fs_class.protocol]
+    if input_path is None:
+        reason = f"for '{compression_fs_class.protocol}' compression protocol, "
+        if compression_fs_class.protocol == "lz4":
+            reason += require_lz4.kwargs["reason"]
+        elif compression_fs_class.protocol == "zstd":
+            reason += require_zstandard.kwargs["reason"]
+        pytest.skip(reason)
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.extract(input_path)
     path = os.path.basename(input_path)
@@ -746,12 +758,14 @@ def test_streaming_dl_manager_get_extraction_protocol_throws(urlpath):
 
 
 @slow  # otherwise it spams google drive and the CI gets banned
+@pytest.mark.integration
 def test_streaming_gg_drive():
     with xopen(TEST_GG_DRIVE_URL) as f:
         assert f.read() == TEST_GG_DRIVE_CONTENT
 
 
 @slow  # otherwise it spams google drive and the CI gets banned
+@pytest.mark.integration
 def test_streaming_gg_drive_no_extract():
     urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_URL)
     with xopen(urlpath) as f:
@@ -759,6 +773,7 @@ def test_streaming_gg_drive_no_extract():
 
 
 @slow  # otherwise it spams google drive and the CI gets banned
+@pytest.mark.integration
 def test_streaming_gg_drive_gzipped():
     urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_GZIPPED_URL)
     with xopen(urlpath) as f:
@@ -766,6 +781,7 @@ def test_streaming_gg_drive_gzipped():
 
 
 @slow  # otherwise it spams google drive and the CI gets banned
+@pytest.mark.integration
 def test_streaming_gg_drive_zipped():
     urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_ZIPPED_URL)
     all_files = list(xglob(xjoin(urlpath, "*")))
@@ -785,7 +801,7 @@ def _test_jsonl(path, file):
 
 def test_iter_archive_path(tar_jsonl_path):
     dl_manager = StreamingDownloadManager()
-    archive_iterable = dl_manager.iter_archive(str(tar_jsonl_path))
+    archive_iterable = dl_manager.iter_archive(tar_jsonl_path)
     num_jsonl = 0
     for num_jsonl, (path, file) in enumerate(archive_iterable, start=1):
         _test_jsonl(path, file)
@@ -799,7 +815,7 @@ def test_iter_archive_path(tar_jsonl_path):
 
 def test_iter_archive_file(tar_nested_jsonl_path):
     dl_manager = StreamingDownloadManager()
-    files_iterable = dl_manager.iter_archive(str(tar_nested_jsonl_path))
+    files_iterable = dl_manager.iter_archive(tar_nested_jsonl_path)
     num_tar, num_jsonl = 0, 0
     for num_tar, (path, file) in enumerate(files_iterable, start=1):
         for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):

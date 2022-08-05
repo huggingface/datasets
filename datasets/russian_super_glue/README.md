@@ -7,6 +7,8 @@ language_creators:
 - crowdsourced
 - expert-generated
 language:
+- ru
+language_bcp47:
 - ru-RU
 license:
 - mit

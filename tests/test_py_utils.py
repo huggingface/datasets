@@ -1,9 +1,11 @@
+from dataclasses import dataclass
 from unittest import TestCase
+from unittest.mock import patch
 
 import numpy as np
 import pytest
 
-from datasets.utils.py_utils import NestedDataStructure, map_nested, temp_seed, temporary_assignment, zip_dict
+from datasets.utils.py_utils import NestedDataStructure, asdict, map_nested, temp_seed, temporary_assignment, zip_dict
 
 from .utils import require_tf, require_torch
 
@@ -14,6 +16,12 @@ def np_sum(x):  # picklable for multiprocessing
 
 def add_one(i):  # picklable for multiprocessing
     return i + 1
+
+
+@dataclass
+class A:
+    x: int
+    y: str
 
 
 class PyUtilsTest(TestCase):
@@ -89,6 +97,36 @@ class PyUtilsTest(TestCase):
         with temporary_assignment(foo, "my_attr", "BAR"):
             self.assertEqual(foo.my_attr, "BAR")
         self.assertEqual(foo.my_attr, "bar")
+
+
+@pytest.mark.parametrize(
+    "iterable_length, num_proc, expected_num_proc",
+    [
+        (1, None, 1),
+        (1, 1, 1),
+        (2, None, 1),
+        (2, 1, 1),
+        (2, 2, 1),
+        (2, 3, 1),
+        (3, 2, 1),
+        (16, 16, 16),
+        (16, 17, 16),
+        (17, 16, 16),
+    ],
+)
+def test_map_nested_num_proc(iterable_length, num_proc, expected_num_proc):
+    with patch("datasets.utils.py_utils._single_map_nested") as mock_single_map_nested, patch(
+        "datasets.utils.py_utils.Pool"
+    ) as mock_multiprocessing_pool:
+        data_struct = {f"{i}": i for i in range(iterable_length)}
+        _ = map_nested(lambda x: x + 10, data_struct, num_proc=num_proc, parallel_min_length=16)
+        if expected_num_proc == 1:
+            assert mock_single_map_nested.called
+            assert not mock_multiprocessing_pool.called
+        else:
+            assert not mock_single_map_nested.called
+            assert mock_multiprocessing_pool.called
+            assert mock_multiprocessing_pool.call_args[0][0] == expected_num_proc
 
 
 class TempSeedTest(TestCase):
@@ -175,3 +213,16 @@ def test_nested_data_structure_data(input_data):
 def test_flatten(data, expected_output):
     output = NestedDataStructure(data).flatten()
     assert output == expected_output
+
+
+def test_asdict():
+    input = A(x=1, y="foobar")
+    expected_output = {"x": 1, "y": "foobar"}
+    assert asdict(input) == expected_output
+
+    input = {"a": {"b": A(x=10, y="foo")}, "c": [A(x=20, y="bar")]}
+    expected_output = {"a": {"b": {"x": 10, "y": "foo"}}, "c": [{"x": 20, "y": "bar"}]}
+    assert asdict(input) == expected_output
+
+    with pytest.raises(TypeError):
+        asdict([1, A(x=10, y="foo")])

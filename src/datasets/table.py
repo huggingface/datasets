@@ -1478,7 +1478,10 @@ class ConcatenationTable(Table):
         Returns:
             :class:`datasets.table.Table`:
         """
+        from .features import Features
+
         table = table_cast(self.table, target_schema, *args, **kwargs)
+        target_features = Features.from_arrow_schema(target_schema)
         blocks = []
         for subtables in self.blocks:
             new_tables = []
@@ -1487,7 +1490,8 @@ class ConcatenationTable(Table):
                 subfields = []
                 for name in subtable.column_names:
                     subfields.append(fields.pop(next(i for i, field in enumerate(fields) if field.name == name)))
-                subschema = pa.schema(subfields)
+                subfeatures = Features({subfield.name: target_features[subfield.name] for subfield in subfields})
+                subschema = subfeatures.arrow_schema
                 new_tables.append(subtable.cast(subschema, *args, **kwargs))
             blocks.append(new_tables)
         return ConcatenationTable(table, blocks)
@@ -1856,6 +1860,8 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
     For custom features like Audio or Image, it takes into account the "embed_storage" methods
     they defined to enable embedding external data (e.g. an image file) into an other arrow types.
 
+    <Added version="2.4.0"/>
+
     Args:
         array (pa.Array): the PyArrow array in which to embed data
         feature (FeatureType): array features
@@ -1968,6 +1974,8 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
 
 def embed_table_storage(table: pa.Table):
     """Embed external data into a table's storage.
+
+    <Added version="2.4.0"/>
 
     Args:
         table (:obj:`pyarrow.Table`): PyArrow table in which to embed data

@@ -4,8 +4,8 @@
     <br>
 <p>
 <p align="center">
-    <a href="https://circleci.com/gh/huggingface/datasets">
-        <img alt="Build" src="https://img.shields.io/circleci/build/github/huggingface/datasets/main">
+    <a href="https://github.com/huggingface/datasets/actions/workflows/ci.yml?query=branch%3Amain">
+        <img alt="Build" src="https://github.com/huggingface/datasets/actions/workflows/ci.yml/badge.svg?branch=main">
     </a>
     <a href="https://github.com/huggingface/datasets/blob/main/LICENSE">
         <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/datasets.svg?color=blue">
@@ -40,7 +40,7 @@
     <a href="https://hf.co/course"><img src="https://raw.githubusercontent.com/huggingface/datasets/main/docs/source/imgs/course_banner.png"></a>
 </h3>
 
-🤗 Datasets also provides access to +40 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. 
+🤗 Datasets is designed to let the community easily add and share new datasets.
 
 🤗 Datasets has many additional interesting features:
 
@@ -85,15 +85,13 @@ For more details on using the library with NumPy, pandas, PyTorch or TensorFlow,
 
 - `datasets.list_datasets()` to list the available datasets
 - `datasets.load_dataset(dataset_name, **kwargs)` to instantiate a dataset
-- `datasets.list_metrics()` to list the available metrics
-- `datasets.load_metric(metric_name, **kwargs)` to instantiate a metric
 
 This library can be used for text/image/audio/etc. datasets. Here is an example to load a text dataset:
 
 Here is a quick example:
 
 ```python
-from datasets import list_datasets, load_dataset, list_metrics, load_metric
+from datasets import list_datasets, load_dataset
 
 # Print all the available datasets
 print(list_datasets())
@@ -101,12 +99,6 @@ print(list_datasets())
 # Load a dataset and print the first example in the training set
 squad_dataset = load_dataset('squad')
 print(squad_dataset['train'][0])
-
-# List all the available metrics
-print(list_metrics())
-
-# Load a metric
-squad_metric = load_metric('squad')
 
 # Process the dataset - add a column with the length of the context texts
 dataset_with_length = squad_dataset.map(lambda x: {"length": len(x["context"])})
@@ -150,7 +142,7 @@ If you are familiar with the great TensorFlow Datasets, here are the main differ
 
 # Disclaimers
 
-Similar to TensorFlow Datasets, 🤗 Datasets is a utility library that downloads and prepares public datasets. We do not host or distribute these datasets, vouch for their quality or fairness, or claim that you have license to use them. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
+Similar to TensorFlow Datasets, 🤗 Datasets is a utility library that downloads and prepares public datasets. We do not host or distribute most of these datasets, vouch for their quality or fairness, or claim that you have license to use them. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
 
 If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in this library, please get in touch through a [GitHub issue](https://github.com/huggingface/datasets/issues/new). Thanks for your contribution to the ML community!
 

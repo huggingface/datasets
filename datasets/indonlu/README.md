@@ -23,7 +23,7 @@ task_ids:
 - closed-domain-qa
 - multi-class-classification
 - named-entity-recognition
-- part-of-speech-tagging
+- part-of-speech
 - semantic-similarity-classification
 - sentiment-classification
 - text-classification-other-aspect-based-sentiment-analysis
