@@ -4187,7 +4187,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def shard_generator(
         self,
         shard_size: int,
-        contiguous: bool = False,
         keep_in_memory: bool = False,
         indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
@@ -4978,7 +4977,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             custom_index (Optional :obj:`faiss.Index`):
                 Custom Faiss index that you already have instantiated and configured for your needs.
             batch_size (Optional :obj:`int`): Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.
-                <Added version="2.4.0"/>
             train_size (Optional :obj:`int`):
                 If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False):
@@ -5055,7 +5053,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             custom_index (Optional :obj:`faiss.Index`):
                 Custom Faiss index that you already have instantiated and configured for your needs.
             batch_size (Optional :obj:`int`): Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.
-                <Added version="2.4.0"/>
             train_size (Optional :obj:`int`):
                 If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False):
