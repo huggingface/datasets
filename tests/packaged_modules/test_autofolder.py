@@ -230,12 +230,14 @@ def test_default_autoconfig_not_usable(data_files_with_labels_no_metadata):
     with pytest.raises(AttributeError):
         _ = AutoFolderConfig()
     with pytest.raises(AttributeError):
-        _ = AutoFolder()
+        _ = AutoFolder(data_files=data_files_with_labels_no_metadata)
 
 
-def test_default_autofolder_not_usable(data_files_with_labels_no_metadata):
+def test_default_autofolder_not_usable(data_files_with_labels_no_metadata, cache_dir):
     autofolder = AutoFolder(
-        base_feature_name="auto", data_files=data_files_with_labels_no_metadata, cache_dir=cache_dir, drop_labels=False
+        base_feature_name="auto",
+        data_files=data_files_with_labels_no_metadata,
+        cache_dir=cache_dir,
     )
     with pytest.raises(NotImplementedError):
         autofolder.download_and_prepare()
