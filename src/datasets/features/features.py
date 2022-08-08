@@ -1301,7 +1301,7 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         return {field.name: generate_from_arrow_type(field.type) for field in pa_type}
     elif isinstance(pa_type, pa.FixedSizeListType):
         return Sequence(feature=generate_from_arrow_type(pa_type.value_type), length=pa_type.list_size)
-    elif isinstance(pa_type, pa.ListType):
+    elif isinstance(pa_type, pa.ListType) or isinstance(pa_type, pa.LargeListType):
         feature = generate_from_arrow_type(pa_type.value_type)
         if isinstance(feature, (dict, tuple, list)):
             return [feature]
@@ -1324,8 +1324,12 @@ def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.
     for i in range(arr.ndim - 1):
         n_offsets = reduce(mul, arr.shape[: arr.ndim - i - 1], 1)
         step_offsets = arr.shape[arr.ndim - i - 1]
-        offsets = pa.array(np.arange(n_offsets + 1) * step_offsets, type=pa.int32())
-        values = pa.ListArray.from_arrays(offsets, values)
+        if n_offsets * step_offsets < (1<<31):
+            offsets = pa.array(np.arange(n_offsets + 1) * step_offsets, type=pa.int32())
+            values = pa.ListArray.from_arrays(offsets, values)
+        else:
+            offsets = pa.array(np.arange(n_offsets + 1) * step_offsets, type=pa.int64())
+            values = pa.LargeListArray.from_arrays(offsets, values)
     return values
 
 
