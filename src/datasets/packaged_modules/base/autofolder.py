@@ -44,7 +44,9 @@ def count_path_segments(path):
 class AutoFolderConfig(datasets.BuilderConfig):
     """BuilderConfig for AutoFolder."""
 
-    base_feature: ClassVar = None  # i.e. datasets.Image(), datasets.Audio(), we don't have a type for Feature ("FieldType") # TODO: what type?
+    base_feature: ClassVar = (
+        None  # i.e. datasets.Image(), datasets.Audio(), we don't have a type for Feature ("FieldType")
+    )
     base_feature_name: str = ""
     label_column: str = "label"
     features: Optional[datasets.Features] = None
@@ -54,7 +56,17 @@ class AutoFolderConfig(datasets.BuilderConfig):
     def __post_init__(self):
         if not self.base_feature_name:
             # automatically infer feature name from feature if it's not provided
-            self.base_feature_name = self.base_feature._type.lower()
+            if hasattr(self.base_feature, "_type"):
+                self.base_feature_name = self.base_feature._type.lower()
+            elif hasattr(self.base_feature, "__name__"):
+                self.base_feature_name = self.base_feature.__name__lower()
+            else:
+                raise AttributeError(
+                    """
+                    `base_feature_name` is not provided and cannot be inferred form the base feature,
+                    check the config's `base_feature`.
+                    """
+                )
 
 
 class AutoFolder(datasets.GeneratorBasedBuilder):
