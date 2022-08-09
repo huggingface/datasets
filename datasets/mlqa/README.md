@@ -15,7 +15,7 @@ source_datasets:
 size_categories:
 - 10K<n<100K
 language_creators:
-- unknown
+- crowdsourced
 annotations_creators:
 - crowdsourced
 multilinguality:
