@@ -57,7 +57,7 @@ If you only want to load the underlying path to the audio dataset without decodi
 
 ## AudioFolder
 
-You can also load a dataset with a `AudioFolder` dataset builder. It does not require writing a custom dataloader, making it useful for quickly loading audio data. Your dataset structure might look like this:
+You can also load a dataset with a `AudioFolder` dataset builder. It does not require writing a custom dataloader, making it useful for quickly loading audio data. Your dataset structure might look like:
 
 ```
 folder/train/first_audio_file.wav
@@ -67,7 +67,7 @@ folder/train/third_audio_file.wav
 folder/train/last_audio_file.wav
 ```
 
-Load your audio dataset by specifying `audiofolder` and the directory of your dataset in `data_dir`:
+Load your audio dataset by specifying `audiofolder` and the directory containing your data in `data_dir`:
 
 ```py
 >>> from datasets import load_dataset
@@ -128,21 +128,21 @@ Load the dataset with `AudioFolder`, and it will create a `transcription` column
 ## AudioFolder with labels
 
 If you have an audio classification task, set `drop_labels=False` to infer labels from directories names as defined in [`~datasets.packaged_modules.audiofolder.AudioFolderConfig`].
-Your data should be organized like:
+Your dataset structure should look like this:
 
 ```
 folder/train/label_0/first_audio_label_0.mp3
 folder/train/label_0/second_audio_label_0.mp3
 folder/train/label_1/first_audio_label_1.mp3
 
-folder/train/label_9/last_audio_label`_99.mp3
+folder/train/label_9/last_audio_label_99.mp3
 ```
 
-`AudioFolder` creates a `label` column of a [`~datasets.features.ClassLabel`] type based on the directory name.
+`AudioFolder` will creates a `label` column of a [`~datasets.features.ClassLabel`] type based on the directory name.
 
 ### Language identification
 
-Language identification is one of audio classification tasks for which you might use labels.
+Language identification datasets have audio recordings of speech in multiple languages:
 
 ```
 folder/train/ar/0197_720_0207_190.wav
@@ -152,7 +152,7 @@ folder/train/ar/0179_830_0185_540.mp3
 folder/train/zh/0442_690_0454_380.mp3
 ```
 
-Load the dataset with `AudioFolder` with `drop_labels=False`, and it will create a `label` column with the language id:
+Load the dataset with `drop_labels=False`, and `AudioFolder`  will create a `label` column with the language id based on the directory name:
 
 ```
 >>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder", drop_labels=False)
@@ -163,6 +163,7 @@ Load the dataset with `AudioFolder` with `drop_labels=False`, and it will create
     'sampling_rate': 16000}
  'label': 0  # "ar"
 }
+
 >>> dataset["train"][-1]
 {'audio':
     {'path': '/path/to/extracted/audio/0442_690_0454_380.mp3',
