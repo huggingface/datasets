@@ -153,7 +153,7 @@ def validate_type(value: Any, expected_type: Type):
     # Add more `elif` statements if primitive type checking is needed
     else:
         expected_type_origin = get_origin(expected_type)  # typing.List[str] -> list
-        expected_type_args = get_args(expected_type)  # typing.List[str] -> (str, );
+        expected_type_args = get_args(expected_type)  # typing.List[str] -> (str, )
 
         if expected_type_origin is Union:
             for type_arg in expected_type_args:
