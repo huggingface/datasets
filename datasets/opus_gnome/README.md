@@ -9,7 +9,6 @@ language:
 - an
 - ang
 - ar
-- ara
 - as
 - ast
 - az
@@ -23,7 +22,6 @@ language:
 - brx
 - bs
 - ca
-- cat
 - crh
 - cs
 - csb
@@ -48,7 +46,6 @@ language:
 - gd
 - gl
 - gn
-- gr
 - gu
 - gv
 - ha
@@ -132,6 +129,7 @@ language:
 - tr
 - ts
 - tt
+- tyj
 - ug
 - uk
 - ur
