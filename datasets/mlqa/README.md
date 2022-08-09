@@ -8,6 +8,16 @@ language:
 - zh
 - vi
 - hi
+license:
+- cc-by-sa-3.0
+source_datasets:
+- original
+size_categories:
+- 10K<n<100K
+language_creators:
+- unknown
+annotations_creators:
+- crowdsourced
 multilinguality:
 - multilingual
 task_categories:
