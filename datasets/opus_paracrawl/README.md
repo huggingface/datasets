@@ -112,7 +112,7 @@ To load a language pair which isn't part of the config, all you need to do is sp
 You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/ParaCrawl.php
 E.g.
 
-`dataset = load_dataset("paracrawl", lang1="en", lang2="so")`
+`dataset = load_dataset("opus_paracrawl", lang1="en", lang2="so")`
 
 ### Supported Tasks and Leaderboards
 

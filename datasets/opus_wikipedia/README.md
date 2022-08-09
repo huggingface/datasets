@@ -87,7 +87,7 @@ To load a language pair which isn't part of the config, all you need to do is sp
 You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/Wikipedia.php
 E.g.
 
-`dataset = load_dataset("wikipedia", lang1="it", lang2="pl")`
+`dataset = load_dataset("opus_wikipedia", lang1="it", lang2="pl")`
 
 
 ### Supported Tasks and Leaderboards

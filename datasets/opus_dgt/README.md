@@ -98,7 +98,7 @@ To load a language pair which isn't part of the config, all you need to do is sp
 You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/DGT.php
 E.g.
 
-`dataset = load_dataset("dgt", lang1="it", lang2="pl")`
+`dataset = load_dataset("opus_dgt", lang1="it", lang2="pl")`
 
 
 ### Supported Tasks and Leaderboards
