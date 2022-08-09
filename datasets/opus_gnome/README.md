@@ -273,13 +273,21 @@ E.g.
 
 ## Dataset Structure
 
-### Data Instances
-
-[More Information Needed]
-
+### Data Instances  }
+```
+{
+  'id': '0', 
+  'translation': {
+    'ar': 'إعداد سياسة القفل',
+    'bal': 'تنظیم کتن سیاست کبل'
+  }
+}
+```
 ### Data Fields
 
-[More Information Needed]
+Each instance has two fields:
+- **id**: the id of the example
+- **translation**: a dictionary containing translated texts in two languages.
 
 ### Data Splits
 
