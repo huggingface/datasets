@@ -41,7 +41,6 @@ language:
 - fa
 - fi
 - fo
-- foo
 - fr
 - fur
 - fy
@@ -130,7 +129,6 @@ language:
 - th
 - tk
 - tl
-- tmp
 - tr
 - ts
 - tt
