@@ -291,7 +291,20 @@ Each instance has two fields:
 
 ### Data Splits
 
-[More Information Needed]
+Each subset simply consists in a train set. We provide the number of examples for certain language pairs:
+
+|          |   train |
+|:---------|--------:|
+| ar-bal   |      60 |
+| bg-csb   |      10 |
+| ca-en_GB |    7982 |
+| cs-eo    |      73 |
+| de-ha    |     216 |
+| cs-tk    |   18686 |
+| da-vi    |     149 |
+| en_GB-my |   28232 |
+| el-sk    |     150 |
+| de-tt    |    2169 |
 
 ## Dataset Creation
 
