@@ -72,7 +72,7 @@ configs:
 - fr-nl
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for OpusParaCrawl
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -108,11 +108,18 @@ configs:
 
 ### Dataset Summary
 
-To load a language pair which isn't part of the config, all you need to do is specify the language code as pairs.
-You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/ParaCrawl.php
-E.g.
+Parallel corpora from Web Crawls collected in the ParaCrawl project.
 
-`dataset = load_dataset("opus_paracrawl", lang1="en", lang2="so")`
+Tha dataset contains 40 languages and 41 bitexts.
+
+To load a language pair which isn't part of the config, all you need to do is specify the language code as pairs,
+e.g.
+
+```python
+dataset = load_dataset("opus_paracrawl", lang1="en", lang2="so")
+```
+
+You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/ParaCrawl.php
 
 ### Supported Tasks and Leaderboards
 
@@ -120,21 +127,70 @@ E.g.
 
 ### Languages
 
-[More Information Needed]
+The languages in the dataset are:
+- bg
+- ca
+- cs
+- da
+- de
+- el
+- en
+- es
+- et
+- eu
+- fi
+- fr
+- ga
+- gl
+- ha
+- hr
+- hu
+- ig
+- is
+- it
+- km
+- lt
+- lv
+- mt
+- my
+- nb
+- ne
+- nl
+- nn
+- pl
+- pt
+- ro
+- ru
+- si
+- sk
+- sl
+- so
+- sv
+- sw
+- tl
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+```
+{
+  'id': '0', 
+  'translation': {
+    "el": "Συνεχίστε ευθεία 300 μέτρα μέχρι να καταλήξουμε σε μια σωστή οδός (ul. Gagarina)? Περπατήστε περίπου 300 μέτρα μέχρι να φτάσετε το πρώτο ορθή οδός (ul Khotsa Namsaraeva)?",
+    "en": "Go straight 300 meters until you come to a proper street (ul. Gagarina); Walk approximately 300 meters until you reach the first proper street (ul Khotsa Namsaraeva);"
+  }
+}
+```
 
 ### Data Fields
 
-[More Information Needed]
+- `id` (`str`): Unique identifier of the parallel sentence for the pair of languages.
+- `translation` (`dict`): Parallel sentences for the pair of languages.
 
 ### Data Splits
 
-[More Information Needed]
+The dataset contains a single `train` split.
 
 ## Dataset Creation
 
@@ -196,6 +252,7 @@ E.g.
 
 ### Citation Information
 
+```bibtex
 @InProceedings{TIEDEMANN12.463,
 author = {J{\"o}rg Tiedemann},
 title = {Parallel Data, Tools and Interfaces in OPUS},
@@ -209,6 +266,7 @@ publisher = {European Language Resources Association (ELRA)},
 isbn = {978-2-9517408-7-7},
 language = {english}
 }
+```
 
 ### Contributions
 
