@@ -273,7 +273,7 @@ E.g.
 
 ## Dataset Structure
 
-### Data Instances  }
+### Data Instances  
 ```
 {
   'id': '0', 
