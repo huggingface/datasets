@@ -225,8 +225,8 @@ def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cac
 
 
 def test_default_autoconfig_not_usable(data_files_with_labels_no_metadata):
-    # by default AutoFolderConfig will try to create base_feature_name from base_feature
-    # but AutoFolderConfig.base_feature is None
+    # by default AutoFolderConfig will try to create base_feature_name from _base_feature
+    # but AutoFolderConfig._base_feature is None
     with pytest.raises(AttributeError):
         _ = AutoFolderConfig()
     with pytest.raises(AttributeError):
