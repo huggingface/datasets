@@ -9,15 +9,11 @@ from ..base import autofolder
 logger = datasets.utils.logging.get_logger(__name__)
 
 
-AUDIO_FEATURE = datasets.Audio()
-AUDIO_FEATURE.__name__ = "audio"  # set __name__ to enable documentation building
-
-
 @dataclass
 class AudioFolderConfig(autofolder.AutoFolderConfig):
     """Builder Config for AudioFolder."""
 
-    base_feature: ClassVar = AUDIO_FEATURE
+    _base_feature: ClassVar = datasets.Audio()
     drop_labels: bool = True  # usually we don't need labels as classification is not the main audio task
     drop_metadata: bool = None
 

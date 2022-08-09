@@ -44,7 +44,7 @@ def count_path_segments(path):
 class AutoFolderConfig(datasets.BuilderConfig):
     """BuilderConfig for AutoFolder."""
 
-    base_feature: ClassVar = (
+    _base_feature: ClassVar = (
         None  # i.e. datasets.Image(), datasets.Audio(), we don't have a type for Feature ("FieldType")
     )
     base_feature_name: str = ""
@@ -56,10 +56,10 @@ class AutoFolderConfig(datasets.BuilderConfig):
     def __post_init__(self):
         if not self.base_feature_name:
             # automatically infer feature name from feature if it's not provided
-            if hasattr(self.base_feature, "_type"):
-                self.base_feature_name = self.base_feature._type.lower()
-            elif hasattr(self.base_feature, "__name__"):
-                self.base_feature_name = self.base_feature.__name__lower()
+            if hasattr(self._base_feature, "_type"):
+                self.base_feature_name = self._base_feature._type.lower()
+            elif hasattr(self._base_feature, "__name__"):
+                self.base_feature_name = self._base_feature.__name__.lower()
             else:
                 raise AttributeError(
                     """
@@ -204,12 +204,12 @@ class AutoFolder(datasets.GeneratorBasedBuilder):
             if add_labels:
                 self.info.features = datasets.Features(
                     {
-                        self.config.base_feature_name: self.config.base_feature,
+                        self.config.base_feature_name: self.config._base_feature,
                         self.config.label_column: datasets.ClassLabel(names=sorted(labels)),
                     }
                 )
             else:
-                self.info.features = datasets.Features({self.config.base_feature_name: self.config.base_feature})
+                self.info.features = datasets.Features({self.config.base_feature_name: self.config._base_feature})
 
             if add_metadata:
                 # Warn if there are duplicated keys in metadata compared to the existing features

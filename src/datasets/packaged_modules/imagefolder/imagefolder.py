@@ -10,15 +10,11 @@ from ..base import autofolder
 logger = datasets.utils.logging.get_logger(__name__)
 
 
-IMAGE_FEATURE = datasets.Image()
-IMAGE_FEATURE.__name__ = "image"  # set __name__ to enable documentation building
-
-
 @dataclass
 class ImageFolderConfig(autofolder.AutoFolderConfig):
     """BuilderConfig for ImageFolder."""
 
-    base_feature: ClassVar = IMAGE_FEATURE
+    _base_feature: ClassVar = datasets.Image()
     drop_labels: bool = None
     drop_metadata: bool = None
 
