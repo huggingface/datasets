@@ -43,9 +43,9 @@ _CITATION = """\
  }
 """
 
-_VERSION = "1.0.0"
+_VERSION = "9.0.0"
 _BASE_NAME = "ParaCrawl.{}.{}"
-_BASE_URL = "https://object.pouta.csc.fi/OPUS-ParaCrawl/v7.1/moses/{}-{}.txt.zip"
+_BASE_URL = "https://object.pouta.csc.fi/OPUS-ParaCrawl/v9/moses/{}-{}.txt.zip"
 # Please note that only few pairs are shown here. You can use config to generate data for all language pairs
 _LANGUAGE_PAIRS = [
     ("el", "en"),
