@@ -89,12 +89,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                             "turn_id": datasets.Value("int32"),
                             "role": datasets.Value("string"),
                             "da": datasets.Value("string"),
-                            "references": [
-                                {
-                                    "sp_id": datasets.Value("string"),
-                                    "label": datasets.Value("string"),
-                                }
-                            ],
+                            "references": [{"sp_id": datasets.Value("string"), "label": datasets.Value("string"),}],
                             "utterance": datasets.Value("string"),
                         }
                     ],
@@ -134,21 +129,14 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {
-                            "text": datasets.Value("string"),
-                            "answer_start": datasets.Value("int32"),
-                        }
+                        {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
                     ),
                     "domain": datasets.Value("string"),
                 }
             )
 
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=features,
-            supervised_keys=None,
-            homepage=_HOMEPAGE,
-            citation=_CITATION,
+            description=_DESCRIPTION, features=features, supervised_keys=None, homepage=_HOMEPAGE, citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -161,39 +149,29 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v1.0.1/doc2dial_dial_train.json"),
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v1.0.1/doc2dial_dial_train.json"),},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v1.0.1/doc2dial_dial_validation.json"),
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v1.0.1/doc2dial_dial_validation.json"),},
                 ),
             ]
         elif self.config.name == "document_domain":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v1.0.1/doc2dial_doc.json"),
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v1.0.1/doc2dial_doc.json"),},
                 )
             ]
         elif self.config.name == "doc2dial_rc":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v1.0.1/doc2dial_dial_validation.json"),
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v1.0.1/doc2dial_dial_validation.json"),},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "doc2dial/v1.0.1/doc2dial_dial_train.json"),
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "doc2dial/v1.0.1/doc2dial_dial_train.json"),},
                 ),
             ]
 
@@ -309,9 +287,7 @@ class Doc2dial(datasets.GeneratorBasedBuilder):
                                     "context": doc["doc_text"],
                                     "question": question,
                                     "answers": self._get_answers_rc(
-                                        turn_to_predict["references"],
-                                        doc["spans"],
-                                        doc["doc_text"],
+                                        turn_to_predict["references"], doc["spans"], doc["doc_text"],
                                     ),
                                     "domain": domain,
                                 }

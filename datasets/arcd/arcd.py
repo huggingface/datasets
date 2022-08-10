@@ -53,13 +53,7 @@ class ArcdConfig(datasets.BuilderConfig):
 class Arcd(datasets.GeneratorBasedBuilder):
     """ARCD: Arabic Reading Comprehension Dataset."""
 
-    BUILDER_CONFIGS = [
-        ArcdConfig(
-            name="plain_text",
-            version=datasets.Version("1.0.0", ""),
-            description="Plain text",
-        )
-    ]
+    BUILDER_CONFIGS = [ArcdConfig(name="plain_text", version=datasets.Version("1.0.0", ""), description="Plain text",)]
 
     def _info(self):
         return datasets.DatasetInfo(

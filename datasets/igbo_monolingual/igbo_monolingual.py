@@ -169,11 +169,7 @@ class IgboMonolingual(datasets.GeneratorBasedBuilder):
                 }
             )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=features,
-            supervised_keys=None,
-            homepage=_HOMEPAGE,
-            citation=_CITATION,
+            description=_DESCRIPTION, features=features, supervised_keys=None, homepage=_HOMEPAGE, citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -183,90 +179,63 @@ class IgboMonolingual(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "eze_goes_to_school.json"),
-                        "split": "train",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "eze_goes_to_school.json"), "split": "train",},
                 ),
             ]
         elif self.config.name == "bbc-igbo":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "bbc-igbo.json"),
-                        "split": "train",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "bbc-igbo.json"), "split": "train",},
                 ),
             ]
         elif self.config.name == "igbo-radio":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "igbo-radio.json"),
-                        "split": "train",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "igbo-radio.json"), "split": "train",},
                 ),
             ]
         elif self.config.name == "jw-ot-igbo":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "jw-ot-igbo.json"),
-                        "split": "train",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "jw-ot-igbo.json"), "split": "train",},
                 ),
             ]
         elif self.config.name == "jw-nt-igbo":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "jw-nt-igbo.json"),
-                        "split": "train",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "jw-nt-igbo.json"), "split": "train",},
                 ),
             ]
         elif self.config.name == "jw-books":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "jw-books.json"),
-                        "split": "train",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "jw-books.json"), "split": "train",},
                 ),
             ]
         elif self.config.name == "jw-teta":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "jw-teta.json"),
-                        "split": "train",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "jw-teta.json"), "split": "train",},
                 ),
             ]
         elif self.config.name == "jw-ulo_nche":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "jw-ulo_nche.json"),
-                        "split": "train",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "jw-ulo_nche.json"), "split": "train",},
                 ),
             ]
         elif self.config.name == "jw-ulo_nche_naamu":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "jw-ulo_nche_naamu.json"),
-                        "split": "train",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "jw-ulo_nche_naamu.json"), "split": "train",},
                 ),
             ]
 

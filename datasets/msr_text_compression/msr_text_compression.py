@@ -94,16 +94,13 @@ class MsrTextCompression(datasets.GeneratorBasedBuilder):
             )
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"input_file": os.path.join(data_dir, "train.tsv")},
+                name=datasets.Split.TRAIN, gen_kwargs={"input_file": os.path.join(data_dir, "train.tsv")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"input_file": os.path.join(data_dir, "valid.tsv")},
+                name=datasets.Split.VALIDATION, gen_kwargs={"input_file": os.path.join(data_dir, "valid.tsv")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"input_file": os.path.join(data_dir, "test.tsv")},
+                name=datasets.Split.TEST, gen_kwargs={"input_file": os.path.join(data_dir, "test.tsv")},
             ),
         ]
 

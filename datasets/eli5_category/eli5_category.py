@@ -46,11 +46,7 @@ class ELI5Category(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        ELI5CategoryConfig(
-            name="default",
-            version=datasets.Version("1.0.0"),
-            description="Default config",
-        ),
+        ELI5CategoryConfig(name="default", version=datasets.Version("1.0.0"), description="Default config",),
     ]
 
     DEFAULT_CONFIG_NAME = "default"
@@ -90,22 +86,14 @@ class ELI5Category(datasets.GeneratorBasedBuilder):
             }
         )
         return [
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]},),
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": downloaded_files["train"]},
+                name=datasets.Split("validation1"), gen_kwargs={"filepath": downloaded_files["val1"]},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split("validation1"),
-                gen_kwargs={"filepath": downloaded_files["val1"]},
+                name=datasets.Split("validation2"), gen_kwargs={"filepath": downloaded_files["val2"]},
             ),
-            datasets.SplitGenerator(
-                name=datasets.Split("validation2"),
-                gen_kwargs={"filepath": downloaded_files["val2"]},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": downloaded_files["test"]},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]},),
         ]
 
     def _generate_examples(self, filepath):

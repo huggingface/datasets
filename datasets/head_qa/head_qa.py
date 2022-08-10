@@ -80,12 +80,7 @@ class HeadQA(datasets.GeneratorBasedBuilder):
                     "qtext": datasets.Value("string"),
                     "ra": datasets.Value("int32"),
                     "image": datasets.Image(),
-                    "answers": [
-                        {
-                            "aid": datasets.Value("int32"),
-                            "atext": datasets.Value("string"),
-                        }
-                    ],
+                    "answers": [{"aid": datasets.Value("int32"), "atext": datasets.Value("string"),}],
                 }
             ),
             supervised_keys=None,

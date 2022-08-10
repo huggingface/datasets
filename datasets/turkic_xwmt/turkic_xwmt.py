@@ -57,10 +57,7 @@ class XWMTConfig(datasets.BuilderConfig):
 
         description = ("Translation dataset from %s to %s") % (language_pair[0], language_pair[1])
         super(XWMTConfig, self).__init__(
-            name=name,
-            description=description,
-            version=datasets.Version("1.1.0", ""),
-            **kwargs,
+            name=name, description=description, version=datasets.Version("1.1.0", ""), **kwargs,
         )
 
         # Validate language pair.
@@ -76,12 +73,7 @@ class TurkicXWMT(datasets.GeneratorBasedBuilder):
     """XWMT machine translation dataset."""
 
     BUILDER_CONFIGS = [
-        XWMTConfig(
-            language_pair=(lang1, lang2),
-        )
-        for lang1 in _LANGUAGES
-        for lang2 in _LANGUAGES
-        if lang1 != lang2
+        XWMTConfig(language_pair=(lang1, lang2),) for lang1 in _LANGUAGES for lang2 in _LANGUAGES if lang1 != lang2
     ]
 
     def _info(self):

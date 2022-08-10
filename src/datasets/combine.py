@@ -96,10 +96,7 @@ def interleave_datasets(
 
 
 def concatenate_datasets(
-    dsets: List[Dataset],
-    info: Optional[DatasetInfo] = None,
-    split: Optional[NamedSplit] = None,
-    axis: int = 0,
+    dsets: List[Dataset], info: Optional[DatasetInfo] = None, split: Optional[NamedSplit] = None, axis: int = 0,
 ):
     """
     Converts a list of :class:`Dataset` with the same schema into a single :class:`Dataset`.

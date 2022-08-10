@@ -94,17 +94,7 @@ class YorubaGvNer(datasets.GeneratorBasedBuilder):
                     "tokens": datasets.Sequence(datasets.Value("string")),
                     "ner_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
-                            names=[
-                                "O",
-                                "B-PER",
-                                "I-PER",
-                                "B-ORG",
-                                "I-ORG",
-                                "B-LOC",
-                                "I-LOC",
-                                "B-DATE",
-                                "I-DATE",
-                            ]
+                            names=["O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC", "B-DATE", "I-DATE",]
                         )
                     ),
                 }

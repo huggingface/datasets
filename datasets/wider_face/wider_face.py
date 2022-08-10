@@ -88,27 +88,15 @@ class WiderFace(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "split": "train",
-                    "data_dir": data_dir["train"],
-                    "annot_dir": data_dir["annot"],
-                },
+                gen_kwargs={"split": "train", "data_dir": data_dir["train"], "annot_dir": data_dir["annot"],},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={
-                    "split": "test",
-                    "data_dir": data_dir["test"],
-                    "annot_dir": data_dir["annot"],
-                },
+                gen_kwargs={"split": "test", "data_dir": data_dir["test"], "annot_dir": data_dir["annot"],},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "split": "val",
-                    "data_dir": data_dir["validation"],
-                    "annot_dir": data_dir["annot"],
-                },
+                gen_kwargs={"split": "val", "data_dir": data_dir["validation"], "annot_dir": data_dir["annot"],},
             ),
         ]
 

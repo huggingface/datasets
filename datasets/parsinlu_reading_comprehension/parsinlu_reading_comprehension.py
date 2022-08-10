@@ -68,10 +68,7 @@ class ParsinluReadingComprehension(datasets.GeneratorBasedBuilder):
                 "url": datasets.Value("string"),
                 "context": datasets.Value("string"),
                 "answers": datasets.features.Sequence(
-                    {
-                        "answer_start": datasets.Value("int32"),
-                        "answer_text": datasets.Value("string"),
-                    }
+                    {"answer_start": datasets.Value("int32"), "answer_text": datasets.Value("string"),}
                 ),
             }
         )
@@ -99,10 +96,7 @@ class ParsinluReadingComprehension(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": data_dir["train"],
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": data_dir["train"], "split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -112,10 +106,7 @@ class ParsinluReadingComprehension(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": data_dir["dev"],
-                    "split": "dev",
-                },
+                gen_kwargs={"filepath": data_dir["dev"], "split": "dev",},
             ),
         ]
 

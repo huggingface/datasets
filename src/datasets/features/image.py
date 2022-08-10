@@ -155,12 +155,7 @@ class Image:
         from .features import Value
 
         return (
-            self
-            if self.decode
-            else {
-                "bytes": Value("binary"),
-                "path": Value("string"),
-            }
+            self if self.decode else {"bytes": Value("binary"), "path": Value("string"),}
         )
 
     def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray, pa.ListArray]) -> pa.StructArray:

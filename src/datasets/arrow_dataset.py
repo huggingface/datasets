@@ -741,12 +741,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             indices_pa_table = None
 
-        return cls(
-            arrow_table=table,
-            info=info,
-            split=split,
-            indices_table=indices_pa_table,
-        )
+        return cls(arrow_table=table, info=info, split=split, indices_table=indices_pa_table,)
 
     @classmethod
     def from_buffer(
@@ -823,10 +818,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if info is None:
             info = DatasetInfo()
         info.features = features
-        table = InMemoryTable.from_pandas(
-            df=df,
-            preserve_index=preserve_index,
-        )
+        table = InMemoryTable.from_pandas(df=df, preserve_index=preserve_index,)
         if features is not None:
             # more expensive cast than InMemoryTable.from_pandas(..., schema=features.arrow_schema)
             # needed to support the str to Audio conversion for instance
@@ -1225,12 +1217,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         split = state["_split"]
         split = Split(split) if split is not None else split
 
-        return Dataset(
-            arrow_table=arrow_table,
-            info=dataset_info,
-            split=split,
-            fingerprint=state["_fingerprint"],
-        )
+        return Dataset(arrow_table=arrow_table, info=dataset_info, split=split, fingerprint=state["_fingerprint"],)
 
     @property
     def data(self) -> Table:
@@ -1407,11 +1394,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ]
                 return batch
 
-            dset = self.map(
-                stringify_column,
-                batched=True,
-                desc="Stringifying the column",
-            )
+            dset = self.map(stringify_column, batched=True, desc="Stringifying the column",)
         else:
             dset = self
 
@@ -1426,11 +1409,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             ]
             return batch
 
-        dset = dset.map(
-            cast_to_class_labels,
-            batched=True,
-            desc="Casting to class labels",
-        )
+        dset = dset.map(cast_to_class_labels, batched=True, desc="Casting to class labels",)
 
         new_features = dset.features.copy()
         new_features[column] = dst_feat
@@ -1800,8 +1779,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         for index in range(self.num_rows):
             yield self._getitem(
-                index,
-                decoded=decoded,
+                index, decoded=decoded,
             )
 
     def __iter__(self):
@@ -1954,10 +1932,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self.set_format()
 
     def set_transform(
-        self,
-        transform: Optional[Callable],
-        columns: Optional[List] = None,
-        output_all_columns: bool = False,
+        self, transform: Optional[Callable], columns: Optional[List] = None, output_all_columns: bool = False,
     ):
         """Set __getitem__ return format using this transform. The transform is applied on-the-fly on batches when __getitem__ is called.
         As :func:`datasets.Dataset.set_format`, this can be reset using :func:`datasets.Dataset.reset_format`
@@ -2042,10 +2017,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset
 
     def with_transform(
-        self,
-        transform: Optional[Callable],
-        columns: Optional[List] = None,
-        output_all_columns: bool = False,
+        self, transform: Optional[Callable], columns: Optional[List] = None, output_all_columns: bool = False,
     ):
         """Set __getitem__ return format using this transform. The transform is applied on-the-fly on batches when __getitem__ is called.
 
@@ -2162,9 +2134,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     def __getitem__(self, key):  # noqa: F811
         """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
-        return self._getitem(
-            key,
-        )
+        return self._getitem(key,)
 
     def cleanup_cache_files(self) -> int:
         """Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is
@@ -2764,10 +2734,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 writer.write(example)
                 else:
                     for i in pbar:
-                        batch = input_dataset._getitem(
-                            slice(i, i + batch_size),
-                            decoded=False,
-                        )
+                        batch = input_dataset._getitem(slice(i, i + batch_size), decoded=False,)
                         indices = list(
                             range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
                         )  # Something simpler?
@@ -2988,11 +2955,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Return new Dataset object
         # don't forget to copy the objects
         return Dataset(
-            self._data,
-            info=self.info.copy(),
-            split=self.split,
-            indices_table=indices_table,
-            fingerprint=fingerprint,
+            self._data, info=self.info.copy(), split=self.split, indices_table=indices_table, fingerprint=fingerprint,
         )
 
     @transmit_format
@@ -3077,12 +3040,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(inplace=False)
-    def _select_contiguous(
-        self,
-        start: int,
-        length: int,
-        new_fingerprint: Optional[str] = None,
-    ) -> "Dataset":
+    def _select_contiguous(self, start: int, length: int, new_fingerprint: Optional[str] = None,) -> "Dataset":
         """Create a new dataset with rows from a contiguous slice of data.
         The slice is defined by that start index and its length.
 
@@ -3117,10 +3075,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         _check_valid_indices_value(start + length - 1, len(self))
         if self._indices is None or length == 0:
             return Dataset(
-                self.data.slice(start, length),
-                info=self.info.copy(),
-                split=self.split,
-                fingerprint=new_fingerprint,
+                self.data.slice(start, length), info=self.info.copy(), split=self.split, fingerprint=new_fingerprint,
             )
         else:
             return Dataset(
@@ -3763,9 +3718,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
     def export(
-        self,
-        filename: str,
-        format: str = "tfrecord",
+        self, filename: str, format: str = "tfrecord",
     ):
         """Writes the Arrow dataset to a TFRecord file.
 
@@ -3997,10 +3950,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
 
     def to_parquet(
-        self,
-        path_or_buf: Union[PathLike, BinaryIO],
-        batch_size: Optional[int] = None,
-        **parquet_writer_kwargs,
+        self, path_or_buf: Union[PathLike, BinaryIO], batch_size: Optional[int] = None, **parquet_writer_kwargs,
     ) -> int:
         """Exports the dataset to parquet
 
@@ -4157,12 +4107,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 for shard in shards:
                     format = shard.format
                     shard = shard.with_format("arrow")
-                    shard = shard.map(
-                        embed_table_storage,
-                        batched=True,
-                        batch_size=1000,
-                        keep_in_memory=True,
-                    )
+                    shard = shard.map(embed_table_storage, batched=True, batch_size=1000, keep_in_memory=True,)
                     shard = shard.with_format(**format)
                     yield shard
 
@@ -4321,8 +4266,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             download_config.download_desc = "Downloading metadata"
             download_config.use_auth_token = token if token is not None else HfFolder.get_token()
             dataset_infos_path = cached_path(
-                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
-                download_config=download_config,
+                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME), download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
@@ -4645,13 +4589,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info = self.info.copy()
         info.features.update(item_features)
         table = update_metadata_with_features(table, info.features)
-        return Dataset(
-            table,
-            info=info,
-            split=self.split,
-            indices_table=indices_table,
-            fingerprint=new_fingerprint,
-        )
+        return Dataset(table, info=info, split=self.split, indices_table=indices_table, fingerprint=new_fingerprint,)
 
     def align_labels_with_mapping(self, label2id: Dict, label_column: str) -> "Dataset":
         """Align the dataset's label ID and label name mapping to match an input :obj:`label2id` mapping.
@@ -4732,10 +4670,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
 
 def _concatenate_map_style_datasets(
-    dsets: List[Dataset],
-    info: Optional[DatasetInfo] = None,
-    split: Optional[NamedSplit] = None,
-    axis: int = 0,
+    dsets: List[Dataset], info: Optional[DatasetInfo] = None, split: Optional[NamedSplit] = None, axis: int = 0,
 ):
     """
     Converts a list of :class:`Dataset` with the same schema into a single :class:`Dataset`.
@@ -4835,11 +4770,7 @@ def _concatenate_map_style_datasets(
 
     # Make final concatenated dataset
     concatenated_dataset = Dataset(
-        table,
-        info=info,
-        split=split,
-        indices_table=indices_table,
-        fingerprint=fingerprint,
+        table, info=info, split=split, indices_table=indices_table, fingerprint=fingerprint,
     )
     concatenated_dataset.set_format(**format)
     return concatenated_dataset

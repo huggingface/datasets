@@ -67,22 +67,12 @@ class BookCorpusOpen(datasets.GeneratorBasedBuilder):
 
     DEFAULT_WRITER_BATCH_SIZE = 256  # documents are full books and are quite heavy
 
-    BUILDER_CONFIGS = [
-        BookCorpusOpenConfig(
-            name="plain_text",
-            description="Plain text",
-        )
-    ]
+    BUILDER_CONFIGS = [BookCorpusOpenConfig(name="plain_text", description="Plain text",)]
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "title": datasets.Value("string"),
-                    "text": datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features({"title": datasets.Value("string"), "text": datasets.Value("string"),}),
             supervised_keys=None,
             homepage=_PROJECT_URL,
             citation=_CITATION,

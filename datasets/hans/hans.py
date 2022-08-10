@@ -61,10 +61,7 @@ class Hans(datasets.GeneratorBasedBuilder):
     """Hans: Heuristic Analysis for NLI Systems."""
 
     BUILDER_CONFIGS = [
-        HansConfig(
-            name="plain_text",
-            description="Plain text",
-        ),
+        HansConfig(name="plain_text", description="Plain text",),
     ]
 
     def _info(self):

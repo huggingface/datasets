@@ -64,11 +64,7 @@ class MutualFriends(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="plain_text",
-            description="Plain text",
-            version=VERSION,
-        ),
+        datasets.BuilderConfig(name="plain_text", description="Plain text", version=VERSION,),
     ]
 
     def _info(self):
@@ -87,16 +83,9 @@ class MutualFriends(datasets.GeneratorBasedBuilder):
                         }
                     ),
                     "scenario_kbs": datasets.Sequence(
-                        datasets.Sequence(
-                            datasets.Sequence(
-                                datasets.Sequence(datasets.Value("string")),
-                            )
-                        )
+                        datasets.Sequence(datasets.Sequence(datasets.Sequence(datasets.Value("string")),))
                     ),
-                    "agents": {
-                        "1": datasets.Value("string"),
-                        "0": datasets.Value("string"),
-                    },
+                    "agents": {"1": datasets.Value("string"), "0": datasets.Value("string"),},
                     "outcome_reward": datasets.Value("int32"),
                     "events": {
                         "actions": datasets.Sequence(datasets.Value("string")),
@@ -123,24 +112,9 @@ class MutualFriends(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         data_dir = dl_manager.download_and_extract(_URLs)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": data_dir["train"],
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": data_dir["test"],
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": data_dir["dev"],
-                },
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir["train"],},),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": data_dir["test"],},),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": data_dir["dev"],},),
         ]
 
     def _generate_examples(self, filepath):
@@ -158,10 +132,7 @@ class MutualFriends(datasets.GeneratorBasedBuilder):
                 scenario_attributes = scenario["attributes"]
                 scenario_kbs = [
                     [
-                        [
-                            list(person.keys()),  # scenario_kbs_keys
-                            list(person.values()),  # scenario_kbs_values
-                        ]
+                        [list(person.keys()), list(person.values()),]  # scenario_kbs_keys  # scenario_kbs_values
                         for person in kb
                     ]
                     for kb in scenario["kbs"]
@@ -187,10 +158,7 @@ class MutualFriends(datasets.GeneratorBasedBuilder):
                     elif act == "select":
                         events_data_messages.append("")
                         events_data_selects.append(
-                            {
-                                "attributes": list(turn["data"].keys()),
-                                "values": list(turn["data"].values()),
-                            }
+                            {"attributes": list(turn["data"].keys()), "values": list(turn["data"].values()),}
                         )
                     events_agents.append(turn["agent"])
                     events_times.append(turn["time"])

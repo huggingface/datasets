@@ -41,18 +41,11 @@ _VERSION = datasets.Version("1.1.0", "Minor fixes to the 'question' values in It
 
 class Xcopa(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name=lang,
-            description=f"Xcopa language {lang}",
-            version=_VERSION,
-        )
-        for lang in _LANG
+        datasets.BuilderConfig(name=lang, description=f"Xcopa language {lang}", version=_VERSION,) for lang in _LANG
     ]
     BUILDER_CONFIGS += [
         datasets.BuilderConfig(
-            name=f"translation-{lang}",
-            description=f"Xcopa English translation for language {lang}",
-            version=_VERSION,
+            name=f"translation-{lang}", description=f"Xcopa English translation for language {lang}", version=_VERSION,
         )
         for lang in _LANG
         if lang != "qu"
@@ -85,13 +78,7 @@ class Xcopa(datasets.GeneratorBasedBuilder):
             split: _URL.format(subdir=data_subdir, language=language, split=splits[split]) for split in splits
         }
         dl_paths = dl_manager.download(data_urls)
-        return [
-            datasets.SplitGenerator(
-                name=split,
-                gen_kwargs={"filepath": dl_paths[split]},
-            )
-            for split in splits
-        ]
+        return [datasets.SplitGenerator(name=split, gen_kwargs={"filepath": dl_paths[split]},) for split in splits]
 
     def _generate_examples(self, filepath):
         """Yields examples."""

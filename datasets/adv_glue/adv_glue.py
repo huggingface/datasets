@@ -26,10 +26,7 @@ version of GLUE benchmark.
 """
 
 _MNLI_BASE_KWARGS = dict(
-    text_features={
-        "premise": "premise",
-        "hypothesis": "hypothesis",
-    },
+    text_features={"premise": "premise", "hypothesis": "hypothesis",},
     label_classes=["entailment", "neutral", "contradiction"],
     label_column="label",
     data_url="https://dl.fbaipublicfiles.com/glue/data/MNLI.zip",
@@ -146,10 +143,7 @@ ADVGLUE_BUILDER_CONFIGS = [
             community question-answering website Quora. The task is to determine whether a
             pair of questions are semantically equivalent."""
         ),
-        text_features={
-            "question1": "question1",
-            "question2": "question2",
-        },
+        text_features={"question1": "question1", "question2": "question2",},
         label_classes=["not_duplicate", "duplicate"],
         label_column="label",
         data_url="https://dl.fbaipublicfiles.com/glue/data/QQP-clean.zip",
@@ -204,10 +198,7 @@ ADVGLUE_BUILDER_CONFIGS = [
             the model select the exact answer, but also removes the simplifying assumptions that the answer
             is always present in the input and that lexical overlap is a reliable cue."""
         ),  # pylint: disable=line-too-long
-        text_features={
-            "question": "question",
-            "sentence": "sentence",
-        },
+        text_features={"question": "question", "sentence": "sentence",},
         label_classes=["entailment", "not_entailment"],
         label_column="label",
         data_url="https://dl.fbaipublicfiles.com/glue/data/QNLIv2.zip",
@@ -233,10 +224,7 @@ ADVGLUE_BUILDER_CONFIGS = [
             constructed based on news and Wikipedia text. We convert all datasets to a two-class split, where
             for three-class datasets we collapse neutral and contradiction into not entailment, for consistency."""
         ),  # pylint: disable=line-too-long
-        text_features={
-            "sentence1": "sentence1",
-            "sentence2": "sentence2",
-        },
+        text_features={"sentence1": "sentence1", "sentence2": "sentence2",},
         label_classes=["entailment", "not_entailment"],
         label_column="label",
         data_url="https://dl.fbaipublicfiles.com/glue/data/RTE.zip",
@@ -305,14 +293,7 @@ class AdvGlue(datasets.GeneratorBasedBuilder):
         assert self.config.name in AdvGlue.DATASETS
         data_dir = dl_manager.download_and_extract(ADVGLUE_DEV_URL)
         data_file = os.path.join(data_dir, "dev", "dev.json")
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "data_file": data_file,
-                },
-            )
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"data_file": data_file,},)]
 
     def _generate_examples(self, data_file):
         # We name splits 'adv_sst2' instead of 'sst2' so as not to be confused

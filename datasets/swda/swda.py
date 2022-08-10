@@ -510,9 +510,7 @@ class CorpusReader:
         self.metadata = Metadata(metadata_filename)
         self.split_file = split_file
 
-    def iter_transcripts(
-        self,
-    ):
+    def iter_transcripts(self,):
         """
         Iterate through the transcripts.
 
@@ -533,9 +531,7 @@ class CorpusReader:
             # Yield the Transcript instance:
             yield Transcript(filename, self.metadata)
 
-    def iter_utterances(
-        self,
-    ):
+    def iter_utterances(self,):
         """
         Iterate through the utterances.
 
@@ -712,9 +708,7 @@ class Utterance:
 
         return vars(self)[feature]
 
-    def damsl_act_tag(
-        self,
-    ):
+    def damsl_act_tag(self,):
         """
         Seeks to duplicate the tag simplification described at the
         Coders' Manual: http://www.stanford.edu/~jurafsky/ws97/manual.august1.html

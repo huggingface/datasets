@@ -61,10 +61,7 @@ class WinogradWSC(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIG_CLASS = WinogradWSCConfig
     BUILDER_CONFIGS = [
-        WinogradWSCConfig(
-            name="wsc285",
-            description="Full set of winograd examples",
-        ),
+        WinogradWSCConfig(name="wsc285", description="Full set of winograd examples",),
         WinogradWSCConfig(
             name="wsc273",
             description="A commonly-used subset of examples. Identical to 'wsc285' but without the last 12 examples.",

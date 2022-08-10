@@ -83,9 +83,7 @@ class FinancialPhraseBankConfig(datasets.BuilderConfig):
     """BuilderConfig for FinancialPhraseBank."""
 
     def __init__(
-        self,
-        split,
-        **kwargs,
+        self, split, **kwargs,
     ):
         """BuilderConfig for Discovery.
         Args:
@@ -100,10 +98,7 @@ class FinancialPhraseBankConfig(datasets.BuilderConfig):
 class FinancialPhrasebank(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
-        FinancialPhraseBankConfig(
-            split="all",
-            description="Sentences where all annotators agreed",
-        ),
+        FinancialPhraseBankConfig(split="all", description="Sentences where all annotators agreed",),
         FinancialPhraseBankConfig(split="75", description="Sentences where at least 75% of annotators agreed"),
         FinancialPhraseBankConfig(split="66", description="Sentences where at least 66% of annotators agreed"),
         FinancialPhraseBankConfig(split="50", description="Sentences where at least 50% of annotators agreed"),
@@ -115,13 +110,7 @@ class FinancialPhrasebank(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "sentence": datasets.Value("string"),
-                    "label": datasets.features.ClassLabel(
-                        names=[
-                            "negative",
-                            "neutral",
-                            "positive",
-                        ]
-                    ),
+                    "label": datasets.features.ClassLabel(names=["negative", "neutral", "positive",]),
                 }
             ),
             supervised_keys=None,

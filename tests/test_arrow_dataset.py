@@ -970,8 +970,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(
-                        dset_test.features,
-                        Features({"filename": Value("string"), "id": Value("int64")}),
+                        dset_test.features, Features({"filename": Value("string"), "id": Value("int64")}),
                     )
                     self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
                     self.assertListEqual(dset_test["id"], list(range(30)))
@@ -986,8 +985,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 2)
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(
-                        dset_test.features,
-                        Features({"filename": Value("string"), "id": Value("int64")}),
+                        dset_test.features, Features({"filename": Value("string"), "id": Value("int64")}),
                     )
                     self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
                     self.assertListEqual(dset_test["id"], list(range(2)))
@@ -1001,8 +999,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(
-                        dset_test.features,
-                        Features({"filename": Value("string"), "id": Value("int64")}),
+                        dset_test.features, Features({"filename": Value("string"), "id": Value("int64")}),
                     )
                     self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 3)
                     self.assertListEqual(dset_test["id"], list(range(30)))
@@ -1016,8 +1013,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(
-                        dset_test.features,
-                        Features({"filename": Value("string"), "rank": Value("int64")}),
+                        dset_test.features, Features({"filename": Value("string"), "rank": Value("int64")}),
                     )
                     self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 3)
                     self.assertListEqual(dset_test["rank"], [0] * 10 + [1] * 10 + [2] * 10)
@@ -1054,8 +1050,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(
-                        dset_test.features,
-                        Features({"filename": Value("string"), "id": Value("int64")}),
+                        dset_test.features, Features({"filename": Value("string"), "id": Value("int64")}),
                     )
                     self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
                     self.assertListEqual(dset_test["id"], list(range(30)))
@@ -1072,8 +1067,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(
-                        dset_test.features,
-                        Features({"filename": Value("string"), "id": Value("int64")}),
+                        dset_test.features, Features({"filename": Value("string"), "id": Value("int64")}),
                     )
                     self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
                     self.assertListEqual(dset_test["id"], list(range(30)))
@@ -1089,8 +1083,7 @@ class BaseDatasetTest(TestCase):
                 ) as dset_test_with_indices:
                     self.assertEqual(len(dset_test_with_indices), 30)
                     self.assertDictEqual(
-                        dset_test_with_indices.features,
-                        features,
+                        dset_test_with_indices.features, features,
                     )
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test_with_indices)
 
@@ -1166,8 +1159,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test_modifying_inputs_inplace), 30)
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(
-                        dset_test_modifying_inputs_inplace.features,
-                        Features({"filename_new": Value("string")}),
+                        dset_test_modifying_inputs_inplace.features, Features({"filename_new": Value("string")}),
                     )
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test_modifying_inputs_inplace)
 
@@ -1652,11 +1644,7 @@ class BaseDatasetTest(TestCase):
                 bad_indices[-1] = len(dset) + 10  # out of bounds
                 tmp_file = os.path.join(tmp_dir, "test.arrow")
                 self.assertRaises(
-                    Exception,
-                    dset.select,
-                    indices=bad_indices,
-                    indices_cache_file_name=tmp_file,
-                    writer_batch_size=2,
+                    Exception, dset.select, indices=bad_indices, indices_cache_file_name=tmp_file, writer_batch_size=2,
                 )
                 self.assertFalse(os.path.exists(tmp_file))
 
@@ -1680,19 +1668,11 @@ class BaseDatasetTest(TestCase):
                 bad_indices[3] = "foo"  # wrong type
                 tmp_file = os.path.join(tmp_dir, "test.arrow")
                 self.assertRaises(
-                    Exception,
-                    dset.select,
-                    indices=bad_indices,
-                    indices_cache_file_name=tmp_file,
-                    writer_batch_size=2,
+                    Exception, dset.select, indices=bad_indices, indices_cache_file_name=tmp_file, writer_batch_size=2,
                 )
                 self.assertFalse(os.path.exists(tmp_file))
                 dset.set_format("numpy")
-                with dset.select(
-                    range(5),
-                    indices_cache_file_name=tmp_file,
-                    writer_batch_size=2,
-                ) as dset_select_five:
+                with dset.select(range(5), indices_cache_file_name=tmp_file, writer_batch_size=2,) as dset_select_five:
                     self.assertIsNone(dset_select_five._indices)
                     self.assertEqual(len(dset_select_five), 5)
                     self.assertEqual(dset_select_five.format["type"], "numpy")
@@ -1739,8 +1719,7 @@ class BaseDatasetTest(TestCase):
                                     self.assertEqual(dset._indices["indices"].to_pylist(), [1, 0])
                                     if not in_memory:
                                         self.assertIn(
-                                            ("rename_columns", (["file", "number"],), {}),
-                                            dset._data.replays,
+                                            ("rename_columns", (["file", "number"],), {}), dset._data.replays,
                                         )
                                     if not in_memory:
                                         dset._data.table = Unpicklable()  # check that we don't pickle the entire table
@@ -3026,13 +3005,7 @@ def test_dataset_from_text_keep_in_memory(keep_in_memory, text_path, tmp_path):
 
 
 @pytest.mark.parametrize(
-    "features",
-    [
-        None,
-        {"text": "string"},
-        {"text": "int32"},
-        {"text": "float32"},
-    ],
+    "features", [None, {"text": "string"}, {"text": "int32"}, {"text": "float32"},],
 )
 def test_dataset_from_text_features(features, text_path, tmp_path):
     cache_dir = tmp_path / "cache"
@@ -3090,12 +3063,7 @@ def test_dataset_to_json(dataset, tmp_path):
                     {
                         "tokens": Sequence(Value("string")),
                         "labels": Sequence(Value("int16")),
-                        "answers": Sequence(
-                            {
-                                "text": Value("string"),
-                                "answer_start": Value("int32"),
-                            }
-                        ),
+                        "answers": Sequence({"text": Value("string"), "answer_start": Value("int32"),}),
                         "id": Value("int32"),
                     }
                 )
@@ -3141,13 +3109,7 @@ def test_dummy_dataset_serialize_s3(s3, dataset, s3_test_bucket_name):
 
 @pytest.mark.parametrize(
     "uri_or_path",
-    [
-        "relative/path",
-        "/absolute/path",
-        "s3://bucket/relative/path",
-        "hdfs://relative/path",
-        "hdfs:///absolute/path",
-    ],
+    ["relative/path", "/absolute/path", "s3://bucket/relative/path", "hdfs://relative/path", "hdfs:///absolute/path",],
 )
 def test_build_local_temp_path(uri_or_path):
     extracted_path = extract_path_from_uri(uri_or_path)
@@ -3166,32 +3128,16 @@ def test_build_local_temp_path(uri_or_path):
 class TaskTemplatesTest(TestCase):
     def test_task_text_classification(self):
         labels = sorted(["pos", "neg"])
-        features_before_cast = Features(
-            {
-                "input_text": Value("string"),
-                "input_labels": ClassLabel(names=labels),
-            }
-        )
+        features_before_cast = Features({"input_text": Value("string"), "input_labels": ClassLabel(names=labels),})
         # Labels are cast to tuple during `TextClassification.__post_init_`, so we do the same here
-        features_after_cast = Features(
-            {
-                "text": Value("string"),
-                "labels": ClassLabel(names=labels),
-            }
-        )
+        features_after_cast = Features({"text": Value("string"), "labels": ClassLabel(names=labels),})
         # Label names are added in `DatasetInfo.__post_init__` so not needed here
         task_without_labels = TextClassification(text_column="input_text", label_column="input_labels")
-        info1 = DatasetInfo(
-            features=features_before_cast,
-            task_templates=task_without_labels,
-        )
+        info1 = DatasetInfo(features=features_before_cast, task_templates=task_without_labels,)
         # Label names are required when passing a TextClassification template directly to `Dataset.prepare_for_task`
         # However they also can be used to define `DatasetInfo` so we include a test for this too
         task_with_labels = TextClassification(text_column="input_text", label_column="input_labels")
-        info2 = DatasetInfo(
-            features=features_before_cast,
-            task_templates=task_with_labels,
-        )
+        info2 = DatasetInfo(features=features_before_cast, task_templates=task_with_labels,)
         data = {"input_text": ["i love transformers!"], "input_labels": [1]}
         # Test we can load from task name when label names not included in template (default behaviour)
         with Dataset.from_dict(data, info=info1) as dset:
@@ -3219,24 +3165,14 @@ class TaskTemplatesTest(TestCase):
             {
                 "input_context": Value("string"),
                 "input_question": Value("string"),
-                "input_answers": Sequence(
-                    {
-                        "text": Value("string"),
-                        "answer_start": Value("int32"),
-                    }
-                ),
+                "input_answers": Sequence({"text": Value("string"), "answer_start": Value("int32"),}),
             }
         )
         features_after_cast = Features(
             {
                 "context": Value("string"),
                 "question": Value("string"),
-                "answers": Sequence(
-                    {
-                        "text": Value("string"),
-                        "answer_start": Value("int32"),
-                    }
-                ),
+                "answers": Sequence({"text": Value("string"), "answer_start": Value("int32"),}),
             }
         )
         task = QuestionAnsweringExtractive(
@@ -3257,8 +3193,7 @@ class TaskTemplatesTest(TestCase):
             self.assertDictEqual(features_before_cast, dset.features)
             with dset.prepare_for_task(task="question-answering-extractive") as dset:
                 self.assertSetEqual(
-                    {"context", "question", "answers.text", "answers.answer_start"},
-                    set(dset.flatten().column_names),
+                    {"context", "question", "answers.text", "answers.answer_start"}, set(dset.flatten().column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
         # Test we can load from QuestionAnsweringExtractive template
@@ -3266,8 +3201,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
                 self.assertSetEqual(
-                    {"context", "question", "answers.text", "answers.answer_start"},
-                    set(dset.flatten().column_names),
+                    {"context", "question", "answers.text", "answers.answer_start"}, set(dset.flatten().column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
 
@@ -3288,8 +3222,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task="summarization") as dset:
                 self.assertSetEqual(
-                    {"text", "summary"},
-                    set(dset.column_names),
+                    {"text", "summary"}, set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
         # Test we can load from Summarization template
@@ -3297,8 +3230,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
                 self.assertSetEqual(
-                    {"text", "summary"},
-                    set(dset.column_names),
+                    {"text", "summary"}, set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
 
@@ -3323,8 +3255,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task="automatic-speech-recognition") as dset:
                 self.assertSetEqual(
-                    {"audio", "transcription"},
-                    set(dset.column_names),
+                    {"audio", "transcription"}, set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
         # Test we can load from Summarization template
@@ -3332,8 +3263,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
                 self.assertSetEqual(
-                    {"audio", "transcription"},
-                    set(dset.column_names),
+                    {"audio", "transcription"}, set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
 
@@ -3345,17 +3275,9 @@ class TaskTemplatesTest(TestCase):
 
     def test_task_with_incompatible_templates(self):
         labels = sorted(["pos", "neg"])
-        features = Features(
-            {
-                "input_text": Value("string"),
-                "input_labels": ClassLabel(names=labels),
-            }
-        )
+        features = Features({"input_text": Value("string"), "input_labels": ClassLabel(names=labels),})
         task = TextClassification(text_column="input_text", label_column="input_labels")
-        info = DatasetInfo(
-            features=features,
-            task_templates=task,
-        )
+        info = DatasetInfo(features=features, task_templates=task,)
         data = {"input_text": ["i love transformers!"], "input_labels": [1]}
         with Dataset.from_dict(data, info=info) as dset:
             # Invalid task name
@@ -3364,18 +3286,10 @@ class TaskTemplatesTest(TestCase):
             self.assertRaises(ValueError, dset.prepare_for_task, 1)
 
     def test_task_with_multiple_compatible_task_templates(self):
-        features = Features(
-            {
-                "text1": Value("string"),
-                "text2": Value("string"),
-            }
-        )
+        features = Features({"text1": Value("string"), "text2": Value("string"),})
         task1 = LanguageModeling(text_column="text1")
         task2 = LanguageModeling(text_column="text2")
-        info = DatasetInfo(
-            features=features,
-            task_templates=[task1, task2],
-        )
+        info = DatasetInfo(features=features, task_templates=[task1, task2],)
         data = {"text1": ["i love transformers!"], "text2": ["i love datasets!"]}
         with Dataset.from_dict(data, info=info) as dset:
             self.assertRaises(ValueError, dset.prepare_for_task, "language-modeling", id=3)
@@ -3385,17 +3299,9 @@ class TaskTemplatesTest(TestCase):
                 self.assertEqual(dset2[0]["text"], "i love datasets!")
 
     def test_task_templates_empty_after_preparation(self):
-        features = Features(
-            {
-                "input_text": Value("string"),
-                "input_labels": ClassLabel(names=["pos", "neg"]),
-            }
-        )
+        features = Features({"input_text": Value("string"), "input_labels": ClassLabel(names=["pos", "neg"]),})
         task = TextClassification(text_column="input_text", label_column="input_labels")
-        info = DatasetInfo(
-            features=features,
-            task_templates=task,
-        )
+        info = DatasetInfo(features=features, task_templates=task,)
         data = {"input_text": ["i love transformers!"], "input_labels": [1]}
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task="text-classification") as dset:
@@ -3421,18 +3327,7 @@ class TaskTemplatesTest(TestCase):
 
     def test_align_labels_with_mapping_ner(self):
         features = Features(
-            {
-                "input_text": Value("string"),
-                "input_labels": Sequence(
-                    ClassLabel(
-                        names=[
-                            "b-per",
-                            "i-per",
-                            "o",
-                        ]
-                    )
-                ),
-            }
+            {"input_text": Value("string"), "input_labels": Sequence(ClassLabel(names=["b-per", "i-per", "o",])),}
         )
         data = {"input_text": [["Optimus", "Prime", "is", "a", "Transformer"]], "input_labels": [[0, 1, 2, 2, 2]]}
         label2id = {"B-PER": 2, "I-PER": 1, "O": 0}
@@ -3484,12 +3379,7 @@ class TaskTemplatesTest(TestCase):
                     "labels": ClassLabel(names=["pos", "neg"]),
                     "context": Value("string"),
                     "question": Value("string"),
-                    "answers": Sequence(
-                        {
-                            "text": Value("string"),
-                            "answer_start": Value("int32"),
-                        }
-                    ),
+                    "answers": Sequence({"text": Value("string"), "answer_start": Value("int32"),}),
                 }
             ),
         )
@@ -3501,12 +3391,7 @@ class TaskTemplatesTest(TestCase):
                     "labels": ClassLabel(names=["pos", "neg"]),
                     "context": Value("string"),
                     "question": Value("string"),
-                    "answers": Sequence(
-                        {
-                            "text": Value("string"),
-                            "answer_start": Value("int32"),
-                        }
-                    ),
+                    "answers": Sequence({"text": Value("string"), "answer_start": Value("int32"),}),
                 }
             ),
         )
@@ -3537,12 +3422,7 @@ class TaskTemplatesTest(TestCase):
                     "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
                     "context": Value("string"),
                     "question": Value("string"),
-                    "answers": Sequence(
-                        {
-                            "text": Value("string"),
-                            "answer_start": Value("int32"),
-                        }
-                    ),
+                    "answers": Sequence({"text": Value("string"), "answer_start": Value("int32"),}),
                 }
             ),
             task_templates=[tc_template1],
@@ -3555,12 +3435,7 @@ class TaskTemplatesTest(TestCase):
                     "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
                     "context": Value("string"),
                     "question": Value("string"),
-                    "answers": Sequence(
-                        {
-                            "text": Value("string"),
-                            "answer_start": Value("int32"),
-                        }
-                    ),
+                    "answers": Sequence({"text": Value("string"), "answer_start": Value("int32"),}),
                 }
             ),
             task_templates=[tc_template2],
@@ -3573,12 +3448,7 @@ class TaskTemplatesTest(TestCase):
                     "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
                     "context": Value("string"),
                     "question": Value("string"),
-                    "answers": Sequence(
-                        {
-                            "text": Value("string"),
-                            "answer_start": Value("int32"),
-                        }
-                    ),
+                    "answers": Sequence({"text": Value("string"), "answer_start": Value("int32"),}),
                 }
             ),
             task_templates=[qa_template],
@@ -3599,19 +3469,11 @@ class TaskTemplatesTest(TestCase):
 
     def test_task_text_classification_when_columns_removed(self):
         labels = sorted(["pos", "neg"])
-        features_before_map = Features(
-            {
-                "input_text": Value("string"),
-                "input_labels": ClassLabel(names=labels),
-            }
-        )
+        features_before_map = Features({"input_text": Value("string"), "input_labels": ClassLabel(names=labels),})
         features_after_map = Features({"new_column": Value("int64")})
         # Label names are added in `DatasetInfo.__post_init__` so not needed here
         task = TextClassification(text_column="input_text", label_column="input_labels")
-        info = DatasetInfo(
-            features=features_before_map,
-            task_templates=task,
-        )
+        info = DatasetInfo(features=features_before_map, task_templates=task,)
         data = {"input_text": ["i love transformers!"], "input_labels": [1]}
         with Dataset.from_dict(data, info=info) as dset:
             with dset.map(lambda x: {"new_column": 0}, remove_columns=dset.column_names) as dset:

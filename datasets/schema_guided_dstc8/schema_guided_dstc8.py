@@ -154,10 +154,7 @@ class SchemaGuidedDstc8(datasets.GeneratorBasedBuilder):
                             "required_slots": datasets.Sequence(datasets.Value("string")),
                             # optional_slots was originally a dictionary
                             "optional_slots": datasets.Sequence(
-                                {
-                                    "slot_name": datasets.Value("string"),
-                                    "slot_value": datasets.Value("string"),
-                                }
+                                {"slot_name": datasets.Value("string"), "slot_value": datasets.Value("string"),}
                             ),
                             "result_slots": datasets.Sequence(datasets.Value("string")),
                         },
@@ -249,13 +246,7 @@ class SchemaGuidedDstc8(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         data_files = dl_manager.download_and_extract(_URLs)
         return [
-            datasets.SplitGenerator(
-                name=spl_enum,
-                gen_kwargs={
-                    "filepaths": data_files,
-                    "split": spl,
-                },
-            )
+            datasets.SplitGenerator(name=spl_enum, gen_kwargs={"filepaths": data_files, "split": spl,},)
             for spl, spl_enum in [
                 ("train", datasets.Split.TRAIN),
                 ("dev", datasets.Split.VALIDATION),
@@ -283,12 +274,7 @@ class SchemaGuidedDstc8(datasets.GeneratorBasedBuilder):
                         for frame in turn["frames"]:
                             # add empty state if the key is missing from the dict
                             frame["state"] = frame.get(
-                                "state",
-                                {
-                                    "active_intent": "",
-                                    "requested_slots": [],
-                                    "slot_values": {},
-                                },
+                                "state", {"active_intent": "", "requested_slots": [], "slot_values": {},},
                             )
                             # linearize the optional slot_values dictionary
                             slot_values_dict = frame["state"].get("slot_values", {})
@@ -314,13 +300,7 @@ class SchemaGuidedDstc8(datasets.GeneratorBasedBuilder):
                                 "service_results_list": service_results,
                             }
                             # add "service_call" field when necessary and linearize the parameters dictionary otherwise
-                            frame["service_call"] = frame.get(
-                                "service_call",
-                                {
-                                    "method": "",
-                                    "parameters": {},
-                                },
-                            )
+                            frame["service_call"] = frame.get("service_call", {"method": "", "parameters": {},},)
                             parameters_dict = frame["service_call"].get("parameters", {})
                             frame["service_call"]["parameters"] = {
                                 "parameter_slot_name": list(parameters_dict.keys()),

@@ -421,11 +421,7 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             )
 
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=features,
-            homepage=_HOMEPAGE,
-            license=_LICENSE,
-            citation=_CITATION,
+            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, license=_LICENSE, citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -440,10 +436,7 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": file_path,
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": file_path, "split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -453,22 +446,15 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": file_path,
-                    "split": "val",
-                },
+                gen_kwargs={"filepath": file_path, "split": "val",},
             ),
         ]
 
     # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     def _generate_examples(self, filepath, split):
-        (
-            loaded_data,
-            frequency,
-            forecast_horizon,
-            _,
-            _,
-        ) = convert_tsf_to_dataframe(filepath, value_column_name="target")
+        (loaded_data, frequency, forecast_horizon, _, _,) = convert_tsf_to_dataframe(
+            filepath, value_column_name="target"
+        )
 
         if forecast_horizon is None:
             prediction_length_map = {

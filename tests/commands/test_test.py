@@ -128,8 +128,8 @@ def test_test_command(dataset_loading_script_dir):
         ]:
             assert dataset_infos["default"][key] == expected_dataset_infos["default"][key]
         elif key in ["dataset_size", "size_in_bytes"]:
-            assert round(dataset_infos["default"][key] / 10**5) == round(
-                expected_dataset_infos["default"][key] / 10**5
+            assert round(dataset_infos["default"][key] / 10 ** 5) == round(
+                expected_dataset_infos["default"][key] / 10 ** 5
             )
         elif key == "splits":
             assert dataset_infos["default"]["splits"].keys() == expected_dataset_infos["default"]["splits"].keys()
@@ -140,8 +140,8 @@ def test_test_command(dataset_loading_script_dir):
                 )
                 for subkey in dataset_infos["default"]["splits"][split].keys():
                     if subkey == "num_bytes":
-                        assert round(dataset_infos["default"]["splits"][split][subkey] / 10**2) == round(
-                            expected_dataset_infos["default"]["splits"][split][subkey] / 10**2
+                        assert round(dataset_infos["default"]["splits"][split][subkey] / 10 ** 2) == round(
+                            expected_dataset_infos["default"]["splits"][split][subkey] / 10 ** 2
                         )
                     else:
                         assert (

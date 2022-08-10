@@ -69,10 +69,7 @@ class ANLI(datasets.GeneratorBasedBuilder):
     """ANLI: The ANLI Dataset."""
 
     BUILDER_CONFIGS = [
-        ANLIConfig(
-            name="plain_text",
-            description="Plain text",
-        ),
+        ANLIConfig(name="plain_text", description="Plain text",),
     ]
 
     def _info(self):

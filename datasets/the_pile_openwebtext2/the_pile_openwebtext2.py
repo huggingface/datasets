@@ -48,11 +48,7 @@ class Openwebtext2(datasets.GeneratorBasedBuilder):
     """The OpenWebText2 dataset."""
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="plain_text",
-            description="Plain text",
-            version=datasets.Version("1.0.0"),
-        )
+        datasets.BuilderConfig(name="plain_text", description="Plain text", version=datasets.Version("1.0.0"),)
     ]
 
     def _info(self):

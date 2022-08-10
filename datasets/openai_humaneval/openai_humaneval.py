@@ -29,11 +29,7 @@ class OpenaiHumaneval(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="openai_humaneval",
-            version=datasets.Version("1.0.0"),
-            description=_DESCRIPTION,
-        )
+        datasets.BuilderConfig(name="openai_humaneval", version=datasets.Version("1.0.0"), description=_DESCRIPTION,)
     ]
 
     def _info(self):
@@ -59,14 +55,7 @@ class OpenaiHumaneval(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         data_dir = dl_manager.download_and_extract(_URL)
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": data_dir,
-                },
-            )
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": data_dir,},)]
 
     def _generate_examples(self, filepath):
         """Yields examples."""

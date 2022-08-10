@@ -151,11 +151,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
             )
 
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=features,
-            homepage=_HOMEPAGE,
-            license=_LICENSE,
-            citation=_CITATION,
+            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, license=_LICENSE, citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -192,10 +188,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(split_files, "train.csv"),
-                        "split": "train",
-                    },
+                    gen_kwargs={"filepath": os.path.join(split_files, "train.csv"), "split": "train",},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
@@ -203,10 +196,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": os.path.join(split_files, "dev.csv"),
-                        "split": "dev",
-                    },
+                    gen_kwargs={"filepath": os.path.join(split_files, "dev.csv"), "split": "dev",},
                 ),
             ]
 

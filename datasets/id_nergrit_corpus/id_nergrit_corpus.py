@@ -131,31 +131,13 @@ class IdNergritCorpus(datasets.GeneratorBasedBuilder):
             name="sentiment",
             version=VERSION,
             description="Sentiment Analysis dataset of Nergrit Corpus",
-            label_classes=[
-                "B-NEG",
-                "B-NET",
-                "B-POS",
-                "I-NEG",
-                "I-NET",
-                "I-POS",
-                "O",
-            ],
+            label_classes=["B-NEG", "B-NET", "B-POS", "I-NEG", "I-NET", "I-POS", "O",],
         ),
         IdNergritCorpusConfig(
             name="statement",
             version=VERSION,
             description="Statement Extraction dataset of Nergrit Corpus",
-            label_classes=[
-                "B-BREL",
-                "B-FREL",
-                "B-STAT",
-                "B-WHO",
-                "I-BREL",
-                "I-FREL",
-                "I-STAT",
-                "I-WHO",
-                "O",
-            ],
+            label_classes=["B-BREL", "B-FREL", "B-STAT", "B-WHO", "I-BREL", "I-FREL", "I-STAT", "I-WHO", "O",],
         ),
     ]
 

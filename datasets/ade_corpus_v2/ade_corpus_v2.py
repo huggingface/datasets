@@ -109,16 +109,10 @@ class ADECorpusV2(datasets.GeneratorBasedBuilder):
                     "effect": datasets.Value("string"),
                     "indexes": {
                         "drug": datasets.Sequence(
-                            {
-                                "start_char": datasets.Value("int32"),
-                                "end_char": datasets.Value("int32"),
-                            }
+                            {"start_char": datasets.Value("int32"), "end_char": datasets.Value("int32"),}
                         ),
                         "effect": datasets.Sequence(
-                            {
-                                "start_char": datasets.Value("int32"),
-                                "end_char": datasets.Value("int32"),
-                            }
+                            {"start_char": datasets.Value("int32"), "end_char": datasets.Value("int32"),}
                         ),
                     },
                 }
@@ -132,16 +126,10 @@ class ADECorpusV2(datasets.GeneratorBasedBuilder):
                     "dosage": datasets.Value("string"),
                     "indexes": {
                         "drug": datasets.Sequence(
-                            {
-                                "start_char": datasets.Value("int32"),
-                                "end_char": datasets.Value("int32"),
-                            }
+                            {"start_char": datasets.Value("int32"), "end_char": datasets.Value("int32"),}
                         ),
                         "dosage": datasets.Sequence(
-                            {
-                                "start_char": datasets.Value("int32"),
-                                "end_char": datasets.Value("int32"),
-                            }
+                            {"start_char": datasets.Value("int32"), "end_char": datasets.Value("int32"),}
                         ),
                     },
                 }

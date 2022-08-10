@@ -72,22 +72,14 @@ class Beans(datasets.GeneratorBasedBuilder):
         data_files = dl_manager.download_and_extract(_URLS)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "files": dl_manager.iter_files([data_files["train"]]),
-                },
+                name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_files([data_files["train"]]),},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "files": dl_manager.iter_files([data_files["validation"]]),
-                },
+                gen_kwargs={"files": dl_manager.iter_files([data_files["validation"]]),},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={
-                    "files": dl_manager.iter_files([data_files["test"]]),
-                },
+                name=datasets.Split.TEST, gen_kwargs={"files": dl_manager.iter_files([data_files["test"]]),},
             ),
         ]
 

@@ -49,11 +49,7 @@ class SquadKorV1(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="squad_kor_v1",
-            version=VERSION,
-            description=_DESCRIPTION,
-        ),
+        datasets.BuilderConfig(name="squad_kor_v1", version=VERSION, description=_DESCRIPTION,),
     ]
 
     def _info(self):
@@ -66,10 +62,7 @@ class SquadKorV1(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {
-                            "text": datasets.Value("string"),
-                            "answer_start": datasets.Value("int32"),
-                        }
+                        {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
                     ),
                 }
             ),
@@ -115,8 +108,5 @@ class SquadKorV1(datasets.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {
-                                "answer_start": answer_starts,
-                                "text": answers,
-                            },
+                            "answers": {"answer_start": answer_starts, "text": answers,},
                         }

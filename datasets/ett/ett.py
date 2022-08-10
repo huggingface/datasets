@@ -77,24 +77,16 @@ class ETT(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('ett', 'm2')
     BUILDER_CONFIGS = [
         ETTBuilderConfig(
-            name="h1",
-            version=VERSION,
-            description="Time series from first county at hourly frequency.",
+            name="h1", version=VERSION, description="Time series from first county at hourly frequency.",
         ),
         ETTBuilderConfig(
-            name="h2",
-            version=VERSION,
-            description="Time series from second county at hourly frequency.",
+            name="h2", version=VERSION, description="Time series from second county at hourly frequency.",
         ),
         ETTBuilderConfig(
-            name="m1",
-            version=VERSION,
-            description="Time series from first county at 15-min frequency.",
+            name="m1", version=VERSION, description="Time series from first county at 15-min frequency.",
         ),
         ETTBuilderConfig(
-            name="m2",
-            version=VERSION,
-            description="Time series from second county at 15-min frequency.",
+            name="m2", version=VERSION, description="Time series from second county at 15-min frequency.",
         ),
     ]
 
@@ -145,26 +137,17 @@ class ETT(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": filepath,
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": filepath, "split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": filepath,
-                    "split": "test",
-                },
+                gen_kwargs={"filepath": filepath, "split": "test",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": filepath,
-                    "split": "dev",
-                },
+                gen_kwargs={"filepath": filepath, "split": "dev",},
             ),
         ]
 
@@ -187,13 +170,7 @@ class ETT(datasets.GeneratorBasedBuilder):
         if self.config.multivariate:
             if split in ["test", "dev"]:
                 # rolling windows of prediction_length for dev and test
-                for i, index in enumerate(
-                    range(
-                        train_end_date_index,
-                        end_date_index,
-                        self.config.prediction_length,
-                    )
-                ):
+                for i, index in enumerate(range(train_end_date_index, end_date_index, self.config.prediction_length,)):
                     yield i, {
                         "start": start_date,
                         "target": data[: index + self.config.prediction_length].values.astype("float32").T,
@@ -210,13 +187,7 @@ class ETT(datasets.GeneratorBasedBuilder):
         else:
             if split in ["test", "dev"]:
                 # rolling windows of prediction_length for dev and test
-                for i, index in enumerate(
-                    range(
-                        train_end_date_index,
-                        end_date_index,
-                        self.config.prediction_length,
-                    )
-                ):
+                for i, index in enumerate(range(train_end_date_index, end_date_index, self.config.prediction_length,)):
                     target = data["OT"][: index + self.config.prediction_length].values.astype("float32")
                     feat_dynamic_real = data[["HUFL", "HULL", "MUFL", "MULL", "LUFL", "LULL"]][
                         : index + self.config.prediction_length

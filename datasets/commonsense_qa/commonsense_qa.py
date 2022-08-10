@@ -56,34 +56,20 @@ class CommonsenseQa(datasets.GeneratorBasedBuilder):
                 "question": datasets.Value("string"),
                 "question_concept": datasets.Value("string"),
                 "choices": datasets.features.Sequence(
-                    {
-                        "label": datasets.Value("string"),
-                        "text": datasets.Value("string"),
-                    }
+                    {"label": datasets.Value("string"), "text": datasets.Value("string"),}
                 ),
                 "answerKey": datasets.Value("string"),
             }
         )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=features,
-            homepage=_HOMEPAGE,
-            citation=_CITATION,
+            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         filepaths = dl_manager.download_and_extract(_URLS)
         splits = [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]
-        return [
-            datasets.SplitGenerator(
-                name=split,
-                gen_kwargs={
-                    "filepath": filepaths[split],
-                },
-            )
-            for split in splits
-        ]
+        return [datasets.SplitGenerator(name=split, gen_kwargs={"filepath": filepaths[split],},) for split in splits]
 
     def _generate_examples(self, filepath):
         """Yields examples."""

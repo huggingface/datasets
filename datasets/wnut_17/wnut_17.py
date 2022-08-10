@@ -156,11 +156,7 @@ class WNUT_17(datasets.GeneratorBasedBuilder):
                     assert len(current_tokens) == len(current_labels), "💔 between len of tokens & labels"
                     sentence = (
                         sentence_counter,
-                        {
-                            "id": str(sentence_counter),
-                            "tokens": current_tokens,
-                            "ner_tags": current_labels,
-                        },
+                        {"id": str(sentence_counter), "tokens": current_tokens, "ner_tags": current_labels,},
                     )
                     sentence_counter += 1
                     current_tokens = []

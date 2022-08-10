@@ -86,10 +86,7 @@ class MatthewsCorrelation(datasets.Metric):
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
-                {
-                    "predictions": datasets.Value("int32"),
-                    "references": datasets.Value("int32"),
-                }
+                {"predictions": datasets.Value("int32"), "references": datasets.Value("int32"),}
             ),
             reference_urls=[
                 "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.matthews_corrcoef.html"

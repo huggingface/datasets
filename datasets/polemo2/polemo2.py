@@ -101,10 +101,7 @@ class Polemo2(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.tsv"),
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "train.tsv"), "split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -112,10 +109,7 @@ class Polemo2(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "dev.tsv"),
-                    "split": "dev",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "dev.tsv"), "split": "dev",},
             ),
         ]
 

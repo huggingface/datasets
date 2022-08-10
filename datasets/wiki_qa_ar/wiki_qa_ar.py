@@ -61,12 +61,7 @@ class WikiQaArConfig(datasets.BuilderConfig):
 class WikiQaAr(datasets.GeneratorBasedBuilder):
     """WikiQaAr dataset."""
 
-    BUILDER_CONFIGS = [
-        WikiQaArConfig(
-            name="plain_text",
-            description="Plain text",
-        )
-    ]
+    BUILDER_CONFIGS = [WikiQaArConfig(name="plain_text", description="Plain text",)]
 
     def _info(self):
         return datasets.DatasetInfo(

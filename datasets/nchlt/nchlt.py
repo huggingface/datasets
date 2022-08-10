@@ -123,17 +123,7 @@ class NCHLT(datasets.GeneratorBasedBuilder):
                     "tokens": datasets.Sequence(datasets.Value("string")),
                     "ner_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
-                            names=[
-                                "OUT",
-                                "B-PERS",
-                                "I-PERS",
-                                "B-ORG",
-                                "I-ORG",
-                                "B-LOC",
-                                "I-LOC",
-                                "B-MISC",
-                                "I-MISC",
-                            ]
+                            names=["OUT", "B-PERS", "I-PERS", "B-ORG", "I-ORG", "B-LOC", "I-LOC", "B-MISC", "I-MISC",]
                         )
                     ),
                 }

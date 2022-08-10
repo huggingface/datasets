@@ -140,10 +140,7 @@ class CodeEval(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             # This defines the format of each prediction and reference
             features=datasets.Features(
-                {
-                    "predictions": datasets.Sequence(datasets.Value("string")),
-                    "references": datasets.Value("string"),
-                }
+                {"predictions": datasets.Sequence(datasets.Value("string")), "references": datasets.Value("string"),}
             ),
             homepage="https://github.com/openai/human-eval",
             codebase_urls=["https://github.com/openai/human-eval"],

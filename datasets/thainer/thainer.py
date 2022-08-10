@@ -119,10 +119,7 @@ class Thainer(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         data_path = dl_manager.download_and_extract(self._DOWNLOAD_URL)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": data_path},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_path},),
         ]
 
     def _generate_examples(self, filepath):

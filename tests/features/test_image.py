@@ -376,12 +376,7 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
 
     for item in dset._iter(decoded=False):
         assert item.keys() == {"image"}
-        assert item == {
-            "image": {
-                "bytes": None,
-                "path": image_path,
-            }
-        }
+        assert item == {"image": {"bytes": None, "path": image_path,}}
 
     # return pil image
 

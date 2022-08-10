@@ -82,12 +82,7 @@ class RvlCdip(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "image": datasets.Image(),
-                    "label": datasets.ClassLabel(names=_CLASSES),
-                }
-            ),
+            features=datasets.Features({"image": datasets.Image(), "label": datasets.ClassLabel(names=_CLASSES),}),
             supervised_keys=("image", "label"),
             homepage=_HOMEPAGE,
             citation=_CITATION,

@@ -189,10 +189,7 @@ class WikiSnippets(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         # WARNING: It is a bad practice to use `datasets.load_dataset` inside a loading script. Please, avoid doing it.
-        wikipedia = datasets.load_dataset(
-            path=self.config.wikipedia_name,
-            name=self.config.wikipedia_version_name,
-        )
+        wikipedia = datasets.load_dataset(path=self.config.wikipedia_name, name=self.config.wikipedia_version_name,)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"wikipedia": wikipedia}),

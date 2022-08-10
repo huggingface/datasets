@@ -64,11 +64,7 @@ class Quac(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="plain_text",
-            description="Plain text",
-            version=VERSION,
-        ),
+        datasets.BuilderConfig(name="plain_text", description="Plain text", version=VERSION,),
     ]
 
     def _info(self):
@@ -107,18 +103,8 @@ class Quac(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         data_dir = dl_manager.download_and_extract(_URLs)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": data_dir["train"],
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": data_dir["validation"],
-                },
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir["train"],},),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": data_dir["validation"],},),
         ]
 
     def _generate_examples(self, filepath):

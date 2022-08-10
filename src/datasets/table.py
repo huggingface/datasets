@@ -1725,10 +1725,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     elif pa.types.is_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
             if pa_type.list_size * len(array) == len(array.values):
-                return pa.FixedSizeListArray.from_arrays(
-                    _c(array.values, pa_type.value_type),
-                    pa_type.list_size,
-                )
+                return pa.FixedSizeListArray.from_arrays(_c(array.values, pa_type.value_type), pa_type.list_size,)
         elif pa.types.is_list(pa_type):
             if array.null_count > 0:
                 warnings.warn(
@@ -1737,10 +1734,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             return pa.ListArray.from_arrays(array.offsets, _c(array.values, pa_type.value_type))
     elif pa.types.is_fixed_size_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
-            return pa.FixedSizeListArray.from_arrays(
-                _c(array.values, pa_type.value_type),
-                pa_type.list_size,
-            )
+            return pa.FixedSizeListArray.from_arrays(_c(array.values, pa_type.value_type), pa_type.list_size,)
         elif pa.types.is_list(pa_type):
             offsets_arr = pa.array(range(len(array) + 1), pa.int32())
             if array.null_count > 0:
@@ -2042,10 +2036,7 @@ def table_flatten(table: pa.Table):
             else:
                 flat_arrays.append(array)
                 flat_column_names.append(field.name)
-        flat_table = pa.Table.from_arrays(
-            flat_arrays,
-            names=flat_column_names,
-        )
+        flat_table = pa.Table.from_arrays(flat_arrays, names=flat_column_names,)
     else:
         flat_table = table.flatten()
     # Preserve complex types in the metadata

@@ -68,11 +68,7 @@ class LCCC(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = datasets.Features(
-            {
-                "dialog": [datasets.Value("string")],
-            }
-        )
+        features = datasets.Features({"dialog": [datasets.Value("string")],})
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -95,29 +91,19 @@ class LCCC(datasets.GeneratorBasedBuilder):
         if self.config.name == "large":
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(downloaded_data),
-                    },
+                    name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(downloaded_data),},
                 )
             ]
         elif self.config.name == "base":
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(downloaded_data["train"]),
-                    },
+                    name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(downloaded_data["train"]),},
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    gen_kwargs={"filepath": os.path.join(downloaded_data["test"])},
+                    name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(downloaded_data["test"])},
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": os.path.join(downloaded_data["valid"]),
-                    },
+                    name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(downloaded_data["valid"]),},
                 ),
             ]
 

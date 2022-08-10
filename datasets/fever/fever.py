@@ -103,9 +103,7 @@ class Fever(datasets.GeneratorBasedBuilder):
                 }"""
             ),
             base_url="https://fever.ai/download/fever2.0",
-            urls={
-                datasets.Split.VALIDATION: "fever2-fixers-dev.jsonl",
-            },
+            urls={datasets.Split.VALIDATION: "fever2-fixers-dev.jsonl",},
         ),
         FeverConfig(
             name="wiki_pages",
@@ -129,9 +127,7 @@ class Fever(datasets.GeneratorBasedBuilder):
                 }"""
             ),
             base_url="https://fever.ai/download/fever",
-            urls={
-                "wikipedia_pages": "wiki-pages.zip",
-            },
+            urls={"wikipedia_pages": "wiki-pages.zip",},
         ),
     ]
 

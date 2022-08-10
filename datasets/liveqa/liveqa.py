@@ -71,11 +71,7 @@ class LiveQA(datasets.GeneratorBasedBuilder):
         )
 
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=features,
-            supervised_keys=None,
-            homepage=_HOMEPAGE,
-            citation=_CITATION,
+            description=_DESCRIPTION, features=features, supervised_keys=None, homepage=_HOMEPAGE, citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -86,10 +82,7 @@ class LiveQA(datasets.GeneratorBasedBuilder):
 
         data_dir = dl_manager.download_and_extract(_URLs)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepaths": data_dir, "split": "train"},
-            )
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepaths": data_dir, "split": "train"},)
         ]
 
     def _generate_examples(self, filepaths, split):

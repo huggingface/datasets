@@ -48,10 +48,7 @@ class Text2log(datasets.GeneratorBasedBuilder):
     def _info(self):
 
         features = datasets.Features(
-            {
-                "sentence": datasets.Value("string"),
-                "fol_translation": datasets.Value("string"),
-            }
+            {"sentence": datasets.Value("string"), "fol_translation": datasets.Value("string"),}
         )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,

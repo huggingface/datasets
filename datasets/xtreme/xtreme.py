@@ -349,52 +349,15 @@ _CITATIONS = {
 }
 
 _TEXT_FEATURES = {
-    "XNLI": {
-        "language": "language",
-        "sentence1": "sentence1",
-        "sentence2": "sentence2",
-    },
-    "tydiqa": {
-        "id": "id",
-        "title": "title",
-        "context": "context",
-        "question": "question",
-        "answers": "answers",
-    },
-    "XQuAD": {
-        "id": "id",
-        "context": "context",
-        "question": "question",
-        "answers": "answers",
-    },
-    "MLQA": {
-        "id": "id",
-        "title": "title",
-        "context": "context",
-        "question": "question",
-        "answers": "answers",
-    },
-    "tatoeba": {
-        "source_sentence": "",
-        "target_sentence": "",
-        "source_lang": "",
-        "target_lang": "",
-    },
-    "bucc18": {
-        "source_sentence": "",
-        "target_sentence": "",
-        "source_lang": "",
-        "target_lang": "",
-    },
+    "XNLI": {"language": "language", "sentence1": "sentence1", "sentence2": "sentence2",},
+    "tydiqa": {"id": "id", "title": "title", "context": "context", "question": "question", "answers": "answers",},
+    "XQuAD": {"id": "id", "context": "context", "question": "question", "answers": "answers",},
+    "MLQA": {"id": "id", "title": "title", "context": "context", "question": "question", "answers": "answers",},
+    "tatoeba": {"source_sentence": "", "target_sentence": "", "source_lang": "", "target_lang": "",},
+    "bucc18": {"source_sentence": "", "target_sentence": "", "source_lang": "", "target_lang": "",},
     "PAWS-X": {"sentence1": "sentence1", "sentence2": "sentence2"},
     "udpos": {"tokens": "", "pos_tags": ""},
-    "SQuAD": {
-        "id": "id",
-        "title": "title",
-        "context": "context",
-        "question": "question",
-        "answers": "answers",
-    },
+    "SQuAD": {"id": "id", "title": "title", "context": "context", "question": "question", "answers": "answers",},
     "PAN-X": {"tokens": "", "ner_tags": "", "lang": ""},
 }
 _DATA_URLS = {
@@ -464,10 +427,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
         if "answers" in features.keys():
             features["answers"] = datasets.features.Sequence(
-                {
-                    "answer_start": datasets.Value("int32"),
-                    "text": datasets.Value("string"),
-                }
+                {"answer_start": datasets.Value("int32"), "text": datasets.Value("string"),}
             )
         if self.config.name.startswith("PAWS-X"):
             features = PawsxParser.features
@@ -521,12 +481,10 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             data_dir = os.path.join(dl_dir, "XNLI-1.0")
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    gen_kwargs={"filepath": os.path.join(data_dir, "xnli.test.tsv")},
+                    name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.test.tsv")},
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    gen_kwargs={"filepath": os.path.join(data_dir, "xnli.dev.tsv")},
+                    name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.dev.tsv")},
                 ),
             ]
 
@@ -550,8 +508,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": os.path.join(
-                            os.path.join(mlqa_downloaded_files, "MLQA_V1/dev"),
-                            f"dev-context-{l1}-question-{l2}.json",
+                            os.path.join(mlqa_downloaded_files, "MLQA_V1/dev"), f"dev-context-{l1}-question-{l2}.json",
                         )
                     },
                 ),
@@ -595,8 +552,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                     gen_kwargs={"filepath": dl_manager.iter_archive(bucc18_dl_dev_archive)},
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    gen_kwargs={"filepath": dl_manager.iter_archive(bucc18_dl_test_archive)},
+                    name=datasets.Split.TEST, gen_kwargs={"filepath": dl_manager.iter_archive(bucc18_dl_test_archive)},
                 ),
             ]
         if self.config.name.startswith("udpos"):
@@ -612,12 +568,10 @@ class Xtreme(datasets.GeneratorBasedBuilder):
 
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    gen_kwargs={"filepath": downloaded_files["train"]},
+                    name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]},
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    gen_kwargs={"filepath": downloaded_files["dev"]},
+                    name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]},
                 ),
             ]
 
@@ -649,10 +603,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                                 "context": context,
                                 "question": question,
                                 "id": id_,
-                                "answers": {
-                                    "answer_start": answer_starts,
-                                    "text": answers,
-                                },
+                                "answers": {"answer_start": answer_starts, "text": answers,},
                             }
         if self.config.name == "XNLI":
             with open(filepath, encoding="utf-8") as f:
@@ -685,10 +636,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                                 "context": context,
                                 "question": question,
                                 "id": id_,
-                                "answers": {
-                                    "answer_start": answer_starts,
-                                    "text": answers,
-                                },
+                                "answers": {"answer_start": answer_starts, "text": answers,},
                             }
         if self.config.name.startswith("bucc18"):
             lang = self.config.name.split(".")[1]
@@ -740,17 +688,7 @@ class PanxParser:
         {
             "tokens": datasets.Sequence(datasets.Value("string")),
             "ner_tags": datasets.Sequence(
-                datasets.features.ClassLabel(
-                    names=[
-                        "O",
-                        "B-PER",
-                        "I-PER",
-                        "B-ORG",
-                        "I-ORG",
-                        "B-LOC",
-                        "I-LOC",
-                    ]
-                )
+                datasets.features.ClassLabel(names=["O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC",])
             ),
             "langs": datasets.Sequence(datasets.Value("string")),
         }
@@ -769,10 +707,7 @@ class PanxParser:
         return [
             datasets.SplitGenerator(
                 name=split,
-                gen_kwargs={
-                    "filepath": dl_manager.iter_archive(archive),
-                    "filename": split_filenames[split],
-                },
+                gen_kwargs={"filepath": dl_manager.iter_archive(archive), "filename": split_filenames[split],},
             )
             for split in split_filenames
         ]
@@ -898,11 +833,7 @@ class UdposParser:
         split_names = {datasets.Split.TRAIN: "train", datasets.Split.VALIDATION: "dev", datasets.Split.TEST: "test"}
         split_generators = {
             split: datasets.SplitGenerator(
-                name=split,
-                gen_kwargs={
-                    "filepath": dl_manager.iter_archive(archive),
-                    "split": split_names[split],
-                },
+                name=split, gen_kwargs={"filepath": dl_manager.iter_archive(archive), "split": split_names[split],},
             )
             for split in split_names
         }

@@ -101,18 +101,11 @@ class ScientificPapers(datasets.GeneratorBasedBuilder):
         dl_paths = dl_manager.download_and_extract(_URLS)
         path = os.path.join(dl_paths[self.config.name], self.config.name + "-dataset")
         return [
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"path": os.path.join(path, "train.txt")},),
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"path": os.path.join(path, "train.txt")},
+                name=datasets.Split.VALIDATION, gen_kwargs={"path": os.path.join(path, "val.txt")},
             ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"path": os.path.join(path, "val.txt")},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"path": os.path.join(path, "test.txt")},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"path": os.path.join(path, "test.txt")},),
         ]
 
     def _generate_examples(self, path=None):

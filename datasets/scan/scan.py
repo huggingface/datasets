@@ -88,12 +88,7 @@ class Scan(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    _COMMANDS: datasets.Value("string"),
-                    _ACTIONS: datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features({_COMMANDS: datasets.Value("string"), _ACTIONS: datasets.Value("string"),}),
             supervised_keys=None,
             homepage="https://github.com/brendenlake/SCAN",
             citation=_CITATION,
@@ -107,13 +102,7 @@ class Scan(datasets.GeneratorBasedBuilder):
             for split in splits
         }
         data_paths = dl_manager.download(urls)
-        return [
-            datasets.SplitGenerator(
-                name=split,
-                gen_kwargs={"filepath": data_paths[split]},
-            )
-            for split in splits
-        ]
+        return [datasets.SplitGenerator(name=split, gen_kwargs={"filepath": data_paths[split]},) for split in splits]
 
     def _generate_examples(self, filepath):
         """Yields examples."""

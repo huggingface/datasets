@@ -64,10 +64,7 @@ class Imagenet1k(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {
-                    "image": datasets.Image(),
-                    "label": datasets.ClassLabel(names=list(IMAGENET2012_CLASSES.values())),
-                }
+                {"image": datasets.Image(), "label": datasets.ClassLabel(names=list(IMAGENET2012_CLASSES.values())),}
             ),
             homepage=_HOMEPAGE,
             citation=_CITATION,

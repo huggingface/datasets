@@ -128,10 +128,7 @@ def test_write_with_features():
 def test_key_datatype(writer_batch_size):
     output = pa.BufferOutputStream()
     with ArrowWriter(
-        stream=output,
-        writer_batch_size=writer_batch_size,
-        hash_salt="split_name",
-        check_duplicates=True,
+        stream=output, writer_batch_size=writer_batch_size, hash_salt="split_name", check_duplicates=True,
     ) as writer:
         with pytest.raises(InvalidKeyError):
             writer.write({"col_1": "foo", "col_2": 1}, key=[1, 2])
@@ -142,10 +139,7 @@ def test_key_datatype(writer_batch_size):
 def test_duplicate_keys(writer_batch_size):
     output = pa.BufferOutputStream()
     with ArrowWriter(
-        stream=output,
-        writer_batch_size=writer_batch_size,
-        hash_salt="split_name",
-        check_duplicates=True,
+        stream=output, writer_batch_size=writer_batch_size, hash_salt="split_name", check_duplicates=True,
     ) as writer:
         with pytest.raises(DuplicatedKeysError):
             writer.write({"col_1": "foo", "col_2": 1}, key=10)
@@ -157,10 +151,7 @@ def test_duplicate_keys(writer_batch_size):
 def test_write_with_keys(writer_batch_size):
     output = pa.BufferOutputStream()
     with ArrowWriter(
-        stream=output,
-        writer_batch_size=writer_batch_size,
-        hash_salt="split_name",
-        check_duplicates=True,
+        stream=output, writer_batch_size=writer_batch_size, hash_salt="split_name", check_duplicates=True,
     ) as writer:
         writer.write({"col_1": "foo", "col_2": 1}, key=1)
         writer.write({"col_1": "bar", "col_2": 2}, key=2)

@@ -62,11 +62,7 @@ class Emo(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        EmoConfig(
-            name="emo2019",
-            version=datasets.Version("1.0.0"),
-            description="Plain text",
-        ),
+        EmoConfig(name="emo2019", version=datasets.Version("1.0.0"), description="Plain text",),
     ]
 
     def _info(self):
@@ -94,17 +90,8 @@ class Emo(datasets.GeneratorBasedBuilder):
         dl_train = dl_manager.download_and_extract(self._get_drive_url(_TRAIN_URL))
         dl_test = dl_manager.download_and_extract(self._get_drive_url(_TEST_URL))
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": dl_train,
-                    "split": "train",
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": dl_test, "split": "test"},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": dl_train, "split": "train",},),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": dl_test, "split": "test"},),
         ]
 
     def _generate_examples(self, filepath, split):

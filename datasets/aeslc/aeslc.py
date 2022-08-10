@@ -68,16 +68,13 @@ class Aeslc(datasets.GeneratorBasedBuilder):
         input_path = os.path.join(dl_path, "AESLC-master", "enron_subject_line")
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"pattern": os.path.join(input_path, "train", "*.subject")},
+                name=datasets.Split.TRAIN, gen_kwargs={"pattern": os.path.join(input_path, "train", "*.subject")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"pattern": os.path.join(input_path, "dev", "*.subject")},
+                name=datasets.Split.VALIDATION, gen_kwargs={"pattern": os.path.join(input_path, "dev", "*.subject")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"pattern": os.path.join(input_path, "test", "*.subject")},
+                name=datasets.Split.TEST, gen_kwargs={"pattern": os.path.join(input_path, "test", "*.subject")},
             ),
         ]
 

@@ -121,11 +121,7 @@ class BuilderConfig:
             return False
         return all((k, getattr(self, k)) == (k, getattr(o, k)) for k in self.__dict__.keys())
 
-    def create_config_id(
-        self,
-        config_kwargs: dict,
-        custom_features: Optional[Features] = None,
-    ) -> str:
+    def create_config_id(self, config_kwargs: dict, custom_features: Optional[Features] = None,) -> str:
         """
         The config id is used to build the cache directory.
         By default it is equal to the config name.
@@ -295,9 +291,7 @@ class DatasetBuilder:
         if data_dir is not None:
             config_kwargs["data_dir"] = data_dir
         self.config, self.config_id = self._create_builder_config(
-            config_name,
-            custom_features=features,
-            **config_kwargs,
+            config_name, custom_features=features, **config_kwargs,
         )
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
@@ -454,10 +448,7 @@ class DatasetBuilder:
             raise ValueError(f"BuilderConfig must have a name, got {builder_config.name}")
 
         # compute the config id that is going to be used for caching
-        config_id = builder_config.create_config_id(
-            config_kwargs,
-            custom_features=custom_features,
-        )
+        config_id = builder_config.create_config_id(config_kwargs, custom_features=custom_features,)
         is_custom = config_id not in self.builder_configs
         if is_custom:
             logger.warning(f"Using custom data configuration {config_id}")
@@ -921,10 +912,7 @@ class DatasetBuilder:
             split = Split(split)
 
         # Build base dataset
-        ds = self._as_dataset(
-            split=split,
-            in_memory=in_memory,
-        )
+        ds = self._as_dataset(split=split, in_memory=in_memory,)
         if run_post_process:
             for resource_file_name in self._post_processing_resources(split).values():
                 if os.sep in resource_file_name:
@@ -991,10 +979,7 @@ class DatasetBuilder:
         """
 
         dataset_kwargs = ArrowReader(self._cache_dir, self.info).read(
-            name=self.name,
-            instructions=split,
-            split_infos=self.info.splits.values(),
-            in_memory=in_memory,
+            name=self.name, instructions=split, split_infos=self.info.splits.values(), in_memory=in_memory,
         )
         fingerprint = self._get_dataset_fingerprint(split)
         return Dataset(fingerprint=fingerprint, **dataset_kwargs)
@@ -1008,9 +993,7 @@ class DatasetBuilder:
         return fingerprint
 
     def as_streaming_dataset(
-        self,
-        split: Optional[str] = None,
-        base_path: Optional[str] = None,
+        self, split: Optional[str] = None, base_path: Optional[str] = None,
     ) -> Union[Dict[str, IterableDataset], IterableDataset]:
         if not isinstance(self, (GeneratorBasedBuilder, ArrowBasedBuilder)):
             raise ValueError(f"Builder {self.name} is not streamable.")
@@ -1032,19 +1015,12 @@ class DatasetBuilder:
             raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
 
         # Create a dataset for each of the given splits
-        datasets = map_nested(
-            self._as_streaming_dataset_single,
-            splits_generator,
-            map_tuple=True,
-        )
+        datasets = map_nested(self._as_streaming_dataset_single, splits_generator, map_tuple=True,)
         if isinstance(datasets, dict):
             datasets = IterableDatasetDict(datasets)
         return datasets
 
-    def _as_streaming_dataset_single(
-        self,
-        splits_generator,
-    ) -> IterableDataset:
+    def _as_streaming_dataset_single(self, splits_generator,) -> IterableDataset:
         ex_iterable = self._get_examples_iterable_for_split(splits_generator)
         # add auth to be able to access and decode audio/image files from private repositories.
         token_per_repo_id = {self.repo_id: self.use_auth_token} if self.repo_id else {}
@@ -1381,14 +1357,9 @@ class BeamBasedBuilder(DatasetBuilder):
         # are better without it.
         beam_options.view_as(beam.options.pipeline_options.TypeOptions).pipeline_type_check = False
         # Use a single pipeline for all splits
-        pipeline = beam_utils.BeamPipeline(
-            runner=beam_runner,
-            options=beam_options,
-        )
+        pipeline = beam_utils.BeamPipeline(runner=beam_runner, options=beam_options,)
         super()._download_and_prepare(
-            dl_manager,
-            verify_infos=False,
-            pipeline=pipeline,
+            dl_manager, verify_infos=False, pipeline=pipeline,
         )  # TODO handle verify_infos in beam datasets
         # Run pipeline
         pipeline_results = pipeline.run()

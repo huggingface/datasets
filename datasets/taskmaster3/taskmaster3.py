@@ -61,12 +61,7 @@ class Taskmaster3(datasets.GeneratorBasedBuilder):
                         {
                             "name": datasets.Value("string"),
                             "index": datasets.Value("int32"),
-                            "args": [
-                                {
-                                    "arg_name": datasets.Value("string"),
-                                    "arg_value": datasets.Value("string"),
-                                }
-                            ],
+                            "args": [{"arg_name": datasets.Value("string"), "arg_value": datasets.Value("string"),}],
                             "response": [
                                 {
                                     "response_name": datasets.Value("string"),
@@ -98,10 +93,7 @@ class Taskmaster3(datasets.GeneratorBasedBuilder):
         urls = [f"{_BASE_URL}/data_{i:02}.json" for i in range(20)]
         dialog_files = dl_manager.download(urls)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"dialog_files": dialog_files},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"dialog_files": dialog_files},),
         ]
 
     def _generate_examples(self, dialog_files):

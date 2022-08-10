@@ -90,13 +90,9 @@ class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
                 train_files.append(file_path)
 
         return [
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": train_files, "split": "train"},),
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"files": train_files, "split": "train"},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"files": validation_files, "split": "validation"},
+                name=datasets.Split.VALIDATION, gen_kwargs={"files": validation_files, "split": "validation"},
             ),
         ]
 

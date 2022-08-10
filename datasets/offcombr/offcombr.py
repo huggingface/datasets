@@ -63,10 +63,7 @@ class Offcombr(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {
-                    "label": datasets.ClassLabel(names=["no", "yes"]),
-                    "text": datasets.Value("string"),
-                }
+                {"label": datasets.ClassLabel(names=["no", "yes"]), "text": datasets.Value("string"),}
             ),
             supervised_keys=("label", "text"),
             homepage=_HOMEPAGE,
@@ -80,12 +77,7 @@ class Offcombr(datasets.GeneratorBasedBuilder):
         urls = _URLs[self.config.name]
         data_file = dl_manager.download_and_extract(urls)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": data_file,
-                },
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_file,},),
         ]
 
     def _generate_examples(self, filepath):

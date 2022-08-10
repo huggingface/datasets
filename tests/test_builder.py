@@ -212,15 +212,7 @@ class BuilderTest(TestCase):
                 try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD, base_path=tmp_dir
             )
             self.assertTrue(
-                os.path.exists(
-                    os.path.join(
-                        tmp_dir,
-                        builder.name,
-                        "default",
-                        "0.0.0",
-                        f"{builder.name}-train.arrow",
-                    )
-                )
+                os.path.exists(os.path.join(tmp_dir, builder.name, "default", "0.0.0", f"{builder.name}-train.arrow",))
             )
 
     def test_as_dataset_with_post_process(self):
@@ -455,8 +447,7 @@ class BuilderTest(TestCase):
             )
             self.assertDictEqual(builder.info.features, Features({"text": Value("string")}))
             self.assertDictEqual(
-                builder.info.post_processed.features,
-                Features({"text": Value("string"), "tokens": [Value("string")]}),
+                builder.info.post_processed.features, Features({"text": Value("string"), "tokens": [Value("string")]}),
             )
             self.assertEqual(builder.info.splits["train"].num_examples, 100)
             self.assertTrue(
@@ -529,15 +520,7 @@ class BuilderTest(TestCase):
             builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir)
             builder.download_and_prepare(try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD)
             self.assertTrue(
-                os.path.exists(
-                    os.path.join(
-                        tmp_dir,
-                        builder.name,
-                        "default",
-                        "0.0.0",
-                        f"{builder.name}-train.arrow",
-                    )
-                )
+                os.path.exists(os.path.join(tmp_dir, builder.name, "default", "0.0.0", f"{builder.name}-train.arrow",))
             )
             self.assertDictEqual(builder.info.features, Features({"text": Value("string")}))
             self.assertEqual(builder.info.splits["train"].num_examples, 100)
@@ -622,8 +605,7 @@ class BuilderTest(TestCase):
             )
             self.assertNotEqual(builder.cache_dir, other_builder.cache_dir)
             other_builder = DummyGeneratorBasedBuilder(
-                cache_dir=tmp_dir,
-                data_files={"train": [dummy_data1, dummy_data2], "test": dummy_data2},
+                cache_dir=tmp_dir, data_files={"train": [dummy_data1, dummy_data2], "test": dummy_data2},
             )
             self.assertNotEqual(builder.cache_dir, other_builder.cache_dir)
 
@@ -692,11 +674,7 @@ class BuilderTest(TestCase):
 
 @pytest.mark.parametrize(
     "split, expected_dataset_class, expected_dataset_length",
-    [
-        (None, DatasetDict, 10),
-        ("train", Dataset, 10),
-        ("train+test[:30%]", Dataset, 13),
-    ],
+    [(None, DatasetDict, 10), ("train", Dataset, 10), ("train+test[:30%]", Dataset, 13),],
 )
 @pytest.mark.parametrize("in_memory", [False, True])
 def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_length, in_memory, tmp_path):

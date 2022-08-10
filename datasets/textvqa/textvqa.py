@@ -57,11 +57,7 @@ class Textvqa(datasets.GeneratorBasedBuilder):
     """TextVQA dataset."""
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="textvqa",
-            version=datasets.Version("0.5.1"),
-            description=_DESCRIPTION,
-        )
+        datasets.BuilderConfig(name="textvqa", version=datasets.Version("0.5.1"), description=_DESCRIPTION,)
     ]
 
     DEFAULT_CONFIG_NAME = "textvqa"

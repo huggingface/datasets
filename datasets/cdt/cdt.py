@@ -53,10 +53,7 @@ class Cdt(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {
-                    "sentence": datasets.Value("string"),
-                    "target": datasets.ClassLabel(names=["0", "1"]),
-                }
+                {"sentence": datasets.Value("string"), "target": datasets.ClassLabel(names=["0", "1"]),}
             ),
             supervised_keys=None,
             homepage=_HOMEPAGE,
@@ -71,10 +68,7 @@ class Cdt(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.tsv"),
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "train.tsv"), "split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,

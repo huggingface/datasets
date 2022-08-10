@@ -96,8 +96,7 @@ class TedHrlr(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         TedHrlrConfig(  # pylint: disable=g-complex-comprehension
-            language_pair=pair,
-            version=datasets.Version("1.0.0", ""),
+            language_pair=pair, version=datasets.Version("1.0.0", ""),
         )
         for pair in _VALID_LANGUAGE_PAIRS
     ]

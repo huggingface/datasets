@@ -46,10 +46,7 @@ def test_get_dataset_config_info(path, config_name, expected_splits):
 
 
 @pytest.mark.parametrize(
-    "path, config_name, expected_exception",
-    [
-        ("paws", None, ValueError),
-    ],
+    "path, config_name, expected_exception", [("paws", None, ValueError),],
 )
 def test_get_dataset_config_info_error(path, config_name, expected_exception):
     with pytest.raises(expected_exception):
@@ -107,10 +104,7 @@ def test_get_dataset_split_names(path, expected_config, expected_splits):
 
 
 @pytest.mark.parametrize(
-    "path, config_name, expected_exception",
-    [
-        ("paws", None, ValueError),
-    ],
+    "path, config_name, expected_exception", [("paws", None, ValueError),],
 )
 def test_get_dataset_split_names_error(path, config_name, expected_exception):
     with pytest.raises(expected_exception):

@@ -28,13 +28,7 @@ class JsonDatasetReader(AbstractDatasetReader):
         )
         self.field = field
         path_or_paths = path_or_paths if isinstance(path_or_paths, dict) else {self.split: path_or_paths}
-        self.builder = Json(
-            cache_dir=cache_dir,
-            data_files=path_or_paths,
-            features=features,
-            field=field,
-            **kwargs,
-        )
+        self.builder = Json(cache_dir=cache_dir, data_files=path_or_paths, features=features, field=field, **kwargs,)
 
     def read(self):
         download_config = None
@@ -104,22 +98,14 @@ class JsonDatasetWriter:
         offset, orient, lines, to_json_kwargs = args
 
         batch = query_table(
-            table=self.dataset.data,
-            key=slice(offset, offset + self.batch_size),
-            indices=self.dataset._indices,
+            table=self.dataset.data, key=slice(offset, offset + self.batch_size), indices=self.dataset._indices,
         )
         json_str = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
         if not json_str.endswith("\n"):
             json_str += "\n"
         return json_str.encode(self.encoding)
 
-    def _write(
-        self,
-        file_obj: BinaryIO,
-        orient,
-        lines,
-        **to_json_kwargs,
-    ) -> int:
+    def _write(self, file_obj: BinaryIO, orient, lines, **to_json_kwargs,) -> int:
         """Writes the pyarrow table as JSON lines to a binary file handle.
 
         Caller is responsible for opening and closing the handle.

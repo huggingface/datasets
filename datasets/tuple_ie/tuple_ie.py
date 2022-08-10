@@ -97,12 +97,7 @@ class TupleIE(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         data_dir = os.path.join(dl_manager.download_and_extract(_URL), "TupleInfKB")
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"data_dir": data_dir},
-            )
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_dir": data_dir},)]
 
     def _generate_examples(self, data_dir):
         """Yields examples."""

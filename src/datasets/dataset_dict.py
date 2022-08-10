@@ -556,10 +556,7 @@ class DatasetDict(dict):
             dataset.set_format()
 
     def set_transform(
-        self,
-        transform: Optional[Callable],
-        columns: Optional[List] = None,
-        output_all_columns: bool = False,
+        self, transform: Optional[Callable], columns: Optional[List] = None, output_all_columns: bool = False,
     ):
         """Set ``__getitem__`` return format using this transform. The transform is applied on-the-fly on batches when ``__getitem__`` is called.
         The transform is set for every dataset in the dataset dictionary
@@ -629,10 +626,7 @@ class DatasetDict(dict):
         return dataset
 
     def with_transform(
-        self,
-        transform: Optional[Callable],
-        columns: Optional[List] = None,
-        output_all_columns: bool = False,
+        self, transform: Optional[Callable], columns: Optional[List] = None, output_all_columns: bool = False,
     ) -> "DatasetDict":
         """Set ``__getitem__`` return format using this transform. The transform is applied on-the-fly on batches when ``__getitem__`` is called.
         The transform is set for every dataset in the dataset dictionary
@@ -1382,10 +1376,7 @@ class DatasetDict(dict):
 
 
 class IterableDatasetDict(dict):
-    def with_format(
-        self,
-        type: Optional[str] = None,
-    ) -> "IterableDatasetDict":
+    def with_format(self, type: Optional[str] = None,) -> "IterableDatasetDict":
         """
         Return a dataset with the specified format.
         This method only supports the "torch" format for now.
@@ -1710,10 +1701,7 @@ class IterableDatasetDict(dict):
             {k: dataset.cast_column(column=column, feature=feature) for k, dataset in self.items()}
         )
 
-    def cast(
-        self,
-        features: Features,
-    ) -> "IterableDatasetDict":
+    def cast(self, features: Features,) -> "IterableDatasetDict":
         """
         Cast the dataset to a new set of features.
         The type casting is applied to all the datasets of the dataset dictionary.

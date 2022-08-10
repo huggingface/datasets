@@ -161,10 +161,7 @@ class Pib(datasets.GeneratorBasedBuilder):
         archive = dl_manager.download(_URL[str(self.config.version)])
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "archive": dl_manager.iter_archive(archive),
-                },
+                name=datasets.Split.TRAIN, gen_kwargs={"archive": dl_manager.iter_archive(archive),},
             ),
         ]
 

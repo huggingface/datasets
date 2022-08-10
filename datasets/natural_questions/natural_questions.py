@@ -133,10 +133,7 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
         if not pipeline.is_local():
             files = dl_manager.ship_files_with_pipeline(files, pipeline)
         return [
-            datasets.SplitGenerator(
-                name=split,
-                gen_kwargs={"filepaths": files[split]},
-            )
+            datasets.SplitGenerator(name=split, gen_kwargs={"filepaths": files[split]},)
             for split in [datasets.Split.TRAIN, datasets.Split.VALIDATION]
             if split in files
         ]

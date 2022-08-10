@@ -60,12 +60,7 @@ class AjgtConfig(datasets.BuilderConfig):
 class AjgtTwitterAr(datasets.GeneratorBasedBuilder):
     """Ajgt dataset."""
 
-    BUILDER_CONFIGS = [
-        AjgtConfig(
-            name="plain_text",
-            description="Plain text",
-        )
-    ]
+    BUILDER_CONFIGS = [AjgtConfig(name="plain_text", description="Plain text",)]
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -73,12 +68,7 @@ class AjgtTwitterAr(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "label": datasets.features.ClassLabel(
-                        names=[
-                            "Negative",
-                            "Positive",
-                        ]
-                    ),
+                    "label": datasets.features.ClassLabel(names=["Negative", "Positive",]),
                 }
             ),
             supervised_keys=None,

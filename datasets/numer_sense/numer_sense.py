@@ -47,12 +47,7 @@ class NumerSense(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "sentence": datasets.Value("string"),
-                    "target": datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features({"sentence": datasets.Value("string"), "target": datasets.Value("string"),}),
             supervised_keys=None,
             homepage=_HOMEPAGE_URL,
             citation=_CITATION,

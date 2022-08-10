@@ -55,21 +55,12 @@ class BookcorpusConfig(datasets.BuilderConfig):
 class Bookcorpus(datasets.GeneratorBasedBuilder):
     """BookCorpus dataset."""
 
-    BUILDER_CONFIGS = [
-        BookcorpusConfig(
-            name="plain_text",
-            description="Plain text",
-        )
-    ]
+    BUILDER_CONFIGS = [BookcorpusConfig(name="plain_text", description="Plain text",)]
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "text": datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features({"text": datasets.Value("string"),}),
             supervised_keys=None,
             homepage="https://yknzhu.wixsite.com/mbweb",
             citation=_CITATION,

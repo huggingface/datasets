@@ -75,11 +75,7 @@ class Best2009(datasets.GeneratorBasedBuilder):
     _CHAR_TYPES = ["b_e", "c", "d", "n", "o", "p", "q", "s", "s_e", "t", "v", "w"]
 
     BUILDER_CONFIGS = [
-        Best2009Config(
-            name="best2009",
-            version=datasets.Version("1.0.0"),
-            description=_DESCRIPTION,
-        ),
+        Best2009Config(name="best2009", version=datasets.Version("1.0.0"), description=_DESCRIPTION,),
     ]
 
     def _info(self):

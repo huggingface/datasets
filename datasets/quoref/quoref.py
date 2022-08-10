@@ -47,10 +47,7 @@ class Quoref(datasets.GeneratorBasedBuilder):
                     "title": datasets.Value("string"),
                     "url": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {
-                            "answer_start": datasets.Value("int32"),
-                            "text": datasets.Value("string"),
-                        }
+                        {"answer_start": datasets.Value("int32"), "text": datasets.Value("string"),}
                     )
                     # These are the features of your dataset like images, labels ...
                 }
@@ -108,9 +105,6 @@ class Quoref(datasets.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {
-                                "answer_start": answer_starts,
-                                "text": answers,
-                            },
+                            "answers": {"answer_start": answer_starts, "text": answers,},
                             "url": url,
                         }

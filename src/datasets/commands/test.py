@@ -38,10 +38,7 @@ class TestCommand(BaseDatasetsCLICommand):
         test_parser = parser.add_parser("test", help="Test dataset implementation.")
         test_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
         test_parser.add_argument(
-            "--cache_dir",
-            type=str,
-            default=None,
-            help="Cache directory where the datasets are stored.",
+            "--cache_dir", type=str, default=None, help="Cache directory where the datasets are stored.",
         )
         test_parser.add_argument(
             "--data_dir",
@@ -109,9 +106,7 @@ class TestCommand(BaseDatasetsCLICommand):
                 for i, config in enumerate(builder_cls.BUILDER_CONFIGS):
                     if "config_name" in module.builder_kwargs:
                         yield builder_cls(
-                            cache_dir=self._cache_dir,
-                            data_dir=self._data_dir,
-                            **module.builder_kwargs,
+                            cache_dir=self._cache_dir, data_dir=self._data_dir, **module.builder_kwargs,
                         )
                     else:
                         yield builder_cls(

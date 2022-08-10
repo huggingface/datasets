@@ -57,9 +57,7 @@ class SBUCaptionedPhotoDatasetConfig(datasets.BuilderConfig):
 
     def __init__(self, version=None, *args, **kwargs):
         super().__init__(
-            version=version or self.VERSION,
-            *args,
-            **kwargs,
+            version=version or self.VERSION, *args, **kwargs,
         )
 
 
@@ -68,11 +66,7 @@ class SBUCaptionedPhotoDataset(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=_FEATURES,
-            homepage=_HOMEPAGE,
-            license=_LICENSE,
-            citation=_CITATION,
+            description=_DESCRIPTION, features=_FEATURES, homepage=_HOMEPAGE, license=_LICENSE, citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager: datasets.DownloadManager):
@@ -80,10 +74,7 @@ class SBUCaptionedPhotoDataset(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "files": dl_manager.iter_archive(archive),
-                },
+                name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_archive(archive),},
             )
         ]
 

@@ -142,9 +142,7 @@ class ChrF(datasets.Metric):
                 }
             ),
             codebase_urls=["https://github.com/mjpost/sacreBLEU#chrf--chrf"],
-            reference_urls=[
-                "https://github.com/m-popovic/chrF",
-            ],
+            reference_urls=["https://github.com/m-popovic/chrF",],
         )
 
     def _compute(

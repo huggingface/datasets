@@ -195,20 +195,14 @@ class Lama(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepaths": ["ConceptNet/test.jsonl"],
-                        "files": dl_manager.iter_archive(archive),
-                    },
+                    gen_kwargs={"filepaths": ["ConceptNet/test.jsonl"], "files": dl_manager.iter_archive(archive),},
                 ),
             ]
         elif self.config.name == "squad":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepaths": ["Squad/test.jsonl"],
-                        "files": dl_manager.iter_archive(archive),
-                    },
+                    gen_kwargs={"filepaths": ["Squad/test.jsonl"], "files": dl_manager.iter_archive(archive),},
                 ),
             ]
 

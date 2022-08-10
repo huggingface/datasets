@@ -55,10 +55,7 @@ class RiddleSense(datasets.GeneratorBasedBuilder):
                 "answerKey": datasets.Value("string"),
                 "question": datasets.Value("string"),
                 "choices": datasets.features.Sequence(
-                    {
-                        "label": datasets.Value("string"),
-                        "text": datasets.Value("string"),
-                    }
+                    {"label": datasets.Value("string"), "text": datasets.Value("string"),}
                 ),
             }
         )
@@ -89,18 +86,10 @@ class RiddleSense(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"], "split": "train"}
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": downloaded_files["dev"],
-                    "split": "dev",
-                },
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"], "split": "dev",},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": downloaded_files["test"],
-                    "split": "test",
-                },
+                name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"], "split": "test",},
             ),
         ]
 

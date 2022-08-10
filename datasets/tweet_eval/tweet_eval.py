@@ -134,9 +134,7 @@ _URLs = {
 class TweetEvalConfig(datasets.BuilderConfig):
     def __init__(self, *args, type=None, sub_type=None, **kwargs):
         super().__init__(
-            *args,
-            name=f"{type}" if type != "stance" else f"{type}_{sub_type}",
-            **kwargs,
+            *args, name=f"{type}" if type != "stance" else f"{type}_{sub_type}", **kwargs,
         )
         self.type = type
         self.sub_type = sub_type

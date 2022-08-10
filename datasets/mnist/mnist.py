@@ -53,11 +53,7 @@ class MNIST(datasets.GeneratorBasedBuilder):
     """MNIST Data Set"""
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="mnist",
-            version=datasets.Version("1.0.0"),
-            description=_DESCRIPTION,
-        )
+        datasets.BuilderConfig(name="mnist", version=datasets.Version("1.0.0"), description=_DESCRIPTION,)
     ]
 
     def _info(self):
@@ -72,12 +68,7 @@ class MNIST(datasets.GeneratorBasedBuilder):
             supervised_keys=("image", "label"),
             homepage="http://yann.lecun.com/exdb/mnist/",
             citation=_CITATION,
-            task_templates=[
-                ImageClassification(
-                    image_column="image",
-                    label_column="label",
-                )
-            ],
+            task_templates=[ImageClassification(image_column="image", label_column="label",)],
         )
 
     def _split_generators(self, dl_manager):

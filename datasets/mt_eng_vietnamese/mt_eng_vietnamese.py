@@ -55,9 +55,7 @@ class MT_Eng_ViConfig(datasets.BuilderConfig):
 
         description = ("Translation dataset from %s to %s") % (language_pair[0], language_pair[1])
         super(MT_Eng_ViConfig, self).__init__(
-            description=description,
-            version=datasets.Version("1.0.0"),
-            **kwargs,
+            description=description, version=datasets.Version("1.0.0"), **kwargs,
         )
         self.language_pair = language_pair
 
@@ -66,14 +64,8 @@ class MTEngVietnamese(datasets.GeneratorBasedBuilder):
     """English Vietnamese machine translation dataset from IWSLT2015."""
 
     BUILDER_CONFIGS = [
-        MT_Eng_ViConfig(
-            name="iwslt2015-vi-en",
-            language_pair=("vi", "en"),
-        ),
-        MT_Eng_ViConfig(
-            name="iwslt2015-en-vi",
-            language_pair=("en", "vi"),
-        ),
+        MT_Eng_ViConfig(name="iwslt2015-vi-en", language_pair=("vi", "en"),),
+        MT_Eng_ViConfig(name="iwslt2015-en-vi", language_pair=("en", "vi"),),
     ]
     BUILDER_CONFIG_CLASS = MT_Eng_ViConfig
 

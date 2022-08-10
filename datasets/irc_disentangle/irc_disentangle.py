@@ -125,52 +125,18 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
         if self.config.name == "ubuntu":
             return [
                 datasets.SplitGenerator(
-                    name=split,
-                    gen_kwargs={
-                        "filepath": os.path.join(filepath, split_name),
-                        "split": split_name,
-                    },
+                    name=split, gen_kwargs={"filepath": os.path.join(filepath, split_name), "split": split_name,},
                 )
                 for split, split_name in split_names.items()
             ]
         elif self.config.name == "channel_two":
             filepath = os.path.join(filepath, "channel-two")
             return [
-                datasets.SplitGenerator(
-                    name="dev",
-                    gen_kwargs={
-                        "filepath": filepath,
-                        "split": "dev",
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name="pilot",
-                    gen_kwargs={
-                        "filepath": filepath,
-                        "split": "pilot",
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name="test",
-                    gen_kwargs={
-                        "filepath": filepath,
-                        "split": "test",
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name="pilot_dev",
-                    gen_kwargs={
-                        "filepath": filepath,
-                        "split": "pilot-dev",
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name="all_",
-                    gen_kwargs={
-                        "filepath": filepath,
-                        "split": "all",
-                    },
-                ),
+                datasets.SplitGenerator(name="dev", gen_kwargs={"filepath": filepath, "split": "dev",},),
+                datasets.SplitGenerator(name="pilot", gen_kwargs={"filepath": filepath, "split": "pilot",},),
+                datasets.SplitGenerator(name="test", gen_kwargs={"filepath": filepath, "split": "test",},),
+                datasets.SplitGenerator(name="pilot_dev", gen_kwargs={"filepath": filepath, "split": "pilot-dev",},),
+                datasets.SplitGenerator(name="all_", gen_kwargs={"filepath": filepath, "split": "all",},),
             ]
 
     def _generate_examples(self, filepath, split):
@@ -216,12 +182,9 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
                 tok_sentences = f_tok.read().split("\n")
                 annot_lines = f_annot.read().split("\n")
 
-            assert (
-                len(raw_sentences) == len(ascii_sentences) == len(tok_sentences)
-            ), "Sizes do not match: %d vs %d vs %d for Raw Sentences vs Ascii Sentences vs Tokenized Sentences." % (
-                len(raw_sentences),
-                len(ascii_sentences),
-                len(tok_sentences),
+            assert len(raw_sentences) == len(ascii_sentences) == len(tok_sentences), (
+                "Sizes do not match: %d vs %d vs %d for Raw Sentences vs Ascii Sentences vs Tokenized Sentences."
+                % (len(raw_sentences), len(ascii_sentences), len(tok_sentences),)
             )
 
             annotation_pairs = []

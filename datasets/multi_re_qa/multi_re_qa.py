@@ -169,18 +169,12 @@ class MultiReQa(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(train_file),
-                        "split": "train",
-                    },
+                    gen_kwargs={"filepath": os.path.join(train_file), "split": "train",},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(dev_file),
-                        "split": "dev",
-                    },
+                    gen_kwargs={"filepath": os.path.join(dev_file), "split": "dev",},
                 ),
             ]
         else:
@@ -203,10 +197,7 @@ class MultiReQa(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(test_file),
-                        "split": "test",
-                    },
+                    gen_kwargs={"filepath": os.path.join(test_file), "split": "test",},
                 ),
             ]
 

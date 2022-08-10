@@ -57,10 +57,7 @@ class CUAD(datasets.GeneratorBasedBuilder):
                 "context": datasets.Value("string"),
                 "question": datasets.Value("string"),
                 "answers": datasets.features.Sequence(
-                    {
-                        "text": datasets.Value("string"),
-                        "answer_start": datasets.Value("int32"),
-                    }
+                    {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
                 ),
             }
         )
@@ -89,10 +86,7 @@ class CUAD(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train_separate_questions.json"),
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "train_separate_questions.json"), "split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -124,8 +118,5 @@ class CUAD(datasets.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {
-                                "answer_start": answer_starts,
-                                "text": answers,
-                            },
+                            "answers": {"answer_start": answer_starts, "text": answers,},
                         }

@@ -79,11 +79,7 @@ _PATHS = {
         "test": "MLQA_V1/test/test-context-{0}-question-{0}.json",
     },
     "xnli": {"train": "multinli.train.en.tsv", "dev": "{}.dev", "test": "{}.test"},
-    "paws-x": {
-        "train": "en/train.tsv",
-        "dev": "{}/dev_2k.tsv",
-        "test": "{}/test_2k.tsv",
-    },
+    "paws-x": {"train": "en/train.tsv", "dev": "{}/dev_2k.tsv", "test": "{}/test_2k.tsv",},
 }
 for name in ["ner", "pos"]:
     _PATHS[name] = {"train": "en.train", "dev": "{}.dev", "test": "{}.test"}
@@ -101,11 +97,7 @@ class XGlueConfig(datasets.BuilderConfig):
     """BuilderConfig for XGLUE."""
 
     def __init__(
-        self,
-        data_dir,
-        citation,
-        url,
-        **kwargs,
+        self, data_dir, citation, url, **kwargs,
     ):
         """BuilderConfig for XGLUE.
 
@@ -352,17 +344,7 @@ Portuguese. BLEU-4 score should be used as the metric.
                 "words": datasets.Sequence(datasets.Value("string")),
                 "ner": datasets.Sequence(
                     datasets.features.ClassLabel(
-                        names=[
-                            "O",
-                            "B-PER",
-                            "I-PER",
-                            "B-ORG",
-                            "I-ORG",
-                            "B-LOC",
-                            "I-LOC",
-                            "B-MISC",
-                            "I-MISC",
-                        ]
+                        names=["O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC", "B-MISC", "I-MISC",]
                     )
                 ),
             }

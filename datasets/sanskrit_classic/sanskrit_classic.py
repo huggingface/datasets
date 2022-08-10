@@ -54,11 +54,7 @@ class SanskritClassic(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = datasets.Features(
-            {
-                "text": datasets.Value("string"),
-            }
-        )
+        features = datasets.Features({"text": datasets.Value("string"),})
 
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -78,10 +74,7 @@ class SanskritClassic(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "combined.txt"),
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "combined.txt"), "split": "train",},
             ),
         ]
 

@@ -112,10 +112,7 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
                     "dialogue_id": datasets.Value("int32"),
                     "dialogue_url": datasets.Value("string"),
                     "dialogue_turns": datasets.Sequence(
-                        {
-                            "speaker": datasets.ClassLabel(names=["病人", "医生"]),
-                            "utterance": datasets.Value("string"),
-                        }
+                        {"speaker": datasets.ClassLabel(names=["病人", "医生"]), "utterance": datasets.Value("string"),}
                     ),
                 }
             )
@@ -135,23 +132,12 @@ class MedicalDialog(datasets.GeneratorBasedBuilder):
             )
         elif self.config.name == "processed.en":
             features = datasets.Features(
-                {
-                    "description": datasets.Value("string"),
-                    "utterances": datasets.Sequence(datasets.Value("string")),
-                }
+                {"description": datasets.Value("string"), "utterances": datasets.Sequence(datasets.Value("string")),}
             )
         elif self.config.name == "processed.zh":
-            features = datasets.Features(
-                {
-                    "utterances": datasets.Sequence(datasets.Value("string")),
-                }
-            )
+            features = datasets.Features({"utterances": datasets.Sequence(datasets.Value("string")),})
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=features,
-            homepage=_HOMEPAGE,
-            license=_LICENSE,
-            citation=_CITATION,
+            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, license=_LICENSE, citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):

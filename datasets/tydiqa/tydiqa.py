@@ -140,10 +140,7 @@ class Tydiqa(datasets.GeneratorBasedBuilder):
                         "context": datasets.Value("string"),
                         "question": datasets.Value("string"),
                         "answers": datasets.features.Sequence(
-                            {
-                                "text": datasets.Value("string"),
-                                "answer_start": datasets.Value("int32"),
-                            }
+                            {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
                         ),
                     }
                 ),
@@ -261,8 +258,5 @@ class Tydiqa(datasets.GeneratorBasedBuilder):
                                 "context": context,
                                 "question": question,
                                 "id": id_,
-                                "answers": {
-                                    "answer_start": answer_starts,
-                                    "text": answers,
-                                },
+                                "answers": {"answer_start": answer_starts, "text": answers,},
                             }

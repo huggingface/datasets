@@ -110,12 +110,7 @@ class SimpleQuestionsV2(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "datapath": os.path.join(
-                            path,
-                            "SimpleQuestions_v2",
-                            "freebase-subsets",
-                            "freebase-FB2M.txt",
-                        )
+                        "datapath": os.path.join(path, "SimpleQuestions_v2", "freebase-subsets", "freebase-FB2M.txt",)
                     },
                 )
             ]
@@ -124,12 +119,7 @@ class SimpleQuestionsV2(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "datapath": os.path.join(
-                            path,
-                            "SimpleQuestions_v2",
-                            "freebase-subsets",
-                            "freebase-FB5M.txt",
-                        )
+                        "datapath": os.path.join(path, "SimpleQuestions_v2", "freebase-subsets", "freebase-FB5M.txt",)
                     },
                 )
             ]

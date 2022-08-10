@@ -89,10 +89,7 @@ class Accuracy(datasets.Metric):
                     "references": datasets.Sequence(datasets.Value("int32")),
                 }
                 if self.config_name == "multilabel"
-                else {
-                    "predictions": datasets.Value("int32"),
-                    "references": datasets.Value("int32"),
-                }
+                else {"predictions": datasets.Value("int32"), "references": datasets.Value("int32"),}
             ),
             reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html"],
         )

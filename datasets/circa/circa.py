@@ -106,10 +106,7 @@ class Circa(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": train_path,
-                    "split": datasets.Split.TRAIN,
-                },
+                gen_kwargs={"filepath": train_path, "split": datasets.Split.TRAIN,},
             ),
         ]
 

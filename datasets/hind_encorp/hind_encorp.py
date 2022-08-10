@@ -98,10 +98,7 @@ class HindEncorp(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_URLs)
 
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": data_dir},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir},),
         ]
 
     def _generate_examples(self, filepath):

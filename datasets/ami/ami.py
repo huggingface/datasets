@@ -281,11 +281,7 @@ class AMI(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         AMIConfig(name="headset-single", formats=["Mix-Headset"], description=""),
         AMIConfig(name="headset-multi", formats=["Headset-0", "Headset-1", "Headset-2", "Headset-3"], description=""),
-        AMIConfig(
-            name="microphone-single",
-            formats=["Array1-01"],
-            missing_files=["IS1003b", "IS1007d"],
-        ),
+        AMIConfig(name="microphone-single", formats=["Array1-01"], missing_files=["IS1003b", "IS1007d"],),
         AMIConfig(
             name="microphone-multi",
             formats=[

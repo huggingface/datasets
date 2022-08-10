@@ -107,15 +107,10 @@ class Jfleg(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": downloaded_dev,
-                    "split": "dev",
-                },
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_dev, "split": "dev",},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": downloaded_test, "split": "test"},
+                name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_test, "split": "test"},
             ),
         ]
 

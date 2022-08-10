@@ -602,9 +602,7 @@ class Metric(MetricInfoMixin):
         raise NotImplementedError
 
     def download_and_prepare(
-        self,
-        download_config: Optional[DownloadConfig] = None,
-        dl_manager: Optional[DownloadManager] = None,
+        self, download_config: Optional[DownloadConfig] = None, dl_manager: Optional[DownloadManager] = None,
     ):
         """Downloads and prepares dataset for reading.
 

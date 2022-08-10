@@ -174,9 +174,7 @@ class Cifar100(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="cifar100",
-            version=datasets.Version("1.0.0", ""),
-            description="CIFAR-100 Dataset",
+            name="cifar100", version=datasets.Version("1.0.0", ""), description="CIFAR-100 Dataset",
         )
     ]
 

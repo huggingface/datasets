@@ -59,16 +59,11 @@ class MWSC(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": schemas_file, "split": "train"},
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": schemas_file, "split": "train"},
             ),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": schemas_file, "split": "test"},),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": schemas_file, "split": "test"},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": schemas_file, "split": "dev"},
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": schemas_file, "split": "dev"},
             ),
         ]
 

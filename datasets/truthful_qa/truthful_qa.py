@@ -112,12 +112,7 @@ class TruthfulQa(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         data_dir = dl_manager.download_and_extract(self.config.url)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": data_dir,
-                },
-            ),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": data_dir,},),
         ]
 
     def _split_csv_list(self, csv_list: str, delimiter: str = ";") -> str:

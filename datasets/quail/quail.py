@@ -56,11 +56,7 @@ class Quail(datasets.GeneratorBasedBuilder):
     _TRAIN_SET = "https://raw.githubusercontent.com/text-machine-lab/quail/master/quail_v1.3/xml/randomized/quail_1.3_train_randomized.xml"
 
     BUILDER_CONFIGS = [
-        QuailConfig(
-            name="quail",
-            version=datasets.Version("1.3.0", ""),
-            description="Quail dataset 1.3.0",
-        ),
+        QuailConfig(name="quail", version=datasets.Version("1.3.0", ""), description="Quail dataset 1.3.0",),
     ]
 
     def _info(self):
@@ -80,9 +76,7 @@ class Quail(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "question_type": datasets.Value("string"),
-                    "answers": datasets.features.Sequence(
-                        datasets.Value("string"),
-                    ),
+                    "answers": datasets.features.Sequence(datasets.Value("string"),),
                     "correct_answer_id": datasets.Value("int32"),
                 }
             ),

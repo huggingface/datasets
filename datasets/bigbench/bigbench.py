@@ -98,8 +98,7 @@ class BigBenchConfig(datasets.BuilderConfig):
         if max_examples is not None:
             name += f"_max_examples={max_examples}"
         super().__init__(
-            name=name,
-            **kwargs,
+            name=name, **kwargs,
         )
         """BIG-bench configuration.
 
@@ -160,29 +159,22 @@ class Bigbench(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.splits.NamedSplit("default"),  # TODO(ajandreassen): Is there a way to call this 'all'?
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "split": "all",
-                },
+                gen_kwargs={"split": "all",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "split": "train",
-                },
+                gen_kwargs={"split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "split": "validation",
-                },
+                gen_kwargs={"split": "validation",},
             ),
         ]
 
     def _generate_examples(
-        self,
-        split,  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
+        self, split,  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
         validate_task_name(self.config.task_name)
         if self.config.subtask_name:

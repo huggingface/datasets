@@ -63,12 +63,7 @@ class S2orc(datasets.GeneratorBasedBuilder):
                 "s2Url": datasets.Value("string"),
                 "pdfUrls": datasets.Sequence(datasets.Value("string")),
                 "s2PdfUrl": datasets.Value("string"),
-                "authors": [
-                    {
-                        "name": datasets.Value("string"),
-                        "ids": datasets.Sequence(datasets.Value("string")),
-                    },
-                ],
+                "authors": [{"name": datasets.Value("string"), "ids": datasets.Sequence(datasets.Value("string")),},],
                 "inCitations": datasets.Sequence(datasets.Value("string")),
                 "outCitations": datasets.Sequence(datasets.Value("string")),
                 "fieldsOfStudy": datasets.Sequence(datasets.Value("string")),
@@ -118,10 +113,7 @@ class S2orc(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepaths": train_filepaths,
-                    "split": "train",
-                },
+                gen_kwargs={"filepaths": train_filepaths, "split": "train",},
             ),
         ]
 
