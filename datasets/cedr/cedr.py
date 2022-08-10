@@ -109,7 +109,14 @@ class Cedr(datasets.GeneratorBasedBuilder):
                         datasets.ClassLabel(names=["joy", "sadness", "surprise", "fear", "anger"])
                     ),
                     "source": datasets.Value("string"),
-                    "sentences": [[{"forma": datasets.Value("string"), "lemma": datasets.Value("string"),}]]
+                    "sentences": [
+                        [
+                            {
+                                "forma": datasets.Value("string"),
+                                "lemma": datasets.Value("string"),
+                            }
+                        ]
+                    ]
                     # These are the features of your dataset like images, labels ...
                 }
             )
@@ -144,7 +151,10 @@ class Cedr(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, self.config.name, "train.jsonl"), "split": "train",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, self.config.name, "train.jsonl"),
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,

@@ -138,15 +138,24 @@ class TedMultiTranslate(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"data_file": "all_talks_train.tsv", "files": dl_manager.iter_archive(archive),},
+                gen_kwargs={
+                    "data_file": "all_talks_train.tsv",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"data_file": "all_talks_dev.tsv", "files": dl_manager.iter_archive(archive),},
+                gen_kwargs={
+                    "data_file": "all_talks_dev.tsv",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"data_file": "all_talks_test.tsv", "files": dl_manager.iter_archive(archive),},
+                gen_kwargs={
+                    "data_file": "all_talks_test.tsv",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
         ]
 

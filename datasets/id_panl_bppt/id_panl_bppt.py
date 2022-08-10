@@ -102,7 +102,11 @@ class IdPanlBppt(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(my_urls)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"data_dir": os.path.join(data_dir, "plain"), "split": "train",},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "data_dir": os.path.join(data_dir, "plain"),
+                    "split": "train",
+                },
             ),
         ]
 

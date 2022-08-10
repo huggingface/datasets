@@ -393,7 +393,12 @@ class DatasetMetadata:
 
     @staticmethod
     def validate_licences(licenses: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
-        validated, error = tagset_validator(licenses, list(known_licenses.keys()), "license", known_licenses_url,)
+        validated, error = tagset_validator(
+            licenses,
+            list(known_licenses.keys()),
+            "license",
+            known_licenses_url,
+        )
         return validated, error
 
     @staticmethod

@@ -52,7 +52,9 @@ class Esnli(datasets.GeneratorBasedBuilder):
     # 0.0.1 Initial version
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="plain_text", version=datasets.Version("0.0.2"), description="Plain text import of e-SNLI",
+            name="plain_text",
+            version=datasets.Version("0.0.2"),
+            description="Plain text import of e-SNLI",
         )
     ]
 
@@ -86,9 +88,18 @@ class Esnli(datasets.GeneratorBasedBuilder):
         )
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files["train"]},),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"files": files["validation"]},),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"files": files["test"]},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"files": files["train"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"files": files["validation"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"files": files["test"]},
+            ),
         ]
 
     def _generate_examples(self, files):

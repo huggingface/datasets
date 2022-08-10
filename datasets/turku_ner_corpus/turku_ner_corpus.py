@@ -83,7 +83,8 @@ class TurkuNERCorpus(datasets.GeneratorBasedBuilder):
                 gen_kwargs={"files": dl_manager.iter_archive(archive), "data_type": "valid"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"files": dl_manager.iter_archive(archive), "data_type": "test"},
+                name=datasets.Split.TEST,
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "data_type": "test"},
             ),
         ]
 
@@ -115,7 +116,11 @@ class TurkuNERCorpus(datasets.GeneratorBasedBuilder):
                         assert len(current_words) == len(current_labels), "word len doesnt match label length"
                         sentence = (
                             sentence_counter,
-                            {"id": str(sentence_counter), "tokens": current_words, "ner_tags": current_labels,},
+                            {
+                                "id": str(sentence_counter),
+                                "tokens": current_words,
+                                "ner_tags": current_labels,
+                            },
                         )
                         sentence_counter += 1
                         current_words = []
@@ -126,7 +131,11 @@ class TurkuNERCorpus(datasets.GeneratorBasedBuilder):
                 if current_words:
                     sentence = (
                         sentence_counter,
-                        {"id": str(sentence_counter), "tokens": current_words, "ner_tags": current_labels,},
+                        {
+                            "id": str(sentence_counter),
+                            "tokens": current_words,
+                            "ner_tags": current_labels,
+                        },
                     )
                     yield sentence
                 break

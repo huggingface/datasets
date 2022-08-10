@@ -63,7 +63,10 @@ class Ethos(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         EthosConfig(
-            name="binary", version=datasets.Version("1.0.0", ""), description="Ethos Binary", variation="binary",
+            name="binary",
+            version=datasets.Version("1.0.0", ""),
+            description="Ethos Binary",
+            variation="binary",
         ),
         EthosConfig(
             name="multilabel",

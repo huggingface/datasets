@@ -112,7 +112,11 @@ class TNEDataset(datasets.GeneratorBasedBuilder):
                         "id": datasets.Value("string"),
                         "members": datasets.Sequence(datasets.Value("string")),
                         "np_type": datasets.features.ClassLabel(
-                            names=["standard", "time/date/measurement", "idiomatic",]
+                            names=[
+                                "standard",
+                                "time/date/measurement",
+                                "idiomatic",
+                            ]
                         ),
                     }
                 ],
@@ -152,12 +156,18 @@ class TNEDataset(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": data_dir["train"], "split": "train",},
+                gen_kwargs={
+                    "filepath": data_dir["train"],
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": data_dir["dev"], "split": "dev",},
+                gen_kwargs={
+                    "filepath": data_dir["dev"],
+                    "split": "dev",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,

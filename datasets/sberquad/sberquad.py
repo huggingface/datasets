@@ -52,7 +52,10 @@ class Sberquad(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
+                        {
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                        }
                     ),
                 }
             ),
@@ -92,6 +95,9 @@ class Sberquad(datasets.GeneratorBasedBuilder):
                             "context": context,
                             "question": qa["question"],
                             "id": qa["id"],
-                            "answers": {"answer_start": answer_starts, "text": answers,},
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                            },
                         }
                         key += 1

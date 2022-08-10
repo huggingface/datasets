@@ -191,7 +191,11 @@ def _generate_builder_configs():
     configs = []
     for module in sorted(set(_MODULES)):
         configs.append(
-            datasets.BuilderConfig(name=module, version=datasets.Version("1.0.0"), description=_DESCRIPTION,)
+            datasets.BuilderConfig(
+                name=module,
+                version=datasets.Version("1.0.0"),
+                description=_DESCRIPTION,
+            )
         )
 
     return configs
@@ -205,7 +209,12 @@ class MathDataset(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({_QUESTION: datasets.Value("string"), _ANSWER: datasets.Value("string"),}),
+            features=datasets.Features(
+                {
+                    _QUESTION: datasets.Value("string"),
+                    _ANSWER: datasets.Value("string"),
+                }
+            ),
             supervised_keys=(_QUESTION, _ANSWER),
             homepage="https://github.com/deepmind/mathematics_dataset",
             citation=_CITATION,

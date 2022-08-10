@@ -80,7 +80,15 @@ class Species800(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "tokens": datasets.Sequence(datasets.Value("string")),
-                    "ner_tags": datasets.Sequence(datasets.features.ClassLabel(names=["O", "B", "I",])),
+                    "ner_tags": datasets.Sequence(
+                        datasets.features.ClassLabel(
+                            names=[
+                                "O",
+                                "B",
+                                "I",
+                            ]
+                        )
+                    ),
                 }
             ),
             supervised_keys=None,

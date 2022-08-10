@@ -65,15 +65,21 @@ class QaZre(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepaths": [os.path.join(dl_dir, "test." + str(i)) for i in range(10)],},
+                gen_kwargs={
+                    "filepaths": [os.path.join(dl_dir, "test." + str(i)) for i in range(10)],
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepaths": [os.path.join(dl_dir, "dev." + str(i)) for i in range(10)],},
+                gen_kwargs={
+                    "filepaths": [os.path.join(dl_dir, "dev." + str(i)) for i in range(10)],
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepaths": [os.path.join(dl_dir, "train." + str(i)) for i in range(10)],},
+                gen_kwargs={
+                    "filepaths": [os.path.join(dl_dir, "train." + str(i)) for i in range(10)],
+                },
             ),
         ]
 

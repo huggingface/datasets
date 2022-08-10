@@ -198,7 +198,10 @@ class Metashift(datasets.GeneratorBasedBuilder):
                             "h": datasets.Value("int64"),
                             "attributes": datasets.Sequence(datasets.Value("string")),
                             "relations": datasets.Sequence(
-                                {"name": datasets.Value("string"), "object": datasets.Value("string"),}
+                                {
+                                    "name": datasets.Value("string"),
+                                    "object": datasets.Value("string"),
+                                }
                             ),
                         }
                     ),

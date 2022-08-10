@@ -59,7 +59,9 @@ class TestDatasetOnHfGcp(TestCase):
             builder_cls = import_main_class(dataset_module.module_path, dataset=True)
 
             builder_instance: DatasetBuilder = builder_cls(
-                cache_dir=tmp_dir, config_name=config_name, hash=dataset_module.hash,
+                cache_dir=tmp_dir,
+                config_name=config_name,
+                hash=dataset_module.hash,
             )
 
             dataset_info_url = os.path.join(

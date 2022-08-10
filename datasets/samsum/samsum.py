@@ -78,13 +78,25 @@ class Samsum(datasets.GeneratorBasedBuilder):
         path = dl_manager.download(_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": (path, "train.json"), "split": "train",},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": (path, "train.json"),
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": (path, "test.json"), "split": "test",},
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "filepath": (path, "test.json"),
+                    "split": "test",
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": (path, "val.json"), "split": "val",},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "filepath": (path, "val.json"),
+                    "split": "val",
+                },
             ),
         ]
 

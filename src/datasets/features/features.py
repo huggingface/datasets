@@ -623,7 +623,10 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
         pa.PyExtensionType.__init__(self, self.storage_dtype)
 
     def __reduce__(self):
-        return self.__class__, (self.shape, self.value_type,)
+        return self.__class__, (
+            self.shape,
+            self.value_type,
+        )
 
     def __arrow_ext_class__(self):
         return ArrayExtensionArray

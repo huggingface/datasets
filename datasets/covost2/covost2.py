@@ -182,5 +182,11 @@ class Covost2(datasets.GeneratorBasedBuilder):
 
     def _load_df_from_tsv(self, path):
         return pd.read_csv(
-            path, sep="\t", header=0, encoding="utf-8", escapechar="\\", quoting=csv.QUOTE_NONE, na_filter=False,
+            path,
+            sep="\t",
+            header=0,
+            encoding="utf-8",
+            escapechar="\\",
+            quoting=csv.QUOTE_NONE,
+            na_filter=False,
         )

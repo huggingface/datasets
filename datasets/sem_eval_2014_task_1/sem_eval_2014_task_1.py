@@ -89,15 +89,21 @@ class SemEval2014Task1(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(dl_dir["train"], "SICK_train.txt"),},
+                gen_kwargs={
+                    "filepath": os.path.join(dl_dir["train"], "SICK_train.txt"),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(dl_dir["test"], "SICK_test_annotated.txt"),},
+                gen_kwargs={
+                    "filepath": os.path.join(dl_dir["test"], "SICK_test_annotated.txt"),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(dl_dir["validation"], "SICK_trial.txt"),},
+                gen_kwargs={
+                    "filepath": os.path.join(dl_dir["validation"], "SICK_trial.txt"),
+                },
             ),
         ]
 

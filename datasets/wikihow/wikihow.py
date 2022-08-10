@@ -139,14 +139,25 @@ class Wikihow(datasets.GeneratorBasedBuilder):
             )
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"path": path_to_manual_file, "title_set": titles["train"],},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "path": path_to_manual_file,
+                    "title_set": titles["train"],
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"path": path_to_manual_file, "title_set": titles["validation"],},
+                gen_kwargs={
+                    "path": path_to_manual_file,
+                    "title_set": titles["validation"],
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"path": path_to_manual_file, "title_set": titles["test"],},
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "path": path_to_manual_file,
+                    "title_set": titles["test"],
+                },
             ),
         ]
 

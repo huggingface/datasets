@@ -266,7 +266,12 @@ class Qanta(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(
-        self, qanta_filepath: str, trick_filepath: str, fold: str, mode: str, char_skip: int,
+        self,
+        qanta_filepath: str,
+        trick_filepath: str,
+        fold: str,
+        mode: str,
+        char_skip: int,
     ):
         """Yields examples."""
         if mode not in _MODES:

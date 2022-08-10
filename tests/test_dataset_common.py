@@ -472,19 +472,31 @@ class CsvTest(TestCase):
                 "\n".join("\t".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
             )
             ds = load_dataset(
-                "csv", data_files=os.path.join(tmp_dir, "table_comma.csv"), cache_dir=tmp_dir, split="train", sep=",",
+                "csv",
+                data_files=os.path.join(tmp_dir, "table_comma.csv"),
+                cache_dir=tmp_dir,
+                split="train",
+                sep=",",
             )
             self.assertEqual(len(ds), n_rows)
             self.assertEqual(len(ds.column_names), n_cols)
             del ds
             ds = load_dataset(
-                "csv", data_files=os.path.join(tmp_dir, "table_tab.csv"), cache_dir=tmp_dir, split="train", sep="\t",
+                "csv",
+                data_files=os.path.join(tmp_dir, "table_tab.csv"),
+                cache_dir=tmp_dir,
+                split="train",
+                sep="\t",
             )
             self.assertEqual(len(ds), n_rows)
             self.assertEqual(len(ds.column_names), n_cols)
             del ds
             ds = load_dataset(
-                "csv", data_files=os.path.join(tmp_dir, "table_comma.csv"), cache_dir=tmp_dir, split="train", sep="\t",
+                "csv",
+                data_files=os.path.join(tmp_dir, "table_comma.csv"),
+                cache_dir=tmp_dir,
+                split="train",
+                sep="\t",
             )
             self.assertEqual(len(ds), n_rows)
             self.assertEqual(len(ds.column_names), 1)

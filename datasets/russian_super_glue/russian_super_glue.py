@@ -369,7 +369,12 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
                 }
             )
         elif self.config.name == "rucos":
-            features["idx"] = dict({"passage": datasets.Value("int32"), "query": datasets.Value("int32"),})
+            features["idx"] = dict(
+                {
+                    "passage": datasets.Value("int32"),
+                    "query": datasets.Value("int32"),
+                }
+            )
         else:
             features["idx"] = datasets.Value("int32")
 
@@ -406,15 +411,24 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={"data_file": os.path.join(dl_dir, "train.jsonl"), "split": datasets.Split.TRAIN,},
+                    gen_kwargs={
+                        "data_file": os.path.join(dl_dir, "train.jsonl"),
+                        "split": datasets.Split.TRAIN,
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    gen_kwargs={"data_file": os.path.join(dl_dir, "val.jsonl"), "split": datasets.Split.VALIDATION,},
+                    gen_kwargs={
+                        "data_file": os.path.join(dl_dir, "val.jsonl"),
+                        "split": datasets.Split.VALIDATION,
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    gen_kwargs={"data_file": os.path.join(dl_dir, "test.jsonl"), "split": datasets.Split.TEST,},
+                    gen_kwargs={
+                        "data_file": os.path.join(dl_dir, "test.jsonl"),
+                        "split": datasets.Split.TEST,
+                    },
                 ),
             ]
 

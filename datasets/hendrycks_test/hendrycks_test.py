@@ -139,7 +139,10 @@ class HendrycksTest(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split("auxiliary_train"),
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"datadir": os.path.join(data_dir, "data", "auxiliary_train"), "split": "auxiliary_train",},
+                gen_kwargs={
+                    "datadir": os.path.join(data_dir, "data", "auxiliary_train"),
+                    "split": "auxiliary_train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -149,12 +152,18 @@ class HendrycksTest(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"datadir": os.path.join(data_dir, "data", "val"), "split": "val",},
+                gen_kwargs={
+                    "datadir": os.path.join(data_dir, "data", "val"),
+                    "split": "val",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split("dev"),
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"datadir": os.path.join(data_dir, "data", "dev"), "split": "dev",},
+                gen_kwargs={
+                    "datadir": os.path.join(data_dir, "data", "dev"),
+                    "split": "dev",
+                },
             ),
         ]
 

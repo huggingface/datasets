@@ -159,7 +159,11 @@ class FewRel(datasets.GeneratorBasedBuilder):
                         "tokens": tokens,
                         "head": {"text": h_0, "type": h_1, "indices": h_2},
                         "tail": {"text": t_0, "type": t_1, "indices": t_2},
-                        "names": pid2name_dict[key] if return_names else [key,],
+                        "names": pid2name_dict[key]
+                        if return_names
+                        else [
+                            key,
+                        ],
                     }
         else:  # For `pubmed_unsupervised.json`
             id = 0
@@ -177,5 +181,7 @@ class FewRel(datasets.GeneratorBasedBuilder):
                     "tokens": tokens,
                     "head": {"text": h_0, "type": h_1, "indices": h_2},
                     "tail": {"text": t_0, "type": t_1, "indices": t_2},
-                    "names": ["",],
+                    "names": [
+                        "",
+                    ],
                 }

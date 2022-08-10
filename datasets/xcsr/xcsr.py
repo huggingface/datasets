@@ -130,7 +130,10 @@ class Xcsr(datasets.GeneratorBasedBuilder):
                         {
                             "stem": datasets.Value("string"),
                             "choices": datasets.features.Sequence(
-                                {"label": datasets.Value("string"), "text": datasets.Value("string"),}
+                                {
+                                    "label": datasets.Value("string"),
+                                    "text": datasets.Value("string"),
+                                }
                             ),
                         }
                     ),
@@ -147,7 +150,10 @@ class Xcsr(datasets.GeneratorBasedBuilder):
                         {
                             "stem": datasets.Value("string"),
                             "choices": datasets.features.Sequence(
-                                {"label": datasets.Value("string"), "text": datasets.Value("string"),}
+                                {
+                                    "label": datasets.Value("string"),
+                                    "text": datasets.Value("string"),
+                                }
                             ),
                         }
                     ),
@@ -192,11 +198,17 @@ class Xcsr(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(data_dir, sub_test_path), "split": "test",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, sub_test_path),
+                    "split": "test",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(data_dir, sub_dev_path), "split": "dev",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, sub_dev_path),
+                    "split": "dev",
+                },
             ),
         ]
 

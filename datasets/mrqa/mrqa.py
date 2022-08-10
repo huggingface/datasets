@@ -90,21 +90,33 @@ class Mrqa(datasets.GeneratorBasedBuilder):
                     "subset": datasets.Value("string"),
                     "context": datasets.Value("string"),
                     "context_tokens": datasets.Sequence(
-                        {"tokens": datasets.Value("string"), "offsets": datasets.Value("int32"),}
+                        {
+                            "tokens": datasets.Value("string"),
+                            "offsets": datasets.Value("int32"),
+                        }
                     ),
                     "qid": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "question_tokens": datasets.Sequence(
-                        {"tokens": datasets.Value("string"), "offsets": datasets.Value("int32"),}
+                        {
+                            "tokens": datasets.Value("string"),
+                            "offsets": datasets.Value("int32"),
+                        }
                     ),
                     "detected_answers": datasets.Sequence(
                         {
                             "text": datasets.Value("string"),
                             "char_spans": datasets.Sequence(
-                                {"start": datasets.Value("int32"), "end": datasets.Value("int32"),}
+                                {
+                                    "start": datasets.Value("int32"),
+                                    "end": datasets.Value("int32"),
+                                }
                             ),
                             "token_spans": datasets.Sequence(
-                                {"start": datasets.Value("int32"), "end": datasets.Value("int32"),}
+                                {
+                                    "start": datasets.Value("int32"),
+                                    "end": datasets.Value("int32"),
+                                }
                             ),
                         }
                     ),
@@ -123,13 +135,25 @@ class Mrqa(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepaths_dict": data_dir, "split": "train",},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepaths_dict": data_dir,
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepaths_dict": data_dir, "split": "test",},
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "filepaths_dict": data_dir,
+                    "split": "test",
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepaths_dict": data_dir, "split": "validation",},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "filepaths_dict": data_dir,
+                    "split": "validation",
+                },
             ),
         ]
 

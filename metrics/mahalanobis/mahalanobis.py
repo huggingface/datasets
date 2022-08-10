@@ -63,7 +63,11 @@ class Mahalanobis(datasets.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=datasets.Features({"X": datasets.Sequence(datasets.Value("float", id="sequence"), id="X"),}),
+            features=datasets.Features(
+                {
+                    "X": datasets.Sequence(datasets.Value("float", id="sequence"), id="X"),
+                }
+            ),
         )
 
     def _compute(self, X, reference_distribution):

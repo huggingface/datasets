@@ -59,7 +59,11 @@ class MedicalQuestionsPairs(datasets.GeneratorBasedBuilder):
             }
         )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, license=_LICENSE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):

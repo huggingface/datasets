@@ -70,7 +70,13 @@ class Cdsc(datasets.GeneratorBasedBuilder):
                     "pair_ID": datasets.Value("int32"),
                     "sentence_A": datasets.Value("string"),
                     "sentence_B": datasets.Value("string"),
-                    "entailment_judgment": datasets.ClassLabel(names=["NEUTRAL", "CONTRADICTION", "ENTAILMENT",]),
+                    "entailment_judgment": datasets.ClassLabel(
+                        names=[
+                            "NEUTRAL",
+                            "CONTRADICTION",
+                            "ENTAILMENT",
+                        ]
+                    ),
                 }
             )
         elif self.config.name == "cdsc-r":
@@ -98,7 +104,10 @@ class Cdsc(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir, "train.tsv"), "split": "train",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "train.tsv"),
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -106,7 +115,10 @@ class Cdsc(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(data_dir, "dev.tsv"), "split": "dev",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "dev.tsv"),
+                    "split": "dev",
+                },
             ),
         ]
 

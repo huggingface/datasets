@@ -65,9 +65,15 @@ class ElectricityLoadDiagrams(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        ElectricityLoadDiagramsConfig(name="uci", version=VERSION, description="Original UCI time series.",),
         ElectricityLoadDiagramsConfig(
-            name="lstnet", version=VERSION, description="Electricity time series preprocessed as in LSTNet paper.",
+            name="uci",
+            version=VERSION,
+            description="Original UCI time series.",
+        ),
+        ElectricityLoadDiagramsConfig(
+            name="lstnet",
+            version=VERSION,
+            description="Electricity time series preprocessed as in LSTNet paper.",
         ),
     ]
 
@@ -86,7 +92,11 @@ class ElectricityLoadDiagrams(datasets.GeneratorBasedBuilder):
             }
         )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, license=_LICENSE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -96,7 +106,13 @@ class ElectricityLoadDiagrams(datasets.GeneratorBasedBuilder):
         val_ts = []
         test_ts = []
 
-        df = pd.read_csv(Path(data_dir) / "LD2011_2014.txt", sep=";", index_col=0, parse_dates=True, decimal=",",)
+        df = pd.read_csv(
+            Path(data_dir) / "LD2011_2014.txt",
+            sep=";",
+            index_col=0,
+            parse_dates=True,
+            decimal=",",
+        )
         df.sort_index(inplace=True)
         df = df.resample(self.config.freq).sum()
         unit = pd.tseries.frequencies.to_offset(self.config.freq).name
@@ -123,10 +139,24 @@ class ElectricityLoadDiagrams(datasets.GeneratorBasedBuilder):
             start_date = ts.ne(0).idxmax()
 
             sliced_ts = ts[start_date:train_end_date]
-            train_ts.append(to_dict(target_values=sliced_ts.values, start=start_date, cat=[cat], item_id=ts_id,))
+            train_ts.append(
+                to_dict(
+                    target_values=sliced_ts.values,
+                    start=start_date,
+                    cat=[cat],
+                    item_id=ts_id,
+                )
+            )
 
             sliced_ts = ts[start_date:val_end_date]
-            val_ts.append(to_dict(target_values=sliced_ts.values, start=start_date, cat=[cat], item_id=ts_id,))
+            val_ts.append(
+                to_dict(
+                    target_values=sliced_ts.values,
+                    start=start_date,
+                    cat=[cat],
+                    item_id=ts_id,
+                )
+            )
 
         for i in range(self.config.rolling_evaluations):
             for cat, (ts_id, ts) in enumerate(df.iteritems()):
@@ -134,12 +164,34 @@ class ElectricityLoadDiagrams(datasets.GeneratorBasedBuilder):
 
                 test_end_date = val_end_date + pd.Timedelta(self.config.prediction_length * (i + 1), unit)
                 sliced_ts = ts[start_date:test_end_date]
-                test_ts.append(to_dict(target_values=sliced_ts.values, start=start_date, cat=[cat], item_id=ts_id,))
+                test_ts.append(
+                    to_dict(
+                        target_values=sliced_ts.values,
+                        start=start_date,
+                        cat=[cat],
+                        item_id=ts_id,
+                    )
+                )
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"split": train_ts,},),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"split": test_ts,},),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"split": val_ts,},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "split": train_ts,
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "split": test_ts,
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "split": val_ts,
+                },
+            ),
         ]
 
     def _generate_examples(self, split):

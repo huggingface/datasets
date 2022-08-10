@@ -72,7 +72,16 @@ class QuestionAnsweringTest(TestCase):
 
     def test_from_dict(self):
         input_schema = Features({"question": Value("string"), "context": Value("string")})
-        label_schema = Features({"answers": Sequence({"text": Value("string"), "answer_start": Value("int32"),})})
+        label_schema = Features(
+            {
+                "answers": Sequence(
+                    {
+                        "text": Value("string"),
+                        "answer_start": Value("int32"),
+                    }
+                )
+            }
+        )
         template_dict = {
             "context_column": "input_input_context",
             "question_column": "input_question",

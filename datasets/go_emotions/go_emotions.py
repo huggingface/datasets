@@ -108,8 +108,12 @@ class GoEmotions(datasets.GeneratorBasedBuilder):
     """GoEmotions dataset"""
 
     BUILDER_CONFIGS = [
-        GoEmotionsConfig(name="raw",),
-        GoEmotionsConfig(name="simplified",),
+        GoEmotionsConfig(
+            name="raw",
+        ),
+        GoEmotionsConfig(
+            name="simplified",
+        ),
     ]
     BUILDER_CONFIG_CLASS = GoEmotionsConfig
     DEFAULT_CONFIG_NAME = "simplified"

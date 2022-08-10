@@ -63,12 +63,22 @@ class TashkeelaConfig(datasets.BuilderConfig):
 class Tashkeela(datasets.GeneratorBasedBuilder):
     """Tashkeela dataset."""
 
-    BUILDER_CONFIGS = [TashkeelaConfig(name="plain_text", description="Plain text",)]
+    BUILDER_CONFIGS = [
+        TashkeelaConfig(
+            name="plain_text",
+            description="Plain text",
+        )
+    ]
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"book": datasets.Value("string"), "text": datasets.Value("string"),}),
+            features=datasets.Features(
+                {
+                    "book": datasets.Value("string"),
+                    "text": datasets.Value("string"),
+                }
+            ),
             supervised_keys=None,
             homepage=_HOMEPAGE,
             license=_LICENSE,

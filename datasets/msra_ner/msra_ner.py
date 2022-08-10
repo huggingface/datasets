@@ -86,7 +86,15 @@ class MsraNer(datasets.GeneratorBasedBuilder):
                     "tokens": datasets.Sequence(datasets.Value("string")),
                     "ner_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
-                            names=["O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC",]
+                            names=[
+                                "O",
+                                "B-PER",
+                                "I-PER",
+                                "B-ORG",
+                                "I-ORG",
+                                "B-LOC",
+                                "I-LOC",
+                            ]
                         )
                     ),
                 }

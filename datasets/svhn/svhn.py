@@ -94,7 +94,12 @@ class SVHN(datasets.GeneratorBasedBuilder):
                 }
             )
         else:
-            features = datasets.Features({"image": datasets.Image(), "label": datasets.ClassLabel(num_classes=10),})
+            features = datasets.Features(
+                {
+                    "image": datasets.Image(),
+                    "label": datasets.ClassLabel(num_classes=10),
+                }
+            )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=features,
@@ -133,15 +138,27 @@ class SVHN(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"annot_data": train_annot_data, "files": train_archive, "filepath": train_filepath,},
+                gen_kwargs={
+                    "annot_data": train_annot_data,
+                    "files": train_archive,
+                    "filepath": train_filepath,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"annot_data": test_annot_data, "files": test_archive, "filepath": test_filepath,},
+                gen_kwargs={
+                    "annot_data": test_annot_data,
+                    "files": test_archive,
+                    "filepath": test_filepath,
+                },
             ),
             datasets.SplitGenerator(
                 name="extra",
-                gen_kwargs={"annot_data": extra_annot_data, "files": extra_archive, "filepath": extra_filepath,},
+                gen_kwargs={
+                    "annot_data": extra_annot_data,
+                    "files": extra_archive,
+                    "filepath": extra_filepath,
+                },
             ),
         ]
 

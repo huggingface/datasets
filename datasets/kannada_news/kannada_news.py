@@ -59,7 +59,10 @@ class KannadaNews(datasets.GeneratorBasedBuilder):
     def _info(self):
         class_names = ["sports", "tech", "entertainment"]
         features = datasets.Features(
-            {"headline": datasets.Value("string"), "label": datasets.ClassLabel(names=class_names),}
+            {
+                "headline": datasets.Value("string"),
+                "label": datasets.ClassLabel(names=class_names),
+            }
         )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -82,12 +85,16 @@ class KannadaNews(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(path_to_manual_file, _TRAIN_FILENAME),},
+                gen_kwargs={
+                    "filepath": os.path.join(path_to_manual_file, _TRAIN_FILENAME),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(path_to_manual_file, _VALID_FILENAME),},
+                gen_kwargs={
+                    "filepath": os.path.join(path_to_manual_file, _VALID_FILENAME),
+                },
             ),
         ]
 

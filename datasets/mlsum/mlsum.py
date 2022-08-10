@@ -27,7 +27,12 @@ _LANG = ["de", "es", "fr", "ru", "tu"]
 class Mlsum(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name=lang, version=datasets.Version("1.0.0"), description="",) for lang in _LANG
+        datasets.BuilderConfig(
+            name=lang,
+            version=datasets.Version("1.0.0"),
+            description="",
+        )
+        for lang in _LANG
     ]
 
     def _info(self):
@@ -69,7 +74,12 @@ class Mlsum(datasets.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download(urls_to_download)
 
         return [
-            datasets.SplitGenerator(name=split, gen_kwargs={"filepath": downloaded_files[split],},)
+            datasets.SplitGenerator(
+                name=split,
+                gen_kwargs={
+                    "filepath": downloaded_files[split],
+                },
+            )
             for split in [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]
         ]
 

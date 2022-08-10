@@ -65,7 +65,11 @@ class Piaf(datasets.GeneratorBasedBuilder):
     """The Piaf Question Answering Dataset. Version 1.0."""
 
     BUILDER_CONFIGS = [
-        PiafConfig(name="plain_text", version=datasets.Version("1.0.0", ""), description="Plain text",),
+        PiafConfig(
+            name="plain_text",
+            version=datasets.Version("1.0.0", ""),
+            description="Plain text",
+        ),
     ]
 
     def _info(self):
@@ -78,7 +82,10 @@ class Piaf(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
+                        {
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                        }
                     ),
                 }
             ),
@@ -125,5 +132,8 @@ class Piaf(datasets.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {"answer_start": answer_starts, "text": answers,},
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                            },
                         }

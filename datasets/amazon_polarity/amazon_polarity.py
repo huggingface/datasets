@@ -71,7 +71,12 @@ class AmazonPolarity(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
-                "label": datasets.features.ClassLabel(names=["negative", "positive",]),
+                "label": datasets.features.ClassLabel(
+                    names=[
+                        "negative",
+                        "positive",
+                    ]
+                ),
                 "title": datasets.Value("string"),
                 "content": datasets.Value("string"),
             }

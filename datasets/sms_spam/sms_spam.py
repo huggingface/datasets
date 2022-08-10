@@ -55,7 +55,10 @@ class SmsSpam(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {"sms": datasets.Value("string"), "label": datasets.features.ClassLabel(names=["ham", "spam"]),}
+                {
+                    "sms": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(names=["ham", "spam"]),
+                }
             ),
             supervised_keys=("sms", "label"),
             homepage="http://archive.ics.uci.edu/ml/datasets/SMS+Spam+Collection",

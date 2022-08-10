@@ -170,7 +170,12 @@ class Food101(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"image": datasets.Image(), "label": datasets.ClassLabel(names=_NAMES),}),
+            features=datasets.Features(
+                {
+                    "image": datasets.Image(),
+                    "label": datasets.ClassLabel(names=_NAMES),
+                }
+            ),
             supervised_keys=("image", "label"),
             homepage=_HOMEPAGE,
             citation=_CITATION,

@@ -138,13 +138,16 @@ class Lst20(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, self._TRAINING_FOLDER)},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(data_dir, self._TRAINING_FOLDER)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, self._VALID_FOLDER)},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": os.path.join(data_dir, self._VALID_FOLDER)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, self._TEST_FOLDER)},
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": os.path.join(data_dir, self._TEST_FOLDER)},
             ),
         ]
 

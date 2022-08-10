@@ -161,17 +161,26 @@ class RomanUrduHateSpeech(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": data_dir_train, "split": "train",},
+                gen_kwargs={
+                    "filepath": data_dir_train,
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": data_dir_test, "split": "test",},
+                gen_kwargs={
+                    "filepath": data_dir_test,
+                    "split": "test",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": data_dir_validate, "split": "dev",},
+                gen_kwargs={
+                    "filepath": data_dir_validate,
+                    "split": "dev",
+                },
             ),
         ]
 

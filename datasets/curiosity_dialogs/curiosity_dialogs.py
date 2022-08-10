@@ -129,16 +129,29 @@ class CuriosityDialogs(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_URLs)
         return [
             datasets.SplitGenerator(
-                name="train", gen_kwargs={"filepath": os.path.join(data_dir["train"]), "split": "train",},
+                name="train",
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir["train"]),
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
-                name="val", gen_kwargs={"filepath": os.path.join(data_dir["val"]), "split": "val"},
+                name="val",
+                gen_kwargs={"filepath": os.path.join(data_dir["val"]), "split": "val"},
             ),
             datasets.SplitGenerator(
-                name="test", gen_kwargs={"filepath": os.path.join(data_dir["test"]), "split": "test_zero",},
+                name="test",
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir["test"]),
+                    "split": "test_zero",
+                },
             ),
             datasets.SplitGenerator(
-                name="test_zero", gen_kwargs={"filepath": os.path.join(data_dir["test_zero"]), "split": "test_zero",},
+                name="test_zero",
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir["test_zero"]),
+                    "split": "test_zero",
+                },
             ),
         ]
 

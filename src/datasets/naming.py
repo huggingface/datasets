@@ -75,6 +75,10 @@ def filename_for_dataset_split(dataset_name, split, filetype_suffix=None):
 
 
 def filepath_for_dataset_split(dataset_name, split, data_dir, filetype_suffix=None):
-    filename = filename_for_dataset_split(dataset_name=dataset_name, split=split, filetype_suffix=filetype_suffix,)
+    filename = filename_for_dataset_split(
+        dataset_name=dataset_name,
+        split=split,
+        filetype_suffix=filetype_suffix,
+    )
     filepath = os.path.join(data_dir, filename)
     return filepath

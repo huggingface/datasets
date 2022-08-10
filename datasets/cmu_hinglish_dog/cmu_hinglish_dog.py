@@ -83,7 +83,11 @@ class CMUHinglishDoG(datasets.GeneratorBasedBuilder):
             }
         )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, supervised_keys=None, homepage=_HOMEPAGE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            supervised_keys=None,
+            homepage=_HOMEPAGE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -104,14 +108,25 @@ class CMUHinglishDoG(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"hi_en_dir": hi_en_dirs["train"], "data_dir_en": data_dir_en,},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "hi_en_dir": hi_en_dirs["train"],
+                    "data_dir_en": data_dir_en,
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"hi_en_dir": hi_en_dirs["test"], "data_dir_en": data_dir_en,},
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "hi_en_dir": hi_en_dirs["test"],
+                    "data_dir_en": data_dir_en,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"hi_en_dir": hi_en_dirs["valid"], "data_dir_en": data_dir_en,},
+                gen_kwargs={
+                    "hi_en_dir": hi_en_dirs["valid"],
+                    "data_dir_en": data_dir_en,
+                },
             ),
         ]
 

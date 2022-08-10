@@ -214,7 +214,9 @@ class TedTalksIWSLTConfig(datasets.BuilderConfig):
 
         description = f"Translation Ted Talks dataset (WIT3) between {source} and {target}"
         super(TedTalksIWSLTConfig, self).__init__(
-            name=name, description=description, **kwargs,
+            name=name,
+            description=description,
+            **kwargs,
         )
 
         self.language_pair = language_pair
@@ -237,7 +239,9 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         features = datasets.Features(
-            {"translation": datasets.features.Translation(languages=self.config.language_pair),},
+            {
+                "translation": datasets.features.Translation(languages=self.config.language_pair),
+            },
         )
 
         return datasets.DatasetInfo(
@@ -278,7 +282,10 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": [zip_file_pair0, zip_file_pair1], "split": "train",},
+                gen_kwargs={
+                    "filepath": [zip_file_pair0, zip_file_pair1],
+                    "split": "train",
+                },
             ),
         ]
 

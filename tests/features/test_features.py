@@ -118,7 +118,10 @@ class FeaturesTest(TestCase):
                     "html": Value("string"),
                     "tokens": Sequence({"token": Value("string"), "is_html": Value("bool")}),
                 },
-                "question": {"text": Value("string"), "tokens": Sequence(Value("string")),},
+                "question": {
+                    "text": Value("string"),
+                    "tokens": Sequence(Value("string")),
+                },
                 "annotations": Sequence(
                     {
                         "id": Value("string"),
@@ -152,7 +155,10 @@ class FeaturesTest(TestCase):
                     "url": Value("string"),
                     "html": Value("string"),
                 },
-                "question": {"text": Value("string"), "tokens": [Value("string")],},
+                "question": {
+                    "text": Value("string"),
+                    "tokens": [Value("string")],
+                },
                 "annotations": {
                     "yes_no_answer": [ClassLabel(names=["NO", "YES"])],
                     "id": [Value("string")],
@@ -188,7 +194,10 @@ class FeaturesTest(TestCase):
                     "url": Value("string"),
                     "html": Value("string"),
                 },
-                "question": {"text": Value("string"), "tokens": Sequence(Value("string")),},
+                "question": {
+                    "text": Value("string"),
+                    "tokens": Sequence(Value("string")),
+                },
                 "annotations": Sequence(
                     {
                         "yes_no_answer": ClassLabel(names=["NO", "YES"]),
@@ -363,8 +372,19 @@ def test_encode_nested_example_sequence_with_none(inner_type):
 
 
 def test_encode_batch_with_example_with_empty_first_elem():
-    features = Features({"x": Sequence(Sequence(ClassLabel(names=["a", "b"]))),})
-    encoded_batch = features.encode_batch({"x": [[["a"], ["b"]], [[], ["b"]],]})
+    features = Features(
+        {
+            "x": Sequence(Sequence(ClassLabel(names=["a", "b"]))),
+        }
+    )
+    encoded_batch = features.encode_batch(
+        {
+            "x": [
+                [["a"], ["b"]],
+                [[], ["b"]],
+            ]
+        }
+    )
     assert encoded_batch == {"x": [[[0], [1]], [[], [1]]]}
 
 

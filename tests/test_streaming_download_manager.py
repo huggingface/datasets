@@ -52,12 +52,28 @@ class DummyTestFS(AbstractFileSystem):
         {"name": "top_level", "type": "directory"},
         {"name": "top_level/second_level", "type": "directory"},
         {"name": "top_level/second_level/date=2019-10-01", "type": "directory"},
-        {"name": "top_level/second_level/date=2019-10-01/a.parquet", "type": "file", "size": 100,},
-        {"name": "top_level/second_level/date=2019-10-01/b.parquet", "type": "file", "size": 100,},
+        {
+            "name": "top_level/second_level/date=2019-10-01/a.parquet",
+            "type": "file",
+            "size": 100,
+        },
+        {
+            "name": "top_level/second_level/date=2019-10-01/b.parquet",
+            "type": "file",
+            "size": 100,
+        },
         {"name": "top_level/second_level/date=2019-10-02", "type": "directory"},
-        {"name": "top_level/second_level/date=2019-10-02/a.parquet", "type": "file", "size": 100,},
+        {
+            "name": "top_level/second_level/date=2019-10-02/a.parquet",
+            "type": "file",
+            "size": 100,
+        },
         {"name": "top_level/second_level/date=2019-10-04", "type": "directory"},
-        {"name": "top_level/second_level/date=2019-10-04/a.parquet", "type": "file", "size": 100,},
+        {
+            "name": "top_level/second_level/date=2019-10-04/a.parquet",
+            "type": "file",
+            "size": 100,
+        },
         {"name": "misc", "type": "directory"},
         {"name": "misc/foo.txt", "type": "file", "size": 100},
         {"name": "glob_test", "type": "directory", "size": 0},
@@ -92,9 +108,23 @@ class DummyTestFS(AbstractFileSystem):
         return [file["name"] for file in files]
 
     def _open(
-        self, path, mode="rb", block_size=None, autocommit=True, cache_options=None, **kwargs,
+        self,
+        path,
+        mode="rb",
+        block_size=None,
+        autocommit=True,
+        cache_options=None,
+        **kwargs,
     ):
-        return self._file_class(self, path, mode, block_size, autocommit, cache_options=cache_options, **kwargs,)
+        return self._file_class(
+            self,
+            path,
+            mode,
+            block_size,
+            autocommit,
+            cache_options=cache_options,
+            **kwargs,
+        )
 
 
 @pytest.fixture
@@ -137,14 +167,26 @@ def test_as_posix(input_path, expected_path):
     [
         (str(Path(__file__).resolve().parent), (Path(__file__).name,), str(Path(__file__).resolve())),
         ("https://host.com/archive.zip", ("file.txt",), "https://host.com/archive.zip/file.txt"),
-        ("zip://::https://host.com/archive.zip", ("file.txt",), "zip://file.txt::https://host.com/archive.zip",),
+        (
+            "zip://::https://host.com/archive.zip",
+            ("file.txt",),
+            "zip://file.txt::https://host.com/archive.zip",
+        ),
         (
             "zip://folder::https://host.com/archive.zip",
             ("file.txt",),
             "zip://folder/file.txt::https://host.com/archive.zip",
         ),
-        (".", ("file.txt",), "file.txt",),
-        (Path().resolve().as_posix(), ("file.txt",), (Path().resolve() / "file.txt").as_posix(),),
+        (
+            ".",
+            ("file.txt",),
+            "file.txt",
+        ),
+        (
+            Path().resolve().as_posix(),
+            ("file.txt",),
+            (Path().resolve() / "file.txt").as_posix(),
+        ),
     ],
 )
 def test_xjoin(input_path, paths_to_join, expected_path):
@@ -160,8 +202,14 @@ def test_xjoin(input_path, paths_to_join, expected_path):
     [
         (str(Path(__file__).resolve()), str(Path(__file__).resolve().parent)),
         ("https://host.com/archive.zip", "https://host.com"),
-        ("zip://file.txt::https://host.com/archive.zip", "zip://::https://host.com/archive.zip",),
-        ("zip://folder/file.txt::https://host.com/archive.zip", "zip://folder::https://host.com/archive.zip",),
+        (
+            "zip://file.txt::https://host.com/archive.zip",
+            "zip://::https://host.com/archive.zip",
+        ),
+        (
+            "zip://folder/file.txt::https://host.com/archive.zip",
+            "zip://folder::https://host.com/archive.zip",
+        ),
     ],
 )
 def test_xdirname(input_path, expected_path):
@@ -175,7 +223,10 @@ def test_xdirname(input_path, expected_path):
 @pytest.mark.parametrize(
     "input_path, expected_head_and_tail",
     [
-        (str(Path(__file__).resolve()), (str(Path(__file__).resolve().parent), str(Path(__file__).resolve().name)),),
+        (
+            str(Path(__file__).resolve()),
+            (str(Path(__file__).resolve().parent), str(Path(__file__).resolve().name)),
+        ),
         ("https://host.com/archive.zip", ("https://host.com", "archive.zip")),
         ("zip://file.txt::https://host.com/archive.zip", ("zip://::https://host.com/archive.zip", "file.txt")),
         ("zip://folder::https://host.com/archive.zip", ("zip://::https://host.com/archive.zip", "folder")),
@@ -309,7 +360,11 @@ def test_xisfile_private(hf_private_dataset_repo_txt_data, hf_token):
 
 @pytest.mark.parametrize(
     "input_path, size",
-    [("tmp_path/file.txt", 100), ("mock://", 0), ("mock://top_level/second_level/date=2019-10-01/a.parquet", 100),],
+    [
+        ("tmp_path/file.txt", 100),
+        ("mock://", 0),
+        ("mock://top_level/second_level/date=2019-10-01/a.parquet", 100),
+    ],
 )
 def test_xgetsize(input_path, size, tmp_path, mock_fsspec):
     if input_path.startswith("tmp_path"):
@@ -533,7 +588,10 @@ def test_xpathrglob(input_path, pattern, expected_paths, tmp_path, mock_fsspec):
     [
         (Path(__file__).resolve(), Path(__file__).resolve().parent),
         (Path("https://host.com/archive.zip"), Path("https://host.com")),
-        (Path("zip://file.txt::https://host.com/archive.zip"), Path("zip://::https://host.com/archive.zip"),),
+        (
+            Path("zip://file.txt::https://host.com/archive.zip"),
+            Path("zip://::https://host.com/archive.zip"),
+        ),
         (
             Path("zip://folder/file.txt::https://host.com/archive.zip"),
             Path("zip://folder::https://host.com/archive.zip"),
@@ -675,7 +733,11 @@ def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected
 
 
 @pytest.mark.parametrize(
-    "urlpath, expected_protocol", [(TEST_GG_DRIVE_GZIPPED_URL, "gzip"), (TEST_GG_DRIVE_ZIPPED_URL, "zip"),],
+    "urlpath, expected_protocol",
+    [
+        (TEST_GG_DRIVE_GZIPPED_URL, "gzip"),
+        (TEST_GG_DRIVE_ZIPPED_URL, "zip"),
+    ],
 )
 @slow  # otherwise it spams google drive and the CI gets banned
 def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):

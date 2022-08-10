@@ -57,10 +57,14 @@ class SquadEs(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         SquadEsConfig(
-            name="v1.1.0", version=datasets.Version("1.1.0", ""), description="Plain text Spanish squad version 1",
+            name="v1.1.0",
+            version=datasets.Version("1.1.0", ""),
+            description="Plain text Spanish squad version 1",
         ),
         SquadEsConfig(
-            name="v2.0.0", version=datasets.Version("2.0.0", ""), description="Plain text Spanish squad version 2",
+            name="v2.0.0",
+            version=datasets.Version("2.0.0", ""),
+            description="Plain text Spanish squad version 2",
         ),
     ]
 
@@ -78,7 +82,10 @@ class SquadEs(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
+                        {
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                        }
                     ),
                 }
             ),
@@ -137,5 +144,8 @@ class SquadEs(datasets.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {"answer_start": answer_starts, "text": answers,},
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                            },
                         }

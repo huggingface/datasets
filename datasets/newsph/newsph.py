@@ -23,7 +23,10 @@ _DATA_URL = "https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/newsph"
 class NewsphConfig(datasets.BuilderConfig):
     def __init__(self, data_url, **kwargs):
         super(NewsphConfig, self).__init__(
-            version=datasets.Version("1.0.0",), **kwargs,
+            version=datasets.Version(
+                "1.0.0",
+            ),
+            **kwargs,
         )
         self.data_url = data_url
 
@@ -31,7 +34,11 @@ class NewsphConfig(datasets.BuilderConfig):
 class Newsph(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        NewsphConfig(name="newsph", data_url=_DATA_URL + "/" + "newsph.zip", description=_DESCRIPTION,),
+        NewsphConfig(
+            name="newsph",
+            data_url=_DATA_URL + "/" + "newsph.zip",
+            description=_DESCRIPTION,
+        ),
     ]
 
     BUILDER_CONFIG_CLASS = NewsphConfig

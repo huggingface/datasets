@@ -387,7 +387,11 @@ class PragmevalConfig(datasets.BuilderConfig):
     """BuilderConfig for Pragmeval."""
 
     def __init__(
-        self, text_features, label_classes=None, process_label=lambda x: x, **kwargs,
+        self,
+        text_features,
+        label_classes=None,
+        process_label=lambda x: x,
+        **kwargs,
     ):
         """BuilderConfig for Pragmeval.
         Args:
@@ -428,38 +432,86 @@ class Pragmeval(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = PragmevalConfig
 
     BUILDER_CONFIGS = [
-        PragmevalConfig(name="verifiability", text_features={"sentence": "sentence"},),
-        PragmevalConfig(name="emobank-arousal", text_features={"sentence": "sentence"},),
-        PragmevalConfig(name="switchboard", text_features={"sentence": "sentence"},),
         PragmevalConfig(
-            name="persuasiveness-eloquence", text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
-        ),
-        PragmevalConfig(name="mrda", text_features={"sentence": "sentence"},),
-        PragmevalConfig(name="gum", text_features={"sentence1": "sentence1", "sentence2": "sentence2"},),
-        PragmevalConfig(name="emergent", text_features={"sentence1": "sentence1", "sentence2": "sentence2"},),
-        PragmevalConfig(
-            name="persuasiveness-relevance", text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+            name="verifiability",
+            text_features={"sentence": "sentence"},
         ),
         PragmevalConfig(
-            name="persuasiveness-specificity", text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+            name="emobank-arousal",
+            text_features={"sentence": "sentence"},
         ),
         PragmevalConfig(
-            name="persuasiveness-strength", text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+            name="switchboard",
+            text_features={"sentence": "sentence"},
         ),
-        PragmevalConfig(name="emobank-dominance", text_features={"sentence": "sentence"},),
-        PragmevalConfig(name="squinky-implicature", text_features={"sentence": "sentence"},),
-        PragmevalConfig(name="sarcasm", text_features={"sentence1": "sentence1", "sentence2": "sentence2"},),
-        PragmevalConfig(name="squinky-formality", text_features={"sentence": "sentence"},),
-        PragmevalConfig(name="stac", text_features={"sentence1": "sentence1", "sentence2": "sentence2"},),
-        PragmevalConfig(name="pdtb", text_features={"sentence1": "sentence1", "sentence2": "sentence2"},),
         PragmevalConfig(
-            name="persuasiveness-premisetype", text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+            name="persuasiveness-eloquence",
+            text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
         ),
-        PragmevalConfig(name="squinky-informativeness", text_features={"sentence": "sentence"},),
         PragmevalConfig(
-            name="persuasiveness-claimtype", text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+            name="mrda",
+            text_features={"sentence": "sentence"},
         ),
-        PragmevalConfig(name="emobank-valence", text_features={"sentence": "sentence"},),
+        PragmevalConfig(
+            name="gum",
+            text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+        ),
+        PragmevalConfig(
+            name="emergent",
+            text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+        ),
+        PragmevalConfig(
+            name="persuasiveness-relevance",
+            text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+        ),
+        PragmevalConfig(
+            name="persuasiveness-specificity",
+            text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+        ),
+        PragmevalConfig(
+            name="persuasiveness-strength",
+            text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+        ),
+        PragmevalConfig(
+            name="emobank-dominance",
+            text_features={"sentence": "sentence"},
+        ),
+        PragmevalConfig(
+            name="squinky-implicature",
+            text_features={"sentence": "sentence"},
+        ),
+        PragmevalConfig(
+            name="sarcasm",
+            text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+        ),
+        PragmevalConfig(
+            name="squinky-formality",
+            text_features={"sentence": "sentence"},
+        ),
+        PragmevalConfig(
+            name="stac",
+            text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+        ),
+        PragmevalConfig(
+            name="pdtb",
+            text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+        ),
+        PragmevalConfig(
+            name="persuasiveness-premisetype",
+            text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+        ),
+        PragmevalConfig(
+            name="squinky-informativeness",
+            text_features={"sentence": "sentence"},
+        ),
+        PragmevalConfig(
+            name="persuasiveness-claimtype",
+            text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+        ),
+        PragmevalConfig(
+            name="emobank-valence",
+            text_features={"sentence": "sentence"},
+        ),
     ]
 
     def _info(self):
@@ -483,15 +535,24 @@ class Pragmeval(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"data_file": os.path.join(data_dir or "", "train.tsv"), "split": "train",},
+                gen_kwargs={
+                    "data_file": os.path.join(data_dir or "", "train.tsv"),
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"data_file": os.path.join(data_dir or "", "dev.tsv"), "split": "dev",},
+                gen_kwargs={
+                    "data_file": os.path.join(data_dir or "", "dev.tsv"),
+                    "split": "dev",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"data_file": os.path.join(data_dir or "", "test.tsv"), "split": "test",},
+                gen_kwargs={
+                    "data_file": os.path.join(data_dir or "", "test.tsv"),
+                    "split": "test",
+                },
             ),
         ]
 

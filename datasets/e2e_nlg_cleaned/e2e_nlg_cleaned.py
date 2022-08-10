@@ -63,7 +63,10 @@ class E2eNLGCleaned(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {"meaning_representation": datasets.Value("string"), "human_reference": datasets.Value("string"),}
+                {
+                    "meaning_representation": datasets.Value("string"),
+                    "human_reference": datasets.Value("string"),
+                }
             ),
             supervised_keys=None,
             homepage="https://github.com/tuetschek/e2e-cleaning",

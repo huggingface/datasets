@@ -8233,7 +8233,9 @@ class MultiEURLEX(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "celex_id": datasets.Value("string"),
-                    "text": datasets.Translation(languages=_LANGUAGES,),
+                    "text": datasets.Translation(
+                        languages=_LANGUAGES,
+                    ),
                     "labels": datasets.features.Sequence(
                         datasets.ClassLabel(names=_CONCEPTS[self.config.label_level])
                     ),

@@ -452,13 +452,21 @@ class UniversalMorphologies(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(config_urls)
         if self.config.name in _SPLITS:
             return [
-                datasets.SplitGenerator(name=spl, gen_kwargs={"filepath": data_dir[f"{self.config.name}|{spl}"],},)
+                datasets.SplitGenerator(
+                    name=spl,
+                    gen_kwargs={
+                        "filepath": data_dir[f"{self.config.name}|{spl}"],
+                    },
+                )
                 for spl in _SPLITS[self.config.name]
             ]
         else:
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir[self.config.name],},
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "filepath": data_dir[self.config.name],
+                    },
                 )
             ]
 

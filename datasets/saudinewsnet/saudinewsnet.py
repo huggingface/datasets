@@ -115,7 +115,12 @@ class Saudinewsnet(datasets.GeneratorBasedBuilder):
         pt = []
         for dd, d in zip(datadir, _dirs):
             pt.append(os.path.join(dd, d))
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": pt, "split": "train"},)]
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": pt, "split": "train"},
+            )
+        ]
 
     def _generate_examples(self, filepath, split):
         """Generates examples"""

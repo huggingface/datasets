@@ -115,13 +115,16 @@ class Newsroom(datasets.GeneratorBasedBuilder):
             )
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"input_file": os.path.join(data_dir, "train.jsonl")},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"input_file": os.path.join(data_dir, "train.jsonl")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"input_file": os.path.join(data_dir, "dev.jsonl")},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"input_file": os.path.join(data_dir, "dev.jsonl")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"input_file": os.path.join(data_dir, "test.jsonl")},
+                name=datasets.Split.TEST,
+                gen_kwargs={"input_file": os.path.join(data_dir, "test.jsonl")},
             ),
         ]
 

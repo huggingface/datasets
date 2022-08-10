@@ -196,12 +196,18 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": train, "files": dl_manager.iter_archive(archive),},
+                gen_kwargs={
+                    "filepath": train,
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": dev, "files": dl_manager.iter_archive(archive),},
+                gen_kwargs={
+                    "filepath": dev,
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
         ]
 

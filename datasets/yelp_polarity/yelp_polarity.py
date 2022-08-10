@@ -103,13 +103,21 @@ class YelpPolarityReviewsConfig(datasets.BuilderConfig):
 class YelpPolarity(datasets.GeneratorBasedBuilder):
     """Yelp Polarity reviews dataset."""
 
-    BUILDER_CONFIGS = [YelpPolarityReviewsConfig(name="plain_text", description="Plain text",)]
+    BUILDER_CONFIGS = [
+        YelpPolarityReviewsConfig(
+            name="plain_text",
+            description="Plain text",
+        )
+    ]
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {"text": datasets.Value("string"), "label": datasets.features.ClassLabel(names=["1", "2"]),}
+                {
+                    "text": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(names=["1", "2"]),
+                }
             ),
             supervised_keys=None,
             homepage="https://course.fast.ai/datasets",
@@ -128,11 +136,17 @@ class YelpPolarity(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": train_file, "files": dl_manager.iter_archive(arch_path),},
+                gen_kwargs={
+                    "filepath": train_file,
+                    "files": dl_manager.iter_archive(arch_path),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": test_file, "files": dl_manager.iter_archive(arch_path),},
+                gen_kwargs={
+                    "filepath": test_file,
+                    "files": dl_manager.iter_archive(arch_path),
+                },
             ),
         ]
 

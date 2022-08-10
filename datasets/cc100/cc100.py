@@ -77,14 +77,20 @@ _LANGUAGES = ["am", "sr", "ka"]
 class Cc100Config(datasets.BuilderConfig):
     def __init__(self, *args, lang=None, **kwargs):
         super().__init__(
-            *args, name=f"{lang}", **kwargs,
+            *args,
+            name=f"{lang}",
+            **kwargs,
         )
         self.lang = lang
 
 
 class Cc100(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
-        Cc100Config(lang=lang, description=f"Language: {lang}", version=datasets.Version(_VERSION),)
+        Cc100Config(
+            lang=lang,
+            description=f"Language: {lang}",
+            version=datasets.Version(_VERSION),
+        )
         for lang in _LANGUAGES
     ]
     BUILDER_CONFIG_CLASS = Cc100Config
@@ -92,7 +98,12 @@ class Cc100(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"id": datasets.Value("string"), "text": datasets.Value("string"),},),
+            features=datasets.Features(
+                {
+                    "id": datasets.Value("string"),
+                    "text": datasets.Value("string"),
+                },
+            ),
             supervised_keys=None,
             homepage=_HOMEPAGE_URL,
             citation=_CITATION,
@@ -104,13 +115,21 @@ class Cc100(datasets.GeneratorBasedBuilder):
 
         download_url = _base_url(self.config.lang)
         path = dl_manager.download_and_extract(download_url)
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": path},)]
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"datapath": path},
+            )
+        ]
 
     def _generate_examples(self, datapath):
         with open(datapath, encoding="utf-8") as f:
             for sentence_counter, row in enumerate(f):
                 result = (
                     sentence_counter,
-                    {"id": str(sentence_counter), "text": row,},
+                    {
+                        "id": str(sentence_counter),
+                        "text": row,
+                    },
                 )
                 yield result

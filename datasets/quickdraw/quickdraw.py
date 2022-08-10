@@ -216,7 +216,12 @@ class Quickdraw(datasets.GeneratorBasedBuilder):
                 }
             )
         elif self.config.name == "preprocessed_bitmaps":
-            features = datasets.Features({"image": datasets.Image(), "label": datasets.ClassLabel(names=_NAMES),})
+            features = datasets.Features(
+                {
+                    "image": datasets.Image(),
+                    "label": datasets.ClassLabel(names=_NAMES),
+                }
+            )
         else:  # sketch_rnn, sketch_rnn_full
             features = datasets.Features(
                 {
@@ -242,18 +247,40 @@ class Quickdraw(datasets.GeneratorBasedBuilder):
                 {name: url for name, url in zip(_NAMES, [base_url.format(name) for name in _NAMES])}
             )
             return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files, "split": "train",},),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "files": files,
+                        "split": "train",
+                    },
+                ),
             ]
         else:
             files = dl_manager.download_and_extract(
                 {name: url for name, url in zip(_NAMES, [base_url.format(name) for name in _NAMES])}
             )
             return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files, "split": "train",},),
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION, gen_kwargs={"files": files, "split": "valid",},
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "files": files,
+                        "split": "train",
+                    },
                 ),
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"files": files, "split": "test",},),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        "files": files,
+                        "split": "valid",
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "files": files,
+                        "split": "test",
+                    },
+                ),
             ]
 
     def _generate_examples(self, files, split):

@@ -49,13 +49,22 @@ class IDPuisi(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path,},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": train_path,
+                },
+            ),
         ]
 
     def _generate_examples(self, filepath):
         """Generate ID Puisi examples."""
         with open(filepath, encoding="utf-8") as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=",", quoting=csv.QUOTE_ALL,)
+            csv_reader = csv.reader(
+                csv_file,
+                delimiter=",",
+                quoting=csv.QUOTE_ALL,
+            )
             for id_, row in enumerate(csv_reader):
                 if id_ == 0:
                     # Skip header

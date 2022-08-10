@@ -123,7 +123,9 @@ class Polsum(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepaths": glob.glob(data_dir + "/*/*/*.xml"),},
+                gen_kwargs={
+                    "filepaths": glob.glob(data_dir + "/*/*/*.xml"),
+                },
             ),
         ]
 
@@ -162,10 +164,20 @@ class Polsum(datasets.GeneratorBasedBuilder):
                         end = int(span_tag.get("end"))
                         span_text = span_tag.text.strip()
                         spans.append(
-                            {"start": start, "end": end, "span_text": span_text,}
+                            {
+                                "start": start,
+                                "end": end,
+                                "span_text": span_text,
+                            }
                         )
                 summaries.append(
-                    {"ratio": sratio, "type": stype, "author": sauthor, "body": sbody, "spans": spans,}
+                    {
+                        "ratio": sratio,
+                        "type": stype,
+                        "author": sauthor,
+                        "body": sbody,
+                        "spans": spans,
+                    }
                 )
 
             yield i, {

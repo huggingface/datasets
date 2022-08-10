@@ -19,7 +19,6 @@ if datasets.config.PYARROW_VERSION.major >= 7:
     def pa_table_to_pylist(table):
         return table.to_pylist()
 
-
 else:
 
     def pa_table_to_pylist(table):

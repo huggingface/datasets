@@ -749,7 +749,9 @@ paths = {
 class BabiQaConfig(datasets.BuilderConfig):
     def __init__(self, *args, type=None, task_no=None, **kwargs):
         super().__init__(
-            *args, name=f"{type}-{task_no}", **kwargs,
+            *args,
+            name=f"{type}-{task_no}",
+            **kwargs,
         )
         self.type = type
         self.task_no = task_no

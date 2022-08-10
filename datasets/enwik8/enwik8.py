@@ -56,7 +56,11 @@ class Enwik8(datasets.GeneratorBasedBuilder):
 
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"text": datasets.Value("string"),}),
+            features=datasets.Features(
+                {
+                    "text": datasets.Value("string"),
+                }
+            ),
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
@@ -70,7 +74,10 @@ class Enwik8(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir, "enwik8"), "split": "train",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "enwik8"),
+                    "split": "train",
+                },
             )
         ]
 

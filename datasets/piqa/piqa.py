@@ -65,7 +65,13 @@ class Piqa(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.1.0")
 
-    BUILDER_CONFIGS = [datasets.BuilderConfig(name="plain_text", description="Plain text", version=VERSION,)]
+    BUILDER_CONFIGS = [
+        datasets.BuilderConfig(
+            name="plain_text",
+            description="Plain text",
+            version=VERSION,
+        )
+    ]
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -94,7 +100,12 @@ class Piqa(datasets.GeneratorBasedBuilder):
                     "label_filepath": os.path.join(data_dir["train-dev"], "physicaliqa-train-dev", "train-labels.lst"),
                 },
             ),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"input_filepath": data_dir["test"],},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "input_filepath": data_dir["test"],
+                },
+            ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={

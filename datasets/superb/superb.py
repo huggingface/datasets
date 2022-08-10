@@ -103,7 +103,13 @@ class SuperbConfig(datasets.BuilderConfig):
     """BuilderConfig for Superb."""
 
     def __init__(
-        self, features, url, data_url=None, supervised_keys=None, task_templates=None, **kwargs,
+        self,
+        features,
+        url,
+        data_url=None,
+        supervised_keys=None,
+        task_templates=None,
+        **kwargs,
     ):
         super().__init__(version=datasets.Version("1.9.0", ""), **kwargs)
         self.features = features
@@ -377,10 +383,12 @@ class Superb(datasets.GeneratorBasedBuilder):
             archive_path = dl_manager.download_and_extract(self.config.data_url)
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN, gen_kwargs={"archive_path": archive_path, "split": "train"},
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={"archive_path": archive_path, "split": "train"},
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION, gen_kwargs={"archive_path": archive_path, "split": "valid"},
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={"archive_path": archive_path, "split": "valid"},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST, gen_kwargs={"archive_path": archive_path, "split": "test"}
@@ -390,10 +398,12 @@ class Superb(datasets.GeneratorBasedBuilder):
             manual_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN, gen_kwargs={"archive_path": manual_dir, "split": 1},
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={"archive_path": manual_dir, "split": 1},
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION, gen_kwargs={"archive_path": manual_dir, "split": 2},
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={"archive_path": manual_dir, "split": 2},
                 ),
                 datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"archive_path": manual_dir, "split": 3}),
             ]
@@ -416,7 +426,10 @@ class Superb(datasets.GeneratorBasedBuilder):
         elif self.config.name == "er":
             manual_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
             return [
-                datasets.SplitGenerator(name=f"session{i}", gen_kwargs={"archive_path": manual_dir, "split": i},)
+                datasets.SplitGenerator(
+                    name=f"session{i}",
+                    gen_kwargs={"archive_path": manual_dir, "split": i},
+                )
                 for i in range(1, 6)
             ]
 

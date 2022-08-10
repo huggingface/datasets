@@ -78,11 +78,15 @@ class ArSarcasm(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir, "ArSarcasm-master", "dataset", "ArSarcasm_train.csv"),},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "ArSarcasm-master", "dataset", "ArSarcasm_train.csv"),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(data_dir, "ArSarcasm-master", "dataset", "ArSarcasm_test.csv"),},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "ArSarcasm-master", "dataset", "ArSarcasm_test.csv"),
+                },
             ),
         ]
 

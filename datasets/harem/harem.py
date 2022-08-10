@@ -219,7 +219,11 @@ class HAREM(datasets.GeneratorBasedBuilder):
         )
 
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, supervised_keys=None, homepage=_HOMEPAGE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            supervised_keys=None,
+            homepage=_HOMEPAGE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -230,13 +234,16 @@ class HAREM(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir["train"], "split": "train"},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": data_dir["train"], "split": "train"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": data_dir["test"], "split": "test"},
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": data_dir["test"], "split": "test"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": data_dir["dev"], "split": "dev"},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": data_dir["dev"], "split": "dev"},
             ),
         ]
 
@@ -260,7 +267,10 @@ class HAREM(datasets.GeneratorBasedBuilder):
                 def set_label(index, tag):
                     if tags[index] != "O":
                         logger.warning(
-                            "Overwriting tag %s at position %s to %s", tags[index], index, tag,
+                            "Overwriting tag %s at position %s to %s",
+                            tags[index],
+                            index,
+                            tag,
                         )
                     tags[index] = tag
 

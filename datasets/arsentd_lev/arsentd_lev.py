@@ -69,7 +69,8 @@ class ArsentdLev(datasets.GeneratorBasedBuilder):
         path = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"path": os.path.join(path, "ArSenTD-LEV.tsv")},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"path": os.path.join(path, "ArSenTD-LEV.tsv")},
             ),
         ]
 

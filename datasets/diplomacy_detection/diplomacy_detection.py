@@ -138,7 +138,11 @@ class DiplomacyDetection(datasets.GeneratorBasedBuilder):
             }
         )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, supervised_keys=None, homepage=_HOMEPAGE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            supervised_keys=None,
+            homepage=_HOMEPAGE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):

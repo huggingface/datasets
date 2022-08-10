@@ -98,10 +98,12 @@ class MedHop(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(medhop_path, train_file)},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(medhop_path, train_file)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(medhop_path, dev_file)},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": os.path.join(medhop_path, dev_file)},
             ),
         ]
 

@@ -286,7 +286,10 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
 
     @staticmethod
     def _iter_random_indices(
-        rng: np.random.Generator, num_sources: int, random_batch_size=1000, p: Optional[List[float]] = None,
+        rng: np.random.Generator,
+        num_sources: int,
+        random_batch_size=1000,
+        p: Optional[List[float]] = None,
     ) -> Iterator[int]:
         """Get an infinite iterator that randomly samples the index of the source to pick examples from."""
         if p is None:
@@ -720,7 +723,10 @@ class IterableDataset(DatasetInfoMixin):
             else:
                 yield example
 
-    def with_format(self, type: Optional[str] = None,) -> "IterableDataset":
+    def with_format(
+        self,
+        type: Optional[str] = None,
+    ) -> "IterableDataset":
         """
         Return a dataset with the specified format.
         This method only supports the "torch" format for now.
@@ -1197,7 +1203,10 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    def cast(self, features: Features,) -> "IterableDataset":
+    def cast(
+        self,
+        features: Features,
+    ) -> "IterableDataset":
         """
         Cast the dataset to a new set of features.
 

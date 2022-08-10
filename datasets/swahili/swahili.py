@@ -61,7 +61,11 @@ class Swahili(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"text": datasets.Value("string"),}),
+            features=datasets.Features(
+                {
+                    "text": datasets.Value("string"),
+                }
+            ),
             supervised_keys=None,
             homepage=_HOMEPAGE,
             license=_LICENSE,
@@ -74,7 +78,10 @@ class Swahili(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir, "Swahili data/train.txt"), "split": "train",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "Swahili data/train.txt"),
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -82,7 +89,10 @@ class Swahili(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(data_dir, "Swahili data/valid.txt"), "split": "valid",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "Swahili data/valid.txt"),
+                    "split": "valid",
+                },
             ),
         ]
 

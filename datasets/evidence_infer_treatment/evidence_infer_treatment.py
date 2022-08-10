@@ -194,17 +194,26 @@ class EvidenceInferTreatment(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"directory": os.path.join(dl_dir, "txt_files"), "items": ALL_IDS["train"],},
+                gen_kwargs={
+                    "directory": os.path.join(dl_dir, "txt_files"),
+                    "items": ALL_IDS["train"],
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"directory": directory, "items": ALL_IDS["test"],},
+                gen_kwargs={
+                    "directory": directory,
+                    "items": ALL_IDS["test"],
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"directory": os.path.join(dl_dir, "txt_files"), "items": ALL_IDS["validation"],},
+                gen_kwargs={
+                    "directory": os.path.join(dl_dir, "txt_files"),
+                    "items": ALL_IDS["validation"],
+                },
             ),
         ]
 

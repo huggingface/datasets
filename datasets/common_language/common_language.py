@@ -135,13 +135,16 @@ class CommonLanguage(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"archive_path": archive_path, "split": "train"},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"archive_path": archive_path, "split": "train"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"archive_path": archive_path, "split": "dev"},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"archive_path": archive_path, "split": "dev"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"archive_path": archive_path, "split": "test"},
+                name=datasets.Split.TEST,
+                gen_kwargs={"archive_path": archive_path, "split": "test"},
             ),
         ]
 

@@ -100,8 +100,12 @@ class Xnli(datasets.GeneratorBasedBuilder):
         if self.config.language == "all_languages":
             features = datasets.Features(
                 {
-                    "premise": datasets.Translation(languages=_LANGUAGES,),
-                    "hypothesis": datasets.TranslationVariableLanguages(languages=_LANGUAGES,),
+                    "premise": datasets.Translation(
+                        languages=_LANGUAGES,
+                    ),
+                    "hypothesis": datasets.TranslationVariableLanguages(
+                        languages=_LANGUAGES,
+                    ),
                     "label": datasets.ClassLabel(names=["entailment", "neutral", "contradiction"]),
                 }
             )
@@ -124,7 +128,12 @@ class Xnli(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        dl_dirs = dl_manager.download_and_extract({"train_data": _TRAIN_DATA_URL, "testval_data": _TESTVAL_DATA_URL,})
+        dl_dirs = dl_manager.download_and_extract(
+            {
+                "train_data": _TRAIN_DATA_URL,
+                "testval_data": _TESTVAL_DATA_URL,
+            }
+        )
         train_dir = os.path.join(dl_dirs["train_data"], "XNLI-MT-1.0", "multinli")
         testval_dir = os.path.join(dl_dirs["testval_data"], "XNLI-1.0")
         return [

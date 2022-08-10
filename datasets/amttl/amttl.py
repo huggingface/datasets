@@ -83,7 +83,16 @@ class Amttl(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "tokens": datasets.Sequence(datasets.Value("string")),
-                    "tags": datasets.Sequence(datasets.features.ClassLabel(names=["B", "I", "E", "S",])),
+                    "tags": datasets.Sequence(
+                        datasets.features.ClassLabel(
+                            names=[
+                                "B",
+                                "I",
+                                "E",
+                                "S",
+                            ]
+                        )
+                    ),
                 }
             ),
             supervised_keys=None,

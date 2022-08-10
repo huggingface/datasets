@@ -70,7 +70,12 @@ class BbawEgyptian(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         my_urls = self._URLS
         data_dir = dl_manager.download(my_urls)
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir["all"]},)]
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": data_dir["all"]},
+            )
+        ]
 
     def _generate_examples(self, filepath):
         """Yields examples as (key, example) tuples."""

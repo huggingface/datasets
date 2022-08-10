@@ -83,7 +83,11 @@ class HebrewProjectbenyehuda(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"ids": ids, "metadata_filepath": metadata["metadata"], "filepaths": downloaded_files,},
+                gen_kwargs={
+                    "ids": ids,
+                    "metadata_filepath": metadata["metadata"],
+                    "filepaths": downloaded_files,
+                },
             )
         ]
 

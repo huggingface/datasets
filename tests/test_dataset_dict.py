@@ -286,7 +286,8 @@ class DatasetDictTest(TestCase):
             sorted_dsets_1: DatasetDict = dsets.sort("filename")
             self.assertListEqual(list(dsets.keys()), list(sorted_dsets_1.keys()))
             self.assertListEqual(
-                [f.split("_")[-1] for f in sorted_dsets_1["train"]["filename"]], sorted(f"{x:03d}" for x in range(30)),
+                [f.split("_")[-1] for f in sorted_dsets_1["train"]["filename"]],
+                sorted(f"{x:03d}" for x in range(30)),
             )
 
             indices_cache_file_names = {
@@ -629,7 +630,13 @@ def test_datasetdict_from_text_keep_in_memory(keep_in_memory, text_path, tmp_pat
 
 
 @pytest.mark.parametrize(
-    "features", [None, {"text": "string"}, {"text": "int32"}, {"text": "float32"},],
+    "features",
+    [
+        None,
+        {"text": "string"},
+        {"text": "int32"},
+        {"text": "float32"},
+    ],
 )
 def test_datasetdict_from_text_features(features, text_path, tmp_path):
     cache_dir = tmp_path / "cache"

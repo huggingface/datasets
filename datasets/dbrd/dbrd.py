@@ -64,7 +64,12 @@ class DBRDConfig(datasets.BuilderConfig):
 class DBRD(datasets.GeneratorBasedBuilder):
     """Dutch Book Review Dataset."""
 
-    BUILDER_CONFIGS = [DBRDConfig(name="plain_text", description="Plain text",)]
+    BUILDER_CONFIGS = [
+        DBRDConfig(
+            name="plain_text",
+            description="Plain text",
+        )
+    ]
 
     def _info(self):
         return datasets.DatasetInfo(

@@ -367,11 +367,17 @@ class Flue(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={"data_file": os.path.join(data_folder, self.config.data_dir), "split": "train",},
+                    gen_kwargs={
+                        "data_file": os.path.join(data_folder, self.config.data_dir),
+                        "split": "train",
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    gen_kwargs={"data_file": os.path.join(data_folder, self.config.data_dir), "split": "test",},
+                    gen_kwargs={
+                        "data_file": os.path.join(data_folder, self.config.data_dir),
+                        "split": "test",
+                    },
                 ),
             ]
 

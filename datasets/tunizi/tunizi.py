@@ -54,7 +54,12 @@ class Tunizi(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         path = dl_manager.download_and_extract(_URL)
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": path},)]
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"datapath": path},
+            )
+        ]
 
     def _generate_examples(self, datapath):
         with open(datapath, encoding="utf-8") as f:
@@ -65,6 +70,10 @@ class Tunizi(datasets.GeneratorBasedBuilder):
                     target = target[1:]
                 result = (
                     sentence_counter,
-                    {"id": str(sentence_counter), "sentence": sentence, "target": target,},
+                    {
+                        "id": str(sentence_counter),
+                        "sentence": sentence,
+                        "target": target,
+                    },
                 )
                 yield result

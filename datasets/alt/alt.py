@@ -61,7 +61,10 @@ class AltParallelConfig(datasets.BuilderConfig):
 
         description = "ALT Parallel Corpus"
         super(AltParallelConfig, self).__init__(
-            name=name, description=description, version=datasets.Version("1.0.0", ""), **kwargs,
+            name=name,
+            description=description,
+            version=datasets.Version("1.0.0", ""),
+            **kwargs,
         )
 
         available_langs = set(
@@ -142,11 +145,17 @@ class Alt(datasets.GeneratorBasedBuilder):
             )
         elif self.config.name == "alt-my-transliteration":
             features = datasets.Features(
-                {"en": datasets.Value("string"), "my": datasets.Sequence(datasets.Value("string")),}
+                {
+                    "en": datasets.Value("string"),
+                    "my": datasets.Sequence(datasets.Value("string")),
+                }
             )
         elif self.config.name == "alt-my-west-transliteration":
             features = datasets.Features(
-                {"en": datasets.Value("string"), "my": datasets.Sequence(datasets.Value("string")),}
+                {
+                    "en": datasets.Value("string"),
+                    "my": datasets.Sequence(datasets.Value("string")),
+                }
             )
         elif self.config.name == "alt-km":
             features = datasets.Features(
@@ -162,7 +171,11 @@ class Alt(datasets.GeneratorBasedBuilder):
             raise
 
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, supervised_keys=None, homepage=_HOMEPAGE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            supervised_keys=None,
+            homepage=_HOMEPAGE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -173,7 +186,10 @@ class Alt(datasets.GeneratorBasedBuilder):
 
         if self.config.name == "alt-my-transliteration" or self.config.name == "alt-my-west-transliteration":
             return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"basepath": data_path, "split": None},)
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={"basepath": data_path, "split": None},
+                )
             ]
         else:
             data_split = {}
@@ -182,13 +198,16 @@ class Alt(datasets.GeneratorBasedBuilder):
 
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN, gen_kwargs={"basepath": data_path, "split": data_split["train"]},
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={"basepath": data_path, "split": data_split["train"]},
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION, gen_kwargs={"basepath": data_path, "split": data_split["dev"]},
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={"basepath": data_path, "split": data_split["dev"]},
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.TEST, gen_kwargs={"basepath": data_path, "split": data_split["test"]},
+                    name=datasets.Split.TEST,
+                    gen_kwargs={"basepath": data_path, "split": data_split["test"]},
                 ),
             ]
 

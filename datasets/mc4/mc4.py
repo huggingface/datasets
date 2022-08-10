@@ -266,7 +266,9 @@ class Mc4Config(datasets.BuilderConfig):
             **kwargs: keyword arguments forwarded to super.
         """
         super().__init__(
-            *args, name="+".join(languages), **kwargs,
+            *args,
+            name="+".join(languages),
+            **kwargs,
         )
         self.languages = languages
 

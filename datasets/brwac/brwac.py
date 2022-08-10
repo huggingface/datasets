@@ -89,7 +89,10 @@ class Brwac(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir, "brwac.vert"), "split": "train",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "brwac.vert"),
+                    "split": "train",
+                },
             )
         ]
 

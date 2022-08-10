@@ -112,7 +112,8 @@ class ParaCrawl(datasets.GeneratorBasedBuilder):
         # The version below does not refer to the version of the released
         # database. It only indicates the version of the TFDS integration.
         ParaCrawlConfig(  # pylint: disable=g-complex-comprehension
-            target_language=target_language, version=datasets.Version("1.0.0"),
+            target_language=target_language,
+            version=datasets.Version("1.0.0"),
         )
         for target_language in _target_languages()
     ]

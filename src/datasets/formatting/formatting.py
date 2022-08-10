@@ -453,7 +453,9 @@ def key_to_query_type(key: Union[int, slice, range, str, Iterable]) -> str:
 
 
 def query_table(
-    table: Table, key: Union[int, slice, range, str, Iterable], indices: Optional[Table] = None,
+    table: Table,
+    key: Union[int, slice, range, str, Iterable],
+    indices: Optional[Table] = None,
 ) -> pa.Table:
     """
     Query a Table to extract the subtable that correspond to the given key.

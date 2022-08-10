@@ -50,7 +50,10 @@ class CatsVsDogs(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {"image": datasets.Image(), "labels": datasets.features.ClassLabel(names=["cat", "dog"]),}
+                {
+                    "image": datasets.Image(),
+                    "labels": datasets.features.ClassLabel(names=["cat", "dog"]),
+                }
             ),
             supervised_keys=("image", "labels"),
             task_templates=[ImageClassification(image_column="image", label_column="labels")],

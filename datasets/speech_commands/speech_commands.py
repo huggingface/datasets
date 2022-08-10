@@ -183,14 +183,22 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"archive": dl_manager.iter_archive(archive_paths["train"]),},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "archive": dl_manager.iter_archive(archive_paths["train"]),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"archive": dl_manager.iter_archive(archive_paths["validation"]),},
+                gen_kwargs={
+                    "archive": dl_manager.iter_archive(archive_paths["validation"]),
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"archive": dl_manager.iter_archive(archive_paths["test"]),},
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "archive": dl_manager.iter_archive(archive_paths["test"]),
+                },
             ),
         ]
 

@@ -111,7 +111,10 @@ class ToldBr(datasets.GeneratorBasedBuilder):
     def _info(self):
         if self.config.name == "binary":
             features = datasets.Features(
-                {"text": datasets.Value("string"), "label": datasets.ClassLabel(names=["not-toxic", "toxic"]),}
+                {
+                    "text": datasets.Value("string"),
+                    "label": datasets.ClassLabel(names=["not-toxic", "toxic"]),
+                }
             )
         else:
             features = datasets.Features(
@@ -150,7 +153,12 @@ class ToldBr(datasets.GeneratorBasedBuilder):
             ]
         else:
             return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir),},)
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "filepath": os.path.join(data_dir),
+                    },
+                )
             ]
 
     def _generate_examples(self, filepath):

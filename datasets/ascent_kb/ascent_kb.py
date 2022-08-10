@@ -117,7 +117,13 @@ class AscentKB(datasets.GeneratorBasedBuilder):
         data_file = dl_manager.download_and_extract(_URL)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_file, "split": "train",},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": data_file,
+                    "split": "train",
+                },
+            ),
         ]
 
     # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`

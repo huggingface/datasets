@@ -24,7 +24,12 @@ class CsvDatasetReader(AbstractDatasetReader):
             path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         )
         path_or_paths = path_or_paths if isinstance(path_or_paths, dict) else {self.split: path_or_paths}
-        self.builder = Csv(cache_dir=cache_dir, data_files=path_or_paths, features=features, **kwargs,)
+        self.builder = Csv(
+            cache_dir=cache_dir,
+            data_files=path_or_paths,
+            features=features,
+            **kwargs,
+        )
 
     def read(self):
         download_config = None
@@ -83,7 +88,9 @@ class CsvDatasetWriter:
         offset, header, to_csv_kwargs = args
 
         batch = query_table(
-            table=self.dataset.data, key=slice(offset, offset + self.batch_size), indices=self.dataset._indices,
+            table=self.dataset.data,
+            key=slice(offset, offset + self.batch_size),
+            indices=self.dataset._indices,
         )
         csv_str = batch.to_pandas().to_csv(
             path_or_buf=None, header=header if (offset == 0) else False, **to_csv_kwargs

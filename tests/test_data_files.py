@@ -540,11 +540,22 @@ def mock_fs(file_paths: List[str]):
         # file named after split at the root
         {"train": "train.txt", "test": "test.txt", "validation": "valid.txt"},
         # file named after split in a directory
-        {"train": "data/train.txt", "test": "data/test.txt", "validation": "data/valid.txt",},
+        {
+            "train": "data/train.txt",
+            "test": "data/test.txt",
+            "validation": "data/valid.txt",
+        },
         # directory named after split
-        {"train": "train/split.txt", "test": "test/split.txt", "validation": "valid/split.txt",},
+        {
+            "train": "train/split.txt",
+            "test": "test/split.txt",
+            "validation": "valid/split.txt",
+        },
         # sharded splits
-        {"train": [f"data/train_{i}.txt" for i in range(3)], "test": [f"data/test_{i}.txt" for i in range(3)],},
+        {
+            "train": [f"data/train_{i}.txt" for i in range(3)],
+            "test": [f"data/test_{i}.txt" for i in range(3)],
+        },
         # sharded splits with standard format (+ custom split name)
         {
             "train": [f"data/train-0000{i}-of-00003.txt" for i in range(3)],

@@ -80,9 +80,18 @@ class WeiboNERCorpus(datasets.GeneratorBasedBuilder):
         valid_path = dl_manager.download_and_extract(_VALID_URL)
         test_path = dl_manager.download_and_extract(_TEST_URL)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_path": train_path},),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"data_path": valid_path},),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"data_path": test_path},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"data_path": train_path},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"data_path": valid_path},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"data_path": test_path},
+            ),
         ]
 
     def _generate_examples(self, data_path):
@@ -103,7 +112,11 @@ class WeiboNERCorpus(datasets.GeneratorBasedBuilder):
                     assert len(current_words) == len(current_labels), "word len doesnt match label length"
                     sentence = (
                         sentence_counter,
-                        {"id": str(sentence_counter), "tokens": current_words, "ner_tags": current_labels,},
+                        {
+                            "id": str(sentence_counter),
+                            "tokens": current_words,
+                            "ner_tags": current_labels,
+                        },
                     )
                     sentence_counter += 1
                     current_words = []
@@ -114,6 +127,10 @@ class WeiboNERCorpus(datasets.GeneratorBasedBuilder):
             if current_words:
                 sentence = (
                     sentence_counter,
-                    {"id": str(sentence_counter), "tokens": current_words, "ner_tags": current_labels,},
+                    {
+                        "id": str(sentence_counter),
+                        "tokens": current_words,
+                        "ner_tags": current_labels,
+                    },
                 )
                 yield sentence

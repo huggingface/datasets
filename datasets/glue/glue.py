@@ -47,7 +47,10 @@ _MRPC_TRAIN = "https://dl.fbaipublicfiles.com/senteval/senteval_data/msr_paraphr
 _MRPC_TEST = "https://dl.fbaipublicfiles.com/senteval/senteval_data/msr_paraphrase_test.txt"
 
 _MNLI_BASE_KWARGS = dict(
-    text_features={"premise": "sentence1", "hypothesis": "sentence2",},
+    text_features={
+        "premise": "sentence1",
+        "hypothesis": "sentence2",
+    },
     label_classes=["entailment", "neutral", "contradiction"],
     label_column="gold_label",
     data_url="https://dl.fbaipublicfiles.com/glue/data/MNLI.zip",
@@ -214,7 +217,10 @@ class Glue(datasets.GeneratorBasedBuilder):
             community question-answering website Quora. The task is to determine whether a
             pair of questions are semantically equivalent."""
             ),
-            text_features={"question1": "question1", "question2": "question2",},
+            text_features={
+                "question1": "question1",
+                "question2": "question2",
+            },
             label_classes=["not_duplicate", "duplicate"],
             label_column="is_duplicate",
             data_url="https://dl.fbaipublicfiles.com/glue/data/QQP-clean.zip",
@@ -240,7 +246,10 @@ class Glue(datasets.GeneratorBasedBuilder):
             language inference data. Each pair is human-annotated with a similarity score
             from 1 to 5."""
             ),
-            text_features={"sentence1": "sentence1", "sentence2": "sentence2",},
+            text_features={
+                "sentence1": "sentence1",
+                "sentence2": "sentence2",
+            },
             label_column="score",
             data_url="https://dl.fbaipublicfiles.com/glue/data/STS-B.zip",
             data_dir="STS-B",
@@ -303,7 +312,10 @@ class Glue(datasets.GeneratorBasedBuilder):
             the model select the exact answer, but also removes the simplifying assumptions that the answer
             is always present in the input and that lexical overlap is a reliable cue."""
             ),  # pylint: disable=line-too-long
-            text_features={"question": "question", "sentence": "sentence",},
+            text_features={
+                "question": "question",
+                "sentence": "sentence",
+            },
             label_classes=["entailment", "not_entailment"],
             label_column="label",
             data_url="https://dl.fbaipublicfiles.com/glue/data/QNLIv2.zip",
@@ -329,7 +341,10 @@ class Glue(datasets.GeneratorBasedBuilder):
             constructed based on news and Wikipedia text. We convert all datasets to a two-class split, where
             for three-class datasets we collapse neutral and contradiction into not entailment, for consistency."""
             ),  # pylint: disable=line-too-long
-            text_features={"sentence1": "sentence1", "sentence2": "sentence2",},
+            text_features={
+                "sentence1": "sentence1",
+                "sentence2": "sentence2",
+            },
             label_classes=["entailment", "not_entailment"],
             label_column="label",
             data_url="https://dl.fbaipublicfiles.com/glue/data/RTE.zip",
@@ -391,7 +406,10 @@ class Glue(datasets.GeneratorBasedBuilder):
             between a model's score on this task and its score on the unconverted original task. We
             call converted dataset WNLI (Winograd NLI)."""
             ),
-            text_features={"sentence1": "sentence1", "sentence2": "sentence2",},
+            text_features={
+                "sentence1": "sentence1",
+                "sentence2": "sentence2",
+            },
             label_classes=["not_entailment", "entailment"],
             label_column="label",
             data_url="https://dl.fbaipublicfiles.com/glue/data/WNLI.zip",
@@ -417,7 +435,10 @@ class Glue(datasets.GeneratorBasedBuilder):
             Inference (NLI) problems. Use a model trained on MulitNLI to produce
             predictions for this dataset."""
             ),
-            text_features={"premise": "sentence1", "hypothesis": "sentence2",},
+            text_features={
+                "premise": "sentence1",
+                "hypothesis": "sentence2",
+            },
             label_classes=["entailment", "neutral", "contradiction"],
             label_column="",  # No label since we only have test set.
             # We must use a URL shortener since the URL from GLUE is very long and
@@ -448,13 +469,23 @@ class Glue(datasets.GeneratorBasedBuilder):
             data_file = dl_manager.download(self.config.data_url)
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TEST, gen_kwargs={"data_file": data_file, "split": "test",},
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "data_file": data_file,
+                        "split": "test",
+                    },
                 )
             ]
 
         if self.config.name == "mrpc":
             data_dir = None
-            mrpc_files = dl_manager.download({"dev_ids": _MRPC_DEV_IDS, "train": _MRPC_TRAIN, "test": _MRPC_TEST,})
+            mrpc_files = dl_manager.download(
+                {
+                    "dev_ids": _MRPC_DEV_IDS,
+                    "train": _MRPC_TRAIN,
+                    "test": _MRPC_TEST,
+                }
+            )
         else:
             dl_dir = dl_manager.download_and_extract(self.config.data_url)
             data_dir = os.path.join(dl_dir, self.config.data_dir)

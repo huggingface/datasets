@@ -85,7 +85,9 @@ _LANGUAGE_PAIRS = [
 class SetimesConfig(datasets.BuilderConfig):
     def __init__(self, *args, lang1=None, lang2=None, **kwargs):
         super().__init__(
-            *args, name=f"{lang1}-{lang2}", **kwargs,
+            *args,
+            name=f"{lang1}-{lang2}",
+            **kwargs,
         )
         self.lang1 = lang1
         self.lang2 = lang2
@@ -146,7 +148,10 @@ class Setimes(datasets.GeneratorBasedBuilder):
                             y = y.decode("utf-8").strip()
                             result = (
                                 sentence_counter,
-                                {"id": str(sentence_counter), "translation": {l1: x, l2: y},},
+                                {
+                                    "id": str(sentence_counter),
+                                    "translation": {l1: x, l2: y},
+                                },
                             )
                             yield result
                         break

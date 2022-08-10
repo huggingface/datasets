@@ -120,11 +120,17 @@ class DBpedia14(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": "dbpedia_csv/train.csv", "files": dl_manager.iter_archive(archive),},
+                gen_kwargs={
+                    "filepath": "dbpedia_csv/train.csv",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": "dbpedia_csv/test.csv", "files": dl_manager.iter_archive(archive),},
+                gen_kwargs={
+                    "filepath": "dbpedia_csv/test.csv",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
         ]
 

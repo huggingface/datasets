@@ -98,7 +98,8 @@ class NCSLGR(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"eaf_path": eaf_path, "videos_path": videos_path},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"eaf_path": eaf_path, "videos_path": videos_path},
             )
         ]
 

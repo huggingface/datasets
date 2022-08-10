@@ -68,7 +68,13 @@ class FakeNewsFilipino(datasets.GeneratorBasedBuilder):
         train_path = os.path.join(data_dir, "fakenews", "full.csv")
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path, "split": "train",},)
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": train_path,
+                    "split": "train",
+                },
+            )
         ]
 
     def _generate_examples(self, filepath, split):

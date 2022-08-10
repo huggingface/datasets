@@ -11,7 +11,14 @@ class QuestionAnsweringExtractive(TaskTemplate):
     task: str = "question-answering-extractive"
     input_schema: ClassVar[Features] = Features({"question": Value("string"), "context": Value("string")})
     label_schema: ClassVar[Features] = Features(
-        {"answers": Sequence({"text": Value("string"), "answer_start": Value("int32"),})}
+        {
+            "answers": Sequence(
+                {
+                    "text": Value("string"),
+                    "answer_start": Value("int32"),
+                }
+            )
+        }
     )
     question_column: str = "question"
     context_column: str = "context"

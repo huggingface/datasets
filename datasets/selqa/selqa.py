@@ -228,7 +228,10 @@ class Selqa(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": data_dir["train"], "split": "train",},
+                gen_kwargs={
+                    "filepath": data_dir["train"],
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -238,7 +241,10 @@ class Selqa(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": data_dir["dev"], "split": "dev",},
+                gen_kwargs={
+                    "filepath": data_dir["dev"],
+                    "split": "dev",
+                },
             ),
         ]
 

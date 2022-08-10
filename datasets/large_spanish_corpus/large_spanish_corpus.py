@@ -97,7 +97,11 @@ class LargeSpanishCorpus(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"text": datasets.Value("string"),}),
+            features=datasets.Features(
+                {
+                    "text": datasets.Value("string"),
+                }
+            ),
             supervised_keys=None,
             homepage=_HOMEPAGE,
             license=_LICENSE,

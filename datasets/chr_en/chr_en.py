@@ -112,11 +112,19 @@ class ChrEn(datasets.GeneratorBasedBuilder):
         elif (
             self.config.name == "parallel"
         ):  # This is an example to show how to have different features for "first_domain" and "second_domain"
-            features = datasets.Features({"sentence_pair": datasets.Translation(languages=["en", "chr"]),})
+            features = datasets.Features(
+                {
+                    "sentence_pair": datasets.Translation(languages=["en", "chr"]),
+                }
+            )
         elif (
             self.config.name == "monolingual"
         ):  # This is an example to show how to have different features for "first_domain" and "second_domain"
-            features = datasets.Features({"sentence": datasets.Value("string"),})
+            features = datasets.Features(
+                {
+                    "sentence": datasets.Value("string"),
+                }
+            )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=features,  # Here we define them above because they are different between the two configurations
@@ -133,15 +141,35 @@ class ChrEn(datasets.GeneratorBasedBuilder):
             "monolingual_raw",
             "parallel_raw",
         ]:  # This is the name of the configuration selected in BUILDER_CONFIGS above
-            return [datasets.SplitGenerator(name="full", gen_kwargs={"filepaths": data_dir, "split": "full",},)]
+            return [
+                datasets.SplitGenerator(
+                    name="full",
+                    gen_kwargs={
+                        "filepaths": data_dir,
+                        "split": "full",
+                    },
+                )
+            ]
         elif self.config.name == "monolingual":
             return [
-                datasets.SplitGenerator(name=spl, gen_kwargs={"filepaths": data_dir, "split": spl,},)
+                datasets.SplitGenerator(
+                    name=spl,
+                    gen_kwargs={
+                        "filepaths": data_dir,
+                        "split": spl,
+                    },
+                )
                 for spl in ["chr", "en5000", "en10000", "en20000", "en50000", "en100000"]
             ]
         else:
             return [
-                datasets.SplitGenerator(name=spl, gen_kwargs={"filepaths": data_dir, "split": spl,},)
+                datasets.SplitGenerator(
+                    name=spl,
+                    gen_kwargs={
+                        "filepaths": data_dir,
+                        "split": spl,
+                    },
+                )
                 for spl in ["train", "dev", "out_dev", "test", "out_test"]
             ]
 

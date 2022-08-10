@@ -232,7 +232,13 @@ class Hkcancor(datasets.GeneratorBasedBuilder):
         data_dir = os.path.join(dl_manager.download_and_extract(_URL), "utf8")
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_dir": data_dir, "split": "train",},)
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "data_dir": data_dir,
+                    "split": "train",
+                },
+            )
         ]
 
     def _generate_examples(self, data_dir, split):

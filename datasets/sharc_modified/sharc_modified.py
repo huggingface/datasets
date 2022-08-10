@@ -70,7 +70,11 @@ class SharcModified(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        SharcModifiedConfig(name="mod", version=datasets.Version("1.0.0"), description="The modified ShARC dataset.",),
+        SharcModifiedConfig(
+            name="mod",
+            version=datasets.Version("1.0.0"),
+            description="The modified ShARC dataset.",
+        ),
         SharcModifiedConfig(
             name="mod_dev_multi",
             version=datasets.Version("1.0.0"),
@@ -127,8 +131,14 @@ class SharcModified(datasets.GeneratorBasedBuilder):
         }
         downloaded_files = dl_manager.download(urls)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]},),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": downloaded_files["train"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": downloaded_files["dev"]},
+            ),
         ]
 
     def _generate_examples(self, filepath):

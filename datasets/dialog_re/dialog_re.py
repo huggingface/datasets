@@ -106,14 +106,22 @@ class DialogRE(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_URLs)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir["train"]), "split": "train",},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir["train"]),
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir["test"]), "split": "test"},
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": os.path.join(data_dir["test"]), "split": "test"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(data_dir["dev"]), "split": "dev",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir["dev"]),
+                    "split": "dev",
+                },
             ),
         ]
 

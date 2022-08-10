@@ -99,7 +99,10 @@ class ParaPatConfig(datasets.BuilderConfig):
 
         source, target = language_pair
         super(ParaPatConfig, self).__init__(
-            name=name, description=description, version=datasets.Version("1.1.0", ""), **kwargs,
+            name=name,
+            description=description,
+            version=datasets.Version("1.1.0", ""),
+            **kwargs,
         )
 
         self.language_pair = language_pair
@@ -112,26 +115,86 @@ class ParaPat(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        ParaPatConfig(language_pair=("el", "en"), url="https://ndownloader.figshare.com/files/23748818",),
-        ParaPatConfig(language_pair=("cs", "en"), url="https://ndownloader.figshare.com/files/23748821",),
-        ParaPatConfig(language_pair=("en", "hu"), url="https://ndownloader.figshare.com/files/23748827",),
-        ParaPatConfig(language_pair=("en", "ro"), url="https://ndownloader.figshare.com/files/23748842",),
-        ParaPatConfig(language_pair=("en", "sk"), url="https://ndownloader.figshare.com/files/23748848",),
-        ParaPatConfig(language_pair=("en", "uk"), url="https://ndownloader.figshare.com/files/23748851",),
-        ParaPatConfig(language_pair=("es", "fr"), url="https://ndownloader.figshare.com/files/23748857",),
-        ParaPatConfig(language_pair=("fr", "ru"), url="https://ndownloader.figshare.com/files/23748863",),
-        ParaPatConfig(language_pair=("de", "fr"), url="https://ndownloader.figshare.com/files/23748872",),
-        ParaPatConfig(language_pair=("en", "ja"), url="https://ndownloader.figshare.com/files/23748626",),
-        ParaPatConfig(language_pair=("en", "es"), url="https://ndownloader.figshare.com/files/23748896",),
-        ParaPatConfig(language_pair=("en", "fr"), url="https://ndownloader.figshare.com/files/23748944",),
-        ParaPatConfig(language_pair=("de", "en"), url="https://ndownloader.figshare.com/files/23855657",),
-        ParaPatConfig(language_pair=("en", "ko"), url="https://ndownloader.figshare.com/files/23748689",),
-        ParaPatConfig(language_pair=("fr", "ja"), url="https://ndownloader.figshare.com/files/23748866",),
-        ParaPatConfig(language_pair=("en", "zh"), url="https://ndownloader.figshare.com/files/23748779",),
-        ParaPatConfig(language_pair=("en", "ru"), url="https://ndownloader.figshare.com/files/23748704",),
-        ParaPatConfig(language_pair=("fr", "ko"), url="https://ndownloader.figshare.com/files/23855408",),
-        ParaPatConfig(language_pair=("ru", "uk"), url="https://ndownloader.figshare.com/files/23855465",),
-        ParaPatConfig(language_pair=("en", "pt"), url="https://ndownloader.figshare.com/files/23855441",),
+        ParaPatConfig(
+            language_pair=("el", "en"),
+            url="https://ndownloader.figshare.com/files/23748818",
+        ),
+        ParaPatConfig(
+            language_pair=("cs", "en"),
+            url="https://ndownloader.figshare.com/files/23748821",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "hu"),
+            url="https://ndownloader.figshare.com/files/23748827",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "ro"),
+            url="https://ndownloader.figshare.com/files/23748842",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "sk"),
+            url="https://ndownloader.figshare.com/files/23748848",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "uk"),
+            url="https://ndownloader.figshare.com/files/23748851",
+        ),
+        ParaPatConfig(
+            language_pair=("es", "fr"),
+            url="https://ndownloader.figshare.com/files/23748857",
+        ),
+        ParaPatConfig(
+            language_pair=("fr", "ru"),
+            url="https://ndownloader.figshare.com/files/23748863",
+        ),
+        ParaPatConfig(
+            language_pair=("de", "fr"),
+            url="https://ndownloader.figshare.com/files/23748872",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "ja"),
+            url="https://ndownloader.figshare.com/files/23748626",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "es"),
+            url="https://ndownloader.figshare.com/files/23748896",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "fr"),
+            url="https://ndownloader.figshare.com/files/23748944",
+        ),
+        ParaPatConfig(
+            language_pair=("de", "en"),
+            url="https://ndownloader.figshare.com/files/23855657",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "ko"),
+            url="https://ndownloader.figshare.com/files/23748689",
+        ),
+        ParaPatConfig(
+            language_pair=("fr", "ja"),
+            url="https://ndownloader.figshare.com/files/23748866",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "zh"),
+            url="https://ndownloader.figshare.com/files/23748779",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "ru"),
+            url="https://ndownloader.figshare.com/files/23748704",
+        ),
+        ParaPatConfig(
+            language_pair=("fr", "ko"),
+            url="https://ndownloader.figshare.com/files/23855408",
+        ),
+        ParaPatConfig(
+            language_pair=("ru", "uk"),
+            url="https://ndownloader.figshare.com/files/23855465",
+        ),
+        ParaPatConfig(
+            language_pair=("en", "pt"),
+            url="https://ndownloader.figshare.com/files/23855441",
+        ),
     ]
     BUILDER_CONFIG_CLASS = ParaPatConfig
 
@@ -147,7 +210,11 @@ class ParaPat(datasets.GeneratorBasedBuilder):
                 }
             )
         elif self.config.name in type2_datasets_features:
-            features = datasets.Features({"translation": datasets.features.Translation(languages=(source, target)),})
+            features = datasets.Features(
+                {
+                    "translation": datasets.features.Translation(languages=(source, target)),
+                }
+            )
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -181,7 +248,10 @@ class ParaPat(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": _TRAIN_FILE_NAME, "split": "train",},
+                gen_kwargs={
+                    "filepath": _TRAIN_FILE_NAME,
+                    "split": "train",
+                },
             ),
         ]
 

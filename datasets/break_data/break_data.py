@@ -75,7 +75,10 @@ class BreakData(datasets.GeneratorBasedBuilder):
                Contains questions annotated with the high-level variant of QDMR. These decomposition are exclusive to Reading
                Comprehension tasks (Section 2). lexicon_tokens files are also provided."""
             ),
-            text_features={"source": "source", "allowed_tokens": "allowed_tokens",},
+            text_features={
+                "source": "source",
+                "allowed_tokens": "allowed_tokens",
+            },
             lexicon_tokens=True,
         ),
         BreakDataConfig(
@@ -105,7 +108,10 @@ class BreakData(datasets.GeneratorBasedBuilder):
                each question, the lexicon file contains the set of valid tokens that could potentially appear in its
                decomposition """
             ),
-            text_features={"source": "source", "allowed_tokens": "allowed_tokens",},
+            text_features={
+                "source": "source",
+                "allowed_tokens": "allowed_tokens",
+            },
             lexicon_tokens=True,
         ),
         BreakDataConfig(

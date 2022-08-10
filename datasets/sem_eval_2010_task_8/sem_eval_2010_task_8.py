@@ -112,11 +112,15 @@ class SemEval2010Task8(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "SemEval2010_task8_training/TRAIN_FILE.TXT"),},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "SemEval2010_task8_training/TRAIN_FILE.TXT"),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(data_dir, "SemEval2010_task8_testing_keys/TEST_FILE_FULL.TXT"),},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "SemEval2010_task8_testing_keys/TEST_FILE_FULL.TXT"),
+                },
             ),
         ]
 

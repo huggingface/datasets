@@ -110,7 +110,10 @@ class KinnewsKirnews(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir, lang_dir, kind, "train.csv"), "split": "train",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, lang_dir, kind, "train.csv"),
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,

@@ -158,7 +158,15 @@ class SentiLex(datasets.GeneratorBasedBuilder):
     def _info(self):
 
         features = datasets.Features(
-            {"word": datasets.Value("string"), "sentiment": datasets.ClassLabel(names=["negative", "positive",]),}
+            {
+                "word": datasets.Value("string"),
+                "sentiment": datasets.ClassLabel(
+                    names=[
+                        "negative",
+                        "positive",
+                    ]
+                ),
+            }
         )
 
         return datasets.DatasetInfo(
@@ -178,7 +186,12 @@ class SentiLex(datasets.GeneratorBasedBuilder):
                 f"{data_dir} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('newsroom', data_dir=...)` that includes files unzipped from the reclor zip. Manual download instructions: {self.manual_download_instructions}"
             )
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_dir": data_dir,},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "data_dir": data_dir,
+                },
+            ),
         ]
 
     def _generate_examples(self, data_dir):

@@ -80,9 +80,17 @@ class Qed(datasets.GeneratorBasedBuilder):
                     "original_nq_answers": [span_features],
                     "annotation": {
                         "referential_equalities": [
-                            {"question_reference": span_features, "sentence_reference": reference_features,}
+                            {
+                                "question_reference": span_features,
+                                "sentence_reference": reference_features,
+                            }
                         ],
-                        "answer": [{"sentence_reference": reference_features, "paragraph_reference": span_features,}],
+                        "answer": [
+                            {
+                                "sentence_reference": reference_features,
+                                "paragraph_reference": span_features,
+                            }
+                        ],
                         "explanation_type": datasets.Value("string"),
                         "selected_sentence": span_features,
                     },
@@ -96,8 +104,14 @@ class Qed(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         downloaded_paths = dl_manager.download(_URLS)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_paths["train"]},),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_paths["dev"]},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": downloaded_paths["train"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": downloaded_paths["dev"]},
+            ),
         ]
 
     def _generate_examples(self, filepath):

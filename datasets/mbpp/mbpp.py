@@ -36,7 +36,11 @@ class MBPP(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.1")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name=f"{split}", version=datasets.Version("1.0.1"), description=_DESCRIPTION,)
+        datasets.BuilderConfig(
+            name=f"{split}",
+            version=datasets.Version("1.0.1"),
+            description=_DESCRIPTION,
+        )
         for split in _SPLITS
     ]
 
@@ -78,7 +82,14 @@ class MBPP(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         config_urls = _URLs[self.config.name]
         data_dir = dl_manager.download_and_extract(config_urls)
-        return [datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": data_dir,},)]
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "filepath": data_dir,
+                },
+            )
+        ]
 
     def _generate_examples(self, filepath):
         """Yields examples."""

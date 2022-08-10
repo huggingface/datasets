@@ -98,7 +98,12 @@ class Cfq(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({_QUESTION: datasets.Value("string"), _QUERY: datasets.Value("string"),}),
+            features=datasets.Features(
+                {
+                    _QUESTION: datasets.Value("string"),
+                    _QUERY: datasets.Value("string"),
+                }
+            ),
             supervised_keys=(_QUESTION, _QUERY),
             homepage=_HOMEPAGE,
             license=_LICENSE,
@@ -111,7 +116,10 @@ class Cfq(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=split,
-                gen_kwargs={"data_files": dl_manager.iter_archive(archive_path), "split_id": f"{split}Idxs",},
+                gen_kwargs={
+                    "data_files": dl_manager.iter_archive(archive_path),
+                    "split_id": f"{split}Idxs",
+                },
             )
             for split in [datasets.Split.TRAIN, datasets.Split.TEST]
         ]

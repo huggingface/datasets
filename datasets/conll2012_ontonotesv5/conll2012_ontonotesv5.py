@@ -95,8 +95,17 @@ class Conll2012Ontonotesv5(datasets.GeneratorBasedBuilder):
     """The CoNLL formatted OntoNotes dataset."""
 
     BUILDER_CONFIGS = [
-        Conll2012Ontonotesv5Config(language=lang, conll_version="v4",) for lang in ["english", "chinese", "arabic"]
-    ] + [Conll2012Ontonotesv5Config(language="english", conll_version="v12",)]
+        Conll2012Ontonotesv5Config(
+            language=lang,
+            conll_version="v4",
+        )
+        for lang in ["english", "chinese", "arabic"]
+    ] + [
+        Conll2012Ontonotesv5Config(
+            language="english",
+            conll_version="v12",
+        )
+    ]
 
     def _info(self):
         lang = self.config.language
@@ -767,7 +776,9 @@ class Ontonotes:
 
     @staticmethod
     def _process_span_annotations_for_word(
-        annotations: List[str], span_labels: List[List[str]], current_span_labels: List[Optional[str]],
+        annotations: List[str],
+        span_labels: List[List[str]],
+        current_span_labels: List[Optional[str]],
     ) -> None:
         """
         Given a sequence of different label types for a single word and the current

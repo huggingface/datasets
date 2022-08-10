@@ -59,7 +59,9 @@ _LANGUAGE_PAIRS = [
 class SpcConfig(datasets.BuilderConfig):
     def __init__(self, *args, lang1=None, lang2=None, **kwargs):
         super().__init__(
-            *args, name=f"{lang1}-{lang2}", **kwargs,
+            *args,
+            name=f"{lang1}-{lang2}",
+            **kwargs,
         )
         self.lang1 = lang1
         self.lang2 = lang2
@@ -97,7 +99,12 @@ class Spc(datasets.GeneratorBasedBuilder):
 
         download_url = _base_url(self.config.lang1, self.config.lang2)
         path = dl_manager.download_and_extract(download_url)
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": path},)]
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"datapath": path},
+            )
+        ]
 
     def _generate_examples(self, datapath):
         l1, l2 = self.config.lang1, self.config.lang2
@@ -112,6 +119,9 @@ class Spc(datasets.GeneratorBasedBuilder):
                 y = y.strip()
                 result = (
                     sentence_counter,
-                    {"id": str(sentence_counter), "translation": {l1: x, l2: y},},
+                    {
+                        "id": str(sentence_counter),
+                        "translation": {l1: x, l2: y},
+                    },
                 )
                 yield result

@@ -78,7 +78,11 @@ def _get_table(infobox_line):
     for column in table.keys():
         row_value = " ".join([table[column][index] for index in sorted(table[column].keys())])
         infobox_line_as_table.append(
-            {"column_header": column, "row_number": 1, "content": row_value,}
+            {
+                "column_header": column,
+                "row_number": 1,
+                "content": row_value,
+            }
         )
     return infobox_line_as_table
 

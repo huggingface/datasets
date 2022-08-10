@@ -125,7 +125,9 @@ class BiwiKinectHeadPose(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"dataset_path": os.path.join(data_dir["kinect_head_pose_db"], "hpdb"),},
+                gen_kwargs={
+                    "dataset_path": os.path.join(data_dir["kinect_head_pose_db"], "hpdb"),
+                },
             ),
         ]
 
@@ -149,7 +151,10 @@ class BiwiKinectHeadPose(datasets.GeneratorBasedBuilder):
 
         return {
             "intrisic_mat": intrisic_mat,
-            "extrinsic_mat": {"rotation": extrinsic_mat, "translation": translation,},
+            "extrinsic_mat": {
+                "rotation": extrinsic_mat,
+                "translation": translation,
+            },
         }
 
     @staticmethod

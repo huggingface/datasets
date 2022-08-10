@@ -63,7 +63,12 @@ class LabrConfig(datasets.BuilderConfig):
 class Labr(datasets.GeneratorBasedBuilder):
     """Labr dataset."""
 
-    BUILDER_CONFIGS = [LabrConfig(name="plain_text", description="Plain text",)]
+    BUILDER_CONFIGS = [
+        LabrConfig(
+            name="plain_text",
+            description="Plain text",
+        )
+    ]
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -71,7 +76,15 @@ class Labr(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "label": datasets.features.ClassLabel(names=["1", "2", "3", "4", "5",]),
+                    "label": datasets.features.ClassLabel(
+                        names=[
+                            "1",
+                            "2",
+                            "3",
+                            "4",
+                            "5",
+                        ]
+                    ),
                 }
             ),
             supervised_keys=None,

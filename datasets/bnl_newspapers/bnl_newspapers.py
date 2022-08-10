@@ -126,7 +126,10 @@ These newspapers cover 38 years of news (1841-1878) and include 510,505 extracte
         data_dir = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"paths": dl_manager.iter_files([data_dir]),},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "paths": dl_manager.iter_files([data_dir]),
+                },
             ),
         ]
 

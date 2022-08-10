@@ -69,7 +69,10 @@ class ImageNetSketch(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_files([data_files]),},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "files": dl_manager.iter_files([data_files]),
+                },
             ),
         ]
 

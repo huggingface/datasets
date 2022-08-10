@@ -126,17 +126,32 @@ class KdConv(datasets.GeneratorBasedBuilder):
         if "dialogues" in self.config.name:
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN, gen_kwargs={"data_dir": base_dir, "split": "train",},
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "data_dir": base_dir,
+                        "split": "train",
+                    },
                 ),
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"data_dir": base_dir, "split": "test"},),
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION, gen_kwargs={"data_dir": base_dir, "split": "dev",},
+                    name=datasets.Split.TEST,
+                    gen_kwargs={"data_dir": base_dir, "split": "test"},
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        "data_dir": base_dir,
+                        "split": "dev",
+                    },
                 ),
             ]
         else:
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN, gen_kwargs={"data_dir": base_dir, "split": "train",},
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "data_dir": base_dir,
+                        "split": "train",
+                    },
                 ),
             ]
 

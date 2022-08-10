@@ -66,12 +66,36 @@ class CodeSearchNet(datasets.GeneratorBasedBuilder):
             version=VERSION,
             description="All available languages: Java, Go, Javascript, Python, PHP, Ruby",
         ),
-        datasets.BuilderConfig(name="java", version=VERSION, description="Java language",),
-        datasets.BuilderConfig(name="go", version=VERSION, description="Go language",),
-        datasets.BuilderConfig(name="python", version=VERSION, description="Pyhton language",),
-        datasets.BuilderConfig(name="javascript", version=VERSION, description="Javascript language",),
-        datasets.BuilderConfig(name="ruby", version=VERSION, description="Ruby language",),
-        datasets.BuilderConfig(name="php", version=VERSION, description="PHP language",),
+        datasets.BuilderConfig(
+            name="java",
+            version=VERSION,
+            description="Java language",
+        ),
+        datasets.BuilderConfig(
+            name="go",
+            version=VERSION,
+            description="Go language",
+        ),
+        datasets.BuilderConfig(
+            name="python",
+            version=VERSION,
+            description="Pyhton language",
+        ),
+        datasets.BuilderConfig(
+            name="javascript",
+            version=VERSION,
+            description="Javascript language",
+        ),
+        datasets.BuilderConfig(
+            name="ruby",
+            version=VERSION,
+            description="Ruby language",
+        ),
+        datasets.BuilderConfig(
+            name="php",
+            version=VERSION,
+            description="PHP language",
+        ),
     ]
 
     DEFAULT_CONFIG_NAME = "all"
@@ -150,9 +174,24 @@ class CodeSearchNet(datasets.GeneratorBasedBuilder):
         )
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepaths": split2paths["train"],},),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepaths": split2paths["test"],},),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepaths": split2paths["valid"],},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepaths": split2paths["train"],
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "filepaths": split2paths["test"],
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "filepaths": split2paths["valid"],
+                },
+            ),
         ]
 
     def _generate_examples(self, filepaths):

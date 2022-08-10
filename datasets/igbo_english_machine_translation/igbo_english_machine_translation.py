@@ -49,7 +49,9 @@ _LANGUAGE_PAIRS = [
 class IgboEnglishMachineTranslationConfig(datasets.BuilderConfig):
     def __init__(self, *args, lang1=None, lang2=None, **kwargs):
         super().__init__(
-            *args, name=f"{lang1}-{lang2}", **kwargs,
+            *args,
+            name=f"{lang1}-{lang2}",
+            **kwargs,
         )
         self.lang1 = lang1
         self.lang2 = lang2
@@ -93,13 +95,16 @@ class IgboEnglishMachineTranslation(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"ig_datapath": train_ig, "en_datapath": train_en},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"ig_datapath": train_ig, "en_datapath": train_en},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"ig_datapath": valid_ig, "en_datapath": valid_en},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"ig_datapath": valid_ig, "en_datapath": valid_en},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"ig_datapath": test_ig, "en_datapath": test_en},
+                name=datasets.Split.TEST,
+                gen_kwargs={"ig_datapath": test_ig, "en_datapath": test_en},
             ),
         ]
 
@@ -110,6 +115,9 @@ class IgboEnglishMachineTranslation(datasets.GeneratorBasedBuilder):
                 y = y.strip()
                 result = (
                     sentence_counter,
-                    {"id": str(sentence_counter), "translation": {"ig": x, "en": y},},
+                    {
+                        "id": str(sentence_counter),
+                        "translation": {"ig": x, "en": y},
+                    },
                 )
                 yield result

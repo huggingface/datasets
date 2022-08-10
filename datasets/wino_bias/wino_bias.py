@@ -81,10 +81,22 @@ class WinoBias(datasets.GeneratorBasedBuilder):
         self._writer_batch_size = writer_batch_size or 100
 
     BUILDER_CONFIGS = [
-        WinoBiasConfig(name="type1_pro", description="winoBias type1_pro_stereotype data in cornll format",),
-        WinoBiasConfig(name="type1_anti", description="winoBias type1_anti_stereotype data in cornll format",),
-        WinoBiasConfig(name="type2_pro", description="winoBias type2_pro_stereotype data in cornll format",),
-        WinoBiasConfig(name="type2_anti", description="winoBias type2_anti_stereotype data in cornll format",),
+        WinoBiasConfig(
+            name="type1_pro",
+            description="winoBias type1_pro_stereotype data in cornll format",
+        ),
+        WinoBiasConfig(
+            name="type1_anti",
+            description="winoBias type1_anti_stereotype data in cornll format",
+        ),
+        WinoBiasConfig(
+            name="type2_pro",
+            description="winoBias type2_pro_stereotype data in cornll format",
+        ),
+        WinoBiasConfig(
+            name="type2_anti",
+            description="winoBias type2_anti_stereotype data in cornll format",
+        ),
     ]
 
     def _info(self):

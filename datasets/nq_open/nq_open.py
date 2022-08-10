@@ -97,7 +97,10 @@ class NQOpen(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {"question": datasets.Value("string"), "answer": datasets.Sequence(datasets.Value("string")),}
+                {
+                    "question": datasets.Value("string"),
+                    "answer": datasets.Sequence(datasets.Value("string")),
+                }
             ),
             supervised_keys=None,
             homepage=_HOMEPAGE_URL,
@@ -108,8 +111,14 @@ class NQOpen(datasets.GeneratorBasedBuilder):
         paths = dl_manager.download_and_extract(_URLS)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": paths["train"]},),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"datapath": paths["dev"]},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"datapath": paths["train"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"datapath": paths["dev"]},
+            ),
         ]
 
     def _generate_examples(self, datapath):

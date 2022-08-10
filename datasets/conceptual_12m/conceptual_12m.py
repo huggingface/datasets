@@ -52,13 +52,22 @@ class Conceptual12M(datasets.GeneratorBasedBuilder):
         features = datasets.Features({"image_url": datasets.Value("string"), "caption": datasets.Value("string")})
 
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, license=_LICENSE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         file = dl_manager.download(_URL)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"file": file,},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "file": file,
+                },
+            ),
         ]
 
     def _generate_examples(self, file):

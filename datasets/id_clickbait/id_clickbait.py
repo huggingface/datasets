@@ -114,7 +114,10 @@ class IdClickbait(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"article_dir": os.path.join(data_dir, self.config.path),},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "article_dir": os.path.join(data_dir, self.config.path),
+                },
             )
         ]
 

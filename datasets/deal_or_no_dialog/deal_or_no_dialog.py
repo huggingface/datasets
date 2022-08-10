@@ -75,7 +75,9 @@ class DealOrNoDialog(datasets.GeneratorBasedBuilder):
             )
         else:  # self_play
             features = datasets.Features(
-                {"input": datasets.Sequence({"count": datasets.Value("int32"), "value": datasets.Value("int32")}),}
+                {
+                    "input": datasets.Sequence({"count": datasets.Value("int32"), "value": datasets.Value("int32")}),
+                }
             )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -95,20 +97,35 @@ class DealOrNoDialog(datasets.GeneratorBasedBuilder):
 
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN, gen_kwargs={"filepath": path_train, "split": "train",},
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "filepath": path_train,
+                        "split": "train",
+                    },
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.TEST, gen_kwargs={"filepath": path_test, "split": "test"},
+                    name=datasets.Split.TEST,
+                    gen_kwargs={"filepath": path_test, "split": "test"},
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION, gen_kwargs={"filepath": path_val, "split": "val",},
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        "filepath": path_val,
+                        "split": "val",
+                    },
                 ),
             ]
 
         else:
             path = dl_manager.download_and_extract(_URLs["selfplay"])
             return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": path, "split": "train",},),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "filepath": path,
+                        "split": "train",
+                    },
+                ),
             ]
 
     def _generate_examples(self, filepath, split="train"):

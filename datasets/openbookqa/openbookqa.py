@@ -61,7 +61,11 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
                 """
             ),
             data_dir="Main",
-            filenames={"train": "train.jsonl", "validation": "dev.jsonl", "test": "test.jsonl",},
+            filenames={
+                "train": "train.jsonl",
+                "validation": "dev.jsonl",
+                "test": "test.jsonl",
+            },
         ),
         OpenbookqaConfig(
             name="additional",
@@ -89,7 +93,10 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
                     "id": datasets.Value("string"),
                     "question_stem": datasets.Value("string"),
                     "choices": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "label": datasets.Value("string"),}
+                        {
+                            "text": datasets.Value("string"),
+                            "label": datasets.Value("string"),
+                        }
                     ),
                     "answerKey": datasets.Value("string"),
                 }
@@ -100,7 +107,10 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
                     "id": datasets.Value("string"),
                     "question_stem": datasets.Value("string"),
                     "choices": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "label": datasets.Value("string"),}
+                        {
+                            "text": datasets.Value("string"),
+                            "label": datasets.Value("string"),
+                        }
                     ),
                     "answerKey": datasets.Value("string"),
                     "fact1": datasets.Value("string"),
@@ -110,7 +120,10 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
                 }
             )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            homepage=_HOMEPAGE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -120,7 +133,8 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
         splits = [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]
         return [
             datasets.SplitGenerator(
-                name=split, gen_kwargs={"filepath": os.path.join(data_dir, self.config.filenames[split])},
+                name=split,
+                gen_kwargs={"filepath": os.path.join(data_dir, self.config.filenames[split])},
             )
             for split in splits
         ]

@@ -60,7 +60,11 @@ class Cawac(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"sentence": datasets.Value("string"),}),
+            features=datasets.Features(
+                {
+                    "sentence": datasets.Value("string"),
+                }
+            ),
             supervised_keys=None,
             homepage=_URL,
             license=_LICENSE,
@@ -70,7 +74,12 @@ class Cawac(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         downloaded_file = dl_manager.download_and_extract(_URLS)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_file,},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": downloaded_file,
+                },
+            ),
         ]
 
     def _generate_examples(self, filepath):

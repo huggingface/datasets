@@ -72,7 +72,12 @@ class KlueConfig(datasets.BuilderConfig):
     """BuilderConfig for KLUE."""
 
     def __init__(
-        self, features, data_url, url, file_map, **kwargs,
+        self,
+        features,
+        data_url,
+        url,
+        file_map,
+        **kwargs,
     ):
         """BuilderConfig for KLUE."""
 
@@ -110,7 +115,10 @@ class Klue(datasets.GeneratorBasedBuilder):
             ),
             data_url=_DATA_URLs["ynat"],
             url=_DESCRIPTION_URLs["ynat"],
-            file_map={"train": "ynat-v1_train.json", "dev": "ynat-v1_dev.json",},
+            file_map={
+                "train": "ynat-v1_train.json",
+                "dev": "ynat-v1_dev.json",
+            },
         ),
         KlueConfig(
             name="sts",
@@ -135,7 +143,10 @@ class Klue(datasets.GeneratorBasedBuilder):
             ),
             data_url=_DATA_URLs["sts"],
             url=_DESCRIPTION_URLs["sts"],
-            file_map={"train": "klue-sts-v1_train.json", "dev": "klue-sts-v1_dev.json",},
+            file_map={
+                "train": "klue-sts-v1_train.json",
+                "dev": "klue-sts-v1_dev.json",
+            },
         ),
         KlueConfig(
             name="nli",
@@ -155,7 +166,10 @@ class Klue(datasets.GeneratorBasedBuilder):
             ),
             data_url=_DATA_URLs["nli"],
             url=_DESCRIPTION_URLs["nli"],
-            file_map={"train": "klue-nli-v1_train.json", "dev": "klue-nli-v1_dev.json",},
+            file_map={
+                "train": "klue-nli-v1_train.json",
+                "dev": "klue-nli-v1_dev.json",
+            },
         ),
         KlueConfig(
             name="ner",
@@ -191,7 +205,10 @@ class Klue(datasets.GeneratorBasedBuilder):
             ),
             data_url=_DATA_URLs["ner"],
             url=_DESCRIPTION_URLs["ner"],
-            file_map={"train": "klue-ner-v1_train.tsv", "dev": "klue-ner-v1_dev.tsv",},
+            file_map={
+                "train": "klue-ner-v1_train.tsv",
+                "dev": "klue-ner-v1_dev.tsv",
+            },
         ),
         KlueConfig(
             name="re",
@@ -255,7 +272,10 @@ class Klue(datasets.GeneratorBasedBuilder):
             ),
             data_url=_DATA_URLs["re"],
             url=_DESCRIPTION_URLs["re"],
-            file_map={"train": "klue-re-v1_train.json", "dev": "klue-re-v1_dev.json",},
+            file_map={
+                "train": "klue-re-v1_train.json",
+                "dev": "klue-re-v1_dev.json",
+            },
         ),
         KlueConfig(
             name="dp",
@@ -277,7 +297,10 @@ class Klue(datasets.GeneratorBasedBuilder):
             ),
             data_url=_DATA_URLs["dp"],
             url=_DESCRIPTION_URLs["dp"],
-            file_map={"train": "klue-dp-v1_train.tsv", "dev": "klue-dp-v1_dev.tsv",},
+            file_map={
+                "train": "klue-dp-v1_train.tsv",
+                "dev": "klue-dp-v1_dev.tsv",
+            },
         ),
         KlueConfig(
             name="mrc",
@@ -291,7 +314,10 @@ class Klue(datasets.GeneratorBasedBuilder):
                 "question_type": datasets.Value("int32"),
                 "question": datasets.Value("string"),
                 "answers": datasets.features.Sequence(
-                    {"answer_start": datasets.Value("int32"), "text": datasets.Value("string"),},
+                    {
+                        "answer_start": datasets.Value("int32"),
+                        "text": datasets.Value("string"),
+                    },
                 ),
             },
             description=textwrap.dedent(
@@ -303,7 +329,10 @@ class Klue(datasets.GeneratorBasedBuilder):
             ),
             data_url=_DATA_URLs["mrc"],
             url=_DESCRIPTION_URLs["mrc"],
-            file_map={"train": "klue-mrc-v1_train.json", "dev": "klue-mrc-v1_dev.json",},
+            file_map={
+                "train": "klue-mrc-v1_train.json",
+                "dev": "klue-mrc-v1_dev.json",
+            },
         ),
         KlueConfig(
             name="wos",
@@ -327,7 +356,10 @@ class Klue(datasets.GeneratorBasedBuilder):
             ),
             data_url=_DATA_URLs["wos"],
             url=_DESCRIPTION_URLs["wos"],
-            file_map={"train": "wos-v1_train.json", "dev": "wos-v1_dev.json",},
+            file_map={
+                "train": "wos-v1_train.json",
+                "dev": "wos-v1_dev.json",
+            },
         ),
     ]
 
@@ -479,7 +511,10 @@ class Klue(datasets.GeneratorBasedBuilder):
                                     "question_type": question_type,
                                     "is_impossible": is_impossible,
                                     "question": question,
-                                    "answers": {"answer_start": answer_starts, "text": answers,},
+                                    "answers": {
+                                        "answer_start": answer_starts,
+                                        "text": answers,
+                                    },
                                 }
                     break
 

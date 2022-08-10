@@ -299,14 +299,28 @@ class Wikiann(datasets.GeneratorBasedBuilder):
             {
                 "tokens": datasets.Sequence(datasets.Value("string")),
                 "ner_tags": datasets.Sequence(
-                    datasets.features.ClassLabel(names=["O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC",])
+                    datasets.features.ClassLabel(
+                        names=[
+                            "O",
+                            "B-PER",
+                            "I-PER",
+                            "B-ORG",
+                            "I-ORG",
+                            "B-LOC",
+                            "I-LOC",
+                        ]
+                    )
                 ),
                 "langs": datasets.Sequence(datasets.Value("string")),
                 "spans": datasets.Sequence(datasets.Value("string")),
             }
         )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, supervised_keys=None, homepage=_HOMEPAGE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            supervised_keys=None,
+            homepage=_HOMEPAGE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):

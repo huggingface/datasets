@@ -76,7 +76,11 @@ class MedMCQA(datasets.GeneratorBasedBuilder):
             }
         )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, license=_LICENSE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -84,13 +88,22 @@ class MedMCQA(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "train.json"),},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "train.json"),
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "test.json"),},
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "test.json"),
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, "dev.json"),},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "dev.json"),
+                },
             ),
         ]
 

@@ -207,9 +207,18 @@ class SceneParse150(datasets.GeneratorBasedBuilder):
                 }
             )
         else:
-            features = datasets.Features({"image": datasets.Image(), "annotation": datasets.Image(),})
+            features = datasets.Features(
+                {
+                    "image": datasets.Image(),
+                    "annotation": datasets.Image(),
+                }
+            )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, license=_LICENSE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -228,10 +237,23 @@ class SceneParse150(datasets.GeneratorBasedBuilder):
             val_data = dl_manager.iter_archive(data_dirs["images"]), dl_manager.iter_archive(data_dirs["annotations"])
             test_data = dl_manager.iter_archive(data_dirs["test"])
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data": train_data, "split": "training",},),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"data": test_data, "split": "testing"},),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"data": val_data, "split": "validation",},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "data": train_data,
+                    "split": "training",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"data": test_data, "split": "testing"},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "data": val_data,
+                    "split": "validation",
+                },
             ),
         ]
 

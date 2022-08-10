@@ -15,7 +15,10 @@ class HfFileSystem(AbstractFileSystem):
     protocol = "hf"
 
     def __init__(
-        self, repo_info: Optional[DatasetInfo] = None, token: Optional[str] = None, **kwargs,
+        self,
+        repo_info: Optional[DatasetInfo] = None,
+        token: Optional[str] = None,
+        **kwargs,
     ):
         """
         The file system can be instantiated using a huggingface_hub.hf_api.DatasetInfo object,
@@ -50,13 +53,18 @@ class HfFileSystem(AbstractFileSystem):
                 )
 
     def _open(
-        self, path: str, mode: str = "rb", **kwargs,
+        self,
+        path: str,
+        mode: str = "rb",
+        **kwargs,
     ):
         if not isinstance(self.repo_info, DatasetInfo):
             raise NotImplementedError(f"Open is only implemented for dataset repositories, but got {self.repo_info}")
         url = hf_hub_url(self.repo_info.id, path, revision=self.repo_info.sha)
         return fsspec.open(
-            url, mode=mode, headers=get_authentication_headers_for_url(url, use_auth_token=self.token),
+            url,
+            mode=mode,
+            headers=get_authentication_headers_for_url(url, use_auth_token=self.token),
         ).open()
 
     def info(self, path, **kwargs):

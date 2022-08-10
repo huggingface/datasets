@@ -89,7 +89,11 @@ class PtbTextOnly(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        PtbTextOnlyConfig(name="penn_treebank", version=VERSION, description="Load the Penn Treebank dataset",),
+        PtbTextOnlyConfig(
+            name="penn_treebank",
+            version=VERSION,
+            description="Load the Penn Treebank dataset",
+        ),
     ]
 
     def _info(self):

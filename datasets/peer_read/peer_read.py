@@ -53,7 +53,11 @@ class PeerRead(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="parsed_pdfs", version=VERSION, description="Research paper drafts",),
+        datasets.BuilderConfig(
+            name="parsed_pdfs",
+            version=VERSION,
+            description="Research paper drafts",
+        ),
         datasets.BuilderConfig(
             name="reviews",
             version=VERSION,
@@ -125,7 +129,10 @@ class PeerRead(datasets.GeneratorBasedBuilder):
                         "authors": datasets.features.Sequence(datasets.Value("string")),
                         "emails": datasets.features.Sequence(datasets.Value("string")),
                         "sections": datasets.features.Sequence(
-                            {"heading": datasets.Value("string"), "text": datasets.Value("string"),}
+                            {
+                                "heading": datasets.Value("string"),
+                                "text": datasets.Value("string"),
+                            }
                         ),
                         "references": datasets.features.Sequence(
                             {
@@ -201,17 +208,29 @@ class PeerRead(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         url = _URLs["dataset_repo"]
         data_dir = dl_manager.download_and_extract(url)
-        paths = self._get_paths(data_dir=data_dir, domain=self.config.name,)
+        paths = self._get_paths(
+            data_dir=data_dir,
+            domain=self.config.name,
+        )
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepaths": paths["train"], "split": "train",},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepaths": paths["train"],
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepaths": paths["test"], "split": "test"},
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepaths": paths["test"], "split": "test"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepaths": paths["dev"], "split": "dev",},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "filepaths": paths["dev"],
+                    "split": "dev",
+                },
             ),
         ]
 

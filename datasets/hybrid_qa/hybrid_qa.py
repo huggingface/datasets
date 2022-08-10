@@ -60,7 +60,10 @@ class HybridQa(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="hybrid_qa", version=datasets.Version("1.0.0"),),
+        datasets.BuilderConfig(
+            name="hybrid_qa",
+            version=datasets.Version("1.0.0"),
+        ),
     ]
 
     def _info(self):

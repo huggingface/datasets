@@ -94,17 +94,26 @@ class HealthFact(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, _TRAIN_FILE_NAME), "split": datasets.Split.TRAIN,},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, _TRAIN_FILE_NAME),
+                    "split": datasets.Split.TRAIN,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, _TEST_FILE_NAME), "split": datasets.Split.TEST,},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, _TEST_FILE_NAME),
+                    "split": datasets.Split.TEST,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, _VAL_FILE_NAME), "split": datasets.Split.VALIDATION,},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, _VAL_FILE_NAME),
+                    "split": datasets.Split.VALIDATION,
+                },
             ),
         ]
 

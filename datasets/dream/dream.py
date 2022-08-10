@@ -67,7 +67,11 @@ class Dream(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        DreamConfig(name="plain_text", version=datasets.Version("1.0.0"), description="plain_text",),
+        DreamConfig(
+            name="plain_text",
+            version=datasets.Version("1.0.0"),
+            description="plain_text",
+        ),
     ]
 
     def _info(self):

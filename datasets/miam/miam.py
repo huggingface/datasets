@@ -65,7 +65,14 @@ class MiamConfig(datasets.BuilderConfig):
     """BuilderConfig for MIAM."""
 
     def __init__(
-        self, text_features, label_column, data_url, citation, url, label_classes=None, **kwargs,
+        self,
+        text_features,
+        label_column,
+        data_url,
+        citation,
+        url,
+        label_classes=None,
+        **kwargs,
     ):
         """BuilderConfig for MIAM.
         Args:
@@ -349,7 +356,11 @@ class Miam(datasets.GeneratorBasedBuilder):
                 "THANK",
             ],
             label_column="Dialogue_Act",
-            data_url={"train": _URL + "/vm2/train.csv", "dev": _URL + "/vm2/dev.csv", "test": _URL + "/vm2/test.csv",},
+            data_url={
+                "train": _URL + "/vm2/train.csv",
+                "dev": _URL + "/vm2/dev.csv",
+                "test": _URL + "/vm2/test.csv",
+            },
             citation=textwrap.dedent(
                 """\
             @book{kay1992verbmobil,
@@ -380,17 +391,29 @@ class Miam(datasets.GeneratorBasedBuilder):
         splits = []
         splits.append(
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"data_file": data_files["train"], "split": "train",},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "data_file": data_files["train"],
+                    "split": "train",
+                },
             )
         )
         splits.append(
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"data_file": data_files["dev"], "split": "dev",},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "data_file": data_files["dev"],
+                    "split": "dev",
+                },
             )
         )
         splits.append(
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"data_file": data_files["test"], "split": "test",},
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "data_file": data_files["test"],
+                    "split": "test",
+                },
             )
         )
         return splits

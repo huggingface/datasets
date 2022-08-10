@@ -48,7 +48,11 @@ class Qasper(datasets.GeneratorBasedBuilder):
     """Qasper: A Dataset of Information-Seeking Q&A Anchored in Research Papers."""
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="qasper", version=datasets.Version(_VERSION), description=_DESCRIPTION,)
+        datasets.BuilderConfig(
+            name="qasper",
+            version=datasets.Version(_VERSION),
+            description=_DESCRIPTION,
+        )
     ]
 
     def _info(self):
@@ -59,7 +63,10 @@ class Qasper(datasets.GeneratorBasedBuilder):
                 "title": datasets.Value("string"),
                 "abstract": datasets.Value("string"),
                 "full_text": datasets.features.Sequence(
-                    {"section_name": datasets.Value("string"), "paragraphs": [datasets.Value("string")],}
+                    {
+                        "section_name": datasets.Value("string"),
+                        "paragraphs": [datasets.Value("string")],
+                    }
                 ),
                 "qas": datasets.features.Sequence(
                     {

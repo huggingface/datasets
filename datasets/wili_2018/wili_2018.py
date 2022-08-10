@@ -294,7 +294,9 @@ class Wili_2018(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="WiLI-2018 dataset", version=VERSION, description="Plain text of import of WiLI-2018",
+            name="WiLI-2018 dataset",
+            version=VERSION,
+            description="Plain text of import of WiLI-2018",
         )
     ]
 

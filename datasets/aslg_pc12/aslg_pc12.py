@@ -64,7 +64,8 @@ class ASLGPC12(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"gloss_path": gloss_path, "text_path": text_path},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"gloss_path": gloss_path, "text_path": text_path},
             )
         ]
 

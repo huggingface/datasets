@@ -98,7 +98,11 @@ def test_examples_iterable_shuffle_shards_and_metadata():
             yield i, {"filepath": filepath, "metadata": metadata}
 
     ex_iterable = ExamplesIterable(
-        gen, {"filepaths": [f"{i}.txt" for i in range(100)], "all_metadata": [{"id": str(i)} for i in range(100)],},
+        gen,
+        {
+            "filepaths": [f"{i}.txt" for i in range(100)],
+            "all_metadata": [{"id": str(i)} for i in range(100)],
+        },
     )
     ex_iterable = ex_iterable.shuffle_data_sources(np.random.default_rng(42))
     out = list(ex_iterable)
@@ -646,7 +650,9 @@ def test_iterable_dataset_set_epoch_of_shuffled_dataset(dataset: IterableDataset
         assert is_rng_equal(np.random.default_rng(effective_seed), shuffled_dataset._effective_generator())
 
 
-def test_iterable_dataset_map(dataset: IterableDataset,):
+def test_iterable_dataset_map(
+    dataset: IterableDataset,
+):
     func = lambda x: {"id+1": x["id"] + 1}  # noqa: E731
     mapped_dataset = dataset.map(func)
     assert isinstance(mapped_dataset._ex_iterable, MappedExamplesIterable)
@@ -655,7 +661,9 @@ def test_iterable_dataset_map(dataset: IterableDataset,):
     assert next(iter(mapped_dataset)) == {**next(iter(dataset)), **func(next(iter(generate_examples_fn()))[1])}
 
 
-def test_iterable_dataset_map_batched(dataset: IterableDataset,):
+def test_iterable_dataset_map_batched(
+    dataset: IterableDataset,
+):
     func = lambda x: {"id+1": [i + 1 for i in x["id"]]}  # noqa: E731
     batch_size = 3
     dataset = dataset.map(func, batched=True, batch_size=batch_size)
@@ -665,10 +673,17 @@ def test_iterable_dataset_map_batched(dataset: IterableDataset,):
     assert next(iter(dataset)) == {"id": 0, "id+1": 1}
 
 
-def test_iterable_dataset_map_complex_features(dataset: IterableDataset,):
+def test_iterable_dataset_map_complex_features(
+    dataset: IterableDataset,
+):
     # https://github.com/huggingface/datasets/issues/3505
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": "positive"})
-    features = Features({"id": Value("int64"), "label": Value("string"),})
+    features = Features(
+        {
+            "id": Value("int64"),
+            "label": Value("string"),
+        }
+    )
     dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
     dataset = dataset.cast_column("label", ClassLabel(names=["negative", "positive"]))
     dataset = dataset.map(lambda x: {"id+1": x["id"] + 1, **x})
@@ -712,8 +727,18 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch):
     "features",
     [
         None,
-        Features({"id": Value("int64"), "label": Value("int64"),}),
-        Features({"id": Value("int64"), "label": ClassLabel(names=["negative", "positive"]),}),
+        Features(
+            {
+                "id": Value("int64"),
+                "label": Value("int64"),
+            }
+        ),
+        Features(
+            {
+                "id": Value("int64"),
+                "label": ClassLabel(names=["negative", "positive"]),
+            }
+        ),
     ],
 )
 def test_iterable_dataset_features(features):
@@ -730,7 +755,13 @@ def test_iterable_dataset_features_cast_to_python():
     ex_iterable = ExamplesIterable(
         generate_examples_fn, {"timestamp": pd.Timestamp(2020, 1, 1), "array": np.ones(5), "n": 1}
     )
-    features = Features({"id": Value("int64"), "timestamp": Value("timestamp[us]"), "array": [Value("int64")],})
+    features = Features(
+        {
+            "id": Value("int64"),
+            "timestamp": Value("timestamp[us]"),
+            "array": [Value("int64")],
+        }
+    )
     dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
     assert list(dataset) == [{"timestamp": pd.Timestamp(2020, 1, 1).to_pydatetime(), "array": [1] * 5, "id": 0}]
 
@@ -947,8 +978,15 @@ def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_le
     assert len(list(merged_dataset)) == expected_length
 
 
-def test_interleave_datasets_with_features(dataset: IterableDataset,):
-    features = Features({"id": Value("int64"), "label": ClassLabel(names=["negative", "positive"]),})
+def test_interleave_datasets_with_features(
+    dataset: IterableDataset,
+):
+    features = Features(
+        {
+            "id": Value("int64"),
+            "label": ClassLabel(names=["negative", "positive"]),
+        }
+    )
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 0})
     dataset_with_features = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
 

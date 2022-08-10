@@ -157,7 +157,10 @@ class Exams(datasets.GeneratorBasedBuilder):
     def _info(self):
         if self.config.name == "alignments":  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
-                {"source_id": datasets.Value("string"), "target_id_list": datasets.Sequence(datasets.Value("string")),}
+                {
+                    "source_id": datasets.Value("string"),
+                    "target_id_list": datasets.Sequence(datasets.Value("string")),
+                }
             )
         else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
             features = datasets.Features(
@@ -195,7 +198,10 @@ class Exams(datasets.GeneratorBasedBuilder):
         archives = dl_manager.download(_URLs)
         if self.config.name == "alignments":
             return [
-                datasets.SplitGenerator(name="full", gen_kwargs={"filepath": archives["alignments"]},),
+                datasets.SplitGenerator(
+                    name="full",
+                    gen_kwargs={"filepath": archives["alignments"]},
+                ),
             ]
         elif self.config.name in ["multilingual", "multilingual_with_para"]:
             return [
@@ -231,7 +237,10 @@ class Exams(datasets.GeneratorBasedBuilder):
                         "files": dl_manager.iter_archive(archives[f"{self.config.name}_{spl}"]),
                     },
                 )
-                for spl, spl_enum in [("train", datasets.Split.TRAIN), ("dev", datasets.Split.VALIDATION),]
+                for spl, spl_enum in [
+                    ("train", datasets.Split.TRAIN),
+                    ("dev", datasets.Split.VALIDATION),
+                ]
             ]
 
     def _generate_examples(self, filepath, files=None):

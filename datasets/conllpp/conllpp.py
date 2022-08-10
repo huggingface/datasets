@@ -152,7 +152,17 @@ class Conllpp(datasets.GeneratorBasedBuilder):
                     ),
                     "ner_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
-                            names=["O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC", "B-MISC", "I-MISC",]
+                            names=[
+                                "O",
+                                "B-PER",
+                                "I-PER",
+                                "B-ORG",
+                                "I-ORG",
+                                "B-LOC",
+                                "I-LOC",
+                                "B-MISC",
+                                "I-MISC",
+                            ]
                         )
                     ),
                 }

@@ -55,7 +55,10 @@ class UrduSentimentCorpus(datasets.GeneratorBasedBuilder):
 
         # This dataset has no train test split
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_dir)},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(dl_dir)},
+            ),
         ]
 
     def _generate_examples(self, filepath=None):

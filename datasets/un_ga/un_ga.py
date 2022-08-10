@@ -100,7 +100,12 @@ class UnGaConfig(datasets.BuilderConfig):
 
 class UnGa(datasets.GeneratorBasedBuilder):
 
-    BUILDER_CONFIGS = [UnGaConfig(language_pair=pair,) for pair in _VALID_LANGUAGE_PAIRS.keys()]
+    BUILDER_CONFIGS = [
+        UnGaConfig(
+            language_pair=pair,
+        )
+        for pair in _VALID_LANGUAGE_PAIRS.keys()
+    ]
 
     BUILDER_CONFIG_CLASS = UnGaConfig
 
@@ -121,7 +126,12 @@ class UnGa(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         download_url = _VALID_LANGUAGE_PAIRS.get(tuple(self.config.language_pair))
         path = dl_manager.download_and_extract(download_url)
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": path},)]
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"datapath": path},
+            )
+        ]
 
     def _generate_examples(self, datapath):
         lang1, lang2 = self.config.language_pair
@@ -136,6 +146,9 @@ class UnGa(datasets.GeneratorBasedBuilder):
                 y = y.strip()
                 result = (
                     sentence_counter,
-                    {"id": str(sentence_counter), "translation": {lang1: x, lang2: y},},
+                    {
+                        "id": str(sentence_counter),
+                        "translation": {lang1: x, lang2: y},
+                    },
                 )
                 yield result

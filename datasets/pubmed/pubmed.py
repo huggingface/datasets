@@ -113,7 +113,9 @@ def default_inline_article():
         # 'Pagination': {'MedlinePgn': datasets.Value('string')},
         "AuthorList": {"Author": []},
         "Language": "",
-        "GrantList": {"Grant": [],},
+        "GrantList": {
+            "Grant": [],
+        },
         "PublicationTypeList": {"PublicationType": []},
     }
 
@@ -274,7 +276,9 @@ class Pubmed(datasets.GeneratorBasedBuilder):
             # 'Pagination': {'MedlinePgn': datasets.Value('string')},
             "AuthorList": {"Author": datasets.Sequence(Author)},
             "Language": datasets.Value("string"),
-            "GrantList": {"Grant": datasets.Sequence(Grant),},
+            "GrantList": {
+                "Grant": datasets.Sequence(Grant),
+            },
             "PublicationTypeList": {"PublicationType": datasets.Sequence(datasets.Value("string"))},
         }
         features = datasets.Features(
@@ -288,7 +292,9 @@ class Pubmed(datasets.GeneratorBasedBuilder):
                     "MedlineJournalInfo": MedlineJournalInfo,
                     "ChemicalList": {"Chemical": datasets.Sequence(Chemical)},
                     "CitationSubset": datasets.Value("string"),
-                    "MeshHeadingList": {"MeshHeading": datasets.Sequence(MeshHeading),},
+                    "MeshHeadingList": {
+                        "MeshHeading": datasets.Sequence(MeshHeading),
+                    },
                 },
                 "PubmedData": {
                     "ArticleIdList": datasets.Sequence({"ArticleId": datasets.Sequence(datasets.Value("string"))}),
@@ -300,14 +306,21 @@ class Pubmed(datasets.GeneratorBasedBuilder):
         )
         self.fill_keys_from_features(features)
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, license=_LICENSE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         dl_dir = dl_manager.download_and_extract(_URLs)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filenames": dl_dir},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filenames": dl_dir},
+            ),
         ]
 
     def update_citation(self, article):

@@ -75,26 +75,66 @@ _CONF_FILES = {
         "validation": "image_chat/engaging_imagechat_gender_captions_hashed.train.jsonl",
         "test": "image_chat/engaging_imagechat_gender_captions_hashed.valid.jsonl",
     },
-    "wizard": {"train": "wizard/train.jsonl", "validation": "wizard/valid.jsonl", "test": "wizard/test.jsonl",},
+    "wizard": {
+        "train": "wizard/train.jsonl",
+        "validation": "wizard/valid.jsonl",
+        "test": "wizard/test.jsonl",
+    },
     "convai2_inferred": {
-        "train": ("inferred_about/convai2_train_binary.txt", "inferred_about/convai2_train.txt",),
-        "validation": ("inferred_about/convai2_valid_binary.txt", "inferred_about/convai2_valid.txt",),
-        "test": ("inferred_about/convai2_test_binary.txt", "inferred_about/convai2_test.txt",),
+        "train": (
+            "inferred_about/convai2_train_binary.txt",
+            "inferred_about/convai2_train.txt",
+        ),
+        "validation": (
+            "inferred_about/convai2_valid_binary.txt",
+            "inferred_about/convai2_valid.txt",
+        ),
+        "test": (
+            "inferred_about/convai2_test_binary.txt",
+            "inferred_about/convai2_test.txt",
+        ),
     },
     "light_inferred": {
-        "train": ("inferred_about/light_train_binary.txt", "inferred_about/light_train.txt",),
-        "validation": ("inferred_about/light_valid_binary.txt", "inferred_about/light_valid.txt",),
-        "test": ("inferred_about/light_test_binary.txt", "inferred_about/light_test.txt",),
+        "train": (
+            "inferred_about/light_train_binary.txt",
+            "inferred_about/light_train.txt",
+        ),
+        "validation": (
+            "inferred_about/light_valid_binary.txt",
+            "inferred_about/light_valid.txt",
+        ),
+        "test": (
+            "inferred_about/light_test_binary.txt",
+            "inferred_about/light_test.txt",
+        ),
     },
     "opensubtitles_inferred": {
-        "train": ("inferred_about/opensubtitles_train_binary.txt", "inferred_about/opensubtitles_train.txt",),
-        "validation": ("inferred_about/opensubtitles_valid_binary.txt", "inferred_about/opensubtitles_valid.txt",),
-        "test": ("inferred_about/opensubtitles_test_binary.txt", "inferred_about/opensubtitles_test.txt",),
+        "train": (
+            "inferred_about/opensubtitles_train_binary.txt",
+            "inferred_about/opensubtitles_train.txt",
+        ),
+        "validation": (
+            "inferred_about/opensubtitles_valid_binary.txt",
+            "inferred_about/opensubtitles_valid.txt",
+        ),
+        "test": (
+            "inferred_about/opensubtitles_test_binary.txt",
+            "inferred_about/opensubtitles_test.txt",
+        ),
     },
     "yelp_inferred": {
-        "train": ("inferred_about/yelp_train_binary.txt", "",),
-        "validation": ("inferred_about/yelp_valid_binary.txt", "",),
-        "test": ("inferred_about/yelp_test_binary.txt", "",),
+        "train": (
+            "inferred_about/yelp_train_binary.txt",
+            "",
+        ),
+        "validation": (
+            "inferred_about/yelp_valid_binary.txt",
+            "",
+        ),
+        "test": (
+            "inferred_about/yelp_test_binary.txt",
+            "",
+        ),
     },
 }
 
@@ -165,7 +205,10 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
             self.config.name == "gendered_words"
         ):  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
-                {"word_masculine": datasets.Value("string"), "word_feminine": datasets.Value("string"),}
+                {
+                    "word_masculine": datasets.Value("string"),
+                    "word_feminine": datasets.Value("string"),
+                }
             )
         elif self.config.name == "name_genders":
             features = datasets.Features(
@@ -312,7 +355,10 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
                     name=spl,
                     gen_kwargs={
                         "filepath": None,
-                        "filepath_pair": (data_dir + "/" + fname_1, data_dir + "/" + fname_2,),
+                        "filepath_pair": (
+                            data_dir + "/" + fname_1,
+                            data_dir + "/" + fname_2,
+                        ),
                         "files": dl_manager.iter_archive(archive),
                     },
                 )

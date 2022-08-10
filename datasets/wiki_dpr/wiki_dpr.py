@@ -212,7 +212,9 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
                     ivf_index.own_fields = True
                     quantizer.this.disown()
                     dataset.add_faiss_index(
-                        "embeddings", train_size=train_size, custom_index=ivf_index,
+                        "embeddings",
+                        train_size=train_size,
+                        custom_index=ivf_index,
                     )
                 logger.info("Saving wiki_dpr faiss index")
                 dataset.save_faiss_index("embeddings", index_file)

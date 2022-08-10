@@ -45,7 +45,11 @@ class Mkqa(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="mkqa", version=VERSION, description=_DESCRIPTION,),
+        datasets.BuilderConfig(
+            name="mkqa",
+            version=VERSION,
+            description=_DESCRIPTION,
+        ),
     ]
 
     def _info(self):

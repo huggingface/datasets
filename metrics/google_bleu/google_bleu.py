@@ -190,7 +190,11 @@ class GoogleBleu(datasets.Metric):
         )
 
     def _compute(
-        self, predictions: List[List[List[str]]], references: List[List[str]], min_len: int = 1, max_len: int = 4,
+        self,
+        predictions: List[List[List[str]]],
+        references: List[List[str]],
+        min_len: int = 1,
+        max_len: int = 4,
     ) -> Dict[str, float]:
         return {
             "google_bleu": gleu_score.corpus_gleu(

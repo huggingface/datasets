@@ -100,7 +100,10 @@ class TweetsArEnParallel(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    gen_kwargs={"datafile": os.path.join(dl_dir, "parallelTweets.csv"), "split": datasets.Split.TEST,},
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, "parallelTweets.csv"),
+                        "split": datasets.Split.TEST,
+                    },
                 ),
             ]
 
@@ -108,7 +111,10 @@ class TweetsArEnParallel(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    gen_kwargs={"datafile": os.path.join(dl_dir, "accountList.csv"), "split": datasets.Split.TEST,},
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, "accountList.csv"),
+                        "split": datasets.Split.TEST,
+                    },
                 ),
             ]
         if self.config.name == "countryTopicAnnotation":

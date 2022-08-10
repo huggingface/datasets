@@ -93,7 +93,12 @@ class ConceptualCaptions(datasets.GeneratorBasedBuilder):
     DEFAULT_CONFIG_NAME = "unlabeled"
 
     def _info(self):
-        features = datasets.Features({"image_url": datasets.Value("string"), "caption": datasets.Value("string"),},)
+        features = datasets.Features(
+            {
+                "image_url": datasets.Value("string"),
+                "caption": datasets.Value("string"),
+            },
+        )
         if self.config.name == "labeled":
             features.update(
                 {
@@ -115,13 +120,15 @@ class ConceptualCaptions(datasets.GeneratorBasedBuilder):
         downloaded_data = dl_manager.download(_URLS[self.config.name])
         splits = [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"annotations_file": downloaded_data["train"]},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"annotations_file": downloaded_data["train"]},
             ),
         ]
         if self.config.name == "unlabeled":
             splits += [
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION, gen_kwargs={"annotations_file": downloaded_data["validation"]},
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={"annotations_file": downloaded_data["validation"]},
                 ),
             ]
         return splits
@@ -133,7 +140,10 @@ class ConceptualCaptions(datasets.GeneratorBasedBuilder):
                     # Sanity check
                     assert len(row) == 2
                     caption, image_url = row
-                    yield i, {"image_url": image_url, "caption": caption,},
+                    yield i, {
+                        "image_url": image_url,
+                        "caption": caption,
+                    },
         else:
             with open(annotations_file, encoding="utf-8") as f:
                 for i, row in enumerate(csv.reader(f, delimiter="\t")):

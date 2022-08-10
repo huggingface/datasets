@@ -107,10 +107,20 @@ annotated_raw_features = datasets.Features(
     {
         **common_features,
         **{
-            "Type of resource": datasets.features.ClassLabel(names=["Monograph", "Serial",]),
+            "Type of resource": datasets.features.ClassLabel(
+                names=[
+                    "Monograph",
+                    "Serial",
+                ]
+            ),
             "created_at": datasets.Value("timestamp[s]"),
             "annotator_genre": datasets.features.ClassLabel(
-                names=["Fiction", "Can't tell", "Non-fiction", "The book contains both Fiction and Non-Fiction",]
+                names=[
+                    "Fiction",
+                    "Can't tell",
+                    "Non-fiction",
+                    "The book contains both Fiction and Non-Fiction",
+                ]
             ),
         },
     }
@@ -175,7 +185,10 @@ class BlBooksGenre(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": data_file, "split": "train",},
+                gen_kwargs={
+                    "filepath": data_file,
+                    "split": "train",
+                },
             ),
         ]
 

@@ -64,12 +64,17 @@ class AcronymIdentification(datasets.GeneratorBasedBuilder):
         test_path = dl_manager.download_and_extract(_TEST_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"datapath": train_path, "datatype": "train"},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"datapath": train_path, "datatype": "train"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"datapath": valid_path, "datatype": "valid"},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"datapath": valid_path, "datatype": "valid"},
             ),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"datapath": test_path, "datatype": "test"},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"datapath": test_path, "datatype": "test"},
+            ),
         ]
 
     def _generate_examples(self, datapath, datatype):

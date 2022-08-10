@@ -55,17 +55,23 @@ class GoogleWellformedQuery(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": tr_file,},
+                gen_kwargs={
+                    "filepath": tr_file,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": tst_file,},
+                gen_kwargs={
+                    "filepath": tst_file,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": dev_file,},
+                gen_kwargs={
+                    "filepath": dev_file,
+                },
             ),
         ]
 

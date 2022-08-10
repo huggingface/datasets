@@ -127,8 +127,18 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "source_files": [os.path.join(data_dir, f"train.tags.{self.config.pair}.{source}",)],
-                    "target_files": [os.path.join(data_dir, f"train.tags.{self.config.pair}.{target}",)],
+                    "source_files": [
+                        os.path.join(
+                            data_dir,
+                            f"train.tags.{self.config.pair}.{source}",
+                        )
+                    ],
+                    "target_files": [
+                        os.path.join(
+                            data_dir,
+                            f"train.tags.{self.config.pair}.{target}",
+                        )
+                    ],
                     "split": "train",
                 },
             ),
@@ -137,11 +147,17 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "source_files": [
-                        os.path.join(data_dir, f"IWSLT17.TED.tst{year}.{self.config.pair}.{source}.xml",)
+                        os.path.join(
+                            data_dir,
+                            f"IWSLT17.TED.tst{year}.{self.config.pair}.{source}.xml",
+                        )
                         for year in years
                     ],
                     "target_files": [
-                        os.path.join(data_dir, f"IWSLT17.TED.tst{year}.{self.config.pair}.{target}.xml",)
+                        os.path.join(
+                            data_dir,
+                            f"IWSLT17.TED.tst{year}.{self.config.pair}.{target}.xml",
+                        )
                         for year in years
                     ],
                     "split": "test",
@@ -151,8 +167,18 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "source_files": [os.path.join(data_dir, f"IWSLT17.TED.dev2010.{self.config.pair}.{source}.xml",)],
-                    "target_files": [os.path.join(data_dir, f"IWSLT17.TED.dev2010.{self.config.pair}.{target}.xml",)],
+                    "source_files": [
+                        os.path.join(
+                            data_dir,
+                            f"IWSLT17.TED.dev2010.{self.config.pair}.{source}.xml",
+                        )
+                    ],
+                    "target_files": [
+                        os.path.join(
+                            data_dir,
+                            f"IWSLT17.TED.dev2010.{self.config.pair}.{target}.xml",
+                        )
+                    ],
                     "split": "dev",
                 },
             ),

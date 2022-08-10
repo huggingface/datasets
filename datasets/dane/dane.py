@@ -142,7 +142,17 @@ class Dane(datasets.GeneratorBasedBuilder):
                 ),
                 "ner_tags": datasets.Sequence(
                     datasets.features.ClassLabel(
-                        names=["O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC", "B-MISC", "I-MISC",]
+                        names=[
+                            "O",
+                            "B-PER",
+                            "I-PER",
+                            "B-ORG",
+                            "I-ORG",
+                            "B-LOC",
+                            "I-LOC",
+                            "B-MISC",
+                            "I-MISC",
+                        ]
                     )
                 ),
             }
@@ -178,7 +188,10 @@ class Dane(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "ddt.train.conllu"), "split": "train",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "ddt.train.conllu"),
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -188,7 +201,10 @@ class Dane(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "ddt.dev.conllu"), "split": "dev",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "ddt.dev.conllu"),
+                    "split": "dev",
+                },
             ),
         ]
 

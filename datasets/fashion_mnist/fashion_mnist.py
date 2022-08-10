@@ -81,14 +81,21 @@ class FashionMnist(datasets.GeneratorBasedBuilder):
     """FashionMNIST Data Set"""
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="fashion_mnist", version=datasets.Version("1.0.0"), description=_DESCRIPTION,)
+        datasets.BuilderConfig(
+            name="fashion_mnist",
+            version=datasets.Version("1.0.0"),
+            description=_DESCRIPTION,
+        )
     ]
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {"image": datasets.Image(), "label": datasets.features.ClassLabel(names=_NAMES),}
+                {
+                    "image": datasets.Image(),
+                    "label": datasets.features.ClassLabel(names=_NAMES),
+                }
             ),
             supervised_keys=("image", "label"),
             homepage=_HOMEPAGE,

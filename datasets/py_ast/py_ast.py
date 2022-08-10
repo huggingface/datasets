@@ -122,12 +122,18 @@ class PyAst(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": "python100k_train.json", "files": dl_manager.iter_archive(archive),},
+                gen_kwargs={
+                    "filepath": "python100k_train.json",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": "python50k_eval.json", "files": dl_manager.iter_archive(archive),},
+                gen_kwargs={
+                    "filepath": "python50k_eval.json",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
         ]
 

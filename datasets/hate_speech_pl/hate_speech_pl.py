@@ -82,7 +82,12 @@ class HateSpeechPl(datasets.GeneratorBasedBuilder):
         my_urls = _URLs
         filepaths = dl_manager.download(my_urls)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepaths": filepaths,},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepaths": filepaths,
+                },
+            ),
         ]
 
     def _generate_examples(self, filepaths):

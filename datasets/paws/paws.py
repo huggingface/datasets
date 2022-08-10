@@ -74,7 +74,10 @@ class PAWS(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        PAWSConfig(name=config_name, description=(f"This config contains samples of {config_name}."),)
+        PAWSConfig(
+            name=config_name,
+            description=(f"This config contains samples of {config_name}."),
+        )
         for config_name in _DATA_OPTIONS
     ]
 
@@ -118,17 +121,26 @@ class PAWS(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": _TRAIN_FILE_NAME, "files": dl_manager.iter_archive(archive),},
+                    gen_kwargs={
+                        "filepath": _TRAIN_FILE_NAME,
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": _TEST_FILE_NAME, "files": dl_manager.iter_archive(archive),},
+                    gen_kwargs={
+                        "filepath": _TEST_FILE_NAME,
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": _VAL_FILE_NAME, "files": dl_manager.iter_archive(archive),},
+                    gen_kwargs={
+                        "filepath": _VAL_FILE_NAME,
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
             ]
 
@@ -138,7 +150,10 @@ class PAWS(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": _TRAIN_FILE_NAME, "files": dl_manager.iter_archive(archive),},
+                    gen_kwargs={
+                        "filepath": _TRAIN_FILE_NAME,
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
             ]
 
@@ -149,12 +164,18 @@ class PAWS(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": _TRAIN_FILE_NAME, "files": dl_manager.iter_archive(archive),},
+                    gen_kwargs={
+                        "filepath": _TRAIN_FILE_NAME,
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": _VAL_FILE_NAME, "files": dl_manager.iter_archive(archive),},
+                    gen_kwargs={
+                        "filepath": _VAL_FILE_NAME,
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
             ]
         else:

@@ -73,7 +73,10 @@ class Gsm8k(datasets.GeneratorBasedBuilder):
                 every problem.
                 """,
             ),
-            urls={"train": _BASE_URL + "train.jsonl", "test": _BASE_URL + "test.jsonl",},
+            urls={
+                "train": _BASE_URL + "train.jsonl",
+                "test": _BASE_URL + "test.jsonl",
+            },
         ),
         Gsm8kConfig(
             name="socratic",
@@ -83,21 +86,43 @@ class Gsm8k(datasets.GeneratorBasedBuilder):
                 automatically generated "Socratic subquestions" before each step.
                 """
             ),
-            urls={"train": _BASE_URL + "train_socratic.jsonl", "test": _BASE_URL + "test_socratic.jsonl",},
+            urls={
+                "train": _BASE_URL + "train_socratic.jsonl",
+                "test": _BASE_URL + "test_socratic.jsonl",
+            },
         ),
     ]
 
     def _info(self):
-        features = datasets.Features({"question": datasets.Value("string"), "answer": datasets.Value("string"),})
+        features = datasets.Features(
+            {
+                "question": datasets.Value("string"),
+                "answer": datasets.Value("string"),
+            }
+        )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, license=_LICENSE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         data_dir = dl_manager.download_and_extract(self.config.urls)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir["train"],},),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": data_dir["test"],},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": data_dir["train"],
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "filepath": data_dir["test"],
+                },
+            ),
         ]
 
     def _generate_examples(self, filepath):

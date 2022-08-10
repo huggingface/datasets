@@ -80,7 +80,14 @@ class MOROCO(datasets.GeneratorBasedBuilder):
             {
                 "id": datasets.Value("string"),
                 "category": datasets.features.ClassLabel(
-                    names=["culture", "finance", "politics", "science", "sports", "tech",]
+                    names=[
+                        "culture",
+                        "finance",
+                        "politics",
+                        "science",
+                        "sports",
+                        "tech",
+                    ]
                 ),
                 "sample": datasets.Value("string"),
             }

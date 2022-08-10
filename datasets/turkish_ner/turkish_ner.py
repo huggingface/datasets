@@ -144,7 +144,10 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": (os.path.join(data_dir, _FILE_NAME)), "split": "train",},
+                gen_kwargs={
+                    "filepath": (os.path.join(data_dir, _FILE_NAME)),
+                    "split": "train",
+                },
             ),
         ]
 

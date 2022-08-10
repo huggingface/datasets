@@ -73,13 +73,16 @@ class Thaisum(datasets.GeneratorBasedBuilder):
         data_dir = os.path.join(arch_path, "data")
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, self._TRAIN_FILE)},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(data_dir, self._TRAIN_FILE)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, self._VAL_FILE)},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": os.path.join(data_dir, self._VAL_FILE)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, self._TEST_FILE)},
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": os.path.join(data_dir, self._TEST_FILE)},
             ),
         ]
 

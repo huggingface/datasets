@@ -192,7 +192,10 @@ class Tapaco(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         data_dir = dl_manager.download_and_extract(_URLs)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_dir": data_dir["train"]},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"data_dir": data_dir["train"]},
+            ),
         ]
 
     def _generate_examples(self, data_dir):

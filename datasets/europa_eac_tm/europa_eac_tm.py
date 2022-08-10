@@ -132,7 +132,10 @@ class EuropaEacTMConfig(datasets.BuilderConfig):
         name = f"{language_pair[0]}2{language_pair[1]}"
         description = f"Translation dataset from {language_pair[0]} to {language_pair[1]}"
         super(EuropaEacTMConfig, self).__init__(
-            *args, name=name, description=description, **kwargs,
+            *args,
+            name=name,
+            description=description,
+            **kwargs,
         )
         source, target = language_pair
         assert source != target, "Source and target languages must be different}"
@@ -192,7 +195,11 @@ class EuropaEacTM(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(
-        self, form_data_file, reference_data_file, source_language, target_language,
+        self,
+        form_data_file,
+        reference_data_file,
+        source_language,
+        target_language,
     ):
         _id = 0
         for (sentence_type, filepath) in [

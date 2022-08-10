@@ -48,7 +48,9 @@ class Snli(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="plain_text", version=datasets.Version("1.0.0", ""), description="Plain text import of SNLI",
+            name="plain_text",
+            version=datasets.Version("1.0.0", ""),
+            description="Plain text import of SNLI",
         )
     ]
 

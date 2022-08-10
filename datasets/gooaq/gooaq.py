@@ -91,13 +91,28 @@ class Gooaq(datasets.GeneratorBasedBuilder):
         splits = dl_manager.download(_SPLITS_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": data, "split": "train", "split_file": splits,},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": data,
+                    "split": "train",
+                    "split_file": splits,
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": data, "split": "dev", "split_file": splits,},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "filepath": data,
+                    "split": "dev",
+                    "split_file": splits,
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": data, "split": "test", "split_file": splits,},
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "filepath": data,
+                    "split": "test",
+                    "split_file": splits,
+                },
             ),
         ]
 

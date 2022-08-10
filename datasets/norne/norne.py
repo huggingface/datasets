@@ -230,7 +230,11 @@ class Norne(datasets.GeneratorBasedBuilder):
         config_name = self.config.name.replace("-7", "").replace("-8", "")
         if config_name in ("bokmaal", "combined"):
             downloaded_files = dl_manager.download_and_extract(
-                {"train": f"{_URL}{_BOKMAAL_TRAIN}", "dev": f"{_URL}{_BOKMAAL_DEV}", "test": f"{_URL}{_BOKMAAL_TEST}",}
+                {
+                    "train": f"{_URL}{_BOKMAAL_TRAIN}",
+                    "dev": f"{_URL}{_BOKMAAL_DEV}",
+                    "test": f"{_URL}{_BOKMAAL_TEST}",
+                }
             )
             train_filepaths.append(downloaded_files["train"])
             dev_filepaths.append(downloaded_files["dev"])
@@ -238,7 +242,11 @@ class Norne(datasets.GeneratorBasedBuilder):
             langs.append("bokmaal")
         if config_name in ("nynorsk", "combined"):
             downloaded_files = dl_manager.download_and_extract(
-                {"train": f"{_URL}{_NYNORSK_TRAIN}", "dev": f"{_URL}{_NYNORSK_DEV}", "test": f"{_URL}{_NYNORSK_TEST}",}
+                {
+                    "train": f"{_URL}{_NYNORSK_TRAIN}",
+                    "dev": f"{_URL}{_NYNORSK_DEV}",
+                    "test": f"{_URL}{_NYNORSK_TEST}",
+                }
             )
             train_filepaths.append(downloaded_files["train"])
             dev_filepaths.append(downloaded_files["dev"])

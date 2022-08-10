@@ -87,10 +87,27 @@ class Newspop(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         with open(filepath, encoding="utf-8") as f:
-            csv_reader = csv.reader(f, quotechar='"', delimiter=",", quoting=csv.QUOTE_MINIMAL,)
+            csv_reader = csv.reader(
+                f,
+                quotechar='"',
+                delimiter=",",
+                quoting=csv.QUOTE_MINIMAL,
+            )
             next(csv_reader)
             for line_id, row in enumerate(csv_reader):
-                (id, title, headline, source, topic, publish_date, _, _, facebook, google_plus, linked_in,) = row
+                (
+                    id,
+                    title,
+                    headline,
+                    source,
+                    topic,
+                    publish_date,
+                    _,
+                    _,
+                    facebook,
+                    google_plus,
+                    linked_in,
+                ) = row
                 if "e" in id:
                     # 1 number is written as 1e+05
                     id = int(float(id))

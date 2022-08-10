@@ -54,7 +54,10 @@ class kan_hope(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         features = datasets.Features(
-            {"text": datasets.Value("string"), "label": datasets.features.ClassLabel(names=["Not-Hope", "Hope"]),}
+            {
+                "text": datasets.Value("string"),
+                "label": datasets.features.ClassLabel(names=["Not-Hope", "Hope"]),
+            }
         )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,

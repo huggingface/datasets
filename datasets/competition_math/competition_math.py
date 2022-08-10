@@ -70,8 +70,14 @@ class CompetitionMathDataset(datasets.GeneratorBasedBuilder):
         download_dir = dl_manager.download_and_extract(_URL)
         math_dir = os.path.join(download_dir, "MATH")
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"math_dir": math_dir, "split": "train"},),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"math_dir": math_dir, "split": "test"},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"math_dir": math_dir, "split": "train"},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"math_dir": math_dir, "split": "test"},
+            ),
         ]
 
     def _generate_examples(self, math_dir, split):

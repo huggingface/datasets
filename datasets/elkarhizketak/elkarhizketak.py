@@ -68,7 +68,11 @@ class Elkarhizketak(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="plain_text", description="Plain text", version=VERSION,),
+        datasets.BuilderConfig(
+            name="plain_text",
+            description="Plain text",
+            version=VERSION,
+        ),
     ]
 
     def _info(self):
@@ -91,7 +95,10 @@ class Elkarhizketak(datasets.GeneratorBasedBuilder):
                             "input_text": datasets.Value("string"),
                         }
                     ),
-                    "orig_answer": {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),},
+                    "orig_answer": {
+                        "text": datasets.Value("string"),
+                        "answer_start": datasets.Value("int32"),
+                    },
                 }
             ),
             supervised_keys=None,
@@ -104,9 +111,24 @@ class Elkarhizketak(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         data_dir = dl_manager.download_and_extract(_URLs)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir["train"],},),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": data_dir["validation"],},),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": data_dir["test"],},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": data_dir["train"],
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "filepath": data_dir["validation"],
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "filepath": data_dir["test"],
+                },
+            ),
         ]
 
     def _generate_examples(self, filepath):
@@ -136,7 +158,11 @@ class Elkarhizketak(datasets.GeneratorBasedBuilder):
                             "question": qa["question"],
                             "turn_id": qa["id"],
                             "yesno": qa["yesno"],
-                            "answers": {"answer_start": answer_starts, "text": answers, "input_text": input_texts,},
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                                "input_text": input_texts,
+                            },
                             "orig_answer": {
                                 "answer_start": qa["orig_answer"]["answer_start"],
                                 "text": qa["orig_answer"]["text"],

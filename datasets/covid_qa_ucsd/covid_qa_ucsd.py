@@ -88,7 +88,10 @@ class CovidQaUcsd(datasets.GeneratorBasedBuilder):
                     "dialogue_id": datasets.Value("int32"),
                     "dialogue_url": datasets.Value("string"),
                     "dialogue_turns": datasets.Sequence(
-                        {"speaker": datasets.ClassLabel(names=["病人", "医生"]), "utterance": datasets.Value("string"),}
+                        {
+                            "speaker": datasets.ClassLabel(names=["病人", "医生"]),
+                            "utterance": datasets.Value("string"),
+                        }
                     ),
                 }
             )

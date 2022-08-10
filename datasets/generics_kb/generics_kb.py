@@ -171,7 +171,9 @@ class GenericsKb(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": filepath,},
+                gen_kwargs={
+                    "filepath": filepath,
+                },
             ),
         ]
 

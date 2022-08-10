@@ -61,12 +61,21 @@ class TwiTextC3Config(datasets.BuilderConfig):
 class TwiTextC3(datasets.GeneratorBasedBuilder):
     """Twi Text C3 dataset."""
 
-    BUILDER_CONFIGS = [TwiTextC3Config(name="plain_text", description="Plain text",)]
+    BUILDER_CONFIGS = [
+        TwiTextC3Config(
+            name="plain_text",
+            description="Plain text",
+        )
+    ]
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"text": datasets.Value("string"),}),
+            features=datasets.Features(
+                {
+                    "text": datasets.Value("string"),
+                }
+            ),
             supervised_keys=None,
             homepage="https://www.aclweb.org/anthology/2020.lrec-1.335/",
             citation=_CITATION,

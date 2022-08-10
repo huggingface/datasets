@@ -111,7 +111,10 @@ class BERTScore(datasets.Metric):
                 }
             ),
             codebase_urls=["https://github.com/Tiiiger/bert_score"],
-            reference_urls=["https://github.com/Tiiiger/bert_score", "https://arxiv.org/abs/1904.09675",],
+            reference_urls=[
+                "https://github.com/Tiiiger/bert_score",
+                "https://arxiv.org/abs/1904.09675",
+            ],
         )
 
     def _compute(
@@ -174,7 +177,10 @@ class BERTScore(datasets.Metric):
                 )
 
         (P, R, F) = self.cached_bertscorer.score(
-            cands=predictions, refs=references, verbose=verbose, batch_size=batch_size,
+            cands=predictions,
+            refs=references,
+            verbose=verbose,
+            batch_size=batch_size,
         )
         output_dict = {
             "precision": P.tolist(),

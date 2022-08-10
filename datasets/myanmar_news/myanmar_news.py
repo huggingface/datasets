@@ -42,7 +42,10 @@ class MyanmarNews(datasets.GeneratorBasedBuilder):
     def _info(self):
         class_names = ["Sport", "Politic", "Business", "Entertainment"]
         features = datasets.Features(
-            {"text": datasets.Value("string"), "category": datasets.ClassLabel(names=class_names),}
+            {
+                "text": datasets.Value("string"),
+                "category": datasets.ClassLabel(names=class_names),
+            }
         )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,

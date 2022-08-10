@@ -111,9 +111,18 @@ class CRD3(datasets.GeneratorBasedBuilder):
         test_files, train_files, dev_files = get_train_test_dev_files(files, test_splits, train_splits, dev_splits)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files_path": train_files},),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"files_path": test_files},),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"files_path": dev_files},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"files_path": train_files},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"files_path": test_files},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"files_path": dev_files},
+            ),
         ]
 
     def _generate_examples(self, files_path):

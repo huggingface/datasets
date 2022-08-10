@@ -87,6 +87,15 @@ def delete_repo(
         `str`: URL to the newly created repo.
     """
     if version.parse(huggingface_hub.__version__) < version.parse("0.5.0"):
-        return hf_api.delete_repo(name=name, organization=organization, token=token, repo_type=repo_type,)
+        return hf_api.delete_repo(
+            name=name,
+            organization=organization,
+            token=token,
+            repo_type=repo_type,
+        )
     else:  # the `organization` parameter is deprecated in huggingface_hub>=0.5.0
-        return hf_api.delete_repo(repo_id=f"{organization}/{name}", token=token, repo_type=repo_type,)
+        return hf_api.delete_repo(
+            repo_id=f"{organization}/{name}",
+            token=token,
+            repo_type=repo_type,
+        )

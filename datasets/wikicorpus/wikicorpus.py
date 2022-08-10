@@ -82,7 +82,11 @@ class Wikicorpus(datasets.GeneratorBasedBuilder):
     def _info(self):
         if self.config.form == "raw":
             features = datasets.Features(
-                {"id": datasets.Value("string"), "title": datasets.Value("string"), "text": datasets.Value("string"),}
+                {
+                    "id": datasets.Value("string"),
+                    "title": datasets.Value("string"),
+                    "text": datasets.Value("string"),
+                }
             )
         elif self.config.form == "tagged":
             features = datasets.Features(
@@ -109,7 +113,10 @@ class Wikicorpus(datasets.GeneratorBasedBuilder):
         archive = dl_manager.download(url_to_download)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_archive(archive),},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
         ]
 

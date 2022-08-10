@@ -41,7 +41,10 @@ class MlqaConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(MlqaConfig, self).__init__(
-            version=datasets.Version("1.0.0",), **kwargs,
+            version=datasets.Version(
+                "1.0.0",
+            ),
+            **kwargs,
         )
         self.data_url = data_url
 
@@ -146,7 +149,8 @@ class Mlqa(datasets.GeneratorBasedBuilder):
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={
                             "filepath": os.path.join(
-                                os.path.join(dl_file, "MLQA_V1/test"), f"test-context-{l1}-question-{l2}.json",
+                                os.path.join(dl_file, "MLQA_V1/test"),
+                                f"test-context-{l1}-question-{l2}.json",
                             )
                         },
                     ),

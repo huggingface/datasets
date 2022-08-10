@@ -27,7 +27,13 @@ class ParquetDatasetReader(AbstractDatasetReader):
         )
         path_or_paths = path_or_paths if isinstance(path_or_paths, dict) else {self.split: path_or_paths}
         hash = _PACKAGED_DATASETS_MODULES["parquet"][1]
-        self.builder = Parquet(cache_dir=cache_dir, data_files=path_or_paths, features=features, hash=hash, **kwargs,)
+        self.builder = Parquet(
+            cache_dir=cache_dir,
+            data_files=path_or_paths,
+            features=features,
+            hash=hash,
+            **kwargs,
+        )
 
     def read(self):
         download_config = None

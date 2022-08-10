@@ -81,7 +81,15 @@ class Bc2gmCorpus(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "tokens": datasets.Sequence(datasets.Value("string")),
-                    "ner_tags": datasets.Sequence(datasets.features.ClassLabel(names=["O", "B-GENE", "I-GENE",])),
+                    "ner_tags": datasets.Sequence(
+                        datasets.features.ClassLabel(
+                            names=[
+                                "O",
+                                "B-GENE",
+                                "I-GENE",
+                            ]
+                        )
+                    ),
                 }
             ),
             supervised_keys=None,

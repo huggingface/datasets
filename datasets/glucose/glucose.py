@@ -101,7 +101,10 @@ class Glucose(datasets.GeneratorBasedBuilder):
                     "split": "train",
                 },
             ),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_data, "split": "test"},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": test_data, "split": "test"},
+            ),
         ]
 
     def _generate_examples(self, filepath, split):

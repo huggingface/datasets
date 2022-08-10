@@ -311,12 +311,18 @@ class Oscar(datasets.GeneratorBasedBuilder):
     # 0.1.0: Initial version.
     BUILDER_CONFIGS = [
         OscarConfig(  # pylint: disable=g-complex-comprehension
-            language=language, shuffled=False, deduplicated=True, version=datasets.Version("1.0.0"),
+            language=language,
+            shuffled=False,
+            deduplicated=True,
+            version=datasets.Version("1.0.0"),
         )
         for language in _languages()
     ] + [
         OscarConfig(  # pylint: disable=g-complex-comprehension
-            language=language, shuffled=False, deduplicated=False, version=datasets.Version("1.0.0"),
+            language=language,
+            shuffled=False,
+            deduplicated=False,
+            version=datasets.Version("1.0.0"),
         )
         for language in _languages()
     ]

@@ -103,7 +103,11 @@ class Wmt20MlqeTask3(datasets.GeneratorBasedBuilder):
     """WMT MLQE Shared task 3."""
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="plain_text", version=datasets.Version("1.1.0"), description="Plain text",)
+        datasets.BuilderConfig(
+            name="plain_text",
+            version=datasets.Version("1.1.0"),
+            description="Plain text",
+        )
     ]
 
     def _info(self):

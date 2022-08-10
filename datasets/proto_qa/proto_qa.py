@@ -82,7 +82,10 @@ class ProtoQA(datasets.GeneratorBasedBuilder):
     def _info(self):
         if self.config.name == "proto_qa_cs_assessments":
             features = datasets.Features(
-                {"question": datasets.Value("string"), "assessments": datasets.Sequence(datasets.Value("string")),}
+                {
+                    "question": datasets.Value("string"),
+                    "assessments": datasets.Sequence(datasets.Value("string")),
+                }
             )
         else:
 
@@ -132,12 +135,16 @@ class ProtoQA(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": train_fpath,},
+                    gen_kwargs={
+                        "filepath": train_fpath,
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": dev_fpath,},
+                    gen_kwargs={
+                        "filepath": dev_fpath,
+                    },
                 ),
             ]
         else:
@@ -146,7 +153,9 @@ class ProtoQA(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": filepath,},
+                    gen_kwargs={
+                        "filepath": filepath,
+                    },
                 )
             ]
 

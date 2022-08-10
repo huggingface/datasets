@@ -214,7 +214,12 @@ class Compguesswhat(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=split_name,
                     gen_kwargs={
-                        "filepath": os.path.join(dl_dir, full_split_name, self.VERSION.version_str, split_filename,)
+                        "filepath": os.path.join(
+                            dl_dir,
+                            full_split_name,
+                            self.VERSION.version_str,
+                            split_filename,
+                        )
                     },
                 )
             )

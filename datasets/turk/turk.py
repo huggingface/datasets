@@ -76,7 +76,10 @@ class Turk(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         features = datasets.Features(
-            {"original": datasets.Value("string"), "simplifications": datasets.Sequence(datasets.Value("string")),}
+            {
+                "original": datasets.Value("string"),
+                "simplifications": datasets.Sequence(datasets.Value("string")),
+            }
         )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -91,9 +94,16 @@ class Turk(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_URLs)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepaths": data_dir, "split": "valid",},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "filepaths": data_dir,
+                    "split": "valid",
+                },
             ),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepaths": data_dir, "split": "test"},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepaths": data_dir, "split": "test"},
+            ),
         ]
 
     def _generate_examples(self, filepaths, split):

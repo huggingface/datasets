@@ -75,10 +75,14 @@ class Assin(datasets.GeneratorBasedBuilder):
             description="If you want to use all the ASSIN data (Brazilian Portuguese and European Portuguese)",
         ),
         datasets.BuilderConfig(
-            name="ptpt", version=VERSION, description="If you want to use only the ASSIN European Portuguese subset",
+            name="ptpt",
+            version=VERSION,
+            description="If you want to use only the ASSIN European Portuguese subset",
         ),
         datasets.BuilderConfig(
-            name="ptbr", version=VERSION, description="If you want to use only the ASSIN Brazilian Portuguese subset",
+            name="ptbr",
+            version=VERSION,
+            description="If you want to use only the ASSIN Brazilian Portuguese subset",
         ),
     ]
 
@@ -124,15 +128,24 @@ class Assin(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepaths": train_paths, "files": dl_manager.iter_archive(archive),},
+                gen_kwargs={
+                    "filepaths": train_paths,
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepaths": test_paths, "files": dl_manager.iter_archive(archive),},
+                gen_kwargs={
+                    "filepaths": test_paths,
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepaths": dev_paths, "files": dl_manager.iter_archive(archive),},
+                gen_kwargs={
+                    "filepaths": dev_paths,
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
         ]
 

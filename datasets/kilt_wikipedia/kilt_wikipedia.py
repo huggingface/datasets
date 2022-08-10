@@ -68,7 +68,10 @@ class KILTWikipedia(datasets.GeneratorBasedBuilder):
     """KILTWikipedia: Wikipedia pre-processed for KILT. Version 1.0."""
 
     BUILDER_CONFIGS = [
-        KILTWikipediaConfig(name="2019-08-01", description="Wikipedia pre-processed for KILT from 2019/08/01 dump",),
+        KILTWikipediaConfig(
+            name="2019-08-01",
+            description="Wikipedia pre-processed for KILT from 2019/08/01 dump",
+        ),
     ]
 
     def _info(self):

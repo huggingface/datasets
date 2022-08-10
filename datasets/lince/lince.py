@@ -291,7 +291,9 @@ class Lince(datasets.GeneratorBasedBuilder):
             name="lid_msaea",
             data_dir="lid_msaea",
             colnames={"words": 0, "lid": 1},
-            classes={"lid": ["ambiguous", "lang1", "lang2", "mixed", "ne", "other"],},
+            classes={
+                "lid": ["ambiguous", "lang1", "lang2", "mixed", "ne", "other"],
+            },
             label_column="lid",
             description="Modern Standard Arabic-Egyptian Arabic language identification dataset (Persian script)",
         ),
@@ -299,7 +301,9 @@ class Lince(datasets.GeneratorBasedBuilder):
             name="lid_nepeng",
             data_dir="lid_nepeng",
             colnames={"words": 0, "lid": 1},
-            classes={"lid": ["ambiguous", "lang1", "lang2", "mixed", "ne", "other"],},
+            classes={
+                "lid": ["ambiguous", "lang1", "lang2", "mixed", "ne", "other"],
+            },
             label_column="lid",
             description="Nepali-English language identification dataset (Latin script)",
         ),
@@ -481,11 +485,17 @@ class Lince(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir, "train.conll"), "colnames": self.config.colnames,},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "train.conll"),
+                    "colnames": self.config.colnames,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(data_dir, "dev.conll"), "colnames": self.config.colnames,},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "dev.conll"),
+                    "colnames": self.config.colnames,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,

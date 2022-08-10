@@ -53,8 +53,12 @@ class ScbMtEnth2020(datasets.GeneratorBasedBuilder):
     _TEST_FILE = "test.jsonl"
     BUILDER_CONFIG_CLASS = ScbMtEnth2020Config
     BUILDER_CONFIGS = [
-        ScbMtEnth2020Config(language_pair=("en", "th"),),
-        ScbMtEnth2020Config(language_pair=("th", "en"),),
+        ScbMtEnth2020Config(
+            language_pair=("en", "th"),
+        ),
+        ScbMtEnth2020Config(
+            language_pair=("th", "en"),
+        ),
     ]
 
     def _info(self):

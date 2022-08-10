@@ -62,24 +62,34 @@ class Ilist(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         filepaths = dl_manager.download_and_extract(
-            {"train": _URL.format("train"), "test": _URL.format("gold"), "dev": _URL.format("dev"),}
+            {
+                "train": _URL.format("train"),
+                "test": _URL.format("gold"),
+                "dev": _URL.format("dev"),
+            }
         )
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": filepaths["train"],},
+                gen_kwargs={
+                    "filepath": filepaths["train"],
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": filepaths["test"],},
+                gen_kwargs={
+                    "filepath": filepaths["test"],
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": filepaths["dev"],},
+                gen_kwargs={
+                    "filepath": filepaths["dev"],
+                },
             ),
         ]
 

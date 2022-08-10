@@ -101,7 +101,10 @@ class Mdd(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "dialogue_turns": datasets.Sequence(
-                    {"speaker": datasets.Value("int32"), "utterance": datasets.Value("string"),}
+                    {
+                        "speaker": datasets.Value("int32"),
+                        "utterance": datasets.Value("string"),
+                    }
                 ),
             }
         )

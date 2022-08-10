@@ -75,7 +75,13 @@ class HasPart(datasets.GeneratorBasedBuilder):
         dl_fp = dl_manager.download_and_extract(_URL)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"input_file": dl_fp, "split": "train",},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "input_file": dl_fp,
+                    "split": "train",
+                },
+            ),
         ]
 
     def _parse_metadata(self, md):

@@ -48,7 +48,12 @@ class Hover(datasets.GeneratorBasedBuilder):
                     "id": datasets.Value("int32"),
                     "uid": datasets.Value("string"),
                     "claim": datasets.Value("string"),
-                    "supporting_facts": [{"key": datasets.Value("string"), "value": datasets.Value("int32"),}],
+                    "supporting_facts": [
+                        {
+                            "key": datasets.Value("string"),
+                            "value": datasets.Value("int32"),
+                        }
+                    ],
                     "label": datasets.ClassLabel(names=["NOT_SUPPORTED", "SUPPORTED"]),
                     "num_hops": datasets.Value("int32"),
                     "hpqa_id": datasets.Value("string"),
@@ -65,12 +70,17 @@ class Hover(datasets.GeneratorBasedBuilder):
         test_path = dl_manager.download_and_extract(_TEST_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"datapath": train_path, "datatype": "train"},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"datapath": train_path, "datatype": "train"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"datapath": valid_path, "datatype": "valid"},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"datapath": valid_path, "datatype": "valid"},
             ),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"datapath": test_path, "datatype": "test"},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"datapath": test_path, "datatype": "test"},
+            ),
         ]
 
     def _generate_examples(self, datapath, datatype):

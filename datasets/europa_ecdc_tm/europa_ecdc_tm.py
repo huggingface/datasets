@@ -128,7 +128,10 @@ class EuropaEcdcTMConfig(datasets.BuilderConfig):
         name = f"{language_pair[0]}2{language_pair[1]}"
         description = f"Translation dataset from {language_pair[0]} to {language_pair[1]}"
         super(EuropaEcdcTMConfig, self).__init__(
-            *args, name=name, description=description, **kwargs,
+            *args,
+            name=name,
+            description=description,
+            **kwargs,
         )
         source, target = language_pair
         assert source != target, "Source and target languages must be different}"
@@ -152,7 +155,9 @@ class EuropaEcdcTM(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {"translation": datasets.features.Translation(languages=self.config.language_pair),}
+                {
+                    "translation": datasets.features.Translation(languages=self.config.language_pair),
+                }
             ),
             supervised_keys=(source, target),
             homepage=_HOMEPAGE,
@@ -167,12 +172,19 @@ class EuropaEcdcTM(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": filepath, "source_language": source, "target_language": target,},
+                gen_kwargs={
+                    "filepath": filepath,
+                    "source_language": source,
+                    "target_language": target,
+                },
             ),
         ]
 
     def _generate_examples(
-        self, filepath, source_language, target_language,
+        self,
+        filepath,
+        source_language,
+        target_language,
     ):
         logger.info(f"⏳ Generating examples from = {filepath}")
         xml_element_tree = ElementTree.parse(filepath)

@@ -74,8 +74,14 @@ class ConvAi_3(datasets.GeneratorBasedBuilder):
         downloaded_dev = dl_manager.download(self._VAL_FILE)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_train},),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_dev},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": downloaded_train},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": downloaded_dev},
+            ),
         ]
 
     def _generate_examples(self, filepath):

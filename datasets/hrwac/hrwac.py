@@ -47,13 +47,21 @@ class Hrwac(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("2.1.0")
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="hrwac", version=VERSION, description="The hrWac dataset.",),
+        datasets.BuilderConfig(
+            name="hrwac",
+            version=VERSION,
+            description="The hrWac dataset.",
+        ),
     ]
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"sentence": datasets.Value("string"),}),
+            features=datasets.Features(
+                {
+                    "sentence": datasets.Value("string"),
+                }
+            ),
             supervised_keys=None,
             homepage=_HOMEPAGE,
             license=_LICENSE,
@@ -63,7 +71,12 @@ class Hrwac(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         downloaded_file = dl_manager.download_and_extract(_URLS)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_file,},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": downloaded_file,
+                },
+            ),
         ]
 
     def _generate_examples(self, filepath):

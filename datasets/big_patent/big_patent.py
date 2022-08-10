@@ -101,10 +101,16 @@ class BigPatent(datasets.GeneratorBasedBuilder):
     """BigPatent datasets."""
 
     BUILDER_CONFIGS = [
-        BigPatentConfig(cpc_codes=list(_CPC_DESCRIPTION), name="all", description="Patents under all categories.",),
+        BigPatentConfig(
+            cpc_codes=list(_CPC_DESCRIPTION),
+            name="all",
+            description="Patents under all categories.",
+        ),
     ] + [
         BigPatentConfig(  # pylint:disable=g-complex-comprehension
-            cpc_codes=[k], name=k, description=f"Patents under Cooperative Patent Classification (CPC) {k}: {v}",
+            cpc_codes=[k],
+            name=k,
+            description=f"Patents under Cooperative Patent Classification (CPC) {k}: {v}",
         )
         for k, v in sorted(_CPC_DESCRIPTION.items())
     ]
@@ -126,7 +132,10 @@ class BigPatent(datasets.GeneratorBasedBuilder):
         dl_paths = dl_manager.download_and_extract(_URLS)
         split_dirs = {datasets.Split.TRAIN: "train", datasets.Split.VALIDATION: "val", datasets.Split.TEST: "test"}
         return [
-            datasets.SplitGenerator(name=split, gen_kwargs={"path": dl_paths[split], "split_dir": split_dirs[split]},)
+            datasets.SplitGenerator(
+                name=split,
+                gen_kwargs={"path": dl_paths[split], "split_dir": split_dirs[split]},
+            )
             for split in split_dirs
         ]
 

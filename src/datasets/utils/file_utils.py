@@ -149,7 +149,11 @@ def hash_url_to_filename(url, etag=None):
     return filename
 
 
-def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> str:
+def cached_path(
+    url_or_filename,
+    download_config=None,
+    **download_kwargs,
+) -> str:
     """
     Given something that might be a URL (or might be a local path),
     determine which. If it's a URL, download the file and cache it, and
@@ -279,7 +283,7 @@ def _retry(
             if retry >= max_retries or (status_codes and err.response.status_code not in status_codes):
                 raise err
             else:
-                sleep_time = min(max_wait_time, base_wait_time * 2 ** retry)  # Exponential backoff
+                sleep_time = min(max_wait_time, base_wait_time * 2**retry)  # Exponential backoff
                 logger.info(f"{func} timed out, retrying in {sleep_time}s... [{retry/max_retries}]")
                 time.sleep(sleep_time)
                 retry += 1

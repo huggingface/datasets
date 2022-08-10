@@ -68,7 +68,11 @@ class Ropes(datasets.GeneratorBasedBuilder):
                     "background": datasets.Value("string"),
                     "situation": datasets.Value("string"),
                     "question": datasets.Value("string"),
-                    "answers": datasets.features.Sequence({"text": datasets.Value("string"),}),
+                    "answers": datasets.features.Sequence(
+                        {
+                            "text": datasets.Value("string"),
+                        }
+                    ),
                 }
             ),
             supervised_keys=None,
@@ -127,6 +131,8 @@ class Ropes(datasets.GeneratorBasedBuilder):
                                 "situation": situation,
                                 "question": question,
                                 "id": id_,
-                                "answers": {"text": answers,},
+                                "answers": {
+                                    "text": answers,
+                                },
                             }
                 break

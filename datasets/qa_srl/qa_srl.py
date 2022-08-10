@@ -105,17 +105,23 @@ class QaSrl(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": train_fpath,},
+                gen_kwargs={
+                    "filepath": train_fpath,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": dev_fpath,},
+                gen_kwargs={
+                    "filepath": dev_fpath,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": test_fpath,},
+                gen_kwargs={
+                    "filepath": test_fpath,
+                },
             ),
         ]
 

@@ -99,7 +99,10 @@ class Mauve(datasets.Metric):
                 }
             ),
             codebase_urls=["https://github.com/krishnap25/mauve"],
-            reference_urls=["https://arxiv.org/abs/2102.01454", "https://github.com/krishnap25/mauve",],
+            reference_urls=[
+                "https://arxiv.org/abs/2102.01454",
+                "https://github.com/krishnap25/mauve",
+            ],
         )
 
     def _compute(

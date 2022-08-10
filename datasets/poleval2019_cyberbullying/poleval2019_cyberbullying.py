@@ -57,7 +57,10 @@ class Poleval2019CyberBullyingConfig(datasets.BuilderConfig):
     """BuilderConfig for Poleval2019CyberBullying."""
 
     def __init__(
-        self, text_features, label_classes, **kwargs,
+        self,
+        text_features,
+        label_classes,
+        **kwargs,
     ):
         super(Poleval2019CyberBullyingConfig, self).__init__(version=datasets.Version("1.0.0"), **kwargs)
         self.text_features = text_features
@@ -70,8 +73,16 @@ class Poleval2019CyberBullying(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        Poleval2019CyberBullyingConfig(name="task01", text_features=["text"], label_classes=["0", "1"],),
-        Poleval2019CyberBullyingConfig(name="task02", text_features=["text"], label_classes=["0", "1", "2"],),
+        Poleval2019CyberBullyingConfig(
+            name="task01",
+            text_features=["text"],
+            label_classes=["0", "1"],
+        ),
+        Poleval2019CyberBullyingConfig(
+            name="task02",
+            text_features=["text"],
+            label_classes=["0", "1", "2"],
+        ),
     ]
 
     def _info(self):
@@ -106,9 +117,19 @@ class Poleval2019CyberBullying(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path, "split": "train",},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": train_path,
+                    "split": "train",
+                },
             ),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path, "split": "test",},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "filepath": test_path,
+                    "split": "test",
+                },
+            ),
         ]
 
     def _generate_examples(self, filepath, split):

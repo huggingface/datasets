@@ -167,7 +167,11 @@ class Autshumato(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"source_files": source_filenames, "target_files": [], "split": "train",},
+                gen_kwargs={
+                    "source_files": source_filenames,
+                    "target_files": [],
+                    "split": "train",
+                },
             ),
         ]
 
@@ -193,7 +197,11 @@ class Autshumato(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"source_files": source_filenames, "target_files": target_filenames, "split": "train",},
+                gen_kwargs={
+                    "source_files": source_filenames,
+                    "target_files": target_filenames,
+                    "split": "train",
+                },
             ),
         ]
 

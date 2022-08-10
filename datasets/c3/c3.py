@@ -63,8 +63,18 @@ class C3(datasets.GeneratorBasedBuilder):
     # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
     BUILDER_CONFIG_CLASS = C3Config
     BUILDER_CONFIGS = [
-        C3Config(name="mixed", description="Mixed genre questions", version=datasets.Version("1.0.0"), type_="mixed",),
-        C3Config(name="dialog", description="Dialog questions", version=datasets.Version("1.0.0"), type_="dialog",),
+        C3Config(
+            name="mixed",
+            description="Mixed genre questions",
+            version=datasets.Version("1.0.0"),
+            type_="mixed",
+        ),
+        C3Config(
+            name="dialog",
+            description="Dialog questions",
+            version=datasets.Version("1.0.0"),
+            type_="dialog",
+        ),
     ]
 
     def _info(self):
@@ -104,17 +114,26 @@ class C3(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filename": dl_dir[0], "split": "train",},
+                gen_kwargs={
+                    "filename": dl_dir[0],
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filename": dl_dir[1], "split": "test",},
+                gen_kwargs={
+                    "filename": dl_dir[1],
+                    "split": "test",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filename": dl_dir[2], "split": "dev",},
+                gen_kwargs={
+                    "filename": dl_dir[2],
+                    "split": "dev",
+                },
             ),
         ]
 

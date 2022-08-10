@@ -98,13 +98,22 @@ class AquaRat(datasets.GeneratorBasedBuilder):
         data_paths = dl_manager.download(my_urls)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_paths["train"], "split": "train",},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": data_paths["train"],
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": data_paths["test"], "split": "test"},
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": data_paths["test"], "split": "test"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": data_paths["dev"], "split": "dev",},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "filepath": data_paths["dev"],
+                    "split": "dev",
+                },
             ),
         ]
 

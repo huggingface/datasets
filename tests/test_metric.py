@@ -191,7 +191,9 @@ class TestMetric(TestCase):
         other_expected_results = DummyMetric.other_expected_results()
 
         metric = DummyMetric(experiment_id="test_concurrent_metrics")
-        other_metric = DummyMetric(experiment_id="test_concurrent_metrics",)
+        other_metric = DummyMetric(
+            experiment_id="test_concurrent_metrics",
+        )
 
         self.assertDictEqual(expected_results, metric.compute(predictions=preds, references=refs))
         self.assertDictEqual(
@@ -199,8 +201,12 @@ class TestMetric(TestCase):
         )
         del metric, other_metric
 
-        metric = DummyMetric(experiment_id="test_concurrent_metrics",)
-        other_metric = DummyMetric(experiment_id="test_concurrent_metrics",)
+        metric = DummyMetric(
+            experiment_id="test_concurrent_metrics",
+        )
+        other_metric = DummyMetric(
+            experiment_id="test_concurrent_metrics",
+        )
         metric.add_batch(predictions=preds, references=refs)
         other_metric.add_batch(predictions=other_preds, references=other_refs)
         self.assertDictEqual(expected_results, metric.compute())
@@ -245,7 +251,10 @@ class TestMetric(TestCase):
 
             results = pool.map(
                 metric_compute,
-                [(1, 0, preds_0, refs_0, None, tmp_dir, 0), (1, 0, preds_1, refs_1, None, tmp_dir, 0),],
+                [
+                    (1, 0, preds_0, refs_0, None, tmp_dir, 0),
+                    (1, 0, preds_1, refs_1, None, tmp_dir, 0),
+                ],
             )
             self.assertDictEqual(expected_results[0], results[0])
             self.assertDictEqual(expected_results[1], results[1])
@@ -254,7 +263,10 @@ class TestMetric(TestCase):
             # more than one sec of waiting so that the second metric has to sample a new hashing name
             results = pool.map(
                 metric_compute,
-                [(1, 0, preds_0, refs_0, None, tmp_dir, 2), (1, 0, preds_1, refs_1, None, tmp_dir, 2),],
+                [
+                    (1, 0, preds_0, refs_0, None, tmp_dir, 2),
+                    (1, 0, preds_1, refs_1, None, tmp_dir, 2),
+                ],
             )
             self.assertDictEqual(expected_results[0], results[0])
             self.assertDictEqual(expected_results[1], results[1])
@@ -262,7 +274,10 @@ class TestMetric(TestCase):
 
             results = pool.map(
                 metric_add_and_compute,
-                [(1, 0, preds_0, refs_0, None, tmp_dir, 0), (1, 0, preds_1, refs_1, None, tmp_dir, 0),],
+                [
+                    (1, 0, preds_0, refs_0, None, tmp_dir, 0),
+                    (1, 0, preds_1, refs_1, None, tmp_dir, 0),
+                ],
             )
             self.assertDictEqual(expected_results[0], results[0])
             self.assertDictEqual(expected_results[1], results[1])
@@ -270,7 +285,10 @@ class TestMetric(TestCase):
 
             results = pool.map(
                 metric_add_batch_and_compute,
-                [(1, 0, preds_0, refs_0, None, tmp_dir, 0), (1, 0, preds_1, refs_1, None, tmp_dir, 0),],
+                [
+                    (1, 0, preds_0, refs_0, None, tmp_dir, 0),
+                    (1, 0, preds_1, refs_1, None, tmp_dir, 0),
+                ],
             )
             self.assertDictEqual(expected_results[0], results[0])
             self.assertDictEqual(expected_results[1], results[1])
@@ -475,7 +493,9 @@ class MetricWithMultiLabel(Metric):
 
     def _compute(self, predictions=None, references=None):
         return (
-            {"accuracy": sum(i == j for i, j in zip(predictions, references)) / len(predictions),}
+            {
+                "accuracy": sum(i == j for i, j in zip(predictions, references)) / len(predictions),
+            }
             if predictions
             else {}
         )
@@ -517,7 +537,13 @@ class AccuracyWithNonStandardFeatureNames(Metric):
         )
 
     def _compute(self, inputs, targets):
-        return {"accuracy": sum(i == j for i, j in zip(inputs, targets)) / len(targets),} if targets else {}
+        return (
+            {
+                "accuracy": sum(i == j for i, j in zip(inputs, targets)) / len(targets),
+            }
+            if targets
+            else {}
+        )
 
     @classmethod
     def inputs_and_targets(cls):

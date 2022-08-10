@@ -63,7 +63,11 @@ class IdNewspapers2018(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        IdNewspapers2018Config(name="id_newspapers_2018", version=VERSION, description="IdNewspapers2018 dataset",),
+        IdNewspapers2018Config(
+            name="id_newspapers_2018",
+            version=VERSION,
+            description="IdNewspapers2018 dataset",
+        ),
     ]
 
     def _info(self):
@@ -89,7 +93,10 @@ class IdNewspapers2018(datasets.GeneratorBasedBuilder):
         archive = dl_manager.download(_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_archive(archive),},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "files": dl_manager.iter_archive(archive),
+                },
             )
         ]
 

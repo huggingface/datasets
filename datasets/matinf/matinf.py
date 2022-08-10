@@ -37,7 +37,11 @@ class MatinfConfig(datasets.BuilderConfig):
     """BuilderConfig for MATINF."""
 
     def __init__(
-        self, text_features, label_column, label_classes=None, **kwargs,
+        self,
+        text_features,
+        label_column,
+        label_classes=None,
+        **kwargs,
     ):
         """BuilderConfig for MATINF.
 
@@ -92,8 +96,16 @@ class Matinf(datasets.GeneratorBasedBuilder):
                 "婴幼常见病",
             ],
         ),
-        MatinfConfig(name="summarization", text_features=["description", "question"], label_column=None,),
-        MatinfConfig(name="qa", text_features=["question", "answer"], label_column=None,),
+        MatinfConfig(
+            name="summarization",
+            text_features=["description", "question"],
+            label_column=None,
+        ),
+        MatinfConfig(
+            name="qa",
+            text_features=["question", "answer"],
+            label_column=None,
+        ),
     ]
 
     @property
@@ -127,13 +139,16 @@ class Matinf(datasets.GeneratorBasedBuilder):
             )
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "train.csv")},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(data_dir, "train.csv")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "test.csv")},
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": os.path.join(data_dir, "test.csv")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, "dev.csv")},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": os.path.join(data_dir, "dev.csv")},
             ),
         ]
 

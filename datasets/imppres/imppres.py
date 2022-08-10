@@ -216,7 +216,10 @@ class Imppres(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=secondary_config,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, secondary_config + ".jsonl"), "split": "test",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, secondary_config + ".jsonl"),
+                    "split": "test",
+                },
             )
         ]
 

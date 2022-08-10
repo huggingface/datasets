@@ -55,8 +55,14 @@ _URL_LIST = [
         "human_ratings.csv",
         "https://raw.githubusercontent.com/facebookresearch/asset/main/human_ratings/human_ratings.csv",
     ),
-    ("asset.valid.orig", "https://raw.githubusercontent.com/facebookresearch/asset/main/dataset/asset.valid.orig",),
-    ("asset.test.orig", "https://raw.githubusercontent.com/facebookresearch/asset/main/dataset/asset.test.orig",),
+    (
+        "asset.valid.orig",
+        "https://raw.githubusercontent.com/facebookresearch/asset/main/dataset/asset.valid.orig",
+    ),
+    (
+        "asset.test.orig",
+        "https://raw.githubusercontent.com/facebookresearch/asset/main/dataset/asset.test.orig",
+    ),
 ]
 _URL_LIST += [
     (
@@ -81,7 +87,9 @@ class Asset(datasets.GeneratorBasedBuilder):
             description="A set of original sentences aligned with 10 possible simplifications for each.",
         ),
         datasets.BuilderConfig(
-            name="ratings", version=VERSION, description="Human ratings of automatically produced text implification.",
+            name="ratings",
+            version=VERSION,
+            description="Human ratings of automatically produced text implification.",
         ),
     ]
 
@@ -90,7 +98,10 @@ class Asset(datasets.GeneratorBasedBuilder):
     def _info(self):
         if self.config.name == "simplification":
             features = datasets.Features(
-                {"original": datasets.Value("string"), "simplifications": datasets.Sequence(datasets.Value("string")),}
+                {
+                    "original": datasets.Value("string"),
+                    "simplifications": datasets.Sequence(datasets.Value("string")),
+                }
             )
         else:
             features = datasets.Features(
@@ -117,15 +128,26 @@ class Asset(datasets.GeneratorBasedBuilder):
         if self.config.name == "simplification":
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION, gen_kwargs={"filepaths": data_dir, "split": "valid",},
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        "filepaths": data_dir,
+                        "split": "valid",
+                    },
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.TEST, gen_kwargs={"filepaths": data_dir, "split": "test"},
+                    name=datasets.Split.TEST,
+                    gen_kwargs={"filepaths": data_dir, "split": "test"},
                 ),
             ]
         else:
             return [
-                datasets.SplitGenerator(name="full", gen_kwargs={"filepaths": data_dir, "split": "full",},),
+                datasets.SplitGenerator(
+                    name="full",
+                    gen_kwargs={
+                        "filepaths": data_dir,
+                        "split": "full",
+                    },
+                ),
             ]
 
     def _generate_examples(self, filepaths, split):

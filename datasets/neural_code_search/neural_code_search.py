@@ -121,7 +121,10 @@ class NeuralCodeSearch(datasets.GeneratorBasedBuilder):
         if self.config.name == "evaluation_dataset":
             filepath = dl_manager.download_and_extract(_URLs[self.config.name])
             return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": filepath},),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={"filepath": filepath},
+                ),
             ]
         else:
             my_urls = [url for config, url in _URLs.items() if config.startswith(self.config.name)]
@@ -129,7 +132,9 @@ class NeuralCodeSearch(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={"files": chain(*(dl_manager.iter_archive(archive) for archive in archives)),},
+                    gen_kwargs={
+                        "files": chain(*(dl_manager.iter_archive(archive) for archive in archives)),
+                    },
                 ),
             ]
 

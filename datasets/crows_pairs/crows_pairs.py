@@ -63,7 +63,10 @@ class CrowsPairs(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="crows_pairs", version=datasets.Version("1.0.0", ""),),
+        datasets.BuilderConfig(
+            name="crows_pairs",
+            version=datasets.Version("1.0.0", ""),
+        ),
     ]
 
     def _info(self):

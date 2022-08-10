@@ -195,7 +195,10 @@ def _download_additional_modules(
         else:
             raise ValueError("Wrong import_type")
 
-        local_import_path = cached_path(url_or_filename, download_config=download_config,)
+        local_import_path = cached_path(
+            url_or_filename,
+            download_config=download_config,
+        )
         if sub_directory is not None:
             local_import_path = os.path.join(local_import_path, sub_directory)
         local_imports.append((import_name, local_import_path))
@@ -460,7 +463,10 @@ class GithubDatasetModuleFactory(_DatasetModuleFactory):
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading metadata"
         try:
-            return cached_path(dataset_infos, download_config=download_config,)
+            return cached_path(
+                dataset_infos,
+                download_config=download_config,
+            )
         except (FileNotFoundError, ConnectionError):
             return None
 
@@ -705,7 +711,9 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             else get_data_patterns_locally(base_path)
         )
         data_files = DataFilesDict.from_local_or_remote(
-            patterns, base_path=base_path, allowed_extensions=ALL_ALLOWED_EXTENSIONS,
+            patterns,
+            base_path=base_path,
+            allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         module_names = {
             key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
@@ -773,7 +781,9 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             else get_data_patterns_locally(base_path)
         )
         data_files = DataFilesDict.from_local_or_remote(
-            patterns, use_auth_token=self.download_config.use_auth_token, base_path=base_path,
+            patterns,
+            use_auth_token=self.download_config.use_auth_token,
+            base_path=base_path,
         )
         if self.data_files is None and self.name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
             try:
@@ -825,7 +835,10 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         else:
             token = self.download_config.use_auth_token
         hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
-            self.name, revision=self.revision, token=token if token else "no-token", timeout=100.0,
+            self.name,
+            revision=self.revision,
+            token=token if token else "no-token",
+            timeout=100.0,
         )
         patterns = (
             sanitize_patterns(self.data_files)
@@ -921,7 +934,10 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading metadata"
         try:
-            return cached_path(dataset_infos, download_config=download_config,)
+            return cached_path(
+                dataset_infos,
+                download_config=download_config,
+            )
         except (FileNotFoundError, ConnectionError):
             return None
 
@@ -965,7 +981,9 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
     """
 
     def __init__(
-        self, name: str, dynamic_modules_path: Optional[str] = None,
+        self,
+        name: str,
+        dynamic_modules_path: Optional[str] = None,
     ):
         self.name = name
         self.dynamic_modules_path = dynamic_modules_path
@@ -1027,7 +1045,9 @@ class CachedMetricModuleFactory(_MetricModuleFactory):
 
     @deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
     def __init__(
-        self, name: str, dynamic_modules_path: Optional[str] = None,
+        self,
+        name: str,
+        dynamic_modules_path: Optional[str] = None,
     ):
         self.name = name
         self.dynamic_modules_path = dynamic_modules_path
@@ -1194,7 +1214,10 @@ def dataset_module_factory(
                     else:
                         token = download_config.use_auth_token
                     dataset_info = hf_api.dataset_info(
-                        repo_id=path, revision=revision, token=token if token else "no-token", timeout=100.0,
+                        repo_id=path,
+                        revision=revision,
+                        token=token if token else "no-token",
+                        timeout=100.0,
                     )
                 except Exception as e:  # noqa: catch any exception of hf_hub and consider that the dataset doesn't exist
                     if isinstance(

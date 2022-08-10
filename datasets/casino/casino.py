@@ -155,7 +155,13 @@ class Casino(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         path = dl_manager.download_and_extract(_URLs["train"])
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": path, "split": "train",},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": path,
+                    "split": "train",
+                },
+            ),
         ]
 
     def _generate_examples(self, filepath, split="train"):

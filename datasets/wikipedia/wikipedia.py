@@ -910,7 +910,10 @@ class Wikipedia(datasets.BeamBasedBuilder):
     # Use mirror (your.org) to avoid download caps.
     BUILDER_CONFIG_CLASS = WikipediaConfig
     BUILDER_CONFIGS = [
-        WikipediaConfig(language=lang, date=_DATE,)  # pylint:disable=g-complex-comprehension
+        WikipediaConfig(
+            language=lang,
+            date=_DATE,
+        )  # pylint:disable=g-complex-comprehension
         for lang in WIKIPEDIA_LANGUAGES
     ]
 
@@ -946,9 +949,11 @@ class Wikipedia(datasets.BeamBasedBuilder):
         with open(downloaded_files["info"], encoding="utf-8") as f:
             dump_info = json.load(f)
         multistream_dump_info = dump_info["jobs"]["articlesmultistreamdump"]
-        assert multistream_dump_info["status"] == "done", (
-            "Specified dump (%s) multistream status is not 'done': %s"
-            % (_base_url(lang), multistream_dump_info["status"],)
+        assert (
+            multistream_dump_info["status"] == "done"
+        ), "Specified dump (%s) multistream status is not 'done': %s" % (
+            _base_url(lang),
+            multistream_dump_info["status"],
         )
 
         for fname, info in multistream_dump_info["files"].items():

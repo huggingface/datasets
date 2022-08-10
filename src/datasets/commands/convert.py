@@ -58,7 +58,8 @@ class ConvertCommand(BaseDatasetsCLICommand):
             parser: Root parser to register command-specific arguments
         """
         train_parser = parser.add_parser(
-            "convert", help="Convert a TensorFlow Datasets dataset to a HuggingFace Datasets dataset.",
+            "convert",
+            help="Convert a TensorFlow Datasets dataset to a HuggingFace Datasets dataset.",
         )
         train_parser.add_argument(
             "--tfds_path",

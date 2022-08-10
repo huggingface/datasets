@@ -211,7 +211,10 @@ class MLama(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(data_dir, "mlama1.1"), "split": "test",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "mlama1.1"),
+                    "split": "test",
+                },
             ),
         ]
 

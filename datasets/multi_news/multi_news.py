@@ -47,9 +47,18 @@ There are two features:
 
 _REPO = "https://huggingface.co/datasets/multi_news/resolve/main/data"
 _URLs = {
-    "train": [f"{_REPO}/train.src.cleaned", f"{_REPO}/train.tgt",],
-    "val": [f"{_REPO}/val.src.cleaned", f"{_REPO}/val.tgt",],
-    "test": [f"{_REPO}/test.src.cleaned", f"{_REPO}/test.tgt",],
+    "train": [
+        f"{_REPO}/train.src.cleaned",
+        f"{_REPO}/train.tgt",
+    ],
+    "val": [
+        f"{_REPO}/val.src.cleaned",
+        f"{_REPO}/val.tgt",
+    ],
+    "test": [
+        f"{_REPO}/test.src.cleaned",
+        f"{_REPO}/test.tgt",
+    ],
 }
 
 _DOCUMENT = "document"
@@ -76,13 +85,16 @@ class MultiNews(datasets.GeneratorBasedBuilder):
         files = dl_manager.download(_URLs)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"src_file": files["train"][0], "tgt_file": files["train"][1]},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"src_file": files["train"][0], "tgt_file": files["train"][1]},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"src_file": files["val"][0], "tgt_file": files["val"][1]},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"src_file": files["val"][0], "tgt_file": files["val"][1]},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"src_file": files["test"][0], "tgt_file": files["test"][1]},
+                name=datasets.Split.TEST,
+                gen_kwargs={"src_file": files["test"][0], "tgt_file": files["test"][1]},
             ),
         ]
 

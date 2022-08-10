@@ -74,7 +74,12 @@ class Makhzan(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         data_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_dir": data_dir},)]
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"data_dir": data_dir},
+            )
+        ]
 
     def _generate_examples(self, data_dir):
         """Yields examples."""

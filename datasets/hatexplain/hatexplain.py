@@ -66,7 +66,11 @@ class Hatexplain(datasets.GeneratorBasedBuilder):
     """Hatexplain: A Benchmark Dataset for Explainable Hate Speech Detection"""
 
     BUILDER_CONFIGS = [
-        HatexplainConfig(name="plain_text", version=datasets.Version("1.0.0", ""), description="Plain text",),
+        HatexplainConfig(
+            name="plain_text",
+            version=datasets.Version("1.0.0", ""),
+            description="Plain text",
+        ),
     ]
 
     def _info(self):

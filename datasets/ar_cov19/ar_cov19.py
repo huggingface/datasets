@@ -81,7 +81,12 @@ class ArCov19(datasets.GeneratorBasedBuilder):
     # You will be able to load one or the other configurations in the following list with
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
-    BUILDER_CONFIGS = [ArCov19Config(name="ar_cov19", description="Plain text",)]
+    BUILDER_CONFIGS = [
+        ArCov19Config(
+            name="ar_cov19",
+            description="Plain text",
+        )
+    ]
 
     def _info(self):
 

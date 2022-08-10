@@ -58,7 +58,11 @@ class Sst2(datasets.GeneratorBasedBuilder):
             }
         )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, license=_LICENSE, citation=_CITATION,
+            description=_DESCRIPTION,
+            features=features,
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -66,15 +70,24 @@ class Sst2(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"file_paths": dl_manager.iter_files(dl_dir), "data_filename": "train.tsv",},
+                gen_kwargs={
+                    "file_paths": dl_manager.iter_files(dl_dir),
+                    "data_filename": "train.tsv",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"file_paths": dl_manager.iter_files(dl_dir), "data_filename": "dev.tsv",},
+                gen_kwargs={
+                    "file_paths": dl_manager.iter_files(dl_dir),
+                    "data_filename": "dev.tsv",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"file_paths": dl_manager.iter_files(dl_dir), "data_filename": "test.tsv",},
+                gen_kwargs={
+                    "file_paths": dl_manager.iter_files(dl_dir),
+                    "data_filename": "test.tsv",
+                },
             ),
         ]
 

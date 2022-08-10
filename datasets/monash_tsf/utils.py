@@ -14,7 +14,9 @@ import pandas as pd
 # replace_missing_vals_with - a term to indicate the missing values in series in the returning dataframe
 # value_column_name - Any name that is preferred to have as the name of the column containing series values in the returning dataframe
 def convert_tsf_to_dataframe(
-    full_file_path_and_name, replace_missing_vals_with="NaN", value_column_name="series_value",
+    full_file_path_and_name,
+    replace_missing_vals_with="NaN",
+    value_column_name="series_value",
 ):
     col_names = []
     col_types = []
