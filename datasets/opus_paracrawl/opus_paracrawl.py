@@ -28,7 +28,7 @@ total number of tokens: 56.11G
 total number of sentence fragments: 3.13G
 """
 _HOMEPAGE = "http://opus.nlpl.eu/ParaCrawl.php"
-_CITATION = """\
+_CITATION = r"""\
 @inproceedings{banon-etal-2020-paracrawl,
     title = "{P}ara{C}rawl: Web-Scale Acquisition of Parallel Corpora",
     author = "Ba{\~n}{\'o}n, Marta  and
