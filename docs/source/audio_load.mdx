@@ -84,7 +84,7 @@ Load your audio dataset by specifying `audiofolder` and the directory containing
 Load remote datasets from their URLs with the `data_files` parameter:
 
 ```py
->>> dataset = load_dataset("adiofolder", data_files="https://s3.amazonaws.com/datasets.huggingface.co/SpeechCommands/v0.01/v0.01_test.tar.gz")
+>>> dataset = load_dataset("audiofolder", data_files="https://s3.amazonaws.com/datasets.huggingface.co/SpeechCommands/v0.01/v0.01_test.tar.gz")
 ```
 
 ## AudioFolder with metadata
@@ -138,7 +138,7 @@ folder/train/label_1/first_audio_label_1.mp3
 folder/train/label_9/last_audio_label_99.mp3
 ```
 
-`AudioFolder` will creates a `label` column of a [`~datasets.features.ClassLabel`] type based on the directory name.
+`AudioFolder` will create a `label` column of a [`~datasets.features.ClassLabel`] type based on the directory name.
 
 ### Language identification
 
