@@ -19,7 +19,7 @@ def interleave_datasets(
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
-    stopping_strategy: Optional[str] = "first_exhausted"
+    stopping_strategy: Optional[str] = "first_exhausted",
 ) -> DatasetType:
     """
     Interleave several datasets (sources) into a single dataset.
@@ -118,12 +118,16 @@ def interleave_datasets(
             raise ValueError(
                 f"Unable to interleave a {type(datasets[0])} with a {type(dataset)}. Expected a list of Dataset objects or a list of IterableDataset objects."
             )
-    if (iterable and stopping_strategy != "first_exhausted") or (stopping_strategy not in ["first_exhausted", "all_exhausted"]):
+    if (iterable and stopping_strategy != "first_exhausted") or (
+        stopping_strategy not in ["first_exhausted", "all_exhausted"]
+    ):
         raise ValueError(
             f"{stopping_strategy} stopping strategy in `interleave_datasets` is not implemented yet with a list of {type(datasets[0])}"
         )
     if map_style:
-        return _interleave_map_style_datasets(datasets, probabilities, seed, info=info, split=split, stopping_strategy=stopping_strategy)
+        return _interleave_map_style_datasets(
+            datasets, probabilities, seed, info=info, split=split, stopping_strategy=stopping_strategy
+        )
     else:
         return _interleave_iterable_datasets(datasets, probabilities, seed, info=info, split=split)
 

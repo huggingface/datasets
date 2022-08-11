@@ -4892,7 +4892,7 @@ def _interleave_map_style_datasets(
     offsets = np.cumsum([0] + lengths[:-1])
 
     # if stopping_strategy is "first_exhausted", it is an undersampling situation whereas it is an oversampling situation if it is "all_exhausted"
-    oversampling = (stopping_strategy=="all_exhausted")
+    oversampling = stopping_strategy == "all_exhausted"
 
     if probabilities is None and not oversampling:
         # Undersampling situation with cycling between each sources
@@ -4904,10 +4904,10 @@ def _interleave_map_style_datasets(
         # Oversampling situation with cycling between each sources
         # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 5, 9, 0, 6, 10, 1, 0, 11]
         # Note that we have 5 examples per dataset with a rolling window since the longest dataset has 5 samples
-        indices = (offsets.reshape(1, -1) + np.arange(max(lengths)).reshape(-1, 1))
+        indices = offsets.reshape(1, -1) + np.arange(max(lengths)).reshape(-1, 1)
 
         # We have to keep the indices to their respective dataset offsets
-        indices = np.mod(indices,np.cumsum(lengths)).flatten().tolist()
+        indices = np.mod(indices, np.cumsum(lengths)).flatten().tolist()
 
     else:
         # boolean array indicating if at index i if the dataset_i has been fully exhausted
