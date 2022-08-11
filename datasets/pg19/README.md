@@ -1,6 +1,8 @@
 ---
 language:
 - en
+license:
+- apache-2.0
 paperswithcode_id: pg-19
 pretty_name: PG-19
 ---
@@ -152,7 +154,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Apache 2.0
 
 ### Citation Information
 
