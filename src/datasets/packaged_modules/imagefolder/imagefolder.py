@@ -4,6 +4,8 @@ import os
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
+import pandas as pd
+import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.json as paj
 
@@ -55,7 +57,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
 
     IMAGE_EXTENSIONS: List[str] = []  # definition at the bottom of the script
     SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT = True
-    METADATA_FILENAME: str = "metadata.jsonl"
+    METADATA_FILENAMES: List[str] = ["metadata.jsonl", "metadata.csv"]
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
@@ -84,12 +86,12 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                     if original_file_ext.lower() in self.IMAGE_EXTENSIONS:
                         if not self.config.drop_labels:
                             labels.add(os.path.basename(os.path.dirname(original_file)))
-                    elif os.path.basename(original_file) == self.METADATA_FILENAME:
+                    elif os.path.basename(original_file) in self.METADATA_FILENAMES:
                         metadata_files[split].add((original_file, downloaded_file))
                     else:
                         original_file_name = os.path.basename(original_file)
                         logger.debug(
-                            f"The file '{original_file_name}' was ignored: it is not an image, and is not {self.METADATA_FILENAME} either."
+                            f"The file '{original_file_name}' was ignored: it is not an image, and is not {self.METADATA_FILENAMES} either."
                         )
             else:
                 archives, downloaded_dirs = files_or_archives, downloaded_files_or_dirs
@@ -100,13 +102,13 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                         if downloaded_dir_file_ext in self.IMAGE_EXTENSIONS:
                             if not self.config.drop_labels:
                                 labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
-                        elif os.path.basename(downloaded_dir_file) == self.METADATA_FILENAME:
+                        elif os.path.basename(downloaded_dir_file) in self.METADATA_FILENAMES:
                             metadata_files[split].add((None, downloaded_dir_file))
                         else:
                             archive_file_name = os.path.basename(archive)
                             original_file_name = os.path.basename(downloaded_dir_file)
                             logger.debug(
-                                f"The file '{original_file_name}' from the archive '{archive_file_name}' was ignored: it is not an image, and is not {self.METADATA_FILENAME} either."
+                                f"The file '{original_file_name}' from the archive '{archive_file_name}' was ignored: it is not an image, and is not {self.METADATA_FILENAMES} either."
                             )
 
         data_files = self.config.data_files
@@ -160,9 +162,18 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
             # * all metadata files have the same set of features
             # * the `file_name` key is one of the metadata keys and is of type string
             features_per_metadata_file: List[Tuple[str, datasets.Features]] = []
+
+            # Check that all metadata files are in the same format
+            metadata_ext = set(
+                os.path.splitext(downloaded_metadata_file)[1][1:]
+                for _, downloaded_metadata_file in itertools.chain.from_iterable(metadata_files.values())
+            )
+            if len(metadata_ext) > 1:
+                raise ValueError(f"Found metadata files with different extensions: {list(metadata_ext)}")
+            metadata_ext = metadata_ext.pop()
+
             for _, downloaded_metadata_file in itertools.chain.from_iterable(metadata_files.values()):
-                with open(downloaded_metadata_file, "rb") as f:
-                    pa_metadata_table = paj.read_json(f)
+                pa_metadata_table = self._read_metadata(downloaded_metadata_file)
                 features_per_metadata_file.append(
                     (downloaded_metadata_file, datasets.Features.from_arrow_schema(pa_metadata_table.schema))
                 )
@@ -218,11 +229,20 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
             _, data_file_ext = os.path.splitext(data_file)
             if data_file_ext.lower() in self.IMAGE_EXTENSIONS:
                 files.append(data_file)
-            elif os.path.basename(data_file) == self.METADATA_FILENAME:
+            elif os.path.basename(data_file) in self.METADATA_FILENAMES:
                 files.append(data_file)
             else:
                 archives.append(data_file)
         return files, archives
+
+    def _read_metadata(self, metadata_file):
+        metadata_file_ext = os.path.splitext(metadata_file)[1][1:]
+        if metadata_file_ext == "jsonl":
+            with open(metadata_file, "rb") as f:
+                return paj.read_json(f)
+        else:
+            # Use `pd.read_csv` (although slower) instead of `pyarrow.csv.read_csv` for reading CSV files for consistency with the CSV packaged module
+            return pa.Table.from_pandas(pd.read_csv(metadata_file))
 
     def _generate_examples(self, files, metadata_files, split_name, add_metadata, add_labels):
         split_metadata_files = metadata_files.get(split_name, [])
@@ -260,8 +280,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                                 _, metadata_file, downloaded_metadata_file = min(
                                     metadata_file_candidates, key=lambda x: count_path_segments(x[0])
                                 )
-                                with open(downloaded_metadata_file, "rb") as f:
-                                    pa_metadata_table = paj.read_json(f)
+                                pa_metadata_table = self._read_metadata(downloaded_metadata_file)
                                 pa_file_name_array = pa_metadata_table["file_name"]
                                 pa_file_name_array = pc.replace_substring(
                                     pa_file_name_array, pattern="\\", replacement="/"
@@ -325,8 +344,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                                     _, metadata_file, downloaded_metadata_file = min(
                                         metadata_file_candidates, key=lambda x: count_path_segments(x[0])
                                     )
-                                    with open(downloaded_metadata_file, "rb") as f:
-                                        pa_metadata_table = paj.read_json(f)
+                                    pa_metadata_table = self._read_metadata(downloaded_metadata_file)
                                     pa_file_name_array = pa_metadata_table["file_name"]
                                     pa_file_name_array = pc.replace_substring(
                                         pa_file_name_array, pattern="\\", replacement="/"

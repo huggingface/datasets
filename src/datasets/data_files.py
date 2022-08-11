@@ -79,7 +79,12 @@ ALL_DEFAULT_PATTERNS = [
     DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
     DEFAULT_PATTERNS_ALL,
 ]
-METADATA_PATTERNS = ["metadata.jsonl", "**/metadata.jsonl"]  # metadata file for ImageFolder and AudioFolder
+METADATA_PATTERNS = [
+    "metadata.jsonl",
+    "**/metadata.jsonl",
+    "metadata.csv",
+    "**/metadata.csv",
+]  # metadata file for ImageFolder and AudioFolder
 WILDCARD_CHARACTERS = "*[]"
 FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data.zip", "dataset_dict.json"]
 
