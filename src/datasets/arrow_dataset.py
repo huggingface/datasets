@@ -3448,7 +3448,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Return a dictionary (:obj:`datasets.DatasetDict`) with two random train and test subsets (`train` and `test` ``Dataset`` splits).
         Splits are created from the dataset according to `test_size`, `train_size` and `shuffle`.
 
-        This method is similar to scikit-learn `train_test_split` with the omission of the stratified options.
+        This method is similar to scikit-learn `train_test_split`.
 
         Args:
             test_size (:obj:`numpy.random.Generator`, optional): Size of the test split
