@@ -1,7 +1,8 @@
 ---
 language:
 - en
-license: apache-2.0
+license:
+- apache-2.0
 paperswithcode_id: pg-19
 pretty_name: PG-19
 ---
