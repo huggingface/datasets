@@ -92,7 +92,7 @@ configs:
 - fr-hy
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for OpenSubtitles
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

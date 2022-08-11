@@ -244,7 +244,7 @@ paperswithcode_id: null
 pretty_name: QedAmara
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for QedAmara
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

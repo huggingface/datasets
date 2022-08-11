@@ -30,7 +30,7 @@ pretty_name: RecipeNLG
 ---
 
 
-# Dataset Card Creation Guide
+# Dataset Card for RecipeNLG
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
