@@ -92,7 +92,6 @@ language:
 - so
 - sq
 - sr
-- srp
 - sv
 - sw
 - szl
@@ -203,7 +202,114 @@ machine learning task, language modeling and generation
 
 ### Languages
 
-Ted talks are mostly held in English (`en`). Almost all of the talks have been translated, by volunteers, into Arabic, Bulgarian, Chinese (simplified), French, Italian, Korean, Portuguese (Brazil) and Spanish. For about 70 other languages, the number of translated talks ranges from several hundreds (e.g. such as other Dutch, German, Hebrew, Romanian) to one (e.g. Hausa, Hupa, Bislama, Ingush, Maltese)
+Ted talks are mostly held in English (`en`). Almost all of the talks have been translated, by volunteers, into Arabic, Bulgarian, Chinese (simplified), French, Italian, Korean, Portuguese (Brazil) and Spanish. For about 70 other languages, the number of translated talks ranges from several hundreds (e.g. such as other Dutch, German, Hebrew, Romanian) to one (e.g. Hausa, Hupa, Bislama, Ingush, Maltese).
+
+The languages in the dataset are:
+- af
+- am
+- ar
+- arq
+- art
+- as
+- ast
+- az
+- be
+- bg
+- bi
+- bn
+- bo
+- bs
+- ca
+- ceb
+- cnh
+- cs
+- da
+- de
+- el
+- en
+- eo
+- es
+- et
+- eu
+- fa
+- fi
+- fil
+- fr
+- ga
+- gl
+- gu
+- ha
+- he
+- hi
+- hr
+- ht
+- hu
+- hup
+- hy
+- id
+- ig
+- inh
+- is
+- it
+- ja
+- ka
+- kk
+- km
+- kn
+- ko
+- ku
+- ky
+- la
+- lb
+- lo
+- lt
+- ltg
+- lv
+- mg
+- mk
+- ml
+- mn
+- mr
+- ms
+- mt
+- my
+- nb
+- ne
+- nl
+- nn
+- oc
+- pa
+- pl
+- ps
+- pt
+- ro
+- ru
+- rup
+- sh
+- si
+- sk
+- sl
+- so
+- sq
+- sr
+- srp: Serbian (`sr`)
+- sv
+- sw
+- szl
+- ta
+- te
+- tg
+- th
+- tl
+- tlh
+- tr
+- tt
+- ug
+- uk
+- ur
+- uz
+- vi
+- zh
 
 ## Dataset Structure
 

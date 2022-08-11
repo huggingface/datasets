@@ -50,8 +50,8 @@ language:
 - id
 - is
 - it
+- ja
 - jak
-- jap
 - jiv
 - kab
 - kbh
