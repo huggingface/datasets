@@ -30,7 +30,8 @@ def interleave_datasets(
     If ``probabilities`` is ``None`` (default) the new dataset is constructed by cycling between each source to get the examples.
     If ``probabilities`` is not ``None``, the new dataset is constructed by getting examples from a random source at a time according to the provided probabilities.
 
-    The resulting dataset ends when one of the source datasets runs out of examples.
+    The resulting dataset ends when one of the source datasets runs out of examples except when ``oversampling`` is ``True`` and :class:`Dataset` objects are used,
+    in which case, the resulting dataset ends when all datasets have ran out of examples at least one time.
 
     Args:
         datasets (:obj:`List[Dataset]` or :obj:`List[IterableDataset]`): list of datasets to interleave
