@@ -17,7 +17,7 @@ task_categories:
 - text2text-generation
 task_ids:
 - abstractive-qa
-- open-domain-abstrative-qa
+- open-domain-abstractive-qa
 paperswithcode_id: eli5
 pretty_name: ELI5
 ---

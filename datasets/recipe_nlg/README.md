@@ -18,13 +18,13 @@ task_categories:
 - text-generation
 - fill-mask
 - text-retrieval
+- summarization
 task_ids:
 - document-retrieval
 - entity-linking-retrieval
 - explanation-generation
 - language-modeling
 - masked-language-modeling
-- summarization
 paperswithcode_id: recipenlg
 pretty_name: RecipeNLG
 ---
