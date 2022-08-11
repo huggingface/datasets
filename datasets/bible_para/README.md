@@ -121,7 +121,7 @@ paperswithcode_id: null
 pretty_name: BiblePara
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for BiblePara
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

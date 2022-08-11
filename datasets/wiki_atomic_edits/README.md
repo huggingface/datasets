@@ -46,7 +46,7 @@ configs:
 - spanish_insertions
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for WikiAtomicEdits
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

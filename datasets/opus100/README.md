@@ -239,7 +239,7 @@ configs:
 - ru-zh
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Opus100
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
