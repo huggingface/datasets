@@ -1,6 +1,6 @@
 ---
 annotations_creators:
-- unknown
+- other
 language_creators:
 - machine-generated
 language:
