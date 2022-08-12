@@ -479,3 +479,33 @@ def test_data_files_with_wrong_image_file_name_column_in_metadata_file(cache_dir
     with pytest.raises(ValueError) as exc_info:
         imagefolder.download_and_prepare()
     assert "`file_name` must be present" in str(exc_info.value)
+
+
+@require_pil
+def test_data_files_with_with_metadata_in_different_formats(cache_dir, tmp_path, image_file):
+    data_dir = tmp_path / "data_dir_with_metadata_in_different_format"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(image_file, data_dir / "image_rgb.jpg")
+    image_metadata_filename_jsonl = data_dir / "metadata.jsonl"
+    image_metadata_jsonl = textwrap.dedent(
+        """\
+        {"file_name": "image_rgb.jpg", "caption": "Nice image"}
+        """
+    )
+    with open(image_metadata_filename_jsonl, "w", encoding="utf-8") as f:
+        f.write(image_metadata_jsonl)
+    image_metadata_filename_csv = data_dir / "metadata.csv"
+    image_metadata_csv = textwrap.dedent(
+        """\
+        file_name,caption
+        image_rgb.jpg,Nice image
+        """
+    )
+    with open(image_metadata_filename_csv, "w", encoding="utf-8") as f:
+        f.write(image_metadata_csv)
+
+    data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(get_data_patterns_locally(data_dir), data_dir)
+    imagefolder = ImageFolder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
+    with pytest.raises(ValueError) as exc_info:
+        imagefolder.download_and_prepare()
+    assert "metadata files with different extensions" in str(exc_info.value)
