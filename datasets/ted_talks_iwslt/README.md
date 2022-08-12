@@ -116,7 +116,7 @@ language_bcp47:
 - zh-CN
 - zh-TW
 license:
-- cc-by-nc-4.0
+- cc-by-nc-nd-4.0
 multilinguality:
 - translation
 size_categories:
@@ -448,7 +448,7 @@ For issues with the HuggingFace Dataset implementation, reach out: [Aakash Gupta
 
 ### Licensing Information
 
-cc-by-nc-4.0
+cc-by-nc-nd-4.0
 
 ### Citation Information
 ```
