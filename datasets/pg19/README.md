@@ -1,8 +1,22 @@
 ---
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
 language:
 - en
 license:
 - apache-2.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-generation
+task_ids:
+- language-modeling
 paperswithcode_id: pg-19
 pretty_name: PG-19
 ---
@@ -37,7 +51,7 @@ pretty_name: PG-19
 
 - **Homepage:** [https://github.com/deepmind/pg19](https://github.com/deepmind/pg19)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [Compressive Transformers for Long-Range Sequence Modelling](https://arxiv.org/abs/1911.05507)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 11196.60 MB
 - **Size of the generated dataset:** 10978.29 MB
@@ -154,7 +168,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-Apache 2.0
+The dataset is licensed under [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.html).
 
 ### Citation Information
 
@@ -167,7 +181,6 @@ Apache 2.0
   url = {https://arxiv.org/abs/1911.05507},
   year = {2019},
 }
-
 ```
 
 
