@@ -362,7 +362,7 @@ def test_array_xd_with_np(data, feature, expected):
 @pytest.mark.parametrize(
     "data, feature, expected",
     [
-        (np.zeros((5000000, 768), dtype=np.uint8), None, [0] * 768),
+        (np.zeros((46341, 46341), dtype=np.uint8), None, [0] * 46341),
     ],
 )
 def test_large_array_xd_with_np(data, feature, expected):
