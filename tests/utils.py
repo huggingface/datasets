@@ -12,6 +12,7 @@ from importlib.util import find_spec
 from pathlib import Path
 from unittest.mock import patch
 
+import decorator
 import pyarrow as pa
 import pytest
 from packaging import version
@@ -358,3 +359,17 @@ def assert_arrow_memory_doesnt_increase():
 
 def is_rng_equal(rng1, rng2):
     return deepcopy(rng1).integers(0, 100, 10).tolist() == deepcopy(rng2).integers(0, 100, 10).tolist()
+
+
+def xfail_if_500_http_error(func):
+    from requests.exceptions import HTTPError
+
+    def _wrapper(func, *args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except HTTPError as err:
+            if str(err).startswith("500"):
+                pytest.xfail(str(err))
+            raise err
+
+    return decorator.decorator(_wrapper, func)
