@@ -12,7 +12,6 @@ from importlib.util import find_spec
 from pathlib import Path
 from unittest.mock import patch
 
-import decorator
 import pyarrow as pa
 import pytest
 from packaging import version
@@ -362,6 +361,7 @@ def is_rng_equal(rng1, rng2):
 
 
 def xfail_if_500_http_error(func):
+    import decorator
     from requests.exceptions import HTTPError
 
     def _wrapper(func, *args, **kwargs):
