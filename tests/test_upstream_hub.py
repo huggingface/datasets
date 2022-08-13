@@ -126,20 +126,13 @@ class TestPushToHub:
                 )
             )
 
-    # @xfailif500
     def test_push_dataset_dict_to_hub_multiple_files(self, temporary_repo):
-        from requests.exceptions import HTTPError
-
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
 
         local_ds = DatasetDict({"train": ds})
 
         with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token, max_shard_size="16KB")
-            # pytest.xfail()
-            raise HTTPError(
-                "501 Server Error: Internal Server Error for url: https://hub-ci.huggingface.co/api/datasets/__DUMMY_TRANSFORMERS_USER__/test-16603108028233/commit/main (Request ID: aZeAQ5yLktoGHQYBcJ3zo)"
-            )
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
             assert local_ds.column_names == hub_ds.column_names
