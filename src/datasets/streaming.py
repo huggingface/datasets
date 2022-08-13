@@ -105,18 +105,15 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
     # this extends the open and os.path.join functions for data streaming
     extend_module_for_streaming(builder.__module__, use_auth_token=builder.use_auth_token)
     # if needed, we also have to extend additional internal imports (like wmt14 -> wmt_utils)
-    if not builder.__module__.startswith("datasets."):  # check that it's not a packaged builder like csv
-        for imports in get_imports(inspect.getfile(builder.__class__)):
-            if imports[0] == "internal":
-                internal_import_name = imports[1]
-                internal_module_name = ".".join(builder.__module__.split(".")[:-1] + [internal_import_name])
-                extend_module_for_streaming(internal_module_name, use_auth_token=builder.use_auth_token)
-
-    # we need to patch autofolder.py manually because it's a parent of ImageFolder and AudioFolder,`
-    # and it contains generation of examples for them (which uses `os` functions)
-    # but it's not patched automatically because it's not instantiated
-    from .packaged_modules.autofolder.autofolder import AutoFolder
-
-    autofolder_module = [cls.__module__ for cls in type(builder).__mro__ if cls is AutoFolder]
-    if autofolder_module:
-        extend_module_for_streaming(autofolder_module[0], use_auth_token=builder.use_auth_token)
+    for imports in get_imports(inspect.getfile(builder.__class__)):
+        if imports[0] == "internal":
+            internal_import_name = imports[1]
+            # if import is from a parent's directory we should go to the level up to get the correct path to the module
+            if internal_import_name.startswith(".."):
+                internal_import_name = [internal_import_name.lstrip("."), imports[2]]
+                internal_import_path = builder.__module__.split(".")[:-2]
+            else:
+                internal_import_name = [internal_import_name]
+                internal_import_path = builder.__module__.split(".")[:-1]
+            internal_module_name = ".".join(internal_import_path + internal_import_name)
+            extend_module_for_streaming(internal_module_name, use_auth_token=builder.use_auth_token)
