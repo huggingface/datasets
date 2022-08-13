@@ -1,8 +1,9 @@
+import abc
 import collections
 import itertools
 import os
 from dataclasses import dataclass
-from typing import ClassVar, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import pyarrow.compute as pc
 import pyarrow.json as paj
@@ -44,41 +45,52 @@ def count_path_segments(path):
 class AutoFolderConfig(datasets.BuilderConfig):
     """BuilderConfig for AutoFolder."""
 
-    _base_feature: ClassVar = (
-        None  # i.e. datasets.Image(), datasets.Audio(), we don't have a type for Feature ("FieldType")
-    )
     base_feature_name: str = ""
     label_column: str = "label"
     features: Optional[datasets.Features] = None
     drop_labels: bool = None
     drop_metadata: bool = None
 
-    def __post_init__(self):
-        if not self.base_feature_name:
-            # automatically infer feature name from feature if it's not provided
-            if hasattr(self._base_feature, "_type"):
-                self.base_feature_name = self._base_feature._type.lower()
-            elif hasattr(self._base_feature, "__name__"):
-                self.base_feature_name = self._base_feature.__name__.lower()
+
+class AutoFolder(datasets.GeneratorBasedBuilder, abc.ABC):
+    """
+    Base class for generic data loaders for vision and image data.
+
+
+    Abstract class attributes to be overridden by a child class:
+        BASE_FEATURE: feature to decode data (i.e. datasets.Image(), datasets.Audio(), ...)
+        BUILDER_CONFIG_CLASS: builder config inherited from `autofolder.AutoFolderConfig`
+        EXTENSIONS: list of allowed extensions (only files with these extensions and METADATA_FILENAME files
+            will be included in a dataset)
+    """
+
+    BASE_FEATURE: Any
+    BUILDER_CONFIG_CLASS: AutoFolderConfig
+    EXTENSIONS: List[str]
+
+    SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT: bool = True
+    METADATA_FILENAME: str = "metadata.jsonl"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.config.base_feature_name:
+            # automatically infer base_feature_name if it's not provided
+            if hasattr(self.BASE_FEATURE, "_type"):
+                self.config.base_feature_name = self.BASE_FEATURE._type.lower()
+            elif hasattr(self.BASE_FEATURE, "__name__"):
+                self.config.base_feature_name = self.BASE_FEATURE.__name__.lower()
             else:
                 raise AttributeError(
                     """
-                    `base_feature_name` is not provided and cannot be inferred form the base feature,
-                    check the config's `base_feature`.
+                    Builder config's `base_feature_name` is not provided and cannot be inferred form the `BASE_FEATURE`,
+                    check the builder's `BASE_FEATURE` attribute.
                     """
                 )
-
-
-class AutoFolder(datasets.GeneratorBasedBuilder):
-    BUILDER_CONFIG_CLASS = AutoFolderConfig
-    EXTENSIONS: List[str] = []
-    SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT = True
-    METADATA_FILENAME: str = "metadata.jsonl"
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
 
-    def _prepare_split_generators(self, dl_manager):
+    def _split_generators(self, dl_manager):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
 
@@ -204,12 +216,12 @@ class AutoFolder(datasets.GeneratorBasedBuilder):
             if add_labels:
                 self.info.features = datasets.Features(
                     {
-                        self.config.base_feature_name: self.config._base_feature,
+                        self.config.base_feature_name: self.BASE_FEATURE,
                         self.config.label_column: datasets.ClassLabel(names=sorted(labels)),
                     }
                 )
             else:
-                self.info.features = datasets.Features({self.config.base_feature_name: self.config._base_feature})
+                self.info.features = datasets.Features({self.config.base_feature_name: self.BASE_FEATURE})
 
             if add_metadata:
                 # Warn if there are duplicated keys in metadata compared to the existing features
@@ -243,7 +255,7 @@ class AutoFolder(datasets.GeneratorBasedBuilder):
                 archives.append(data_file)
         return files, archives
 
-    def _prepare_generate_examples(self, files, metadata_files, split_name, add_metadata, add_labels):
+    def _generate_examples(self, files, metadata_files, split_name, add_metadata, add_labels):
         split_metadata_files = metadata_files.get(split_name, [])
         sample_empty_metadata = (
             {k: None for k in self.info.features if k != self.config.base_feature_name} if self.info.features else {}

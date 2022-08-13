@@ -7,10 +7,12 @@ import pytest
 from datasets import ClassLabel, DownloadManager, Features, Value
 from datasets.data_files import DataFilesDict, get_data_patterns_locally
 from datasets.download.streaming_download_manager import StreamingDownloadManager
-from datasets.packaged_modules.base.autofolder import AutoFolder, AutoFolderConfig
+from datasets.packaged_modules.autofolder.autofolder import AutoFolder, AutoFolderConfig
 
 
 class DummyAutoFolder(AutoFolder):
+    BASE_FEATURE = None
+    BUILDER_CONFIG_CLASS = AutoFolderConfig
     EXTENSIONS = [".txt"]
 
     def __init__(self, *args, **kwargs):
@@ -218,29 +220,20 @@ def data_files_with_zip_archives(tmp_path, auto_text_file):
 
 def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cache_dir):
     autofolder = DummyAutoFolder(data_files=data_files_with_labels_no_metadata, cache_dir=cache_dir, drop_labels=False)
-    gen_kwargs = autofolder._prepare_split_generators(StreamingDownloadManager())[0].gen_kwargs
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     assert autofolder.info.features == Features({"auto": None, "label": ClassLabel(names=["class0", "class1"])})
-    generator = autofolder._prepare_generate_examples(**gen_kwargs)
+    generator = autofolder._generate_examples(**gen_kwargs)
     assert all(example["label"] in {"class0", "class1"} for _, example in generator)
 
 
-def test_default_autoconfig_not_usable(data_files_with_labels_no_metadata):
-    # by default AutoFolderConfig will try to create base_feature_name from _base_feature
-    # but AutoFolderConfig._base_feature is None
-    with pytest.raises(AttributeError):
-        _ = AutoFolderConfig()
-    with pytest.raises(AttributeError):
-        _ = AutoFolder(data_files=data_files_with_labels_no_metadata)
-
-
 def test_default_autofolder_not_usable(data_files_with_labels_no_metadata, cache_dir):
-    autofolder = AutoFolder(
-        base_feature_name="auto",
-        data_files=data_files_with_labels_no_metadata,
-        cache_dir=cache_dir,
-    )
-    with pytest.raises(NotImplementedError):
-        autofolder.download_and_prepare()
+    # builder would try to access non-existing attributes of a default `BuilderConfig` class
+    # as a custom one is not provided
+    with pytest.raises(AttributeError):
+        _ = AutoFolder(
+            data_files=data_files_with_labels_no_metadata,
+            cache_dir=cache_dir,
+        )
 
 
 # test that AutoFolder is extended for streaming when it's child class is instantiated:
@@ -264,8 +257,8 @@ def test_prepare_generate_examples_duplicated_label_key(
         drop_metadata=drop_metadata,
         drop_labels=drop_labels,
     )
-    gen_kwargs = autofolder._prepare_split_generators(StreamingDownloadManager())[0].gen_kwargs
-    generator = autofolder._prepare_generate_examples(**gen_kwargs)
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    generator = autofolder._generate_examples(**gen_kwargs)
     if drop_labels is False:
         # infer labels from directories even if metadata files are found
         warning_in_logs = any("ignoring metadata columns" in record.msg.lower() for record in caplog.records)
@@ -292,11 +285,11 @@ def test_prepare_generate_examples_drop_labels(auto_text_file, drop_metadata, dr
         drop_metadata=drop_metadata,
         drop_labels=drop_labels,
     )
-    gen_kwargs = autofolder._prepare_split_generators(StreamingDownloadManager())[0].gen_kwargs
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     # removing the labels explicitly requires drop_labels=True
     assert gen_kwargs["add_labels"] is not bool(drop_labels)
     assert gen_kwargs["add_metadata"] is False
-    generator = autofolder._prepare_generate_examples(**gen_kwargs)
+    generator = autofolder._generate_examples(**gen_kwargs)
     if not drop_labels:
         assert all(
             example.keys() == {"auto", "label"} and all(val is not None for val in example.values())
@@ -317,12 +310,12 @@ def test_prepare_generate_examples_drop_metadata(file_with_metadata, drop_metada
         drop_metadata=drop_metadata,
         drop_labels=drop_labels,
     )
-    gen_kwargs = autofolder._prepare_split_generators(StreamingDownloadManager())[0].gen_kwargs
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     # since the dataset has metadata, removing the metadata explicitly requires drop_metadata=True
     assert gen_kwargs["add_metadata"] is not bool(drop_metadata)
     # since the dataset has metadata, adding the labels explicitly requires drop_labels=False
     assert gen_kwargs["add_labels"] is (drop_labels is False)
-    generator = autofolder._prepare_generate_examples(**gen_kwargs)
+    generator = autofolder._generate_examples(**gen_kwargs)
     expected_columns = {"auto"}
     if gen_kwargs["add_metadata"]:
         expected_columns.add("additional_feature")
@@ -350,8 +343,8 @@ def test_prepare_generate_examples_with_metadata_that_misses_one_sample(
         drop_metadata=drop_metadata,
         features=features,
     )
-    gen_kwargs = autofolder._prepare_split_generators(StreamingDownloadManager())[0].gen_kwargs
-    generator = autofolder._prepare_generate_examples(**gen_kwargs)
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    generator = autofolder._generate_examples(**gen_kwargs)
     if not drop_metadata:
         with pytest.raises(ValueError):
             list(generator)
@@ -372,11 +365,11 @@ def test_data_files_with_metadata_and_splits(
         cache_dir=cache_dir,
     )
     download_manager = StreamingDownloadManager() if streaming else DownloadManager()
-    generated_splits = autofolder._prepare_split_generators(download_manager)
+    generated_splits = autofolder._split_generators(download_manager)
     for (split, files), generated_split in zip(data_files.items(), generated_splits):
         assert split == generated_split.name
         expected_num_of_examples = len(files) - 1
-        generated_examples = list(autofolder._prepare_generate_examples(**generated_split.gen_kwargs))
+        generated_examples = list(autofolder._generate_examples(**generated_split.gen_kwargs))
         assert len(generated_examples) == expected_num_of_examples
         assert len(set(example["auto"] for _, example in generated_examples)) == expected_num_of_examples
         assert len(set(example["additional_feature"] for _, example in generated_examples)) == expected_num_of_examples
@@ -387,12 +380,12 @@ def test_data_files_with_metadata_and_splits(
 def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_with_zip_archives):
     autofolder = DummyAutoFolder(data_files=data_files_with_zip_archives, cache_dir=cache_dir)
     download_manager = StreamingDownloadManager() if streaming else DownloadManager()
-    generated_splits = autofolder._prepare_split_generators(download_manager)
+    generated_splits = autofolder._split_generators(download_manager)
     for (split, files), generated_split in zip(data_files_with_zip_archives.items(), generated_splits):
         assert split == generated_split.name
         num_of_archives = len(files)
         expected_num_of_examples = 2 * num_of_archives
-        generated_examples = list(autofolder._prepare_generate_examples(**generated_split.gen_kwargs))
+        generated_examples = list(autofolder._generate_examples(**generated_split.gen_kwargs))
         assert len(generated_examples) == expected_num_of_examples
         assert len(set(example["auto"] for _, example in generated_examples)) == expected_num_of_examples
         assert len(set(example["additional_feature"] for _, example in generated_examples)) == expected_num_of_examples
@@ -414,8 +407,8 @@ def test_data_files_with_wrong_metadata_file_name(cache_dir, tmp_path, auto_text
 
     data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(get_data_patterns_locally(data_dir), data_dir)
     autofolder = DummyAutoFolder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
-    gen_kwargs = autofolder._prepare_split_generators(StreamingDownloadManager())[0].gen_kwargs
-    generator = autofolder._prepare_generate_examples(**gen_kwargs)
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    generator = autofolder._generate_examples(**gen_kwargs)
     assert all("additional_feature" not in example for _, example in generator)
 
 
@@ -435,5 +428,5 @@ def test_data_files_with_wrong_file_name_column_in_metadata_file(cache_dir, tmp_
     data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(get_data_patterns_locally(data_dir), data_dir)
     autofolder = DummyAutoFolder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
     with pytest.raises(ValueError) as exc_info:
-        _ = autofolder._prepare_split_generators(StreamingDownloadManager())[0].gen_kwargs
+        _ = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     assert "`file_name` must be present" in str(exc_info.value)

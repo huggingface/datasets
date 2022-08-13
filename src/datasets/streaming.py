@@ -115,7 +115,7 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
     # we need to patch autofolder.py manually because it's a parent of ImageFolder and AudioFolder,`
     # and it contains generation of examples for them (which uses `os` functions)
     # but it's not patched automatically because it's not instantiated
-    from .packaged_modules.base.autofolder import AutoFolder
+    from .packaged_modules.autofolder.autofolder import AutoFolder
 
     autofolder_module = [cls.__module__ for cls in type(builder).__mro__ if cls is AutoFolder]
     if autofolder_module:

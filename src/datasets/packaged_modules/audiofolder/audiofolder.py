@@ -1,9 +1,9 @@
 from dataclasses import dataclass
-from typing import ClassVar, List
+from typing import List
 
 import datasets
 
-from ..base import autofolder
+from ..autofolder import autofolder
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -13,27 +13,14 @@ logger = datasets.utils.logging.get_logger(__name__)
 class AudioFolderConfig(autofolder.AutoFolderConfig):
     """Builder Config for AudioFolder."""
 
-    _base_feature: ClassVar = datasets.Audio()
     drop_labels: bool = True  # usually we don't need labels as classification is not the main audio task
     drop_metadata: bool = None
 
 
 class AudioFolder(autofolder.AutoFolder):
+    BASE_FEATURE = datasets.Audio()
     BUILDER_CONFIG_CLASS = AudioFolderConfig
-    EXTENSIONS: List[str] = []  # definition at the bottom of the script
-
-    def _info(self):
-        return datasets.DatasetInfo(features=self.config.features)
-
-    def _split_generators(self, dl_manager):
-        # _prepare_split_generators() sets self.info.features,
-        # infers labels, finds metadata files if needed and returns splits
-        return self._prepare_split_generators(dl_manager)
-
-    def _generate_examples(self, files, metadata_files, split_name, add_metadata, add_labels):
-        generator = self._prepare_generate_examples(files, metadata_files, split_name, add_metadata, add_labels)
-        for _, example in generator:
-            yield _, example
+    EXTENSIONS: List[str]  # definition at the bottom of the script
 
 
 # Obtained with:

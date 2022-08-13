@@ -1,10 +1,9 @@
 from dataclasses import dataclass
-from typing import ClassVar, List
+from typing import List
 
 import datasets
-from datasets.tasks import ImageClassification
 
-from ..base import autofolder
+from ..autofolder import autofolder
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -14,37 +13,14 @@ logger = datasets.utils.logging.get_logger(__name__)
 class ImageFolderConfig(autofolder.AutoFolderConfig):
     """BuilderConfig for ImageFolder."""
 
-    _base_feature: ClassVar = datasets.Image()
     drop_labels: bool = None
     drop_metadata: bool = None
 
 
 class ImageFolder(autofolder.AutoFolder):
+    BASE_FEATURE = datasets.Image()
     BUILDER_CONFIG_CLASS = ImageFolderConfig
-    EXTENSIONS: List[str] = []  # definition at the bottom of the script
-
-    def _info(self):
-        return datasets.DatasetInfo(features=self.config.features)
-
-    def _split_generators(self, dl_manager):
-        # _prepare_split_generators() sets self.info.features,
-        # infers labels, finds metadata files if needed and returns splits
-        splits = self._prepare_split_generators(dl_manager)
-
-        add_labels = splits[0].gen_kwargs["add_labels"]
-        if self.config.features is None and add_labels:
-            task_template = ImageClassification(
-                image_column=self.config.base_feature_name, label_column=self.config.label_column
-            )
-            task_template = task_template.align_with_features(self.info.features)
-            self.info.task_templates = [task_template]
-
-        return splits
-
-    def _generate_examples(self, files, metadata_files, split_name, add_metadata, add_labels):
-        generator = self._prepare_generate_examples(files, metadata_files, split_name, add_metadata, add_labels)
-        for _, example in generator:
-            yield _, example
+    EXTENSIONS: List[str]  # definition at the bottom of the script
 
 
 # Obtained with:
