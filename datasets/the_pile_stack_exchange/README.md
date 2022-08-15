@@ -6,7 +6,7 @@ language_creators:
 language:
 - en
 license:
-- mit
+- cc-by-sa-4.0
 multilinguality:
 - monolingual
 pretty_name: Stack Exchange
