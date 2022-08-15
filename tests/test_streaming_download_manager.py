@@ -752,9 +752,9 @@ def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol
         "https://foo.bar/train.tar",
     ],
 )
-@pytest.mark.xfail(raises=NotImplementedError)
 def test_streaming_dl_manager_get_extraction_protocol_throws(urlpath):
-    _get_extraction_protocol(urlpath)
+    with pytest.raises(NotImplementedError):
+        _ = _get_extraction_protocol(urlpath)
 
 
 @slow  # otherwise it spams google drive and the CI gets banned
