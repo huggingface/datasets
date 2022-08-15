@@ -37,7 +37,7 @@ _HOMEPAGE = "https://github.com/apple/ml-mkqa"
 _LICENSE = "CC BY-SA 3.0"
 
 
-_URLS = {"train": "https://github.com/apple/ml-mkqa/raw/master/dataset/mkqa.jsonl.gz"}
+_URLS = {"train": "https://github.com/apple/ml-mkqa/raw/main/dataset/mkqa.jsonl.gz"}
 
 
 class Mkqa(datasets.GeneratorBasedBuilder):

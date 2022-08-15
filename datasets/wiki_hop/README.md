@@ -22,7 +22,7 @@ paperswithcode_id: wikihop
 pretty_name: WikiHop
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for WikiHop
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

@@ -66,7 +66,7 @@ source_datasets:
 task_categories:
 - audio-classification
 task_ids:
-- speaker-language-identification
+- speaker-identification
 ---
 
 # Dataset Card for common_language

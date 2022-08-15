@@ -21,7 +21,7 @@ paperswithcode_id: null
 pretty_name: OpusTedtalks
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for OpusTedtalks
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

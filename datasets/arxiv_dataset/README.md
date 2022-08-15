@@ -27,7 +27,7 @@ paperswithcode_id: null
 pretty_name: arXiv Dataset
 ---
 
-# Dataset Card For arXiv Dataset
+# Dataset Card for arXiv Dataset
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
