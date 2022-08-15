@@ -729,7 +729,7 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
         ("https://foo.bar/train.tar", "tar")
     ],
 )
-def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected_protocol):
+def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):
     assert _get_extraction_protocol(urlpath) == expected_protocol
 
 
@@ -741,7 +741,7 @@ def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected
     ],
 )
 @slow  # otherwise it spams google drive and the CI gets banned
-def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):
+def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected_protocol):
     assert _get_extraction_protocol(urlpath) == expected_protocol
 
 
