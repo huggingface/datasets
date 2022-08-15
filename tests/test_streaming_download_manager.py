@@ -726,7 +726,7 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
         ("https://github.com/user/repo/blob/master/data/morph_train.tsv?raw=true", None),
         ("https://repo.org/bitstream/handle/20.500.12185/346/annotated_corpus.zip?sequence=3&isAllowed=y", "zip"),
         ("https://zenodo.org/record/2787612/files/SICK.zip?download=1", "zip"),
-        ("https://foo.bar/train.tar", "tar")
+        ("https://foo.bar/train.tar", "tar"),
     ],
 )
 def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):
