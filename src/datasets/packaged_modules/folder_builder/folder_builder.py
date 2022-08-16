@@ -45,7 +45,6 @@ def count_path_segments(path):
 class FolderBuilderConfig(datasets.BuilderConfig):
     """BuilderConfig for AutoFolder."""
 
-    base_feature_name: str = ""
     features: Optional[datasets.Features] = None
     drop_labels: bool = None
     drop_metadata: bool = None
@@ -58,33 +57,19 @@ class FolderBuilder(datasets.GeneratorBasedBuilder, abc.ABC):
 
     Abstract class attributes to be overridden by a child class:
         BASE_FEATURE: feature object to decode data (i.e. datasets.Image(), datasets.Audio(), ...)
+        BASE_COLUMN_NAME: string key name of a base feature (i.e. "image", "audio", ...)
         BUILDER_CONFIG_CLASS: builder config inherited from `folder_builder.AutoFolderConfig`
         EXTENSIONS: list of allowed extensions (only files with these extensions and METADATA_FILENAME files
             will be included in a dataset)
     """
 
     BASE_FEATURE: Any
+    BASE_COLUMN_NAME: str
     BUILDER_CONFIG_CLASS: FolderBuilderConfig
     EXTENSIONS: List[str]
 
     SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT: bool = True
     METADATA_FILENAME: str = "metadata.jsonl"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if not self.config.base_feature_name:
-            # automatically infer base_feature_name if it's not provided
-            if hasattr(self.BASE_FEATURE, "_type"):
-                self.config.base_feature_name = self.BASE_FEATURE._type.lower()
-            elif hasattr(self.BASE_FEATURE, "__name__"):
-                self.config.base_feature_name = self.BASE_FEATURE.__name__.lower()
-            else:
-                raise AttributeError(
-                    """
-                    Builder config's `base_feature_name` is not provided and cannot be inferred form the `BASE_FEATURE`,
-                    check the builder's `BASE_FEATURE` attribute.
-                    """
-                )
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
@@ -118,7 +103,7 @@ class FolderBuilder(datasets.GeneratorBasedBuilder, abc.ABC):
                     else:
                         original_file_name = os.path.basename(original_file)
                         logger.debug(
-                            f"The file '{original_file_name}' was ignored: it is not an {self.config.base_feature_name}, and is not {self.METADATA_FILENAME} either."
+                            f"The file '{original_file_name}' was ignored: it is not an {self.BASE_COLUMN_NAME}, and is not {self.METADATA_FILENAME} either."
                         )
             else:
                 archives, downloaded_dirs = files_or_archives, downloaded_files_or_dirs
@@ -135,7 +120,7 @@ class FolderBuilder(datasets.GeneratorBasedBuilder, abc.ABC):
                             archive_file_name = os.path.basename(archive)
                             original_file_name = os.path.basename(downloaded_dir_file)
                             logger.debug(
-                                f"The file '{original_file_name}' from the archive '{archive_file_name}' was ignored: it is not an {self.config.base_feature_name}, and is not {self.METADATA_FILENAME} either."
+                                f"The file '{original_file_name}' from the archive '{archive_file_name}' was ignored: it is not an {self.BASE_COLUMN_NAME}, and is not {self.METADATA_FILENAME} either."
                             )
 
         data_files = self.config.data_files
@@ -215,16 +200,16 @@ class FolderBuilder(datasets.GeneratorBasedBuilder, abc.ABC):
             if add_labels:
                 self.info.features = datasets.Features(
                     {
-                        self.config.base_feature_name: self.BASE_FEATURE,
+                        self.BASE_COLUMN_NAME: self.BASE_FEATURE,
                         "label": datasets.ClassLabel(names=sorted(labels)),
                     }
                 )
             else:
-                self.info.features = datasets.Features({self.config.base_feature_name: self.BASE_FEATURE})
+                self.info.features = datasets.Features({self.BASE_COLUMN_NAME: self.BASE_FEATURE})
 
             if add_metadata:
                 # Warn if there are duplicated keys in metadata compared to the existing features
-                # (`base_feature_name`, optionally `label_column`)
+                # (`BASE_COLUMN_NAME`, optionally "label")
                 duplicated_keys = set(self.info.features) & set(metadata_features)
                 if duplicated_keys:
                     logger.warning(
@@ -257,7 +242,7 @@ class FolderBuilder(datasets.GeneratorBasedBuilder, abc.ABC):
     def _generate_examples(self, files, metadata_files, split_name, add_metadata, add_labels):
         split_metadata_files = metadata_files.get(split_name, [])
         sample_empty_metadata = (
-            {k: None for k in self.info.features if k != self.config.base_feature_name} if self.info.features else {}
+            {k: None for k in self.info.features if k != self.BASE_COLUMN_NAME} if self.info.features else {}
         )
         last_checked_dir = None
         metadata_dir = None
@@ -315,7 +300,7 @@ class FolderBuilder(datasets.GeneratorBasedBuilder, abc.ABC):
                             file_relpath = file_relpath.replace("\\", "/")
                             if file_relpath not in metadata_dict:
                                 raise ValueError(
-                                    f"{self.config.base_feature_name} at {file_relpath} doesn't have metadata in {downloaded_metadata_file}."
+                                    f"{self.BASE_COLUMN_NAME} at {file_relpath} doesn't have metadata in {downloaded_metadata_file}."
                                 )
                             sample_metadata = metadata_dict[file_relpath]
                         else:
@@ -330,7 +315,7 @@ class FolderBuilder(datasets.GeneratorBasedBuilder, abc.ABC):
                         sample_label = {}
                     yield file_idx, {
                         **sample_empty_metadata,
-                        self.config.base_feature_name: downloaded_file_or_dir,
+                        self.BASE_COLUMN_NAME: downloaded_file_or_dir,
                         **sample_metadata,
                         **sample_label,
                     }
@@ -385,7 +370,7 @@ class FolderBuilder(datasets.GeneratorBasedBuilder, abc.ABC):
                                 downloaded_dir_file_relpath = downloaded_dir_file_relpath.replace("\\", "/")
                                 if downloaded_dir_file_relpath not in metadata_dict:
                                     raise ValueError(
-                                        f"{self.config.base_feature_name} at {downloaded_dir_file_relpath} doesn't have metadata in {downloaded_metadata_file}."
+                                        f"{self.BASE_COLUMN_NAME} at {downloaded_dir_file_relpath} doesn't have metadata in {downloaded_metadata_file}."
                                     )
                                 sample_metadata = metadata_dict[downloaded_dir_file_relpath]
                             else:
@@ -400,7 +385,7 @@ class FolderBuilder(datasets.GeneratorBasedBuilder, abc.ABC):
                             sample_label = {}
                         yield file_idx, {
                             **sample_empty_metadata,
-                            self.config.base_feature_name: downloaded_dir_file,
+                            self.BASE_COLUMN_NAME: downloaded_dir_file,
                             **sample_metadata,
                             **sample_label,
                         }

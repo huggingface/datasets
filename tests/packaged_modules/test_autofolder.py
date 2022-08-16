@@ -12,11 +12,9 @@ from datasets.packaged_modules.folder_builder.folder_builder import FolderBuilde
 
 class DummyFolderBuilder(FolderBuilder):
     BASE_FEATURE = None
+    BASE_COLUMN_NAME = "base"
     BUILDER_CONFIG_CLASS = FolderBuilderConfig
     EXTENSIONS = [".txt"]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, base_feature_name="auto", **kwargs)
 
 
 @pytest.fixture
@@ -223,7 +221,7 @@ def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cac
         data_files=data_files_with_labels_no_metadata, cache_dir=cache_dir, drop_labels=False
     )
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
-    assert autofolder.info.features == Features({"auto": None, "label": ClassLabel(names=["class0", "class1"])})
+    assert autofolder.info.features == Features({"base": None, "label": ClassLabel(names=["class0", "class1"])})
     generator = autofolder._generate_examples(**gen_kwargs)
     assert all(example["label"] in {"class0", "class1"} for _, example in generator)
 
@@ -275,8 +273,8 @@ def test_prepare_generate_examples_duplicated_label_key(
             assert all(example["label"] in ["CLASS_0", "CLASS_1"] for _, example in generator)
         else:
             # drop both labels and metadata
-            assert autofolder.info.features == Features({"auto": None})
-            assert all(example.keys() == {"auto"} for _, example in generator)
+            assert autofolder.info.features == Features({"base": None})
+            assert all(example.keys() == {"base"} for _, example in generator)
 
 
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
@@ -294,12 +292,12 @@ def test_prepare_generate_examples_drop_labels(auto_text_file, drop_metadata, dr
     generator = autofolder._generate_examples(**gen_kwargs)
     if not drop_labels:
         assert all(
-            example.keys() == {"auto", "label"} and all(val is not None for val in example.values())
+            example.keys() == {"base", "label"} and all(val is not None for val in example.values())
             for _, example in generator
         )
     else:
         assert all(
-            example.keys() == {"auto"} and all(val is not None for val in example.values()) for _, example in generator
+            example.keys() == {"base"} and all(val is not None for val in example.values()) for _, example in generator
         )
 
 
@@ -318,7 +316,7 @@ def test_prepare_generate_examples_drop_metadata(file_with_metadata, drop_metada
     # since the dataset has metadata, adding the labels explicitly requires drop_labels=False
     assert gen_kwargs["add_labels"] is (drop_labels is False)
     generator = autofolder._generate_examples(**gen_kwargs)
-    expected_columns = {"auto"}
+    expected_columns = {"base"}
     if gen_kwargs["add_metadata"]:
         expected_columns.add("additional_feature")
     if gen_kwargs["add_labels"]:
@@ -337,9 +335,9 @@ def test_prepare_generate_examples_with_metadata_that_misses_one_sample(
 ):
     file, file2, metadata_file = files_with_metadata_that_misses_one_sample
     if not drop_metadata:
-        features = Features({"auto": None, "additional_feature": Value("string")})
+        features = Features({"base": None, "additional_feature": Value("string")})
     else:
-        features = Features({"auto": None})
+        features = Features({"base": None})
     autofolder = DummyFolderBuilder(
         data_files=[file, file2, metadata_file],
         drop_metadata=drop_metadata,
@@ -352,7 +350,7 @@ def test_prepare_generate_examples_with_metadata_that_misses_one_sample(
             list(generator)
     else:
         assert all(
-            example.keys() == {"auto"} and all(val is not None for val in example.values()) for _, example in generator
+            example.keys() == {"base"} and all(val is not None for val in example.values()) for _, example in generator
         )
 
 
@@ -373,7 +371,7 @@ def test_data_files_with_metadata_and_splits(
         expected_num_of_examples = len(files) - 1
         generated_examples = list(autofolder._generate_examples(**generated_split.gen_kwargs))
         assert len(generated_examples) == expected_num_of_examples
-        assert len(set(example["auto"] for _, example in generated_examples)) == expected_num_of_examples
+        assert len(set(example["base"] for _, example in generated_examples)) == expected_num_of_examples
         assert len(set(example["additional_feature"] for _, example in generated_examples)) == expected_num_of_examples
         assert all(example["additional_feature"] is not None for _, example in generated_examples)
 
@@ -389,7 +387,7 @@ def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_
         expected_num_of_examples = 2 * num_of_archives
         generated_examples = list(autofolder._generate_examples(**generated_split.gen_kwargs))
         assert len(generated_examples) == expected_num_of_examples
-        assert len(set(example["auto"] for _, example in generated_examples)) == expected_num_of_examples
+        assert len(set(example["base"] for _, example in generated_examples)) == expected_num_of_examples
         assert len(set(example["additional_feature"] for _, example in generated_examples)) == expected_num_of_examples
         assert all(example["additional_feature"] is not None for _, example in generated_examples)
 

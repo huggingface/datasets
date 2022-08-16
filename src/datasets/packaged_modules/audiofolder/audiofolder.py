@@ -19,6 +19,7 @@ class AudioFolderConfig(folder_builder.FolderBuilderConfig):
 
 class AudioFolder(folder_builder.FolderBuilder):
     BASE_FEATURE = datasets.Audio()
+    BASE_COLUMN_NAME = "audio"
     BUILDER_CONFIG_CLASS = AudioFolderConfig
     EXTENSIONS: List[str]  # definition at the bottom of the script
 

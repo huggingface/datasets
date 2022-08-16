@@ -19,6 +19,7 @@ class ImageFolderConfig(folder_builder.FolderBuilderConfig):
 
 class ImageFolder(folder_builder.FolderBuilder):
     BASE_FEATURE = datasets.Image()
+    BASE_COLUMN_NAME = "image"
     BUILDER_CONFIG_CLASS = ImageFolderConfig
     EXTENSIONS: List[str]  # definition at the bottom of the script
 
