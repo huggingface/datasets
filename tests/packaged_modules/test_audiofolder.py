@@ -10,7 +10,6 @@ from datasets import Audio, ClassLabel, Features, Value
 from datasets.data_files import DataFilesDict, get_data_patterns_locally
 from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder
-from datasets.streaming import extend_module_for_streaming
 
 from ..utils import require_sndfile
 
@@ -380,8 +379,6 @@ def test_data_files_with_metadata_and_splits(
 @require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_with_zip_archives):
-    if streaming:
-        extend_module_for_streaming(AudioFolder.__module__)
     audiofolder = AudioFolder(data_files=data_files_with_zip_archives, cache_dir=cache_dir)
     audiofolder.download_and_prepare()
     datasets = audiofolder.as_streaming_dataset() if streaming else audiofolder.as_dataset()
