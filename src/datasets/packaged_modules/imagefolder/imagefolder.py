@@ -3,21 +3,21 @@ from typing import List
 
 import datasets
 
-from ..autofolder import autofolder
+from ..folder_builder import folder_builder
 
 
 logger = datasets.utils.logging.get_logger(__name__)
 
 
 @dataclass
-class ImageFolderConfig(autofolder.AutoFolderConfig):
+class ImageFolderConfig(folder_builder.FolderBuilderConfig):
     """BuilderConfig for ImageFolder."""
 
     drop_labels: bool = None
     drop_metadata: bool = None
 
 
-class ImageFolder(autofolder.AutoFolder):
+class ImageFolder(folder_builder.FolderBuilder):
     BASE_FEATURE = datasets.Image()
     BUILDER_CONFIG_CLASS = ImageFolderConfig
     EXTENSIONS: List[str]  # definition at the bottom of the script

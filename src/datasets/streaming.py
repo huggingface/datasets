@@ -113,7 +113,7 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
                 extend_module_for_streaming(internal_module_name, use_auth_token=builder.use_auth_token)
 
     # builders can inherit from other builders that might use streaming functionality
-    # (for example, ImageFolder and AudioFolder inherit from AutoFolder which implements examples generation)
+    # (for example, ImageFolder and AudioFolder inherit from FolderBuilder which implements examples generation)
     # but these parents builders are not patched automatically as they are not instantiated, so we patch them here
     from .builder import DatasetBuilder
 
