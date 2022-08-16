@@ -551,35 +551,32 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
             # not be added as required dependencies
             continue
 
-        match = re.match(r"^import\s+(\.?)([^\s\.]+)([^#\r\n]*)(?:#\s+From:\s+)?([^\r\n]*)", line, flags=re.MULTILINE)
+        match = re.match(r"^import\s+(\.?)([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)", line, flags=re.MULTILINE)
         if match is None:
             match = re.match(
-                r"^from\s+(\.{0,2})([^\s\.]+)(?:[^\s]*)\s+import\s+([^#\r\n]*)(?:#\s+From:\s+)?([^\r\n]*)",
+                r"^from\s+(\.?)([^\s\.]+)(?:[^\s]*)\s+import\s+[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)",
                 line,
                 flags=re.MULTILINE,
             )
             if match is None:
                 continue
         if match.group(1):
-            # The import starts with '.' or '..', we will download the relevant file
+            # The import starts with a '.', we will download the relevant file
             if any(imp[1] == match.group(2) for imp in imports):
                 # We already have this import
                 continue
-            if match.group(4):
+            if match.group(3):
                 # The import has a comment with 'From:', we'll retrieve it from the given url
-                url_path = match.group(4)
+                url_path = match.group(3)
                 url_path, sub_directory = _convert_github_url(url_path)
                 imports.append(("external", match.group(2), url_path, sub_directory))
             elif match.group(2):
-                # if import is from a parent's directory we should keep the name after "from" to get the correct module
-                if match.group(1).startswith(".."):
-                    imports.append(("internal", f"..{match.group(2)}", match.group(3), None))
-                else:
-                    imports.append(("internal", match.group(2), match.group(2), None))
+                # The import should be at the same place as the file
+                imports.append(("internal", match.group(2), match.group(2), None))
         else:
-            if match.group(4):
+            if match.group(3):
                 # The import has a comment with `From: git+https:...`, asks user to pip install from git.
-                url_path = match.group(4)
+                url_path = match.group(3)
                 imports.append(("library", match.group(2), url_path, None))
             else:
                 imports.append(("library", match.group(2), match.group(2), None))

@@ -105,15 +105,24 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
     # this extends the open and os.path.join functions for data streaming
     extend_module_for_streaming(builder.__module__, use_auth_token=builder.use_auth_token)
     # if needed, we also have to extend additional internal imports (like wmt14 -> wmt_utils)
-    for imports in get_imports(inspect.getfile(builder.__class__)):
-        if imports[0] == "internal":
-            internal_import_name = imports[1]
-            # if import is from a parent's directory we should go to the level up to get the correct path to the module
-            if internal_import_name.startswith(".."):
-                internal_import_name = [internal_import_name.lstrip("."), imports[2]]
-                internal_import_path = builder.__module__.split(".")[:-2]
-            else:
-                internal_import_name = [internal_import_name]
-                internal_import_path = builder.__module__.split(".")[:-1]
-            internal_module_name = ".".join(internal_import_path + internal_import_name)
-            extend_module_for_streaming(internal_module_name, use_auth_token=builder.use_auth_token)
+    if not builder.__module__.startswith("datasets."):  # check that it's not a packaged builder like csv
+        for imports in get_imports(inspect.getfile(builder.__class__)):
+            if imports[0] == "internal":
+                internal_import_name = imports[1]
+                internal_module_name = ".".join(builder.__module__.split(".")[:-1] + [internal_import_name])
+                extend_module_for_streaming(internal_module_name, use_auth_token=builder.use_auth_token)
+
+    # builders can inherit from other builders that might use streaming functionality
+    # (for example, ImageFolder and AudioFolder inherit from AutoFolder which implements examples generation)
+    # but these parents builders are not patched automatically as they are not instantiated, so we patch them here
+    from .builder import DatasetBuilder
+
+    parent_builder_modules = [
+        cls.__module__
+        for cls in type(builder).__mro__
+        if issubclass(cls, DatasetBuilder)
+        # check it's not a standard builder from datasets.builder and not the same module we've already patched
+        and cls.__module__ not in ["datasets.builder", builder.__module__]
+    ]
+    for module in parent_builder_modules:
+        extend_module_for_streaming(module, use_auth_token=builder.use_auth_token)
