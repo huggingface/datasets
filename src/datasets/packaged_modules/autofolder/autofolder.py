@@ -46,7 +46,6 @@ class AutoFolderConfig(datasets.BuilderConfig):
     """BuilderConfig for AutoFolder."""
 
     base_feature_name: str = ""
-    label_column: str = "label"
     features: Optional[datasets.Features] = None
     drop_labels: bool = None
     drop_metadata: bool = None
@@ -217,7 +216,7 @@ class AutoFolder(datasets.GeneratorBasedBuilder, abc.ABC):
                 self.info.features = datasets.Features(
                     {
                         self.config.base_feature_name: self.BASE_FEATURE,
-                        self.config.label_column: datasets.ClassLabel(names=sorted(labels)),
+                        "label": datasets.ClassLabel(names=sorted(labels)),
                     }
                 )
             else:
@@ -326,7 +325,7 @@ class AutoFolder(datasets.GeneratorBasedBuilder, abc.ABC):
                     else:
                         sample_metadata = {}
                     if add_labels:
-                        sample_label = {self.config.label_column: os.path.basename(os.path.dirname(original_file))}
+                        sample_label = {"label": os.path.basename(os.path.dirname(original_file))}
                     else:
                         sample_label = {}
                     yield file_idx, {
@@ -396,9 +395,7 @@ class AutoFolder(datasets.GeneratorBasedBuilder, abc.ABC):
                         else:
                             sample_metadata = {}
                         if add_labels:
-                            sample_label = {
-                                self.config.label_column: os.path.basename(os.path.dirname(downloaded_dir_file))
-                            }
+                            sample_label = {"label": os.path.basename(os.path.dirname(downloaded_dir_file))}
                         else:
                             sample_label = {}
                         yield file_idx, {
