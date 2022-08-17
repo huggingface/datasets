@@ -13,7 +13,7 @@ logger = datasets.utils.logging.get_logger(__name__)
 class AudioFolderConfig(folder_based_builder.FolderBasedBuilderConfig):
     """Builder Config for AudioFolder."""
 
-    drop_labels: bool = True  # usually we don't need labels as classification is not the main audio task
+    drop_labels: bool = None
     drop_metadata: bool = None
 
 
