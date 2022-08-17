@@ -3,21 +3,21 @@ from typing import List
 
 import datasets
 
-from ..folder_builder import folder_builder
+from ..folder_based_builder import folder_based_builder
 
 
 logger = datasets.utils.logging.get_logger(__name__)
 
 
 @dataclass
-class AudioFolderConfig(folder_builder.FolderBuilderConfig):
+class AudioFolderConfig(folder_based_builder.FolderBasedBuilderConfig):
     """Builder Config for AudioFolder."""
 
     drop_labels: bool = True  # usually we don't need labels as classification is not the main audio task
     drop_metadata: bool = None
 
 
-class AudioFolder(folder_builder.FolderBuilder):
+class AudioFolder(folder_based_builder.FolderBasedBuilder):
     BASE_FEATURE = datasets.Audio()
     BASE_COLUMN_NAME = "audio"
     BUILDER_CONFIG_CLASS = AudioFolderConfig

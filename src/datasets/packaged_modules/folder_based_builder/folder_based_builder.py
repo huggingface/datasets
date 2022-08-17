@@ -42,7 +42,7 @@ def count_path_segments(path):
 
 
 @dataclass
-class FolderBuilderConfig(datasets.BuilderConfig):
+class FolderBasedBuilderConfig(datasets.BuilderConfig):
     """BuilderConfig for AutoFolder."""
 
     features: Optional[datasets.Features] = None
@@ -50,7 +50,7 @@ class FolderBuilderConfig(datasets.BuilderConfig):
     drop_metadata: bool = None
 
 
-class FolderBuilder(datasets.GeneratorBasedBuilder, abc.ABC):
+class FolderBasedBuilder(datasets.GeneratorBasedBuilder, abc.ABC):
     """
     Base class for generic data loaders for vision and image data.
 
@@ -58,14 +58,14 @@ class FolderBuilder(datasets.GeneratorBasedBuilder, abc.ABC):
     Abstract class attributes to be overridden by a child class:
         BASE_FEATURE: feature object to decode data (i.e. datasets.Image(), datasets.Audio(), ...)
         BASE_COLUMN_NAME: string key name of a base feature (i.e. "image", "audio", ...)
-        BUILDER_CONFIG_CLASS: builder config inherited from `folder_builder.AutoFolderConfig`
+        BUILDER_CONFIG_CLASS: builder config inherited from `folder_based_builder.FolderBasedBuilderConfig`
         EXTENSIONS: list of allowed extensions (only files with these extensions and METADATA_FILENAME files
             will be included in a dataset)
     """
 
     BASE_FEATURE: Any
     BASE_COLUMN_NAME: str
-    BUILDER_CONFIG_CLASS: FolderBuilderConfig
+    BUILDER_CONFIG_CLASS: FolderBasedBuilderConfig
     EXTENSIONS: List[str]
 
     SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT: bool = True

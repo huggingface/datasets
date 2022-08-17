@@ -7,13 +7,16 @@ import pytest
 from datasets import ClassLabel, DownloadManager, Features, Value
 from datasets.data_files import DataFilesDict, get_data_patterns_locally
 from datasets.download.streaming_download_manager import StreamingDownloadManager
-from datasets.packaged_modules.folder_builder.folder_builder import FolderBuilder, FolderBuilderConfig
+from datasets.packaged_modules.folder_based_builder.folder_based_builder import (
+    FolderBasedBuilder,
+    FolderBasedBuilderConfig,
+)
 
 
-class DummyFolderBuilder(FolderBuilder):
+class DummyFolderBasedBuilder(FolderBasedBuilder):
     BASE_FEATURE = None
     BASE_COLUMN_NAME = "base"
-    BUILDER_CONFIG_CLASS = FolderBuilderConfig
+    BUILDER_CONFIG_CLASS = FolderBasedBuilderConfig
     EXTENSIONS = [".txt"]
 
 
@@ -33,7 +36,7 @@ def data_files_with_labels_no_metadata(tmp_path, auto_text_file):
     data_dir.mkdir(parents=True, exist_ok=True)
     subdir_class_0 = data_dir / "class0"
     subdir_class_0.mkdir(parents=True, exist_ok=True)
-    # data dirs can be nested but FolderBuilder should care only about the last part of the path:
+    # data dirs can be nested but FolderBasedBuilder should care only about the last part of the path:
     subdir_class_1 = data_dir / "subdir" / "class1"
     subdir_class_1.mkdir(parents=True, exist_ok=True)
 
@@ -217,7 +220,7 @@ def data_files_with_zip_archives(tmp_path, auto_text_file):
 
 
 def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cache_dir):
-    autofolder = DummyFolderBuilder(
+    autofolder = DummyFolderBasedBuilder(
         data_files=data_files_with_labels_no_metadata, cache_dir=cache_dir, drop_labels=False
     )
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
@@ -230,7 +233,7 @@ def test_default_autofolder_not_usable(data_files_with_labels_no_metadata, cache
     # builder would try to access non-existing attributes of a default `BuilderConfig` class
     # as a custom one is not provided
     with pytest.raises(AttributeError):
-        _ = FolderBuilder(
+        _ = FolderBasedBuilder(
             data_files=data_files_with_labels_no_metadata,
             cache_dir=cache_dir,
         )
@@ -239,8 +242,8 @@ def test_default_autofolder_not_usable(data_files_with_labels_no_metadata, cache
 # test that AutoFolder is extended for streaming when it's child class is instantiated:
 # see line 115 in src/datasets/streaming.py
 def test_streaming_patched():
-    _ = DummyFolderBuilder()
-    module = importlib.import_module(FolderBuilder.__module__)
+    _ = DummyFolderBasedBuilder()
+    module = importlib.import_module(FolderBasedBuilder.__module__)
     assert hasattr(module, "_patched_for_streaming")
     assert module._patched_for_streaming
 
@@ -251,7 +254,7 @@ def test_prepare_generate_examples_duplicated_label_key(
     files_with_labels_and_duplicated_label_key_in_metadata, drop_metadata, drop_labels, cache_dir, caplog
 ):
     class0_file, class1_file, metadata_file = files_with_labels_and_duplicated_label_key_in_metadata
-    autofolder = DummyFolderBuilder(
+    autofolder = DummyFolderBasedBuilder(
         data_files=[class0_file, class1_file, metadata_file],
         cache_dir=cache_dir,
         drop_metadata=drop_metadata,
@@ -280,7 +283,7 @@ def test_prepare_generate_examples_duplicated_label_key(
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
 def test_prepare_generate_examples_drop_labels(auto_text_file, drop_metadata, drop_labels):
-    autofolder = DummyFolderBuilder(
+    autofolder = DummyFolderBasedBuilder(
         data_files={"train": [auto_text_file]},
         drop_metadata=drop_metadata,
         drop_labels=drop_labels,
@@ -305,7 +308,7 @@ def test_prepare_generate_examples_drop_labels(auto_text_file, drop_metadata, dr
 @pytest.mark.parametrize("drop_labels", [None, True, False])
 def test_prepare_generate_examples_drop_metadata(file_with_metadata, drop_metadata, drop_labels):
     file, metadata_file = file_with_metadata
-    autofolder = DummyFolderBuilder(
+    autofolder = DummyFolderBasedBuilder(
         data_files=[file, metadata_file],
         drop_metadata=drop_metadata,
         drop_labels=drop_labels,
@@ -338,7 +341,7 @@ def test_prepare_generate_examples_with_metadata_that_misses_one_sample(
         features = Features({"base": None, "additional_feature": Value("string")})
     else:
         features = Features({"base": None})
-    autofolder = DummyFolderBuilder(
+    autofolder = DummyFolderBasedBuilder(
         data_files=[file, file2, metadata_file],
         drop_metadata=drop_metadata,
         features=features,
@@ -360,7 +363,7 @@ def test_data_files_with_metadata_and_splits(
     streaming, cache_dir, n_splits, data_files_with_one_split_and_metadata, data_files_with_two_splits_and_metadata
 ):
     data_files = data_files_with_one_split_and_metadata if n_splits == 1 else data_files_with_two_splits_and_metadata
-    autofolder = DummyFolderBuilder(
+    autofolder = DummyFolderBasedBuilder(
         data_files=data_files,
         cache_dir=cache_dir,
     )
@@ -378,7 +381,7 @@ def test_data_files_with_metadata_and_splits(
 
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_with_zip_archives):
-    autofolder = DummyFolderBuilder(data_files=data_files_with_zip_archives, cache_dir=cache_dir)
+    autofolder = DummyFolderBasedBuilder(data_files=data_files_with_zip_archives, cache_dir=cache_dir)
     download_manager = StreamingDownloadManager() if streaming else DownloadManager()
     generated_splits = autofolder._split_generators(download_manager)
     for (split, files), generated_split in zip(data_files_with_zip_archives.items(), generated_splits):
@@ -406,7 +409,7 @@ def test_data_files_with_wrong_metadata_file_name(cache_dir, tmp_path, auto_text
         f.write(metadata)
 
     data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(get_data_patterns_locally(data_dir), data_dir)
-    autofolder = DummyFolderBuilder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
+    autofolder = DummyFolderBasedBuilder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     generator = autofolder._generate_examples(**gen_kwargs)
     assert all("additional_feature" not in example for _, example in generator)
@@ -426,7 +429,7 @@ def test_data_files_with_wrong_file_name_column_in_metadata_file(cache_dir, tmp_
         f.write(metadata)
 
     data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(get_data_patterns_locally(data_dir), data_dir)
-    autofolder = DummyFolderBuilder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
+    autofolder = DummyFolderBasedBuilder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
     with pytest.raises(ValueError) as exc_info:
         _ = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     assert "`file_name` must be present" in str(exc_info.value)
