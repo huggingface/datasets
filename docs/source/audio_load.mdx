@@ -70,9 +70,9 @@ folder/train/second_audio_file.mp3
 folder/train/third_audio_file.mp3
 ```
 
-Your `metadata.jsonl` file must have a `file_name` column which links audio files with their metadata. An example `metadata.jsonl` file might look like:
+Your `metadata.jsonl` file must have a `"file_name"` column which links audio files with their metadata. An example `metadata.jsonl` file might look like:
 
-```jsonl
+```python
 {"file_name": "first_audio_file.mp3", "transcription": "znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi"}
 {"file_name": "second_audio_file.mp3", "transcription": "już u źwierzyńca podwojów król zasiada przy nim książęta i panowie rada a gdzie wzniosły krążył ganek rycerze obok kochanek król skinął palcem zaczęto igrzysko"}
 {"file_name": "third_audio_file.mp3", "transcription": "pewnie kędyś w obłędzie ubite minęły szlaki zaczekajmy dzień jaki poślemy szukać wszędzie dziś jutro pewnie będzie posłali wszędzie sługi czekali dzień i drugi gdy nic nie doczekali z płaczem chcą jechać dali"}
@@ -106,7 +106,7 @@ You can load remote datasets from their URLs with the `data_files` parameter:
 
 ## AudioFolder with labels
 
-By default, if your data directory doesn't contain any metadata files, `AudioFolder` automatically adds a `label` column of [`~datasets.features.ClassLabel`] type, with labels based on the directory name.
+If your data directory doesn't contain any metadata files, by default `AudioFolder` automatically adds a `label` column of [`~datasets.features.ClassLabel`] type, with labels based on the directory name.
 It might be useful if you have an audio classification task.
 
 ### Language identification
