@@ -1,4 +1,3 @@
-import abc
 import collections
 import itertools
 import os
@@ -50,7 +49,7 @@ class FolderBasedBuilderConfig(datasets.BuilderConfig):
     drop_metadata: bool = None
 
 
-class FolderBasedBuilder(datasets.GeneratorBasedBuilder, abc.ABC):
+class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
     """
     Base class for generic data loaders for vision and image data.
 
