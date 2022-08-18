@@ -57,39 +57,11 @@ If you only want to load the underlying path to the audio dataset without decodi
 
 ## AudioFolder
 
-You can also load a dataset with an `AudioFolder` dataset builder. It does not require writing a custom dataloader, making it useful for quickly loading audio data. Your dataset structure might look like:
-
-```
-folder/train/first_audio_file.wav
-folder/train/second_audio_file.wav
-folder/train/third_audio_file.wav
-
-folder/train/last_audio_file.wav
-```
-
-Load your audio dataset by specifying `audiofolder` and the directory containing your data in `data_dir`:
-
-```py
->>> from datasets import load_dataset
-
->>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder")
->>> dataset["train"][0]
-{'audio':
-    {'path': '/path/to/extracted/audio/first_audio_file.wav',
-    'array': array([ 0.00088501,  0.0012207 ,  0.00131226, ..., -0.00045776, -0.00054932, -0.00054932], dtype=float32),
-    'sampling_rate': 16000}
-}
-```
-
-Load remote datasets from their URLs with the `data_files` parameter:
-
-```py
->>> dataset = load_dataset("audiofolder", data_files="https://s3.amazonaws.com/datasets.huggingface.co/SpeechCommands/v0.01/v0.01_test.tar.gz")
-```
+You can also load a dataset with an `AudioFolder` dataset builder. It does not require writing a custom dataloader, making it useful for quickly loading audio data.
 
 ## AudioFolder with metadata
 
-Metadata associated with your dataset can also be loaded. Make sure your dataset has a `metadata.jsonl` file:
+To link your audio files with metadata information, make sure your dataset has a `metadata.jsonl` file. Your dataset structure might look like:
 
 ```
 folder/train/metadata.jsonl
@@ -98,47 +70,44 @@ folder/train/second_audio_file.mp3
 folder/train/third_audio_file.mp3
 ```
 
-Your `metadata.jsonl` file must have a `file_name` column which links audio files with their metadata:
+Your `metadata.jsonl` file must have a `file_name` column which links audio files with their metadata. An example `metadata.jsonl` file might look like:
 
 ```jsonl
-{"file_name": "first_audio_file.mp3", "additional_feature": "This is a first value of a text feature you linked with your audio files"}
-{"file_name": "second_audio_file.mp3", "additional_feature": "This is a second value of a text feature you linked with your audio files"}
-{"file_name": "third_audio_file.mp3", "additional_feature": "This is a third value of a text feature you linked with your audio files"}
+{"file_name": "first_audio_file.mp3", "transcription": "znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi"}
+{"file_name": "second_audio_file.mp3", "transcription": "już u źwierzyńca podwojów król zasiada przy nim książęta i panowie rada a gdzie wzniosły krążył ganek rycerze obok kochanek król skinął palcem zaczęto igrzysko"}
+{"file_name": "third_audio_file.mp3", "transcription": "pewnie kędyś w obłędzie ubite minęły szlaki zaczekajmy dzień jaki poślemy szukać wszędzie dziś jutro pewnie będzie posłali wszędzie sługi czekali dzień i drugi gdy nic nie doczekali z płaczem chcą jechać dali"}
 ```
 
-### Automatic Speech Recognition
-
-ASR datasets contain text transcriptions of recorded audio files. An example `metadata.jsonl` might look like:
-
-```
-{"file_name": "11295_11059_000000.flac", "transcription": "znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi"}
-{"file_name": "11295_11059_000001.flac", "transcription": "już u źwierzyńca podwojów król zasiada przy nim książęta i panowie rada a gdzie wzniosły krążył ganek rycerze obok kochanek król skinął palcem zaczęto igrzysko"}
-{"file_name": "11295_11059_000002.flac", "transcription": "pewnie kędyś w obłędzie ubite minęły szlaki zaczekajmy dzień jaki poślemy szukać wszędzie dziś jutro pewnie będzie posłali wszędzie sługi czekali dzień i drugi gdy nic nie doczekali z płaczem chcą jechać dali"}
-{"file_name": "11295_11059_000003.flac", "transcription": "na miejscach które dziś piaskiem zaniosło gdzie car i trzcina zarasta po których teraz wasze biega wiosło stał okrąg pięknego miasta"}
-```
-
-Load the dataset with `AudioFolder`, and it will create a `transcription` column with text transcriptions:
+Load your audio dataset by specifying `audiofolder` and the directory containing your data in `data_dir`:
 
 ```py
->>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder", split="train")
->>> dataset[0]["transcription"]
-"znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi"
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder")
+```
+
+`AudioFolder` will load audio data and create a `transcription` column containing texts from `metadata.jsonl`:
+
+```py
+>>> dataset["train"][0]
+{'audio':
+    {'path': '/path/to/extracted/audio/first_audio_file.mp3',
+    'array': array([ 0.00088501,  0.0012207 ,  0.00131226, ..., -0.00045776, -0.00054932, -0.00054932], dtype=float32),
+    'sampling_rate': 16000},
+ 'transcription': 'znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi'
+}
+```
+
+You can load remote datasets from their URLs with the `data_files` parameter:
+
+```py
+>>> dataset = load_dataset("audiofolder", data_files="https://s3.amazonaws.com/datasets.huggingface.co/SpeechCommands/v0.01/v0.01_test.tar.gz")
 ```
 
 ## AudioFolder with labels
 
-If you have an audio classification task, set `drop_labels=False` to infer labels from directories names as defined in [`~datasets.packaged_modules.audiofolder.AudioFolderConfig`].
-Your dataset structure should look like this:
-
-```
-folder/train/label_0/first_audio_label_0.mp3
-folder/train/label_0/second_audio_label_0.mp3
-folder/train/label_1/first_audio_label_1.mp3
-
-folder/train/label_9/last_audio_label_99.mp3
-```
-
-`AudioFolder` will create a `label` column of a [`~datasets.features.ClassLabel`] type based on the directory name.
+By default, if your data directory doesn't contain any metadata files, `AudioFolder` automatically adds a `label` column of [`~datasets.features.ClassLabel`] type, with labels based on the directory name.
+It might be useful if you have an audio classification task.
 
 ### Language identification
 
@@ -152,7 +121,7 @@ folder/train/ar/0179_830_0185_540.mp3
 folder/train/zh/0442_690_0454_380.mp3
 ```
 
-Load the dataset with `drop_labels=False`, and `AudioFolder`  will create a `label` column with the language id based on the directory name:
+As there are no metadata files, `AudioFolder` will create a `label` column with the language id based on the directory name:
 
 ```
 >>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder", drop_labels=False)
@@ -173,8 +142,12 @@ Load the dataset with `drop_labels=False`, and `AudioFolder`  will create a `lab
 }
 ```
 
+If you have metadata files inside your data directory, but you still want to infer labels from directories names, set `drop_labels=False` as defined in [`~datasets.packaged_modules.audiofolder.AudioFolderConfig`].
+
 <Tip>
 
 Alternatively, you can add `label` column to your `metadata.jsonl` file.
 
 </Tip>
+
+If you have no metadata files and want to drop automatically created labels, set `drop_labels=True`. In this case your dataset would contain only an `audio` column.
