@@ -61,6 +61,9 @@ You can also load a specific subset of the files with the `data_files` or `data_
 
 # load files that match the grep pattern
 >>> c4_subset = load_dataset("allenai/c4", data_files="en/c4-train.0000*-of-01024.json.gz")
+
+# load dataset from the en directory on the Hub
+>>> c4_subset = load_dataset("allenai/c4", data_dir="en")
 ```
 
 The `split` parameter can also map a data file to a specific split:
