@@ -5,7 +5,8 @@ Write a dataset loading script to share a dataset. It defines a dataset's splits
 ```
 my_dataset/
 ├── README.md
-└── my_dataset.py
+├── my_dataset.py
+└── data/  # optional, may contain your images or TAR archives
 ```
 
 This structure allows your dataset to be loaded in one line:
@@ -22,14 +23,14 @@ This guide will show you how to create a dataset loading script for image datase
 * Add dataset metadata.
 * Download and define the dataset splits.
 * Generate the dataset.
-* Generate the dataset metadata.
+* Generate the dataset metadata (optional).
 * Upload the dataset to the Hub.
 
 The best way to learn is to open up an existing image dataset loading script, like [Food-101](https://huggingface.co/datasets/food101/blob/main/food101.py), and follow along!
 
 <Tip>
 
-To help you get started with your own loading script, try beginning with a loading script [template](https://github.com/huggingface/datasets/blob/main/templates/new_dataset_script.py).
+To help you get started, we created a loading script [template](https://github.com/huggingface/datasets/blob/main/templates/new_dataset_script.py) you can copy and use as a starting point!
 
 </Tip>
 
@@ -44,14 +45,14 @@ To help you get started with your own loading script, try beginning with a loadi
 Start by creating your dataset class as a subclass of [`GeneratorBasedBuilder`] and add the three methods. Don't worry about filling in each of these methods yet, you'll develop those over the next few sections:
 
 ```py
-class Food101(datasets.GeneratorBasedBuilder):
-... """Food-101 Images dataset"""
+>>> class Food101(datasets.GeneratorBasedBuilder):
+...     """Food-101 Images dataset"""
 ...
-... def _info(self):
+...     def _info(self):
 ...
-... def _split_generators(self, dl_manager):
+...     def _split_generators(self, dl_manager):
 ...
-... def _generate_examples(self, images, metadata_path):
+...     def _generate_examples(self, images, metadata_path):
 ```
 
 ### Multiple configurations
@@ -61,7 +62,7 @@ In some cases, a dataset may have more than one configuration. For example, if y
 To create different configurations, use the [`BuilderConfig`] class to create a subclass for your dataset. Provide the links to download the images and labels in `data_url` and `metadata_urls`:
 
 ```py
-class Food101Config(datasets.BuilderConfig):
+>>> class Food101Config(datasets.BuilderConfig):
 ...     """Builder Config for Food-101"""
 ... 
 ...     def __init__(self, data_url, metadata_urls, **kwargs):
@@ -82,29 +83,29 @@ Now you can define your subsets at the top of [`GeneratorBasedBuilder`]. Imagine
 2. For each configuration, provide a name, description, and where to download the images and labels from.
 
 ```py
-class Food101(datasets.GeneratorBasedBuilder):
-... """Food-101 Images dataset"""
+>>> class Food101(datasets.GeneratorBasedBuilder):
+...     """Food-101 Images dataset"""
 ... 
-... BUILDER_CONFIGS = [
-...     Food101Config(
-...         name="breakfast",
-...         description="Food types commonly eaten during breakfast.",
-...         data_url="https://link-to-breakfast-foods.zip",
-...         metadata_urls={
-...             "train": "https://link-to-breakfast-foods-train.txt", 
-...             "validation": "https://link-to-breakfast-foods-validation.txt"
-...         },
-...      ,
-...     Food101Config(
-...         name="dinner",
-...         description="Food types commonly eaten during dinner.",
-...         data_url="https://link-to-dinner-foods.zip",
-...         metadata_urls={
-...             "train": "https://link-to-dinner-foods-train.txt", 
-...             "validation": "https://link-to-dinner-foods-validation.txt"
-...         },
-...     )...
-... ]
+...     BUILDER_CONFIGS = [
+...         Food101Config(
+...             name="breakfast",
+...             description="Food types commonly eaten during breakfast.",
+...             data_url="https://link-to-breakfast-foods.zip",
+...             metadata_urls={
+...                 "train": "https://link-to-breakfast-foods-train.txt", 
+...                 "validation": "https://link-to-breakfast-foods-validation.txt"
+...             },
+...         ,
+...         Food101Config(
+...             name="dinner",
+...             description="Food types commonly eaten during dinner.",
+...             data_url="https://link-to-dinner-foods.zip",
+...             metadata_urls={
+...                 "train": "https://link-to-dinner-foods-train.txt", 
+...                 "validation": "https://link-to-dinner-foods-validation.txt"
+...             },
+...         )...
+...     ]
 ```
 
 Now if users want to load the `breakfast` configuration, they can use the configuration name:
@@ -161,10 +162,17 @@ You'll notice a lot of the dataset information is defined earlier in the loading
 
 Now that you've added some information about your dataset, the next step is to download the dataset and generate the splits.
 
-1. Use the [`DownloadManager.download`] method to download the dataset and any other metadata you'd like to associate with it. This function accepts a URL or a list or dictionary of URLs. In the Food-101 loading script, you'll notice again the URLs are defined earlier in the script.
+1. Use the [`DownloadManager.download`] method to download the dataset and any other metadata you'd like to associate with it. This method accepts:
+
+    * a name to a file inside a Hub dataset repository (in other words, the `data/` folder)
+    * a URL to a file hosted somewhere else
+    * a list or dictionary of file names or URLs
+    
+    In the Food-101 loading script, you'll notice again the URLs are defined earlier in the script.
+
 2. After you've downloaded the dataset, use the [`SplitGenerator`] to organize the images and labels in each split. Name each split with a standard name like: `Split.TRAIN`, `Split.TEST`, and `SPLIT.Validation`. 
 
-    In the `gen_kwargs` parameter, use [`DownloadManager.iter_archive`] to specify the `images` file paths to iterate over and load. You can also specify the associated labels in the `metadata_path`. The `images` and `metadata_path` are actually passed onto the next step where you'll actually generate the dataset.
+    In the `gen_kwargs` parameter, specify the file paths to the `images` to iterate over and load. If necessary, you can use [`DownloadManager.iter_archive`] to iterate over images in TAR archives. You can also specify the associated labels in the `metadata_path`. The `images` and `metadata_path` are actually passed onto the next step where you'll actually generate the dataset.
 
 <Tip warning={true}>
 
@@ -221,7 +229,7 @@ Now you can write a function for opening and loading examples from the dataset:
 ...                 }
 ```
 
-## Generate the dataset metadata
+## Generate the dataset metadata (optional)
 
 The dataset metadata you added earlier now needs to be generated and stored in a file called `datasets_infos.json`. In addition to information about a datasets features and description, this file also contains data file checksums to ensure integrity.
 
