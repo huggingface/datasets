@@ -356,7 +356,7 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
             # Note that entities and answers will be a sequences of strings. Query
             # will contain @placeholder as a substring, which represents the word
             # to be substituted in.
-            features=["passage", "query", "entities", "entity_ranges", "answers"],
+            features=["passage", "query", "entities", "entity_spans", "answers"],
             data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/ReCoRD.zip",
             citation=_RECORD_CITATION,
             url="https://sheng-z.github.io/ReCoRD-explorer/",
@@ -455,8 +455,12 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
             # Entities are the set of possible choices for the placeholder.
             features["entities"] = datasets.features.Sequence(datasets.Value("string"))
             # The start and end indices of paragraph text for each entity.
-            features["entity_ranges"] = datasets.features.Sequence(
-                datasets.features.Sequence(datasets.Value("int32"), length=2)
+            features["entity_spans"] = datasets.features.Sequence(
+                {
+                    "text": datasets.Value("string"),
+                    "start": datasets.Value("int32"),
+                    "end": datasets.Value("int32"),
+                }
             )
             # Answers are the subset of entities that are correct.
             features["answers"] = datasets.features.Sequence(datasets.Value("string"))
@@ -528,13 +532,13 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
                             }
                 elif self.config.name == "record":
                     passage = row["passage"]
-                    entity_texts, entity_ranges = _get_record_entities(passage)
+                    entity_texts, entity_spans = _get_record_entities(passage)
                     for qa in row["qas"]:
                         yield qa["idx"], {
                             "passage": passage["text"],
                             "query": qa["query"],
                             "entities": entity_texts,
-                            "entity_ranges": entity_ranges,
+                            "entity_spans": entity_spans,
                             "answers": _get_record_answers(qa),
                             "idx": {"passage": row["idx"], "query": qa["idx"]},
                         }
@@ -610,17 +614,13 @@ def _cast_label(label):
 def _get_record_entities(passage):
     """Returns the unique set of entities."""
     text = passage["text"]
-    entities = list()
+    entity_spans = list()
     for entity in passage["entities"]:
         entity_text = text[entity["start"] : entity["end"] + 1]
-        entity_span = (entity["start"], entity["end"] + 1)
-        entities.append({"text": entity_text, "span": entity_span})
-    entities = sorted(entities, key=lambda e: e["span"][0])  # sort by start index
-    entity_texts, entity_ranges = [], []
-    for entity in entities:
-        entity_texts.append(entity["text"])
-        entity_ranges.append(entity["span"])
-    return entity_texts, entity_ranges
+        entity_spans.append({"text": entity_text, "start": entity["start"], "end": entity["end"] + 1})
+    entity_spans = sorted(entity_spans, key=lambda e: e["start"])  # sort by start index
+    entity_texts = set(e["text"] for e in entity_spans)  # for backward compatability
+    return entity_texts, entity_spans
 
 
 def _get_record_answers(qa):
