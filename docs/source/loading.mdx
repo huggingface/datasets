@@ -82,11 +82,10 @@ You may have a 🤗 Datasets loading script locally on your computer. In this ca
 
 ### Edit loading script
 
-You can also edit a loading script from the Hub to add your own modifications. Use the [`~datasets.inspect_dataset`] function to download and inspect a loading script:
+You can also edit a loading script from the Hub to add your own modifications. Download the dataset repository locally so any data files referenced by a relative path in the loading script can be loaded:
 
-```py
->>> from datasets import inspect_dataset
->>> script = inspect_dataset("eli5", "local/path/to/datasets/eli5")
+```bash
+git clone https://huggingface.co/datasets/eli5
 ```
 
 Make your edits to the loading script and then load it by passing its local path to [`~datasets.load_dataset`]:
