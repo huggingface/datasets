@@ -1,8 +1,8 @@
 import os
+import platform
 import random
 import tempfile
 import unittest
-import platform
 
 import numpy as np
 import pandas as pd
@@ -367,8 +367,10 @@ def test_array_xd_with_np(data, feature, expected):
     ],
 )
 def test_large_array_xd_with_np(data, feature, expected):
-    if platform.system() == 'Linux':
-        ds = datasets.Dataset.from_dict({"col": data}, features=datasets.Features({"col": feature}) if feature else None)
+    if platform.system() == "Linux":
+        ds = datasets.Dataset.from_dict(
+            {"col": data}, features=datasets.Features({"col": feature}) if feature else None
+        )
         assert ds[0]["col"] == expected
 
 
