@@ -119,8 +119,8 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
 
     parent_builder_modules = [
         cls.__module__
-        for cls in type(builder).__mro__[1:]
+        for cls in type(builder).__mro__[1:]  # make sure it's not the same module we've already patched
         if issubclass(cls, DatasetBuilder) and cls.__module__ != DatasetBuilder.__module__
-    ]
+    ]  # check it's not a standard builder from datasets.builder
     for module in parent_builder_modules:
         extend_module_for_streaming(module, use_auth_token=builder.use_auth_token)
