@@ -296,12 +296,13 @@ class SuperGlueConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # Version history:
+        # 1.0.3: Fix not including entity position in ReCoRD.
         # 1.0.2: Fixed non-nondeterminism in ReCoRD.
         # 1.0.1: Change from the pre-release trial version of SuperGLUE (v1.9) to
         #        the full release (v2.0).
         # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
         # 0.0.2: Initial version.
-        super(SuperGlueConfig, self).__init__(version=datasets.Version("1.0.2"), **kwargs)
+        super(SuperGlueConfig, self).__init__(version=datasets.Version("1.0.3"), **kwargs)
         self.features = features
         self.label_classes = label_classes
         self.data_url = data_url
@@ -355,7 +356,7 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
             # Note that entities and answers will be a sequences of strings. Query
             # will contain @placeholder as a substring, which represents the word
             # to be substituted in.
-            features=["passage", "query", "entities", "answers"],
+            features=["passage", "query", "entities", "entity_spans", "answers"],
             data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/ReCoRD.zip",
             citation=_RECORD_CITATION,
             url="https://sheng-z.github.io/ReCoRD-explorer/",
@@ -453,6 +454,14 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
         if self.config.name == "record":
             # Entities are the set of possible choices for the placeholder.
             features["entities"] = datasets.features.Sequence(datasets.Value("string"))
+            # The start and end indices of paragraph text for each entity.
+            features["entity_spans"] = datasets.features.Sequence(
+                {
+                    "text": datasets.Value("string"),
+                    "start": datasets.Value("int32"),
+                    "end": datasets.Value("int32"),
+                }
+            )
             # Answers are the subset of entities that are correct.
             features["answers"] = datasets.features.Sequence(datasets.Value("string"))
         else:
@@ -523,11 +532,13 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
                             }
                 elif self.config.name == "record":
                     passage = row["passage"]
+                    entity_texts, entity_spans = _get_record_entities(passage)
                     for qa in row["qas"]:
                         yield qa["idx"], {
                             "passage": passage["text"],
                             "query": qa["query"],
-                            "entities": _get_record_entities(passage),
+                            "entities": entity_texts,
+                            "entity_spans": entity_spans,
                             "answers": _get_record_answers(qa),
                             "idx": {"passage": row["idx"], "query": qa["idx"]},
                         }
@@ -603,10 +614,13 @@ def _cast_label(label):
 def _get_record_entities(passage):
     """Returns the unique set of entities."""
     text = passage["text"]
-    entities = set()
+    entity_spans = list()
     for entity in passage["entities"]:
-        entities.add(text[entity["start"] : entity["end"] + 1])
-    return sorted(entities)
+        entity_text = text[entity["start"] : entity["end"] + 1]
+        entity_spans.append({"text": entity_text, "start": entity["start"], "end": entity["end"] + 1})
+    entity_spans = sorted(entity_spans, key=lambda e: e["start"])  # sort by start index
+    entity_texts = set(e["text"] for e in entity_spans)  # for backward compatability
+    return entity_texts, entity_spans
 
 
 def _get_record_answers(qa):
