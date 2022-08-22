@@ -663,8 +663,6 @@ class DatasetBuilder:
                         yield tmp_dir
                         if os.path.isdir(dirname):
                             shutil.rmtree(dirname)
-                        os.rename(tmp_dir, dirname)
-                    except PermissionError:
                         shutil.move(tmp_dir, dirname)
                     finally:
                         if os.path.exists(tmp_dir):
