@@ -1,4 +1,3 @@
-import abc
 import collections
 import itertools
 import os
@@ -50,12 +49,12 @@ class FolderBasedBuilderConfig(datasets.BuilderConfig):
     drop_metadata: bool = None
 
 
-class FolderBasedBuilder(datasets.GeneratorBasedBuilder, abc.ABC):
+class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
     """
     Base class for generic data loaders for vision and image data.
 
 
-    Abstract class attributes to be specified in a child class:
+    Abstract class attributes to be overridden by a child class:
         BASE_FEATURE: feature object to decode data (i.e. datasets.Image(), datasets.Audio(), ...)
         BASE_COLUMN_NAME: string key name of a base feature (i.e. "image", "audio", ...)
         BUILDER_CONFIG_CLASS: builder config inherited from `folder_based_builder.FolderBasedBuilderConfig`
