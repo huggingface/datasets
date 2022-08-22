@@ -120,7 +120,7 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
     parent_builder_modules = [
         cls.__module__
         for cls in type(builder).__mro__[1:]
-        if issubclass(cls, DatasetBuilder) and cls is not DatasetBuilder
+        if issubclass(cls, DatasetBuilder) and cls.__module__ != DatasetBuilder.__module__]
     ]
     for module in parent_builder_modules:
         extend_module_for_streaming(module, use_auth_token=builder.use_auth_token)
