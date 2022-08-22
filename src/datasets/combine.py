@@ -33,7 +33,7 @@ def interleave_datasets(
 
     Args:
         datasets (:obj:`List[Dataset]` or :obj:`List[IterableDataset]`): list of datasets to interleave
-        probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructued by sampling
+        probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructed by sampling
             examples from one source at a time according to these probabilities.
         seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
         info ([`DatasetInfo`], *optional*): Dataset information, like description, citation, etc.

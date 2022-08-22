@@ -3884,7 +3884,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             batched (:obj:`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches
-                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasets once)
             batch_size (:obj:`int`, optional): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
@@ -3966,7 +3966,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             batched (:obj:`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches
-                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasets once)
             batch_size (:obj:`int`, optional): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
@@ -4861,7 +4861,7 @@ def _interleave_map_style_datasets(
 
     Args:
         datasets (:obj:`List[Dataset]`): list of datasets to interleave
-        probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructued by sampling
+        probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructed by sampling
             examples from one source at a time according to these probabilities.
         seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
         info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
