@@ -134,7 +134,7 @@ The data fields are the same among all splits.
 
 #### Initial Data Collection and Normalization
 
-The data consists of three parts: US training bills, US test bills and California test bills. The US bills were collected from the [Govinfo](https://github.com/unitedstates/congress) service provided by the United States Government Publishing Office (GPO) under CC0-1.0 license. The California, bills from the 2015-2016 session were are from the legislature’s [website](https://leginfo.legislature.ca.gov/).
+The data consists of three parts: US training bills, US test bills and California test bills. The US bills were collected from the [Govinfo](https://github.com/unitedstates/congress) service provided by the United States Government Publishing Office (GPO) under CC0-1.0 license. The California, bills from the 2015-2016 session are available from the legislature’s [website](https://leginfo.legislature.ca.gov/).
 
 #### Who are the source language producers?
 
