@@ -1,5 +1,13 @@
 # Create a dataset loading script
 
+
+<Tip>
+
+The dataset script is optional if your dataset is in one of the following formats: CSV, JSON, JSON lines, text or Parquet.
+With those formats, you should be able to load your dataset automatically with [`~datasets.load_dataset`].
+
+</Tip>
+
 Write a dataset script to load and share your own datasets. It is a Python file that defines the different configurations and splits of your dataset, as well as how to download and process the data.
 
 The script can download data files from any website, or from the same dataset repository.
