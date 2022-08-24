@@ -489,18 +489,44 @@ Separate datasets can be concatenated if they share the same column types. Conca
 >>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
 ```
 
-<Tip>
-
-You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as *interleaving*, which is enabled by the [`interleave_datasets`] function. Both [`interleave_datasets`] and [`concatenate_datasets`] work with regular [`Dataset`] and [`IterableDataset`] objects. Refer to the [Stream](./stream#interleave) guide for an example of how to interleave datasets.
-
-</Tip>
-
 You can also concatenate two datasets horizontally by setting `axis=1` as long as the datasets have the same number of rows:
 
 ```py
 >>> from datasets import Dataset
 >>> bookcorpus_ids = Dataset.from_dict({"ids": list(range(len(bookcorpus)))})
 >>> bookcorpus_with_ids = concatenate_datasets([bookcorpus, bookcorpus_ids], axis=1)
+```
+
+### Interleave
+
+You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as *interleaving*, which is enabled by the [`interleave_datasets`] function. Both [`interleave_datasets`] and [`concatenate_datasets`] work with regular [`Dataset`] and [`IterableDataset`] objects.
+Refer to the [Stream](./stream#interleave) guide for an example of how to interleave [`IterableDataset`] objects.
+
+You can define sampling probabilities for each of the original datasets to specify how to interleave the datasets.
+In this case, the new dataset is constructed by getting examples one by one from a random dataset until one of the datasets runs out of samples.
+
+```py
+>>> seed = 42
+>>> probabilities = [0.3, 0.5, 0.2]
+>>> d1 = Dataset.from_dict({"a": [0, 1, 2]})
+>>> d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})
+>>> d3 = Dataset.from_dict({"a": [20, 21, 22]})
+>>> dataset = interleave_datasets([d1, d2, d3], probabilities=probabilities, seed=seed)
+>>> dataset["a"]
+[10, 11, 20, 12, 0, 21, 13]
+```
+
+In the case of [`Dataset`] objects, you can also specify the `stopping_strategy`. The default strategy, `first_exhausted`, is an subsampling strategy, i.e the dataset construction is stopped as soon one of the dataset runs out of samples.
+You can specify `stopping_strategy=all_exhausted` to execute an oversampling strategy. In this case, the dataset construction is stopped as soon as every samples in every dataset has been added at least once. In practice, it means that if a dataset is exhausted, it will return to the beginning of this dataset until the stop criterion has been reached.
+Note that if no sampling probabilities are specified, the new dataset will have `max_length_datasets*nb_dataset samples`
+
+```py
+>>> d1 = Dataset.from_dict({"a": [0, 1, 2]})
+>>> d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})
+>>> d3 = Dataset.from_dict({"a": [20, 21, 22]})
+>>> dataset = interleave_datasets([d1, d2, d3], stopping_strategy="all_exhausted")
+>>> dataset["a"]
+[0, 10, 20, 1, 11, 21, 2, 12, 22, 0, 13, 20]
 ```
 
 ## Format
