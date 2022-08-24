@@ -78,7 +78,7 @@ To help you get started, we created a loading script [template](https://github.c
 
 </Tip>
 
-## Create a dataset builder class
+### Create a dataset builder class
 
 [`GeneratorBasedBuilder`] is the base class for datasets generated from a dictionary generator. Within this class, there are three methods to help create your dataset:
 
@@ -99,7 +99,7 @@ class Food101(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, images, metadata_path):
 ```
 
-### Multiple configurations
+#### Multiple configurations
 
 In some cases, a dataset may have more than one configuration. For example, if you check out the [Imagenette dataset](https://huggingface.co/datasets/frgfm/imagenette), you'll notice there are three subsets. 
 
@@ -159,7 +159,7 @@ Now if users want to load the `breakfast` configuration, they can use the config
 >>> ds = load_dataset("food101", "breakfast", split="train")
 ```
 
-## Add dataset metadata
+### Add dataset metadata
 
 Adding information about your dataset is useful for users to learn more about it. This information is stored in the [`DatasetInfo`] class which is returned by the `info` method. Users can access this information by:
 
@@ -202,7 +202,7 @@ def _info(self):
     )
 ```
 
-## Download and define the dataset splits
+### Download and define the dataset splits
 
 Now that you've added some information about your dataset, the next step is to download the dataset and generate the splits.
 
@@ -246,7 +246,7 @@ def _split_generators(self, dl_manager):
     ]
 ```
 
-## Generate the dataset
+### Generate the dataset
 
 The last method in the [`GeneratorBasedBuilder`] class actually generates the images and labels in the dataset. It yields a dataset according to the stucture specified in `features` from the `info` method. As you can see, `generate_examples` accepts the `images` and `metadata_path` from the previous method as arguments.
 
@@ -273,7 +273,7 @@ def _generate_examples(self, images, metadata_path):
                 }
 ```
 
-## Generate the dataset metadata (optional)
+### Generate the dataset metadata (optional)
 
 The dataset metadata you added earlier now needs to be generated and stored in a file called `datasets_infos.json`. In addition to information about a datasets features and description, this file also contains data file checksums to ensure integrity.
 
@@ -285,7 +285,7 @@ datasets-cli test path/to/<your-dataset-loading-script> --save_infos --all_confi
 
 If your loading script passed the test, you should now have a `dataset_infos.json` file in your dataset folder.
 
-## Upload the dataset to the Hub
+### Upload the dataset to the Hub
 
 Once your script is ready, [create a dataset card](./dataset_card) and [upload it to the Hub](./share).
 
