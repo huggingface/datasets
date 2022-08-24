@@ -4908,10 +4908,13 @@ def _interleave_map_style_datasets(
         # Oversampling situation with cycling between each sources
         # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 5, 9, 0, 6, 10, 1, 3, 11]
         # Note that we have 5 examples per dataset with a rolling window since the longest dataset has 5 samples
-        indices = offsets.reshape(1, -1) + np.arange(max(lengths)).reshape(-1, 1)
 
-        # We have to keep the indices to their respective dataset offsets
-        indices = np.mod(indices, np.cumsum(lengths)).flatten().tolist()
+        # Reasoning behind the following operation: for each dataset indices (i.e column) repeat the indices to have max_length indices per dataset
+        # For example, if the max_length is 5 and the i-th dataset has 3 samples, the i-th column will be [0,1,2,0,1]
+        indices = np.mod(np.arange(max(lengths)).reshape(-1,1), np.array(lengths).reshape(1,-1))
+
+        # We have to keep the indices to their respective dataset offsets and to flatten to effectively interleave the datasets
+        indices = (indices + offsets).flatten().tolist()
 
     else:
         # boolean array indicating if at index i if the dataset_i has been fully exhausted
