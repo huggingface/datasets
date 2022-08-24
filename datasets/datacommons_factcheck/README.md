@@ -163,7 +163,7 @@ All fact checked items are released under a `CC-BY-NC-4.0` License.
 
 ### Citation Information
 
-[More Information Needed]
+Data Commons 2020, Fact Checks, electronic dataset, Data Commons, viewed 16 Dec 2020, <https://datacommons.org>.
 
 ### Contributions
 

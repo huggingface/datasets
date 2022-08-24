@@ -142,7 +142,7 @@ CC BY-SA 4.0 License
 
 ### Citation Information
 
-[Needs More Information]
+Reference coming soon: https://github.com/dumitrescustefan/RO-STS#citation
 
 ### Contributions
 
