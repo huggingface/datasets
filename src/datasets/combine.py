@@ -119,12 +119,12 @@ def interleave_datasets(
             raise ValueError(
                 f"Unable to interleave a {type(datasets[0])} with a {type(dataset)}. Expected a list of Dataset objects or a list of IterableDataset objects."
             )
-    if (iterable and stopping_strategy != "first_exhausted") or (
-        stopping_strategy not in ["first_exhausted", "all_exhausted"]
-    ):
-        raise ValueError(
-            f"{stopping_strategy} stopping strategy in `interleave_datasets` is not implemented yet with a list of {type(datasets[0])}"
+    if iterable and stopping_strategy != "first_exhausted":
+        raise NotImplementedError(
+            f"{stopping_strategy} stopping strategy in `interleave_datasets` is not implemented yet with a list of {type(datasets[0])}."
         )
+    if stopping_strategy not in ["first_exhausted", "all_exhausted"]:
+        raise ValueError(f"{stopping_strategy} is not supported. Please enter a valid stopping_strategy.")
     if map_style:
         return _interleave_map_style_datasets(
             datasets, probabilities, seed, info=info, split=split, stopping_strategy=stopping_strategy
