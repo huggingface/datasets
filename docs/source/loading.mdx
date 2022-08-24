@@ -315,6 +315,7 @@ Please follow the manual download instructions: To use MATINF you have to downlo
 Manual data can be loaded with `datasets.load_dataset(matinf, data_dir='<path/to/manual/data>') 
 ```
 
+If you've already downloaded a dataset from the *Hub with a loading script* to your computer, then you need to pass an absolute path to the `data_dir` or `data_files` parameter to load that dataset. Otherwise, if you pass a relative path, [`load_dataset`] will load the directory from the repository on the Hub instead of the local directory.
 
 ### Specify features
 
