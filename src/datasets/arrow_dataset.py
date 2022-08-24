@@ -4902,7 +4902,7 @@ def _interleave_map_style_datasets(
         indices = (offsets.reshape(1, -1) + np.arange(min(lengths)).reshape(-1, 1)).flatten().tolist()
     elif probabilities is None:
         # Oversampling situation with cycling between each sources
-        # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 5, 9, 0, 6, 10, 1, 0, 11]
+        # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 5, 9, 0, 6, 10, 1, 3, 11]
         # Note that we have 5 examples per dataset with a rolling window since the longest dataset has 5 samples
         indices = offsets.reshape(1, -1) + np.arange(max(lengths)).reshape(-1, 1)
 
