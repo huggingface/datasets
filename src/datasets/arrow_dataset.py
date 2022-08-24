@@ -4899,6 +4899,10 @@ def _interleave_map_style_datasets(
         # Example:: If lengths of the datasets are [3, 4, 5]
         # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 6, 9]
         # Note that we only have 3 examples per dataset since the first dataset ran out of examples
+
+        # Reasoning behind the following operation: keeping the min_length first indices of each dataset
+        # while offsetting in order to correspond to the right indices of the concatenated dataset
+        # and flattening to effectively interleave the datasets
         indices = (offsets.reshape(1, -1) + np.arange(min(lengths)).reshape(-1, 1)).flatten().tolist()
     elif probabilities is None:
         # Oversampling situation with cycling between each sources
