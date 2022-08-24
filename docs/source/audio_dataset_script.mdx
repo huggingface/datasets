@@ -56,7 +56,7 @@ Write a dataset loading script to share a dataset. It defines a dataset's splits
 my_dataset/
 ├── README.md
 ├── my_dataset.py
-└── data/  # optional, may contain your images or TAR archives
+└── data/  # optional, may contain your audio files or TAR archives
 ```
 
 This structure allows your dataset to be loaded in one line:
@@ -66,7 +66,7 @@ This structure allows your dataset to be loaded in one line:
 >>> dataset = load_dataset("path/to/my_dataset")
 ```
 
-This guide will show you how to create a dataset loading script for image datasets, which is a bit different from <a class="underline decoration-green-400 decoration-2 font-semibold" href="./dataset_script">creating a loading script for text datasets</a>. You'll learn how to:
+This guide will show you how to create a dataset loading script for audio datasets, which is a bit different from <a class="underline decoration-green-400 decoration-2 font-semibold" href="./dataset_script">creating a loading script for text datasets</a>. You'll learn how to:
 
 * Create a dataset builder class.
 * Create dataset configurations.
@@ -90,7 +90,7 @@ To help you get started, we created a loading script [template](https://github.c
 
 * `info` stores information about your dataset like its description, license, and features.
 * `split_generators` downloads the dataset and defines its splits.
-* `generate_examples` generates the images and labels for each split.
+* `generate_examples` generates the audio files and other features like transcription or speaker intent for each split.
 
 Start by creating your dataset class as a subclass of [`GeneratorBasedBuilder`] and add the three methods. Don't worry about filling in each of these methods yet, you'll develop those over the next few sections:
 
@@ -233,7 +233,7 @@ Now that you've added some information about your dataset, the next step is to d
 
 1. Use the [`DownloadManager.download_and_extract`] method to download and extract the URLs. This method accepts:
 
-    * a name to a file inside a Hub dataset repository (in other words, the data/ folder)
+    * a name to a file inside a Hub dataset repository (in other words, the `data/` folder)
     * a URL to a file hosted somewhere else
     * a list or dictionary of file names or URLs
 
@@ -241,7 +241,7 @@ Now that you've added some information about your dataset, the next step is to d
 
 2. After you've downloaded the dataset, use the [`SplitGenerator`] to organize the audio files and text transcriptions in each split. Name each split with a standard name like: `Split.TRAIN`, `Split.TEST`, and `SPLIT.Validation`. 
 
-    In the `gen_kwargs` parameter, specify the file paths to the `audio` and `text` files to load. The `audio` and `text` file paths are actually passed onto the next step where you'll actually generate the dataset.
+    In the `gen_kwargs` parameter, specify the file paths to the `audio` and `text` files to load. If necessary, you can use [`DownloadManager.iter_archive`] to iterate over audio files in TAR archives, which allows your dataset to be streamable. The `audio` and `text` file paths are actually passed onto the next step where you'll actually generate the dataset.
 
 <Tip warning={true}>
 
@@ -325,7 +325,7 @@ datasets-cli test path/to/<your-dataset-loading-script> --save_infos --all_confi
 
 If your loading script passed the test, you should now have a `dataset_infos.json` file in your dataset folder.
 
-## Upload the dataset to the Hub
+### Upload the dataset to the Hub
 
 Once your script is ready, [create a dataset card](./dataset_card) and [upload it to the Hub](./share).
 
