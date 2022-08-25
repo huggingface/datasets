@@ -145,8 +145,13 @@ class ShardShuffledExamplesIterable(ExamplesIterable):
 
 
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
+    def __init__(self, ex_iterables: List[_BaseExamplesIterable], stopping_strategy: Optional[str]="first_exhausted"):
         self.ex_iterables = ex_iterables
+        self.stopping_strategy = stopping_strategy
+        self.is_exhausted = np.full(len(ex_iterables), False)
+        # if undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted
+        # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
+        self.bool_strategy_func = np.all if (stopping_strategy=="all_exhausted") else np.any
 
     def __iter__(self):
         iterators = [iter(ex_iterable) for ex_iterable in self.ex_iterables]
@@ -155,13 +160,20 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
         for i in indices_iterator:
             try:  # let's pick one example from the iterator at index i
                 yield next(iterators[i])
-            except StopIteration:  # if we ran out of examples on this iterator, break the main for loop
-                break
+            except StopIteration:
+                self.is_exhausted[i] = True
+
+                if self.bool_strategy_func(self.is_exhausted):
+                    # if the stopping criteria is met, break the main for loop
+                    break
+                #otherwise reinitialise the iterator and yield the first example
+                iterators[i] = iter(self.ex_iterables[i])
+                yield next(iterators[i])
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "CyclingMultiSourcesExamplesIterable":
         """Shuffle each underlying examples iterable."""
         ex_iterables = [ex_iterable.shuffle_data_sources(generator) for ex_iterable in self.ex_iterables]
-        return CyclingMultiSourcesExamplesIterable(ex_iterables)
+        return CyclingMultiSourcesExamplesIterable(ex_iterables, self.stopping_strategy)
 
     @property
     def n_shards(self) -> int:
@@ -279,8 +291,8 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
 
 
 class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIterable):
-    def __init__(self, ex_iterables, generator: np.random.Generator, probabilities: Optional[List[float]] = None):
-        super().__init__(ex_iterables)
+    def __init__(self, ex_iterables, generator: np.random.Generator, probabilities: Optional[List[float]] = None, stopping_strategy: Optional[str]="first_exhausted"):
+        super().__init__(ex_iterables, stopping_strategy)
         self.generator = deepcopy(generator)
         self.probabilities = probabilities
 
@@ -307,8 +319,15 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         for i in indices_iterator:
             try:  # let's pick one example from the iterator at index i
                 yield next(iterators[i])
-            except StopIteration:  # if we ran out of examples on this iterator, break the main for loop
-                break
+            except StopIteration:
+                self.is_exhausted[i] = True
+
+                if self.bool_strategy_func(self.is_exhausted):
+                    # if the stopping criteria is met, break the main for loop
+                    break
+                #otherwise reinitialise the iterator and yield the first example
+                iterators[i] = iter(self.ex_iterables[i])
+                yield next(iterators[i])
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "RandomlyCyclingMultiSourcesExamplesIterable":
         """Shuffle the data sources of each wrapped examples iterable."""
@@ -1378,6 +1397,7 @@ def _interleave_iterable_datasets(
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
+    stopping_strategy: Optional[str] = "first_exhausted"
 ) -> IterableDataset:
     """
     Interleave several iterable datasets (sources) into a single iterable dataset.
@@ -1405,11 +1425,11 @@ def _interleave_iterable_datasets(
     ]
     # Use cycling or random cycling or sources
     if probabilities is None:
-        ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables)
+        ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables, stopping_strategy=stopping_strategy)
     else:
         generator = np.random.default_rng(seed)
         ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
-            ex_iterables, generator=generator, probabilities=probabilities
+            ex_iterables, generator=generator, probabilities=probabilities, stopping_strategy=stopping_strategy
         )
     # Set new info - we reset the features
     # TODO(QL): merge the features as in _concatenate_iterable_datasets() and use them here
