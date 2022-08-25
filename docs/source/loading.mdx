@@ -80,6 +80,21 @@ You may have a 🤗 Datasets loading script locally on your computer. In this ca
 >>> dataset = load_dataset("path/to/local/loading_script", split="train")  # equivalent because the file has the same name as the directory
 ```
 
+### Edit loading script
+
+You can also edit a loading script from the Hub to add your own modifications. Download the dataset repository locally so any data files referenced by a relative path in the loading script can be loaded:
+
+```bash
+git clone https://huggingface.co/datasets/eli5
+```
+
+Make your edits to the loading script and then load it by passing its local path to [`~datasets.load_dataset`]:
+
+```py
+>>> from datasets import load_dataset
+>>> eli5 = load_dataset("path/to/local/eli5")
+```
+
 ## Local and remote files
 
 Datasets can be loaded from local files stored on your computer and from remote files. The datasets are most likely stored as a `csv`, `json`, `txt` or `parquet` file. The [`load_dataset`] function can load each of these file types.
@@ -340,7 +355,7 @@ Now when you look at your dataset features, you can see it uses the custom label
 
 <Tip warning={true}>
 
-Metrics will soon be deprecated in 🤗 Datasets. To learn more about how to use metrics, take a look at our newest library 🤗 [Evaluate](https://huggingface.co/docs/evaluate/index)! In addition to metrics, we've also added more tools for evaluating models and datasets.
+Metrics is deprecated in 🤗 Datasets. To learn more about how to use metrics, take a look at the library 🤗 [Evaluate](https://huggingface.co/docs/evaluate/index)! In addition to metrics, you can find more tools for evaluating models and datasets.
 
 </Tip>
 

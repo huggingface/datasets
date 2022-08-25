@@ -672,7 +672,7 @@ class DatasetBuilder:
                         self._fs.rm(dirname, recursive=True)
                     if is_local:
                         # LocalFileSystem.mv does copy + rm, it is more efficient to simply rename a local directory
-                        os.rename(self._fs._strip_protocol(tmp_dir), self._fs._strip_protocol(dirname))
+                        shutil.move(self._fs._strip_protocol(tmp_dir), self._fs._strip_protocol(dirname))
                     else:
                         self._fs.mv(tmp_dir, dirname, recursive=True)
                 finally:

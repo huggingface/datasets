@@ -23,7 +23,7 @@ paperswithcode_id: null
 pretty_name: ilist
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for ilist
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

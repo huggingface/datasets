@@ -21,7 +21,7 @@ paperswithcode_id: codah
 pretty_name: COmmonsense Dataset Adversarially-authored by Humans
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for COmmonsense Dataset Adversarially-authored by Humans
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

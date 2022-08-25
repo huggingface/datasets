@@ -23,7 +23,7 @@ paperswithcode_id: mc-taco
 pretty_name: MC-TACO
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for MC-TACO
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

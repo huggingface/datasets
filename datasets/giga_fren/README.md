@@ -21,7 +21,7 @@ paperswithcode_id: null
 pretty_name: GigaFren
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for GigaFren
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
