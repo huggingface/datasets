@@ -750,7 +750,7 @@ class InMemoryTable(TableBlock):
         return cls(pa.Table.from_pydict(*args, **kwargs))
 
     @classmethod
-    def from_pylist(cls, *args, **kwargs):
+    def from_pylist(cls, mapping, *args, **kwargs):
         """
         Construct a Table from list of rows / dictionaries.
 
@@ -765,7 +765,11 @@ class InMemoryTable(TableBlock):
         Returns:
             :class:`datasets.table.Table`:
         """
-        return cls(pa.Table.from_pylist(*args, **kwargs))
+        try:
+            return cls(pa.Table.from_pylist(mapping, *args, **kwargs))
+        except AttributeError:  # pyarrow <7 does not have from_pylist, so we convert and use from_pydict
+            mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]}
+            return cls(pa.Table.from_pydict(mapping, *args, **kwargs))
 
     @classmethod
     def from_batches(cls, *args, **kwargs):
