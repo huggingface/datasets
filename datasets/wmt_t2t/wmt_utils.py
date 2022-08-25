@@ -875,7 +875,7 @@ def _parse_parallel_sentences(f1, f2, filename1, filename2):
         if split_path[-1] == "txt":
             # CWMT
             lang = split_path[-2].split("_")[-1]
-            lang = "zh" if lang in ("ch", "cn") else lang
+            lang = "zh" if lang in ("ch", "cn", "c[hn]") else lang
         else:
             lang = split_path[-1]
 

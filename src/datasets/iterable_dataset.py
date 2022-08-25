@@ -1324,6 +1324,8 @@ def _concatenate_iterable_datasets(
     Converts a list of :class:`IterableDataset` with the same schema into a single :class:`IterableDataset`.
     Missing data are filled with None values.
 
+    <Added version="2.4.0"/>
+
     Args:
         dsets (:obj:`List[datasets.IterableDataset]`): List of Datasets to concatenate.
         info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
@@ -1382,6 +1384,8 @@ def _interleave_iterable_datasets(
     The new iterable dataset alternates between the sources to yield examples.
     If `probabilities = None` (default) the iterable dataset will cycles through the sources in order for each next example in the iteration.
     If `probabilities` is not `None, the iterable dataset will sample a random source according to the provided probabilities for each next examples in the iteration.
+
+    <Added version="2.4.0"/>
 
     Args:
         datasets (:obj:`List[IterableDataset]`): list of datasets to interleave

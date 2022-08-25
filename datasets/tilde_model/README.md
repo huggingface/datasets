@@ -49,7 +49,7 @@ paperswithcode_id: tilde-model-corpus
 pretty_name: Tilde Multilingual Open Data for European Languages
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Tilde Multilingual Open Data for European Languages
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

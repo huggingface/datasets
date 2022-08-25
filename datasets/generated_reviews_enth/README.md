@@ -16,7 +16,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- transkation
+- translation
 - text-classification
 task_ids:
 - multi-class-classification

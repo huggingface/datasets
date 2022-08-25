@@ -21,7 +21,7 @@ paperswithcode_id: null
 pretty_name: BingCoronavirusQuerySet
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for BingCoronavirusQuerySet
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

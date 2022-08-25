@@ -17,10 +17,10 @@ source_datasets:
 - extended|snli
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
 - natural-language-inference
 - semantic-similarity-scoring
+- text-scoring
 paperswithcode_id: null
 pretty_name: KorNlu
 ---

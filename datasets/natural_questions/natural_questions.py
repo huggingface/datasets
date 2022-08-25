@@ -21,8 +21,6 @@ import html
 import json
 import re
 
-import apache_beam as beam
-
 import datasets
 
 
@@ -145,6 +143,12 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
 
     def _build_pcollection(self, pipeline, filepaths):
         """Build PCollection of examples."""
+        try:
+            import apache_beam as beam
+        except ImportError as err:
+            raise ImportError(
+                "To be able to load natural_questions, you need to install apache_beam: 'pip install apache_beam'"
+            ) from err
 
         def _parse_example(line):
             """Parse a single json line and emit an example dict."""

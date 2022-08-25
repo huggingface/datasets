@@ -31,6 +31,12 @@ Set the `batched` parameter to `True` in the [`~Dataset.map`] function to apply 
  'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]}
 ```
 
+The [`~Dataset.map`] function converts the returned values to a PyArrow-supported format. But explicitly returning the tensors as NumPy arrays is faster because it is a natively supported PyArrow format. Set `return_tensors="np"` when you tokenize your text:
+
+```py
+>>> dataset = dataset.map(lambda examples: tokenizer(examples["text"]), batched=True, return_tensors="np")
+```
+
 ## Align
 
 The [`~Dataset.align_labels_with_mapping`] function aligns a dataset label id with the label name. Not all 🤗 Transformers models follow the prescribed label mapping of the original dataset, especially for NLI datasets. For example, the [MNLI](https://huggingface.co/datasets/glue) dataset uses the following label mapping:

@@ -9,11 +9,14 @@ from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, Type, U
 
 
 try:  # Python >= 3.8
-    from typing import get_args
+    from typing import get_args, get_origin
 except ImportError:
 
     def get_args(tp):
-        return tp.__args__
+        return getattr(tp, "__args__", ())
+
+    def get_origin(tp):
+        return getattr(tp, "__origin__", None)
 
 
 # loading package files: https://stackoverflow.com/a/20885799
@@ -149,10 +152,10 @@ def validate_type(value: Any, expected_type: Type):
             return error_string
     # Add more `elif` statements if primitive type checking is needed
     else:
-        expected_type_name = str(expected_type).split(".", 1)[-1].split("[")[0]  # typing.List[str] -> List
-        expected_type_args = get_args(expected_type)
+        expected_type_origin = get_origin(expected_type)  # typing.List[str] -> list
+        expected_type_args = get_args(expected_type)  # typing.List[str] -> (str, )
 
-        if expected_type_name == "Union":
+        if expected_type_origin is Union:
             for type_arg in expected_type_args:
                 temp_error_string = validate_type(value, type_arg)
                 if temp_error_string == "":  # at least one type is successfully validated
@@ -176,7 +179,7 @@ def validate_type(value: Any, expected_type: Type):
             if not isinstance(value, (dict, tuple, list)) or len(value) == 0:
                 return f"Expected `{expected_type}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
 
-            if expected_type_name == "Dict":
+            if expected_type_origin is dict:
                 if not isinstance(value, dict):
                     return f"Expected `{expected_type}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
                 if expected_type_args != get_args(Dict):  # if we specified types for keys and values

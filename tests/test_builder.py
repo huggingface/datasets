@@ -37,7 +37,7 @@ class DummyBuilder(DatasetBuilder):
 
     def _prepare_split(self, split_generator, **kwargs):
         fname = f"{self.name}-{split_generator.name}.arrow"
-        with ArrowWriter(features=self.info.features, path=os.path.join(self._cache_dir, fname)) as writer:
+        with ArrowWriter(features=self.info.features, path=os.path.join(self._output_dir, fname)) as writer:
             writer.write_batch({"text": ["foo"] * 100})
             num_examples, num_bytes = writer.finalize()
         split_generator.split_info.num_examples = num_examples
@@ -915,29 +915,25 @@ def test_builder_config_version(builder_class, kwargs, tmp_path):
     assert builder.config.version == "2.0.0"
 
 
-def test_builder_with_filesystem(mockfs):
-    builder = DummyGeneratorBasedBuilder(cache_dir="mock://", storage_options=mockfs.storage_options)
-    assert builder.cache_dir.startswith("mock://")
+def test_builder_with_filesystem_download_and_prepare(tmp_path, mockfs):
+    builder = DummyGeneratorBasedBuilder(cache_dir=tmp_path)
+    builder.download_and_prepare("mock://my_dataset", storage_options=mockfs.storage_options)
+    assert builder._output_dir.startswith("mock://my_dataset")
     assert is_local_path(builder._cache_downloaded_dir)
     assert isinstance(builder._fs, type(mockfs))
     assert builder._fs.storage_options == mockfs.storage_options
+    assert mockfs.exists("my_dataset/dataset_info.json")
+    assert mockfs.exists(f"my_dataset/{builder.name}-train.arrow")
+    assert not mockfs.exists("my_dataset.incomplete")
 
 
-def test_builder_with_filesystem_download_and_prepare(mockfs):
-    builder = DummyGeneratorBasedBuilder(cache_dir="mock://", storage_options=mockfs.storage_options)
-    builder.download_and_prepare()
-    assert mockfs.exists(f"{builder.name}/default/0.0.0/dataset_info.json")
-    assert mockfs.exists(f"{builder.name}/default/0.0.0/{builder.name}-train.arrow")
-    assert not mockfs.exists(f"{builder.name}/default/0.0.0.incomplete")
-
-
-def test_builder_with_filesystem_download_and_prepare_reload(mockfs, caplog):
-    builder = DummyGeneratorBasedBuilder(cache_dir="mock://", storage_options=mockfs.storage_options)
-    mockfs.makedirs(f"{builder.name}/default/0.0.0")
-    DatasetInfo().write_to_directory(f"{builder.name}/default/0.0.0", fs=mockfs)
-    mockfs.touch(f"{builder.name}/default/0.0.0/{builder.name}-train.arrow")
+def test_builder_with_filesystem_download_and_prepare_reload(tmp_path, mockfs, caplog):
+    builder = DummyGeneratorBasedBuilder(cache_dir=tmp_path)
+    mockfs.makedirs("my_dataset")
+    DatasetInfo().write_to_directory("my_dataset", fs=mockfs)
+    mockfs.touch(f"my_dataset/{builder.name}-train.arrow")
     caplog.clear()
-    builder.download_and_prepare()
+    builder.download_and_prepare("mock://my_dataset", storage_options=mockfs.storage_options)
     assert "Found cached dataset" in caplog.text
 
 

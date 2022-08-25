@@ -151,7 +151,13 @@ Sudalai Rajkumar, Anusha Motamarri
 
 ### Citation Information
 
-[More Information Needed]
+```
+@InProceedings{kaggle:dataset,
+title = {Telugu News - Natural Language Processing for Indian Languages},
+authors={Sudalai Rajkumar, Anusha Motamarri},
+year={2019}
+}
+```
 
 ### Contributions
 

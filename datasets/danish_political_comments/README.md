@@ -21,7 +21,7 @@ paperswithcode_id: null
 pretty_name: DanishPoliticalComments
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for DanishPoliticalComments
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

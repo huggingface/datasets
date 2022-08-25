@@ -105,32 +105,36 @@ Otherwise, include your `aws_access_key_id` and `aws_secret_access_key` whenever
 
 ### Load datasets into a cloud storage
 
-You can load and cache a dataset into your cloud storage by specifying a remote `cache_dir` in `load_dataset`.
+You can load a dataset into your cloud storage by specifying a remote `output_dir` in `download_and_prepare`.
 Don't forget to use the previously defined `storage_options` containing your credentials to write into a private cloud storage.
+
+The `download_and_prepare` method works in two steps:
+1. it first downloads the raw data files (if any) in your local cache. You can set your cache directory by passing `cache_dir` to [`load_dataset_builder`]
+2. then it generates the dataset in Arrow or Parquet format in your cloud storage by iterating over the raw data files.
 
 Load a dataset from the Hugging Face Hub (see [how to load from the Hugging Face Hub](./loading#hugging-face-hub)):
 
 ```py
->>> cache_dir = "s3://my-bucket/datasets-cache"
->>> builder = load_dataset_builder("imdb", cache_dir=cache_dir, storage_options=storage_options)
->>> builder.download_and_prepare(file_format="parquet")
+>>> output_dir = "s3://my-bucket/imdb"
+>>> builder = load_dataset_builder("imdb")
+>>> builder.download_and_prepare(output_dir, storage_options=storage_options, file_format="parquet")
 ```
 
 Load a dataset using a loading script (see [how to load a local loading script](./loading#local-loading-script)):
 
 ```py
->>> cache_dir = "s3://my-bucket/datasets-cache"
->>> builder = load_dataset_builder("path/to/local/loading_script/loading_script.py", cache_dir=cache_dir, storage_options=storage_options)
->>> builder.download_and_prepare(file_format="parquet")
+>>> output_dir = "s3://my-bucket/imdb"
+>>> builder = load_dataset_builder("path/to/local/loading_script/loading_script.py")
+>>> builder.download_and_prepare(output_dir, storage_options=storage_options, file_format="parquet")
 ```
 
 Load your own data files (see [how to load local and remote files](./loading#local-and-remote-files)):
 
 ```py
 >>> data_files = {"train": ["path/to/train.csv"]}
->>> cache_dir = "s3://my-bucket/datasets-cache"
->>> builder = load_dataset_builder("csv", data_files=data_files, cache_dir=cache_dir, storage_options=storage_options)
->>> builder.download_and_prepare(file_format="parquet")
+>>> output_dir = "s3://my-bucket/imdb"
+>>> builder = load_dataset_builder("csv", data_files=data_files)
+>>> builder.download_and_prepare(output_dir, storage_options=storage_options, file_format="parquet")
 ```
 
 It is highly recommended to save the files as compressed sharded Parquet files to optimize I/O by specifying `file_format="parquet"`.
@@ -153,12 +157,12 @@ Therefore you can load a dataset saved as sharded Parquet files in Dask with
 ```py
 import dask.dataframe as dd
 
-df = dd.read_parquet(builder.cache_dir, storage_options=storage_options)
+df = dd.read_parquet(output_dir, storage_options=storage_options)
 
 # or if your dataset is split into train/valid/test
-df_train = dd.read_parquet(builder.cache_dir + f"/{builder.name}-train-*.parquet", storage_options=storage_options)
-df_valid = dd.read_parquet(builder.cache_dir + f"/{builder.name}-validation-*.parquet", storage_options=storage_options)
-df_test = dd.read_parquet(builder.cache_dir + f"/{builder.name}-test-*.parquet", storage_options=storage_options)
+df_train = dd.read_parquet(output_dir + f"/{builder.name}-train-*.parquet", storage_options=storage_options)
+df_valid = dd.read_parquet(output_dir + f"/{builder.name}-validation-*.parquet", storage_options=storage_options)
+df_test = dd.read_parquet(output_dir + f"/{builder.name}-test-*.parquet", storage_options=storage_options)
 ```
 
 You can find more about dask dataframes in their [documentation](https://docs.dask.org/en/stable/dataframe.html).

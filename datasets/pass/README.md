@@ -213,7 +213,7 @@ YM. Asano, C. Rupprecht, A. Zisserman and A. Vedaldi.
 
 From the paper:
 
-> **Who created the dataset (e.g., which team, research group) and on behalf of which entity (e.g., company, institution, organization)?** The dataset has been constructued by the research group
+> **Who created the dataset (e.g., which team, research group) and on behalf of which entity (e.g., company, institution, organization)?** The dataset has been constructed by the research group
 “Visual Geometry Group” at the University of Oxford at the Engineering Science Department.
 
 ### Licensing Information

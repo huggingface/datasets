@@ -3,7 +3,8 @@ annotations_creators:
 - crowdsourced
 - expert-generated
 language_creators:
-- found, other
+- found
+- other
 language:
 - en
 license:
@@ -196,9 +197,6 @@ The licensing status of the datasets is [GNU GPLv3](https://choosealicense.com/l
       primaryClass={cs.CL}
 }
 ```
-
-## License
-[GNU GPLv3](https://choosealicense.com/licenses/gpl-3.0/)
 
 ### Contributions
 
