@@ -691,15 +691,6 @@ def test_load_dataset_builder_fail():
         datasets.load_dataset_builder("blabla")
 
 
-def test_load_dataset_builder_with_filesystem(dataset_loading_script_dir, data_dir, mockfs):
-    builder = datasets.load_dataset_builder(
-        dataset_loading_script_dir, data_dir=data_dir, cache_dir="mock://", storage_options=mockfs.storage_options
-    )
-    assert builder.cache_dir.startswith("mock://")
-    assert isinstance(builder._fs, type(mockfs))
-    assert builder._fs.storage_options == mockfs.storage_options
-
-
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory, caplog):
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
