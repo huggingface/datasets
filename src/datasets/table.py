@@ -750,6 +750,24 @@ class InMemoryTable(TableBlock):
         return cls(pa.Table.from_pydict(*args, **kwargs))
 
     @classmethod
+    def from_pylist(cls, *args, **kwargs):
+        """
+        Construct a Table from list of rows / dictionaries.
+
+        Args:
+            mapping (:obj:`List[dict]`):
+                A mapping of strings to row values.
+            schema (:obj:`Schema`, defaults to :obj:`None`):
+                If not passed, will be inferred from the Mapping values
+            metadata (:obj:`Union[dict, Mapping]`, default None):
+                Optional metadata for the schema (if inferred).
+
+        Returns:
+            :class:`datasets.table.Table`:
+        """
+        return cls(pa.Table.from_pylist(*args, **kwargs))
+
+    @classmethod
     def from_batches(cls, *args, **kwargs):
         """
         Construct a Table from a sequence or iterator of Arrow RecordBatches.

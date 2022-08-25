@@ -63,7 +63,13 @@ from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .download.download_config import DownloadConfig
 from .download.streaming_download_manager import xgetsize
 from .features import Audio, ClassLabel, Features, Image, Sequence, Value
-from .features.features import FeatureType, decode_nested_example, pandas_types_mapper, require_decoding
+from .features.features import (
+    FeatureType,
+    decode_nested_example,
+    generate_from_arrow_type,
+    pandas_types_mapper,
+    require_decoding,
+)
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -842,7 +848,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         split: Optional[NamedSplit] = None,
     ) -> "Dataset":
         """
-        Convert :obj:`dict` to a :obj:`pyarrow.Table` to create a :class:`Dataset`.
+        Convert a list of dicts to a :obj:`pyarrow.Table` to create a :class:`Dataset`.
 
         Args:
             mapping (:obj:`Mapping`): Mapping of strings to Arrays or Python lists.
@@ -870,6 +876,37 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         pa_table = InMemoryTable.from_pydict(mapping=mapping)
         if info.features is None:
             info.features = Features({col: ts.get_inferred_type() for col, ts in mapping.items()})
+        return cls(pa_table, info=info, split=split)
+
+    @classmethod
+    def from_list(
+        cls,
+        mapping: List[dict],
+        features: Optional[Features] = None,
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
+    ) -> "Dataset":
+        """
+        Convert :obj:`list of dicts` to a :obj:`pyarrow.Table` to create a :class:`Dataset`.
+
+        Args:
+            mapping (:obj:`List[dict]`): A list of mappings of strings to row values.
+            features (:class:`Features`, optional): Dataset features.
+            info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+            split (:class:`NamedSplit`, optional): Name of the dataset split.
+
+        Returns:
+            :class:`Dataset`
+        """
+        if info is not None and features is not None and info.features != features:
+            raise ValueError(
+                f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
+            )
+        features = features if features is not None else info.features if info is not None else None
+        if info is None:
+            info = DatasetInfo()
+        info.features = features
+        pa_table = InMemoryTable.from_pylist(mapping=mapping)
         return cls(pa_table, info=info, split=split)
 
     @staticmethod
