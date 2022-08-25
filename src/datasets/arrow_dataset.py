@@ -63,13 +63,7 @@ from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .download.download_config import DownloadConfig
 from .download.streaming_download_manager import xgetsize
 from .features import Audio, ClassLabel, Features, Image, Sequence, Value
-from .features.features import (
-    FeatureType,
-    decode_nested_example,
-    generate_from_arrow_type,
-    pandas_types_mapper,
-    require_decoding,
-)
+from .features.features import FeatureType, decode_nested_example, pandas_types_mapper, require_decoding
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -848,7 +842,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         split: Optional[NamedSplit] = None,
     ) -> "Dataset":
         """
-        Convert a list of dicts to a :obj:`pyarrow.Table` to create a :class:`Dataset`.
+        Convert :obj:`dict` to a :obj:`pyarrow.Table` to create a :class:`Dataset`.
 
         Args:
             mapping (:obj:`Mapping`): Mapping of strings to Arrays or Python lists.
@@ -887,7 +881,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         split: Optional[NamedSplit] = None,
     ) -> "Dataset":
         """
-        Convert :obj:`list of dicts` to a :obj:`pyarrow.Table` to create a :class:`Dataset`.
+        Convert a list of dicts to a :obj:`pyarrow.Table` to create a :class:`Dataset`.
+
+        Note that the keys of the first entry will be used to determine the dataset columns,
+        regardless of what is passed to features.
 
         Args:
             mapping (:obj:`List[dict]`): A list of mappings of strings to row values.
