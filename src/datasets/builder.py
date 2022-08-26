@@ -31,6 +31,7 @@ from pathlib import Path
 from typing import Dict, Mapping, Optional, Tuple, Union
 
 import fsspec
+from hamcrest import is_
 
 from . import config, utils
 from .arrow_dataset import Dataset
@@ -58,7 +59,7 @@ from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator
 from .streaming import extend_dataset_builder_for_streaming
 from .utils import logging
-from .utils.file_utils import cached_path
+from .utils.file_utils import cached_path, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
 from .utils.py_utils import (
@@ -318,26 +319,36 @@ class DatasetBuilder:
             self.info.features = features
 
         # Prepare data dirs:
-        self._cache_dir_root = str(cache_dir) or os.path.expanduser(config.HF_DATASETS_CACHE)
-        self._cache_dir = self._build_cache_dir()
-        self._cache_downloaded_dir = (
-            os.path.join(self._cache_dir_root, config.DOWNLOADED_DATASETS_DIR)
-            if cache_dir
-            else os.path.expanduser(config.DOWNLOADED_DATASETS_PATH)
+        # cache_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
+        self._cache_dir_root = str(cache_dir or config.HF_DATASETS_CACHE)
+        self._cache_dir_root = (
+            self._cache_dir_root if is_remote_url(self._cache_dir_root) else os.path.expanduser(self._cache_dir_root)
         )
-
-        os.makedirs(self._cache_dir_root, exist_ok=True)
-        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(lock_path):
-            if os.path.exists(self._cache_dir):  # check if data exist
-                if len(os.listdir(self._cache_dir)) > 0:
-                    logger.info("Overwrite dataset info from restored data version.")
-                    self.info = DatasetInfo.from_directory(self._cache_dir)
-                else:  # dir exists but no data, remove the empty dir as data aren't available anymore
-                    logger.warning(
-                        f"Old caching folder {self._cache_dir} for dataset {self.name} exists but not data were found. Removing it. "
-                    )
-                    os.rmdir(self._cache_dir)
+        path_join = posixpath.join if is_remote_url(self._cache_dir_root) else os.path.join
+        self._cache_downloaded_dir = (
+            path_join(self._cache_dir_root, config.DOWNLOADED_DATASETS_DIR)
+            if cache_dir
+            else str(config.DOWNLOADED_DATASETS_PATH)
+        )
+        self._cache_downloaded_dir = (
+            self._cache_downloaded_dir
+            if is_remote_url(self._cache_downloaded_dir)
+            else os.path.expanduser(self._cache_downloaded_dir)
+        )
+        self._cache_dir = self._build_cache_dir()
+        if not is_remote_url(self._cache_dir_root):
+            os.makedirs(self._cache_dir_root, exist_ok=True)
+            lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
+            with FileLock(lock_path):
+                if os.path.exists(self._cache_dir):  # check if data exist
+                    if len(os.listdir(self._cache_dir)) > 0:
+                        logger.info("Overwrite dataset info from restored data version.")
+                        self.info = DatasetInfo.from_directory(self._cache_dir)
+                    else:  # dir exists but no data, remove the empty dir as data aren't available anymore
+                        logger.warning(
+                            f"Old caching folder {self._cache_dir} for dataset {self.name} exists but not data were found. Removing it. "
+                        )
+                        os.rmdir(self._cache_dir)
 
         # Store in the cache by default unless the user specifies a custom output_dir to download_and_prepare
         self._output_dir = self._cache_dir
@@ -487,7 +498,7 @@ class DatasetBuilder:
     def cache_dir(self):
         return self._cache_dir
 
-    def _relative_data_dir(self, with_version=True, with_hash=True) -> str:
+    def _relative_data_dir(self, with_version=True, with_hash=True, is_local=True) -> str:
         """Relative path of this dataset in cache_dir:
         Will be:
             self.name/self.config.version/self.hash/
@@ -499,21 +510,28 @@ class DatasetBuilder:
         builder_data_dir = self.name if namespace is None else f"{namespace}___{self.name}"
         builder_config = self.config
         hash = self.hash
+        path_join = os.path.join if is_local else posixpath.join
         if builder_config:
             # use the enriched name instead of the name to make it unique
-            builder_data_dir = os.path.join(builder_data_dir, self.config_id)
+            builder_data_dir = path_join(builder_data_dir, self.config_id)
         if with_version:
-            builder_data_dir = os.path.join(builder_data_dir, str(self.config.version))
+            builder_data_dir = path_join(builder_data_dir, str(self.config.version))
         if with_hash and hash and isinstance(hash, str):
-            builder_data_dir = os.path.join(builder_data_dir, hash)
+            builder_data_dir = path_join(builder_data_dir, hash)
         return builder_data_dir
 
     def _build_cache_dir(self):
         """Return the data directory for the current version."""
-        builder_data_dir = os.path.join(self._cache_dir_root, self._relative_data_dir(with_version=False))
-        version_data_dir = os.path.join(self._cache_dir_root, self._relative_data_dir(with_version=True))
+        is_local = not is_remote_url(self._cache_dir_root)
+        path_join = os.path.join if is_local else posixpath.join
+        builder_data_dir = path_join(
+            self._cache_dir_root, self._relative_data_dir(with_version=False, is_local=is_local)
+        )
+        version_data_dir = path_join(
+            self._cache_dir_root, self._relative_data_dir(with_version=True, is_local=is_local)
+        )
 
-        def _other_versions():
+        def _other_versions_on_disk():
             """Returns previous versions on disk."""
             if not os.path.exists(builder_data_dir):
                 return []
@@ -528,16 +546,17 @@ class DatasetBuilder:
             return version_dirnames
 
         # Check and warn if other versions exist
-        version_dirs = _other_versions()
-        if version_dirs:
-            other_version = version_dirs[0][0]
-            if other_version != self.config.version:
-                warn_msg = (
-                    f"Found a different version {str(other_version)} of dataset {self.name} in "
-                    f"cache_dir {self._cache_dir_root}. Using currently defined version "
-                    f"{str(self.config.version)}."
-                )
-                logger.warning(warn_msg)
+        if not is_remote_url(builder_data_dir):
+            version_dirs = _other_versions_on_disk()
+            if version_dirs:
+                other_version = version_dirs[0][0]
+                if other_version != self.config.version:
+                    warn_msg = (
+                        f"Found a different version {str(other_version)} of dataset {self.name} in "
+                        f"cache_dir {self._cache_dir_root}. Using currently defined version "
+                        f"{str(self.config.version)}."
+                    )
+                    logger.warning(warn_msg)
 
         return version_data_dir
 
@@ -612,15 +631,6 @@ class DatasetBuilder:
         if file_format is not None and file_format not in ["arrow", "parquet"]:
             raise ValueError(f"Unsupported file_format: {file_format}. Expected 'arrow' or 'parquet'")
 
-        if self._fs._strip_protocol(self._output_dir) == "":
-            # We don't support the root directory, because it has no dirname,
-            # and we need a dirname to use a <dirname>.incomplete directory
-            # when the dataset is being written
-            raise RuntimeError(
-                f"Unable to download and prepare the dataset at the root {self._output_dir}. "
-                f"Please specify a subdirectory, e.g. '{self._output_dir + self.name}'"
-            )
-
         if dl_manager is None:
             if download_config is None:
                 download_config = DownloadConfig(
@@ -677,20 +687,23 @@ class DatasetBuilder:
             @contextlib.contextmanager
             def incomplete_dir(dirname):
                 """Create temporary dir for dirname and rename on exit."""
-                tmp_dir = dirname + ".incomplete"
-                self._fs.makedirs(tmp_dir, exist_ok=True)
-                try:
-                    yield tmp_dir
-                    if self._fs.isdir(dirname):
-                        self._fs.rm(dirname, recursive=True)
-                    if is_local:
-                        # LocalFileSystem.mv does copy + rm, it is more efficient to simply rename a local directory
-                        shutil.move(self._fs._strip_protocol(tmp_dir), self._fs._strip_protocol(dirname))
-                    else:
-                        self._fs.mv(tmp_dir, dirname, recursive=True)
-                finally:
-                    if self._fs.exists(tmp_dir):
-                        self._fs.rm(tmp_dir, recursive=True)
+                if not is_local:
+                    yield dirname
+                else:
+                    tmp_dir = dirname + ".incomplete"
+                    self._fs.makedirs(tmp_dir, exist_ok=True)
+                    try:
+                        yield tmp_dir
+                        if self._fs.isdir(dirname):
+                            self._fs.rm(dirname, recursive=True)
+                        if is_local:
+                            # LocalFileSystem.mv does copy + rm, it is more efficient to simply rename a local directory
+                            shutil.move(self._fs._strip_protocol(tmp_dir), self._fs._strip_protocol(dirname))
+                        else:
+                            self._fs.mv(tmp_dir, dirname, recursive=True)
+                    finally:
+                        if self._fs.exists(tmp_dir):
+                            self._fs.rm(tmp_dir, recursive=True)
 
             # Print is intentional: we want this to always go to stdout so user has
             # information needed to cancel download/preparation if needed.
