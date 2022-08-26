@@ -687,6 +687,7 @@ class DatasetBuilder:
             def incomplete_dir(dirname):
                 """Create temporary dir for dirname and rename on exit."""
                 if not is_local:
+                    self._fs.makedirs(dirname, exist_ok=True)
                     yield dirname
                 else:
                     tmp_dir = dirname + ".incomplete"
