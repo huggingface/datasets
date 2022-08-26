@@ -362,6 +362,7 @@ def get_dataset_config_info(
         use_auth_token=use_auth_token,
         **config_kwargs,
     )
+    builder._check_manual_download()
     info = builder.info
     if info.splits is None:
         try:
