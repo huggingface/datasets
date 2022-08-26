@@ -682,8 +682,7 @@ class DatasetBuilder:
                 print(
                     f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} to {self._cache_dir}..."
                 )
-
-            self._check_manual_download(dl_manager)
+            self._check_manual_download()
 
             # Create a tmp dir and rename to self._cache_dir on successful exit.
             with incomplete_dir(self._cache_dir) as tmp_data_dir:
@@ -719,8 +718,8 @@ class DatasetBuilder:
                 f"Subsequent calls will reuse this data."
             )
 
-    def _check_manual_download(self, dl_manager):
-        if self.manual_download_instructions is not None and dl_manager.manual_dir is None:
+    def _check_manual_download(self):
+        if self.manual_download_instructions is not None and self.config.data_dir is None:
             raise ManualDownloadError(
                 textwrap.dedent(
                     f"""\
@@ -1021,7 +1020,7 @@ class DatasetBuilder:
             dataset_name=self.name,
             data_dir=self.config.data_dir,
         )
-        self._check_manual_download(dl_manager)
+        self._check_manual_download()
         splits_generators = {sg.name: sg for sg in self._split_generators(dl_manager)}
         # By default, return all splits
         if split is None:
