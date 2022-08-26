@@ -645,12 +645,13 @@ class DatasetBuilder:
             try_from_hf_gcs = False
         self.dl_manager = dl_manager
 
-        # Prevent parallel disk operations
+        # Prevent parallel local disk operations
         if is_local:
+            # Create parent directory of the output_dir to put the lock file in there
+            Path(self._output_dir).parent.mkdir(parents=True, exist_ok=True)
             lock_path = self._output_dir + "_builder.lock"
 
         # File locking only with local paths; no file locking on GCS or S3
-        self._fs.makedirs(os.path.dirname(self._output_dir), exist_ok=True)
         with FileLock(lock_path) if is_local else contextlib.nullcontext():
 
             # Check if the data already exists
