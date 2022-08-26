@@ -31,7 +31,7 @@ To use an anonymous connection, use `anon=True`.
 Otherwise, include your `aws_access_key_id` and `aws_secret_access_key` whenever you are interacting with a private S3 bucket.
 
 ```py
->>> storage_options = {"anon": True}  # for anynonous connection
+>>> storage_options = {"anon": True}  # for anonymous connection
 # or use your credentials
 >>> storage_options = {"key": aws_access_key_id, "secret": aws_secret_access_key}  # for private buckets
 # or use a botocore session
@@ -138,7 +138,7 @@ Load your own data files (see [how to load local and remote files](./loading#loc
 ```
 
 It is highly recommended to save the files as compressed Parquet files to optimize I/O by specifying `file_format="parquet"`.
-Otherwize the dataset is saved as an uncompressed Arrow file.
+Otherwise the dataset is saved as an uncompressed Arrow file.
 
 #### Dask
 
