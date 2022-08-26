@@ -21,7 +21,7 @@ paperswithcode_id: tabfact
 pretty_name: TabFact
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for TabFact
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

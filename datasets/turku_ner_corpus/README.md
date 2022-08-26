@@ -21,7 +21,7 @@ task_ids:
 paperswithcode_id: null
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Turku NER corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

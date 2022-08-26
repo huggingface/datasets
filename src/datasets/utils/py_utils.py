@@ -152,7 +152,10 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
 
 
 def asdict(obj):
-    """Convert an object to its dictionary representation recursively."""
+    """Convert an object to its dictionary representation recursively.
+
+    <Added version="2.4.0"/>
+    """
 
     # Implementation based on https://docs.python.org/3/library/dataclasses.html#dataclasses.asdict
 
@@ -370,9 +373,9 @@ def map_nested(
     Use multiprocessing if num_proc > 1 and the length of data_struct is greater than or equal to
     `parallel_min_length`.
 
-    <Changed version="2.4.0">
+    <Changed version="2.5.0">
 
-    Before version 2.4.0, multiprocessing was not used if `num_proc` was greater than or equal to ``len(iterable)``.
+    Before version 2.5.0, multiprocessing was not used if `num_proc` was greater than or equal to ``len(iterable)``.
 
     Now, if `num_proc` is greater than or equal to ``len(iterable)``, `num_proc` is set to ``len(iterable)`` and
     multiprocessing is used.
@@ -393,6 +396,7 @@ def map_nested(
         num_proc (`int`, *optional*): Number of processes.
         parallel_min_length (`int`, default `2`): Minimum length of `data_struct` required for parallel
             processing.
+            <Added version="2.5.0"/>
         types (`tuple`, *optional*): Additional types (besides `dict` values) to apply `function` recursively to their
             elements.
         disable_tqdm (`bool`, default `True`): Whether to disable the tqdm progressbar.

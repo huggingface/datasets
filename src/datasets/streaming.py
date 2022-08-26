@@ -52,7 +52,8 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
 
     Args:
         module_path: Path to the module to be extended.
-        use_auth_token: Whether to use authentication token.
+        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If True, will get token from `"~/.huggingface"`.
     """
 
     module = importlib.import_module(module_path)
@@ -100,8 +101,6 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
 
     Args:
         builder (:class:`DatasetBuilder`): Dataset builder instance.
-        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, will get token from `"~/.huggingface"`.
     """
     # this extends the open and os.path.join functions for data streaming
     extend_module_for_streaming(builder.__module__, use_auth_token=builder.use_auth_token)
@@ -112,3 +111,16 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
                 internal_import_name = imports[1]
                 internal_module_name = ".".join(builder.__module__.split(".")[:-1] + [internal_import_name])
                 extend_module_for_streaming(internal_module_name, use_auth_token=builder.use_auth_token)
+
+    # builders can inherit from other builders that might use streaming functionality
+    # (for example, ImageFolder and AudioFolder inherit from FolderBuilder which implements examples generation)
+    # but these parents builders are not patched automatically as they are not instantiated, so we patch them here
+    from .builder import DatasetBuilder
+
+    parent_builder_modules = [
+        cls.__module__
+        for cls in type(builder).__mro__[1:]  # make sure it's not the same module we've already patched
+        if issubclass(cls, DatasetBuilder) and cls.__module__ != DatasetBuilder.__module__
+    ]  # check it's not a standard builder from datasets.builder
+    for module in parent_builder_modules:
+        extend_module_for_streaming(module, use_auth_token=builder.use_auth_token)

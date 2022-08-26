@@ -3448,7 +3448,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Return a dictionary (:obj:`datasets.DatasetDict`) with two random train and test subsets (`train` and `test` ``Dataset`` splits).
         Splits are created from the dataset according to `test_size`, `train_size` and `shuffle`.
 
-        This method is similar to scikit-learn `train_test_split` with the omission of the stratified options.
+        This method is similar to scikit-learn `train_test_split`.
 
         Args:
             test_size (:obj:`numpy.random.Generator`, optional): Size of the test split
@@ -3884,7 +3884,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             batched (:obj:`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches
-                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasets once)
             batch_size (:obj:`int`, optional): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
@@ -3966,7 +3966,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             batched (:obj:`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches
-                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasets once)
             batch_size (:obj:`int`, optional): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
@@ -4436,6 +4436,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             custom_index (Optional :obj:`faiss.Index`):
                 Custom Faiss index that you already have instantiated and configured for your needs.
             batch_size (Optional :obj:`int`): Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.
+                <Added version="2.4.0"/>
             train_size (Optional :obj:`int`):
                 If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False):
@@ -4512,6 +4513,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             custom_index (Optional :obj:`faiss.Index`):
                 Custom Faiss index that you already have instantiated and configured for your needs.
             batch_size (Optional :obj:`int`): Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.
+                <Added version="2.4.0"/>
             train_size (Optional :obj:`int`):
                 If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False):
@@ -4849,6 +4851,7 @@ def _interleave_map_style_datasets(
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
+    stopping_strategy: Optional[str] = "first_exhausted",
     **kwargs,
 ) -> "Dataset":
     """
@@ -4859,16 +4862,27 @@ def _interleave_map_style_datasets(
 
     Args:
         datasets (:obj:`List[Dataset]`): list of datasets to interleave
-        probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructued by sampling
+        probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructed by sampling
             examples from one source at a time according to these probabilities.
         seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
         info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
         split (:class:`NamedSplit`, optional): Name of the dataset split.
+        stopping_strategy (Optional :obj:`str`, defaults to `first_exhausted`):
+            Two strategies are proposed right now.
+            By default, `first_exhausted` is an undersampling strategy, i.e the dataset construction is stopped as soon as one dataset has ran out of samples.
+            If the strategy is `all_exhausted`,  we use an oversampling strategy, i.e the dataset construction is stopped as soon as every samples of every dataset has been added at least once.
+            Note that if the strategy is `all_exhausted`, the interleaved dataset size can get enormous:
+            - with no probabilities, the resulting dataset will have max_length_datasets*nb_dataset samples.
+            - with given probabilities, the resulting dataset will have more samples if some datasets have really low probability of visiting.
         **kwargs (additional keyword arguments): Keyword arguments to be passed to :meth:`datasets.Datasets.select` when selecting the indices used to interleave the datasets.
 
     Output:
         :class:`datasets.Dataset`
     """
+    if stopping_strategy not in ["first_exhausted", "all_exhausted"]:
+        raise ValueError(
+            f"{stopping_strategy} stopping strategy in `interleave_datasets` is not implemented yet with a list of {type(datasets[0])}"
+        )
 
     # To interleave the datasets, we concatenate them and then we re-order the indices
     concatenated_datasets = _concatenate_map_style_datasets(datasets, info=info, split=split)
@@ -4876,12 +4890,39 @@ def _interleave_map_style_datasets(
     # Let's now build the indices to pass to .select()
     lengths = [len(dset) for dset in datasets]
     offsets = np.cumsum([0] + lengths[:-1])
-    if probabilities is None:
+
+    # if stopping_strategy is "first_exhausted", it is an undersampling situation whereas it is an oversampling situation if it is "all_exhausted"
+    oversampling = stopping_strategy == "all_exhausted"
+
+    if probabilities is None and not oversampling:
+        # Undersampling situation with cycling between each sources
         # Example:: If lengths of the datasets are [3, 4, 5]
         # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 6, 9]
         # Note that we only have 3 examples per dataset since the first dataset ran out of examples
+
+        # Reasoning behind the following operation: keeping the min_length first indices of each dataset
+        # while offsetting in order to correspond to the right indices of the concatenated dataset
+        # and flattening to effectively interleave the datasets
         indices = (offsets.reshape(1, -1) + np.arange(min(lengths)).reshape(-1, 1)).flatten().tolist()
+    elif probabilities is None:
+        # Oversampling situation with cycling between each sources
+        # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 5, 9, 0, 6, 10, 1, 3, 11]
+        # Note that we have 5 examples per dataset with a rolling window since the longest dataset has 5 samples
+
+        # Reasoning behind the following operation: for each dataset indices (i.e column) repeat the indices to have max_length indices per dataset
+        # For example, if the max_length is 5 and the i-th dataset has 3 samples, the i-th column will be [0,1,2,0,1]
+        indices = np.mod(np.arange(max(lengths)).reshape(-1, 1), np.array(lengths).reshape(1, -1))
+
+        # We have to keep the indices to their respective dataset offsets and to flatten to effectively interleave the datasets
+        indices = (indices + offsets).flatten().tolist()
+
     else:
+        # boolean array indicating if at index i if the dataset_i has been fully exhausted
+        is_exhausted = np.full(len(lengths), False)
+
+        # if undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted
+        # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
+        bool_strategy_func = np.all if oversampling else np.any
 
         def iter_random_indices():
             """Get an infinite iterator that randomly samples the index of the source to pick examples from."""
@@ -4892,12 +4933,21 @@ def _interleave_map_style_datasets(
         current_index = [0] * len(datasets)
         indices = []
         for source_idx in iter_random_indices():
-            # we ran out of examples, let's stop
-            if current_index[source_idx] >= lengths[source_idx]:
+            # If no oversampling, we stop as soon as a dataset has ran out of examples (np.any)
+            # Otherwise, we stop as soon as every dataset has ran out of examples (np.all)
+            if bool_strategy_func(is_exhausted):
+                # the stopping condition was reached, let's stop
                 break
+
             # let's add the example at the current index of the `source_idx`-th dataset
             indices.append(current_index[source_idx] + offsets[source_idx])
             current_index[source_idx] += 1
+
+            # we've ran out of examples for the current dataset, let's update our boolean array and bring the current_index back to 0
+            if current_index[source_idx] >= lengths[source_idx]:
+                is_exhausted[source_idx] = True
+                current_index[source_idx] = 0
+
     return concatenated_datasets.select(indices, **kwargs)
 
 

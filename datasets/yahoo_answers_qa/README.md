@@ -21,7 +21,7 @@ paperswithcode_id: null
 pretty_name: YahooAnswersQa
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for YahooAnswersQa
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

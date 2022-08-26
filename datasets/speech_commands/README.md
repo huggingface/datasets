@@ -18,7 +18,7 @@ task_ids:
 - keyword-spotting
 size_categories:
 - 100K<n<1M
-- 10K<n<100
+- 10K<n<100K
 configs:
 - v0.01
 - v0.02
