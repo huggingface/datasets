@@ -691,19 +691,16 @@ class DatasetBuilder:
                     yield dirname
                 else:
                     tmp_dir = dirname + ".incomplete"
-                    self._fs.makedirs(tmp_dir, exist_ok=True)
+                    os.makedirs(tmp_dir, exist_ok=True)
                     try:
                         yield tmp_dir
-                        if self._fs.isdir(dirname):
-                            self._fs.rm(dirname, recursive=True)
-                        if is_local:
-                            # LocalFileSystem.mv does copy + rm, it is more efficient to simply rename a local directory
-                            shutil.move(self._fs._strip_protocol(tmp_dir), self._fs._strip_protocol(dirname))
-                        else:
-                            self._fs.mv(tmp_dir, dirname, recursive=True)
+                        if os.path.isdir(dirname):
+                            shutil.rmtree(dirname, recursive=True)
+                        # LocalFileSystem.mv does copy + rm, it is more efficient to simply rename a local directory
+                        shutil.move(tmp_dir, dirname)
                     finally:
-                        if self._fs.exists(tmp_dir):
-                            self._fs.rm(tmp_dir, recursive=True)
+                        if os.path.exists(tmp_dir):
+                            shutil.rmtree(tmp_dir, recursive=True)
 
             # Print is intentional: we want this to always go to stdout so user has
             # information needed to cancel download/preparation if needed.
