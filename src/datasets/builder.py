@@ -31,7 +31,6 @@ from pathlib import Path
 from typing import Dict, Mapping, Optional, Tuple, Union
 
 import fsspec
-from hamcrest import is_
 
 from . import config, utils
 from .arrow_dataset import Dataset
