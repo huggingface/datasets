@@ -1,8 +1,24 @@
 ---
+annotations_creators:
+- crowdsourced
 language:
 - en
-paperswithcode_id: cosmosqa
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
 pretty_name: CosmosQA
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- multiple-choice
+task_ids:
+- multiple-choice-qa
+paperswithcode_id: cosmosqa
 ---
 
 # Dataset Card for "cosmos_qa"
@@ -34,9 +50,9 @@ pretty_name: CosmosQA
 ## Dataset Description
 
 - **Homepage:** [https://wilburone.github.io/cosmos/](https://wilburone.github.io/cosmos/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/wilburOne/cosmosqa/
+- **Paper:** [Cosmos QA: Machine Reading Comprehension with Contextual Commonsense Reasoning](https://arxiv.org/abs/1909.00277)
+- **Point of Contact:** [Lifu Huang](mailto:warrior.fu@gmail.com)
 - **Size of downloaded dataset files:** 23.27 MB
 - **Size of the generated dataset:** 23.37 MB
 - **Total amount of disk used:** 46.64 MB
@@ -163,7 +179,6 @@ The data fields are the same among all splits.
     booktitle ={arXiv:1909.00277v2},
     year={2019}
 }
-
 ```
 
 
