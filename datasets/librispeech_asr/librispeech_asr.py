@@ -209,14 +209,14 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name="validation.clean",
                     gen_kwargs={
-                        "local_extracted_archive": local_extracted_archive.get("validation.clean"),
+                        "local_extracted_archive": local_extracted_archive.get("dev.clean"),
                         "files": dl_manager.iter_archive(archive_path["dev.clean"]),
                     },
                 ),
                 datasets.SplitGenerator(
                     name="validation.other",
                     gen_kwargs={
-                        "local_extracted_archive": local_extracted_archive.get("validation.other"),
+                        "local_extracted_archive": local_extracted_archive.get("dev.other"),
                         "files": dl_manager.iter_archive(archive_path["dev.other"]),
                     },
                 ),
