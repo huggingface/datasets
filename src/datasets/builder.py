@@ -695,12 +695,12 @@ class DatasetBuilder:
                     try:
                         yield tmp_dir
                         if os.path.isdir(dirname):
-                            shutil.rmtree(dirname, recursive=True)
+                            shutil.rmtree(dirname)
                         # LocalFileSystem.mv does copy + rm, it is more efficient to simply rename a local directory
                         shutil.move(tmp_dir, dirname)
                     finally:
                         if os.path.exists(tmp_dir):
-                            shutil.rmtree(tmp_dir, recursive=True)
+                            shutil.rmtree(tmp_dir)
 
             # Print is intentional: we want this to always go to stdout so user has
             # information needed to cancel download/preparation if needed.
