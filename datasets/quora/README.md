@@ -1,8 +1,24 @@
 ---
+annotations_creators:
+- expert-generated
 language:
 - en
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: Quora Question Pairs
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- semantic-similarity-classification
 paperswithcode_id: null
-pretty_name: quora
 ---
 
 # Dataset Card for "quora"
@@ -142,13 +158,11 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Unknown license.
 
 ### Citation Information
 
-```
-
-```
+Unknown.
 
 
 ### Contributions
