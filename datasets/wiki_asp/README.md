@@ -21,7 +21,7 @@ paperswithcode_id: wikiasp
 pretty_name: WikiAsp
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for WikiAsp
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

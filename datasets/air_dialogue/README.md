@@ -1,7 +1,7 @@
 ---
 pretty_name: AirDialogue
 annotations_creators:
-- human-annotated
+- crowdsourced
 language_creators:
 - machine-generated
 language:

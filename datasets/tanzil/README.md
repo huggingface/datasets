@@ -61,7 +61,7 @@ paperswithcode_id: null
 pretty_name: tanzil
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for tanzil
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

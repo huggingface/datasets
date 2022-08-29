@@ -19,20 +19,34 @@ import datasets
 from datasets.tasks import TextClassification
 
 
-_CITATION = """\
-@proceedings{ws-2018-nlp-similar,
-    title = "Proceedings of the Fifth Workshop on {NLP} for Similar Languages, Varieties and Dialects ({V}ar{D}ial 2018)",
-    editor = {Zampieri, Marcos  and
+_CITATION = r"""\
+@inproceedings{zampieri-etal-2018-language,
+    title = "Language Identification and Morphosyntactic Tagging: The Second {V}ar{D}ial Evaluation Campaign",
+    author = {Zampieri, Marcos  and
+      Malmasi, Shervin  and
       Nakov, Preslav  and
+      Ali, Ahmed  and
+      Shon, Suwon  and
+      Glass, James  and
+      Scherrer, Yves  and
+      Samard{\v{z}}i{\'c}, Tanja  and
       Ljube{\v{s}}i{\'c}, Nikola  and
       Tiedemann, J{\"o}rg  and
-      Malmasi, Shervin  and
-      Ali, Ahmed},
+      van der Lee, Chris  and
+      Grondelaers, Stefan  and
+      Oostdijk, Nelleke  and
+      Speelman, Dirk  and
+      van den Bosch, Antal  and
+      Kumar, Ritesh  and
+      Lahiri, Bornini  and
+      Jain, Mayank},
+    booktitle = "Proceedings of the Fifth Workshop on {NLP} for Similar Languages, Varieties and Dialects ({V}ar{D}ial 2018)",
     month = aug,
     year = "2018",
     address = "Santa Fe, New Mexico, USA",
     publisher = "Association for Computational Linguistics",
-    url = "https://www.aclweb.org/anthology/W18-3900",
+    url = "https://aclanthology.org/W18-3901",
+    pages = "1--17",
 }
 """
 

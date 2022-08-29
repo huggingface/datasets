@@ -21,7 +21,7 @@ paperswithcode_id: legal-documents-entity-recognition
 pretty_name: Legal Documents Entity Recognition
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Legal Documents Entity Recognition
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

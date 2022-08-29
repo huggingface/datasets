@@ -8,7 +8,6 @@ from datasets import ClassLabel, Features, Image, Value
 from datasets.data_files import DataFilesDict, get_data_patterns_locally
 from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder
-from datasets.streaming import extend_module_for_streaming
 
 from ..utils import require_pil
 
@@ -421,8 +420,6 @@ def test_data_files_with_metadata_and_multiple_splits(streaming, cache_dir, data
 @require_pil
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_with_zip_archives):
-    if streaming:
-        extend_module_for_streaming(ImageFolder.__module__)
     imagefolder = ImageFolder(data_files=data_files_with_zip_archives, cache_dir=cache_dir)
     imagefolder.download_and_prepare()
     datasets = imagefolder.as_streaming_dataset() if streaming else imagefolder.as_dataset()

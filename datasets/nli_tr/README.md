@@ -21,10 +21,10 @@ source_datasets:
 - extended|multi_nli
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
 - natural-language-inference
 - semantic-similarity-scoring
+- text-scoring
 paperswithcode_id: nli-tr
 pretty_name: Natural Language Inference in Turkish
 configs:

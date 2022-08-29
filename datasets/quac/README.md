@@ -25,7 +25,7 @@ paperswithcode_id: quac
 pretty_name: Question Answering in Context
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Question Answering in Context
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

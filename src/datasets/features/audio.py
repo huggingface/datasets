@@ -34,7 +34,7 @@ class Audio:
 
         - path: String with relative path of the audio file to the archive file.
         - array: Array containing the audio sample
-        - sampling_rate: Integer corresponding to the samping rate of the audio sample.
+        - sampling_rate: Integer corresponding to the sampling rate of the audio sample.
 
       This is useful for archived files with sequential access.
 

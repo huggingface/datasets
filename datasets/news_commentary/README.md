@@ -31,7 +31,7 @@ paperswithcode_id: null
 pretty_name: NewsCommentary
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for NewsCommentary
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

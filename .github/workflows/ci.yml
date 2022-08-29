@@ -71,4 +71,4 @@ jobs:
         run: pip install pyarrow==${{ matrix.pyarrow_version }}
       - name: Test with pytest
         run: |
-          python -m pytest -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
+          python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
