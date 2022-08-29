@@ -80,7 +80,7 @@ train-eval-index:
   task_id: natural_language_inference
   splits:
     train_split: train
-    eval_split: validation
+    eval_split: validation_matched
   col_mapping:
     premise: text1
     hypothesis: text2
