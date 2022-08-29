@@ -1,5 +1,4 @@
 import os
-import platform
 import random
 import tempfile
 import unittest
