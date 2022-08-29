@@ -186,7 +186,15 @@ The data fields are the same among all splits.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@inproceedings{wang2019crossweigh,
+  title={CrossWeigh: Training Named Entity Tagger from Imperfect Annotations},
+  author={Wang, Zihan and Shang, Jingbo and Liu, Liyuan and Lu, Lihao and Liu, Jiacheng and Han, Jiawei},
+  booktitle={Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)},
+  pages={5157--5166},
+  year={2019}
+}
+```
 
 ### Contributions
 

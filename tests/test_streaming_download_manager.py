@@ -726,9 +726,10 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
         ("https://github.com/user/repo/blob/master/data/morph_train.tsv?raw=true", None),
         ("https://repo.org/bitstream/handle/20.500.12185/346/annotated_corpus.zip?sequence=3&isAllowed=y", "zip"),
         ("https://zenodo.org/record/2787612/files/SICK.zip?download=1", "zip"),
+        ("https://foo.bar/train.tar", "tar"),
     ],
 )
-def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected_protocol):
+def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):
     assert _get_extraction_protocol(urlpath) == expected_protocol
 
 
@@ -739,8 +740,8 @@ def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected
         (TEST_GG_DRIVE_ZIPPED_URL, "zip"),
     ],
 )
-@slow  # otherwise it spams google drive and the CI gets banned
-def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):
+@slow  # otherwise it spams Google Drive and the CI gets banned
+def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected_protocol):
     assert _get_extraction_protocol(urlpath) == expected_protocol
 
 
@@ -749,22 +750,21 @@ def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol
     [
         "zip://train-00000.tar.gz::https://foo.bar/data.zip",
         "https://foo.bar/train.tar.gz",
-        "https://foo.bar/train.tar",
     ],
 )
-@pytest.mark.xfail(raises=NotImplementedError)
 def test_streaming_dl_manager_get_extraction_protocol_throws(urlpath):
-    _get_extraction_protocol(urlpath)
+    with pytest.raises(NotImplementedError):
+        _ = _get_extraction_protocol(urlpath)
 
 
-@slow  # otherwise it spams google drive and the CI gets banned
+@slow  # otherwise it spams Google Drive and the CI gets banned
 @pytest.mark.integration
 def test_streaming_gg_drive():
     with xopen(TEST_GG_DRIVE_URL) as f:
         assert f.read() == TEST_GG_DRIVE_CONTENT
 
 
-@slow  # otherwise it spams google drive and the CI gets banned
+@slow  # otherwise it spams Google Drive and the CI gets banned
 @pytest.mark.integration
 def test_streaming_gg_drive_no_extract():
     urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_URL)
@@ -772,7 +772,7 @@ def test_streaming_gg_drive_no_extract():
         assert f.read() == TEST_GG_DRIVE_CONTENT
 
 
-@slow  # otherwise it spams google drive and the CI gets banned
+@slow  # otherwise it spams Google Drive and the CI gets banned
 @pytest.mark.integration
 def test_streaming_gg_drive_gzipped():
     urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_GZIPPED_URL)
@@ -780,7 +780,7 @@ def test_streaming_gg_drive_gzipped():
         assert f.read() == TEST_GG_DRIVE_CONTENT
 
 
-@slow  # otherwise it spams google drive and the CI gets banned
+@slow  # otherwise it spams Google Drive and the CI gets banned
 @pytest.mark.integration
 def test_streaming_gg_drive_zipped():
     urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_ZIPPED_URL)

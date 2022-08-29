@@ -29,7 +29,7 @@ task_ids: []
 paperswithcode_id: null
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for SETimes – A Parallel Corpus of English and South-East European Languages
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

@@ -1,11 +1,27 @@
 ---
-pretty_name: WMT T2t
-paperswithcode_id: null
+annotations_creators:
+- no-annotation
+language_creators:
+- found
+language:
+- de
+- en
+license:
+- unknown
 multilinguality:
 - translation
+size_categories:
+- 10M<n<100M
+source_datasets:
+- extended|europarl_bilingual
+- extended|news_commentary
+- extended|opus_paracrawl
+- extended|un_multi
 task_categories:
 - translation
 task_ids: []
+pretty_name: WMT T2T
+paperswithcode_id: null
 ---
 
 # Dataset Card for "wmt_t2t"
@@ -45,6 +61,8 @@ task_ids: []
 - **Total amount of disk used:** 2970.12 MB
 
 ### Dataset Summary
+
+The WMT EnDe Translate dataset used by the Tensor2Tensor library.
 
 Translation dataset based on the data from statmt.org.
 

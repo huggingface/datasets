@@ -22,7 +22,7 @@ paperswithcode_id: craigslistbargains
 pretty_name: CraigslistBargains
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for CraigslistBargains
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

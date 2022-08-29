@@ -183,7 +183,14 @@ Lang| Train | Test |
 
 ### Citation Information
 
-[More Information Needed]
+```
+@article{niyongabo2020kinnews,
+  title={KINNEWS and KIRNEWS: Benchmarking Cross-Lingual Text Classification for Kinyarwanda and Kirundi},
+  author={Niyongabo, Rubungo Andre and Qu, Hong and Kreutzer, Julia and Huang, Li},
+  journal={arXiv preprint arXiv:2010.12174},
+  year={2020}
+}
+```
 
 ### Contributions
 

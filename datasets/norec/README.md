@@ -23,7 +23,7 @@ task_ids:
 paperswithcode_id: norec
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for NoReC
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
