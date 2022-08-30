@@ -28,7 +28,7 @@ SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-
 
 TRAIN_KEYWORDS = ["train", "training"]
 TEST_KEYWORDS = ["test", "testing", "eval", "evaluation"]
-VALIDATION_KEYWORDS = ["validation", "valid", "dev"]
+VALIDATION_KEYWORDS = ["validation", "valid", "dev", "val"]
 NON_WORDS_CHARS = "-._ 0-9"
 KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
 KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]

@@ -581,6 +581,9 @@ def mock_fs(file_paths: List[str]):
         {"validation": "dev.txt"},
         {"validation": "data/dev.txt"},
         {"validation": "dev/dataset.txt"},
+        # With valid<>val aliases
+        {"validation": "val.txt"},
+        {"validation": "data/val.txt"},
         # With other extensions
         {"train": "train.parquet", "test": "test.parquet", "validation": "valid.parquet"},
         # With "dev" or "eval" without separators
