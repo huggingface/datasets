@@ -26,7 +26,6 @@ the original corpus repo. Modifications are made to accommodate the HuggingFace 
 import csv
 import datetime
 import glob
-import io
 import os
 import re
 
@@ -435,10 +434,8 @@ class Swda(datasets.GeneratorBasedBuilder):
         dl_dir = dl_manager.download_and_extract(_URL)
         # Use swda/ folder.
         data_dir = os.path.join(dl_dir, "swda")
-        # Handle partitions files.
-        urls_to_download = self._URLS
-        # Download extract and return paths of split files.
-        downloaded_files = dl_manager.download_and_extract(urls_to_download)
+        # Handle partitions files: download extract and return paths of split files.
+        downloaded_files = dl_manager.download(self._URLS)
 
         return [
             # Return whole data path and train splits file downloaded path.
@@ -476,7 +473,8 @@ class Swda(datasets.GeneratorBasedBuilder):
         """
 
         # Read in the split file.
-        split_file = io.open(file=split_file, mode="r", encoding="utf-8").read().splitlines()
+        with open(file=split_file, mode="r", encoding="utf-8") as f:
+            split_file = f.read().splitlines()
         # Read in corpus data using split files.
         corpus = CorpusReader(src_dirname=data_dir, split_file=split_file)
         # Generate examples.
