@@ -40,3 +40,8 @@ class DatasetListTest(TestCase):
         list_records = [{"col_1": []}, {"col_1": [1, 2]}]
         dset = Dataset.from_list(list_records)
         self.assertEqual(dset.info.features["col_1"], Sequence(Value("int64")))
+
+    def test_create_empty(self):
+        dset = Dataset.from_list([])
+        self.assertEqual(len(dset), 0)
+        self.assertListEqual(dset.column_names, [])

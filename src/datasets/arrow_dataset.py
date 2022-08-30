@@ -895,16 +895,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Returns:
             :class:`Dataset`
         """
-        if info is not None and features is not None and info.features != features:
-            raise ValueError(
-                f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
-            )
-        features = features if features is not None else info.features if info is not None else None
-        if info is None:
-            info = DatasetInfo()
-        info.features = features
-        pa_table = InMemoryTable.from_pylist(mapping=mapping)
-        return cls(pa_table, info=info, split=split)
+        # for simplicity and consistency wrt OptimizedTypedSequence we do not use InMemoryTable.from_pylist here
+        mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]} if mapping else {}
+        return cls.from_dict(mapping, features, info, split)
 
     @staticmethod
     def from_csv(
