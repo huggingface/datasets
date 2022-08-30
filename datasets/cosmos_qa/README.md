@@ -6,7 +6,7 @@ language:
 language_creators:
 - found
 license:
-- unknown
+- cc-by-4.0
 multilinguality:
 - monolingual
 pretty_name: CosmosQA
@@ -167,7 +167,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+As reported via email by Yejin Choi, the dataset is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) license.
 
 ### Citation Information
 
