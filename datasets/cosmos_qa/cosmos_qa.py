@@ -58,7 +58,7 @@ class CosmosQa(datasets.GeneratorBasedBuilder):
                     "answer1": datasets.Value("string"),
                     "answer2": datasets.Value("string"),
                     "answer3": datasets.Value("string"),
-                    "label": datasets.Value("int32")
+                    "label": datasets.Value("int32"),
                 }
             ),
             homepage=_HOMEPAGE,
