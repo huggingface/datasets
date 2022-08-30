@@ -364,10 +364,13 @@ def get_dataset_config_info(
     )
     info = builder.info
     if info.splits is None:
+        download_config = download_config.copy() if download_config else DownloadConfig()
+        if use_auth_token is not None:
+            download_config.use_auth_token = use_auth_token
+        builder._check_manual_download(
+            StreamingDownloadManager(base_path=builder.base_path, download_config=download_config)
+        )
         try:
-            download_config = download_config.copy() if download_config else DownloadConfig()
-            if use_auth_token is not None:
-                download_config.use_auth_token = use_auth_token
             info.splits = {
                 split_generator.name: {"name": split_generator.name, "dataset_name": path}
                 for split_generator in builder._split_generators(
