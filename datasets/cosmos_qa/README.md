@@ -172,12 +172,20 @@ As reported via email by Yejin Choi, the dataset is licensed under [CC BY 4.0](h
 ### Citation Information
 
 ```
-@inproceedings{cosmos,
-    title={COSMOS QA: Machine Reading Comprehension
-    with Contextual Commonsense Reasoning},
-    author={Lifu Huang and Ronan Le Bras and Chandra Bhagavatula and Yejin Choi},
-    booktitle ={arXiv:1909.00277v2},
-    year={2019}
+@inproceedings{huang-etal-2019-cosmos,
+    title = "Cosmos {QA}: Machine Reading Comprehension with Contextual Commonsense Reasoning",
+    author = "Huang, Lifu  and
+      Le Bras, Ronan  and
+      Bhagavatula, Chandra  and
+      Choi, Yejin",
+    booktitle = "Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)",
+    month = nov,
+    year = "2019",
+    address = "Hong Kong, China",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/D19-1243",
+    doi = "10.18653/v1/D19-1243",
+    pages = "2391--2401",
 }
 ```
 
