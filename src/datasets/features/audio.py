@@ -284,17 +284,29 @@ class Audio:
             import torchaudio
             import torchaudio.transforms as T
         except ImportError as err:
-            raise ImportError(
-                "Decoding 'mp3' audio files, requires 'torchaudio<0.12.0': pip install 'torchaudio<0.12.0'"
-            ) from err
-        if not version.parse(torchaudio.__version__) < version.parse("0.12.0"):
-            raise RuntimeError(
-                "Decoding 'mp3' audio files, requires 'torchaudio<0.12.0': pip install 'torchaudio<0.12.0'"
-            )
-        try:
-            torchaudio.set_audio_backend("sox_io")
-        except RuntimeError as err:
-            raise ImportError("To support decoding 'mp3' audio files, please install 'sox'.") from err
+            raise ImportError("To support decoding 'mp3' audio files, please install 'torchaudio'.") from err
+        if version.parse(torchaudio.__version__) < version.parse("0.12.0"):
+            try:
+                torchaudio.set_audio_backend("sox_io")
+            except RuntimeError as err:
+                raise ImportError("To support decoding 'mp3' audio files, please install 'sox'.") from err
+            array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
+        else:
+            try:  # TODO: check for ffmpeg version?
+                import librosa
+                import soundfile as sf
+            except ImportError as err:
+                raise ImportError(
+                    "To support decoding audio files, please install 'librosa' and 'soundfile'."
+                ) from err
+            # use librosa for torchaudio>=0.12.0 for now as a workaround
+            array, sampling_rate = self._decode_mp3_librosa(path_or_file)
+
+        return array, sampling_rate
+
+    def _decode_mp3_torchaudio(self, path_or_file):
+        import torchaudio
+        import torchaudio.transforms as T
 
         array, sampling_rate = torchaudio.load(path_or_file, format="mp3")
         if self.sampling_rate and self.sampling_rate != sampling_rate:
@@ -305,4 +317,10 @@ class Audio:
         array = array.numpy()
         if self.mono:
             array = array.mean(axis=0)
+        return array, sampling_rate
+
+    def _decode_mp3_librosa(self, path_or_file):
+        import librosa
+
+        array, sampling_rate = librosa.load(path_or_file, mono=self.mono, sr=self.sampling_rate)
         return array, sampling_rate
