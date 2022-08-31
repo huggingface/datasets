@@ -31,10 +31,12 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.types
+import yaml
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from .. import config
+from ..naming import camelcase_to_snakecase, snakecase_to_camelcase
 from ..table import array_cast
 from ..utils import logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
@@ -1281,7 +1283,7 @@ def generate_from_dict(obj: Any):
     class_type = globals()[obj.pop("_type")]
 
     if class_type == Sequence:
-        return Sequence(feature=generate_from_dict(obj["feature"]), length=obj["length"])
+        return Sequence(feature=generate_from_dict(obj["feature"]), length=obj.get("length", -1))
 
     field_names = {f.name for f in fields(class_type)}
     return class_type(**{k: v for k, v in obj.items() if k in field_names})
@@ -1599,6 +1601,72 @@ class Features(dict):
 
     def to_dict(self):
         return asdict(self)
+
+    def to_yaml(self):
+        yaml_data = self.to_dict()
+
+        def simplify(feature):
+            if isinstance(feature.get("sequence"), dict) and list(feature["sequence"]) == ["dtype"]:
+                feature["sequence"] = feature["sequence"]["dtype"]
+            elif isinstance(feature.get("list"), dict) and list(feature["list"]) == ["dtype"]:
+                feature["list"] = feature["list"]["dtype"]
+            return feature
+
+        def to_yaml_inner(obj):
+            if isinstance(obj, dict):
+                _type = obj.pop("_type", None)
+                if _type == "Sequence":
+                    _feature = obj.pop("feature")
+                    return simplify({camelcase_to_snakecase(_type): to_yaml_inner(_feature), **obj})
+                elif _type == "Value":
+                    return obj
+                elif _type:
+                    return {camelcase_to_snakecase(_type): obj}
+                else:
+                    return [{"name": name, **to_yaml_inner(_feature)} for name, _feature in obj.items()]
+            elif isinstance(obj, list):
+                if all(isinstance(x, (str, int)) for x in obj):  # don't convert ClassLabel.names
+                    return obj
+                else:
+                    return simplify({"list": simplify(to_yaml_inner(obj[0]))})
+            else:
+                return obj
+
+        return yaml.safe_dump(to_yaml_inner(yaml_data), sort_keys=False)
+
+    @classmethod
+    def from_yaml(cls, yaml_string):
+        yaml_data = yaml.safe_load(yaml_string)
+
+        def unsimplify(feature):
+            if isinstance(feature, dict) and isinstance(feature.get("sequence"), str):
+                feature["sequence"] = {"dtype": feature["sequence"]}
+            elif isinstance(feature, dict) and isinstance(feature.get("list"), str):
+                feature["list"] = {"dtype": feature["list"]}
+            return feature
+
+        def from_yaml_inner(obj):
+            if isinstance(obj, dict):
+                _type = next(iter(obj))
+                if _type == "sequence":
+                    _feature = unsimplify(obj).pop(_type)
+                    return {"feature": from_yaml_inner(_feature), **obj, "_type": "Sequence"}
+                elif _type == "list":
+                    return [from_yaml_inner(unsimplify(obj)[_type])]
+                elif _type == "dtype":
+                    return {"dtype": obj["dtype"], "_type": "Value"}
+                else:
+                    return {"_type": snakecase_to_camelcase(_type), **obj[_type]}
+            elif isinstance(obj, list):
+                if all(isinstance(x, (str, int)) for x in obj):  # don't convert ClassLabel.names
+                    return obj
+                else:
+                    names = [_feature.pop("name") for _feature in obj]
+                    return {name: from_yaml_inner(_feature) for name, _feature in zip(names, obj)}
+            else:
+                return obj
+
+        return cls.from_dict(from_yaml_inner(yaml_data))
 
     def encode_example(self, example):
         """

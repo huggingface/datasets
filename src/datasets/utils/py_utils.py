@@ -168,7 +168,8 @@ def asdict(obj):
             result = {}
             for f in fields(obj):
                 value = _asdict_inner(getattr(obj, f.name))
-                result[f.name] = value
+                if value != f.default or not f.init:
+                    result[f.name] = value
             return result
         elif isinstance(obj, tuple) and hasattr(obj, "_fields"):
             # obj is a namedtuple
