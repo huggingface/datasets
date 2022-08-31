@@ -4,6 +4,8 @@ import os
 from dataclasses import dataclass
 from typing import Any, List, Optional, Tuple
 
+import pandas as pd
+import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.json as paj
 
@@ -68,7 +70,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
     EXTENSIONS: List[str]
 
     SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT: bool = True
-    METADATA_FILENAME: str = "metadata.jsonl"
+    METADATA_FILENAMES: List[str] = ["metadata.csv", "metadata.jsonl"]
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
@@ -97,12 +99,12 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     if original_file_ext.lower() in self.EXTENSIONS:
                         if not self.config.drop_labels:
                             labels.add(os.path.basename(os.path.dirname(original_file)))
-                    elif os.path.basename(original_file) == self.METADATA_FILENAME:
+                    elif os.path.basename(original_file) in self.METADATA_FILENAMES:
                         metadata_files[split].add((original_file, downloaded_file))
                     else:
                         original_file_name = os.path.basename(original_file)
                         logger.debug(
-                            f"The file '{original_file_name}' was ignored: it is not an {self.BASE_COLUMN_NAME}, and is not {self.METADATA_FILENAME} either."
+                            f"The file '{original_file_name}' was ignored: it is not an image, and is not {self.METADATA_FILENAMES} either."
                         )
             else:
                 archives, downloaded_dirs = files_or_archives, downloaded_files_or_dirs
@@ -113,13 +115,13 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         if downloaded_dir_file_ext in self.EXTENSIONS:
                             if not self.config.drop_labels:
                                 labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
-                        elif os.path.basename(downloaded_dir_file) == self.METADATA_FILENAME:
+                        elif os.path.basename(downloaded_dir_file) in self.METADATA_FILENAMES:
                             metadata_files[split].add((None, downloaded_dir_file))
                         else:
                             archive_file_name = os.path.basename(archive)
                             original_file_name = os.path.basename(downloaded_dir_file)
                             logger.debug(
-                                f"The file '{original_file_name}' from the archive '{archive_file_name}' was ignored: it is not an {self.BASE_COLUMN_NAME}, and is not {self.METADATA_FILENAME} either."
+                                f"The file '{original_file_name}' from the archive '{archive_file_name}' was ignored: it is not an {self.BASE_COLUMN_NAME}, and is not {self.METADATA_FILENAMES} either."
                             )
 
         data_files = self.config.data_files
@@ -173,9 +175,18 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             # * all metadata files have the same set of features
             # * the `file_name` key is one of the metadata keys and is of type string
             features_per_metadata_file: List[Tuple[str, datasets.Features]] = []
+
+            # Check that all metadata files share the same format
+            metadata_ext = set(
+                os.path.splitext(downloaded_metadata_file)[1][1:]
+                for _, downloaded_metadata_file in itertools.chain.from_iterable(metadata_files.values())
+            )
+            if len(metadata_ext) > 1:
+                raise ValueError(f"Found metadata files with different extensions: {list(metadata_ext)}")
+            metadata_ext = metadata_ext.pop()
+
             for _, downloaded_metadata_file in itertools.chain.from_iterable(metadata_files.values()):
-                with open(downloaded_metadata_file, "rb") as f:
-                    pa_metadata_table = paj.read_json(f)
+                pa_metadata_table = self._read_metadata(downloaded_metadata_file)
                 features_per_metadata_file.append(
                     (downloaded_metadata_file, datasets.Features.from_arrow_schema(pa_metadata_table.schema))
                 )
@@ -232,11 +243,20 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             _, data_file_ext = os.path.splitext(data_file)
             if data_file_ext.lower() in self.EXTENSIONS:
                 files.append(data_file)
-            elif os.path.basename(data_file) == self.METADATA_FILENAME:
+            elif os.path.basename(data_file) in self.METADATA_FILENAMES:
                 files.append(data_file)
             else:
                 archives.append(data_file)
         return files, archives
+
+    def _read_metadata(self, metadata_file):
+        metadata_file_ext = os.path.splitext(metadata_file)[1][1:]
+        if metadata_file_ext == "csv":
+            # Use `pd.read_csv` (although slower) instead of `pyarrow.csv.read_csv` for reading CSV files for consistency with the CSV packaged module
+            return pa.Table.from_pandas(pd.read_csv(metadata_file))
+        else:
+            with open(metadata_file, "rb") as f:
+                return paj.read_json(f)
 
     def _generate_examples(self, files, metadata_files, split_name, add_metadata, add_labels):
         split_metadata_files = metadata_files.get(split_name, [])
@@ -247,6 +267,13 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         metadata_dir = None
         metadata_dict = None
         downloaded_metadata_file = None
+
+        if split_metadata_files:
+            metadata_ext = set(
+                os.path.splitext(downloaded_metadata_file)[1][1:]
+                for _, downloaded_metadata_file in split_metadata_files
+            )
+            metadata_ext = metadata_ext.pop()
 
         file_idx = 0
         for original_file, downloaded_file_or_dir in files:
@@ -276,8 +303,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                 _, metadata_file, downloaded_metadata_file = min(
                                     metadata_file_candidates, key=lambda x: count_path_segments(x[0])
                                 )
-                                with open(downloaded_metadata_file, "rb") as f:
-                                    pa_metadata_table = paj.read_json(f)
+                                pa_metadata_table = self._read_metadata(downloaded_metadata_file)
                                 pa_file_name_array = pa_metadata_table["file_name"]
                                 pa_file_name_array = pc.replace_substring(
                                     pa_file_name_array, pattern="\\", replacement="/"
@@ -292,7 +318,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                 }
                             else:
                                 raise ValueError(
-                                    f"One or several metadata.jsonl were found, but not in the same directory or in a parent directory of {downloaded_file_or_dir}."
+                                    f"One or several metadata.{metadata_ext} were found, but not in the same directory or in a parent directory of {downloaded_file_or_dir}."
                                 )
                         if metadata_dir is not None and downloaded_metadata_file is not None:
                             file_relpath = os.path.relpath(original_file, metadata_dir)
@@ -304,7 +330,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                             sample_metadata = metadata_dict[file_relpath]
                         else:
                             raise ValueError(
-                                f"One or several metadata.jsonl were found, but not in the same directory or in a parent directory of {downloaded_file_or_dir}."
+                                f"One or several metadata.{metadata_ext} were found, but not in the same directory or in a parent directory of {downloaded_file_or_dir}."
                             )
                     else:
                         sample_metadata = {}
@@ -346,8 +372,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                     _, metadata_file, downloaded_metadata_file = min(
                                         metadata_file_candidates, key=lambda x: count_path_segments(x[0])
                                     )
-                                    with open(downloaded_metadata_file, "rb") as f:
-                                        pa_metadata_table = paj.read_json(f)
+                                    pa_metadata_table = self._read_metadata(downloaded_metadata_file)
                                     pa_file_name_array = pa_metadata_table["file_name"]
                                     pa_file_name_array = pc.replace_substring(
                                         pa_file_name_array, pattern="\\", replacement="/"
@@ -362,7 +387,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                     }
                                 else:
                                     raise ValueError(
-                                        f"One or several metadata.jsonl were found, but not in the same directory or in a parent directory of {downloaded_dir_file}."
+                                        f"One or several metadata.{metadata_ext} were found, but not in the same directory or in a parent directory of {downloaded_dir_file}."
                                     )
                             if metadata_dir is not None and downloaded_metadata_file is not None:
                                 downloaded_dir_file_relpath = os.path.relpath(downloaded_dir_file, metadata_dir)
@@ -374,7 +399,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                 sample_metadata = metadata_dict[downloaded_dir_file_relpath]
                             else:
                                 raise ValueError(
-                                    f"One or several metadata.jsonl were found, but not in the same directory or in a parent directory of {downloaded_dir_file}."
+                                    f"One or several metadata.{metadata_ext} were found, but not in the same directory or in a parent directory of {downloaded_dir_file}."
                                 )
                         else:
                             sample_metadata = {}

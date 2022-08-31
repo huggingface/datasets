@@ -61,22 +61,25 @@ You can also load a dataset with an `AudioFolder` dataset builder. It does not r
 
 ## AudioFolder with metadata
 
-To link your audio files with metadata information, make sure your dataset has a `metadata.jsonl` file. Your dataset structure might look like:
+To link your audio files with metadata information, make sure your dataset has a `metadata.csv` file. Your dataset structure might look like:
 
 ```
-folder/train/metadata.jsonl
+folder/train/metadata.csv
 folder/train/first_audio_file.mp3
 folder/train/second_audio_file.mp3
 folder/train/third_audio_file.mp3
 ```
 
-Your `metadata.jsonl` file must have a `file_name` column which links audio files with their metadata. An example `metadata.jsonl` file might look like:
+Your `metadata.csv` file must have a `file_name` column which links audio files with their metadata. An example `metadata.csv` file might look like:
 
-```python
-{"file_name": "first_audio_file.mp3", "transcription": "znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi"}
-{"file_name": "second_audio_file.mp3", "transcription": "już u źwierzyńca podwojów król zasiada przy nim książęta i panowie rada a gdzie wzniosły krążył ganek rycerze obok kochanek król skinął palcem zaczęto igrzysko"}
-{"file_name": "third_audio_file.mp3", "transcription": "pewnie kędyś w obłędzie ubite minęły szlaki zaczekajmy dzień jaki poślemy szukać wszędzie dziś jutro pewnie będzie posłali wszędzie sługi czekali dzień i drugi gdy nic nie doczekali z płaczem chcą jechać dali"}
+```text
+file_name,transcription
+first_audio_file.mp3,znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi
+second_audio_file.mp3,już u źwierzyńca podwojów król zasiada przy nim książęta i panowie rada a gdzie wzniosły krążył ganek rycerze obok kochanek król skinął palcem zaczęto igrzysko
+third_audio_file.mp3,pewnie kędyś w obłędzie ubite minęły szlaki zaczekajmy dzień jaki poślemy szukać wszędzie dziś jutro pewnie będzie posłali wszędzie sługi czekali dzień i drugi gdy nic nie doczekali z płaczem chcą jechać dali
 ```
+
+Metadata can also be specified as JSON Lines, in which case use `metadata.jsonl` as the name of the metadata file. This format is helpful in scenarios when one of the columns is complex, e.g. a list of floats, to avoid parsing errors or reading the complex values as strings.
 
 Load your audio dataset by specifying `audiofolder` and the directory containing your data in `data_dir`:
 
@@ -86,7 +89,7 @@ Load your audio dataset by specifying `audiofolder` and the directory containing
 >>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder")
 ```
 
-`AudioFolder` will load audio data and create a `transcription` column containing texts from `metadata.jsonl`:
+`AudioFolder` will load audio data and create a `transcription` column containing texts from `metadata.csv`:
 
 ```py
 >>> dataset["train"][0]
@@ -146,7 +149,7 @@ If you have metadata files inside your data directory, but you still want to inf
 
 <Tip>
 
-Alternatively, you can add `label` column to your `metadata.jsonl` file.
+Alternatively, you can add `label` column to your `metadata.csv` file.
 
 </Tip>
 
