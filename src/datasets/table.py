@@ -252,6 +252,19 @@ class Table(IndexedTableMixin):
         """
         return self.table.to_pydict(*args, **kwargs)
 
+    def to_pylist(self, *args, **kwargs):
+        """
+        Convert the Table to a list
+
+        Returns:
+            :obj:`list`
+        """
+        try:
+            return self.table.to_pylist(*args, **kwargs)
+        except AttributeError:  # pyarrow <7 does not have to_pylist, so we use to_pydict
+            pydict = self.table.to_pydict(*args, **kwargs)
+            return [{k: pydict[k][i] for k in pydict} for i in range(len(self.table))]
+
     def to_pandas(self, *args, **kwargs):
         """
         Convert to a pandas-compatible NumPy array or DataFrame, as appropriate

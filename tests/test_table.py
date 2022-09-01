@@ -256,11 +256,10 @@ def test_in_memory_table_from_pydict(in_memory_pa_table):
 
 
 def test_in_memory_table_from_pylist(in_memory_pa_table):
-    pylist = in_memory_pa_table.to_pylist()
-    with assert_arrow_memory_increases():
-        table = InMemoryTable.from_pylist(pylist)
-        assert isinstance(table, InMemoryTable)
-        assert table.table == pa.Table.from_pylist(pylist)
+    pylist = InMemoryTable(in_memory_pa_table).to_pylist()
+    table = InMemoryTable.from_pylist(pylist)
+    assert isinstance(table, InMemoryTable)
+    assert pylist == table.to_pylist()
 
 
 def test_in_memory_table_from_batches(in_memory_pa_table):
