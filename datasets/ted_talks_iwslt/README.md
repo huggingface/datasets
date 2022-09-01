@@ -128,7 +128,7 @@ task_categories:
 - translation
 task_ids: []
 paperswithcode_id: null
-pretty_name: Web Inventory of Transcribed & Translated(WIT) Ted Talks
+pretty_name: Web Inventory of Transcribed & Translated (WIT) Ted Talks
 configs:
 - de_ja_2014
 - de_ja_2015
