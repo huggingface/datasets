@@ -293,11 +293,14 @@ class Audio:
         else:
             try:  # TODO: check for ffmpeg version?
                 # flake8: noqa
-                import librosa  # flake8: noqa
-                import soundfile as sf  # flake8: noqa
+                import librosa
             except ImportError as err:
                 raise ImportError(
-                    "To support decoding audio files, please install 'librosa' and 'soundfile'."
+                    "You have incompatiable version of `torchaudio` (>=0.12) installed. "
+                    "To support decoding 'mp3' with `torchaudio`, please downgrade `torchaudio` to <0.12: "
+                    "`pip install 'torchaudio<0.12.0`. "
+                    "To support decoding 'mp3' audio files without `torchaudio`, please install `librosa`: "
+                    "`pip install librosa`. Note that decoding will be slow in that case."
                 ) from err
             # use librosa for torchaudio>=0.12.0 for now as a workaround
             array, sampling_rate = self._decode_mp3_librosa(path_or_file)
