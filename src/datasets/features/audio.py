@@ -282,7 +282,6 @@ class Audio:
     def _decode_mp3(self, path_or_file):
         try:
             import torchaudio
-            import torchaudio.transforms as T
         except ImportError as err:
             raise ImportError("To support decoding 'mp3' audio files, please install 'torchaudio'.") from err
         if version.parse(torchaudio.__version__) < version.parse("0.12.0"):
@@ -293,8 +292,9 @@ class Audio:
             array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
         else:
             try:  # TODO: check for ffmpeg version?
-                import librosa
-                import soundfile as sf
+                # flake8: noqa
+                import librosa  # flake8: noqa
+                import soundfile as sf  # flake8: noqa
             except ImportError as err:
                 raise ImportError(
                     "To support decoding audio files, please install 'librosa' and 'soundfile'."
