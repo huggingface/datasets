@@ -4,14 +4,13 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - af
 - am
 - ar
 - az
 - be
 - bg
-- bg-Latn
 - bn
 - ca
 - ceb
@@ -21,7 +20,6 @@ languages:
 - da
 - de
 - el
-- el-Latn
 - en
 - eo
 - es
@@ -40,7 +38,6 @@ languages:
 - haw
 - he
 - hi
-- hi-Latn
 - hmn
 - ht
 - hu
@@ -51,7 +48,6 @@ languages:
 - it
 - iw
 - ja
-- ja-Latn
 - jv
 - ka
 - kk
@@ -76,7 +72,7 @@ languages:
 - my
 - ne
 - nl
-- "no"
+- 'no'
 - ny
 - pa
 - pl
@@ -84,7 +80,6 @@ languages:
 - pt
 - ro
 - ru
-- ru-Latn
 - sd
 - si
 - sk
@@ -112,10 +107,16 @@ languages:
 - yi
 - yo
 - zh
-- zh-Latn
 - zu
-licenses:
-- odc-by-1.0
+language_bcp47:
+- bg-Latn
+- el-Latn
+- hi-Latn
+- ja-Latn
+- ru-Latn
+- zh-Latn
+license:
+- odc-by
 multilinguality:
 - multilingual
 size_categories:

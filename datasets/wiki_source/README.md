@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
 - sv
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -21,7 +21,7 @@ paperswithcode_id: null
 pretty_name: WikiSource
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for WikiSource
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

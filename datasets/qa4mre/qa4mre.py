@@ -140,7 +140,7 @@ class Qa4mreConfig(datasets.BuilderConfig):
             raise ValueError("Incorrect track. Track should be one of the following: ", PATHS[year]["_TRACKS"])
 
         if track.lower() != "main" and language.upper() != "EN":
-            logger.warn("Only English documents available for pilot " "tracks. Setting English by default.")
+            logger.warning("Only English documents available for pilot " "tracks. Setting English by default.")
             language = "EN"
 
         if track.lower() == "main" and language.upper() not in PATHS[year]["_LANGUAGES_MAIN"]:

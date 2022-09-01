@@ -3,22 +3,16 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - rn
 - rw
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
 size_categories:
-  kinnews_cleaned:
-  - 10K<n<100K
-  kinnews_raw:
-  - 10K<n<100K
-  kirnews_cleaned:
-  - 1K<n<10K
-  kirnews_raw:
-  - 1K<n<10K
+- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -28,6 +22,11 @@ task_ids:
 - topic-classification
 paperswithcode_id: kinnews-and-kirnews
 pretty_name: KinnewsKirnews
+configs:
+- kinnews_cleaned
+- kinnews_raw
+- kirnews_cleaned
+- kirnews_raw
 ---
 # Dataset Card for kinnews_kirnews
 
@@ -184,7 +183,14 @@ Lang| Train | Test |
 
 ### Citation Information
 
-[More Information Needed]
+```
+@article{niyongabo2020kinnews,
+  title={KINNEWS and KIRNEWS: Benchmarking Cross-Lingual Text Classification for Kinyarwanda and Kirundi},
+  author={Niyongabo, Rubungo Andre and Qu, Hong and Kreutzer, Julia and Huang, Li},
+  journal={arXiv preprint arXiv:2010.12174},
+  year={2020}
+}
+```
 
 ### Contributions
 

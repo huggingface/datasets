@@ -4,24 +4,24 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - machine-generated
-languages:
-- en
-- zh
+language:
+- ar
 - de
+- en
 - es
 - fr
+- hi
 - it
 - ja
 - nl
 - pl
 - pt
 - ru
-- ar
-- vi
-- hi
 - sw
 - ur
-licenses:
+- vi
+- zh
+license:
 - mit
 multilinguality:
 - multilingual

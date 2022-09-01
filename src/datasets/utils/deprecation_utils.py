@@ -20,12 +20,11 @@ def deprecated(help_message: Optional[str] = None):
 
     def decorator(deprecated_function: Callable):
         global _emitted_deprecation_warnings
+        name = deprecated_function.__name__
+        # Support deprecating __init__ class method: class name instead
+        name = name if name != "__init__" else deprecated_function.__qualname__.split(".")[-2]
         warning_msg = (
-            (
-                f"{deprecated_function.__name__} is deprecated and will be removed "
-                "in the next major version of datasets."
-            )
-            + f" {help_message}"
+            f"{name} is deprecated and will be removed in the next major version of datasets." + f" {help_message}"
             if help_message
             else ""
         )

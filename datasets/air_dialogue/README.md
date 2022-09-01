@@ -1,12 +1,12 @@
 ---
 pretty_name: AirDialogue
 annotations_creators:
-- human-annotated
+- crowdsourced
 language_creators:
 - machine-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-nc-4.0
 multilinguality:
 - monolingual

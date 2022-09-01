@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -22,7 +22,7 @@ paperswithcode_id: crows-pairs
 pretty_name: CrowS-Pairs
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for CrowS-Pairs
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

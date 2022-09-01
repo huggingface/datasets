@@ -77,7 +77,7 @@ def _reset_library_root_logger() -> None:
 
 def get_logger(name: Optional[str] = None) -> logging.Logger:
     """Return a logger with the specified name.
-    This function can be used in dataset and metrics scripts.
+    This function can be used in dataset scripts.
     """
     if name is None:
         name = _get_library_name()
@@ -231,6 +231,6 @@ def enable_progress_bar():
 
 
 def disable_progress_bar():
-    """Enable tqdm progress bar."""
+    """Disable tqdm progress bar."""
     global _tqdm_active
     _tqdm_active = False

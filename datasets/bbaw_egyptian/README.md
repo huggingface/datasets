@@ -3,11 +3,11 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - de
-- en
 - egy
-licenses:
+- en
+license:
 - cc-by-4.0
 multilinguality:
 - multilingual

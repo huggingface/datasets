@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - machine-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -110,6 +110,26 @@ Each dialog instance has the following fields:
       - `requested_slots`: A list of slots requested by the user in the current turn.
       - `slot_values`: A pair of lists of the same lengths: `slot_name` contains slot names and `slot_value_list` contains the corresponding lists of strings. For categorical slots, this list contains a single value assigned to the slot. For non-categorical slots, all the values in this list are spoken variations of each other and are equivalent (e.g, "6 pm", "six in the evening", "evening at 6" etc.).
 
+The mapping from the action ID and the action name is the following:
+
+0: AFFIRM
+1: AFFIRM_INTENT
+2: CONFIRM
+3: GOODBYE
+4: INFORM
+5: INFORM_COUNT
+6: INFORM_INTENT
+7: NEGATE
+8: NEGATE_INTENT
+9: NOTIFY_FAILURE
+10: NOTIFY_SUCCESS
+11: OFFER
+12: OFFER_INTENT
+13: REQUEST
+14: REQUEST_ALTS
+15: REQ_MORE
+16: SELECT
+17: THANK_YOU
 
 ### Data Splits
 

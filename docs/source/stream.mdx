@@ -141,7 +141,8 @@ When you need to remove one or more columns, give [`IterableDataset.remove_colum
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('glue', 'mrpc', split='train')features
+>>> dataset = load_dataset('glue', 'mrpc', split='train')
+>>> dataset.features
 {'sentence1': Value(dtype='string', id=None),
 'sentence2': Value(dtype='string', id=None),
 'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None),

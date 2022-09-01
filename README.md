@@ -1,13 +1,13 @@
 <p align="center">
     <br>
-    <img src="https://raw.githubusercontent.com/huggingface/datasets/master/docs/source/imgs/datasets_logo_name.jpg" width="400"/>
+    <img src="https://raw.githubusercontent.com/huggingface/datasets/main/docs/source/imgs/datasets_logo_name.jpg" width="400"/>
     <br>
 <p>
 <p align="center">
-    <a href="https://circleci.com/gh/huggingface/datasets">
-        <img alt="Build" src="https://img.shields.io/circleci/build/github/huggingface/datasets/master">
+    <a href="https://github.com/huggingface/datasets/actions/workflows/ci.yml?query=branch%3Amain">
+        <img alt="Build" src="https://github.com/huggingface/datasets/actions/workflows/ci.yml/badge.svg?branch=main">
     </a>
-    <a href="https://github.com/huggingface/datasets/blob/master/LICENSE">
+    <a href="https://github.com/huggingface/datasets/blob/main/LICENSE">
         <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/datasets.svg?color=blue">
     </a>
     <a href="https://huggingface.co/docs/datasets/index.html">
@@ -25,20 +25,22 @@
     <a href="https://zenodo.org/badge/latestdoi/250213286"><img src="https://zenodo.org/badge/250213286.svg" alt="DOI"></a>
 </p>
 
+** ⚠️ The "master" branch has been renamed "main", please update your forks with [these instructions](https://github.com/huggingface/datasets/issues/4629)**
+
 🤗 Datasets is a lightweight library providing **two** main features:
 
 - **one-line dataloaders for many public datasets**: one-liners to download and pre-process any of the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets (text datasets in 467 languages and dialects, image datasets, audio datasets, etc.) provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets). With a simple command like `squad_dataset = load_dataset("squad")`, get any of these datasets ready to use in a dataloader for training/evaluating a ML model (Numpy/Pandas/PyTorch/TensorFlow/JAX),
 - **efficient data pre-processing**: simple, fast and reproducible data pre-processing for the above public datasets as well as your own local datasets in CSV/JSON/text/PNG/JPEG/etc. With simple commands like `processed_dataset = dataset.map(process_example)`, efficiently prepare the dataset for inspection and ML model evaluation and training.
 
-[🎓 **Documentation**](https://huggingface.co/docs/datasets/) [🕹 **Colab tutorial**](https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb)
+[🎓 **Documentation**](https://huggingface.co/docs/datasets/) [🕹 **Colab tutorial**](https://colab.research.google.com/github/huggingface/datasets/blob/main/notebooks/Overview.ipynb)
 
-[🔎 **Find a dataset in the Hub**](https://huggingface.co/datasets) [🌟 **Add a new dataset to the Hub**](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md)
+[🔎 **Find a dataset in the Hub**](https://huggingface.co/datasets) [🌟 **Add a new dataset to the Hub**](https://github.com/huggingface/datasets/blob/main/ADD_NEW_DATASET.md)
 
 <h3 align="center">
-    <a href="https://hf.co/course"><img src="https://raw.githubusercontent.com/huggingface/datasets/master/docs/source/imgs/course_banner.png"></a>
+    <a href="https://hf.co/course"><img src="https://raw.githubusercontent.com/huggingface/datasets/main/docs/source/imgs/course_banner.png"></a>
 </h3>
 
-🤗 Datasets also provides access to +40 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. 
+🤗 Datasets is designed to let the community easily add and share new datasets.
 
 🤗 Datasets has many additional interesting features:
 
@@ -83,15 +85,13 @@ For more details on using the library with NumPy, pandas, PyTorch or TensorFlow,
 
 - `datasets.list_datasets()` to list the available datasets
 - `datasets.load_dataset(dataset_name, **kwargs)` to instantiate a dataset
-- `datasets.list_metrics()` to list the available metrics
-- `datasets.load_metric(metric_name, **kwargs)` to instantiate a metric
 
 This library can be used for text/image/audio/etc. datasets. Here is an example to load a text dataset:
 
 Here is a quick example:
 
 ```python
-from datasets import list_datasets, load_dataset, list_metrics, load_metric
+from datasets import list_datasets, load_dataset
 
 # Print all the available datasets
 print(list_datasets())
@@ -99,12 +99,6 @@ print(list_datasets())
 # Load a dataset and print the first example in the training set
 squad_dataset = load_dataset('squad')
 print(squad_dataset['train'][0])
-
-# List all the available metrics
-print(list_metrics())
-
-# Load a metric
-squad_metric = load_metric('squad')
 
 # Process the dataset - add a column with the length of the context texts
 dataset_with_length = squad_dataset.map(lambda x: {"length": len(x["context"])})
@@ -127,7 +121,7 @@ For more details on using the library, check the quick start page in the documen
 - etc.
 
 Another introduction to 🤗 Datasets is the tutorial on Google Colab here:
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/huggingface/datasets/blob/main/notebooks/Overview.ipynb)
 
 # Add a new dataset to the Hub
 
@@ -135,7 +129,7 @@ We have a very detailed step-by-step guide to add a new dataset to the ![number 
 
 You will find [the step-by-step guide here](https://huggingface.co/docs/datasets/share.html) to add a dataset on the Hub.
 
-However if you prefer to add your dataset in this repository, you can find the guide [here](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md).
+However if you prefer to add your dataset in this repository, you can find the guide [here](https://github.com/huggingface/datasets/blob/main/ADD_NEW_DATASET.md).
 
 # Main differences between 🤗 Datasets and `tfds`
 
@@ -148,7 +142,7 @@ If you are familiar with the great TensorFlow Datasets, here are the main differ
 
 # Disclaimers
 
-Similar to TensorFlow Datasets, 🤗 Datasets is a utility library that downloads and prepares public datasets. We do not host or distribute these datasets, vouch for their quality or fairness, or claim that you have license to use them. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
+Similar to TensorFlow Datasets, 🤗 Datasets is a utility library that downloads and prepares public datasets. We do not host or distribute most of these datasets, vouch for their quality or fairness, or claim that you have license to use them. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
 
 If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in this library, please get in touch through a [GitHub issue](https://github.com/huggingface/datasets/issues/new). Thanks for your contribution to the ML community!
 

@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-3.0
 multilinguality:
 - monolingual
@@ -23,7 +23,7 @@ paperswithcode_id: sharc
 pretty_name: Shaping Answers with Rules through Conversation
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Shaping Answers with Rules through Conversation
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

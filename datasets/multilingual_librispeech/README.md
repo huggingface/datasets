@@ -5,15 +5,15 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - de
-- nl
+- es
 - fr
 - it
-- es
-- pt
+- nl
 - pl
-licenses:
+- pt
+license:
 - cc-by-4.0
 multilinguality:
 - multilingual
@@ -26,7 +26,7 @@ task_categories:
 - automatic-speech-recognition
 - audio-classification
 task_ids:
-- audio-speaker-identification
+- speaker-identification
 ---
 
 # Dataset Card for MultiLingual LibriSpeech

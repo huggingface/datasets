@@ -3,10 +3,11 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - ro
-- ro-md
-licenses:
+language_bcp47:
+- ro-MD
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual

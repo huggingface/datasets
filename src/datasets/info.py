@@ -32,7 +32,7 @@ import copy
 import dataclasses
 import json
 import os
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Union
 
 from . import config
@@ -41,7 +41,7 @@ from .splits import SplitDict
 from .tasks import TaskTemplate, task_template_from_dict
 from .utils import Version
 from .utils.logging import get_logger
-from .utils.py_utils import unique_values
+from .utils.py_utils import asdict, unique_values
 
 
 logger = get_logger(__name__)
@@ -110,7 +110,7 @@ class DatasetInfo:
         dataset_size (int, optional): The combined size in bytes of the Arrow tables for all splits.
         size_in_bytes (int, optional): The combined size in bytes of all files associated with the dataset (downloaded files + Arrow files).
         task_templates (List[TaskTemplate], optional): The task templates to prepare the dataset for during training and evaluation. Each template casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
-        **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
+        **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
     """
 
     # Set in the dataset scripts
@@ -185,6 +185,14 @@ class DatasetInfo:
         Args:
             dataset_info_dir (str): Destination directory.
             pretty_print (bool, default ``False``): If True, the JSON will be pretty-printed with the indent level of 4.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.info.write_to_directory("/path/to/directory/")
+        ```
         """
         with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f, pretty_print=pretty_print)
@@ -203,10 +211,10 @@ class DatasetInfo:
     @classmethod
     def from_merge(cls, dataset_infos: List["DatasetInfo"]):
         dataset_infos = [dset_info.copy() for dset_info in dataset_infos if dset_info is not None]
-        description = "\n\n".join(unique_values(info.description for info in dataset_infos))
-        citation = "\n\n".join(unique_values(info.citation for info in dataset_infos))
-        homepage = "\n\n".join(unique_values(info.homepage for info in dataset_infos))
-        license = "\n\n".join(unique_values(info.license for info in dataset_infos))
+        description = "\n\n".join(unique_values(info.description for info in dataset_infos)).strip()
+        citation = "\n\n".join(unique_values(info.citation for info in dataset_infos)).strip()
+        homepage = "\n\n".join(unique_values(info.homepage for info in dataset_infos)).strip()
+        license = "\n\n".join(unique_values(info.license for info in dataset_infos)).strip()
         features = None
         supervised_keys = None
         task_templates = None
@@ -242,6 +250,13 @@ class DatasetInfo:
         Args:
             dataset_info_dir (`str`): The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
+
+        Example:
+
+        ```py
+        >>> from datasets import DatasetInfo
+        >>> ds_info = DatasetInfo.from_directory("/path/to/directory/")
+        ```
         """
         logger.info(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
@@ -338,6 +353,14 @@ class MetricInfo:
         """Write `MetricInfo` as JSON to `metric_info_dir`.
         Also save the license separately in LICENCE.
         If `pretty_print` is True, the JSON will be pretty-printed with the indent level of 4.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_metric
+        >>> metric = load_metric("accuracy")
+        >>> metric.info.write_to_directory("/path/to/directory/")
+        ```
         """
         with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "w", encoding="utf-8") as f:
             json.dump(asdict(self), f, indent=4 if pretty_print else None)
@@ -353,6 +376,13 @@ class MetricInfo:
         Args:
             metric_info_dir: `str` The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
+
+        Example:
+
+        ```py
+        >>> from datasets import MetricInfo
+        >>> metric_info = MetricInfo.from_directory("/path/to/directory/")
+        ```
         """
         logger.info(f"Loading Metric info from {metric_info_dir}")
         if not metric_info_dir:

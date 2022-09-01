@@ -22,12 +22,10 @@ from pathlib import Path
 import datasets
 
 
-_CITATION = """\
-@InProceedings{huggingface:dataset,
-title = {A great new dataset},
-authors={huggingface, Inc.
-},
-year={2020}
+_CITATION = r"""\
+@misc{makhzan,
+title={Maḵẖzan},
+howpublished = "\url{https://github.com/zeerakahmed/makhzan/}",
 }
 """
 

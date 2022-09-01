@@ -22,7 +22,7 @@ REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{revi
 
 # Hub
 HF_ENDPOINT = os.environ.get("HF_ENDPOINT", "https://huggingface.co")
-HUB_DATASETS_URL = HF_ENDPOINT + "/datasets/{path}/resolve/{revision}/{name}"
+HUB_DATASETS_URL = HF_ENDPOINT + "/datasets/{repo_id}/resolve/{revision}/{path}"
 HUB_DEFAULT_VERSION = "main"
 
 PY_VERSION = version.parse(platform.python_version())
@@ -38,6 +38,7 @@ ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 
 # Imports
+DILL_VERSION = version.parse(importlib_metadata.version("dill"))
 PANDAS_VERSION = version.parse(importlib_metadata.version("pandas"))
 PYARROW_VERSION = version.parse(importlib_metadata.version("pyarrow"))
 
@@ -132,6 +133,7 @@ PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None
 RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None
 ZSTANDARD_AVAILABLE = importlib.util.find_spec("zstandard") is not None
 LZ4_AVAILABLE = importlib.util.find_spec("lz4") is not None
+PY7ZR_AVAILABLE = importlib.util.find_spec("py7zr") is not None
 
 
 # Cache location

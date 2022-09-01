@@ -3,14 +3,14 @@ annotations_creators:
 - no-annotation
 language_creators:
 - machine-generated
-languages:
-- en
-- fr
+language:
 - de
+- en
 - es
+- fr
 - it
 - nl
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - multilingual

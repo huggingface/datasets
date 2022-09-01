@@ -21,8 +21,6 @@ import html
 import json
 import re
 
-import apache_beam as beam
-
 import datasets
 
 
@@ -51,7 +49,7 @@ _DOWNLOAD_URLS = {
     "validation": ["%s/dev/nq-dev-%02d.jsonl.gz" % (_BASE_DOWNLOAD_URL, i) for i in range(5)],
 }
 
-_VERSION = datasets.Version("0.0.3")
+_VERSION = datasets.Version("0.0.4")
 
 
 class NaturalQuestions(datasets.BeamBasedBuilder):
@@ -74,13 +72,27 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
                         "url": datasets.Value("string"),
                         "html": datasets.Value("string"),
                         "tokens": datasets.features.Sequence(
-                            {"token": datasets.Value("string"), "is_html": datasets.Value("bool")}
+                            {
+                                "token": datasets.Value("string"),
+                                "is_html": datasets.Value("bool"),
+                                "start_byte": datasets.Value("int64"),
+                                "end_byte": datasets.Value("int64"),
+                            }
                         ),
                     },
                     "question": {
                         "text": datasets.Value("string"),
                         "tokens": datasets.features.Sequence(datasets.Value("string")),
                     },
+                    "long_answer_candidates": datasets.features.Sequence(
+                        {
+                            "start_token": datasets.Value("int64"),
+                            "end_token": datasets.Value("int64"),
+                            "start_byte": datasets.Value("int64"),
+                            "end_byte": datasets.Value("int64"),
+                            "top_level": datasets.Value("bool"),
+                        }
+                    ),
                     "annotations": datasets.features.Sequence(
                         {
                             "id": datasets.Value("string"),
@@ -89,6 +101,7 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
                                 "end_token": datasets.Value("int64"),
                                 "start_byte": datasets.Value("int64"),
                                 "end_byte": datasets.Value("int64"),
+                                "candidate_index": datasets.Value("int64"),
                             },
                             "short_answers": datasets.features.Sequence(
                                 {
@@ -130,6 +143,12 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
 
     def _build_pcollection(self, pipeline, filepaths):
         """Build PCollection of examples."""
+        try:
+            import apache_beam as beam
+        except ImportError as err:
+            raise ImportError(
+                "To be able to load natural_questions, you need to install apache_beam: 'pip install apache_beam'"
+            ) from err
 
         def _parse_example(line):
             """Parse a single json line and emit an example dict."""
@@ -162,6 +181,7 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
                         "end_token": an_json["long_answer"]["end_token"],
                         "start_byte": an_json["long_answer"]["start_byte"],
                         "end_byte": an_json["long_answer"]["end_byte"],
+                        "candidate_index": an_json["long_answer"]["candidate_index"],
                     },
                     "short_answers": [_parse_short_answer(ans) for ans in an_json["short_answers"]],
                     "yes_no_answer": (-1 if an_json["yes_no_answer"] == "NONE" else an_json["yes_no_answer"]),
@@ -179,10 +199,17 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
                         "url": ex_json["document_url"],
                         "html": ex_json["document_html"],
                         "tokens": [
-                            {"token": t["token"], "is_html": t["html_token"]} for t in ex_json["document_tokens"]
+                            {
+                                "token": t["token"],
+                                "is_html": t["html_token"],
+                                "start_byte": t["start_byte"],
+                                "end_byte": t["end_byte"],
+                            }
+                            for t in ex_json["document_tokens"]
                         ],
                     },
                     "question": {"text": ex_json["question_text"], "tokens": ex_json["question_tokens"]},
+                    "long_answer_candidates": [lac_json for lac_json in ex_json["long_answer_candidates"]],
                     "annotations": [_parse_annotation(an_json) for an_json in ex_json["annotations"]],
                 },
             )

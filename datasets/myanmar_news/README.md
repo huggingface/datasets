@@ -1,9 +1,11 @@
 ---
-annotations_creators: []
-language_creators: []
-languages:
+annotations_creators:
+- found
+language_creators:
+- found
+language:
 - my
-licenses:
+license:
 - gpl-3.0
 multilinguality:
 - monolingual

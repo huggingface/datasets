@@ -16,7 +16,6 @@ import errno
 import json
 import os
 import sys
-from dataclasses import asdict
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
@@ -32,13 +31,14 @@ from .features.features import (
     get_nested_type,
     list_of_np_array_to_pyarrow_listarray,
     numpy_to_pyarrow_listarray,
+    to_pyarrow_listarray,
 )
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .table import array_cast, cast_array_to_feature, table_cast
 from .utils import logging
 from .utils.file_utils import hash_url_to_filename
-from .utils.py_utils import first_non_null_value
+from .utils.py_utils import asdict, first_non_null_value
 
 
 logger = logging.get_logger(__name__)
@@ -169,12 +169,7 @@ class TypedSequence:
         try:
             # custom pyarrow types
             if isinstance(pa_type, _ArrayXDExtensionType):
-                if isinstance(data, np.ndarray):
-                    storage = numpy_to_pyarrow_listarray(data, type=pa_type.value_type)
-                elif isinstance(data, list) and data and isinstance(first_non_null_value(data)[1], np.ndarray):
-                    storage = list_of_np_array_to_pyarrow_listarray(data, type=pa_type.value_type)
-                else:
-                    storage = pa.array(data, pa_type.storage_dtype)
+                storage = to_pyarrow_listarray(data, pa_type)
                 return pa.ExtensionArray.from_storage(pa_type, storage)
 
             # efficient np array to pyarrow array
@@ -460,7 +455,13 @@ class ArrowWriter:
         tmp_record = set()
         for hash, key in self.hkey_record:
             if hash in tmp_record:
-                raise DuplicatedKeysError(key)
+                duplicate_key_indices = [
+                    str(self._num_examples + index)
+                    for index, (duplicate_hash, _) in enumerate(self.hkey_record)
+                    if duplicate_hash == hash
+                ]
+
+                raise DuplicatedKeysError(key, duplicate_key_indices)
             else:
                 tmp_record.add(hash)
 

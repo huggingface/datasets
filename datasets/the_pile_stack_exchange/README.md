@@ -3,10 +3,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- mit
+license:
+- cc-by-sa-4.0
 multilinguality:
 - monolingual
 pretty_name: Stack Exchange

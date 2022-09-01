@@ -3,10 +3,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- other-
+license:
+- other
 multilinguality:
 - monolingual
 pretty_name: The Pile

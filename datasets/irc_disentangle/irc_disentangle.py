@@ -119,40 +119,22 @@ class IRCDisentangle(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        my_urls = _URL
-        dl_dir = dl_manager.download_and_extract(my_urls)
-
-        files = dict()
+        dl_dir = dl_manager.download_and_extract(_URL)
+        filepath = os.path.join(dl_dir, "jkkummerfeld-irc-disentanglement-35f0a40", "data")
+        split_names = {datasets.Split.TRAIN: "train", datasets.Split.VALIDATION: "dev", datasets.Split.TEST: "test"}
         if self.config.name == "ubuntu":
-            for split in ["train", "dev", "test"]:
-                files[split] = os.path.join(dl_dir, "jkkummerfeld-irc-disentanglement-fd379e9", "data", split)
-
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
+                    name=split,
                     gen_kwargs={
-                        "filepath": files["train"],
-                        "split": "train",
+                        "filepath": os.path.join(filepath, split_name),
+                        "split": split_name,
                     },
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    gen_kwargs={
-                        "filepath": files["test"],
-                        "split": "test",
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": files["dev"],
-                        "split": "dev",
-                    },
-                ),
+                )
+                for split, split_name in split_names.items()
             ]
-
         elif self.config.name == "channel_two":
-            filepath = os.path.join(dl_dir, "jkkummerfeld-irc-disentanglement-fd379e9", "data", "channel-two")
+            filepath = os.path.join(filepath, "channel-two")
             return [
                 datasets.SplitGenerator(
                     name="dev",

@@ -3,9 +3,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -15,17 +15,16 @@ source_datasets:
 - original
 - extended|other-turkcorpus
 task_categories:
-  ratings:
-  - text-classification
-  simplification:
-  - text2text-generation
+- text-classification
+- text2text-generation
 task_ids:
-  ratings:
-  - text-classification-other-simplification-evaluation
-  simplification:
-  - text-simplification
+- text-classification-other-simplification-evaluation
+- text-simplification
 paperswithcode_id: asset
 pretty_name: ASSET
+configs:
+- ratings
+- simplification
 ---
 
 # Dataset Card for ASSET

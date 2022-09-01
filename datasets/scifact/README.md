@@ -1,6 +1,6 @@
 ---
 pretty_name: SciFact
-languages:
+language:
 - en
 paperswithcode_id: null
 ---
@@ -54,8 +54,6 @@ SciFact, a dataset of 1.4K expert-written scientific claims paired with evidence
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - cs
 - da
 - de
@@ -23,7 +23,7 @@ languages:
 - pt
 - sk
 - sl
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -38,7 +38,7 @@ paperswithcode_id: ecb
 pretty_name: extension to the EventCorefBank
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for extension to the EventCorefBank
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

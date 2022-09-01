@@ -1,5 +1,11 @@
 # Metrics
 
+<Tip warning={true}>
+
+Metrics is deprecated in 🤗 Datasets. To learn more about how to use metrics, take a look at the library 🤗 [Evaluate](https://huggingface.co/docs/evaluate/index)! In addition to metrics, you can find more tools for evaluating models and datasets.
+
+</Tip>
+
 Metrics are important for evaluating a model's predictions. In the tutorial, you learned how to compute a metric over an entire evaluation set. You have also seen how to load a metric. 
 
 This guide will show you how to:
@@ -76,11 +82,11 @@ Args:
 
 Write a metric loading script to use your own custom metric (or one that is not on the Hub). Then you can load it as usual with [`load_metric`].
 
-To help you get started, open the [SQuAD metric loading script](https://github.com/huggingface/datasets/blob/master/metrics/squad/squad.py) and follow along.
+To help you get started, open the [SQuAD metric loading script](https://github.com/huggingface/datasets/blob/main/metrics/squad/squad.py) and follow along.
 
 <Tip>
 
-Get jump started with our metric loading script [template](https://github.com/huggingface/datasets/blob/master/templates/new_metric_script.py)!
+Get jump started with our metric loading script [template](https://github.com/huggingface/datasets/blob/main/templates/new_metric_script.py)!
 
 </Tip>
 
@@ -126,7 +132,7 @@ class Squad(datasets.Metric):
 
 ### Download metric files
 
-If your metric needs to download, or retrieve local files, you will need to use the [`Metric._download_and_prepare`] method. For this example, let's examine the [BLEURT metric loading script](https://github.com/huggingface/datasets/blob/master/metrics/bleurt/bleurt.py). 
+If your metric needs to download, or retrieve local files, you will need to use the [`Metric._download_and_prepare`] method. For this example, let's examine the [BLEURT metric loading script](https://github.com/huggingface/datasets/blob/main/metrics/bleurt/bleurt.py). 
 
 1. Provide a dictionary of URLs that point to the metric files:
 
@@ -171,7 +177,7 @@ def _download_and_prepare(self, dl_manager):
 
 ### Compute score
 
-[`DatasetBuilder._compute`] provides the actual instructions for how to compute a metric given the predictions and references. Now let's take a look at the [GLUE metric loading script](https://github.com/huggingface/datasets/blob/master/metrics/glue/glue.py).
+[`DatasetBuilder._compute`] provides the actual instructions for how to compute a metric given the predictions and references. Now let's take a look at the [GLUE metric loading script](https://github.com/huggingface/datasets/blob/main/metrics/glue/glue.py).
 
 1. Provide the functions for [`DatasetBuilder._compute`] to calculate your metric:
 

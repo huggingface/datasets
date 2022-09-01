@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: ubuntu-dialogue-corpus
 pretty_name: Ubuntu Dialogue Corpus
@@ -54,8 +54,6 @@ Ubuntu Dialogue Corpus, a dataset containing almost 1 million multi-turn dialogu
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

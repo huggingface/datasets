@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - multiple-choice
 task_ids:
-- coreference-resolution
+- multiple-choice-coreference-resolution
 paperswithcode_id: wsc
 pretty_name: Winograd Schema Challenge
 ---

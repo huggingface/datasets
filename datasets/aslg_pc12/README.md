@@ -1,8 +1,25 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+- expert-generated
+language:
+- ase
 - en
-paperswithcode_id: aslg-pc12
+language_creators:
+- found
+license:
+- cc-by-nc-4.0
+multilinguality:
+- translation
 pretty_name: English-ASL Gloss Parallel Corpus 2012
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- translation
+task_ids: []
+paperswithcode_id: aslg-pc12
 ---
 
 # Dataset Card for "aslg_pc12"
@@ -54,8 +71,6 @@ Synthetic English-ASL Gloss Parallel Corpus 2012
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

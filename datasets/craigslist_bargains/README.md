@@ -3,9 +3,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -22,7 +22,7 @@ paperswithcode_id: craigslistbargains
 pretty_name: CraigslistBargains
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for CraigslistBargains
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

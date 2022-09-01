@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -22,7 +22,7 @@ paperswithcode_id: taskmaster-2
 pretty_name: Taskmaster-2
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Taskmaster-2
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

@@ -3,9 +3,11 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
+- ar
+language_bcp47:
 - ar-SA
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -70,8 +72,6 @@ pretty_name: ARCD
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

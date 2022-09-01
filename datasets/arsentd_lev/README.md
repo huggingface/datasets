@@ -3,11 +3,11 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - apc
-- apj
-licenses:
-- other-Copyright-2018-by-[American-University-of-Beirut]
+- ajp
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:

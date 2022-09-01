@@ -1,8 +1,24 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
-paperswithcode_id: lc-quad-2-0
+language_creators:
+- found
+license:
+- cc-by-3.0
+multilinguality:
+- monolingual
 pretty_name: "LC-QuAD 2.0: Large-scale Complex Question Answering Dataset"
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- question-answering-other-knowledge-base-qa
+paperswithcode_id: lc-quad-2-0
 ---
 
 # Dataset Card for LC-QuAD 2.0
@@ -34,9 +50,9 @@ pretty_name: "LC-QuAD 2.0: Large-scale Complex Question Answering Dataset"
 ## Dataset Description
 
 - **Homepage:** [http://lc-quad.sda.tech/](http://lc-quad.sda.tech/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/AskNowQA/LC-QuAD2.0
+- **Paper:** [LC-QuAD 2.0: A Large Dataset for Complex Question Answering over Wikidata and DBpedia](https://api.semanticscholar.org/CorpusID:198166992)
+- **Point of Contact:** [Mohnish Dubey](mailto:dubey@cs.uni-bonn.de) or [Mohnish Dubey](mailto:dubey.mohnish5@gmail.com)
 - **Size of downloaded dataset files:** 3.69 MB
 - **Size of the generated dataset:** 19.77 MB
 - **Total amount of disk used:** 23.46 MB
@@ -54,8 +70,6 @@ LC-QuAD 2.0 is a Large Question Answering dataset with 30,000 pairs of question 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -155,20 +169,18 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+LC-QuAD 2.0 is licensed under a [Creative Commons Attribution 3.0 Unported License](http://creativecommons.org/licenses/by/3.0/deed.en_US). 
 
 ### Citation Information
 
 ```
-
 @inproceedings{dubey2017lc2,
-title={LC-QuAD 2.0: A Large Dataset for Complex Question Answering over Wikidata and DBpedia},
-author={Dubey, Mohnish and Banerjee, Debayan and Abdelkawi, Abdelrahman and Lehmann, Jens},
-booktitle={Proceedings of the 18th International Semantic Web Conference (ISWC)},
-year={2019},
-organization={Springer}
+   title={LC-QuAD 2.0: A Large Dataset for Complex Question Answering over Wikidata and DBpedia},
+   author={Dubey, Mohnish and Banerjee, Debayan and Abdelkawi, Abdelrahman and Lehmann, Jens},
+   booktitle={Proceedings of the 18th International Semantic Web Conference (ISWC)},
+   year={2019},
+   organization={Springer}
 }
-
 ```
 
 

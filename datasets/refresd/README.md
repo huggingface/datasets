@@ -5,16 +5,17 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - machine-generated
-languages:
+language:
 - en
 - fr
-licenses:
+license:
 - mit
 multilinguality:
 - translation
 size_categories:
 - 1K<n<10K
-source_datasets: []
+source_datasets:
+- extended|other-wikimatrix
 task_categories:
 - text-classification
 task_ids:

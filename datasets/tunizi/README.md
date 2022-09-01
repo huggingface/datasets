@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - aeb
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -21,7 +21,7 @@ paperswithcode_id: tunizi
 pretty_name: TUNIZI
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for TUNIZI
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

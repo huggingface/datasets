@@ -257,5 +257,10 @@ class Exams(datasets.GeneratorBasedBuilder):
                         line_dict = json.loads(line.strip())
                         for choice in line_dict["question"]["choices"]:
                             choice["para"] = choice.get("para", "")
-                        yield id_, line_dict
+                        yield id_, {
+                            "id": line_dict["id"],
+                            "question": line_dict["question"],
+                            "answerKey": line_dict["answerKey"],
+                            "info": line_dict["info"],
+                        }
                     break

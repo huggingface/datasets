@@ -26,11 +26,12 @@ from . import config
 from .arrow_dataset import Dataset
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
+from .download.download_config import DownloadConfig
+from .download.download_manager import DownloadManager
 from .features import Features
 from .info import DatasetInfo, MetricInfo
 from .naming import camelcase_to_snakecase
-from .utils.download_manager import DownloadManager
-from .utils.file_utils import DownloadConfig
+from .utils.deprecation_utils import deprecated
 from .utils.filelock import BaseFileLock, FileLock, Timeout
 from .utils.logging import get_logger
 from .utils.py_utils import copyfunc, temp_seed
@@ -76,6 +77,13 @@ def summarize_if_long_list(obj):
 class MetricInfoMixin:
     """This base class exposes some attributes of MetricInfo
     at the base level of the Metric for easy access.
+
+    <Deprecated version="2.5.0">
+
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
+
     """
 
     def __init__(self, info: MetricInfo):
@@ -138,6 +146,12 @@ class MetricInfoMixin:
 class Metric(MetricInfoMixin):
     """A Metric is the base class and common API for all metrics.
 
+    <Deprecated version="2.5.0">
+
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
+
     Args:
         config_name (``str``): This is used to define a hash specific to a metrics computation script and prevents the metric's data
             to be overridden when the metric loading script is modified.
@@ -155,6 +169,7 @@ class Metric(MetricInfoMixin):
         timeout (``Union[int, float]``): Timeout in second for distributed setting synchronization.
     """
 
+    @deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
     def __init__(
         self,
         config_name: Optional[str] = None,
@@ -401,6 +416,14 @@ class Metric(MetricInfoMixin):
 
             - Dictionary with the metrics if this metric is run on the main process (``process_id == 0``).
             - None if the metric is not run on the main process (``process_id != 0``).
+
+        Example:
+
+        ```py
+        >>> from datasets import load_metric
+        >>> metric = load_metric("accuracy")
+        >>> accuracy = metric.compute(predictions=model_prediction, references=labels)
+        ```
         """
         all_kwargs = {"predictions": predictions, "references": references, **kwargs}
         if predictions is None and references is None:
@@ -454,6 +477,14 @@ class Metric(MetricInfoMixin):
         Args:
             predictions (list/array/tensor, optional): Predictions.
             references (list/array/tensor, optional): References.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_metric
+        >>> metric = load_metric("accuracy")
+        >>> metric.add_batch(predictions=model_prediction, references=labels)
+        ```
         """
         bad_inputs = [input_name for input_name in kwargs if input_name not in self.features]
         if bad_inputs:
@@ -493,6 +524,14 @@ class Metric(MetricInfoMixin):
         Args:
             prediction (list/array/tensor, optional): Predictions.
             reference (list/array/tensor, optional): References.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_metric
+        >>> metric = load_metric("accuracy")
+        >>> metric.add(predictions=model_predictions, references=labels)
+        ```
         """
         bad_inputs = [input_name for input_name in kwargs if input_name not in self.features]
         if bad_inputs:

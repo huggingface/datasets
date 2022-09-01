@@ -3,38 +3,13 @@ annotations_creators:
 - found
 language_creators:
 - expert-generated
-languages:
-  de-en:
-  - de
-  - en
-  de-es:
-  - de
-  - es
-  de-fr:
-  - de
-  - fr
-  de-sv:
-  - de
-  - sv
-  en-es:
-  - en
-  - es
-  en-fr:
-  - en
-  - fr
-  en-sv:
-  - en
-  - sv
-  es-fr:
-  - es
-  - fr
-  es-sv:
-  - es
-  - sv
-  fr-sv:
-  - fr
-  - sv
-licenses:
+language:
+- de
+- en
+- es
+- fr
+- sv
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -47,6 +22,17 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: OpusRf
+configs:
+- de-en
+- de-es
+- de-fr
+- de-sv
+- en-es
+- en-fr
+- en-sv
+- es-fr
+- es-sv
+- fr-sv
 ---
 
 # Dataset Card for [Dataset Name]

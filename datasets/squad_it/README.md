@@ -3,9 +3,11 @@ annotations_creators:
 - machine-generated
 language_creators:
 - machine-generated
-languages:
+language:
+- it
+language_bcp47:
 - it-IT
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -74,8 +76,6 @@ into Italian. It represents a large-scale dataset for open question answering pr
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

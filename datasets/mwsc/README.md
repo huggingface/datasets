@@ -1,8 +1,24 @@
 ---
-languages:
+annotations_creators:
+- expert-generated
+language:
 - en
+language_creators:
+- expert-generated
+license:
+- cc-by-4.0
+multilinguality:
+- monolingual
+pretty_name: Modified Winograd Schema Challenge (MWSC)
+size_categories:
+- n<1K
+source_datasets:
+- extended|winograd_wsc
+task_categories:
+- multiple-choice
+task_ids:
+- multiple-choice-coreference-resolution
 paperswithcode_id: null
-pretty_name: The modified Winograd Schema Challenge (MWSC)
 ---
 
 # Dataset Card for The modified Winograd Schema Challenge (MWSC)
@@ -34,9 +50,9 @@ pretty_name: The modified Winograd Schema Challenge (MWSC)
 ## Dataset Description
 
 - **Homepage:** [http://decanlp.com](http://decanlp.com)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/salesforce/decaNLP
+- **Paper:** [The Natural Language Decathlon: Multitask Learning as Question Answering](https://arxiv.org/abs/1806.08730)
+- **Point of Contact:** [Bryan McCann](mailto:bmccann@salesforce.com), [Nitish Shirish Keskar](mailto:nkeskar@salesforce.com)
 - **Size of downloaded dataset files:** 0.02 MB
 - **Size of the generated dataset:** 0.04 MB
 - **Total amount of disk used:** 0.06 MB
@@ -44,7 +60,7 @@ pretty_name: The modified Winograd Schema Challenge (MWSC)
 ### Dataset Summary
 
 Examples taken from the Winograd Schema Challenge modified to ensure that answers are a single word from the context.
-This modified Winograd Schema Challenge (MWSC) ensures that scores are neither inflated nor deflated by oddities in phrasing.
+This Modified Winograd Schema Challenge (MWSC) ensures that scores are neither inflated nor deflated by oddities in phrasing.
 
 ### Supported Tasks and Leaderboards
 
@@ -56,8 +72,6 @@ This modified Winograd Schema Challenge (MWSC) ensures that scores are neither i
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default
@@ -66,13 +80,13 @@ We show detailed information for up to 5 configurations of the dataset.
 - **Size of the generated dataset:** 0.04 MB
 - **Total amount of disk used:** 0.06 MB
 
-An example of 'validation' looks as follows.
+An example looks as follows:
 ```
 {
-    "answer": "example",
-    "options": ["test", "example"],
-    "question": "What is this sentence?",
-    "sentence": "This is a example sentence."
+    "sentence": "The city councilmen refused the demonstrators a permit because they feared violence.",
+    "question": "Who feared violence?",
+    "options": [ "councilmen", "demonstrators" ],
+    "answer": "councilmen"
 }
 ```
 
@@ -144,10 +158,16 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Our code for running decaNLP has been open sourced under BSD-3-Clause. 
+
+We chose to restrict decaNLP to datasets that were free and publicly accessible for research, but you should check their individual terms if you deviate from this use case.
+
+From the [Winograd Schema Challenge](https://cs.nyu.edu/~davise/papers/WinogradSchemas/WS.html):
+> Both versions of the collections are licenced under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
 
 ### Citation Information
 
+If you use this in your work, please cite:
 ```
 @article{McCann2018decaNLP,
   title={The Natural Language Decathlon: Multitask Learning as Question Answering},
@@ -155,7 +175,6 @@ The data fields are the same among all splits.
   journal={arXiv preprint arXiv:1806.08730},
   year={2018}
 }
-
 ```
 
 

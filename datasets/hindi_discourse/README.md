@@ -3,10 +3,10 @@ annotations_creators:
 - other
 language_creators:
 - found
-languages:
+language:
 - hi
-licenses:
-- other-MIDAS-LAB-IIITD-Delhi
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -14,11 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-generation
-- fill-mask
-- text-generation
-- fill-mask
-- text-generation-other-discourse-analysis
+- text-classification
+task_ids:
+- multi-label-classification
+- text-classification-other-discourse-analysis
 paperswithcode_id: null
 pretty_name: Discourse Analysis dataset
 ---
@@ -51,8 +50,9 @@ pretty_name: Discourse Analysis dataset
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/midas-research/hindi-discourse
-- **Paper:** https://www.aclweb.org/anthology/2020.lrec-1.149/
+- **Homepage:**
+- **Repository:** https://github.com/midas-research/hindi-discourse
+- **Paper:** [An Annotated Dataset of Discourse Modes in Hindi Stories](https://aclanthology.org/2020.lrec-1.149/)
 - **Point of Contact:** https://github.com/midas-research/MeTooMA
 
 
@@ -62,6 +62,7 @@ pretty_name: Discourse Analysis dataset
 - It contains sentences from stories written by 11 famous authors from the 20th Century.
 - 4-5 stories by each author have been selected which were available in the public domain resulting in a collection of 53 stories.
 - Most of these short stories were originally written in Hindi but some of them were written in other Indian languages and later translated to Hindi.
+
 The corpus contains a total of 10472 sentences belonging to the following categories:
 - Argumentative
 - Descriptive
@@ -180,7 +181,7 @@ and [Multimodal Digital Media Analysis Lab - Indraprastha Institute of Informati
 
 ### Citation Information
 
-Please cite the following publication if you make use of the dataset: https://www.aclweb.org/anthology/2020.lrec-1.149/
+Please cite the following publication if you make use of the dataset: https://aclanthology.org/2020.lrec-1.149/
 
 ```
 @inproceedings{dhanwal-etal-2020-annotated,

@@ -3,12 +3,10 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
-  es:
-  - es
-  nl:
-  - nl
-licenses:
+language:
+- es
+- nl
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -20,9 +18,12 @@ task_categories:
 - token-classification
 task_ids:
 - named-entity-recognition
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: conll-2002
 pretty_name: CoNLL-2002
+configs:
+- es
+- nl
 ---
 
 # Dataset Card for CoNLL-2002

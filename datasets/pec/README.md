@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - gpl-3.0
 multilinguality:
 - monolingual
@@ -18,17 +18,14 @@ task_categories:
 - fill-mask
 - text-retrieval
 task_ids:
-  all:
-  - dialogue-modeling
-  - utterance-retrieval
-  happy:
-  - dialogue-modeling
-  - utterance-retrieval
-  offmychest:
-  - dialogue-modeling
-  - utterance-retrieval
+- dialogue-modeling
+- utterance-retrieval
 paperswithcode_id: pec
 pretty_name: Persona-Based Empathetic Conversational
+configs:
+- all
+- happy
+- offmychest
 ---
 
 # Dataset Card for PEC

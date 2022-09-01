@@ -3,16 +3,15 @@ annotations_creators:
 - expert-generated
 language_creators:
 - machine-generated
-languages:
+language:
 - tr
-licenses:
-  snli_tr:
-  - cc-by-4.0
-  multinli_tr:
-  - cc-by-3.0
-  - cc-by-sa-3.0-at
-  - mit
-  - other-Open Portion of the American National Corpus
+license:
+- cc-by-3.0
+- cc-by-4.0
+- cc-by-sa-3.0
+- mit
+- other
+license_details: "Open Portion of the American National Corpus"
 multilinguality:
 - monolingual
 size_categories:
@@ -22,12 +21,15 @@ source_datasets:
 - extended|multi_nli
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
 - natural-language-inference
 - semantic-similarity-scoring
+- text-scoring
 paperswithcode_id: nli-tr
 pretty_name: Natural Language Inference in Turkish
+configs:
+- multinli_tr
+- snli_tr
 ---
 
 # Dataset Card for "nli_tr"
@@ -79,8 +81,6 @@ The Natural Language Inference in Turkish (NLI-TR) is a set of two large scale d
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

@@ -65,8 +65,8 @@ _CITATION = """\
 """
 
 _DL_URLS = {
-    "cnn_stories": "https://drive.google.com/uc?export=download&id=0BwmD_VLjROrfTHk4NFg2SndKcjQ",
-    "dm_stories": "https://drive.google.com/uc?export=download&id=0BwmD_VLjROrfM1BxdkxVaTY2bWs",
+    "cnn_stories": "https://huggingface.co/datasets/cnn_dailymail/resolve/11343c3752184397d56efc19a8a7cceb68089318/data/cnn_stories.tgz",
+    "dm_stories": "https://huggingface.co/datasets/cnn_dailymail/resolve/11343c3752184397d56efc19a8a7cceb68089318/data/dailymail_stories.tgz",
     "train": "https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_train.txt",
     "validation": "https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_val.txt",
     "test": "https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_test.txt",
@@ -223,25 +223,28 @@ class CnnDailymail(datasets.GeneratorBasedBuilder):
                 name=split,
                 gen_kwargs={
                     "urls_file": dl_paths[split],
-                    "cnn_stories_archive": dl_manager.iter_archive(dl_paths["cnn_stories"]),
-                    "dm_stories_archive": dl_manager.iter_archive(dl_paths["dm_stories"]),
+                    "files_per_archive": [
+                        dl_manager.iter_archive(dl_paths["cnn_stories"]),
+                        dl_manager.iter_archive(dl_paths["dm_stories"]),
+                    ],
                 },
             )
             for split in [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]
         ]
 
-    def _generate_examples(self, urls_file, cnn_stories_archive, dm_stories_archive):
+    def _generate_examples(self, urls_file, files_per_archive):
         urls = _get_url_hashes(urls_file)
         idx = 0
-        for path, file in cnn_stories_archive:
-            hash_from_path = _get_hash_from_path(path)
-            if hash_from_path in urls:
-                article, highlights = _get_art_abs(file, self.config.version)
-                if not article or not highlights:
-                    continue
-                yield idx, {
-                    _ARTICLE: article,
-                    _HIGHLIGHTS: highlights,
-                    "id": hash_from_path,
-                }
-                idx += 1
+        for files in files_per_archive:
+            for path, file in files:
+                hash_from_path = _get_hash_from_path(path)
+                if hash_from_path in urls:
+                    article, highlights = _get_art_abs(file, self.config.version)
+                    if not article or not highlights:
+                        continue
+                    yield idx, {
+                        _ARTICLE: article,
+                        _HIGHLIGHTS: highlights,
+                        "id": hash_from_path,
+                    }
+                    idx += 1

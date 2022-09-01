@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: discofuse
 pretty_name: DiscoFuse
@@ -54,8 +54,6 @@ pretty_name: DiscoFuse
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

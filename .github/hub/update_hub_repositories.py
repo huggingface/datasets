@@ -1,4 +1,3 @@
-import base64
 import distutils.dir_util
 import logging
 import os
@@ -105,17 +104,6 @@ def check_authorizations(user_info: dict):
         )
 
 
-def apply_hacks_for_moon_landing(dataset_repo_path: Path):
-    if (dataset_repo_path / "README.md").is_file():
-        with (dataset_repo_path / "README.md").open() as f:
-            readme_content = f.read()
-        if readme_content.count("---\n") > 1:
-            _, tags, content = readme_content.split("---\n", 2)
-            tags = tags.replace("\nlicense:", "\nlicenses:").replace(".", "-").replace("$", "%")
-            with (dataset_repo_path / "README.md").open("w") as f:
-                f.write("---\n".join(["", tags, content]))
-
-
 class update_main:
     def __init__(
         self,
@@ -132,18 +120,15 @@ class update_main:
         self.tag_name = tag_name
 
     def __call__(self, dataset_name: str) -> bool:
-        auth_base64 = base64.b64encode(f"user:{self.token}".encode("ascii")).decode()
         try:
             create_remote_repo(dataset_name, self.token)
         except requests.exceptions.HTTPError as e:
             if "409 Client Error: Conflict for url:" not in repr(e):  # don't log if repo already exists
                 logger.warning(f"[{dataset_name}] " + repr(e))
         if not canonical_dataset_path(dataset_name).is_dir():
-            # use http.extraHeader to avoid rate limit
             repo = Repo.clone_from(
-                canonical_dataset_git_url(dataset_name, self.token),
+                canonical_dataset_git_url(dataset_name, token=self.token),
                 to_path=canonical_dataset_path(dataset_name),
-                multi_options=[f'-c http.extraHeader="authorization: Basic {auth_base64}"'],
             )
         else:
             repo = Repo(canonical_dataset_path(dataset_name))
@@ -152,7 +137,11 @@ class update_main:
         logs.append(repo.git.reset("--hard"))
         logs.append(repo.git.clean("-f", "-d"))
         logs.append(repo.git.checkout(CANONICAL_DATASET_REPO_MAIN_BRANCH))
-        logs.append(repo.remote().pull())
+        try:
+            logs.append(repo.remote().pull())
+        except Exception as e:
+            logs.append("pull failed !")
+            logs.append(repr(e))
         # Copy the changes and commit
         distutils.dir_util.copy_tree(
             str(src_canonical_dataset_path(datasets_lib_path, dataset_name)), str(canonical_dataset_path(dataset_name))
@@ -162,7 +151,6 @@ class update_main:
                 (canonical_dataset_path(dataset_name) / filepath_to_delete).unlink()
             except Exception as e:
                 logger.warning(f"[{dataset_name}] Couldn't delete file at {filepath_to_delete}: {repr(e)}")
-        apply_hacks_for_moon_landing(canonical_dataset_path(dataset_name))
         logs.append(repo.git.add("."))
         if "Changes to be committed:" in repo.git.status():
             logs.append(repo.git.commit(*self.commit_args))
@@ -175,6 +163,7 @@ class update_main:
                 logs.append(repo.git.tag(self.tag_name, f"-m Add tag from datasets {self.tag_name}"))
                 logs.append(repo.git.push("--tags"))
         except Exception as e:
+            logs.append("push failed !")
             logs.append(repr(e))
         if "Your branch is up to date with" not in repo.git.status():
             logs.append(repo.git.status())

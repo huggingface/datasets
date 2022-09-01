@@ -5,9 +5,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -23,7 +23,7 @@ task_ids:
 paperswithcode_id: ropes
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for ROPES
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

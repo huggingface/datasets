@@ -1,6 +1,24 @@
 ---
-paperswithcode_id: null
+annotations_creators:
+- no-annotation
+language:
+- en
+language_creators:
+- found
+license:
+- cc0-1.0
+multilinguality:
+- monolingual
 pretty_name: LibrispeechLm
+size_categories:
+- 10M<n<100M
+source_datasets:
+- original
+task_categories:
+- text-generation
+task_ids:
+- language-modeling
+paperswithcode_id: null
 ---
 
 # Dataset Card for "librispeech_lm"
@@ -52,8 +70,6 @@ Language modeling resources to be used in conjunction with the LibriSpeech ASR c
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

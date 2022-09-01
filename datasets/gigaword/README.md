@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -19,6 +19,19 @@ task_ids:
 - summarization--other-headline-generation
 paperswithcode_id: null
 pretty_name: Gigaword
+train-eval-index:
+- config: default
+  task: summarization
+  task_id: summarization
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    document: text
+    summary: target
+  metrics:
+    - type: rouge
+      name: Rouge
 ---
 
 # Dataset Card for Gigaword

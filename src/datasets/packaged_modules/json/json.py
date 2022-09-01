@@ -1,4 +1,5 @@
 import io
+import itertools
 import json
 from dataclasses import dataclass
 from typing import Optional
@@ -25,10 +26,6 @@ class JsonConfig(datasets.BuilderConfig):
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
 
-    @property
-    def schema(self):
-        return self.features.arrow_schema if self.features is not None else None
-
 
 class Json(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = JsonConfig
@@ -54,35 +51,25 @@ class Json(datasets.ArrowBasedBuilder):
             files = data_files
             if isinstance(files, str):
                 files = [files]
-            return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_files(files)})
-            ]
+            files = [dl_manager.iter_files(file) for file in files]
+            return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
         splits = []
         for split_name, files in data_files.items():
             if isinstance(files, str):
                 files = [files]
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": dl_manager.iter_files(files)}))
+            files = [dl_manager.iter_files(file) for file in files]
+            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
-    def _cast_classlabels(self, pa_table: pa.Table) -> pa.Table:
-        if self.config.features:
-            # Encode column if ClassLabel
-            for i, col in enumerate(self.config.features.keys()):
-                if isinstance(self.config.features[col], datasets.ClassLabel):
-                    if pa_table[col].type == pa.string():
-                        pa_table = pa_table.set_column(
-                            i, self.config.schema.field(col), [self.config.features[col].str2int(pa_table[col])]
-                        )
-                    elif pa_table[col].type != self.config.schema.field(col).type:
-                        raise ValueError(
-                            f"Field '{col}' from the JSON data of type {pa_table[col].type} is not compatible with ClassLabel. Compatible types are int64 and string."
-                        )
-            # Cast allows str <-> int/float or str to Audio for example
-            pa_table = table_cast(pa_table, self.config.schema)
+    def _cast_table(self, pa_table: pa.Table) -> pa.Table:
+        if self.config.features is not None:
+            # more expensive cast to support nested structures with keys in a different order
+            # allows str <-> int/float or str to Audio for example
+            pa_table = table_cast(pa_table, self.config.features.arrow_schema)
         return pa_table
 
     def _generate_tables(self, files):
-        for file_idx, file in enumerate(files):
+        for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
 
             # If the file is one json object and if we need to look at the list of items in one specific field
             if self.config.field is not None:
@@ -98,7 +85,7 @@ class Json(datasets.ArrowBasedBuilder):
                 else:
                     mapping = dataset
                 pa_table = pa.Table.from_pydict(mapping=mapping)
-                yield file_idx, self._cast_classlabels(pa_table)
+                yield file_idx, self._cast_table(pa_table)
 
             # If the file has one json object per line
             else:
@@ -153,5 +140,5 @@ class Json(datasets.ArrowBasedBuilder):
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield (file_idx, batch_idx), self._cast_classlabels(pa_table)
+                        yield (file_idx, batch_idx), self._cast_table(pa_table)
                         batch_idx += 1

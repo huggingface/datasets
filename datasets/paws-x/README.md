@@ -6,7 +6,7 @@ annotations_creators:
 language_creators:
 - expert-generated
 - machine-generated
-languages:
+language:
 - de
 - en
 - es
@@ -14,7 +14,7 @@ languages:
 - ja
 - ko
 - zh
-licenses:
+license:
 - other
 multilinguality:
 - multilingual
@@ -29,6 +29,7 @@ task_ids:
 - semantic-similarity-scoring
 - text-classification-other-paraphrase-identification
 - text-scoring
+- multi-input-text-classification
 paperswithcode_id: paws-x
 ---
 

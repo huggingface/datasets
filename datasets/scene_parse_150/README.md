@@ -4,9 +4,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - bsd-3-clause
 multilinguality:
 - monolingual
@@ -19,7 +19,7 @@ task_categories:
 task_ids:
 - instance-segmentation
 - other-scene-parsing
-paperswithcode_id: null
+paperswithcode_id: ade20k
 pretty_name: MIT Scene Parsing Benchmark
 ---
 
@@ -52,9 +52,9 @@ pretty_name: MIT Scene Parsing Benchmark
 
 ## Dataset Description
 
-- **Homepage:** [MIT Scene Parsing Benchmark homepage](https://www.robots.ox.ac.uk/~vgg/research/pass/)
+- **Homepage:** [MIT Scene Parsing Benchmark homepage](http://sceneparsing.csail.mit.edu/)
 - **Repository:** [Scene Parsing repository (Caffe/Torch7)](https://github.com/CSAILVision/sceneparsing),[Scene Parsing repository (PyTorch)](https://github.com/CSAILVision/semantic-segmentation-pytorch) and [Instance Segmentation repository](https://github.com/CSAILVision/placeschallenge/tree/master/instancesegmentation)
-- **Paper:** [Scene Parsing through ADE20K Dataset.](http://people.csail.mit.edu/bzhou/publication/scene-parse-camera-ready.pdf) and [Semantic Understanding of Scenes through ADE20K Datase](https://arxiv.org/abs/1608.05442)
+- **Paper:** [Scene Parsing through ADE20K Dataset](http://people.csail.mit.edu/bzhou/publication/scene-parse-camera-ready.pdf) and [Semantic Understanding of Scenes through ADE20K Dataset](https://arxiv.org/abs/1608.05442)
 - **Leaderboard:** [MIT Scene Parsing Benchmark leaderboard](http://sceneparsing.csail.mit.edu/#:~:text=twice%20per%20week.-,leaderboard,-Organizers)
 - **Point of Contact:** [Bolei Zhou](mailto:bzhou@ie.cuhk.edu.hk)
 

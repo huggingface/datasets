@@ -3,16 +3,17 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - expert-generated
-languages:
+language:
 - en
 - tw
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
 size_categories:
 - n<1K
-source_datasets: []
+source_datasets:
+- original
 task_categories:
 - text-classification
 task_ids:

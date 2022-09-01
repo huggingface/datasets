@@ -1,6 +1,6 @@
 ---
 pretty_name: EmpatheticDialogues
-languages:
+language:
 - en
 paperswithcode_id: empatheticdialogues
 ---
@@ -54,8 +54,6 @@ PyTorch original implementation of Towards Empathetic Open-domain Conversation M
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

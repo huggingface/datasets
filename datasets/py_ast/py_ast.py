@@ -33,7 +33,7 @@ year={2016}
 # TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
-dataset consisting of parsed Parsed ASTs that were used to train and
+Dataset consisting of parsed ASTs that were used to train and
 evaluate the DeepSyn tool.
 The Python programs are collected from GitHub repositories
 by removing duplicate files, removing project forks (copy of another existing repository)

@@ -4,14 +4,11 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
-  neen:
-  - en
-  - ne
-  sien:
-  - en
-  - si
-licenses:
+language:
+- en
+- ne
+- si
+license:
 - cc-by-4.0
 multilinguality:
 - translation
@@ -31,6 +28,9 @@ task_categories:
 - translation
 task_ids: []
 paperswithcode_id: flores
+configs:
+- neen
+- sien
 ---
 
 # Dataset Card for "flores"
@@ -82,8 +82,6 @@ Evaluation datasets for low-resource machine translation: Nepali-English and Sin
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

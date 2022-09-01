@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: biomrc
 pretty_name: BIOMRC
@@ -54,8 +54,6 @@ We introduce BIOMRC, a large-scale cloze-style biomedical MRC dataset. Care was 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

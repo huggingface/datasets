@@ -1,8 +1,24 @@
 ---
-languages:
+annotations_creators:
+- machine-generated
+language:
 - en
-paperswithcode_id: quizbowl
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
 pretty_name: Quizbowl
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- question-answering-other-quizbowl
+paperswithcode_id: quizbowl
 ---
 
 # Dataset Card for "qanta"
@@ -35,8 +51,8 @@ pretty_name: Quizbowl
 
 - **Homepage:** [http://www.qanta.org/](http://www.qanta.org/)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [Quizbowl: The Case for Incremental Question Answering](https://arxiv.org/abs/1904.04792)
+- **Point of Contact:** [Jordan Boyd-Graber](mailto:jbg@umiacs.umd.edu)
 - **Size of downloaded dataset files:** 162.84 MB
 - **Size of the generated dataset:** 140.36 MB
 - **Total amount of disk used:** 303.20 MB
@@ -54,8 +70,6 @@ The Qanta dataset is a question answering dataset based on the academic trivia g
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -185,7 +199,6 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
 @article{Rodriguez2019QuizbowlTC,
   title={Quizbowl: The Case for Incremental Question Answering},
   author={Pedro Rodriguez and Shi Feng and Mohit Iyyer and He He and Jordan L. Boyd-Graber},
@@ -193,7 +206,6 @@ The data fields are the same among all splits.
   year={2019},
   volume={abs/1904.04792}
 }
-
 ```
 
 

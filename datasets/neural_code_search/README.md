@@ -4,27 +4,25 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-nc-4.0
 multilinguality:
 - monolingual
 size_categories:
-  evaluation_dataset:
-  - n<1K
-  search_corpus:
-  - 1M<n<10M
+- 1M<n<10M
+- n<1K
 source_datasets:
 - original
 task_categories:
 - question-answering
 task_ids:
-  evaluation_dataset:
-  - extractive-qa
-  search_corpus:
-  - extractive-qa
+- extractive-qa
 paperswithcode_id: neural-code-search-evaluation-dataset
+configs:
+- evaluation_dataset
+- search_corpus
 ---
 
 # Dataset Card for Neural Code Search

@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - other
-languages:
+language:
 - da
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -21,7 +21,7 @@ paperswithcode_id: null
 pretty_name: DanishPoliticalComments
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for DanishPoliticalComments
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

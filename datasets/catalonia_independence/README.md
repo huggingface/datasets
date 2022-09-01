@@ -3,12 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
-  catalan:
-  - ca
-  spanish:
-  - es
-licenses:
+language:
+- ca
+- es
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual
@@ -22,6 +20,9 @@ task_ids:
 - text-classification-other-stance-detection
 paperswithcode_id: cic
 pretty_name: Catalonia Independence Corpus
+configs:
+- catalan
+- spanish
 ---
 
 # Dataset Card for Catalonia Independence Corpus

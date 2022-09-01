@@ -1,11 +1,11 @@
 ---
 annotations_creators:
-- no-annotations
+- no-annotation
 language_creators:
 - machine-generated
-languages:
+language:
 - en
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual

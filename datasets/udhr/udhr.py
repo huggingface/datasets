@@ -17,7 +17,6 @@
 """Universal Declaration of Human Rights"""
 
 
-import glob
 import os
 import xml.etree.ElementTree as ET
 
@@ -29,22 +28,22 @@ The Universal Declaration of Human Rights (UDHR) is a milestone document in the 
 representatives with different legal and cultural backgrounds from all regions of the world, it set out, for the
 first time, fundamental human rights to be universally protected. The Declaration was adopted by the UN General
 Assembly in Paris on 10 December 1948 during its 183rd plenary meeting. The dataset includes translations of the
-document in 464 languages and dialects.
+document in 464+ languages and dialects.
 
 © 1996 – 2009 The Office of the High Commissioner for Human Rights
 
 This plain text version prepared by the “UDHR in Unicode” project, https://www.unicode.org/udhr.
 """
 
-_WEBPAGE = "https://www.ohchr.org/EN/UDHR/Pages/UDHRIndex.aspx"
+_HOMEPAGE = "https://www.ohchr.org/en/universal-declaration-of-human-rights"
 
-# XML for meta-info about language and TXT for text
-_XML_DOWNLOAD_URL = "https://unicode.org/udhr/assemblies/udhr_xml.zip"
-_TXT_DOWNLOAD_URL = "https://unicode.org/udhr/assemblies/udhr_txt.zip"
+_URL = "https://unicode.org/udhr/assemblies/udhr_xml.zip"
 
 
 class UDHN(datasets.GeneratorBasedBuilder):
     """Universal Declaration of Human Rights"""
+
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -56,36 +55,31 @@ class UDHN(datasets.GeneratorBasedBuilder):
                     "lang_name": datasets.Value("string"),
                     "iso639-3": datasets.Value("string"),
                     "iso15924": datasets.Value("string"),
+                    "bcp47": datasets.Value("string"),
                 }
             ),
-            homepage=_WEBPAGE,
+            homepage=_HOMEPAGE,
         )
 
     def _split_generators(self, dl_manager):
-        xml_dir = dl_manager.download_and_extract(_XML_DOWNLOAD_URL)
-        txt_dir = dl_manager.download_and_extract(_TXT_DOWNLOAD_URL)
+        dl_dir = dl_manager.download_and_extract(_URL)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"xml_dir": xml_dir, "txt_dir": txt_dir}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"file_paths": dl_manager.iter_files(dl_dir)}
+            ),
         ]
 
-    def _generate_examples(self, xml_dir, txt_dir):
-        xml_paths = glob.glob(os.path.join(xml_dir, "udhr_*.xml"))
-        for i, xml_path in enumerate(xml_paths):
-            lang_attr = ET.parse(xml_path).getroot().attrib
-            lang = lang_attr["key"]
-
-            txt_path = os.path.join(txt_dir, f"udhr_{lang}.txt")
-            assert os.path.exists(txt_path), f"xml file {xml_path} found with no corresponding txt file"
-
-            with open(txt_path, "r", encoding="utf-8") as f:
-                lines = f.readlines()[6:]  # ignore first 6 lines (metainfo)
-            text = "\n".join([line.strip() for line in lines if len(line.strip()) > 0])
-
-            yield i, {
-                "text": text,
-                "lang_key": lang,
-                "lang_name": lang_attr["n"],
-                "iso639-3": lang_attr["iso639-3"],
-                "iso15924": lang_attr["iso15924"],
-            }
+    def _generate_examples(self, file_paths):
+        for id_, path in enumerate(file_paths):
+            if os.path.basename(path).startswith("udhr_"):
+                root = ET.parse(path).getroot()
+                text = "\n".join([line.strip() for line in root.itertext() if line.strip()])
+                yield id_, {
+                    "text": text,
+                    "lang_key": root.get("key"),
+                    "lang_name": root.get("n"),
+                    "iso639-3": root.get("iso639-3"),
+                    "iso15924": root.get("iso15924"),
+                    "bcp47": root.get("{http://www.w3.org/XML/1998/namespace}lang"),
+                }

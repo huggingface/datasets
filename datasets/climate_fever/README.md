@@ -4,9 +4,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -23,6 +23,7 @@ task_ids:
 - fact-checking
 - fact-checking-retrieval
 - semantic-similarity-scoring
+- multi-input-text-classification
 paperswithcode_id: climate-fever
 pretty_name: ClimateFever
 ---

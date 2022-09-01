@@ -5,9 +5,9 @@ language_creators:
 - crowdsourced
 - found
 - machine-generated
-languages:
-- en
+language:
 - de
+- en
 - es
 - fr
 - it
@@ -16,8 +16,8 @@ languages:
 - pt
 - ru
 - zh
-licenses:
-- custom
+license:
+- other
 multilinguality:
 - multilingual
 size_categories:

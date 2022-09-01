@@ -3,30 +3,33 @@ on: [push]
 jobs:
   run:
     runs-on: [ubuntu-latest]
-    container: docker://dvcorg/cml-py3:latest
+    container: docker://dvcorg/cml:latest
     steps:
       - uses: actions/checkout@v2
       - name: cml_run
         env:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # See https://github.com/actions/checkout/issues/760
+          git config --global --add safe.directory /__w/datasets/datasets
+
           # Your ML workflow goes here
 
           pip install --upgrade pip
           pip install setuptools wheel
           pip install -e .[benchmarks]
 
-          # pyarrow==5.0.0
-          pip install pyarrow==5.0.0
+          # pyarrow==6.0.0
+          pip install pyarrow==6.0.0
 
           dvc repro --force
 
           git fetch --prune
-          dvc metrics diff --show-json master > report.json
+          dvc metrics diff --show-json main > report.json
 
           python ./benchmarks/format.py report.json report.md
 
-          echo "<details>\n<summary>Show benchmarks</summary>\n\nPyArrow==5.0.0\n" > final_report.md
+          echo "<details>\n<summary>Show benchmarks</summary>\n\nPyArrow==6.0.0\n" > final_report.md
           cat report.md >> final_report.md
 
           # pyarrow
@@ -35,7 +38,7 @@ jobs:
           dvc repro --force
 
           git fetch --prune
-          dvc metrics diff --show-json master > report.json
+          dvc metrics diff --show-json main > report.json
 
           python ./benchmarks/format.py report.json report.md
 

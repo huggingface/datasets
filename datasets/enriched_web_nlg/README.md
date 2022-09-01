@@ -3,12 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - crowdsourced
-languages:
-  de:
-  - de
-  en:
-  - en
-licenses:
+language:
+- de
+- en
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -22,6 +20,9 @@ task_ids:
 - rdf-to-text
 paperswithcode_id: null
 pretty_name: Enriched WebNLG
+configs:
+- de
+- en
 ---
 
 # Dataset Card for WebNLG

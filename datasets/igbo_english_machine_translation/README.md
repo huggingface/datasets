@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
 - ig
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -21,7 +21,7 @@ paperswithcode_id: igbonlp-datasets
 pretty_name: IgboNLP Datasets
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for IgboNLP Datasets
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
