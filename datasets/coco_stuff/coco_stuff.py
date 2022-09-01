@@ -19,8 +19,9 @@ import collections
 import json
 import os
 from dataclasses import dataclass
-import pycocotools.mask as mask_util
 from typing import List, Optional, Union
+
+import pycocotools.mask as mask_util
 
 import datasets
 

@@ -25,7 +25,7 @@ import pycocotools.mask as mask_util
 import datasets
 
 
-_CITATION = """\
+_CITATION = r"""\
 @article{DBLP:journals/corr/LinMBHPRDZ14,
   author    = {Tsung{-}Yi Lin and
                Michael Maire and
@@ -144,9 +144,9 @@ class DensePoseCOCO(datasets.GeneratorBasedBuilder):
                         "bbox": datasets.Sequence(datasets.Value("float32"), length=4),
                         "iscrowd": datasets.Value("bool"),
                         "segmentation": datasets.Sequence(datasets.Sequence(datasets.Value("uint8"))),
+                        "category_id": datasets.Value("int32"),
                         "fine_label": datasets.ClassLabel(names=_FINE_LABELS_PERSON),
                         "coarse_label": datasets.ClassLabel(names=_COARSE_LABELS_PERSON),
-                        "keypoints": datasets.Sequence(datasets.Value("int32")),
                         "num_keypoints": datasets.Value("int32"),
                         "keypoints": datasets.Sequence(
                             {
@@ -246,7 +246,7 @@ class DensePoseCOCO(datasets.GeneratorBasedBuilder):
 
 def image_info_to_example(image_info, images_dir):
     """
-    A helper function to create an example from image metadata.
+    A helper function to create an example from the image metadata.
     """
     return {
         "image_id": image_info["id"],
@@ -268,7 +268,7 @@ def annotation_to_pose(
     """
 
     del annotation["image_id"]
-    category_id = annotation.pop("category_id")
+    category_id = annotation["category_id"]
     pose = annotation
     keypoints_values = pose["keypoints"]
     pose["fine_label"] = id_to_fine_label[category_id]
@@ -279,18 +279,16 @@ def annotation_to_pose(
         for i, keypoint in enumerate(id_to_keypoints[category_id])
     ]
     pose["skeleton"] = id_to_skeleton[category_id]
-    if "dp_I" not in pose:
-        pose["dp_I"] = None
-        pose["dp_U"] = None
-        pose["dp_V"] = None
-        pose["dp_x"] = None
-        pose["dp_y"] = None
-        pose["dp_masks"] = None
-    else:
+    pose["dp_I"] = pose.get("dp_I")
+    pose["dp_U"] = pose.get("dp_U")
+    pose["dp_V"] = pose.get("dp_V")
+    pose["dp_x"] = pose.get("dp_x")
+    pose["dp_y"] = pose.get("dp_y")
+    pose["dp_masks"] = pose.get("dp_masks")
+    if pose["dp_masks"] is not None:
         pose["dp_masks"] = [
             decode_mask(dp_mask, image_height, image_width) if dp_mask else dp_mask for dp_mask in pose["dp_masks"]
         ]
-    return pose
 
 
 def decode_mask(mask, image_height, image_width):

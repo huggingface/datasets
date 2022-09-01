@@ -19,7 +19,7 @@ import collections
 import json
 import os
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import datasets
 
