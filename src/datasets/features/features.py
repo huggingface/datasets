@@ -1603,7 +1603,7 @@ class Features(dict):
     def to_dict(self):
         return asdict(self)
 
-    def to_yaml(self):
+    def _to_yaml_list(self):
         yaml_data = self.to_dict()
 
         def simplify(feature):
@@ -1652,11 +1652,11 @@ class Features(dict):
             else:
                 return obj
 
-        return yaml.safe_dump(to_yaml_inner(yaml_data)["struct"], sort_keys=False)
+        return to_yaml_inner(yaml_data)["struct"]
 
     @classmethod
-    def from_yaml(cls, yaml_string):
-        yaml_data = yaml.safe_load(yaml_string)
+    def _from_yaml_list(cls, yaml_data):
+        yaml_data = copy.deepcopy(yaml_data)
 
         def unsimplify(feature):
             if isinstance(feature, dict) and isinstance(feature.get("sequence"), str):

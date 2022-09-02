@@ -297,16 +297,28 @@ class DatasetInfo:
     def copy(self) -> "DatasetInfo":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
 
-    def to_yaml(self) -> str:
+    def _to_yaml_dict(self) -> dict:
         yaml_dict = {}
         for field in dataclasses.fields(self):
             if field.name in self._INCLUDED_INFO_IN_YAML:
                 value = getattr(self, field.name)
-                if hasattr(value, "to_yaml"):
-                    yaml_dict[field.name] = yaml.safe_load(value.to_yaml())
+                if hasattr(value, "_to_yaml_list"):  # Features, SplitDict
+                    yaml_dict[field.name] = value._to_yaml_list()
+                elif hasattr(value, "_to_yaml_string"):  # Version
+                    yaml_dict[field.name] = value._to_yaml_string()
                 else:
                     yaml_dict[field.name] = value
-        return yaml.dump(yaml_dict)
+        return yaml_dict
+
+    @classmethod
+    def _from_yaml_dict(cls, yaml_data: dict) -> "DatasetInfo":
+        yaml_data = copy.deepcopy(yaml_data)
+        if "features" in yaml_data:
+            yaml_data["features"] = Features._from_yaml_list(yaml_data["features"])
+        if "splits" in yaml_data:
+            yaml_data["splits"] = SplitDict._from_yaml_list(yaml_data["splits"])
+        field_names = {f.name for f in dataclasses.fields(cls)}
+        return cls(**{k: v for k, v in yaml_data.items() if k in field_names})
 
 
 class DatasetInfosDict(Dict[str, DatasetInfo]):
@@ -331,7 +343,7 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
         else:
             dataset_metadata = {}
         dataset_metadata["dataset_infos"] = [
-            yaml.safe_load(dset_info.to_yaml()) for dset_info in total_dataset_infos.values()
+            dset_info._to_yaml_dict() for dset_info in total_dataset_infos.values()
         ]
         dataset_metadata.to_readme(Path(dataset_readme_path))
 
@@ -352,8 +364,8 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
             if isinstance(dataset_metadata.get("dataset_infos"), list) and dataset_metadata["dataset_infos"]:
                 dataset_infos_dict.update(
                     {
-                        dataset_info_dict.get("config_name", "default"): DatasetInfo.from_dict(dataset_info_dict)
-                        for dataset_info_dict in dataset_metadata["dataset_infos"]
+                        dataset_info_yaml_dict.get("config_name", "default"): DatasetInfo._from_yaml_dict(dataset_info_yaml_dict)
+                        for dataset_info_yaml_dict in dataset_metadata["dataset_infos"]
                     }
                 )
         return cls(**dataset_infos_dict)

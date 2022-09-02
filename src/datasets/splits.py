@@ -567,8 +567,12 @@ class SplitDict(dict):
     def copy(self):
         return SplitDict.from_split_dict(self.to_split_dict(), self.dataset_name)
 
-    def to_yaml(self):
-        return yaml.safe_dump([asdict(s) for s in self.to_split_dict()])
+    def _to_yaml_list(self) -> list:
+        return [asdict(s) for s in self.to_split_dict()]
+
+    @classmethod
+    def _from_yaml_list(cls, yaml_data: list) -> "SplitDict":
+        return cls.from_split_dict(yaml_data)
 
 
 @dataclass
