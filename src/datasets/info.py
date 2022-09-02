@@ -340,8 +340,11 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
         else:
             dataset_metadata = {}
-        dataset_metadata["dataset_infos"] = [dset_info._to_yaml_dict() for dset_info in total_dataset_infos.values()]
-        dataset_metadata.to_readme(Path(dataset_readme_path))
+        if total_dataset_infos:
+            dataset_metadata["dataset_infos"] = [dset_info._to_yaml_dict() for dset_info in total_dataset_infos.values()]
+            if len(dataset_metadata["dataset_infos"]) == 1:
+                dataset_metadata["dataset_infos"] = dataset_metadata["dataset_infos"][0]
+            dataset_metadata.to_readme(Path(dataset_readme_path))
 
     @classmethod
     def from_directory(cls, dataset_infos_dir):
@@ -357,15 +360,20 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
                 )
         if os.path.exists(os.path.join(dataset_infos_dir, "README.md")):
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_infos_dir) / "README.md")
-            if isinstance(dataset_metadata.get("dataset_infos"), list) and dataset_metadata["dataset_infos"]:
-                dataset_infos_dict.update(
-                    {
-                        dataset_info_yaml_dict.get("config_name", "default"): DatasetInfo._from_yaml_dict(
-                            dataset_info_yaml_dict
-                        )
-                        for dataset_info_yaml_dict in dataset_metadata["dataset_infos"]
-                    }
-                )
+            if isinstance(dataset_metadata.get("dataset_infos"), (list, dict)) and dataset_metadata["dataset_infos"]:
+                if isinstance(dataset_metadata["dataset_infos"], list):
+                    dataset_infos_dict.update(
+                        {
+                            dataset_info_yaml_dict.get("config_name", "default"): DatasetInfo._from_yaml_dict(
+                                dataset_info_yaml_dict
+                            )
+                            for dataset_info_yaml_dict in dataset_metadata["dataset_infos"]
+                        }
+                    )
+                else:
+                    dataset_infos_dict[
+                        dataset_metadata["dataset_infos"].get("config_name", "default")
+                    ] = dataset_metadata["dataset_infos"]
         return cls(**dataset_infos_dict)
 
 
