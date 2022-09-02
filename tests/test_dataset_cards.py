@@ -20,7 +20,7 @@ import pytest
 
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.utils.logging import get_logger
-from datasets.utils.metadata import DatasetMetadata, validate_metadata_type, yaml_block_from_readme
+from datasets.utils.metadata import DatasetMetadata
 from datasets.utils.readme import ReadMe
 
 from .utils import slow
@@ -46,7 +46,11 @@ def get_changed_datasets(repo_path: Path) -> List[Path]:
 
 
 def get_all_datasets(repo_path: Path) -> List[Path]:
-    dataset_names = [path.parts[-1] for path in (repo_path / "datasets").iterdir() if path.is_dir()]
+    dataset_names = [
+        path.parts[-1]
+        for path in (repo_path / "datasets").iterdir()
+        if path.is_dir() and (path / path.name).with_suffix(".py").is_file()
+    ]
     return [dataset_name for dataset_name in dataset_names if dataset_name not in _PACKAGED_DATASETS_MODULES]
 
 
@@ -64,14 +68,13 @@ def test_changed_dataset_card(dataset_name):
         )
     try:
         readme = ReadMe.from_readme(card_path, suppress_parsing_errors=True)
-        readme.validate()
     except Exception as readme_validation_error:
         error_messages.append(
             f"The following issues have been found in the dataset cards:\nREADME Validation:\n{readme_validation_error}"
         )
     try:
         metadata = DatasetMetadata.from_readme(card_path)
-        metadata.validate()
+        assert metadata, "empty metadata"
     except Exception as metadata_error:
         error_messages.append(
             f"The following issues have been found in the dataset cards:\nYAML tags:\n{metadata_error}"
@@ -89,10 +92,8 @@ def test_dataset_card_yaml_structure(dataset_name):
     """
     card_path = repo_path / "datasets" / dataset_name / "README.md"
     assert card_path.exists()
-    yaml_string = yaml_block_from_readme(card_path)
-    metadata_dict = DatasetMetadata._metadata_dict_from_yaml_string(yaml_string)
+    metadata_dict = DatasetMetadata.from_readme(card_path)
     assert len(metadata_dict) > 0
-    validate_metadata_type(metadata_dict)
 
 
 @slow
@@ -117,7 +118,7 @@ def test_dataset_card(dataset_name):
         )
     try:
         metadata = DatasetMetadata.from_readme(card_path)
-        metadata.validate()
+        assert metadata
     except Exception as metadata_error:
         error_messages.append(
             f"The following issues have been found in the dataset cards:\nYAML tags:\n{metadata_error}"
