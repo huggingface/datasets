@@ -889,7 +889,7 @@ class ClassLabel:
     ```
     """
 
-    num_classes: int = None
+    num_classes: InitVar[Optional[int]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
     names: List[str] = None
     names_file: InitVar[Optional[str]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
     id: Optional[str] = None
@@ -900,7 +900,8 @@ class ClassLabel:
     _int2str: ClassVar[Dict[int, int]] = None
     _type: str = field(default="ClassLabel", init=False, repr=False)
 
-    def __post_init__(self, names_file):
+    def __post_init__(self, num_classes, names_file):
+        self.num_classes = num_classes
         self.names_file = names_file
         if self.names_file is not None and self.names is not None:
             raise ValueError("Please provide either names or names_file but not both.")
@@ -1606,10 +1607,14 @@ class Features(dict):
         yaml_data = self.to_dict()
 
         def simplify(feature):
-            if isinstance(feature.get("sequence"), dict) and list(feature["sequence"]) == ["dtype"]:
+            if isinstance(feature, dict) and isinstance(feature.get("sequence"), dict) and list(feature["sequence"]) == ["dtype"]:
                 feature["sequence"] = feature["sequence"]["dtype"]
-            elif isinstance(feature.get("list"), dict) and list(feature["list"]) == ["dtype"]:
+            if isinstance(feature, dict) and isinstance(feature.get("sequence"), dict) and list(feature["sequence"]) == ["struct"]:
+                feature["sequence"] = feature["sequence"]["struct"]
+            elif isinstance(feature, dict) and isinstance(feature.get("list"), dict) and list(feature["list"]) == ["dtype"]:
                 feature["list"] = feature["list"]["dtype"]
+            elif isinstance(feature, dict) and isinstance(feature.get("list"), dict) and list(feature["list"]) == ["struct"]:
+                feature["list"] = feature["list"]["struct"]
             return feature
 
         def to_yaml_inner(obj):
@@ -1619,20 +1624,19 @@ class Features(dict):
                     _feature = obj.pop("feature")
                     return simplify({camelcase_to_snakecase(_type): to_yaml_inner(_feature), **obj})
                 elif _type == "Value":
-                    return obj
+                    return {"dtype": obj["dtype"]}
+                elif _type and not obj:
+                    return {"dtype": camelcase_to_snakecase(_type)}
                 elif _type:
-                    return {camelcase_to_snakecase(_type): obj}
+                    return {"dtype": {camelcase_to_snakecase(_type): obj}}
                 else:
-                    return [{"name": name, **to_yaml_inner(_feature)} for name, _feature in obj.items()]
+                    return {"struct": [{"name": name, **to_yaml_inner(_feature)} for name, _feature in obj.items()]}
             elif isinstance(obj, list):
-                if all(isinstance(x, (str, int)) for x in obj):  # don't convert ClassLabel.names
-                    return obj
-                else:
-                    return simplify({"list": simplify(to_yaml_inner(obj[0]))})
+                return simplify({"list": simplify(to_yaml_inner(obj[0]))})
             else:
                 return obj
 
-        return yaml.safe_dump(to_yaml_inner(yaml_data), sort_keys=False)
+        return yaml.safe_dump(to_yaml_inner(yaml_data)["struct"], sort_keys=False)
 
     @classmethod
     def from_yaml(cls, yaml_string):
@@ -1641,31 +1645,41 @@ class Features(dict):
         def unsimplify(feature):
             if isinstance(feature, dict) and isinstance(feature.get("sequence"), str):
                 feature["sequence"] = {"dtype": feature["sequence"]}
+            if isinstance(feature, dict) and isinstance(feature.get("sequence"), dict) and list(feature["sequence"]) == ["struct"]:
+                feature["sequence"] = feature["struct"]
             elif isinstance(feature, dict) and isinstance(feature.get("list"), str):
                 feature["list"] = {"dtype": feature["list"]}
+            elif isinstance(feature, dict) and isinstance(feature.get("list"), dict) and list(feature["list"]) == ["struct"]:
+                feature["list"] = feature["struct"]
             return feature
 
         def from_yaml_inner(obj):
+
             if isinstance(obj, dict):
                 _type = next(iter(obj))
                 if _type == "sequence":
                     _feature = unsimplify(obj).pop(_type)
                     return {"feature": from_yaml_inner(_feature), **obj, "_type": "Sequence"}
-                elif _type == "list":
+                if _type == "list":
                     return [from_yaml_inner(unsimplify(obj)[_type])]
+                if _type == "struct":
+                    return from_yaml_inner(obj["struct"])
                 elif _type == "dtype":
-                    return {"dtype": obj["dtype"], "_type": "Value"}
+                    if isinstance(obj["dtype"], str):
+                        try:
+                            Value(obj["dtype"])
+                            return {"dtype": obj["dtype"], "_type": "Value"}
+                        except ValueError:
+                            return {"_type": snakecase_to_camelcase(obj["dtype"])}
+                    else:
+                        return from_yaml_inner(obj["dtype"])
                 else:
                     return {"_type": snakecase_to_camelcase(_type), **obj[_type]}
             elif isinstance(obj, list):
-                if all(isinstance(x, (str, int)) for x in obj):  # don't convert ClassLabel.names
-                    return obj
-                else:
-                    names = [_feature.pop("name") for _feature in obj]
-                    return {name: from_yaml_inner(_feature) for name, _feature in zip(names, obj)}
+                names = [_feature.pop("name") for _feature in obj]
+                return {name: from_yaml_inner(_feature) for name, _feature in zip(names, obj)}
             else:
                 return obj
-
         return cls.from_dict(from_yaml_inner(yaml_data))
 
     def encode_example(self, example):
