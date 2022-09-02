@@ -89,6 +89,8 @@ REQUIRED_PKGS = [
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     "responses<0.19",
+    # To parse YAML metadata from dataset cards
+    "pyyaml>=5.1",
 ]
 
 AUDIO_REQUIRE = [
