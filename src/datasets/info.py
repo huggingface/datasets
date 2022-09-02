@@ -341,7 +341,9 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
         else:
             dataset_metadata = DatasetMetadata()
         if total_dataset_infos:
-            dataset_metadata["dataset_infos"] = [dset_info._to_yaml_dict() for dset_info in total_dataset_infos.values()]
+            dataset_metadata["dataset_infos"] = [
+                dset_info._to_yaml_dict() for dset_info in total_dataset_infos.values()
+            ]
             if len(dataset_metadata["dataset_infos"]) == 1:
                 dataset_metadata["dataset_infos"] = dataset_metadata["dataset_infos"][0]
             dataset_metadata.to_readme(Path(dataset_readme_path))
