@@ -252,6 +252,19 @@ class Table(IndexedTableMixin):
         """
         return self.table.to_pydict(*args, **kwargs)
 
+    def to_pylist(self, *args, **kwargs):
+        """
+        Convert the Table to a list
+
+        Returns:
+            :obj:`list`
+        """
+        try:
+            return self.table.to_pylist(*args, **kwargs)
+        except AttributeError:  # pyarrow <7 does not have to_pylist, so we use to_pydict
+            pydict = self.table.to_pydict(*args, **kwargs)
+            return [{k: pydict[k][i] for k in pydict} for i in range(len(self.table))]
+
     def to_pandas(self, *args, **kwargs):
         """
         Convert to a pandas-compatible NumPy array or DataFrame, as appropriate
@@ -748,6 +761,28 @@ class InMemoryTable(TableBlock):
             :class:`datasets.table.Table`:
         """
         return cls(pa.Table.from_pydict(*args, **kwargs))
+
+    @classmethod
+    def from_pylist(cls, mapping, *args, **kwargs):
+        """
+        Construct a Table from list of rows / dictionaries.
+
+        Args:
+            mapping (:obj:`List[dict]`):
+                A mapping of strings to row values.
+            schema (:obj:`Schema`, defaults to :obj:`None`):
+                If not passed, will be inferred from the Mapping values
+            metadata (:obj:`Union[dict, Mapping]`, default None):
+                Optional metadata for the schema (if inferred).
+
+        Returns:
+            :class:`datasets.table.Table`:
+        """
+        try:
+            return cls(pa.Table.from_pylist(mapping, *args, **kwargs))
+        except AttributeError:  # pyarrow <7 does not have from_pylist, so we convert and use from_pydict
+            mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]} if mapping else {}
+            return cls(pa.Table.from_pydict(mapping, *args, **kwargs))
 
     @classmethod
     def from_batches(cls, *args, **kwargs):

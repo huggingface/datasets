@@ -210,6 +210,16 @@ Load Python dictionaries with [`~Dataset.from_dict`]:
 >>> dataset = Dataset.from_dict(my_dict)
 ```
 
+### Python list of dictionaries
+
+Load a list of Python dictionaries with [`~Dataset.from_list`]:
+
+```py
+>>> from datasets import Dataset
+>>> my_list = [{"a": 1}, {"a": 2}, {"a": 3}]
+>>> dataset = Dataset.from_list(my_list)
+```
+
 ### Pandas DataFrame
 
 Load Pandas DataFrames with [`~Dataset.from_pandas`]:
