@@ -18,13 +18,16 @@
 
 import abc
 import collections
+import dataclasses
 import re
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass
 from typing import Dict, List, Optional, Union
+
+import yaml
 
 from .arrow_reader import FileInstructions, make_file_instructions
 from .naming import _split_re
-from .utils.py_utils import NonMutableDict
+from .utils.py_utils import NonMutableDict, asdict
 
 
 @dataclass
@@ -32,7 +35,7 @@ class SplitInfo:
     name: str = ""
     num_bytes: int = 0
     num_examples: int = 0
-    dataset_name: Optional[str] = None
+    dataset_name: InitVar[Optional[str]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
 
     @property
     def file_instructions(self):
@@ -545,7 +548,7 @@ class SplitDict(dict):
             split_infos = list(split_infos.values())
 
         if dataset_name is None:
-            dataset_name = split_infos[0]["dataset_name"] if split_infos else None
+            dataset_name = split_infos[0].get("dataset_name") if split_infos else None
 
         split_dict = cls(dataset_name=dataset_name)
 
@@ -563,6 +566,9 @@ class SplitDict(dict):
 
     def copy(self):
         return SplitDict.from_split_dict(self.to_split_dict(), self.dataset_name)
+
+    def to_yaml(self):
+        return yaml.safe_dump([asdict(s) for s in self.to_split_dict()])
 
 
 @dataclass
@@ -591,8 +597,8 @@ class SplitGenerator:
     """
 
     name: str
-    gen_kwargs: Dict = field(default_factory=dict)
-    split_info: SplitInfo = field(init=False)
+    gen_kwargs: Dict = dataclasses.field(default_factory=dict)
+    split_info: SplitInfo = dataclasses.field(init=False)
 
     def __post_init__(self):
         self.name = str(self.name)  # Make sure we convert NamedSplits in strings

@@ -32,7 +32,7 @@ import copy
 import dataclasses
 import json
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import ClassVar, Dict, List, Optional, Union
 
@@ -118,10 +118,10 @@ class DatasetInfo:
     """
 
     # Set in the dataset scripts
-    description: str = field(default_factory=str)
-    citation: str = field(default_factory=str)
-    homepage: str = field(default_factory=str)
-    license: str = field(default_factory=str)
+    description: str = dataclasses.field(default_factory=str)
+    citation: str = dataclasses.field(default_factory=str)
+    homepage: str = dataclasses.field(default_factory=str)
+    license: str = dataclasses.field(default_factory=str)
     features: Optional[Features] = None
     post_processed: Optional[PostProcessedInfo] = None
     supervised_keys: Optional[SupervisedKeysData] = None
@@ -299,13 +299,13 @@ class DatasetInfo:
 
     def to_yaml(self) -> str:
         yaml_dict = {}
-        for key in dataclasses.fields(self):
-            if key in self._INCLUDED_INFO_IN_YAML:
-                value = getattr(self, key)
+        for field in dataclasses.fields(self):
+            if field.name in self._INCLUDED_INFO_IN_YAML:
+                value = getattr(self, field.name)
                 if hasattr(value, "to_yaml"):
-                    yaml_dict[key] = yaml.safe_load(value.to_yaml())
+                    yaml_dict[field.name] = yaml.safe_load(value.to_yaml())
                 else:
-                    yaml_dict = value
+                    yaml_dict[field.name] = value
         return yaml.dump(yaml_dict)
 
 
@@ -327,13 +327,13 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
                 )
         # Dump the infos in the YAML part of the README.md file
         if os.path.exists(dataset_readme_path):
-            dataset_metadata = DatasetMetadata.from_readme(dataset_readme_path)
+            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
         else:
             dataset_metadata = {}
-        dataset_metadata["dataset_infos"] = {
-            config_name: yaml.safe_load(dset_info.to_yaml()) for config_name, dset_info in total_dataset_infos.items()
-        }
-        dataset_metadata.to_readme(dataset_readme_path)
+        dataset_metadata["dataset_infos"] = [
+            yaml.safe_load(dset_info.to_yaml()) for dset_info in total_dataset_infos.values()
+        ]
+        dataset_metadata.to_readme(Path(dataset_readme_path))
 
     @classmethod
     def from_directory(cls, dataset_infos_dir):
@@ -373,11 +373,11 @@ class MetricInfo:
     description: str
     citation: str
     features: Features
-    inputs_description: str = field(default_factory=str)
-    homepage: str = field(default_factory=str)
-    license: str = field(default_factory=str)
-    codebase_urls: List[str] = field(default_factory=list)
-    reference_urls: List[str] = field(default_factory=list)
+    inputs_description: str = dataclasses.field(default_factory=str)
+    homepage: str = dataclasses.field(default_factory=str)
+    license: str = dataclasses.field(default_factory=str)
+    codebase_urls: List[str] = dataclasses.field(default_factory=list)
+    reference_urls: List[str] = dataclasses.field(default_factory=list)
     streamable: bool = False
     format: Optional[str] = None
 

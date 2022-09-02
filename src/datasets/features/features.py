@@ -1607,13 +1607,29 @@ class Features(dict):
         yaml_data = self.to_dict()
 
         def simplify(feature):
-            if isinstance(feature, dict) and isinstance(feature.get("sequence"), dict) and list(feature["sequence"]) == ["dtype"]:
+            if (
+                isinstance(feature, dict)
+                and isinstance(feature.get("sequence"), dict)
+                and list(feature["sequence"]) == ["dtype"]
+            ):
                 feature["sequence"] = feature["sequence"]["dtype"]
-            if isinstance(feature, dict) and isinstance(feature.get("sequence"), dict) and list(feature["sequence"]) == ["struct"]:
+            if (
+                isinstance(feature, dict)
+                and isinstance(feature.get("sequence"), dict)
+                and list(feature["sequence"]) == ["struct"]
+            ):
                 feature["sequence"] = feature["sequence"]["struct"]
-            elif isinstance(feature, dict) and isinstance(feature.get("list"), dict) and list(feature["list"]) == ["dtype"]:
+            elif (
+                isinstance(feature, dict)
+                and isinstance(feature.get("list"), dict)
+                and list(feature["list"]) == ["dtype"]
+            ):
                 feature["list"] = feature["list"]["dtype"]
-            elif isinstance(feature, dict) and isinstance(feature.get("list"), dict) and list(feature["list"]) == ["struct"]:
+            elif (
+                isinstance(feature, dict)
+                and isinstance(feature.get("list"), dict)
+                and list(feature["list"]) == ["struct"]
+            ):
                 feature["list"] = feature["list"]["struct"]
             return feature
 
@@ -1645,11 +1661,19 @@ class Features(dict):
         def unsimplify(feature):
             if isinstance(feature, dict) and isinstance(feature.get("sequence"), str):
                 feature["sequence"] = {"dtype": feature["sequence"]}
-            if isinstance(feature, dict) and isinstance(feature.get("sequence"), dict) and list(feature["sequence"]) == ["struct"]:
+            if (
+                isinstance(feature, dict)
+                and isinstance(feature.get("sequence"), dict)
+                and list(feature["sequence"]) == ["struct"]
+            ):
                 feature["sequence"] = feature["struct"]
             elif isinstance(feature, dict) and isinstance(feature.get("list"), str):
                 feature["list"] = {"dtype": feature["list"]}
-            elif isinstance(feature, dict) and isinstance(feature.get("list"), dict) and list(feature["list"]) == ["struct"]:
+            elif (
+                isinstance(feature, dict)
+                and isinstance(feature.get("list"), dict)
+                and list(feature["list"]) == ["struct"]
+            ):
                 feature["list"] = feature["struct"]
             return feature
 
@@ -1680,6 +1704,7 @@ class Features(dict):
                 return {name: from_yaml_inner(_feature) for name, _feature in zip(names, obj)}
             else:
                 return obj
+
         return cls.from_dict(from_yaml_inner(yaml_data))
 
     def encode_example(self, example):
