@@ -1756,10 +1756,9 @@ class Features(dict):
                     raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
                 if sorted(source) != sorted(target):
                     message = (
-                        f"Keys mismatch: between {source} (dataset_info.json) "
-                        f"and {target} (inferred from dataset.arrow).\n"
-                        f"{source.keys()-target.keys()} are missing from dataset.arrow "
-                        f"and {target.keys()-source.keys()} are missing from dataset_info.json" + stack_position
+                        f"Keys mismatch: between {source} (source) and {target} (target).\n"
+                        f"{source.keys()-target.keys()} are missing from target "
+                        f"and {target.keys()-source.keys()} are missing from source" + stack_position
                     )
                     raise ValueError(message)
                 return {key: recursive_reorder(source[key], target[key], stack + f".{key}") for key in target}

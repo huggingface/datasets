@@ -686,7 +686,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if self.info.features is None:
             self.info.features = inferred_features
         else:  # make sure the nested columns are in the right order
-            self.info.features = self.info.features.reorder_fields_as(inferred_features)
+            try:
+                self.info.features = self.info.features.reorder_fields_as(inferred_features)
+            except ValueError as e:
+                raise ValueError(
+                    f"{e}\n'source' means dataset_info.json and 'target' means inferred from dataset.arrow"
+                )
 
         # Infer fingerprint if None
 
