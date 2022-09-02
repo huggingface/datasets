@@ -3,6 +3,98 @@ language:
 - en
 paperswithcode_id: conll-2000-1
 pretty_name: CoNLL-2000
+dataset_infos:
+- config_name: conll2000
+  dataset_size: 6558116
+  download_size: 3481560
+  features:
+  - dtype: string
+    name: id
+  - name: tokens
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+        - ''''''
+        - '#'
+        - $
+        - (
+        - )
+        - ','
+        - .
+        - ':'
+        - '``'
+        - CC
+        - CD
+        - DT
+        - EX
+        - FW
+        - IN
+        - JJ
+        - JJR
+        - JJS
+        - MD
+        - NN
+        - NNP
+        - NNPS
+        - NNS
+        - PDT
+        - POS
+        - PRP
+        - PRP$
+        - RB
+        - RBR
+        - RBS
+        - RP
+        - SYM
+        - TO
+        - UH
+        - VB
+        - VBD
+        - VBG
+        - VBN
+        - VBP
+        - VBZ
+        - WDT
+        - WP
+        - WP$
+        - WRB
+  - name: chunk_tags
+    sequence:
+      class_label:
+        names:
+        - O
+        - B-ADJP
+        - I-ADJP
+        - B-ADVP
+        - I-ADVP
+        - B-CONJP
+        - I-CONJP
+        - B-INTJ
+        - I-INTJ
+        - B-LST
+        - I-LST
+        - B-NP
+        - I-NP
+        - B-PP
+        - I-PP
+        - B-PRT
+        - I-PRT
+        - B-SBAR
+        - I-SBAR
+        - B-UCP
+        - I-UCP
+        - B-VP
+        - I-VP
+  splits:
+  - name: test
+    num_bytes: 1201151
+    num_examples: 2013
+  - name: train
+    num_bytes: 5356965
+    num_examples: 8937
+  version: 1.0.0
 ---
 
 # Dataset Card for "conll2000"
