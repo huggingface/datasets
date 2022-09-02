@@ -61,13 +61,13 @@ def test_changed_dataset_card(dataset_name):
     assert card_path.exists()
     error_messages = []
     try:
-        readme = ReadMe.from_readme(card_path)
+        ReadMe.from_readme(card_path)
     except Exception as readme_parsing_error:
         error_messages.append(
             f"The following issues have been found in the dataset cards:\nREADME Parsing:\n{readme_parsing_error}"
         )
     try:
-        readme = ReadMe.from_readme(card_path, suppress_parsing_errors=True)
+        ReadMe.from_readme(card_path, suppress_parsing_errors=True)
     except Exception as readme_validation_error:
         error_messages.append(
             f"The following issues have been found in the dataset cards:\nREADME Validation:\n{readme_validation_error}"
