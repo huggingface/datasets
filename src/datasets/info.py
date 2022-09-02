@@ -36,8 +36,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import ClassVar, Dict, List, Optional, Union
 
-import yaml
-
 from . import config
 from .features import Features, Value
 from .splits import SplitDict

@@ -23,8 +23,6 @@ import re
 from dataclasses import InitVar, dataclass
 from typing import Dict, List, Optional, Union
 
-import yaml
-
 from .arrow_reader import FileInstructions, make_file_instructions
 from .naming import _split_re
 from .utils.py_utils import NonMutableDict, asdict
