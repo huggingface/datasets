@@ -3,6 +3,18 @@ language:
 - en
 paperswithcode_id: null
 pretty_name: CrimeAndPunish
+dataset_infos:
+- config_name: crime-and-punish
+  dataset_size: 1270540
+  download_size: 1201735
+  features:
+  - dtype: string
+    name: line
+  splits:
+  - name: train
+    num_bytes: 1270540
+    num_examples: 21969
+  version: 1.0.0
 ---
 
 # Dataset Card for "crime_and_punish"
