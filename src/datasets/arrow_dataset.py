@@ -32,6 +32,7 @@ from io import BytesIO
 from math import ceil, floor
 from pathlib import Path
 from random import sample
+from sqlite3 import Connection
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -1055,6 +1056,48 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return TextDatasetReader(
             path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()
+
+    @staticmethod
+    def from_sql(
+        path_or_paths: Union[PathLike, List[PathLike]],
+        table_name: str,
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        **kwargs,
+    ):
+        """Create Dataset from text file(s).
+
+        Args:
+            path_or_paths (path-like or list of path-like): Path(s) of the text file(s).
+            table_name (``str``): Name of the SQL table to read from.
+            split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
+            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`SqlConfig`.
+
+        Returns:
+            :class:`Dataset`
+
+        Example:
+
+        ```py
+        >>> ds = Dataset.from_sql('path/to/dataset.sqlite')
+        ```
+        """
+        from .io.sql import SqlDatasetReader
+
+        return SqlDatasetReader(
+            path_or_paths,
+            table_name=table_name,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            **kwargs,
         ).read()
 
     def __del__(self):
@@ -4050,6 +4093,38 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .io.parquet import ParquetDatasetWriter
 
         return ParquetDatasetWriter(self, path_or_buf, batch_size=batch_size, **parquet_writer_kwargs).write()
+
+    def to_sql(
+        self,
+        path_or_buf: Union[PathLike, Connection],
+        table_name: str,
+        batch_size: Optional[int] = None,
+        **sql_writer_kwargs,
+    ) -> int:
+        """Exports the dataset to SQLite
+
+        Args:
+            path_or_buf (``PathLike`` or ``Connection``): Either a path to a file or a SQL connection.
+            table_name (``str``): Name of the SQL table to write to.
+            batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            **sql_writer_kwargs (additional keyword arguments): Parameters to pass to pandas's :function:`Dataframe.to_sql`
+
+        Returns:
+            int: The number of characters or bytes written
+
+        Example:
+
+        ```py
+        >>> ds.to_sql("path/to/dataset/directory")
+        ```
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.sql import SqlDatasetWriter
+
+        return SqlDatasetWriter(
+            self, path_or_buf, table_name=table_name, batch_size=batch_size, **sql_writer_kwargs
+        ).write()
 
     def _push_parquet_shards_to_hub(
         self,

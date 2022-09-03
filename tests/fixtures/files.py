@@ -4,7 +4,9 @@ import os
 import tarfile
 import textwrap
 import zipfile
+from sqlite3 import connect
 
+import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
@@ -235,6 +237,14 @@ def arrow_path(tmp_path_factory):
     dataset = datasets.Dataset.from_dict(DATA_DICT_OF_LISTS)
     path = str(tmp_path_factory.mktemp("data") / "dataset.arrow")
     dataset.map(cache_file_name=path)
+    return path
+
+
+@pytest.fixture(scope="session")
+def sql_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset.sqlite")
+    with connect(path) as conn:
+        pd.DataFrame.from_records(DATA).to_sql("TABLE_NAME", conn)
     return path
 
 

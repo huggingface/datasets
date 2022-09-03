@@ -7,6 +7,7 @@ import re
 import tempfile
 from functools import partial
 from pathlib import Path
+from sqlite3 import connect
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -58,6 +59,9 @@ from .utils import (
     require_transformers,
     set_current_working_directory_to_temp_dir,
 )
+
+
+SQLITE_TABLE_NAME = "TABLE_NAME"
 
 
 class Unpicklable:
@@ -2015,6 +2019,65 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(parquet_dset.shape, dset.shape)
                 self.assertListEqual(list(parquet_dset.columns), list(dset.column_names))
 
+    def test_to_sql(self, in_memory):
+        table_name = "TABLE_NAME"
+
+        def read_sql(filepath):
+
+            with connect(filepath) as conn:
+                return pd.read_sql(f"SELECT * FROM {table_name}", conn).drop("index", axis=1, errors="ignore")
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # File path argument
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.sql")
+                _ = dset.to_sql(path_or_buf=file_path, table_name=table_name)
+
+                self.assertTrue(os.path.isfile(file_path))
+                # self.assertEqual(bytes_written, os.path.getsize(file_path))
+                sql_dset = read_sql(file_path)
+
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
+            # File buffer argument
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_buffer.sql")
+                with connect(file_path) as buffer:
+                    _ = dset.to_sql(path_or_buf=buffer, table_name=table_name)
+
+                self.assertTrue(os.path.isfile(file_path))
+                # self.assertEqual(bytes_written, os.path.getsize(file_path))
+                sql_dset = read_sql(file_path)
+
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
+            # After a select/shuffle transform
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset = dset.select(range(0, len(dset), 2)).shuffle()
+                file_path = os.path.join(tmp_dir, "test_path.sql")
+                _ = dset.to_sql(path_or_buf=file_path, table_name=table_name)
+
+                self.assertTrue(os.path.isfile(file_path))
+                # self.assertEqual(bytes_written, os.path.getsize(file_path))
+                sql_dset = read_sql(file_path)
+
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
+            # With array features
+            with self._create_dummy_dataset(in_memory, tmp_dir, array_features=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.sql")
+                _ = dset.to_sql(path_or_buf=file_path, table_name=table_name)
+
+                self.assertTrue(os.path.isfile(file_path))
+                # self.assertEqual(bytes_written, os.path.getsize(file_path))
+                sql_dset = read_sql(file_path)
+
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
     def test_train_test_split(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -3099,6 +3162,68 @@ def test_dataset_from_text_path_type(path_type, text_path, tmp_path):
     expected_features = {"text": "string"}
     dataset = Dataset.from_text(path, cache_dir=cache_dir)
     _check_text_dataset(dataset, expected_features)
+
+
+def _check_sql_dataset(dataset, expected_features):
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_dataset_from_sql_keep_in_memory(keep_in_memory, sql_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = Dataset.from_sql(
+            sql_path, table_name=SQLITE_TABLE_NAME, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        )
+    _check_sql_dataset(dataset, expected_features)
+
+
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+def test_dataset_from_sql_features(features, sql_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = Dataset.from_sql(sql_path, table_name=SQLITE_TABLE_NAME, features=features, cache_dir=cache_dir)
+    _check_sql_dataset(dataset, expected_features)
+
+
+@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
+def test_dataset_from_sql_split(split, sql_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    dataset = Dataset.from_sql(sql_path, table_name=SQLITE_TABLE_NAME, cache_dir=cache_dir, split=split)
+    _check_sql_dataset(dataset, expected_features)
+    assert dataset.split == split if split else "train"
+
+
+@pytest.mark.parametrize("path_type", [str, list])
+def test_dataset_from_sql_path_type(path_type, sql_path, tmp_path):
+    if issubclass(path_type, str):
+        path = sql_path
+    elif issubclass(path_type, list):
+        path = [sql_path]
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    dataset = Dataset.from_sql(path, table_name=SQLITE_TABLE_NAME, cache_dir=cache_dir)
+    _check_sql_dataset(dataset, expected_features)
 
 
 def test_dataset_to_json(dataset, tmp_path):
