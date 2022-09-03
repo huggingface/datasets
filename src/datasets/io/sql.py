@@ -114,7 +114,7 @@ class SqlDatasetWriter:
                 df = self._batch_sql(offset)
                 written += df.to_sql(
                     self.table_name, conn, **to_sql_kwargs, if_exists="replace" if offset == 0 else "append"
-                )
+                ) or len(df)
 
         else:
             num_rows, batch_size = len(self.dataset), self.batch_size
@@ -133,6 +133,6 @@ class SqlDatasetWriter:
                 ):
                     written += df.to_sql(
                         self.table_name, conn, **to_sql_kwargs, if_exists="replace" if idx == 0 else "append"
-                    )
+                    ) or len(df)
 
         return written
