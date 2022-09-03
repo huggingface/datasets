@@ -1,3 +1,4 @@
+import contextlib
 import os
 from sqlite3 import connect
 
@@ -137,7 +138,7 @@ def test_sql_datasetdict_reader_split(split, sql_path, tmp_path):
 
 
 def iter_sql_file(sql_path):
-    with connect(sql_path) as conn:
+    with contextlib.closing(connect(sql_path)) as conn:
         return pd.read_sql(f"SELECT * FROM {SQLITE_TABLE_NAME}", conn).drop("index", axis=1, errors="ignore")
 
 

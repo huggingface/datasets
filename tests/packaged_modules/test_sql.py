@@ -1,3 +1,4 @@
+import contextlib
 from sqlite3 import connect
 
 import pandas as pd
@@ -11,7 +12,7 @@ from datasets.packaged_modules.sql.sql import Sql
 @pytest.fixture
 def sqlite_file(tmp_path):
     filename = str(tmp_path / "malformed_file.sqlite")
-    with connect(filename) as conn:
+    with contextlib.closing(connect(filename)) as conn:
         pd.DataFrame.from_dict({"header1": [1, 10], "header2": [2, 20], "label": ["good", "bad"]}).to_sql(
             "TABLE_NAME", con=conn
         )
@@ -20,7 +21,7 @@ def sqlite_file(tmp_path):
 
 def test_csv_cast_label(sqlite_file):
     table_name = "TABLE_NAME"
-    with connect(sqlite_file) as conn:
+    with contextlib.closing(connect(sqlite_file)) as conn:
         labels = pd.read_sql(f"SELECT * FROM {table_name}", conn)["label"].tolist()
     sql = Sql(
         features=Features(

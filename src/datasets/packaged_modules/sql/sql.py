@@ -1,3 +1,4 @@
+import contextlib
 import itertools
 from dataclasses import dataclass
 from sqlite3 import connect
@@ -82,18 +83,18 @@ class Sql(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self, files):
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            with connect(file) as conn:
+            with contextlib.closing(connect(file)) as conn:
                 sql_file_reader = pd.read_sql(
                     f"SELECT * FROM `{self.config.table_name}`", conn, **self.config.read_sql_kwargs
                 )
-            try:
-                for batch_idx, df in enumerate(sql_file_reader):
-                    # Drop index column as it is not relevant.
-                    pa_table = pa.Table.from_pandas(df.drop("index", axis=1, errors="ignore"))
-                    # Uncomment for debugging (will print the Arrow table size and elements)
-                    # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
-                    # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                    yield (file_idx, batch_idx), self._cast_table(pa_table)
-            except ValueError as e:
-                logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
-                raise
+                try:
+                    for batch_idx, df in enumerate(sql_file_reader):
+                        # Drop index column as it is not relevant.
+                        pa_table = pa.Table.from_pandas(df.drop("index", axis=1, errors="ignore"))
+                        # Uncomment for debugging (will print the Arrow table size and elements)
+                        # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+                        # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                        yield (file_idx, batch_idx), self._cast_table(pa_table)
+                except ValueError as e:
+                    logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                    raise

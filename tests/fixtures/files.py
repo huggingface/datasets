@@ -1,3 +1,4 @@
+import contextlib
 import csv
 import json
 import os
@@ -243,7 +244,7 @@ def arrow_path(tmp_path_factory):
 @pytest.fixture(scope="session")
 def sql_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.sqlite")
-    with connect(path) as conn:
+    with contextlib.closing(connect(path)) as conn:
         pd.DataFrame.from_records(DATA).to_sql("TABLE_NAME", conn)
     return path
 

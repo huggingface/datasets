@@ -1,3 +1,4 @@
+import contextlib
 import multiprocessing
 import os
 from sqlite3 import Connection, connect
@@ -83,7 +84,7 @@ class SqlDatasetWriter:
         _ = self.to_sql_kwargs.pop("path_or_buf", None)
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
-            with connect(self.path_or_buf) as conn:
+            with contextlib.closing(connect(self.path_or_buf)) as conn:
                 written = self._write(conn=conn, **self.to_sql_kwargs)
         else:
             written = self._write(conn=self.path_or_buf, **self.to_sql_kwargs)

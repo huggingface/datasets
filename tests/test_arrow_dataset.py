@@ -1,3 +1,4 @@
+import contextlib
 import copy
 import itertools
 import json
@@ -2024,7 +2025,7 @@ class BaseDatasetTest(TestCase):
 
         def read_sql(filepath):
 
-            with connect(filepath) as conn:
+            with contextlib.closing(connect(filepath)) as conn:
                 return pd.read_sql(f"SELECT * FROM {table_name}", conn).drop("index", axis=1, errors="ignore")
 
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -2043,7 +2044,7 @@ class BaseDatasetTest(TestCase):
             # File buffer argument
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 file_path = os.path.join(tmp_dir, "test_buffer.sql")
-                with connect(file_path) as buffer:
+                with contextlib.closing(connect(file_path)) as buffer:
                     _ = dset.to_sql(path_or_buf=buffer, table_name=table_name)
 
                 self.assertTrue(os.path.isfile(file_path))
