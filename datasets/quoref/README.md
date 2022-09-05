@@ -1,8 +1,24 @@
 ---
+annotations_creators:
+- crowdsourced
 language:
 - en
-paperswithcode_id: quoref
+language_creators:
+- found
+license:
+- cc-by-4.0
+multilinguality:
+- monolingual
 pretty_name: Quoref
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- question-answering-other-coreference-resolution
+paperswithcode_id: quoref
 ---
 
 # Dataset Card for "quoref"
@@ -33,9 +49,9 @@ pretty_name: Quoref
 
 ## Dataset Description
 
-- **Homepage:** [https://leaderboard.allenai.org/quoref/submissions/get-started](https://leaderboard.allenai.org/quoref/submissions/get-started)
+- **Homepage:** https://allenai.org/data/quoref
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [Quoref: A Reading Comprehension Dataset with Questions Requiring Coreferential Reasoning](https://aclanthology.org/D19-1606/)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 4.84 MB
 - **Size of the generated dataset:** 47.51 MB

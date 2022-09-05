@@ -132,8 +132,8 @@ def data_files_with_one_split_and_metadata(tmp_path, audio_file):
     return data_files_with_one_split_and_metadata
 
 
-@pytest.fixture
-def data_files_with_two_splits_and_metadata(tmp_path, audio_file):
+@pytest.fixture(params=["jsonl", "csv"])
+def data_files_with_two_splits_and_metadata(request, tmp_path, audio_file):
     data_dir = tmp_path / "audiofolder_data_dir_with_metadata"
     data_dir.mkdir(parents=True, exist_ok=True)
     train_dir = data_dir / "train"
@@ -148,20 +148,39 @@ def data_files_with_two_splits_and_metadata(tmp_path, audio_file):
     audio_filename3 = test_dir / "audio_file3.wav"  # test audio
     shutil.copyfile(audio_file, audio_filename3)
 
-    train_audio_metadata_filename = train_dir / "metadata.jsonl"
-    audio_metadata = textwrap.dedent(
-        """\
+    train_audio_metadata_filename = train_dir / f"metadata.{request.param}"
+    audio_metadata = (
+        textwrap.dedent(
+            """\
         {"file_name": "audio_file.wav", "text": "First train audio transcription"}
         {"file_name": "audio_file2.wav", "text": "Second train audio transcription"}
         """
+        )
+        if request.param == "jsonl"
+        else textwrap.dedent(
+            """\
+        file_name,text
+        audio_file.wav,First train audio transcription
+        audio_file2.wav,Second train audio transcription
+        """
+        )
     )
     with open(train_audio_metadata_filename, "w", encoding="utf-8") as f:
         f.write(audio_metadata)
-    test_audio_metadata_filename = test_dir / "metadata.jsonl"
-    audio_metadata = textwrap.dedent(
-        """\
+    test_audio_metadata_filename = test_dir / f"metadata.{request.param}"
+    audio_metadata = (
+        textwrap.dedent(
+            """\
         {"file_name": "audio_file3.wav", "text": "Test audio transcription"}
         """
+        )
+        if request.param == "jsonl"
+        else textwrap.dedent(
+            """\
+        file_name,text
+        audio_file3.wav,Test audio transcription
+        """
+        )
     )
     with open(test_audio_metadata_filename, "w", encoding="utf-8") as f:
         f.write(audio_metadata)
@@ -357,11 +376,26 @@ def test_generate_examples_with_metadata_that_misses_one_audio(
 
 @require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
-@pytest.mark.parametrize("n_splits", [1, 2])
-def test_data_files_with_metadata_and_splits(
-    streaming, cache_dir, n_splits, data_files_with_one_split_and_metadata, data_files_with_two_splits_and_metadata
-):
-    data_files = data_files_with_one_split_and_metadata if n_splits == 1 else data_files_with_two_splits_and_metadata
+def test_data_files_with_metadata_and_single_split(streaming, cache_dir, data_files_with_one_split_and_metadata):
+    data_files = data_files_with_one_split_and_metadata
+    audiofolder = AudioFolder(data_files=data_files, cache_dir=cache_dir)
+    audiofolder.download_and_prepare()
+    datasets = audiofolder.as_streaming_dataset() if streaming else audiofolder.as_dataset()
+    for split, data_files in data_files.items():
+        expected_num_of_audios = len(data_files) - 1  # don't count the metadata file
+        assert split in datasets
+        dataset = list(datasets[split])
+        assert len(dataset) == expected_num_of_audios
+        # make sure each sample has its own audio and metadata
+        assert len(set(example["audio"]["path"] for example in dataset)) == expected_num_of_audios
+        assert len(set(example["text"] for example in dataset)) == expected_num_of_audios
+        assert all(example["text"] is not None for example in dataset)
+
+
+@require_sndfile
+@pytest.mark.parametrize("streaming", [False, True])
+def test_data_files_with_metadata_and_multiple_splits(streaming, cache_dir, data_files_with_two_splits_and_metadata):
+    data_files = data_files_with_two_splits_and_metadata
     audiofolder = AudioFolder(data_files=data_files, cache_dir=cache_dir)
     audiofolder.download_and_prepare()
     datasets = audiofolder.as_streaming_dataset() if streaming else audiofolder.as_dataset()
@@ -442,3 +476,33 @@ def test_data_files_with_wrong_audio_file_name_column_in_metadata_file(cache_dir
     with pytest.raises(ValueError) as exc_info:
         audiofolder.download_and_prepare()
     assert "`file_name` must be present" in str(exc_info.value)
+
+
+@require_sndfile
+def test_data_files_with_with_metadata_in_different_formats(cache_dir, tmp_path, audio_file):
+    data_dir = tmp_path / "data_dir_with_metadata_in_different_format"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(audio_file, data_dir / "audio_file.wav")
+    audio_metadata_filename_jsonl = data_dir / "metadata.jsonl"
+    audio_metadata_jsonl = textwrap.dedent(
+        """\
+        {"file_name": "audio_file.wav", "text": "Audio transcription"}
+        """
+    )
+    with open(audio_metadata_filename_jsonl, "w", encoding="utf-8") as f:
+        f.write(audio_metadata_jsonl)
+    audio_metadata_filename_csv = data_dir / "metadata.csv"
+    audio_metadata_csv = textwrap.dedent(
+        """\
+        file_name,text
+        audio_file.wav,Audio transcription
+        """
+    )
+    with open(audio_metadata_filename_csv, "w", encoding="utf-8") as f:
+        f.write(audio_metadata_csv)
+
+    data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(get_data_patterns_locally(data_dir), data_dir)
+    audiofolder = AudioFolder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
+    with pytest.raises(ValueError) as exc_info:
+        audiofolder.download_and_prepare()
+    assert "metadata files with different extensions" in str(exc_info.value)
