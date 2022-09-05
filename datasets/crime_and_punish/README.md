@@ -13,7 +13,6 @@ dataset_infos:
   - name: train
     num_bytes: 1270540
     num_examples: 21969
-  version: 1.0.0
 ---
 
 # Dataset Card for "crime_and_punish"

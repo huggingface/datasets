@@ -93,7 +93,6 @@ dataset_infos:
   - name: train
     num_bytes: 5356965
     num_examples: 8937
-  version: 1.0.0
 ---
 
 # Dataset Card for "conll2000"
