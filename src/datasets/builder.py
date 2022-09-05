@@ -1621,10 +1621,7 @@ class BeamBasedBuilder(DatasetBuilder):
             options=beam_options,
         )
         super()._download_and_prepare(
-            dl_manager,
-            verify_infos=False,
-            pipeline=pipeline,
-            **prepare_splits_kwargs
+            dl_manager, verify_infos=False, pipeline=pipeline, **prepare_splits_kwargs
         )  # TODO handle verify_infos in beam datasets
         # Run pipeline
         pipeline_results = pipeline.run()
