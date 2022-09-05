@@ -595,6 +595,8 @@ class DatasetBuilder:
         Args:
             output_dir (:obj:`str`, optional): output directory for the dataset.
                 Default to this builder's ``cache_dir``, which is inside ~/.cache/huggingface/datasets by default.
+
+                <Added version="2.5.0"/>
             download_config (:class:`DownloadConfig`, optional): specific download configuration parameters.
             download_mode (:class:`DownloadMode`, optional): select the download/generate mode - Default to ``REUSE_DATASET_IF_EXISTS``
             ignore_verifications (:obj:`bool`): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
@@ -606,7 +608,11 @@ class DatasetBuilder:
                 If True, will get token from ~/.huggingface.
             file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
                 Supported formats: "arrow", "parquet". Default to "arrow" format.
+
+                <Added version="2.5.0"/>
             storage_options (:obj:`dict`, *optional*): Key/value pairs to be passed on to the caching file-system backend, if any.
+
+                <Added version="2.5.0"/>
             **download_and_prepare_kwargs (additional keyword arguments): Keyword arguments.
 
         Example:
