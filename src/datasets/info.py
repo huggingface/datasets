@@ -142,7 +142,6 @@ class DatasetInfo:
         "download_size",
         "dataset_size",
         "features",
-        "version",
         "splits",
     ]
 
@@ -345,7 +344,10 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
                 dset_info._to_yaml_dict() for dset_info in total_dataset_infos.values()
             ]
             if len(dataset_metadata["dataset_infos"]) == 1:
+                # use a struct instead of a list of configurations, since there's only one
                 dataset_metadata["dataset_infos"] = dataset_metadata["dataset_infos"][0]
+                # no need to include the configuration name when there's only one configuration
+                dataset_metadata["dataset_infos"].pop("config_name", None)
             dataset_metadata.to_readme(Path(dataset_readme_path))
 
     @classmethod
@@ -353,6 +355,7 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
         logger.info(f"Loading Dataset Infos from {dataset_infos_dir}")
         dataset_infos_dict = {}
         if os.path.exists(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)):
+            # this is just to have backward compatibility with dataset_infos.json files
             with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
                 dataset_infos_dict.update(
                     {
@@ -360,22 +363,23 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
                         for config_name, dataset_info_dict in json.load(f).items()
                     }
                 )
+        # Load the info from the YAML part of README.md
         if os.path.exists(os.path.join(dataset_infos_dir, "README.md")):
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_infos_dir) / "README.md")
             if isinstance(dataset_metadata.get("dataset_infos"), (list, dict)) and dataset_metadata["dataset_infos"]:
                 if isinstance(dataset_metadata["dataset_infos"], list):
-                    dataset_infos_dict.update(
-                        {
-                            dataset_info_yaml_dict.get("config_name", "default"): DatasetInfo._from_yaml_dict(
-                                dataset_info_yaml_dict
-                            )
-                            for dataset_info_yaml_dict in dataset_metadata["dataset_infos"]
-                        }
-                    )
+                    dataset_infos_dict = {
+                        dataset_info_yaml_dict.get("config_name", "default"): DatasetInfo._from_yaml_dict(
+                            dataset_info_yaml_dict
+                        )
+                        for dataset_info_yaml_dict in dataset_metadata["dataset_infos"]
+                    }
                 else:
-                    dataset_infos_dict[
-                        dataset_metadata["dataset_infos"].get("config_name", "default")
-                    ] = dataset_metadata["dataset_infos"]
+                    dataset_infos_dict = {
+                        dataset_metadata["dataset_infos"].get("config_name", "default"): DatasetInfo._from_yaml_dict(
+                            dataset_metadata["dataset_infos"]
+                        )
+                    }
         return cls(**dataset_infos_dict)
 
 
