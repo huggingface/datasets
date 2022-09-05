@@ -596,7 +596,7 @@ class DatasetBuilder:
         dl_manager: Optional[DownloadManager] = None,
         base_path: Optional[str] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
-        file_format: Optional[str] = None,
+        file_format: str = "arrow",
         max_shard_size: Optional[int] = None,
         storage_options: Optional[dict] = None,
         **download_and_prepare_kwargs,
