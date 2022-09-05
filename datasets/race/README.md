@@ -1,7 +1,23 @@
 ---
-pretty_name: RACE
+annotations_creators:
+- expert-generated
 language:
 - en
+language_creators:
+- found
+license:
+- other
+multilinguality:
+- monolingual
+pretty_name: RACE
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- multiple-choice
+task_ids:
+- multiple-choice-qa
 paperswithcode_id: race
 ---
 
@@ -34,16 +50,16 @@ paperswithcode_id: race
 ## Dataset Description
 
 - **Homepage:** [http://www.cs.cmu.edu/~glai1/data/race/](http://www.cs.cmu.edu/~glai1/data/race/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/qizhex/RACE_AR_baselines
+- **Paper:** [RACE: Large-scale ReAding Comprehension Dataset From Examinations](https://arxiv.org/abs/1704.04683)
+- **Point of Contact:** [Guokun Lai](mailto:guokun@cs.cmu.edu), [Qizhe Xie](mailto:qzxie@cs.cmu.edu)
 - **Size of downloaded dataset files:** 72.79 MB
 - **Size of the generated dataset:** 333.27 MB
 - **Total amount of disk used:** 406.07 MB
 
 ### Dataset Summary
 
-Race is a large-scale reading comprehension dataset with more than 28,000 passages and nearly 100,000 questions. The
+RACE is a large-scale reading comprehension dataset with more than 28,000 passages and nearly 100,000 questions. The
  dataset is collected from English examinations in China, which are designed for middle school and high school students.
 The dataset can be served as the training and test sets for machine comprehension.
 
@@ -201,18 +217,35 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+http://www.cs.cmu.edu/~glai1/data/race/
+
+1. RACE dataset is available for non-commercial research purpose only.
+
+2. All passages are obtained from the Internet which is not property of Carnegie Mellon University. We are not responsible for the content nor the meaning of these passages.
+
+3. You agree not to reproduce, duplicate, copy, sell, trade, resell or exploit for any commercial purpose, any portion of the contexts and any portion of derived data.
+
+4. We reserve the right to terminate your access to the RACE dataset at any time.
 
 ### Citation Information
 
 ```
-@article{lai2017large,
-    title={RACE: Large-scale ReAding Comprehension Dataset From Examinations},
-    author={Lai, Guokun and Xie, Qizhe and Liu, Hanxiao and Yang, Yiming and Hovy, Eduard},
-    journal={arXiv preprint arXiv:1704.04683},
-    year={2017}
+@inproceedings{lai-etal-2017-race,
+    title = "{RACE}: Large-scale {R}e{A}ding Comprehension Dataset From Examinations",
+    author = "Lai, Guokun  and
+      Xie, Qizhe  and
+      Liu, Hanxiao  and
+      Yang, Yiming  and
+      Hovy, Eduard",
+    booktitle = "Proceedings of the 2017 Conference on Empirical Methods in Natural Language Processing",
+    month = sep,
+    year = "2017",
+    address = "Copenhagen, Denmark",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/D17-1082",
+    doi = "10.18653/v1/D17-1082",
+    pages = "785--794",
 }
-
 ```
 
 

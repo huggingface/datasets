@@ -18,8 +18,10 @@ import os
 import sys
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
+import fsspec
 import numpy as np
 import pyarrow as pa
+import pyarrow.parquet as pq
 
 from . import config
 from .features import Features, Image, Value
@@ -33,6 +35,7 @@ from .features.features import (
     numpy_to_pyarrow_listarray,
     to_pyarrow_listarray,
 )
+from .filesystems import is_remote_filesystem
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .table import array_cast, cast_array_to_feature, table_cast
@@ -268,6 +271,8 @@ class OptimizedTypedSequence(TypedSequence):
 class ArrowWriter:
     """Shuffles and writes Examples to Arrow files."""
 
+    _WRITER_CLASS = pa.RecordBatchStreamWriter
+
     def __init__(
         self,
         schema: Optional[pa.Schema] = None,
@@ -282,6 +287,7 @@ class ArrowWriter:
         update_features: bool = False,
         with_metadata: bool = True,
         unit: str = "examples",
+        storage_options: Optional[dict] = None,
     ):
         if path is None and stream is None:
             raise ValueError("At least one of path and stream must be provided.")
@@ -304,11 +310,19 @@ class ArrowWriter:
         self._check_duplicates = check_duplicates
         self._disable_nullable = disable_nullable
 
-        self._path = path
         if stream is None:
-            self.stream = pa.OSFile(self._path, "wb")
+            fs_token_paths = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+            self._fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+            self._path = (
+                fs_token_paths[2][0]
+                if not is_remote_filesystem(self._fs)
+                else self._fs.unstrip_protocol(fs_token_paths[2][0])
+            )
+            self.stream = self._fs.open(fs_token_paths[2][0], "wb")
             self._closable_stream = True
         else:
+            self._fs = None
+            self._path = None
             self.stream = stream
             self._closable_stream = False
 
@@ -367,7 +381,7 @@ class ArrowWriter:
         if self.with_metadata:
             schema = schema.with_metadata(self._build_metadata(DatasetInfo(features=self._features), self.fingerprint))
         self._schema = schema
-        self.pa_writer = pa.RecordBatchStreamWriter(self.stream, schema)
+        self.pa_writer = self._WRITER_CLASS(self.stream, schema)
 
     @property
     def schema(self):
@@ -522,11 +536,9 @@ class ArrowWriter:
         if self.pa_writer is None:
             self._build_writer(inferred_schema=pa_table.schema)
         pa_table = table_cast(pa_table, self._schema)
-        batches: List[pa.RecordBatch] = pa_table.to_batches(max_chunksize=writer_batch_size)
-        self._num_bytes += sum(batch.nbytes for batch in batches)
+        self._num_bytes += pa_table.nbytes
         self._num_examples += pa_table.num_rows
-        for batch in batches:
-            self.pa_writer.write_batch(batch)
+        self.pa_writer.write_table(pa_table, writer_batch_size)
 
     def finalize(self, close_stream=True):
         self.write_rows_on_file()
@@ -542,12 +554,17 @@ class ArrowWriter:
             else:
                 raise ValueError("Please pass `features` or at least one example when writing data")
         self.pa_writer.close()
+        self.pa_writer = None
         if close_stream:
             self.stream.close()
         logger.debug(
             f"Done writing {self._num_examples} {self.unit} in {self._num_bytes} bytes {self._path if self._path else ''}."
         )
         return self._num_examples, self._num_bytes
+
+
+class ParquetWriter(ArrowWriter):
+    _WRITER_CLASS = pq.ParquetWriter
 
 
 class BeamWriter:
@@ -616,35 +633,50 @@ class BeamWriter:
         from .utils import beam_utils
 
         # Convert to arrow
-        logger.info(f"Converting parquet file {self._parquet_path} to arrow {self._path}")
-        shards = [
-            metadata.path
-            for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
-        ]
-        try:  # stream conversion
-            sources = [beam.io.filesystems.FileSystems.open(shard) for shard in shards]
-            with beam.io.filesystems.FileSystems.create(self._path) as dest:
-                parquet_to_arrow(sources, dest)
-        except OSError as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
-            if e.errno != errno.EPIPE:  # not a broken pipe
-                raise
-            logger.warning("Broken Pipe during stream conversion from parquet to arrow. Using local convert instead")
-            local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
-            os.makedirs(local_convert_dir, exist_ok=True)
-            local_arrow_path = os.path.join(local_convert_dir, hash_url_to_filename(self._parquet_path) + ".arrow")
-            local_shards = []
-            for shard in shards:
-                local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(shard) + ".parquet")
-                local_shards.append(local_parquet_path)
-                beam_utils.download_remote_to_local(shard, local_parquet_path)
-            parquet_to_arrow(local_shards, local_arrow_path)
-            beam_utils.upload_local_to_remote(local_arrow_path, self._path)
+        if self._path.endswith(".arrow"):
+            logger.info(f"Converting parquet file {self._parquet_path} to arrow {self._path}")
+            shards = [
+                metadata.path
+                for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[
+                    0
+                ].metadata_list
+            ]
+            try:  # stream conversion
+                sources = [beam.io.filesystems.FileSystems.open(shard) for shard in shards]
+                with beam.io.filesystems.FileSystems.create(self._path) as dest:
+                    parquet_to_arrow(sources, dest)
+            except OSError as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
+                if e.errno != errno.EPIPE:  # not a broken pipe
+                    raise
+                logger.warning(
+                    "Broken Pipe during stream conversion from parquet to arrow. Using local convert instead"
+                )
+                local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
+                os.makedirs(local_convert_dir, exist_ok=True)
+                local_arrow_path = os.path.join(local_convert_dir, hash_url_to_filename(self._parquet_path) + ".arrow")
+                local_shards = []
+                for shard in shards:
+                    local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(shard) + ".parquet")
+                    local_shards.append(local_parquet_path)
+                    beam_utils.download_remote_to_local(shard, local_parquet_path)
+                parquet_to_arrow(local_shards, local_arrow_path)
+                beam_utils.upload_local_to_remote(local_arrow_path, self._path)
+            output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
+            num_bytes = output_file_metadata.size_in_bytes
+        else:
+            num_bytes = sum(
+                [
+                    metadata.size_in_bytes
+                    for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[
+                        0
+                    ].metadata_list
+                ]
+            )
 
         # Save metrics
         counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
         self._num_examples = counters_dict["num_examples"]
-        output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
-        self._num_bytes = output_file_metadata.size_in_bytes
+        self._num_bytes = num_bytes
         return self._num_examples, self._num_bytes
 
 

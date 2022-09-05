@@ -32,12 +32,16 @@ import copy
 import dataclasses
 import json
 import os
+import posixpath
 from dataclasses import dataclass
 from pathlib import Path
 from typing import ClassVar, Dict, List, Optional, Union
 
+from fsspec.implementations.local import LocalFileSystem
+
 from . import config
 from .features import Features, Value
+from .filesystems import is_remote_filesystem
 from .splits import SplitDict
 from .tasks import TaskTemplate, task_template_from_dict
 from .utils import Version
@@ -186,15 +190,16 @@ class DatasetInfo:
                     template.align_with_features(self.features) for template in (self.task_templates)
                 ]
 
-    def _license_path(self, dataset_info_dir):
-        return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)
-
-    def write_to_directory(self, dataset_info_dir, pretty_print=False):
+    def write_to_directory(self, dataset_info_dir, pretty_print=False, fs=None):
         """Write `DatasetInfo` and license (if present) as JSON files to `dataset_info_dir`.
 
         Args:
             dataset_info_dir (str): Destination directory.
             pretty_print (bool, default ``False``): If True, the JSON will be pretty-printed with the indent level of 4.
+            fs (``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
+                Instance of the remote filesystem used to download the files from.
+
+                <Added version="2.5.0"/>
 
         Example:
 
@@ -204,10 +209,14 @@ class DatasetInfo:
         >>> ds.info.write_to_directory("/path/to/directory/")
         ```
         """
-        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
+        fs = fs or LocalFileSystem()
+        is_local = not is_remote_filesystem(fs)
+        path_join = os.path.join if is_local else posixpath.join
+
+        with fs.open(path_join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f, pretty_print=pretty_print)
         if self.license:
-            with open(os.path.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
+            with fs.open(path_join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
                 self._dump_license(f)
 
     def _dump_info(self, file, pretty_print=False):
@@ -249,7 +258,7 @@ class DatasetInfo:
         )
 
     @classmethod
-    def from_directory(cls, dataset_info_dir: str) -> "DatasetInfo":
+    def from_directory(cls, dataset_info_dir: str, fs=None) -> "DatasetInfo":
         """Create DatasetInfo from the JSON file in `dataset_info_dir`.
 
         This function updates all the dynamically generated fields (num_examples,
@@ -260,6 +269,10 @@ class DatasetInfo:
         Args:
             dataset_info_dir (`str`): The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
+            fs (``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
+                Instance of the remote filesystem used to download the files from.
+
+                <Added version="2.5.0"/>
 
         Example:
 
@@ -268,11 +281,15 @@ class DatasetInfo:
         >>> ds_info = DatasetInfo.from_directory("/path/to/directory/")
         ```
         """
+        fs = fs or LocalFileSystem()
         logger.info(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
 
-        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), encoding="utf-8") as f:
+        is_local = not is_remote_filesystem(fs)
+        path_join = os.path.join if is_local else posixpath.join
+
+        with fs.open(path_join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
             dataset_info_dict = json.load(f)
         return cls.from_dict(dataset_info_dict)
 

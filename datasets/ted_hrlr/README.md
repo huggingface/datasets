@@ -1,5 +1,32 @@
 ---
+annotations_creators:
+- crowdsourced
+language:
+- az
+- be
+- en
+- es
+- fr
+- gl
+- he
+- it
+- pt
+- ru
+- "tr"
+language_creators:
+- expert-generated
+license:
+- cc-by-nc-nd-4.0
+multilinguality:
+- translation
 pretty_name: TEDHrlr
+size_categories:
+- 1M<n<10M
+source_datasets:
+- extended|ted_talks_iwslt
+task_categories:
+- translation
+task_ids: []
 paperswithcode_id: null
 ---
 
@@ -31,9 +58,9 @@ paperswithcode_id: null
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/neulab/word-embeddings-for-nmt](https://github.com/neulab/word-embeddings-for-nmt)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Homepage:**
+- **Repository:** https://github.com/neulab/word-embeddings-for-nmt
+- **Paper:** [When and Why Are Pre-Trained Word Embeddings Useful for Neural Machine Translation?](https://aclanthology.org/N18-2084/)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 1749.12 MB
 - **Size of the generated dataset:** 268.61 MB
@@ -220,15 +247,23 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-@inproceedings{Ye2018WordEmbeddings,
-  author  = {Ye, Qi and Devendra, Sachan and Matthieu, Felix and Sarguna, Padmanabhan and Graham, Neubig},
-  title   = {When and Why are pre-trained word embeddings useful for Neural Machine Translation},
-  booktitle = {HLT-NAACL},
-  year    = {2018},
-  }
-
+@inproceedings{qi-etal-2018-pre,
+    title = "When and Why Are Pre-Trained Word Embeddings Useful for Neural Machine Translation?",
+    author = "Qi, Ye  and
+      Sachan, Devendra  and
+      Felix, Matthieu  and
+      Padmanabhan, Sarguna  and
+      Neubig, Graham",
+    booktitle = "Proceedings of the 2018 Conference of the North {A}merican Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 2 (Short Papers)",
+    month = jun,
+    year = "2018",
+    address = "New Orleans, Louisiana",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/N18-2084",
+    doi = "10.18653/v1/N18-2084",
+    pages = "529--535",
+}
 ```
-
 
 ### Contributions
 

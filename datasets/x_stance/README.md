@@ -1,6 +1,27 @@
 ---
-paperswithcode_id: x-stance
+annotations_creators:
+- machine-generated
+language:
+- de
+- en
+- fr
+- it
+language_creators:
+- found
+license:
+- cc-by-nc-4.0
+multilinguality:
+- multilingual
 pretty_name: x-stance
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- text-classification-other-stance-detection
+paperswithcode_id: x-stance
 ---
 
 # Dataset Card for "x_stance"
@@ -31,9 +52,9 @@ pretty_name: x-stance
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/ZurichNLP/xstance](https://github.com/ZurichNLP/xstance)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Homepage:**
+- **Repository:** https://github.com/ZurichNLP/xstance
+- **Paper:** [X-Stance: A Multilingual Multi-Target Dataset for Stance Detection](https://arxiv.org/abs/2003.08385)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 6.11 MB
 - **Size of the generated dataset:** 24.54 MB
@@ -51,7 +72,7 @@ It can be used to train and evaluate stance detection systems.
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The comments are partly German, partly French and Italian. The questions are available in all the three languages plus English. 
 
 ## Dataset Structure
 
@@ -109,7 +130,7 @@ The data fields are the same among all splits.
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The data have been extracted from the Swiss voting advice platform Smartvote.ch.
 
 #### Who are the source language producers?
 
@@ -151,7 +172,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The dataset is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
 
 ### Citation Information
 
@@ -165,7 +186,6 @@ The data fields are the same among all splits.
     month     = "jun",
     url       = "http://ceur-ws.org/Vol-2624/paper9.pdf"
 }
-
 ```
 
 
