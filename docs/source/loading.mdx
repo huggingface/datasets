@@ -196,6 +196,15 @@ To load remote Parquet files via HTTP, pass the URLs instead:
 >>> wiki = load_dataset("parquet", data_files=data_files, split="train")
 ```
 
+### SQLite
+
+Datasets stored as a Table in a SQLite file can be loaded with:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset('sql', data_files={'train': 'sqlite_file.db'}, table_name='Dataset')
+```
+
 ## In-memory data
 
 🤗 Datasets will also allow you to create a [`Dataset`] directly from in-memory data structures like Python dictionaries and Pandas DataFrames.

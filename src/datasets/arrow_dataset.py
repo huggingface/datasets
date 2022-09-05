@@ -1068,10 +1068,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         keep_in_memory: bool = False,
         **kwargs,
     ):
-        """Create Dataset from text file(s).
+        """Create Dataset from SQLite file(s).
 
         Args:
-            path_or_paths (path-like or list of path-like): Path(s) of the text file(s).
+            path_or_paths (path-like or list of path-like): Path(s) of the SQLite file(s).
             table_name (``str``): Name of the SQL table to read from.
             split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
             features (:class:`Features`, optional): Dataset features.
@@ -4116,7 +4116,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
-        >>> ds.to_sql("path/to/dataset/directory")
+        >>> ds.to_sql("path/to/dataset/directory", table_name='Dataset')
+        >>> # Also supports SQLAlchemy engines
+        >>> from sqlalchemy import create_engine
+        >>> engine = create_engine('sqlite:///my_own_db.sql', echo=False)
+        >>> ds.to_sql(engine, table_name='Dataset')
         ```
         """
         # Dynamic import to avoid circular dependency
