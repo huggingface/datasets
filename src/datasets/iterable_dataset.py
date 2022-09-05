@@ -9,7 +9,7 @@ from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Unio
 import numpy as np
 import pyarrow as pa
 
-from .arrow_dataset import DatasetInfoMixin
+from .arrow_dataset import DatasetInfoMixin, _align_features
 from .features import Features, Value
 from .features.features import FeatureType
 from .formatting import PythonFormatter
@@ -1353,9 +1353,9 @@ def _concatenate_iterable_datasets(
 
     # TODO: improve this to account for a mix of ClassLabel and Value for example
     # right now it would keep the type of the first dataset in the list
-    features = Features()
-    for dset in dsets[::-1]:
-        features.update(dset.features)
+    features = Features(
+        {k: v for features in _align_features([dset.features for dset in dsets[::-1]]) for k, v in features.items()}
+    )
 
     ex_iterables = [d._ex_iterable for d in dsets]
     if axis == 0:
@@ -1406,9 +1406,9 @@ def _interleave_iterable_datasets(
 
     # TODO: improve this to account for a mix of ClassLabel and Value for example
     # right now it would keep the type of the first dataset in the list
-    features = Features()
-    for dset in datasets[::-1]:
-        features.update(dset.features)
+    features = Features(
+        {k: v for features in _align_features([dset.features for dset in datasets[::-1]]) for k, v in features.items()}
+    )
 
     ex_iterables = [d._ex_iterable for d in datasets]
 
