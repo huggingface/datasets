@@ -275,7 +275,7 @@ Or select a percentage of a split with:
 Select a combination of percentages from each split:
 
 ```py
->>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split="tr"in[:10%]+train[-80%:]")
+>>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split="train[:10%]+train[-80%:]")
 ===STRINGAPI-READINSTRUCTION-SPLIT===
 >>> ri = (datasets.ReadInstruction("train", to=10, unit="%") + datasets.ReadInstruction("train", from_=-80, unit="%"))
 >>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split=ri)
