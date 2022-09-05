@@ -17,7 +17,6 @@
 
 """
 
-import contextlib
 import copy
 import functools
 import itertools
@@ -189,7 +188,7 @@ def asdict(obj):
     return _asdict_inner(obj)
 
 
-@contextlib.contextmanager
+@contextmanager
 def temporary_assignment(obj, attr, value):
     """Temporarily assign obj.attr to value."""
     original = getattr(obj, attr, None)
@@ -601,7 +600,7 @@ def dump(obj, file):
     return
 
 
-@contextlib.contextmanager
+@contextmanager
 def _no_cache_fields(obj):
     try:
         if (
