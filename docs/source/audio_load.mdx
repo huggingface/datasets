@@ -85,12 +85,14 @@ Load your dataset by specifying `audiofolder` and the directory of your dataset 
  'label': 1}
 ```
 
-If your directory contains multiple splits, use the `data_files` argument to load the images associated with each split:
+You can also use `audiofolder` to load datasets involving multiple splits. To do so, your dataset directory should have the following structure:
 
-```py
->>> from datasets import load_dataset
+```
+folder/train/electronic/01.mp3
+folder/train/punk/01.mp3
 
->>> dataset = load_dataset("audiofolder", data_files={"train":["train/electronic/01.mp3", ...], "test": ["test/electronic/01.mp3", ...]})
+folder/test/electronic/09.mp3
+folder/test/punk/09.mp3
 ```
 
 ## AudioFolder with metadata
@@ -140,6 +142,12 @@ You can load remote datasets from their URLs with the `data_files` parameter:
 ```py
 >>> dataset = load_dataset("audiofolder", data_files="https://s3.amazonaws.com/datasets.huggingface.co/SpeechCommands/v0.01/v0.01_test.tar.gz")
 ```
+
+<Tip>
+
+Some audio datasets, like those found in [Kaggle competitions](https://www.kaggle.com/), have separate metadata files for each split. Provided the metadata features are the same for each split, `audiofolder` can be used to load all splits at once. If the metadata features differ across each split, you should load them with separate `load_dataset()` calls.
+
+</Tip>
 
 ## AudioFolder with labels
 
