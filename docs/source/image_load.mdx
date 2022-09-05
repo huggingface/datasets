@@ -72,6 +72,16 @@ Load your dataset by specifying `imagefolder` and the directory of your dataset 
 {"image": <PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1200x215 at 0x15E8DAD30>, "label": 1}
 ```
 
+You can also use `imagefolder` to load datasets involving multiple splits. To do so, your dataset directory should have the following structure:
+
+```
+folder/train/dog/golden_retriever.png
+folder/train/cat/maine_coon.png
+
+folder/test/dog/german_shepherd.png
+folder/test/cat/bengal.png
+```
+
 Load remote datasets from their URLs with the `data_files` parameter:
 
 ```py
