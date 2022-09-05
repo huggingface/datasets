@@ -53,24 +53,8 @@ _TRAINING_FILE = "train.txt"
 _TEST_FILE = "test.txt"
 
 
-class Conll2000Config(datasets.BuilderConfig):
-    """BuilderConfig for Conll2000"""
-
-    def __init__(self, **kwargs):
-        """BuilderConfig forConll2000.
-
-        Args:
-          **kwargs: keyword arguments forwarded to super.
-        """
-        super(Conll2000Config, self).__init__(**kwargs)
-
-
 class Conll2000(datasets.GeneratorBasedBuilder):
     """Conll2000 dataset."""
-
-    BUILDER_CONFIGS = [
-        Conll2000Config(name="conll2000", version=datasets.Version("1.0.0"), description="Conll2000 dataset"),
-    ]
 
     def _info(self):
         return datasets.DatasetInfo(

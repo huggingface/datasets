@@ -4,7 +4,6 @@ language:
 paperswithcode_id: conll-2000-1
 pretty_name: CoNLL-2000
 dataset_infos:
-- config_name: conll2000
   dataset_size: 6558116
   download_size: 3481560
   features:
