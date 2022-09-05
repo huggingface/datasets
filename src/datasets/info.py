@@ -186,6 +186,10 @@ class DatasetInfo:
         Args:
             dataset_info_dir (str): Destination directory.
             pretty_print (bool, default ``False``): If True, the JSON will be pretty-printed with the indent level of 4.
+            fs (``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
+                Instance of the remote filesystem used to download the files from.
+
+                <Added version="2.5.0"/>
 
         Example:
 
@@ -255,6 +259,10 @@ class DatasetInfo:
         Args:
             dataset_info_dir (`str`): The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
+            fs (``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
+                Instance of the remote filesystem used to download the files from.
+
+                <Added version="2.5.0"/>
 
         Example:
 

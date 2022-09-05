@@ -31,7 +31,7 @@ To use an anonymous connection, use `anon=True`.
 Otherwise, include your `aws_access_key_id` and `aws_secret_access_key` whenever you are interacting with a private S3 bucket.
 
 ```py
->>> storage_options = {"anon": True}  # for anynonous connection
+>>> storage_options = {"anon": True}  # for anonymous connection
 # or use your credentials
 >>> storage_options = {"key": aws_access_key_id, "secret": aws_secret_access_key}  # for private buckets
 # or use a botocore session
@@ -40,7 +40,7 @@ Otherwise, include your `aws_access_key_id` and `aws_secret_access_key` whenever
 >>> storage_options = {"session": s3_session}
 ```
 
-3. Load your FileSystem instance
+3. Create your FileSystem instance
 
 ```py
 >>> import s3fs
@@ -67,7 +67,7 @@ Otherwise, include your `aws_access_key_id` and `aws_secret_access_key` whenever
 >>> storage_options={"project": "my-google-project", "token": TOKEN}
 ```
 
-3. Load your FileSystem instance
+3. Create your FileSystem instance
 
 ```py
 >>> import gcsfs
@@ -94,7 +94,7 @@ Otherwise, include your `aws_access_key_id` and `aws_secret_access_key` whenever
 >>> storage_options={"tenant_id": TENANT_ID, "client_id": CLIENT_ID, "client_secret": CLIENT_SECRET}
 ```
 
-3. Load your FileSystem instance
+3. Create your FileSystem instance
 
 ```py
 >>> import adlfs
@@ -103,16 +103,16 @@ Otherwise, include your `aws_access_key_id` and `aws_secret_access_key` whenever
 
 ## Load and Save your datasets using your cloud storage FileSystem
 
-### Load datasets into a cloud storage
+### Download and prepare a dataset into a cloud storage
 
-You can load a dataset into your cloud storage by specifying a remote `output_dir` in `download_and_prepare`.
+You can download and prepare a dataset into your cloud storage by specifying a remote `output_dir` in `download_and_prepare`.
 Don't forget to use the previously defined `storage_options` containing your credentials to write into a private cloud storage.
 
 The `download_and_prepare` method works in two steps:
 1. it first downloads the raw data files (if any) in your local cache. You can set your cache directory by passing `cache_dir` to [`load_dataset_builder`]
 2. then it generates the dataset in Arrow or Parquet format in your cloud storage by iterating over the raw data files.
 
-Load a dataset from the Hugging Face Hub (see [how to load from the Hugging Face Hub](./loading#hugging-face-hub)):
+Load a dataset builder from the Hugging Face Hub (see [how to load from the Hugging Face Hub](./loading#hugging-face-hub)):
 
 ```py
 >>> output_dir = "s3://my-bucket/imdb"
@@ -120,7 +120,7 @@ Load a dataset from the Hugging Face Hub (see [how to load from the Hugging Face
 >>> builder.download_and_prepare(output_dir, storage_options=storage_options, file_format="parquet")
 ```
 
-Load a dataset using a loading script (see [how to load a local loading script](./loading#local-loading-script)):
+Load a dataset builder using a loading script (see [how to load a local loading script](./loading#local-loading-script)):
 
 ```py
 >>> output_dir = "s3://my-bucket/imdb"
@@ -128,7 +128,7 @@ Load a dataset using a loading script (see [how to load a local loading script](
 >>> builder.download_and_prepare(output_dir, storage_options=storage_options, file_format="parquet")
 ```
 
-Load your own data files (see [how to load local and remote files](./loading#local-and-remote-files)):
+Use your own data files (see [how to load local and remote files](./loading#local-and-remote-files)):
 
 ```py
 >>> data_files = {"train": ["path/to/train.csv"]}
@@ -137,8 +137,8 @@ Load your own data files (see [how to load local and remote files](./loading#loc
 >>> builder.download_and_prepare(output_dir, storage_options=storage_options, file_format="parquet")
 ```
 
-It is highly recommended to save the files as compressed sharded Parquet files to optimize I/O by specifying `file_format="parquet"`.
-Otherwize the dataset is saved as an uncompressed Arrow file.
+It is highly recommended to save the files as compressed Parquet files to optimize I/O by specifying `file_format="parquet"`.
+Otherwise the dataset is saved as an uncompressed Arrow file.
 
 You can also specify the size of the Parquet shard using `max_shard_size` (default is 500MB):
 
