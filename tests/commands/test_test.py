@@ -25,6 +25,10 @@ _TestCommandArgs = namedtuple(
 )
 
 
+def is_1percent_close(source, target):
+    return (abs(source - target) / target) < 0.01
+
+
 @pytest.mark.integration
 def test_test_command(dataset_loading_script_dir):
     args = _TestCommandArgs(dataset=dataset_loading_script_dir, all_configs=True, save_infos=True)
@@ -65,4 +69,14 @@ def test_test_command(dataset_loading_script_dir):
     )
     assert dataset_infos.keys() == expected_dataset_infos.keys()
     for key in DatasetInfo._INCLUDED_INFO_IN_YAML:
-        assert getattr(dataset_infos["default"], key) == getattr(expected_dataset_infos["default"], key)
+        result, expected = getattr(dataset_infos["default"], key), getattr(expected_dataset_infos["default"], key)
+        if key == "num_bytes":
+            assert is_1percent_close(result, expected)
+        elif key == "splits":
+            assert list(result) == list(expected)
+            for split in result:
+                assert result[split].name == expected[split].name
+                assert result[split].num_examples == expected[split].num_examples
+                assert is_1percent_close(result[split].num_bytes, expected[split].num_bytes)
+        else:
+            result == expected
