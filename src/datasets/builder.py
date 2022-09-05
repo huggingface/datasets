@@ -806,6 +806,7 @@ class DatasetBuilder:
                             dl_manager=dl_manager,
                             verify_infos=verify_infos,
                             **prepare_split_kwargs,
+                            **download_and_prepare_kwargs,
                         )
                     # Sync info
                     self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
@@ -865,7 +866,7 @@ class DatasetBuilder:
         Args:
             dl_manager: (:obj:`DownloadManager`) `DownloadManager` used to download and cache data.
             verify_infos (:obj:`bool`): if False, do not perform checksums and size tests.
-            prepare_split_kwargs: Additional options, such as file_format, max_shard_size.
+            prepare_split_kwargs: Additional options, such as file_format, max_shard_size
         """
         # Generating data for all splits
         split_dict = SplitDict(dataset_name=self.name)
@@ -1623,7 +1624,7 @@ class BeamBasedBuilder(DatasetBuilder):
             dl_manager,
             verify_infos=False,
             pipeline=pipeline,
-            **prepare_splits_kwargs,
+            **prepare_splits_kwargs
         )  # TODO handle verify_infos in beam datasets
         # Run pipeline
         pipeline_results = pipeline.run()
@@ -1662,7 +1663,6 @@ class BeamBasedBuilder(DatasetBuilder):
 
         # To write examples in filesystem:
         split_name = split_generator.split_info.name
-        file_format = file_format or "arrow"
         fname = f"{self.name}-{split_name}.{file_format}"
         path_join = os.path.join if not is_remote_filesystem(self._fs) else posixpath.join
         fpath = path_join(self._output_dir, fname)

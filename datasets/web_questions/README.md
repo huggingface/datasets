@@ -1,8 +1,24 @@
 ---
+annotations_creators:
+- crowdsourced
 language:
 - en
-paperswithcode_id: webquestions
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
 pretty_name: WebQuestions
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- open-domain-qa
+paperswithcode_id: webquestions
 ---
 
 # Dataset Card for "web_questions"
@@ -35,7 +51,7 @@ pretty_name: WebQuestions
 
 - **Homepage:** [https://worksheets.codalab.org/worksheets/0xba659fe363cb46e7a505c5b6a774dc8a](https://worksheets.codalab.org/worksheets/0xba659fe363cb46e7a505c5b6a774dc8a)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [Semantic Parsing on Freebase from Question-Answer Pairs](https://aclanthology.org/D13-1160/)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 1.21 MB
 - **Size of the generated dataset:** 0.79 MB
@@ -147,7 +163,6 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
 @inproceedings{berant-etal-2013-semantic,
     title = "Semantic Parsing on {F}reebase from Question-Answer Pairs",
     author = "Berant, Jonathan  and
@@ -162,7 +177,6 @@ The data fields are the same among all splits.
     url = "https://www.aclweb.org/anthology/D13-1160",
     pages = "1533--1544",
 }
-
 ```
 
 

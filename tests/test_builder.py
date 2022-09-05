@@ -757,6 +757,16 @@ def test_beam_based_download_and_prepare(tmp_path):
     assert os.path.exists(os.path.join(tmp_path, builder.name, "default", "0.0.0", "dataset_info.json"))
 
 
+@require_beam
+def test_beam_based_as_dataset(tmp_path):
+    builder = DummyBeamBasedBuilder(cache_dir=tmp_path, beam_runner="DirectRunner")
+    builder.download_and_prepare()
+    dataset = builder.as_dataset()
+    assert dataset
+    assert isinstance(dataset["train"], Dataset)
+    assert len(dataset["train"]) > 0
+
+
 @pytest.mark.parametrize(
     "split, expected_dataset_class, expected_dataset_length",
     [

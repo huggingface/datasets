@@ -1,7 +1,23 @@
 ---
-pretty_name: MovieRationales
+annotations_creators:
+- crowdsourced
 language:
 - en
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: MovieRationales
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- sentiment-classification
 paperswithcode_id: null
 ---
 
@@ -33,9 +49,9 @@ paperswithcode_id: null
 
 ## Dataset Description
 
-- **Homepage:** [http://www.cs.jhu.edu/~ozaidan/rationales/](http://www.cs.jhu.edu/~ozaidan/rationales/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Homepage:**
+- **Repository:** https://github.com/jayded/eraserbenchmark
+- **Paper:** [ERASER: A Benchmark to Evaluate Rationalized NLP Models](https://aclanthology.org/2020.acl-main.408/)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 3.72 MB
 - **Size of the generated dataset:** 8.33 MB
@@ -145,10 +161,23 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
-@unpublished{eraser2019,
-    title = {ERASER: A Benchmark to Evaluate Rationalized NLP Models},
-    author = {Jay DeYoung and Sarthak Jain and Nazneen Fatema Rajani and Eric Lehman and Caiming Xiong and Richard Socher and Byron C. Wallace}
+@inproceedings{deyoung-etal-2020-eraser,
+    title = "{ERASER}: {A} Benchmark to Evaluate Rationalized {NLP} Models",
+    author = "DeYoung, Jay  and
+      Jain, Sarthak  and
+      Rajani, Nazneen Fatema  and
+      Lehman, Eric  and
+      Xiong, Caiming  and
+      Socher, Richard  and
+      Wallace, Byron C.",
+    booktitle = "Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics",
+    month = jul,
+    year = "2020",
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2020.acl-main.408",
+    doi = "10.18653/v1/2020.acl-main.408",
+    pages = "4443--4458",
 }
 @InProceedings{zaidan-eisner-piatko-2008:nips,
   author    =  {Omar F. Zaidan  and  Jason Eisner  and  Christine Piatko},
@@ -157,7 +186,6 @@ The data fields are the same among all splits.
   month     =  {December},
   year      =  {2008}
 }
-
 ```
 
 
