@@ -1,4 +1,5 @@
 import json
+import textwrap
 
 import datasets
 
@@ -15,8 +16,6 @@ _URLs = {
     "sanitized": "https://raw.githubusercontent.com/google-research/google-research/master/mbpp/sanitized-mbpp.json",
 }
 
-_SPLITS = ["full", "sanitized"]
-
 _CITATION = """\
 @article{austin2021program,
   title={Program Synthesis with Large Language Models},
@@ -30,6 +29,17 @@ _HOMEPAGE = "https://github.com/google-research/google-research/tree/master/mbpp
 _LICENSE = "CC-BY-4.0"
 
 
+def _read_lines(fn, field_name, start, end, proc=None):
+    proc = proc or (lambda x: x)
+    with open(fn, encoding="utf-8") as f:
+        for i, line in enumerate(f):
+            sample = proc(line)
+            if start <= sample[field_name] <= end:
+                yield sample
+            elif i > end:
+                break
+
+
 class MBPP(datasets.GeneratorBasedBuilder):
     """MBPP: Mostly Basic Python Problems Dataset"""
 
@@ -37,11 +47,18 @@ class MBPP(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name=f"{split}",
+            name="full",
             version=datasets.Version("1.0.1"),
             description=_DESCRIPTION,
+        ),
+        datasets.BuilderConfig(
+            name="sanitized",
+            version=datasets.Version("1.0.1"),
+            description=_DESCRIPTION + textwrap.dedent(
+                """\
+             The sanitized subset of the data has been hand-verified by the authors."""
+            )
         )
-        for split in _SPLITS
     ]
 
     DEFAULT_CONFIG_NAME = "full"
@@ -84,21 +101,56 @@ class MBPP(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(config_urls)
         return [
             datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": data_dir,
+                    "split": "train"
+                },
+            ),
+            datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
                     "filepath": data_dir,
+                    "split": "test"
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "filepath": data_dir,
+                    "split": "validation"
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split("prompt"),
+                gen_kwargs={
+                    "filepath": data_dir,
+                    "split": "prompt"
                 },
             )
         ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, fp, split):
         """Yields examples."""
-        with open(filepath, encoding="utf-8") as file:
-            if self.config.name == "full":
-                data = [json.loads(line) for line in file]
-            else:
-                data = json.load(file)
-            id_ = 0
-            for sample in data:
-                yield id_, sample
-                id_ += 1
+        if self.config.name == "full":
+            if split == 'test':
+                data = _read_lines(fp, 'task_id', 11, 510, proc=json.loads)
+            elif split == 'train':
+                data = _read_lines(fp, 'task_id', 601, 974, proc=json.loads)
+            elif split == 'validation':
+                data = _read_lines(fp, 'task_id', 511, 600, proc=json.loads)
+            elif split == 'prompt':
+                data = _read_lines(fp, 'task_id', 1, 10, proc=json.loads)
+        elif self.config.name == "sanitized":
+            if split == 'test':
+                data = _read_lines(fp, 'task_id', 11, 510)
+            elif split == 'train':
+                lines = _read_lines(fp, 'task_id', 601, 974)
+            elif split == 'validation':
+                lines = _read_lines(fp, 'task_id', 511, 600)
+            elif split == 'prompt':
+                lines = _read_lines(fp, 'task_id', 1, 10)
+        id_ = 0
+        for sample in data:
+            yield id_, sample
+            id_ += 1
