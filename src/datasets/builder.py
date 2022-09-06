@@ -674,7 +674,7 @@ class DatasetBuilder:
 
         if file_format == "arrow" and max_shard_size is not None:
             raise NotImplementedError(
-                "Writing sharded arrow files is not supported. Please don't use max_shard_size or use file_format='paquet'."
+                "Writing sharded arrow files is not supported. Please don't use max_shard_size or use file_format='parquet'."
             )
 
         if self._fs._strip_protocol(self._output_dir) == "":
@@ -1331,7 +1331,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         if file_format == "arrow":
             if max_shard_size is not None:
                 raise NotImplementedError(
-                    "Writing sharded arrow files is not supported. Please don't use max_shard_size or use file_format='paquet'."
+                    "Writing sharded arrow files is not supported. Please don't use max_shard_size or use file_format='parquet'."
                 )
         else:
             max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
@@ -1462,7 +1462,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         if file_format == "arrow":
             if max_shard_size is not None:
                 raise NotImplementedError(
-                    "Writing sharded arrow files is not supported. Please don't use max_shard_size or use file_format='paquet'."
+                    "Writing sharded arrow files is not supported. Please don't use max_shard_size or use file_format='parquet'."
                 )
         else:
             max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
