@@ -4235,7 +4235,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         token=token,
                         repo_type="dataset",
                         revision=branch,
-                        identical_ok=False,
                     ),
                     exceptions=HTTPError,
                     status_codes=[504],
@@ -4390,7 +4389,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             token=token,
             repo_type="dataset",
             revision=branch,
-            identical_ok=True,
         )
 
     @transmit_format
