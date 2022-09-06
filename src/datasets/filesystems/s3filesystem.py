@@ -5,7 +5,7 @@ class S3FileSystem(s3fs.S3FileSystem):
     """
     `datasets.filesystems.S3FileSystem` is a subclass of [`s3fs.S3FileSystem`](https://s3fs.readthedocs.io/en/latest/api.html).
 
-    Users can use this class to access S3 as if it were a file system. It exposes a filesystem-like API (ls, cp, open, etc.) on top of S3 storage. Provide credentials either explicitly (`key=`, `secret=`) or with boto's credential methods. See botocore documentation for more information. If no credentials are availabe, use `anon=True`.
+    Users can use this class to access S3 as if it were a file system. It exposes a filesystem-like API (ls, cp, open, etc.) on top of S3 storage. Provide credentials either explicitly (`key=`, `secret=`) or with boto's credential methods. See botocore documentation for more information. If no credentials are available, use `anon=True`.
 
     Args:
         anon (`bool`, default to `False`): Whether to use anonymous connection (public buckets only). If False, uses the key/secret given,

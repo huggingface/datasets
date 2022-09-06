@@ -22,7 +22,7 @@ paperswithcode_id: qed
 pretty_name: QED
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for QED
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

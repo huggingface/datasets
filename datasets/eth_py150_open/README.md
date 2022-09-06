@@ -1,6 +1,6 @@
 ---
 annotations_creators:
-- no-annotations
+- no-annotation
 language_creators:
 - machine-generated
 language:

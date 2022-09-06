@@ -21,7 +21,7 @@ paperswithcode_id: igbonlp-datasets
 pretty_name: IgboNLP Datasets
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for IgboNLP Datasets
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

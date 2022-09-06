@@ -1,7 +1,7 @@
 ---
 pretty_name: Ohsumed
 annotations_creators:
-- human-annotated
+- expert-generated
 language_creators:
 - crowdsourced
 language:

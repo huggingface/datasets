@@ -33,12 +33,12 @@ _LICENSE = "CC-BY-4.0"
 class MBPP(datasets.GeneratorBasedBuilder):
     """MBPP: Mostly Basic Python Problems Dataset"""
 
-    VERSION = datasets.Version("1.0.0")
+    VERSION = datasets.Version("1.0.1")
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
             name=f"{split}",
-            version=datasets.Version("1.0.0"),
+            version=datasets.Version("1.0.1"),
             description=_DESCRIPTION,
         )
         for split in _SPLITS

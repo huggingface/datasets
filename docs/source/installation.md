@@ -78,7 +78,7 @@ sudo apt-get install libsndfile1
 To support loading audio datasets containing MP3 files, users should also install [torchaudio](https://pytorch.org/audio/stable/index.html) to handle the audio data with high performance:
 
 ```bash
-pip install torchaudio
+pip install 'torchaudio<0.12.0'
 ```
 
 <Tip warning={true}>

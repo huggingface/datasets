@@ -31,7 +31,7 @@ configs:
 - autshumato-ts
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for autshumato
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

@@ -1,11 +1,35 @@
 ---
-pretty_name: WMT18
-paperswithcode_id: wmt-2018
+annotations_creators:
+- no-annotation
+language_creators:
+- found
+language:
+- cs
+- de
+- en
+- et
+- fi
+- kk
+- ru
+- tr
+- zh
+license:
+- unknown
 multilinguality:
 - translation
+size_categories:
+- 10M<n<100M
+source_datasets:
+- extended|europarl_bilingual
+- extended|news_commentary
+- extended|opus_paracrawl
+- extended|setimes
+- extended|un_multi
 task_categories:
 - translation
 task_ids: []
+pretty_name: WMT18
+paperswithcode_id: wmt-2018
 ---
 
 # Dataset Card for "wmt18"

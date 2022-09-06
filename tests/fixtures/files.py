@@ -473,6 +473,11 @@ def image_file():
 
 
 @pytest.fixture(scope="session")
+def audio_file():
+    return os.path.join("tests", "features", "data", "test_audio_44100.wav")
+
+
+@pytest.fixture(scope="session")
 def zip_image_path(image_file, tmp_path_factory):
     path = tmp_path_factory.mktemp("data") / "dataset.img.zip"
     with zipfile.ZipFile(path, "w") as f:

@@ -22,7 +22,7 @@ paperswithcode_id: hover
 pretty_name: HoVer
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for HoVer
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

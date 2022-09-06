@@ -22,7 +22,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 - part-of-speech
-- semantic-role-labeling
+- token-classification-other-semantic-role-labeling
 - coreference-resolution
 - parsing
 - lemmatization

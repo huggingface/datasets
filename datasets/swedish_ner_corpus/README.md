@@ -21,7 +21,7 @@ paperswithcode_id: null
 pretty_name: Swedish NER Corpus
 ---
 
-# Dataset Card of Swedish NER Corpus
+# Dataset Card for Swedish NER Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

@@ -35,7 +35,7 @@ paperswithcode_id: null
 pretty_name: OpusBooks
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for OpusBooks
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

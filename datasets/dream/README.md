@@ -21,7 +21,7 @@ paperswithcode_id: dream
 pretty_name: DREAM
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for DREAM
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

@@ -1,5 +1,13 @@
 # Create a dataset loading script
 
+
+<Tip>
+
+The dataset script is optional if your dataset is in one of the following formats: CSV, JSON, JSON lines, text or Parquet.
+With those formats, you should be able to load your dataset automatically with [`~datasets.load_dataset`].
+
+</Tip>
+
 Write a dataset script to load and share your own datasets. It is a Python file that defines the different configurations and splits of your dataset, as well as how to download and process the data.
 
 The script can download data files from any website, or from the same dataset repository.
@@ -22,9 +30,8 @@ The following guide includes instructions for dataset scripts for how to:
 - Add dataset metadata.
 - Download data files.
 - Generate samples.
-- Test if your dataset was generated correctly.
-- Create a Dataset card.
-- Upload a dataset to the Hugging Face Hub or GitHub.
+- Generate dataset metadata.
+- Upload a dataset to the Hub.
 
 Open the [SQuAD dataset loading script](https://huggingface.co/datasets/squad/blob/main/squad.py) template to follow along on how to share a dataset.
 
@@ -120,7 +127,7 @@ class SuperGlueConfig(datasets.BuilderConfig):
         #        the full release (v2.0).
         # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
         # 0.0.2: Initial version.
-        super(SuperGlueConfig, self).__init__(version=datasets.Version("1.0.2"), **kwargs)
+        super().__init__(version=datasets.Version("1.0.2"), **kwargs)
         self.features = features
         self.label_classes = label_classes
         self.data_url = data_url
@@ -267,88 +274,23 @@ def _generate_examples(self, filepath):
                     }
 ```
 
-## Testing data and checksum metadata
+## Generate dataset metadata
 
-We strongly recommend adding testing data and checksum metadata to your dataset to verify and test its behavior. This ensures the generated dataset matches your expectations.
-Testing data and checksum metadata are mandatory for datasets stored in the GitHub repository of the 🤗 Datasets library.
+Adding dataset metadata is a great way to include information about your dataset. The metadata is stored in a `dataset_infos.json` file. It includes information like data file checksums, the number of examples required to confirm the dataset was correctly generated, and information about the dataset like its `features`.
 
-<Tip warning={true}>
-
-Make sure you run all of the following commands **from the root** of your local `datasets` repository.
-
-</Tip>
-
-### Dataset metadata
-
-1. Run the following command to create the metadata file, `dataset_infos.json`. This will also test your new dataset loading script and make sure it works correctly.
+Run the following command to generate your dataset metadata in `dataset_infos.json` and make sure your new dataset loading script works correctly:
 
 ```
-datasets-cli test path/to/<your-dataset-folder> --save_infos --all_configs
+datasets-cli test path/to/<your-dataset-loading-script> --save_infos --all_configs
 ```
 
-2. If your dataset loading script passed the test, you should now have a `dataset_infos.json` file in your dataset folder. This file contains information about the dataset, like its `features` and `download_size`.
-
-
-#### Automatic
-
-If your data file is one of the following formats, then you can automatically generate the dummy data:
-
-- txt
-- csv
-- tsv
-- jsonl
-- json
-- xml
-
-Run the command below to generate the dummy data:
-
-```
-datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
-```
-
-#### Manual
-
-If your data files are not among the supported formats, you will need to generate your dummy data manually. Run the command below to output detailed instructions on how to create the dummy data:
-
-```
-datasets-cli dummy_data datasets/<your-dataset-folder>
-
-==============================DUMMY DATA INSTRUCTIONS==============================
-- In order to create the dummy data for my-dataset, please go into the folder './datasets/my-dataset/dummy/1.1.0' with *cd ./datasets/my-dataset/dummy/1.1.0* .
-
-- Please create the following dummy data files 'dummy_data/TREC_10.label, dummy_data/train_5500.label' from the folder './datasets/my-dataset/dummy/1.1.0'
-
-- For each of the splits 'train, test', make sure that one or more of the dummy data files provide at least one example
-
-- If the method *_generate_examples(...)* includes multiple *open()* statements, you might have to create other files in addition to 'dummy_data/TREC_10.label, dummy_data/train_5500.label'. In this case please refer to the *_generate_examples(...)* method
-
-- After all dummy data files are created, they should be zipped recursively to 'dummy_data.zip' with the command *zip -r dummy_data.zip dummy_data/*
-
-- You can now delete the folder 'dummy_data' with the command *rm -r dummy_data*
-
-- To get the folder 'dummy_data' back for further changes to the dummy data, simply unzip dummy_data.zip with the command *unzip dummy_data.zip*
-
-- Make sure you have created the file 'dummy_data.zip' in './datasets/my-dataset/dummy/1.1.0'
-===================================================================================
-```
-
-<Tip>
-
-Manually creating dummy data can be tricky. Make sure you follow the instructions from the command `datasets-cli dummy_data datasets/<your-dataset-folder>`. If you are still unable to successfully generate dummy data, open a [Pull Request](https://github.com/huggingface/datasets/pulls) and we will be happy to help you out!
-
-</Tip>
-
-There should be two new files in your dataset folder:
-
-- `dataset_infos.json` stores the dataset metadata including the data file checksums, and the number of examples required to confirm the dataset was generated properly.
-
-- `dummy_data.zip` is a file used to test the behavior of the loading script without having to download the full dataset.
+If your dataset loading script passed the test, you should now have a `dataset_infos.json` file in your dataset folder.
 
 ## Upload to the Hub
 
-Once your script is ready, you can [create a dataset card](dataset_card) and [upload it to the Hub](share).
+Once your script is ready, [create a dataset card](dataset_card) and [upload it to the Hub](share).
 
-Congrats ! you can now load your dataset using
+Congratulations, you can now load your dataset from the Hub! 🥳
 
 ```py
 >>> from datasets import load_dataset

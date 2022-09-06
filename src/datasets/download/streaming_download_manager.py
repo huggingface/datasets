@@ -526,7 +526,8 @@ def xglob(urlpath, *, recursive=False, use_auth_token: Optional[Union[str, bool]
         # - If there is "**" in the pattern, `fs.glob` must be called anyway.
         inner_path = main_hop.split("://")[1]
         globbed_paths = fs.glob(inner_path)
-        return ["::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops) for globbed_path in globbed_paths]
+        protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
+        return ["::".join([f"{protocol}://{globbed_path}"] + rest_hops) for globbed_path in globbed_paths]
 
 
 def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
@@ -558,8 +559,9 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
         inner_path = main_hop.split("://")[1]
         if inner_path.strip("/") and not fs.isdir(inner_path):
             return []
+        protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
         for dirpath, dirnames, filenames in fs.walk(inner_path):
-            yield "::".join([f"{fs.protocol}://{dirpath}"] + rest_hops), dirnames, filenames
+            yield "::".join([f"{protocol}://{dirpath}"] + rest_hops), dirnames, filenames
 
 
 class xPath(type(Path())):

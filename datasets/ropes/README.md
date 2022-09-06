@@ -23,7 +23,7 @@ task_ids:
 paperswithcode_id: ropes
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for ROPES
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

@@ -111,6 +111,8 @@ language:
 - zu
 annotations_creators:
 - no-annotation
+language_creators:
+- found
 source_datasets:
 - extended
 size_categories:
@@ -239,7 +241,7 @@ configs:
 - ru-zh
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Opus100
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -289,7 +291,12 @@ OPUS-100 contains approximately 55M sentence pairs. Of the 99 language pairs, 44
 
 ### Data Instances
 
-[More Information Needed]
+```
+{
+  "ca": "El departament de bombers té el seu propi equip d'investigació.",
+  "en": "Well, the fire department has its own investigative unit."
+}
+```
 
 ### Data Fields
 

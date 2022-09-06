@@ -59,7 +59,7 @@ paperswithcode_id: null
 pretty_name: MultiParaCrawl
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for MultiParaCrawl
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

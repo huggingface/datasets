@@ -21,7 +21,7 @@ paperswithcode_id: tunizi
 pretty_name: TUNIZI
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for TUNIZI
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

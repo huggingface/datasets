@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - multiple-choice
 task_ids:
-- coreference-resolution
+- multiple-choice-coreference-resolution
 paperswithcode_id: wsc
 pretty_name: Winograd Schema Challenge
 ---

@@ -2691,6 +2691,41 @@ def test_interleave_datasets_probabilities():
     )
 
 
+def test_interleave_datasets_oversampling_strategy():
+    d1 = Dataset.from_dict({"a": [0, 1, 2]})
+    d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})
+    d3 = Dataset.from_dict({"a": [22, 21, 20]}).select([2, 1, 0])
+    dataset = interleave_datasets([d1, d2, d3], stopping_strategy="all_exhausted")
+    expected_length = 3 * max(len(d1), len(d2), len(d3))
+    expected_values = [0, 10, 20, 1, 11, 21, 2, 12, 22, 0, 13, 20]  # hardcoded
+    assert isinstance(dataset, Dataset)
+    assert len(dataset) == expected_length
+    assert dataset["a"] == expected_values
+    assert dataset._fingerprint == interleave_datasets([d1, d2, d3], stopping_strategy="all_exhausted")._fingerprint
+
+
+def test_interleave_datasets_probabilities_oversampling_strategy():
+    seed = 42
+    probabilities = [0.3, 0.5, 0.2]
+    d1 = Dataset.from_dict({"a": [0, 1, 2]})
+    d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})
+    d3 = Dataset.from_dict({"a": [22, 21, 20]}).select([2, 1, 0])
+    dataset = interleave_datasets(
+        [d1, d2, d3], stopping_strategy="all_exhausted", probabilities=probabilities, seed=seed
+    )
+    expected_length = 16  # hardcoded
+    expected_values = [10, 11, 20, 12, 0, 21, 13, 10, 1, 11, 12, 22, 13, 20, 10, 2]  # hardcoded
+    assert isinstance(dataset, Dataset)
+    assert len(dataset) == expected_length
+    assert dataset["a"] == expected_values
+    assert (
+        dataset._fingerprint
+        == interleave_datasets(
+            [d1, d2, d3], stopping_strategy="all_exhausted", probabilities=probabilities, seed=seed
+        )._fingerprint
+    )
+
+
 @pytest.mark.parametrize(
     "column, expected_dtype",
     [(["a", "b", "c", "d"], "string"), ([1, 2, 3, 4], "int64"), ([1.0, 2.0, 3.0, 4.0], "float64")],

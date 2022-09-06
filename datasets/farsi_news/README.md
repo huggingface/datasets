@@ -23,7 +23,7 @@ paperswithcode_id: null
 pretty_name: FarsiNews
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for FarsiNews
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

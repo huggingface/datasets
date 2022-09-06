@@ -15,7 +15,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text2text-generation
 task_ids:
 - other-multi-turn
 paperswithcode_id: scan

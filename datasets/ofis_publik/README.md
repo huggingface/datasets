@@ -21,7 +21,7 @@ paperswithcode_id: null
 pretty_name: OfisPublik
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for OfisPublik
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

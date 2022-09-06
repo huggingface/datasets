@@ -27,7 +27,7 @@ pretty_name: SofcMaterialsArticles
 ---
 
 
-# Dataset Card Creation Guide
+# Dataset Card for SofcMaterialsArticles
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

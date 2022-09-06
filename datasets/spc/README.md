@@ -27,7 +27,7 @@ configs:
 - en-zh
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for spc
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

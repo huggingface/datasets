@@ -20,7 +20,7 @@ task_ids:
 paperswithcode_id: c3
 pretty_name: C3
 ---
-# Dataset Card Creation Guide
+# Dataset Card for C3
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

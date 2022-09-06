@@ -18,7 +18,6 @@ task_categories:
 - fill-mask
 task_ids:
 - dialogue-modeling
-- text-generation
 - fill-mask-other-conversational-curiosity
 paperswithcode_id: curiosity
 pretty_name: Curiosity Dataset

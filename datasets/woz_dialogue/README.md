@@ -34,7 +34,7 @@ configs:
 - it_en
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Wizard-of-Oz
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

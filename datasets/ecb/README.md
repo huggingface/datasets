@@ -38,7 +38,7 @@ paperswithcode_id: ecb
 pretty_name: extension to the EventCorefBank
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for extension to the EventCorefBank
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

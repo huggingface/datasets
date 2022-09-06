@@ -9,7 +9,6 @@ language:
 - an
 - ang
 - ar
-- ara
 - as
 - ast
 - az
@@ -23,7 +22,6 @@ language:
 - brx
 - bs
 - ca
-- cat
 - crh
 - cs
 - csb
@@ -41,7 +39,6 @@ language:
 - fa
 - fi
 - fo
-- foo
 - fr
 - fur
 - fy
@@ -49,7 +46,6 @@ language:
 - gd
 - gl
 - gn
-- gr
 - gu
 - gv
 - ha
@@ -130,10 +126,10 @@ language:
 - th
 - tk
 - tl
-- tmp
 - tr
 - ts
 - tt
+- tyj
 - ug
 - uk
 - ur
@@ -221,7 +217,7 @@ configs:
 - en_GB-my
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Opus Gnome
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -262,7 +258,7 @@ To load a language pair which isn't part of the config, all you need to do is sp
 You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/GNOME.php
 E.g.
 
-`dataset = load_dataset("gnome", lang1="it", lang2="pl")`
+`dataset = load_dataset("opus_gnome", lang1="it", lang2="pl")`
 
 
 ### Supported Tasks and Leaderboards
@@ -275,17 +271,38 @@ E.g.
 
 ## Dataset Structure
 
-### Data Instances
-
-[More Information Needed]
-
+### Data Instances  
+```
+{
+  'id': '0', 
+  'translation': {
+    'ar': 'إعداد سياسة القفل',
+    'bal': 'تنظیم کتن سیاست کبل'
+  }
+}
+```
 ### Data Fields
 
-[More Information Needed]
+Each instance has two fields:
+- **id**: the id of the example
+- **translation**: a dictionary containing translated texts in two languages.
 
 ### Data Splits
 
-[More Information Needed]
+Each subset simply consists in a train set. We provide the number of examples for certain language pairs:
+
+|          |   train |
+|:---------|--------:|
+| ar-bal   |      60 |
+| bg-csb   |      10 |
+| ca-en_GB |    7982 |
+| cs-eo    |      73 |
+| de-ha    |     216 |
+| cs-tk    |   18686 |
+| da-vi    |     149 |
+| en_GB-my |   28232 |
+| el-sk    |     150 |
+| de-tt    |    2169 |
 
 ## Dataset Creation
 

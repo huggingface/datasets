@@ -5,7 +5,7 @@ language_creators:
 - found
 language:
 - apc
-- apj
+- ajp
 license:
 - other
 multilinguality:

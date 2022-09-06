@@ -17,7 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - multi-label-classification
-- text-classification-legal-topic-classification
+- text-classification-other-legal-topic-classification
 paperswithcode_id: eurlex57k
 pretty_name: the EUR-Lex dataset
 ---

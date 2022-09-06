@@ -162,7 +162,9 @@ CC-BY-NC-SA 3.0
 
 ### Citation Information
 
-[More Information Needed]
+No clear citation guidelines from source: https://aiforthai.in.th/corpus.php
+
+SQuAD version: https://github.com/PyThaiNLP/thaiqa_squad
 
 ### Contributions
 

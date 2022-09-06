@@ -28,7 +28,7 @@ SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-
 
 TRAIN_KEYWORDS = ["train", "training"]
 TEST_KEYWORDS = ["test", "testing", "eval", "evaluation"]
-VALIDATION_KEYWORDS = ["validation", "valid", "dev"]
+VALIDATION_KEYWORDS = ["validation", "valid", "dev", "val"]
 NON_WORDS_CHARS = "-._ 0-9"
 KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
 KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
@@ -79,7 +79,12 @@ ALL_DEFAULT_PATTERNS = [
     DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
     DEFAULT_PATTERNS_ALL,
 ]
-METADATA_PATTERNS = ["metadata.jsonl", "**/metadata.jsonl"]  # metadata file for ImageFolder and AudioFolder
+METADATA_PATTERNS = [
+    "metadata.csv",
+    "**/metadata.csv",
+    "metadata.jsonl",
+    "**/metadata.jsonl",
+]  # metadata file for ImageFolder and AudioFolder
 WILDCARD_CHARACTERS = "*[]"
 FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data.zip", "dataset_dict.json"]
 
