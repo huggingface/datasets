@@ -18,7 +18,7 @@ language:
 license:
 - cc-by-sa-4.0
 multilinguality:
-- monolingual
+- multilingual
 size_categories:
 - 1K<n<10K
 source_datasets:
