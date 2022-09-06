@@ -1,8 +1,32 @@
 ---
+annotations_creators:
+- no-annotation
 language:
 - en
+language_creators:
+- found
+license:
+- other
+multilinguality:
+- monolingual
+pretty_name: Amazon US Reviews
+size_categories:
+- 100M<n<1B
+source_datasets:
+- original
+task_categories:
+- summarization
+- text-generation
+- fill-mask
+- text-classification
+task_ids:
+- text-scoring
+- language-modeling
+- masked-language-modeling
+- sentiment-classification
+- sentiment-scoring
+- topic-classification
 paperswithcode_id: null
-pretty_name: AmazonUsReviews
 ---
 
 # Dataset Card for "amazon_us_reviews"
@@ -407,14 +431,31 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+https://s3.amazonaws.com/amazon-reviews-pds/LICENSE.txt
+
+By accessing the Amazon Customer Reviews Library ("Reviews Library"), you agree that the
+Reviews Library is an Amazon Service subject to the [Amazon.com Conditions of Use](https://www.amazon.com/gp/help/customer/display.html/ref=footer_cou?ie=UTF8&nodeId=508088)
+and you agree to be bound by them, with the following additional conditions:
+
+In addition to the license rights granted under the Conditions of Use,
+Amazon or its content providers grant you a limited, non-exclusive, non-transferable,
+non-sublicensable, revocable license to access and use the Reviews Library
+for purposes of academic research.
+You may not resell, republish, or make any commercial use of the Reviews Library
+or its contents, including use of the Reviews Library for commercial research,
+such as research related to a funding or consultancy contract, internship, or
+other relationship in which the results are provided for a fee or delivered
+to a for-profit organization. You may not (a) link or associate content
+in the Reviews Library with any personal information (including Amazon customer accounts),
+or (b) attempt to determine the identity of the author of any content in the
+Reviews Library.
+If you violate any of the foregoing conditions, your license to access and use the
+Reviews Library will automatically terminate without prejudice to any of the
+other rights or remedies Amazon may have.
 
 ### Citation Information
 
-```
-
-```
-
+No citation information.
 
 ### Contributions
 
