@@ -1450,7 +1450,10 @@ class ArrowBasedBuilder(DatasetBuilder):
         raise NotImplementedError()
 
     def _prepare_split(
-        self, split_generator: SplitGenerator, file_format: str = "arrow", max_shard_size: Optional[Union[str, int]] = None
+        self,
+        split_generator: SplitGenerator,
+        file_format: str = "arrow",
+        max_shard_size: Optional[Union[str, int]] = None,
     ):
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
