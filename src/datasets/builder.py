@@ -663,7 +663,7 @@ class DatasetBuilder:
         fs_token_paths = fsspec.get_fs_token_paths(output_dir, storage_options=storage_options)
         self._fs: fsspec.AbstractFileSystem = fs_token_paths[0]
         is_local = not is_remote_filesystem(self._fs)
-        self._output_dir = self._fs._strip_protocol(fs_token_paths[2][0]) if is_local else fs_token_paths[2][0]
+        self._output_dir = fs_token_paths[2][0] if is_local else self._fs.unstrip_protocol(fs_token_paths[2][0])
 
         download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
