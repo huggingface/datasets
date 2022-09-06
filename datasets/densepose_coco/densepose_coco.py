@@ -135,7 +135,7 @@ class DensePoseCOCO(datasets.GeneratorBasedBuilder):
                 "height": datasets.Value("int32"),
                 "flickr_url": datasets.Value("string"),
                 "coco_url": datasets.Value("string"),
-                "license": datasets.Value("int32"),
+                "license": datasets.Value("int16"),
                 "date_captured": datasets.Value("timestamp[s, tz=UTC]"),
                 "poses": datasets.Sequence(
                     {
@@ -150,7 +150,7 @@ class DensePoseCOCO(datasets.GeneratorBasedBuilder):
                         "num_keypoints": datasets.Value("int32"),
                         "keypoints": datasets.Sequence(
                             {
-                                "keypoint": datasets.Value("string"),
+                                "part": datasets.Value("string"),
                                 "value": datasets.Sequence(datasets.Value("int32"), length=3),
                             }
                         ),
@@ -275,7 +275,7 @@ def annotation_to_pose(
     pose["coarse_label"] = id_to_coarse_label[category_id]
     pose["segmentation"] = decode_mask(pose["segmentation"], image_height, image_width)
     pose["keypoints"] = [
-        {"keypoint": keypoint, "value": keypoints_values[i * 3 : i * 3 + 3]}
+        {"part": keypoint, "value": keypoints_values[i * 3 : i * 3 + 3]}
         for i, keypoint in enumerate(id_to_keypoints[category_id])
     ]
     pose["skeleton"] = id_to_skeleton[category_id]
@@ -289,6 +289,7 @@ def annotation_to_pose(
         pose["dp_masks"] = [
             decode_mask(dp_mask, image_height, image_width) if dp_mask else dp_mask for dp_mask in pose["dp_masks"]
         ]
+    return pose
 
 
 def decode_mask(mask, image_height, image_width):

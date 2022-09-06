@@ -32,7 +32,7 @@ _CITATION = """\
   keywords = {Computer Vision and Pattern Recognition (cs.CV), Computation and Language (cs.CL), FOS: Computer and information sciences, FOS: Computer and information sciences},
   title = {Microsoft COCO Captions: Data Collection and Evaluation Server},
   publisher = {arXiv},
-  year = {2015}, 
+  year = {2015},
   copyright = {arXiv.org perpetual, non-exclusive license}
 }
 """
@@ -124,7 +124,7 @@ class COCOCaptions(datasets.GeneratorBasedBuilder):
                     annotations="annotations_trainval2014",
                     annotations_file_stem="captions_train2014",
                 ),
-                "validation": SplitPathInfo(
+                "val": SplitPathInfo(
                     images="val2014",
                     annotations="annotations_trainval2014",
                     annotations_file_stem="captions_val2014",
@@ -139,7 +139,7 @@ class COCOCaptions(datasets.GeneratorBasedBuilder):
                     annotations="annotations_trainval2017",
                     annotations_file_stem="captions_train2017",
                 ),
-                "validation": SplitPathInfo(
+                "val": SplitPathInfo(
                     images="val2017",
                     annotations="annotations_trainval2017",
                     annotations_file_stem="captions_val2017",
@@ -154,7 +154,7 @@ class COCOCaptions(datasets.GeneratorBasedBuilder):
                     annotations="annotations_trainval2014",
                     annotations_file_stem="captions_train2014",
                 ),
-                "validation": SplitPathInfo(
+                "val": SplitPathInfo(
                     images="val2014",
                     annotations="annotations_trainval2014",
                     annotations_file_stem="captions_val2014",
@@ -182,11 +182,7 @@ class COCOCaptions(datasets.GeneratorBasedBuilder):
                 "height": datasets.Value("int32"),
                 "flickr_url": datasets.Value("string"),
                 "coco_url": datasets.Value("string"),
-                "license": {
-                    "url": datasets.Value("string"),
-                    "id": datasets.Value("int16"),
-                    "name": datasets.Value("string"),
-                },
+                "license": datasets.Value("int16"),
                 "date_captured": datasets.Value("timestamp[s, tz=UTC]"),
             }
         )
@@ -265,8 +261,6 @@ class COCOCaptions(datasets.GeneratorBasedBuilder):
             annotation_data = json.load(f)
         images = annotation_data["images"]
         annotations = annotation_data["annotations"]
-        licenses = annotation_data["licenses"]
-        id_to_license = {license["id"]: license for license in licenses}
         # Multiple annotations per image
         image_id_to_annotations = collections.defaultdict(list)
         for annotation in annotations:
@@ -277,7 +271,6 @@ class COCOCaptions(datasets.GeneratorBasedBuilder):
                 annotations = extra_annotations.get(image_info["id"])
                 if annotations is not None:
                     example = image_info_to_example(image_info, images_dir)
-                    example["license"] = id_to_license[example["license"]]
                     captions = [
                         {"id": annot["sentid"], "caption": annot["raw"], "tokens": annot["tokens"]}
                         for annot in annotations["sentences"]
@@ -287,7 +280,6 @@ class COCOCaptions(datasets.GeneratorBasedBuilder):
         else:
             for idx, image_info in enumerate(images):
                 example = image_info_to_example(image_info, images_dir)
-                example["license"] = id_to_license[example["license"]]
                 annotations = image_id_to_annotations[image_info["id"]]
                 captions = [{"id": annot["id"], "caption": annot["caption"]} for annot in annotations]
                 example["captions"] = captions

@@ -19,7 +19,7 @@ import collections
 import json
 import os
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Optional
 
 import pycocotools.mask as mask_util
 
@@ -71,7 +71,6 @@ _CITATION = """\
 _DESCRIPTION = """\
 The Common Objects in COntext-stuff (COCO-stuff) dataset is a dataset for scene understanding tasks like semantic segmentation, object detection and image captioning.
 It is constructed by annotating the original COCO dataset, which originally annotated things while neglecting stuff annotations.
-There are 164k images in COCO-stuff dataset that span over 172 categories including 80 things, 91 stuff, and 1 unlabeled class.
 """
 
 
@@ -89,36 +88,6 @@ _ANNOTATIONS_URL_TEMPLATE = "http://images.cocodataset.org/annotations/{}.zip"
 
 def format_labels_str(labels):
     return [label for line in labels.strip().splitlines() for label in line.strip().split(",")]
-
-
-_FINE_LABELS = format_labels_str(
-    """\
-    person,bicycle,car,motorcycle,airplane
-    bus,train,truck,boat,traffic light
-    fire hydrant,stop sign,parking meter,bench,bird
-    cat,dog,horse,sheep,cow
-    elephant,bear,zebra,giraffe,backpack
-    umbrella,handbag,tie,suitcase,frisbee
-    skis,snowboard,sports ball,kite,baseball bat
-    baseball glove,skateboard,surfboard,tennis racket,bottle
-    wine glass,cup,fork,knife,spoon
-    bowl,banana,apple,sandwich,orange
-    broccoli,carrot,hot dog,pizza,donut
-    cake,chair,couch,potted plant,bed
-    dining table,toilet,tv,laptop,mouse
-    remote,keyboard,cell phone,microwave,oven
-    toaster,sink,refrigerator,book,clock
-    vase,scissors,teddy bear,hair drier,toothbrush
-    """
-)
-
-_COARSE_LABELS = format_labels_str(
-    """\
-    person,vehicle,outdoor,animal,accessory
-    sports,kitchen,food,furniture,electronic
-    appliance,indoor
-    """
-)
 
 
 _FINE_LABELS_STUFF = format_labels_str(
@@ -169,35 +138,43 @@ class SplitPathInfo:
     """
 
     images: str
-    annotations: Union[str, List[str]]
-    annotations_file_stem: Optional[Union[str, List[str]]]
+    annotations: str
+    annotations_file_stem: str
+    pixel_maps: Optional[str] = None
 
 
-_CONFIG_NAME_TO_DESCRIPTION = {
-    "2014": "The first version of MS COCO dataset released in 2014 for the object detection task. It contains 164K images split into training (83K), validation (41K) and test (41K) sets.",
-    "2014_image_captioning": "The 2014 version of MS COCO dataset for the image captioning task.",
-    "2014_keypoint_detection": "The 2014 version of MS COCO dataset for the keypoint detection task.",
-    "2015": "The 2015 version of MS COCO dataset for the object detection task with improved test set of 81K images which includes all the previous test images and 40K new images.",
-    "2017": "The 2017 version of MS COCO dataset with the changed training/validation split, from 83K/41K to 118K/5K. The new split uses the same images and annotations. The 2017 test set is a subset of 41K images of the 2015 test set.",
-    "2017_image_captioning": "The 2017 version of MS COCO dataset for the stuff segmentation task.",
-    "2017_keypoint_detection": "The 2017 version of MS COCO dataset for the the keypoint detection task.",
-    "2017_stuff_segmentation": "The 2017 version of MS COCO dataset for the stuff segmentation task.",
-    "2017_panoptic_segmentation": "The 2017 version of MS COCO dataset for the panoptic segmentation task.",
-    "2017_unlabeled": "A new unannotated dataset of 123K images released in 2017. The images follow the same class distribution as the labeled images and are useful for semi-supervised learning.",
-    "densepose": "The version of MS COCO dataset for the DensePose task.",
+SPLIT_PATH_INFOS = {
+    "train": SplitPathInfo(
+        images="train2017",
+        annotations="stuff_annotations_trainval2017",
+        annotations_file_stem="stuff_train2017",
+        pixel_maps="stuff_train2017_pixelmaps",
+    ),
+    "test": SplitPathInfo(
+        images="test2017",
+        annotations="image_info_test2017",
+        annotations_file_stem="image_info_test2017",
+    ),
+    "test_dev": SplitPathInfo(
+        images="test2017",
+        annotations="image_info_test2017",
+        annotations_file_stem="image_info_test-dev2017",
+    ),
+    "val": SplitPathInfo(
+        images="val2017",
+        annotations="stuff_annotations_trainval2017",
+        annotations_file_stem="stuff_val2017",
+        pixel_maps="stuff_val2017_pixelmaps",
+    ),
 }
+
 
 
 class COCOStuffConfig(datasets.BuilderConfig):
     """BuilderConfig for COCO-Stuff dataset."""
 
-    def __init__(self, name, split_path_infos: List[SplitPathInfo], **kwargs):
-        assert "description" not in kwargs
-        description = _CONFIG_NAME_TO_DESCRIPTION[name]
-        super(COCOStuffConfig, self).__init__(
-            version=datasets.Version("1.0.0"), name=name, description=description, **kwargs
-        )
-        self.split_path_infos = split_path_infos
+    def __init__(self, name, **kwargs):
+        super(COCOStuffConfig, self).__init__(version=datasets.Version("1.0.0"), name=name, **kwargs)
 
 
 class COCOStuff(datasets.GeneratorBasedBuilder):
@@ -205,31 +182,15 @@ class COCOStuff(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         COCOStuffConfig(
-            "2017",
-            split_path_infos={
-                "train": SplitPathInfo(
-                    images="train2017",
-                    annotations="annotations_trainval2017",
-                    annotations_file_stem="instances_train2017",
-                ),
-                "test": SplitPathInfo(
-                    images="test2017",
-                    annotations="image_info_test2017",
-                    annotations_file_stem="image_info_test2017",
-                ),
-                "test_dev": SplitPathInfo(
-                    images="test2017",
-                    annotations="image_info_test2017",
-                    annotations_file_stem="image_info_test-dev2017",
-                ),
-                "validation": SplitPathInfo(
-                    images="val2017",
-                    annotations="annotations_trainval2017",
-                    annotations_file_stem="instances_val2017",
-                ),
-            },
+            "coco-style_annotations", description="The version of MS COCO dataset for the stuff segmentation task."
+        ),
+        COCOStuffConfig(
+            "png-style_annotations",
+            description="The version of MS COCO dataset for the stuff segmentation task with segmentations in PNG format.",
         ),
     ]
+
+    DEFAULT_CONFIG_NAME = "coco-style_annotations"
 
     def _info(self):
         features = datasets.Features(
@@ -240,19 +201,18 @@ class COCOStuff(datasets.GeneratorBasedBuilder):
                 "height": datasets.Value("int32"),
                 "flickr_url": datasets.Value("string"),
                 "coco_url": datasets.Value("string"),
-                "license": {
-                    "url": datasets.Value("string"),
-                    "id": datasets.Value("int16"),
-                    "name": datasets.Value("string"),
-                },
+                "license": datasets.Value("int16"),
                 "date_captured": datasets.Value("timestamp[s, tz=UTC]"),
-                "objects": datasets.Sequence(
+                "stuff_segments": datasets.Sequence(
                     {
                         "id": datasets.Value("int64"),
                         "area": datasets.Value("int64"),
                         "bbox": datasets.Sequence(datasets.Value("float32"), length=4),
                         "iscrowd": datasets.Value("bool"),
-                        "segmentation": datasets.Sequence(datasets.Sequence(datasets.Value("uint8"))),
+                        "segmentation": datasets.Sequence(datasets.Sequence(datasets.Value("uint8")))
+                        if self.config.name == "coco-style_annotations"
+                        else datasets.Image(),
+                        "category_id": datasets.Value("int32"),
                         "fine_label": datasets.ClassLabel(names=_FINE_LABELS_STUFF),
                         "coarse_label": datasets.ClassLabel(names=_COARSE_LABELS_STUFF),
                     }
@@ -268,24 +228,31 @@ class COCOStuff(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        split_path_infos = self.config.split_path_infos
 
         urls = {
             split: {
                 "annotations": _ANNOTATIONS_URL_TEMPLATE.format(split_path_info.annotations),
                 "images": _IMAGES_URL_TEMPLATE.format(split_path_info.images),
             }
-            for split, split_path_info in split_path_infos.items()
+            for split, split_path_info in SPLIT_PATH_INFOS.items()
         }
         downloaded_paths = dl_manager.download_and_extract(urls)
 
         splits = []
-        for split, split_path_info in split_path_infos.items():
+        for split, split_path_info in SPLIT_PATH_INFOS.items():
             images_dir = os.path.join(downloaded_paths[split]["images"], split_path_info.images)
             annotations_dir = downloaded_paths[split]["annotations"]
             annotations_file = os.path.join(
                 annotations_dir, "annotations", f"{split_path_info.annotations_file_stem}.json"
             )
+
+            if self.config.name == "png-style_annotations" and "test" not in split:
+                segmentation_images_dir = dl_manager.extract(
+                    os.path.join(annotations_dir, "annotations", split_path_info.pixel_maps + ".zip")
+                )
+                segmentation_images_dir = os.path.join(segmentation_images_dir, split_path_info.pixel_maps)
+            else:
+                segmentation_images_dir = None
 
             splits.append(
                 datasets.SplitGenerator(
@@ -293,70 +260,58 @@ class COCOStuff(datasets.GeneratorBasedBuilder):
                     gen_kwargs={
                         "annotations_file": annotations_file,
                         "images_dir": images_dir,
-                        "split": split,
+                        "segmentation_images_dir": segmentation_images_dir,
                     },
                 )
             )
 
         return splits
 
-    def _generate_examples(self, annotations_file, images_dir, split):
-        if (
-            self.config.name in {"2014", "2015", "2017"}
-            or "stuff_segmentation" in self.config.name
-            or "keypoint_detection" in self.config.name
-        ):
-            with open(annotations_file, encoding="utf-8") as f:
-                annotation_data = json.load(f)
-            images = annotation_data["images"]
-            licenses = annotation_data["licenses"]
-            id_to_license = {license["id"]: license for license in licenses}
-            is_not_test = "annotations" in annotation_data and annotation_data["annotations"]
+    def _generate_examples(self, annotations_file, images_dir, segmentation_images_dir):
+        with open(annotations_file, encoding="utf-8") as f:
+            annotation_data = json.load(f)
+        images = annotation_data["images"]
+        is_not_test = "annotations" in annotation_data and annotation_data["annotations"]
+        if is_not_test:
+            annotations = annotation_data["annotations"]
+            # Multiple annotations per image
+            image_id_to_annotations = get_image_id_to_annotations_mapping(annotations)
+            categories = annotation_data["categories"]
+            id_to_fine_label = {category["id"]: category["name"] for category in categories}
+            id_to_coarse_label = {category["id"]: category["supercategory"] for category in categories}
+        for idx, image_info in enumerate(images):
+            example = image_info_to_example(image_info, images_dir)
             if is_not_test:
-                annotations = annotation_data["annotations"]
-                # Multiple annotations per image
-                image_id_to_annotations = get_image_id_to_annotations_mapping(self.config.name, annotations)
-                categories = annotation_data["categories"]
-                id_to_fine_label = {category["id"]: category["name"] for category in categories}
-                id_to_coarse_label = {category["id"]: category["supercategory"] for category in categories}
-            for idx, image_info in enumerate(images):
-                example = image_info_to_example(image_info, images_dir, id_to_license)
-                if is_not_test:
-                    annotations = image_id_to_annotations[image_info["id"]]
-                    objects = []
-                    for annot in annotations:
-                        del annot["image_id"]
-                        category_id = annot.pop("category_id")
-                        object_ = annot
-                        object_["fine_label"] = id_to_fine_label[category_id]
-                        object_["coarse_label"] = id_to_coarse_label[category_id]
-                        object_["segmentation"] = adjust_segmentation_format(object_["segmentation"])
-                        objects.append(object_)
-                else:
-                    objects = None
-                example["objects"] = objects
-                yield idx, example
+                annotations = image_id_to_annotations[image_info["id"]]
+                stuff_segments = []
+                for annot in annotations:
+                    del annot["image_id"]
+                    category_id = annot["category_id"]
+                    segment_ = annot
+                    segment_["fine_label"] = id_to_fine_label[category_id]
+                    segment_["coarse_label"] = id_to_coarse_label[category_id]
+                    segment_["segmentation"] = (
+                        decode_mask(segment_["segmentation"], image_info["height"], image_info["width"])
+                        if self.config.name == "coco-style_annotations"
+                        else os.path.join(
+                            segmentation_images_dir, os.path.splitext(image_info["file_name"])[0] + ".png"
+                        )
+                    )
+                    stuff_segments.append(segment_)
+            else:
+                stuff_segments = None
+            example["stuff_segments"] = stuff_segments
+            yield idx, example
 
 
-def get_image_id_to_annotations_mapping(config_name, annotations):
+def get_image_id_to_annotations_mapping(annotations):
     """
     A helper function to build a mapping from image ids to annotations.
     """
-    if (
-        config_name in {"2014", "2015", "2017"}
-        or config_name == "densepose"
-        or "stuff_segmentation" in config_name
-        or "keypoint_detection" in config_name
-        or "image_captioning" in config_name
-    ):
-        image_id_to_annotations = collections.defaultdict(list)
-        for annotation in annotations:
-            image_id_to_annotations[annotation["image_id"]].append(annotation)
-        return image_id_to_annotations
-    elif "panoptic_segmentation" in config_name:
-        return {annot["image_id"]: annot for annot in annotations}
-    else:
-        raise ValueError(f"Generating mapping  for configuration {config_name} is not supported.")
+    image_id_to_annotations = collections.defaultdict(list)
+    for annotation in annotations:
+        image_id_to_annotations[annotation["image_id"]].append(annotation)
+    return image_id_to_annotations
 
 
 def image_info_to_example(image_info, images_dir):
