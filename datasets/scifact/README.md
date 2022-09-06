@@ -18,7 +18,7 @@ task_categories:
 - text-classification
 task_ids:
 - fact-checking
-paperswithcode_id: null
+paperswithcode_id: scifact
 ---
 
 # Dataset Card for "scifact"
