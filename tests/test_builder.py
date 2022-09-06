@@ -25,7 +25,13 @@ from datasets.splits import Split, SplitDict, SplitGenerator, SplitInfo
 from datasets.streaming import xjoin
 from datasets.utils.file_utils import is_local_path
 
-from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_beam, require_faiss
+from .utils import (
+    assert_arrow_memory_doesnt_increase,
+    assert_arrow_memory_increases,
+    require_beam,
+    require_faiss,
+    set_current_working_directory_to_temp_dir,
+)
 
 
 class DummyBuilder(DatasetBuilder):
@@ -923,6 +929,27 @@ def test_builder_config_version(builder_class, kwargs, tmp_path):
     cache_dir = str(tmp_path)
     builder = builder_class(cache_dir=cache_dir, **kwargs)
     assert builder.config.version == "2.0.0"
+
+
+def test_builder_download_and_prepare_with_absolute_output_dir(tmp_path):
+    builder = DummyGeneratorBasedBuilder()
+    output_dir = str(tmp_path)
+    builder.download_and_prepare(output_dir)
+    assert builder._output_dir.startswith(output_dir)
+    assert os.path.exists(os.path.join(output_dir, "dataset_info.json"))
+    assert os.path.exists(os.path.join(output_dir, f"{builder.name}-train.arrow"))
+    assert not os.path.exists(os.path.join(output_dir + ".incomplete"))
+
+
+def test_builder_download_and_prepare_with_relative_output_dir():
+    with set_current_working_directory_to_temp_dir():
+        builder = DummyGeneratorBasedBuilder()
+        output_dir = "test-out"
+        builder.download_and_prepare(output_dir)
+        assert builder._output_dir.startswith(str(Path(output_dir).resolve()))
+        assert os.path.exists(os.path.join(output_dir, "dataset_info.json"))
+        assert os.path.exists(os.path.join(output_dir, f"{builder.name}-train.arrow"))
+        assert not os.path.exists(os.path.join(output_dir + ".incomplete"))
 
 
 def test_builder_with_filesystem_download_and_prepare(tmp_path, mockfs):
