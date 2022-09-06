@@ -645,8 +645,8 @@ class DatasetBuilder:
 
         ```py
         >>> from datasets import load_dataset_builder
-        >>> builder = load_dataset_builder("rotten_tomatoes", cache_dir="path/to/local/datasets-cache")
-        >>> ds = builder.download_and_prepare(file_format="parquet")
+        >>> builder = load_dataset_builder("rotten_tomatoes")
+        >>> ds = builder.download_and_prepare("./output_dir", file_format="parquet")
         ```
 
         Downdload and prepare the dataset as sharded Parquet files in a cloud storage
@@ -1235,7 +1235,7 @@ class DatasetBuilder:
         self,
         split_generator: SplitGenerator,
         file_format: str = "arrow",
-        max_shard_size: Union[None, str, int] = None,
+        max_shard_size: Optional[Union[str, int]] = None,
         **kwargs,
     ):
         """Generate the examples and record them on disk.
@@ -1245,8 +1245,8 @@ class DatasetBuilder:
             file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
                 Supported formats: "arrow", "parquet". Default to "arrow" format.
             max_shard_size (:obj:`Union[str, int]`, optional): Approximate maximum number of bytes written per shard.
-                Supports only the "parquet" format with a default of "500MB". The size is computed using the uncompressed data,
-                so in practice your shard files may be smaller than `max_shard_size` thanks to compression.
+                Only available for the "parquet" format with a default of "500MB". The size is based on uncompressed data size,
+                so in practice your shard files may be smaller than `max_shard_size` thanks to Parquet compression.
             **kwargs: Additional kwargs forwarded from _download_and_prepare (ex:
                 beam pipeline)
         """
@@ -1322,7 +1322,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         split_generator: SplitGenerator,
         check_duplicate_keys: bool,
         file_format="arrow",
-        max_shard_size: Union[None, int, str] = None,
+        max_shard_size: Optional[Union[int, str]] = None,
     ):
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
@@ -1450,7 +1450,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         raise NotImplementedError()
 
     def _prepare_split(
-        self, split_generator: SplitGenerator, file_format: str = "arrow", max_shard_size: Union[None, str, int] = None
+        self, split_generator: SplitGenerator, file_format: str = "arrow", max_shard_size: Optional[Union[str, int]] = None
     ):
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
@@ -1650,7 +1650,7 @@ class BeamBasedBuilder(DatasetBuilder):
                 self.info._dump_license(f)
 
     def _prepare_split(
-        self, split_generator, pipeline, file_format="arrow", max_shard_size: Union[None, str, int] = None
+        self, split_generator, pipeline, file_format="arrow", max_shard_size: Optional[Union[str, int]] = None
     ):
         import apache_beam as beam
 
