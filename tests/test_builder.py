@@ -961,6 +961,25 @@ def test_generator_based_builder_download_and_prepare_as_parquet(tmp_path):
 def test_generator_based_builder_download_and_prepare_as_sharded_parquet(tmp_path):
     writer_batch_size = 25
     builder = DummyGeneratorBasedBuilder(cache_dir=tmp_path, writer_batch_size=writer_batch_size)
+    with patch("datasets.config.MAX_SHARD_SIZE", 1):  # one batch per shard
+        builder.download_and_prepare(file_format="parquet")
+    expected_num_shards = 100 // writer_batch_size
+    assert builder.info.splits["train"].num_examples, 100
+    parquet_path = os.path.join(
+        tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-{expected_num_shards:05d}.parquet"
+    )
+    assert os.path.exists(parquet_path)
+    parquet_files = [
+        pq.ParquetFile(parquet_path)
+        for parquet_path in Path(tmp_path).rglob(f"{builder.name}-train-*-of-{expected_num_shards:05d}.parquet")
+    ]
+    assert len(parquet_files) == expected_num_shards
+    assert sum(parquet_file.metadata.num_rows for parquet_file in parquet_files) == 100
+
+
+def test_generator_based_builder_download_and_prepare_as_sharded_parquet_with_max_shard_size(tmp_path):
+    writer_batch_size = 25
+    builder = DummyGeneratorBasedBuilder(cache_dir=tmp_path, writer_batch_size=writer_batch_size)
     builder.download_and_prepare(file_format="parquet", max_shard_size=1)  # one batch per shard
     expected_num_shards = 100 // writer_batch_size
     assert builder.info.splits["train"].num_examples, 100
@@ -988,6 +1007,24 @@ def test_arrow_based_builder_download_and_prepare_as_parquet(tmp_path):
 
 
 def test_arrow_based_builder_download_and_prepare_as_sharded_parquet(tmp_path):
+    builder = DummyArrowBasedBuilder(cache_dir=tmp_path)
+    with patch("datasets.config.MAX_SHARD_SIZE", 1):  # one batch per shard
+        builder.download_and_prepare(file_format="parquet")
+    expected_num_shards = 10
+    assert builder.info.splits["train"].num_examples, 100
+    parquet_path = os.path.join(
+        tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-{expected_num_shards:05d}.parquet"
+    )
+    assert os.path.exists(parquet_path)
+    parquet_files = [
+        pq.ParquetFile(parquet_path)
+        for parquet_path in Path(tmp_path).rglob(f"{builder.name}-train-*-of-{expected_num_shards:05d}.parquet")
+    ]
+    assert len(parquet_files) == expected_num_shards
+    assert sum(parquet_file.metadata.num_rows for parquet_file in parquet_files) == 100
+
+
+def test_arrow_based_builder_download_and_prepare_as_sharded_parquet_with_max_shard_size(tmp_path):
     builder = DummyArrowBasedBuilder(cache_dir=tmp_path)
     builder.download_and_prepare(file_format="parquet", max_shard_size=1)  # one table per shard
     expected_num_shards = 10

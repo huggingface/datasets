@@ -622,7 +622,7 @@ class DatasetBuilder:
 
                 <Added version="2.5.0"/>
             max_shard_size (:obj:`Union[str, int]`, optional): Maximum number of bytes written per shard.
-                Supports only the "parquet" format with a default of "500MB". The size is based on uncompressed data size,
+                Only available for the "parquet" format with a default of "500MB". The size is based on uncompressed data size,
                 so in practice your shard files may be smaller than `max_shard_size` thanks to Parquet compression.
 
                 <Added version="2.5.0"/>
@@ -654,8 +654,8 @@ class DatasetBuilder:
         ```py
         >>> from datasets import load_dataset_builder
         >>> storage_options = {"key": aws_access_key_id, "secret": aws_secret_access_key}
-        >>> builder = load_dataset_builder("rotten_tomatoes", cache_dir="s3://my-bucket/datasets-cache", storage_options=storage_options)
-        >>> ds = builder.download_and_prepare(file_format="parquet")
+        >>> builder = load_dataset_builder("rotten_tomatoes")
+        >>> ds = builder.download_and_prepare("s3://my-bucket/my_rotten_tomatoes", storage_options=storage_options, file_format="parquet")
         ```
         """
         self._output_dir = output_dir if output_dir is not None else self._cache_dir
@@ -1327,12 +1327,13 @@ class GeneratorBasedBuilder(DatasetBuilder):
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
 
-        if max_shard_size is not None:
-            max_shard_size = convert_file_size_to_int(max_shard_size)
-            if file_format == "arrow":
+        if file_format == "arrow":
+            if max_shard_size is not None:
                 raise NotImplementedError(
                     "Writing sharded arrow files is not supported. Please don't use max_shard_size or use parquet."
                 )
+        else:
+            max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
 
         if self.info.splits is not None:
             split_info = self.info.splits[split_generator.name]
@@ -1454,12 +1455,13 @@ class ArrowBasedBuilder(DatasetBuilder):
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
 
-        if max_shard_size is not None:
-            if file_format == "arrow":
+        if file_format == "arrow":
+            if max_shard_size is not None:
                 raise NotImplementedError(
                     "Writing sharded arrow files is not supported. Please don't use max_shard_size or use parquet."
                 )
-            max_shard_size = convert_file_size_to_int(max_shard_size or "500MB")
+        else:
+            max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
 
         suffix = "-SSSSS-of-NNNNN" if file_format == "parquet" else ""
         fname = f"{self.name}-{split_generator.name}{suffix}.{file_format}"
