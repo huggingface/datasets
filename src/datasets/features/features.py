@@ -1602,44 +1602,55 @@ class Features(dict):
     def to_dict(self):
         return asdict(self)
 
-    def _to_yaml_list(self):
+    def _to_yaml_list(self) -> list:
+        # we compute the YAML list from the dict representation that is used for JSON dump
         yaml_data = self.to_dict()
 
-        def simplify(feature):
-            if (
-                isinstance(feature, dict)
-                and isinstance(feature.get("sequence"), dict)
-                and list(feature["sequence"]) == ["dtype"]
-            ):
+        def simplify(feature: dict) -> dict:
+            if not isinstance(feature, dict):
+                raise TypeError(f"Expected a dict but got a {type(feature)}: {feature}")
+
+            #
+            # sequence:                 ->              sequence: int32
+            #   dtype: int32            ->
+            #
+            if isinstance(feature.get("sequence"), dict) and list(feature["sequence"]) == ["dtype"]:
                 feature["sequence"] = feature["sequence"]["dtype"]
-            if (
-                isinstance(feature, dict)
-                and isinstance(feature.get("sequence"), dict)
-                and list(feature["sequence"]) == ["struct"]
-            ):
+
+            #
+            # sequence:                 ->              sequence:
+            #   struct:                 ->              - name: foo
+            #   - name: foo             ->                dtype: int32
+            #     dtype: int32          ->
+            #
+            if isinstance(feature.get("sequence"), dict) and list(feature["sequence"]) == ["struct"]:
                 feature["sequence"] = feature["sequence"]["struct"]
-            elif (
-                isinstance(feature, dict)
-                and isinstance(feature.get("list"), dict)
-                and list(feature["list"]) == ["dtype"]
-            ):
+
+            #
+            # list:                     ->              list: int32
+            #   dtype: int32            ->
+            #
+            if isinstance(feature.get("list"), dict) and list(feature["list"]) == ["dtype"]:
                 feature["list"] = feature["list"]["dtype"]
-            elif (
-                isinstance(feature, dict)
-                and isinstance(feature.get("list"), dict)
-                and list(feature["list"]) == ["struct"]
-            ):
+
+            #
+            # list:                     ->              list:
+            #   struct:                 ->              - name: foo
+            #   - name: foo             ->                dtype: int32
+            #     dtype: int32          ->
+            #
+            if isinstance(feature.get("list"), dict) and list(feature["list"]) == ["struct"]:
                 feature["list"] = feature["list"]["struct"]
             return feature
 
-        def to_yaml_inner(obj):
+        def to_yaml_inner(obj: Union[dict, list]) -> dict:
             if isinstance(obj, dict):
                 _type = obj.pop("_type", None)
                 if _type == "Sequence":
                     _feature = obj.pop("feature")
-                    return simplify({camelcase_to_snakecase(_type): to_yaml_inner(_feature), **obj})
+                    return simplify({"sequence": to_yaml_inner(_feature), **obj})
                 elif _type == "Value":
-                    return {"dtype": obj["dtype"]}
+                    return obj
                 elif _type and not obj:
                     return {"dtype": camelcase_to_snakecase(_type)}
                 elif _type:
@@ -1649,36 +1660,38 @@ class Features(dict):
             elif isinstance(obj, list):
                 return simplify({"list": simplify(to_yaml_inner(obj[0]))})
             else:
-                return obj
+                raise TypeError(f"Expected a dict or a list but got {type(obj)}: {obj}")
 
         return to_yaml_inner(yaml_data)["struct"]
 
     @classmethod
-    def _from_yaml_list(cls, yaml_data):
+    def _from_yaml_list(cls, yaml_data: list) -> "Features":
         yaml_data = copy.deepcopy(yaml_data)
 
-        def unsimplify(feature):
-            if isinstance(feature, dict) and isinstance(feature.get("sequence"), str):
+        # we convert the list obtained from YAML data into the dict representation that is used for JSON dump
+
+        def unsimplify(feature: dict) -> dict:
+            if not isinstance(feature, dict):
+                raise TypeError(f"Expected a dict but got a {type(feature)}: {feature}")
+            #
+            # sequence: int32           ->              sequence:
+            #                           ->                dtype: int32
+            #
+            if isinstance(feature.get("sequence"), str):
                 feature["sequence"] = {"dtype": feature["sequence"]}
-            if (
-                isinstance(feature, dict)
-                and isinstance(feature.get("sequence"), dict)
-                and list(feature["sequence"]) == ["struct"]
-            ):
-                feature["sequence"] = feature["struct"]
-            elif isinstance(feature, dict) and isinstance(feature.get("list"), str):
+            #
+            # list: int32               ->              list:
+            #                           ->                dtype: int32
+            #
+            if isinstance(feature.get("list"), str):
                 feature["list"] = {"dtype": feature["list"]}
-            elif (
-                isinstance(feature, dict)
-                and isinstance(feature.get("list"), dict)
-                and list(feature["list"]) == ["struct"]
-            ):
-                feature["list"] = feature["struct"]
             return feature
 
-        def from_yaml_inner(obj):
+        def from_yaml_inner(obj: Union[dict, list]) -> Union[dict, list]:
 
             if isinstance(obj, dict):
+                if not obj:
+                    return {}
                 _type = next(iter(obj))
                 if _type == "sequence":
                     _feature = unsimplify(obj).pop(_type)
@@ -1689,10 +1702,12 @@ class Features(dict):
                     return from_yaml_inner(obj["struct"])
                 elif _type == "dtype":
                     if isinstance(obj["dtype"], str):
+                        # e.g. int32, float64, string, audio, image
                         try:
                             Value(obj["dtype"])
-                            return {"dtype": obj["dtype"], "_type": "Value"}
+                            return {**obj, "_type": "Value"}
                         except ValueError:
+                            # for audio and image that are Audio and Image types, not Value
                             return {"_type": snakecase_to_camelcase(obj["dtype"])}
                     else:
                         return from_yaml_inner(obj["dtype"])
@@ -1702,7 +1717,7 @@ class Features(dict):
                 names = [_feature.pop("name") for _feature in obj]
                 return {name: from_yaml_inner(_feature) for name, _feature in zip(names, obj)}
             else:
-                return obj
+                raise TypeError(f"Expected a dict or a list but got {type(obj)}: {obj}")
 
         return cls.from_dict(from_yaml_inner(yaml_data))
 
