@@ -20,6 +20,7 @@ import copy
 import itertools
 import json
 import os
+import re
 import shutil
 import tempfile
 import warnings
@@ -77,6 +78,7 @@ from .fingerprint import (
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
 from .formatting.formatting import _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
+from .naming import _split_re
 from .search import IndexableMixin
 from .splits import NamedSplit, Split, SplitInfo
 from .table import (
@@ -4109,6 +4111,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
         ```
         """
+
+        if not re.match(_split_re, split):
+            raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
+
         max_shard_size = convert_file_size_to_int(max_shard_size)
 
         api = HfApi(endpoint=config.HF_ENDPOINT)
