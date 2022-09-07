@@ -18,9 +18,10 @@
 
 import abc
 import collections
+import copy
 import dataclasses
 import re
-from dataclasses import InitVar, dataclass
+from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 
 from .arrow_reader import FileInstructions, make_file_instructions
@@ -33,7 +34,14 @@ class SplitInfo:
     name: str = ""
     num_bytes: int = 0
     num_examples: int = 0
-    dataset_name: InitVar[Optional[str]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
+
+    # Deprecated
+    # For backward compatibility, this field needs to always be included in files like
+    # dataset_infos.json and dataset_info.json files
+    # To do so, we always include it in the output of datasets.utils.py_utils.asdict(split_info)
+    dataset_name: Optional[str] = dataclasses.field(
+        default=None, metadata={"include_in_asdict_even_if_is_default": True}
+    )
 
     @property
     def file_instructions(self):
@@ -560,13 +568,22 @@ class SplitDict(dict):
     def to_split_dict(self):
         """Returns a list of SplitInfo protos that we have."""
         # Return the SplitInfo, sorted by name
-        return sorted((s for s in self.values()), key=lambda s: s.name)
+        out = []
+        for split_name, split_info in sorted(self.items()):
+            split_info = copy.deepcopy(split_info)
+            split_info.name = split_name
+            out.append(split_info)
+        return out
 
     def copy(self):
         return SplitDict.from_split_dict(self.to_split_dict(), self.dataset_name)
 
     def _to_yaml_list(self) -> list:
-        return [asdict(s) for s in self.to_split_dict()]
+        out = [asdict(s) for s in self.to_split_dict()]
+        # we don't need the dataset_name attribute that is deprecated
+        for split_info_dict in out:
+            split_info_dict.pop("dataset_name", None)
+        return out
 
     @classmethod
     def _from_yaml_list(cls, yaml_data: list) -> "SplitDict":

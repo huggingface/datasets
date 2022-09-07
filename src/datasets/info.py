@@ -313,23 +313,24 @@ class DatasetInfo:
 
     def _to_yaml_dict(self) -> dict:
         yaml_dict = {}
-        for field in dataclasses.fields(self):
-            if field.name in self._INCLUDED_INFO_IN_YAML:
-                value = getattr(self, field.name)
+        dataset_info_dict = asdict(self)
+        for key in dataset_info_dict:
+            if key in self._INCLUDED_INFO_IN_YAML:
+                value = getattr(self, key)
                 if hasattr(value, "_to_yaml_list"):  # Features, SplitDict
-                    yaml_dict[field.name] = value._to_yaml_list()
+                    yaml_dict[key] = value._to_yaml_list()
                 elif hasattr(value, "_to_yaml_string"):  # Version
-                    yaml_dict[field.name] = value._to_yaml_string()
+                    yaml_dict[key] = value._to_yaml_string()
                 else:
-                    yaml_dict[field.name] = value
+                    yaml_dict[key] = value
         return yaml_dict
 
     @classmethod
     def _from_yaml_dict(cls, yaml_data: dict) -> "DatasetInfo":
         yaml_data = copy.deepcopy(yaml_data)
-        if "features" in yaml_data:
+        if yaml_data.get("features") is not None:
             yaml_data["features"] = Features._from_yaml_list(yaml_data["features"])
-        if "splits" in yaml_data:
+        if yaml_data.get("splits") is not None:
             yaml_data["splits"] = SplitDict._from_yaml_list(yaml_data["splits"])
         field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in yaml_data.items() if k in field_names})
@@ -346,11 +347,10 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
         if os.path.exists(dataset_infos_path):
             # for backward compatibility, let's update the JSON file if it exists
             with open(dataset_infos_path, "w", encoding="utf-8") as f:
-                json.dump(
-                    {config_name: asdict(dset_info) for config_name, dset_info in total_dataset_infos.items()},
-                    f,
-                    indent=4 if pretty_print else None,
-                )
+                dataset_infos_dict = {
+                    config_name: asdict(dset_info) for config_name, dset_info in total_dataset_infos.items()
+                }
+                json.dump(dataset_infos_dict, f, indent=4 if pretty_print else None)
         # Dump the infos in the YAML part of the README.md file
         if os.path.exists(dataset_readme_path):
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
@@ -365,6 +365,9 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
                 dataset_metadata["dataset_infos"] = dataset_metadata["dataset_infos"][0]
                 # no need to include the configuration name when there's only one configuration
                 dataset_metadata["dataset_infos"].pop("config_name", None)
+            else:
+                for config_name, dataset_info_yaml_dict in zip(total_dataset_infos, dataset_metadata["dataset_infos"]):
+                    dataset_info_yaml_dict["config_name"] = config_name
             dataset_metadata.to_readme(Path(dataset_readme_path))
 
     @classmethod
@@ -383,7 +386,7 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
         # Load the info from the YAML part of README.md
         if os.path.exists(os.path.join(dataset_infos_dir, "README.md")):
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_infos_dir) / "README.md")
-            if isinstance(dataset_metadata.get("dataset_infos"), (list, dict)) and dataset_metadata["dataset_infos"]:
+            if isinstance(dataset_metadata.get("dataset_infos"), (list, dict)):
                 if isinstance(dataset_metadata["dataset_infos"], list):
                     dataset_infos_dict = {
                         dataset_info_yaml_dict.get("config_name", "default"): DatasetInfo._from_yaml_dict(
@@ -392,11 +395,10 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
                         for dataset_info_yaml_dict in dataset_metadata["dataset_infos"]
                     }
                 else:
-                    dataset_infos_dict = {
-                        dataset_metadata["dataset_infos"].get("config_name", "default"): DatasetInfo._from_yaml_dict(
-                            dataset_metadata["dataset_infos"]
-                        )
-                    }
+                    dataset_info = DatasetInfo._from_yaml_dict(dataset_metadata["dataset_infos"])
+                    dataset_info.config_name = dataset_metadata["dataset_infos"].get("config_name", "default")
+                    dataset_infos_dict = {dataset_info.config_name: dataset_info}
+
         return cls(**dataset_infos_dict)
 
 

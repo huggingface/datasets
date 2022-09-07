@@ -167,7 +167,7 @@ def asdict(obj):
             result = {}
             for f in fields(obj):
                 value = _asdict_inner(getattr(obj, f.name))
-                if value != f.default or not f.init:
+                if not f.init or value != f.default or f.metadata.get("include_in_asdict_even_if_is_default", False):
                     result[f.name] = value
             return result
         elif isinstance(obj, tuple) and hasattr(obj, "_fields"):
