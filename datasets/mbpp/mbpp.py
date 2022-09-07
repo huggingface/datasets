@@ -85,8 +85,6 @@ class MBPP(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         config_urls = _URLs[self.config.name]
         data_dir = dl_manager.download_and_extract(config_urls)
-        path = Path(data_dir)
-        path.parent
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
