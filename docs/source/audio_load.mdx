@@ -57,15 +57,16 @@ If you only want to load the underlying path to the audio dataset without decodi
 
 ## AudioFolder
 
-You can also load an audio dataset with an `AudioFolder` dataset builder. It does not require writing a custom dataloader, making it useful for quickly loading audio data. Your audio dataset structure should look like this:
+You can also load an audio dataset with an `AudioFolder` dataset builder and any associated metadata (like transcriptions and labels) in a metadata file (`metadata.csv`/`metadata.jsonl`). This does not require writing a custom dataloader, making it useful for quickly loading audio data. Your audio dataset structure should look like this:
 
 ```
+folder/train/metadata.jsonl
 folder/train/first_audio_file.mp3
 folder/train/second_audio_file.mp3
 folder/train/third_audio_file.mp3
 ```
 
-Load your dataset by specifying `audiofolder` and the directory of your dataset in data_dir:
+Load your dataset by specifying `audiofolder` and the dataset directory in `data_dir`. Associated metadata from `metadata.jsonl` is automatically loaded.
 
 ```py
 >>> from datasets import load_dataset
@@ -78,8 +79,6 @@ You can load remote datasets from their URLs with the data_files parameter:
 ```py
 >>> dataset = load_dataset("audiofolder", data_files="https://s3.amazonaws.com/datasets.huggingface.co/SpeechCommands/v0.01/v0.01_test.tar.gz")
 ```
-
-Many audio datasets have a metadata file (`metadata.csv`/`metadata.jsonl`) associated with it, containing other information about the data like text transcriptions and labels. The metadata is automatically loaded when you call [`load_dataset`] and specify `audiofolder`.
 
 To ignore the information in the metadata file, set `drop_labels=False` in [`load_dataset`], and allow `AudioFolder` to automatically infer the label name from the directory name:
 
