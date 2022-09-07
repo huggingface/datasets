@@ -363,16 +363,13 @@ def test_array_xd_with_np(data, feature, expected):
     os.name == "nt" and (os.getenv("CIRCLECI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"),
     reason="The Windows CI runner does not have enough RAM to run this test",
 )
-@pytest.mark.parametrize(
-    "data, feature, expected",
-    [
-        (np.zeros((46341, 46341), dtype=np.uint8), None, [0] * 46341),
-    ],
-)
-def test_large_array_xd_with_np(data, feature, expected):
-
-    ds = datasets.Dataset.from_dict({"col": data}, features=datasets.Features({"col": feature}) if feature else None)
-    assert ds[0]["col"] == expected
+def test_large_array_xd_with_np():
+    large_array = np.zeros((46341, 46341), dtype=np.uint8)
+    features = datasets.Features({"col": datasets.Array2D(shape=(46341, 46341), dtype="uint8")})
+    ds = datasets.Dataset.from_dict({"col": [large_array]}, features=features)
+    ds.set_format("np")
+    assert not ds[0]["col"].any()
+    assert ds[0]["col"].shape == (46341, 46341)
 
 
 @pytest.mark.parametrize("with_none", [False, True])
