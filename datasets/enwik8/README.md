@@ -49,19 +49,19 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://cs.fit.edu/~mmahoney/compression/textdata.html
+- **Homepage:** http://mattmahoney.net/dc/textdata.html
 - **Repository:** [Needs More Information]
 - **Paper:** [Needs More Information]
-- **Leaderboard:** [Needs More Information]
+- **Leaderboard:** https://paperswithcode.com/sota/language-modelling-on-enwiki8
 - **Point of Contact:** [Needs More Information]
 
 ### Dataset Summary
 
-The enwik8 datasset is based on Wikipedia and is typically used to measure a model's ability to compress data. The data come from a Wikipedia dump from 2006.
+The enwik8 dataset is the first 100,000,000 (100M) bytes of the English Wikipedia XML dump on Mar. 3, 2006 and is typically used to measure a model's ability to compress data.
 
 ### Supported Tasks and Leaderboards
 
-[Needs More Information]
+A leaderboard for byte-level causal language modelling can be found on [paperswithcode](https://paperswithcode.com/sota/language-modelling-on-enwiki8)
 
 ### Languages
 
@@ -110,7 +110,7 @@ The data fields are the same among all sets.
 
 #### Initial Data Collection and Normalization
 
-[Needs More Information]
+The data is just English Wikipedia XML dump on Mar. 3, 2006 split by line for enwik8 and not split by line for enwik8-raw.
 
 #### Who are the source language producers?
 
@@ -160,4 +160,4 @@ Dataset is not part of a publication, and can therefore not be cited.
 
 ### Contributions
 
-Thanks to [@HallerPatrick](https://github.com/HallerPatrick) for adding this dataset.
+Thanks to [@HallerPatrick](https://github.com/HallerPatrick) for adding this dataset and [@mtanghu](https://github.com/mtanghu) for updating it.
