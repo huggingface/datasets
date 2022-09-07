@@ -1,6 +1,5 @@
 import json
-import textwrap
-
+from pathlib import Path
 import datasets
 
 
@@ -8,7 +7,8 @@ _DESCRIPTION = """\
 The MBPP (Mostly Basic Python Problems) dataset consists of around 1,000 crowd-sourced Python
 programming problems, designed to be solvable by entry level programmers, covering programming
 fundamentals, standard library functionality, and so on. Each problem consists of a task
-description, code solution and 3 automated test cases.
+description, code solution and 3 automated test cases. The sanitized subset of the data has been 
+hand-verified by the authors.
 """
 
 _URLs = {
@@ -29,35 +29,21 @@ _HOMEPAGE = "https://github.com/google-research/google-research/tree/master/mbpp
 _LICENSE = "CC-BY-4.0"
 
 
-def _read_lines(fn, field_name, start, end, proc=None):
-    proc = proc or (lambda x: x)
-    with open(fn, encoding="utf-8") as f:
-        for i, line in enumerate(f):
-            sample = proc(line)
-            if start <= sample[field_name] <= end:
-                yield sample
-            elif i > end:
-                break
-
-
 class MBPP(datasets.GeneratorBasedBuilder):
     """MBPP: Mostly Basic Python Problems Dataset"""
 
-    VERSION = datasets.Version("1.0.1")
+    VERSION = datasets.Version("1.0.2")
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
             name="full",
-            version=datasets.Version("1.0.1"),
+            version=datasets.Version("1.0.2"),
             description=_DESCRIPTION,
         ),
         datasets.BuilderConfig(
             name="sanitized",
-            version=datasets.Version("1.0.1"),
-            description=_DESCRIPTION + textwrap.dedent(
-                """\
-             The sanitized subset of the data has been hand-verified by the authors."""
-            )
+            version=datasets.Version("1.0.2"),
+            description=_DESCRIPTION
         )
     ]
 
@@ -75,7 +61,7 @@ class MBPP(datasets.GeneratorBasedBuilder):
                     "challenge_test_list": datasets.Sequence(datasets.Value("string")),
                 }
             )
-        else:
+        elif self.config.name == "sanitized":
             features = datasets.Features(
                 {
                     "source_file": datasets.Value("string"),
@@ -99,6 +85,8 @@ class MBPP(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         config_urls = _URLs[self.config.name]
         data_dir = dl_manager.download_and_extract(config_urls)
+        path = Path(data_dir)
+        path.parent
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
@@ -130,26 +118,37 @@ class MBPP(datasets.GeneratorBasedBuilder):
             )
         ]
 
-    def _generate_examples(self, fp, split):
-        """Yields examples."""
+    def _generate_examples(self, filepath, split):
         if self.config.name == "full":
+            def _read_lines(fn, start, end):
+                data = []
+                with open(fn, encoding="utf-8") as f:
+                    for line in f:
+                        sample = json.loads(line)
+                        if start <= sample['task_id'] <= end:
+                            data.append(sample)
+                        elif sample['task_id'] > end:
+                            break
+                return data
             if split == 'test':
-                data = _read_lines(fp, 'task_id', 11, 510, proc=json.loads)
+                data = _read_lines(filepath, 11, 510)
             elif split == 'train':
-                data = _read_lines(fp, 'task_id', 601, 974, proc=json.loads)
+                data = _read_lines(filepath, 601, 974)
             elif split == 'validation':
-                data = _read_lines(fp, 'task_id', 511, 600, proc=json.loads)
+                data = _read_lines(filepath, 511, 600)
             elif split == 'prompt':
-                data = _read_lines(fp, 'task_id', 1, 10, proc=json.loads)
+                data = _read_lines(filepath, 1, 10)
         elif self.config.name == "sanitized":
+            with open(filepath, encoding="utf-8") as f: 
+                data = json.load(f)
             if split == 'test':
-                data = _read_lines(fp, 'task_id', 11, 510)
+                data = [ sample for sample in data if 11 <= sample['task_id'] <= 510 ]
             elif split == 'train':
-                lines = _read_lines(fp, 'task_id', 601, 974)
+                data = [ sample for sample in data if 601 <= sample['task_id'] <= 974 ]
             elif split == 'validation':
-                lines = _read_lines(fp, 'task_id', 511, 600)
+                data = [ sample for sample in data if 511 <= sample['task_id'] <= 600 ]
             elif split == 'prompt':
-                lines = _read_lines(fp, 'task_id', 1, 10)
+                data = [ sample for sample in data if 1 <= sample['task_id'] <= 10 ]
         id_ = 0
         for sample in data:
             yield id_, sample
