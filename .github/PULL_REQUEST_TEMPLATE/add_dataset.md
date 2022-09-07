@@ -10,7 +10,7 @@
 - [ ] Fill the `_DESCRIPTION` and `_CITATION` variables
 - [ ] Implement `_infos()`, `_split_generators()` and `_generate_examples()`
 - [ ] Make sure that the `BUILDER_CONFIGS` class attribute is filled with the different configurations of the dataset and that the `BUILDER_CONFIG_CLASS` is specified if there is a custom config class.
-- [ ] Generate the metadata file `dataset_infos.json` for all configurations
 - [ ] Generate the dummy data `dummy_data.zip` files to have the dataset script tested and that they don't weigh too much (<50KB)
 - [ ] Add the dataset card `README.md` using the template : fill the tags and the various paragraphs
+- [ ] Fill the `dataset_infos` metadata in the dataset card using `datasets-cli test ./datasets/dataset_name --save_infos`
 - [ ] Both tests for the real data and the dummy data pass.

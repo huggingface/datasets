@@ -356,7 +356,7 @@ class DatasetBuilder:
         # Set download manager
         self.dl_manager = None
 
-        # Record infos even if verify_infos=False; used by "datasets-cli test" to generate dataset_infos.json
+        # Record infos even if verify_infos=False; used by "datasets-cli test" to generate file checksums for (deprecated) dataset_infos.json
         self._record_infos = False
 
         # Enable streaming (e.g. it patches "open" to work with remote files)

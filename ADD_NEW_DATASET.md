@@ -63,8 +63,6 @@ You are now ready to start the process of adding the dataset. We will create the
 
 - a **dataset script** which contains the code to download and pre-process the dataset: e.g. `squad.py`,
 - a **dataset card** with tags and information on the dataset in a `README.md`.
-- a **metadata file** (automatically created) which contains checksums and information about the dataset to guarantee that the loading went fine: `dataset_infos.json`
-- a **dummy-data file** (automatically created) which contains small examples from the original files to test and guarantee that the script is working well in the future: `dummy_data.zip`
 
 2. Let's start by creating a new branch to hold your development changes with the name of your dataset:
 
@@ -166,7 +164,7 @@ Sometimes you need to use several *configurations* and/or *splits* (usually at l
 - if some of you dataset features are in a fixed set of classes (e.g. labels), you should use a `ClassLabel` feature.
 
 
-**Last step:** To check that your dataset works correctly and to create its `dataset_infos.json` file run the command:
+**Last step:** To check that your dataset works correctly and to create its `dataset_infos` metadata in the dataset card, run the command:
 
 ```bash
 datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
@@ -229,13 +227,13 @@ Now that your dataset script runs and create a dataset with the format you expec
 	```
 	to enable the slow tests, instead of `RUN_SLOW=1`.
 
-3. If all tests pass, your dataset works correctly. You can finally create the metadata JSON by running the command:
+3. If all tests pass, your dataset works correctly. You can finally create the metadata by running the command:
 
 	```bash
 	datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 	```
 
-	This first command should create a `dataset_infos.json` file in your dataset folder.
+	This first command should create a `README.md` file in your dataset folder if it doesn't exist already, containing the metadata.
 
 
 You have now finished the coding part, congratulation! 🎉 You are Awesome! 😎
