@@ -299,7 +299,11 @@ class TensorflowDatasetMixin:
                     f"Unrecognized array dtype {np_arrays[0].dtype}. \n"
                     "Nested types and image/audio types are not supported yet."
                 )
-            if column in dataset and isinstance(dataset.features[column], Sequence) and dataset.features[column].length != -1:
+            if (
+                column in dataset
+                and isinstance(dataset.features[column], Sequence)
+                and dataset.features[column].length != -1
+            ):
                 static_shape = [batch_size, dataset.features[column].length]
             else:
                 shapes = [array.shape for array in np_arrays]
