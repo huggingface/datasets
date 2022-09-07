@@ -71,6 +71,7 @@ def test_dataset_info_to_yaml_dict_empty():
     [
         DatasetInfosDict(),
         DatasetInfosDict({"default": DatasetInfo()}),
+        DatasetInfosDict({"my_config_name": DatasetInfo()}),
         DatasetInfosDict(
             {
                 "default": DatasetInfo(
