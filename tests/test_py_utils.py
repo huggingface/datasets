@@ -136,6 +136,7 @@ class TempSeedTest(TestCase):
         from tensorflow.keras import layers
 
         model = layers.Dense(2)
+
         def gen_random_output():
             x = tf.random.uniform((1, 3))
             return model(x).numpy()
