@@ -71,9 +71,9 @@ en
 
 ### Data Instances
 
-- **Size of downloaded dataset files:** 33.39 MB
-- **Size of generated dataset files:** 99.47 MB
-- **Total size:** 132.86 MB
+- **Size of downloaded dataset files:** 34.76 MB
+- **Size of generated dataset files:** 97.64 MB
+- **Total size:** 132.40 MB
 
 ```
 {
