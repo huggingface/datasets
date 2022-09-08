@@ -940,6 +940,39 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ).read()
 
     @staticmethod
+    def from_generator(
+        generator: Callable,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        gen_kwargs: Optional[dict] = None,
+    ):
+        """Create a Dataset from a generator.
+
+        Args:
+            generator (:obj:`Callable`): A callable object that returns an object that supports the `iter()` protocol.
+            features (:class:`Features`, optional): Dataset features.
+            gen_kwargs(:obj:`dict`, optional): Keyword arguments to be passed to the `generator` callable.
+
+        Example:
+
+        ```py
+        >>> def gen(example):
+        ...     yield {"text": "Good", "label": 0}
+        ...     yield {"text": "Bad", "label": 1}
+        >>> ds = Dataset.from_generator(gen)
+        """
+        from .io.generator import GeneratorDatasetInputStream
+
+        return GeneratorDatasetInputStream(
+            generator=generator,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            gen_kwargs=gen_kwargs,
+        ).read()
+
+    @staticmethod
     def from_json(
         path_or_paths: Union[PathLike, List[PathLike]],
         split: Optional[NamedSplit] = None,

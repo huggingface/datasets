@@ -1213,6 +1213,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
     # None means that the ArrowWriter will use its default value
     DEFAULT_WRITER_BATCH_SIZE = None
 
+    # If True, infer the features from the ArrowWriter
+    INFER_FEATURES_IF_NONE = False
+
     def __init__(self, *args, writer_batch_size=None, **kwargs):
         super().__init__(*args, **kwargs)
         # Batch size used by the ArrowWriter
@@ -1269,6 +1272,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
 
+        infer_features = self.info.features is None and self.INFER_FEATURES_IF_NONE
+
         # TODO: embed the images/audio files inside parquet files.
         with writer_class(
             features=self.info.features,
@@ -1287,13 +1292,15 @@ class GeneratorBasedBuilder(DatasetBuilder):
                     disable=not logging.is_progress_bar_enabled(),
                     desc=f"Generating {split_info.name} split",
                 ):
-                    example = self.info.features.encode_example(record)
+                    example = self.info.features.encode_example(record) if not infer_features else record
                     writer.write(example, key)
             finally:
                 num_examples, num_bytes = writer.finalize()
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
+        if infer_features:
+            self.info.features = writer._features
 
     def _download_and_prepare(self, dl_manager, verify_infos, file_format=None):
         super()._download_and_prepare(
