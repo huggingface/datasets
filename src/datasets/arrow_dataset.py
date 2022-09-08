@@ -299,24 +299,17 @@ class TensorflowDatasetMixin:
                     f"Unrecognized array dtype {np_arrays[0].dtype}. \n"
                     "Nested types and image/audio types are not supported yet."
                 )
-            if (
-                column in dataset
-                and isinstance(dataset.features[column], Sequence)
-                and dataset.features[column].length != -1
-            ):
-                static_shape = [batch_size, dataset.features[column].length]
-            else:
-                shapes = [array.shape for array in np_arrays]
-                static_shape = []
-                for dim in range(len(shapes[0])):
-                    sizes = set([shape[dim] for shape in shapes])
-                    if dim == 0:
-                        static_shape.append(batch_size)
-                        continue
-                    if len(sizes) == 1:  # This dimension looks constant
-                        static_shape.append(sizes.pop())
-                    else:  # Use None for variable dimensions
-                        static_shape.append(None)
+            shapes = [array.shape for array in np_arrays]
+            static_shape = []
+            for dim in range(len(shapes[0])):
+                sizes = set([shape[dim] for shape in shapes])
+                if dim == 0:
+                    static_shape.append(batch_size)
+                    continue
+                if len(sizes) == 1:  # This dimension looks constant
+                    static_shape.append(sizes.pop())
+                else:  # Use None for variable dimensions
+                    static_shape.append(None)
             tf_columns_to_signatures[column] = tf.TensorSpec(shape=static_shape, dtype=tf_dtype)
             np_columns_to_dtypes[column] = np_dtype
 
