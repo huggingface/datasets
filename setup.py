@@ -124,7 +124,7 @@ TESTS_REQUIRE = [
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1
-    "tensorflow>=2.3,!=2.6.0,!=2.6.1,<2.10",  # temporarily pin <2.10
+    "tensorflow>=2.3,!=2.6.0,!=2.6.1",
     "torch",
     "torchaudio<0.12.0",
     "soundfile",
