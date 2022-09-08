@@ -954,6 +954,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features (:class:`Features`, optional): Dataset features.
             gen_kwargs(:obj:`dict`, optional): Keyword arguments to be passed to the `generator` callable.
 
+        Returns:
+            :class:`Dataset`
+
         Example:
 
         ```py
