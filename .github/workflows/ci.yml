@@ -56,19 +56,52 @@ jobs:
           python-version: 3.7
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
-      - name: Pin setuptools-scm
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: echo "installing pinned version of setuptools-scm to fix seqeval installation on 3.7" && pip install "setuptools-scm==6.4.2"
       - name: Install dependencies
-        run: |
-          pip install .[tests]
-          pip install -r additional-tests-requirements.txt --no-deps
+        run: pip install .[tests]
       - name: Install latest PyArrow
         if: ${{ matrix.pyarrow_version == 'latest' }}
         run: pip install pyarrow --upgrade
       - name: Install PyArrow ${{ matrix.pyarrow_version }}
         if: ${{ matrix.pyarrow_version != 'latest' }}
         run: pip install pyarrow==${{ matrix.pyarrow_version }}
+      - name: Test with pytest
+        run: |
+          python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
+
+  test-catalog:
+    needs: check_code_quality
+    strategy:
+      matrix:
+        test: [datasets_catalog, metrics_catalog]
+        os: [ubuntu-latest, windows-latest]
+    continue-on-error: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install OS dependencies
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install libsndfile1 sox
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.7
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+      - name: Pin setuptools-scm
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.test == 'metrics_catalog' }}
+        run: echo "installing pinned version of setuptools-scm to fix seqeval installation on 3.7" && pip install "setuptools-scm==6.4.2"
+      - name: Install dependencies
+        if: ${{ matrix.test == 'datasets_catalog' }}
+        run: pip install .[tests,test_datasets_catalog]
+      - name: Install dependencies
+        if: ${{ matrix.test == 'metrics_catalog' }}
+        run: |
+          pip install .[tests,test_metrics_catalog]
+          pip install -r additional-tests-requirements-for-metrics.txt --no-deps
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/

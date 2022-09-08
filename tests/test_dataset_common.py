@@ -35,7 +35,7 @@ from datasets.search import _has_faiss
 from datasets.utils.file_utils import cached_path, is_remote_url
 from datasets.utils.logging import get_logger
 
-from .utils import OfflineSimulationMode, for_all_test_methods, local, offline, packaged, slow
+from .utils import OfflineSimulationMode, for_all_test_methods, offline, packaged, slow
 
 
 logger = get_logger(__name__)
@@ -226,8 +226,8 @@ def get_local_dataset_names():
 
 @parameterized.named_parameters(get_local_dataset_names())
 @for_all_test_methods(skip_if_dataset_requires_faiss, skip_if_not_compatible_with_windows)
-@local
-class LocalDatasetTest(parameterized.TestCase):
+@pytest.mark.datasets_catalog
+class DatasetTest(parameterized.TestCase):
     dataset_name = None
 
     def setUp(self):

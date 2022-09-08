@@ -10,7 +10,7 @@ pytest_plugins = ["tests.fixtures.files", "tests.fixtures.hub", "tests.fixtures.
 def pytest_collection_modifyitems(config, items):
     # Mark tests as "unit" by default if not marked as "integration" (or already marked as "unit")
     for item in items:
-        if any(marker in item.keywords for marker in ["integration", "unit"]):
+        if any(marker in item.keywords for marker in ["integration", "unit", "datasets_catalog", "metrics_catalog"]):
             continue
         item.add_marker(pytest.mark.unit)
 

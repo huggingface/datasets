@@ -29,7 +29,7 @@ from absl.testing import parameterized
 import datasets
 from datasets import load_metric
 
-from .utils import for_all_test_methods, local, slow
+from .utils import for_all_test_methods, slow
 
 
 REQUIRE_FAIRSEQ = {"comet"}
@@ -68,9 +68,8 @@ def get_local_metric_names():
 
 @parameterized.named_parameters(get_local_metric_names())
 @for_all_test_methods(skip_if_metric_requires_fairseq, skip_on_windows_if_not_windows_compatible)
-@local
-@pytest.mark.integration
-class LocalMetricTest(parameterized.TestCase):
+@pytest.mark.metrics_catalog
+class MetricTest(parameterized.TestCase):
     INTENSIVE_CALLS_PATCHER = {}
     metric_name = None
 
@@ -136,7 +135,7 @@ class LocalMetricTest(parameterized.TestCase):
 # --------------------------------
 
 
-@LocalMetricTest.register_intensive_calls_patcher("bleurt")
+@MetricTest.register_intensive_calls_patcher("bleurt")
 def patch_bleurt(module_name):
     import tensorflow.compat.v1 as tf
     from bleurt.score import Predictor
@@ -154,7 +153,7 @@ def patch_bleurt(module_name):
         yield
 
 
-@LocalMetricTest.register_intensive_calls_patcher("bertscore")
+@MetricTest.register_intensive_calls_patcher("bertscore")
 def patch_bertscore(module_name):
     import torch
 
@@ -170,7 +169,7 @@ def patch_bertscore(module_name):
         yield
 
 
-@LocalMetricTest.register_intensive_calls_patcher("comet")
+@MetricTest.register_intensive_calls_patcher("comet")
 def patch_comet(module_name):
     def load_from_checkpoint(model_path):
         class Model:

@@ -129,6 +129,10 @@ TESTS_REQUIRE = [
     "torchaudio<0.12.0",
     "soundfile",
     "transformers",
+    "zstandard",
+]
+
+DATASET_SCRIPTS_REQUIRE = [
     # datasets dependencies
     "bs4",
     "conllu",
@@ -142,6 +146,9 @@ TESTS_REQUIRE = [
     "sentencepiece",  # bigbench requires t5 which requires seqio which requires sentencepiece
     "rouge_score",  # required by bigbench: bigbench.api.util.bb_utils > t5.evaluation.metrics > rouge_score
     "sacremoses",
+]
+
+METRIC_SCRIPTS_REQUIRE = [
     # metrics dependencies
     "bert_score>=0.3.6",
     "jiwer",
@@ -156,13 +163,6 @@ TESTS_REQUIRE = [
     "sentencepiece",  # for bleurt
     "seqeval",
     "tldextract",
-    # to speed up pip backtracking
-    "toml>=0.10.1",
-    "requests_file>=1.5.1",
-    "tldextract>=3.1.0",
-    "texttable>=1.6.3",
-    "Werkzeug>=1.0.1",
-    "six~=1.15.0",
 ]
 
 TESTS_REQUIRE.extend(VISION_REQURE)
@@ -187,6 +187,8 @@ EXTRAS_REQUIRE = {
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
     "tests": TESTS_REQUIRE,
+    "test_datasets_catalog": DATASET_SCRIPTS_REQUIRE,
+    "test_metrics_catalog": METRIC_SCRIPTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": [

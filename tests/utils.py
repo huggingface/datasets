@@ -213,18 +213,6 @@ def slow(test_case):
     return test_case
 
 
-def local(test_case):
-    """
-    Decorator marking a test as local
-
-    Local tests are run by default. Set the RUN_LOCAL environment variable
-    to a falsy value to not run them.
-    """
-    if not _run_local_tests or _run_local_tests == 0:
-        test_case = unittest.skip("test is local")(test_case)
-    return test_case
-
-
 def packaged(test_case):
     """
     Decorator marking a test as packaged
