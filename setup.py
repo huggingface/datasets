@@ -155,7 +155,7 @@ METRIC_SCRIPTS_REQUIRE = [
     "langdetect",
     "mauve-text",
     "nltk",
-    # "rouge_score",  # also required by bigbench
+    "rouge_score",
     "sacrebleu",
     "sacremoses",
     "scikit-learn",

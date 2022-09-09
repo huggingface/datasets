@@ -189,6 +189,7 @@ def patch_comet(module_name):
             yield
 
 
+@pytest.mark.metrics_catalog
 def test_seqeval_raises_when_incorrect_scheme():
     metric = load_metric(os.path.join("metrics", "seqeval"))
     wrong_scheme = "ERROR"
