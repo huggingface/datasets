@@ -81,7 +81,7 @@ REQUIRED_PKGS = [
     "importlib_metadata;python_version<'3.8'",
     # to save datasets locally or on any filesystem
     # minimum 2021.11.1 so that BlockSizeError is fixed: see https://github.com/fsspec/filesystem_spec/pull/830
-    "fsspec[http]>=2021.11.1",  # aligned s3fs with this
+    "fsspec[http]>=2021.11.1,<2022.8.2",  # aligned s3fs with this
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
