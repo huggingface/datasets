@@ -2436,16 +2436,6 @@ class BaseDatasetTest(TestCase):
                 # Assert that we don't have any empty entries here
                 self.assertTrue(isinstance(batch[0], tf.Tensor) and isinstance(batch[1], tf.Tensor))
 
-                with pytest.raises(ValueError):
-                    tf_dataset = new_dset.to_tf_dataset(
-                        columns=["features"],
-                        label_cols=["label"],
-                        collate_fn=minimal_tf_collate_fn_with_renaming,
-                        batch_size=4,
-                        auto_rename_labels=False,
-                    )
-                    batch = next(iter(tf_dataset))
-
                 tf_dataset = new_dset.to_tf_dataset(
                     columns=["features"],
                     collate_fn=minimal_tf_collate_fn_with_renaming,
