@@ -63,7 +63,14 @@ from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .download.download_config import DownloadConfig
 from .download.streaming_download_manager import xgetsize
 from .features import Audio, ClassLabel, Features, Image, Sequence, Value
-from .features.features import FeatureType, decode_nested_example, pandas_types_mapper, require_decoding
+from .features.features import (
+    FeatureType,
+    _align_features,
+    _check_if_features_can_be_aligned,
+    decode_nested_example,
+    pandas_types_mapper,
+    require_decoding,
+)
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -607,36 +614,6 @@ def _check_column_names(column_names: List[str]):
 def _check_valid_indices_value(index, size):
     if (index < 0 and index + size < 0) or (index >= size):
         raise IndexError(f"Index {index} out of range for dataset of size {size}.")
-
-
-def _check_if_features_can_be_aligned(features_list: List[Features]):
-    """Check if the dictionaries of features can be aligned.
-
-    Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
-    """
-    name2feature = {}
-    for features in features_list:
-        for k, v in features.items():
-            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
-                name2feature[k] = v
-
-    for features in features_list:
-        for k, v in features.items():
-            if not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
-                raise ValueError(
-                    f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
-                )
-
-
-def _align_features(features_list: List[Features]) -> List[Features]:
-    """Align dictionaries of features so that the keys that are found in multiple dictionaries share the same feature."""
-    name2feature = {}
-    for features in features_list:
-        for k, v in features.items():
-            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
-                name2feature[k] = v
-
-    return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
 
 
 class NonExistentDatasetError(Exception):
