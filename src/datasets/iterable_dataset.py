@@ -10,8 +10,8 @@ import numpy as np
 import pyarrow as pa
 
 from .arrow_dataset import DatasetInfoMixin
-from .features import Features, Value
-from .features.features import FeatureType
+from .features import Features
+from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned
 from .formatting import PythonFormatter
 from .info import DatasetInfo
 from .splits import NamedSplit
@@ -29,10 +29,11 @@ def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Fe
 
 
 def _examples_to_batch(examples: List[Dict[str, Any]]) -> Dict[str, list]:
-    cols = sorted(examples[0].keys())
-    arrays = []
-    for col in cols:
-        arrays.append([example[col] for example in examples])
+    # we order the columns by order of appearance
+    # to do so, we use a dict as an ordered set
+    cols = {col: None for example in examples for col in example}
+    # when an example is missing a column, we set the value to None with .get()
+    arrays = [[example.get(col) for example in examples] for col in cols]
     return dict(zip(cols, arrays))
 
 
@@ -1295,25 +1296,6 @@ def iterable_dataset(
     )
 
 
-def _check_if_features_can_be_aligned(features_list: List[Features]):
-    """Check if the dictionaries of features can be aligned.
-
-    Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
-    """
-    name2feature = {}
-    for features in features_list:
-        for k, v in features.items():
-            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
-                name2feature[k] = v
-
-    for features in features_list:
-        for k, v in features.items():
-            if not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
-                raise ValueError(
-                    f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
-                )
-
-
 def _concatenate_iterable_datasets(
     dsets: List[IterableDataset],
     info: Optional[DatasetInfo] = None,
@@ -1350,9 +1332,11 @@ def _concatenate_iterable_datasets(
     else:
         _check_column_names([col_name for dset in dsets for col_name in dset.features])
 
-    features = Features()
-    for dset in dsets:
-        features.update(dset.features)
+    # TODO: improve this to account for a mix of ClassLabel and Value for example
+    # right now it would keep the type of the first dataset in the list
+    features = Features(
+        {k: v for features in _align_features([dset.features for dset in dsets]) for k, v in features.items()}
+    )
 
     ex_iterables = [d._ex_iterable for d in dsets]
     if axis == 0:
@@ -1396,13 +1380,19 @@ def _interleave_iterable_datasets(
     Output:
         :class:`datasets.IterableDataset`
     """
-    # TODO(QL): merge the features as in _concatenate_iterable_datasets() and don't use TypedExamplesIterable
-    ex_iterables = [
-        TypedExamplesIterable(d._ex_iterable, d.features, token_per_repo_id=d._token_per_repo_id)
-        if not isinstance(d._ex_iterable, TypedExamplesIterable) and d.features is not None
-        else d._ex_iterable
-        for d in datasets
-    ]
+    datasets = [d._resolve_features() for d in datasets]
+
+    # Perform checks
+    _check_if_features_can_be_aligned([dset.features for dset in datasets])
+
+    # TODO: improve this to account for a mix of ClassLabel and Value for example
+    # right now it would keep the type of the first dataset in the list
+    features = Features(
+        {k: v for features in _align_features([dset.features for dset in datasets]) for k, v in features.items()}
+    )
+
+    ex_iterables = [d._ex_iterable for d in datasets]
+
     # Use cycling or random cycling or sources
     if probabilities is None:
         ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables)
@@ -1411,11 +1401,13 @@ def _interleave_iterable_datasets(
         ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
             ex_iterables, generator=generator, probabilities=probabilities
         )
-    # Set new info - we reset the features
-    # TODO(QL): merge the features as in _concatenate_iterable_datasets() and use them here
+    # Set new info - we update the features
+    # setting the features also ensures to fill missing columns with None
     if info is None:
         info = DatasetInfo.from_merge([d.info for d in datasets])
-        info.features = None
+    else:
+        info = info.copy()
+    info.features = features
     # Get all the auth tokens per repository - in case the datasets come from different private repositories
     token_per_repo_id = {
         repo_id: token for dataset in datasets for repo_id, token in dataset._token_per_repo_id.items()
