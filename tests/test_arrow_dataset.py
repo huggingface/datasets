@@ -2414,16 +2414,6 @@ class BaseDatasetTest(TestCase):
                 batch = next(iter(tf_dataset))
                 self.assertTrue("labels" in batch and "features" in batch)  # Assert renaming was handled correctly
 
-                with pytest.raises(ValueError):
-                    # Assert that this throws an error when we don't rename columns
-                    tf_dataset = new_dset.to_tf_dataset(
-                        columns=["features", "label"],
-                        collate_fn=minimal_tf_collate_fn_with_renaming,
-                        batch_size=4,
-                        auto_rename_labels=False,
-                    )
-                    batch = next(iter(tf_dataset))
-
                 tf_dataset = new_dset.to_tf_dataset(
                     columns=["features"],
                     label_cols=["labels"],
