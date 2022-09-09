@@ -2446,17 +2446,6 @@ class BaseDatasetTest(TestCase):
                 # just because the collate_fn added them
                 self.assertTrue(isinstance(batch, tf.Tensor))
 
-                tf_dataset = new_dset.to_tf_dataset(
-                    columns=["features"],
-                    collate_fn=minimal_tf_collate_fn_with_renaming,
-                    batch_size=4,
-                    auto_rename_labels=False,
-                )
-                batch = next(iter(tf_dataset))
-                # Assert that labels didn't creep in when we don't ask for them
-                # just because the collate_fn added them
-                self.assertTrue(isinstance(batch, tf.Tensor))
-
         del tf_dataset  # For correct cleanup
 
     @require_tf
