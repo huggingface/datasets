@@ -218,7 +218,7 @@ def _download_additional_modules(
         raise ImportError(
             f"To be able to use {name}, you need to install the following {_depencencies_str}: "
             f"{', '.join(needs_to_be_installed)}.\nPlease install {_them_str} using 'pip install "
-            f"{' '.join(needs_to_be_installed.values())}' for instance'"
+            f"{' '.join(needs_to_be_installed.values())}' for instance."
         )
     return local_imports
 
