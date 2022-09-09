@@ -1377,7 +1377,6 @@ class DatasetDict(dict):
             token=token,
             repo_type="dataset",
             revision=branch,
-            identical_ok=True,
         )
 
 

@@ -224,7 +224,7 @@ class TensorflowDatasetMixin:
         collate_fn_args: dict,
         cols_to_retain: Optional[List[str]] = None,
         batch_size: Optional[int] = None,
-        num_test_batches: int = 10,
+        num_test_batches: int = 200,
     ):
         """Private method used by `to_tf_dataset()` to find the shapes and dtypes of samples from this dataset
            after being passed through the collate_fn. Tensorflow needs an exact signature for tf.numpy_function, so
@@ -253,11 +253,9 @@ class TensorflowDatasetMixin:
 
         if len(dataset) == 0:
             raise ValueError("Unable to get the output signature because the dataset is empty.")
-        if batch_size is None:
-            test_batch_size = min(len(dataset), 8)
-        else:
+        if batch_size is not None:
             batch_size = min(len(dataset), batch_size)
-            test_batch_size = batch_size
+        test_batch_size = min(len(dataset), 2)
 
         test_batches = []
         for _ in range(num_test_batches):
@@ -1166,7 +1164,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         fs.makedirs(dataset_path, exist_ok=True)
         with fs.open(Path(dataset_path, config.DATASET_ARROW_FILENAME).as_posix(), "wb") as dataset_file:
             with ArrowWriter(stream=dataset_file) as writer:
-                writer.write_table(dataset._data)
+                writer.write_table(dataset._data.table)
                 writer.finalize()
         with fs.open(
             Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "w", encoding="utf-8"
@@ -4235,7 +4233,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         token=token,
                         repo_type="dataset",
                         revision=branch,
-                        identical_ok=False,
                     ),
                     exceptions=HTTPError,
                     status_codes=[504],
@@ -4390,7 +4387,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             token=token,
             repo_type="dataset",
             revision=branch,
-            identical_ok=True,
         )
 
     @transmit_format
