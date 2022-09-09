@@ -224,7 +224,7 @@ class TensorflowDatasetMixin:
         collate_fn_args: dict,
         cols_to_retain: Optional[List[str]] = None,
         batch_size: Optional[int] = None,
-        num_test_batches: int = 10,
+        num_test_batches: int = 200,
         auto_rename_labels: bool = True,
     ):
         """Private method used by `to_tf_dataset()` to find the shapes and dtypes of samples from this dataset
@@ -257,11 +257,10 @@ class TensorflowDatasetMixin:
 
         if len(dataset) == 0:
             raise ValueError("Unable to get the output signature because the dataset is empty.")
-        if batch_size is None:
-            test_batch_size = min(len(dataset), 8)
-        else:
+        if batch_size is not None:
             batch_size = min(len(dataset), batch_size)
-            test_batch_size = batch_size
+        test_batch_size = min(len(dataset), 2)
+        
         if cols_to_retain is None or not set(cols_to_retain) & {"label", "label_ids", "labels"}:
             auto_rename_labels = False
         if auto_rename_labels:
