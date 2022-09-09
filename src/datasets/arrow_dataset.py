@@ -260,7 +260,7 @@ class TensorflowDatasetMixin:
         if batch_size is not None:
             batch_size = min(len(dataset), batch_size)
         test_batch_size = min(len(dataset), 2)
-        
+
         if cols_to_retain is None or not set(cols_to_retain) & {"label", "label_ids", "labels"}:
             auto_rename_labels = False
         if auto_rename_labels:
