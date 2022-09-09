@@ -248,6 +248,7 @@ class Compguesswhat(datasets.GeneratorBasedBuilder):
             return game["id"], game
 
         """Yields examples."""
-        with gzip.open(filepath) as in_file:
-            for data in in_file:
-                yield _extract_game_tuple(data)
+        with open(filepath, "rb") as gzip_file:
+            with gzip.open(gzip_file) as in_file:
+                for data in in_file:
+                    yield _extract_game_tuple(data)
