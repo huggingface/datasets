@@ -2440,7 +2440,6 @@ class BaseDatasetTest(TestCase):
                     columns=["features"],
                     collate_fn=minimal_tf_collate_fn_with_renaming,
                     batch_size=4,
-                    auto_rename_labels=True,
                 )
                 batch = next(iter(tf_dataset))
                 # Assert that labels didn't creep in when we don't ask for them
