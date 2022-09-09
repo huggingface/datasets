@@ -1,6 +1,24 @@
 ---
-paperswithcode_id: compguesswhat
+annotations_creators:
+- machine-generated
+language:
+- en
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
 pretty_name: CompGuessWhat?!
+size_categories:
+- 100K<n<1M
+source_datasets:
+- extended|other-guesswhat
+task_categories:
+- visual-question-answering
+task_ids:
+- visual-question-answering
+paperswithcode_id: compguesswhat
 ---
 
 # Dataset Card for "compguesswhat"
