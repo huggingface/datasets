@@ -50,7 +50,7 @@ class Compguesswhat(datasets.GeneratorBasedBuilder):
             name="compguesswhat-original",
             gameplay_scenario="original",
             description="CompGuessWhat?! subset of games from the original GuessWhat?! dataset",
-            data_url="https://www.dropbox.com/s/l0nc13udml6vs0w/compguesswhat-original.zip?dl=1",
+            data_url="https://www.dropbox.com/s/qd9wlydpkpmq8rr/compguesswhat-original.zip?dl=1",
             splits={
                 "train": "compguesswhat.train.jsonl.gz",
                 "valid": "compguesswhat.valid.jsonl.gz",
@@ -61,7 +61,7 @@ class Compguesswhat(datasets.GeneratorBasedBuilder):
             name="compguesswhat-zero_shot",
             gameplay_scenario="zero_shot",
             description="CompGuessWhat?! reference set of games for zero-shot evaluation using NOCAPS images",
-            data_url="https://www.dropbox.com/s/gd46azul7o7iip4/compguesswhat-zero_shot.zip?dl=1",
+            data_url="https://www.dropbox.com/s/f5o2t7aiok7kpcm/compguesswhat-zero_shot.zip?dl=1",
             splits={
                 "nd_valid": "compguesswhat.nd_valid.jsonl.gz",
                 "nd_test": "compguesswhat.nd_test.jsonl.gz",
