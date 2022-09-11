@@ -40,11 +40,7 @@ class MBPP(datasets.GeneratorBasedBuilder):
             version=datasets.Version("1.0.2"),
             description=_DESCRIPTION,
         ),
-        datasets.BuilderConfig(
-            name="sanitized",
-            version=datasets.Version("1.0.2"),
-            description=_DESCRIPTION
-        )
+        datasets.BuilderConfig(name="sanitized", version=datasets.Version("1.0.2"), description=_DESCRIPTION),
     ]
 
     DEFAULT_CONFIG_NAME = "full"
@@ -88,65 +84,55 @@ class MBPP(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": data_dir,
-                    "split": "train"
-                },
+                gen_kwargs={"filepath": data_dir, "split": "train"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": data_dir,
-                    "split": "test"
-                },
+                gen_kwargs={"filepath": data_dir, "split": "test"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": data_dir,
-                    "split": "validation"
-                },
+                gen_kwargs={"filepath": data_dir, "split": "validation"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split("prompt"),
-                gen_kwargs={
-                    "filepath": data_dir,
-                    "split": "prompt"
-                },
-            )
+                gen_kwargs={"filepath": data_dir, "split": "prompt"},
+            ),
         ]
 
     def _generate_examples(self, filepath, split):
         if self.config.name == "full":
+
             def _read_lines(fn, start, end):
                 data = []
                 with open(fn, encoding="utf-8") as f:
                     for line in f:
                         sample = json.loads(line)
-                        if start <= sample['task_id'] <= end:
+                        if start <= sample["task_id"] <= end:
                             data.append(sample)
-                        elif sample['task_id'] > end:
+                        elif sample["task_id"] > end:
                             break
                 return data
-            if split == 'test':
+
+            if split == "test":
                 data = _read_lines(filepath, 11, 510)
-            elif split == 'train':
+            elif split == "train":
                 data = _read_lines(filepath, 601, 974)
-            elif split == 'validation':
+            elif split == "validation":
                 data = _read_lines(filepath, 511, 600)
-            elif split == 'prompt':
+            elif split == "prompt":
                 data = _read_lines(filepath, 1, 10)
         elif self.config.name == "sanitized":
-            with open(filepath, encoding="utf-8") as f: 
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
-            if split == 'test':
-                data = [ sample for sample in data if 11 <= sample['task_id'] <= 510 ]
-            elif split == 'train':
-                data = [ sample for sample in data if 601 <= sample['task_id'] <= 974 ]
-            elif split == 'validation':
-                data = [ sample for sample in data if 511 <= sample['task_id'] <= 600 ]
-            elif split == 'prompt':
-                data = [ sample for sample in data if 1 <= sample['task_id'] <= 10 ]
+            if split == "test":
+                data = [sample for sample in data if 11 <= sample["task_id"] <= 510]
+            elif split == "train":
+                data = [sample for sample in data if 601 <= sample["task_id"] <= 974]
+            elif split == "validation":
+                data = [sample for sample in data if 511 <= sample["task_id"] <= 600]
+            elif split == "prompt":
+                data = [sample for sample in data if 1 <= sample["task_id"] <= 10]
         id_ = 0
         for sample in data:
             yield id_, sample
