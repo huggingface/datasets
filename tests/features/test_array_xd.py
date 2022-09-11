@@ -365,11 +365,10 @@ def test_array_xd_with_np(data, feature, expected):
 )
 def test_large_array_xd_with_np():
     large_array = np.zeros((46341, 46341), dtype=np.uint8)
-    features = datasets.Features({"col": datasets.Array2D(shape=(46341, 46341), dtype="uint8")})
-    ds = datasets.Dataset.from_dict({"col": [large_array]}, features=features)
+    ds = datasets.Dataset.from_dict({"col": large_array})
     ds.set_format("np")
     assert not ds[0]["col"].any()
-    assert ds[0]["col"].shape == (46341, 46341)
+    assert ds[0]["col"].shape == (46341,)
 
 
 @pytest.mark.parametrize("with_none", [False, True])
