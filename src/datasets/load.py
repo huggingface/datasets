@@ -740,7 +740,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "config_name": os.path.basename(self.path[:-1] if self.path[-1] == "/" else self.path),
+            "config_name": os.path.basename(self.path.rstrip("/")),
             "base_path": self.path,
             **builder_kwargs,
         }
