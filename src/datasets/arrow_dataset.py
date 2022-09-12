@@ -248,6 +248,7 @@ class TensorflowDatasetMixin:
                 `collate_fn`.
             batch_size (:obj:`int`, optional): The size of batches loaded from the dataset. Used for shape inference.
                 Can be None, which indicates that batch sizes can be variable.
+            num_test_batches (:obj:`int`): The number of batches to load from the dataset for shape inference.
 
         Returns:
             :obj:`dict`: Dict mapping column names to tf.Tensorspec objects
@@ -264,16 +265,15 @@ class TensorflowDatasetMixin:
             batch_size = min(len(dataset), batch_size)
         test_batch_size = min(len(dataset), 2)
 
+        if cols_to_retain is not None:
+            cols_to_retain = list(set(cols_to_retain + ["label_ids", "label", "labels"]))
+
         test_batches = []
         for _ in range(num_test_batches):
             indices = sample(range(len(dataset)), test_batch_size)
             test_batch = dataset[indices]
             if cols_to_retain is not None:
-                test_batch = {
-                    key: value
-                    for key, value in test_batch.items()
-                    if key in cols_to_retain or key in ("label_ids", "label")
-                }
+                test_batch = {key: value for key, value in test_batch.items() if key in cols_to_retain}
             test_batch = [{key: value[i] for key, value in test_batch.items()} for i in range(test_batch_size)]
             test_batch = collate_fn(test_batch, **collate_fn_args)
             test_batches.append(test_batch)
@@ -404,19 +404,16 @@ class TensorflowDatasetMixin:
                 raise ValueError("List of columns contains duplicates.")
             cols_to_retain = list(set(columns + label_cols))
         else:
-            cols_to_retain = None  # Indicates keeping all non-numerical columns
+            cols_to_retain = None  # Indicates keeping all valid columns
             columns = []
 
         if self.format["type"] != "custom":
             dataset = self.with_format("numpy")
         else:
             dataset = self
-        # If the user hasn't specified columns, give them all columns. This may break some data collators if columns
-        # are non-numeric!
 
-        # If drop_remainder is True then all batches will have the same size, so this can be included in the
-        # output shape. If drop_remainder is False then batch size can be variable, so that dimension should
-        # be listed as None
+        # TODO(Matt, QL): deprecate the retention of label_ids and label
+
         output_signature, columns_to_np_types = dataset._get_output_signature(
             dataset,
             collate_fn=collate_fn,
@@ -425,19 +422,36 @@ class TensorflowDatasetMixin:
             batch_size=batch_size if drop_remainder else None,
         )
 
+        if "labels" in output_signature:
+            if ("label_ids" in columns or "label" in columns) and "labels" not in columns:
+                columns = [col for col in columns if col not in ["label_ids", "label"]] + ["labels"]
+            if ("label_ids" in label_cols or "label" in label_cols) and "labels" not in label_cols:
+                label_cols = [col for col in label_cols if col not in ["label_ids", "label"]] + ["labels"]
+
+        for col in columns:
+            if col not in output_signature:
+                raise ValueError(f"Column {col} not found in dataset!")
+
+        for col in label_cols:
+            if col not in output_signature:
+                raise ValueError(f"Label column {col} not found in dataset!")
+
         def np_get_batch(indices):
-            # Following the logic in `transformers.Trainer`, we do not drop `label_ids` or `label` even if they
-            # are not in the list of requested columns, because the collator may rename them
-            # This might work better if moved to a method attached to our transformers Model objects, but doing so
-            # could break backward compatibility
-            # TODO(Matt, QL): deprecate the retention of label_ids and label
-            batch = dataset[indices]
+            # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
+            if np.all(np.diff(indices) == 1):
+                batch = dataset[indices[0] : indices[-1] + 1]
+            else:
+                batch = dataset[indices]
+
             if cols_to_retain is not None:
                 batch = {
                     key: value
                     for key, value in batch.items()
-                    if key in cols_to_retain or key in ("label_ids", "label")
+                    if key in cols_to_retain or key in ("label", "label_ids", "labels")
                 }
+            elif cols_to_retain is not None:
+                batch = {key: value for key, value in batch.items() if key in cols_to_retain}
+
             actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
             # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
             batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
@@ -472,23 +486,21 @@ class TensorflowDatasetMixin:
 
         tf_dataset = tf_dataset.map(ensure_shapes)
 
-        if label_cols:
-
-            def split_features_and_labels(input_batch):
-                features = {key: tensor for key, tensor in input_batch.items() if key in columns}
-                labels = {key: tensor for key, tensor in input_batch.items() if key in label_cols}
-                assert set(features.keys()).union(labels.keys()) == set(input_batch.keys())
-                if len(features) == 1:
-                    features = list(features.values())[0]
-                if len(labels) == 1:
-                    labels = list(labels.values())[0]
+        def split_features_and_labels(input_batch):
+            # TODO(Matt, QL): deprecate returning the dict content when there's only one key
+            features = {key: tensor for key, tensor in input_batch.items() if key in columns}
+            labels = {key: tensor for key, tensor in input_batch.items() if key in label_cols}
+            if len(features) == 1:
+                features = list(features.values())[0]
+            if len(labels) == 1:
+                labels = list(labels.values())[0]
+            if isinstance(labels, dict) and len(labels) == 0:
+                return features
+            else:
                 return features, labels
 
+        if cols_to_retain is not None:
             tf_dataset = tf_dataset.map(split_features_and_labels)
-
-        # TODO(Matt, QL): deprecate returning the dict content when there's only one key
-        elif isinstance(tf_dataset.element_spec, dict) and len(tf_dataset.element_spec) == 1:
-            tf_dataset = tf_dataset.map(lambda x: list(x.values())[0])
 
         if prefetch:
             tf_dataset = tf_dataset.prefetch(tf.data.experimental.AUTOTUNE)
