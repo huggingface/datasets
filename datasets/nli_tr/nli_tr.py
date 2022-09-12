@@ -15,7 +15,6 @@
 """NLI-TR: The Turkish translation of SNLI and MultiNLI datasets using Amazon Translate."""
 
 
-import codecs
 import json
 import os
 
