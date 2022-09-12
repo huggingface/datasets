@@ -111,6 +111,25 @@ The dataset can be found with the following languages:
 
 ### Data Instances
 
+An example from `en` config:
+```
+{'id': '56beb4343aeaaa14008c925b',
+ 'context': "The Panthers defense gave up just 308 points, ranking sixth in the league, while also leading the NFL in interceptions with 24 and boasting four Pro Bowl selections. Pro Bowl defensive tackle Kawann Short led the team in sacks with 11, while also forcing three fumbles and recovering two. Fellow lineman Mario Addison added 6½ sacks. The Panthers line also featured veteran defensive end Jared Allen, a 5-time pro bowler who was the NFL's active career sack leader with 136, along with defensive end Kony Ealy, who had 5 sacks in just 9 starts. Behind them, two of the Panthers three starting linebackers were also selected to play in the Pro Bowl: Thomas Davis and Luke Kuechly. Davis compiled 5½ sacks, four forced fumbles, and four interceptions, while Kuechly led the team in tackles (118) forced two fumbles, and intercepted four passes of his own. Carolina's secondary featured Pro Bowl safety Kurt Coleman, who led the team with a career high seven interceptions, while also racking up 88 tackles and Pro Bowl cornerback Josh Norman, who developed into a shutdown corner during the season and had four interceptions, two of which were returned for touchdowns.",
+ 'question': 'How many points did the Panthers defense surrender?',
+ 'answers': {'text': ['308'], 'answer_start': [34]}}
+```
+
+### Data Fields
+
+- `id` (`str`): Unique ID for the context-question pair.
+- `context` (`str`): Context for the question.
+- `question` (`str`): Question.
+- `answers` (`dict`): Answers with the following keys:
+  - `text` (`list` of `str`): Texts of the answers.
+  - `answer_start` (`list` of `int`): Start positions for every answer text.
+
+### Data Splits
+
 The number of questions and candidate sentences for each language for XQuAD-R is shown in the table below:
 
 |     | XQuAD-R   |            |
@@ -127,14 +146,6 @@ The number of questions and candidate sentences for each language for XQuAD-R is
 | tr |      1190 |       1167 |
 | vi |      1190 |       1209 |
 | zh |      1190 |       1196 |
-
-### Data Fields
-
-[More Information Needed]
-
-### Data Splits
-
-[More Information Needed]
 
 ## Dataset Creation
 
