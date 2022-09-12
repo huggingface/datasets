@@ -935,7 +935,7 @@ def test_builder_download_and_prepare_with_absolute_output_dir(tmp_path):
     builder = DummyGeneratorBasedBuilder()
     output_dir = str(tmp_path)
     builder.download_and_prepare(output_dir)
-    assert builder._output_dir.startswith(output_dir)
+    assert builder._output_dir.startswith(tmp_path.resolve().as_posix())
     assert os.path.exists(os.path.join(output_dir, "dataset_info.json"))
     assert os.path.exists(os.path.join(output_dir, f"{builder.name}-train.arrow"))
     assert not os.path.exists(os.path.join(output_dir + ".incomplete"))
@@ -946,7 +946,7 @@ def test_builder_download_and_prepare_with_relative_output_dir():
         builder = DummyGeneratorBasedBuilder()
         output_dir = "test-out"
         builder.download_and_prepare(output_dir)
-        assert builder._output_dir.startswith(str(Path(output_dir).resolve().as_posix()))
+        assert Path(builder._output_dir).resolve().as_posix().startswith(Path(output_dir).resolve().as_posix())
         assert os.path.exists(os.path.join(output_dir, "dataset_info.json"))
         assert os.path.exists(os.path.join(output_dir, f"{builder.name}-train.arrow"))
         assert not os.path.exists(os.path.join(output_dir + ".incomplete"))
