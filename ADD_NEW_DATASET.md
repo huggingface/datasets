@@ -164,7 +164,9 @@ Sometimes you need to use several *configurations* and/or *splits* (usually at l
 - if some of you dataset features are in a fixed set of classes (e.g. labels), you should use a `ClassLabel` feature.
 
 
-**Last step:** To check that your dataset works correctly and to create its `dataset_infos` metadata in the dataset card, run the command:
+#### Tests (optional)
+
+ To check that your dataset works correctly and to create its `dataset_infos` metadata in the dataset card, run the command:
 
 ```bash
 datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
