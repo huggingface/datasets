@@ -56,7 +56,7 @@ task_ids: []
 
 - **Homepage:** https://doi.org/10.5281/zenodo.7068130
 - **Repository:** [Needs More Information]
-- **Paper:** [A non-expert Kaldi recipe for Vietnamese Speech Recognition System](https://ailab.hcmus.edu.vn/assets/WLSI3_2016_Luong_non_expert.pdf)
+- **Paper:** [A non-expert Kaldi recipe for Vietnamese Speech Recognition System](https://aclanthology.org/W16-5207/)
 - **Leaderboard:** [Needs More Information]
 - **Point of Contact:** [AILAB](mailto:ailab@hcmus.edu.vn)
 
@@ -171,11 +171,17 @@ Public Domain, Creative Commons Attribution NonCommercial ShareAlike v4.0 ([CC B
 ### Citation Information
 
 ```
-@InProceedings{vivos:2016,
-Address = {Ho Chi Minh, Vietnam}
-title = {VIVOS: 15 hours of recording speech prepared for Vietnamese Automatic Speech Recognition},
-author={Prof. Vu Hai Quan},
-year={2016}
+@inproceedings{luong-vu-2016-non,
+    title = "A non-expert {K}aldi recipe for {V}ietnamese Speech Recognition System",
+    author = "Luong, Hieu-Thi  and
+      Vu, Hai-Quan",
+    booktitle = "Proceedings of the Third International Workshop on Worldwide Language Service Infrastructure and Second Workshop on Open Infrastructures and Analysis Frameworks for Human Language Technologies ({WLSI}/{OIAF}4{HLT}2016)",
+    month = dec,
+    year = "2016",
+    address = "Osaka, Japan",
+    publisher = "The COLING 2016 Organizing Committee",
+    url = "https://aclanthology.org/W16-5207",
+    pages = "51--55",
 }
 ```
 
