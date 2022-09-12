@@ -40,7 +40,7 @@ We publish this corpus in hope to attract more scientists to solve Vietnamese sp
 
 _HOMEPAGE = "https://doi.org/10.5281/zenodo.7068130"
 
-_LICENSE = "cc-by-sa-4.0"
+_LICENSE = "CC BY-NC-SA 4.0"
 
 _DATA_URL = "https://zenodo.org/record/7068130/files/vivos.tar.gz?download=1"
 
