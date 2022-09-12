@@ -7,7 +7,7 @@ _DESCRIPTION = """\
 The MBPP (Mostly Basic Python Problems) dataset consists of around 1,000 crowd-sourced Python
 programming problems, designed to be solvable by entry level programmers, covering programming
 fundamentals, standard library functionality, and so on. Each problem consists of a task
-description, code solution and 3 automated test cases. The sanitized subset of the data has been 
+description, code solution and 3 automated test cases. The sanitized subset of the data has been
 hand-verified by the authors.
 """
 
