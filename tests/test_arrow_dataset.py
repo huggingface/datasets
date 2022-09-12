@@ -1349,7 +1349,6 @@ class BaseDatasetTest(TestCase):
                     lambda filename: {"label": int(filename.rsplit("_", 1)[-1]) % 2}, input_columns="filename"
                 ) as mapped_dset:
                     self.assertTrue("filename" in mapped_dset[0] and "label" in mapped_dset[0])
-                    self.assertTrue("label" in mapped_dset[0])
                     self.assertEqual(
                         mapped_dset.features, Features({"filename": Value("string"), "label": Value("int64")})
                     )
