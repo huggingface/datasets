@@ -1341,6 +1341,19 @@ class BaseDatasetTest(TestCase):
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
+    def test_map_input_columns(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                print("dset", dset[0])
+                with dset.map(
+                    lambda filename: {"label": int(filename.rsplit("_", 1)[-1]) % 2}, input_columns="filename"
+                ) as mapped_dset:
+                    self.assertTrue("filename" in mapped_dset[0] and "label" in mapped_dset[0])
+                    self.assertTrue("label" in mapped_dset[0])
+                    self.assertEqual(
+                        mapped_dset.features, Features({"filename": Value("string"), "label": Value("int64")})
+                    )
+
     def test_map_remove_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:

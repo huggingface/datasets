@@ -2731,7 +2731,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 # Only load the columns we actually need
                 if input_columns:
                     input_dataset = self.with_format(
-                        self._format_type, columns=input_columns, output_all_columns=False, **self._format_kwargs
+                        self._format_type, columns=input_columns, output_all_columns=True, **self._format_kwargs
                     )
                     if remove_columns:
                         remove_columns = list(set(remove_columns) & set(input_columns))
