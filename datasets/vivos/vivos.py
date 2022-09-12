@@ -42,7 +42,7 @@ _HOMEPAGE = "https://doi.org/10.5281/zenodo.7068130"
 
 _LICENSE = "CC BY-NC-SA 4.0"
 
-_DATA_URL = "https://zenodo.org/record/7068130/files/vivos.tar.gz?download=1"
+_DATA_URL = "https://zenodo.org/record/7068130/files/vivos.tar.gz"
 
 _PROMPTS_URLS = {
     "train": "https://s3.amazonaws.com/datasets.huggingface.co/vivos/train/prompts.txt",
