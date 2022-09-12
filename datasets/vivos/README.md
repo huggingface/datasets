@@ -54,7 +54,7 @@ task_ids: []
 
 ## Dataset Description
 
-- **Homepage:** https://ailab.hcmus.edu.vn/vivos
+- **Homepage:** https://doi.org/10.5281/zenodo.7068130
 - **Repository:** [Needs More Information]
 - **Paper:** [A non-expert Kaldi recipe for Vietnamese Speech Recognition System](https://ailab.hcmus.edu.vn/assets/WLSI3_2016_Luong_non_expert.pdf)
 - **Leaderboard:** [Needs More Information]

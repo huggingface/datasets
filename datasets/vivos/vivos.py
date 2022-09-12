@@ -33,11 +33,11 @@ The corpus was prepared by AILAB, a computer science lab of VNUHCM - University 
 We publish this corpus in hope to attract more scientists to solve Vietnamese speech recognition problems.
 """
 
-_HOMEPAGE = "https://ailab.hcmus.edu.vn/vivos"
+_HOMEPAGE = "https://doi.org/10.5281/zenodo.7068130"
 
 _LICENSE = "cc-by-sa-4.0"
 
-_DATA_URL = "https://ailab.hcmus.edu.vn/assets/vivos.tar.gz"
+_DATA_URL = "https://zenodo.org/record/7068130/files/vivos.tar.gz?download=1"
 
 _PROMPTS_URLS = {
     "train": "https://s3.amazonaws.com/datasets.huggingface.co/vivos/train/prompts.txt",
