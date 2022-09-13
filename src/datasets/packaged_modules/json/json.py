@@ -16,9 +16,10 @@ logger = datasets.utils.logging.get_logger(__name__)
 
 
 if datasets.config.PYARROW_VERSION.major >= 7:
-    
+
     def pa_table_from_pylist(mapping):
         return pa.Table.from_pylist(mapping)
+
 else:
 
     def pa_table_from_pylist(mapping):
@@ -142,17 +143,23 @@ class Json(datasets.ArrowBasedBuilder):
                                         )
                                         block_size *= 2
                         except pa.ArrowInvalid as e:
-                            logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                             try:
                                 with open(file, encoding="utf-8") as f:
                                     dataset = json.load(f)
                             except json.JSONDecodeError:
+                                logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                                 raise e
-                            if isinstance(dataset, list): # list is the only supported sequence type in JSON
-                                pa_table = pa_table_from_pylist(dataset)
+                            # If possible, parse the file as a list of json objects and break the loop
+                            if isinstance(dataset, list):  # list is the only sequence type supported in JSON
+                                try:
+                                    pa_table = pa_table_from_pylist(dataset)
+                                except (pa.ArrowInvalid, AttributeError) as e:
+                                    logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                                    raise ValueError(f"Not able to read records in the JSON file at {file}.") from None
                                 yield file_idx, self._cast_table(pa_table)
                                 break
                             else:
+                                logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                                 raise ValueError(
                                     f"Not able to read records in the JSON file at {file}. "
                                     f"You should probably indicate the field of the JSON file containing your records. "
