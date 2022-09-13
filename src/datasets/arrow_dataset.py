@@ -4099,9 +4099,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
 
-        if not re.match(_split_re, split):
-            raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
-
         max_shard_size = convert_file_size_to_int(max_shard_size)
 
         api = HfApi(endpoint=config.HF_ENDPOINT)
@@ -4114,6 +4111,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if split is None:
             split = str(self.split) if self.split is not None else "train"
+
+        if not re.match(_split_re, split):
+            raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
 
         identifier = repo_id.split("/")
 
