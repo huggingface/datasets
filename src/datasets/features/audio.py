@@ -269,7 +269,7 @@ class Audio:
             if version.parse(sf.__libsndfile_version__) < version.parse("1.0.30"):
                 raise RuntimeError(
                     "Decoding .opus files requires 'libsndfile'>=1.0.30, "
-                    + "it can be installed via conda: `conda install -c conda-forge libsndfile>=1.0.30`"
+                    + 'it can be installed via conda: `conda install -c conda-forge "libsndfile>=1.0.30"`'
                 )
         array, sampling_rate = sf.read(file)
         array = array.T
@@ -293,7 +293,7 @@ class Audio:
             array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
         else:
             try:  # try torchaudio anyway because sometimes it works (depending on the machine)
-                print("torchaudio worked")
+                # TODO: should any backend be set here?
                 array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
             except RuntimeError:
                 try:
@@ -301,14 +301,14 @@ class Audio:
                     import librosa
                 except ImportError as err:
                     raise ImportError(
-                        "You have incompatible version of `torchaudio` (>=0.12) installed. "
-                        "To support decoding 'mp3' with `torchaudio`, install ffmpeg>=4"  # TODO
-                        "or downgrade `torchaudio` to <0.12: `pip install 'torchaudio<0.12.0`. "
+                        "Your version of `torchaudio` (>=0.12.0) doesn't support decoding 'mp3' files on your machine. "
+                        "To support 'mp3' decoding with `torchaudio>=0.12.0`, please install `ffmpeg>=4` "
+                        'or downgrade `torchaudio` to <0.12: `pip install "torchaudio<0.12"`. '
                         "To support decoding 'mp3' audio files without `torchaudio`, please install `librosa`: "
                         "`pip install librosa`. Note that decoding will be extremely slow in that case."
                     ) from err
-                # use librosa for torchaudio>=0.12.0 for now as a workaround
-                # logging.warning("")
+                # use librosa for torchaudio>=0.12.0 as a workaround
+                logging.warning("Decoding mp3 with `librosa` instead of `torchaudio`, decoding is slow.")
                 array, sampling_rate = self._decode_mp3_librosa(path_or_file)
 
         return array, sampling_rate
