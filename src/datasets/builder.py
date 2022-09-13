@@ -597,7 +597,7 @@ class DatasetBuilder:
         base_path: Optional[str] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
         file_format: str = "arrow",
-        max_shard_size: Optional[int] = None,
+        max_shard_size: Optional[Union[int, str]] = None,
         storage_options: Optional[dict] = None,
         **download_and_prepare_kwargs,
     ):
