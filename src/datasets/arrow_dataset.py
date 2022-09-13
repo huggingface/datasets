@@ -950,7 +950,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Create a Dataset from a generator.
 
         Args:
-            generator (:obj:`Callable`): A callable object that returns an object that supports the `iter()` protocol.
+            generator (:obj:`Callable`): A callable object that returns an object that supports the `iter` protocol.
             features (:class:`Features`, optional): Dataset features.
             cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
