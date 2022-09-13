@@ -1343,14 +1343,19 @@ class BaseDatasetTest(TestCase):
 
     def test_map_input_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                print("dset", dset[0])
-                with dset.map(
-                    lambda filename: {"label": int(filename.rsplit("_", 1)[-1]) % 2}, input_columns="filename"
-                ) as mapped_dset:
-                    self.assertTrue("filename" in mapped_dset[0] and "label" in mapped_dset[0])
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                with dset.map(lambda col_1: {"label": col_1 % 2}, input_columns="col_1") as mapped_dset:
+                    self.assertEqual(mapped_dset[0].keys(), {"col_1", "col_2", "col_3", "label"})
                     self.assertEqual(
-                        mapped_dset.features, Features({"filename": Value("string"), "label": Value("int64")})
+                        mapped_dset.features,
+                        Features(
+                            {
+                                "col_1": Value("int64"),
+                                "col_2": Value("string"),
+                                "col_3": Value("bool"),
+                                "label": Value("int64"),
+                            }
+                        ),
                     )
 
     def test_map_remove_columns(self, in_memory):
