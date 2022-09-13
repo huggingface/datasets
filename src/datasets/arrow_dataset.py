@@ -2680,7 +2680,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
-            if self._format_type is not None:
+            if self._format_type is not None or input_columns:
                 inputs = self._getitem(
                     key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1] + 1)),
                     format_type=None,
