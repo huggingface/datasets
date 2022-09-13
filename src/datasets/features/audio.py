@@ -292,24 +292,24 @@ class Audio:
                 raise ImportError("To support decoding 'mp3' audio files, please install 'sox'.") from err
             array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
         else:
-            # try:  # try torchaudio anyway because sometimes it works (depending on the machine)
-            #     print("torchaudio worked")
-            #     array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
-            # except RuntimeError:
-            try:
-                # flake8: noqa
-                import librosa
-            except ImportError as err:
-                raise ImportError(
-                    "You have incompatible version of `torchaudio` (>=0.12) installed. "
-                    "To support decoding 'mp3' with `torchaudio`, install ffmpeg>=4"  # TODO
-                    "or downgrade `torchaudio` to <0.12: `pip install 'torchaudio<0.12.0`. "
-                    "To support decoding 'mp3' audio files without `torchaudio`, please install `librosa`: "
-                    "`pip install librosa`. Note that decoding will be extremely slow in that case."
-                ) from err
-            # use librosa for torchaudio>=0.12.0 for now as a workaround
-            # logging.warning("")
-            array, sampling_rate = self._decode_mp3_librosa(path_or_file)
+            try:  # try torchaudio anyway because sometimes it works (depending on the machine)
+                print("torchaudio worked")
+                array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
+            except RuntimeError:
+                try:
+                    # flake8: noqa
+                    import librosa
+                except ImportError as err:
+                    raise ImportError(
+                        "You have incompatible version of `torchaudio` (>=0.12) installed. "
+                        "To support decoding 'mp3' with `torchaudio`, install ffmpeg>=4"  # TODO
+                        "or downgrade `torchaudio` to <0.12: `pip install 'torchaudio<0.12.0`. "
+                        "To support decoding 'mp3' audio files without `torchaudio`, please install `librosa`: "
+                        "`pip install librosa`. Note that decoding will be extremely slow in that case."
+                    ) from err
+                # use librosa for torchaudio>=0.12.0 for now as a workaround
+                # logging.warning("")
+                array, sampling_rate = self._decode_mp3_librosa(path_or_file)
 
         return array, sampling_rate
 
