@@ -230,9 +230,8 @@ class SceneParse150(datasets.GeneratorBasedBuilder):
             test_data = os.path.join(data_dirs["test"], "release_test")
         else:
             data_dirs = dl_manager.download(urls)
-            train_data = (
-                dl_manager.iter_archive(data_dirs["images"]),
-                dl_manager.iter_archive(data_dirs["annotations"]),
+            train_data = dl_manager.iter_archive(data_dirs["images"]), dl_manager.iter_archive(
+                data_dirs["annotations"]
             )
             val_data = dl_manager.iter_archive(data_dirs["images"]), dl_manager.iter_archive(data_dirs["annotations"])
             test_data = dl_manager.iter_archive(data_dirs["test"])

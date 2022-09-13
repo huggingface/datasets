@@ -159,9 +159,9 @@ class MutualFriends(datasets.GeneratorBasedBuilder):
                 scenario_kbs = [
                     [
                         [
-                            list(person.keys()),
-                            list(person.values()),
-                        ]  # scenario_kbs_keys  # scenario_kbs_values
+                            list(person.keys()),  # scenario_kbs_keys
+                            list(person.values()),  # scenario_kbs_values
+                        ]
                         for person in kb
                     ]
                     for kb in scenario["kbs"]

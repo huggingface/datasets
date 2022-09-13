@@ -297,54 +297,42 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj, False
         else:
-            return (
-                [
-                    _cast_to_python_objects(
-                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                    )[0]
-                    for x in obj
-                ],
-                True,
-            )
+            return [
+                _cast_to_python_objects(
+                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0]
+                for x in obj
+            ], True
     elif config.TORCH_AVAILABLE and "torch" in sys.modules and isinstance(obj, torch.Tensor):
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj.detach().cpu().numpy(), True
         else:
-            return (
-                [
-                    _cast_to_python_objects(
-                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                    )[0]
-                    for x in obj.detach().cpu().numpy()
-                ],
-                True,
-            )
+            return [
+                _cast_to_python_objects(
+                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0]
+                for x in obj.detach().cpu().numpy()
+            ], True
     elif config.TF_AVAILABLE and "tensorflow" in sys.modules and isinstance(obj, tf.Tensor):
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj.numpy(), True
         else:
-            return (
-                [
-                    _cast_to_python_objects(
-                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                    )[0]
-                    for x in obj.numpy()
-                ],
-                True,
-            )
+            return [
+                _cast_to_python_objects(
+                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0]
+                for x in obj.numpy()
+            ], True
     elif config.JAX_AVAILABLE and "jax" in sys.modules and isinstance(obj, jnp.ndarray):
         if not only_1d_for_numpy or obj.ndim == 1:
             return np.asarray(obj), True
         else:
-            return (
-                [
-                    _cast_to_python_objects(
-                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                    )[0]
-                    for x in np.asarray(obj)
-                ],
-                True,
-            )
+           return [
+                _cast_to_python_objects(
+                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0]
+                for x in np.asarray(obj)
+            ], True
     elif config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(obj, PIL.Image.Image):
         return encode_pil_image(obj), True
     elif isinstance(obj, pd.Series):
@@ -355,15 +343,12 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             True,
         )
     elif isinstance(obj, pd.DataFrame):
-        return (
-            {
-                key: _cast_to_python_objects(
-                    value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                )[0]
-                for key, value in obj.to_dict("list").items()
-            },
-            True,
-        )
+        return {
+            key: _cast_to_python_objects(
+                value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+            )[0]
+            for key, value in obj.to_dict("list").items()
+        }, True
     elif isinstance(obj, pd.Timestamp):
         return obj.to_pydatetime(), True
     elif isinstance(obj, pd.Timedelta):
@@ -387,15 +372,12 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 first_elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
             )
             if has_changed_first_elmt or not optimize_list_casting:
-                return (
-                    [
-                        _cast_to_python_objects(
-                            elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                        )[0]
-                        for elmt in obj
-                    ],
-                    True,
-                )
+                return [
+                    _cast_to_python_objects(
+                        elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                    )[0]
+                    for elmt in obj
+                ], True
             else:
                 if isinstance(obj, list):
                     return obj, False
