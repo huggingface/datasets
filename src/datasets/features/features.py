@@ -327,7 +327,7 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         if not only_1d_for_numpy or obj.ndim == 1:
             return np.asarray(obj), True
         else:
-           return [
+            return [
                 _cast_to_python_objects(
                     x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
                 )[0]
