@@ -11,11 +11,15 @@ from packaging import version
 from .. import config
 from ..download.streaming_download_manager import xopen
 from ..table import array_cast
+from ..utils.logging import get_logger
 from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
 
 
 if TYPE_CHECKING:
     from .features import FeatureType
+
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -308,7 +312,7 @@ class Audio:
                         "`pip install librosa`. Note that decoding will be extremely slow in that case."
                     ) from err
                 # use librosa for torchaudio>=0.12.0 as a workaround
-                logging.warning("Decoding mp3 with `librosa` instead of `torchaudio`, decoding is slow.")
+                logger.warning("Decoding mp3 with `librosa` instead of `torchaudio`, decoding is slow.")
                 array, sampling_rate = self._decode_mp3_librosa(path_or_file)
 
         return array, sampling_rate
