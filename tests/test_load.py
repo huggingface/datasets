@@ -13,7 +13,7 @@ import pytest
 import requests
 
 import datasets
-from datasets import SCRIPTS_VERSION, config, load_dataset, load_from_disk
+from datasets import config, load_dataset, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.builder import DatasetBuilder
 from datasets.data_files import DataFilesDict
@@ -24,7 +24,6 @@ from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
     CachedDatasetModuleFactory,
     CachedMetricModuleFactory,
-    GithubDatasetModuleFactory,
     GithubMetricModuleFactory,
     HubDatasetModuleFactoryWithoutScript,
     HubDatasetModuleFactoryWithScript,
@@ -255,15 +254,6 @@ class ModuleFactoryTest(TestCase):
             hf_modules_cache=self.hf_modules_cache,
         )
 
-    def test_GithubDatasetModuleFactory(self):
-        # "wmt_t2t" has additional imports (internal)
-        factory = GithubDatasetModuleFactory(
-            "wmt_t2t", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
-        )
-        module_factory_result = factory.get_module()
-        assert importlib.import_module(module_factory_result.module_path) is not None
-        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
-
     def test_GithubMetricModuleFactory_with_internal_import(self):
         # "squad_v2" requires additional imports (internal)
         factory = GithubMetricModuleFactory(
@@ -479,7 +469,6 @@ class ModuleFactoryTest(TestCase):
     [
         CachedDatasetModuleFactory,
         CachedMetricModuleFactory,
-        GithubDatasetModuleFactory,
         GithubMetricModuleFactory,
         HubDatasetModuleFactoryWithoutScript,
         HubDatasetModuleFactoryWithScript,
@@ -490,10 +479,7 @@ class ModuleFactoryTest(TestCase):
     ],
 )
 def test_module_factories(factory_class):
-    if issubclass(factory_class, (HubDatasetModuleFactoryWithoutScript, HubDatasetModuleFactoryWithScript)):
-        name = "dummy_org/dummy_name"
-    else:
-        name = "dummy_name"
+    name = "dummy_name"
     factory = factory_class(name)
     assert factory.name == name
 
@@ -576,18 +562,21 @@ class LoadTest(TestCase):
                 self.assertNotEqual(dataset_module_1.module_path, dataset_module_3.module_path)
                 self.assertIn("Using the latest cached version of the module", self._caplog.text)
 
-    def test_load_dataset_from_github(self):
-        scripts_version = os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
+    def test_load_dataset_from_hub(self):
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy")
         self.assertIn(
-            "https://raw.githubusercontent.com/huggingface/datasets/main/datasets/_dummy/_dummy.py",
+            "Dataset '_dummy' doesn't exist on the Hub",
             str(context.exception),
         )
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy", revision="0.0.0")
         self.assertIn(
-            "https://raw.githubusercontent.com/huggingface/datasets/0.0.0/datasets/_dummy/_dummy.py",
+            "Dataset '_dummy' doesn't exist on the Hub",
+            str(context.exception),
+        )
+        self.assertIn(
+            "at revision '0.0.0'",
             str(context.exception),
         )
         for offline_simulation_mode in list(OfflineSimulationMode):
@@ -596,7 +585,7 @@ class LoadTest(TestCase):
                     datasets.load_dataset("_dummy")
                 if offline_simulation_mode != OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1:
                     self.assertIn(
-                        f"https://raw.githubusercontent.com/huggingface/datasets/{scripts_version}/datasets/_dummy/_dummy.py",
+                        "Couldn't reach '_dummy' on the Hub",
                         str(context.exception),
                     )
 

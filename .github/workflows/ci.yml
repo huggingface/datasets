@@ -9,7 +9,6 @@ on:
       - main
 
 env:
-  HF_SCRIPTS_VERSION: main
   HF_ALLOW_CODE_EVAL: 1
 
 jobs:
