@@ -22,6 +22,7 @@ import json
 import os
 import re
 import shutil
+import sys
 import tempfile
 import warnings
 import weakref
@@ -2651,7 +2652,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"Provided `function` which is applied to all elements of table returns a variable of type {type(processed_inputs)}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects."
                 )
             elif isinstance(indices, list) and isinstance(processed_inputs, Mapping):
-                allowed_batch_return_types = (list, np.ndarray)
+                allowed_batch_return_types = (list, np.ndarray, pd.Series)
+                if config.TF_AVAILABLE and "tensorflow" in sys.modules:
+                    import tensorflow as tf
+
+                    allowed_batch_return_types += (tf.Tensor,)
+                if config.TORCH_AVAILABLE and "torch" in sys.modules:
+                    import torch
+
+                    allowed_batch_return_types += (torch.Tensor,)
+                if config.JAX_AVAILABLE and "jax" in sys.modules:
+                    import jax.numpy as jnp
+
+                    allowed_batch_return_types += (jnp.ndarray,)
                 all_dict_values_are_lists = all(
                     isinstance(value, allowed_batch_return_types) for value in processed_inputs.values()
                 )
