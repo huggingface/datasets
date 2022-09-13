@@ -220,22 +220,6 @@ Load a list of Python dictionaries with [`~Dataset.from_list`]:
 >>> dataset = Dataset.from_list(my_list)
 ```
 
-### Python generator
-
-Create a dataset from a Python generator with [`~Dataset.from_generator`]:
-
-```py
->>> from datasets import Dataset
->>> def my_gen():
-...     yield {"a": 1}
-...     yield {"a": 2}
-...     yield {"a": 3}
-...
->>> dataset = Dataset.from_generator(my_dict)
-```
-
-This approach supports loading data larger than available memory.
-
 ### Pandas DataFrame
 
 Load Pandas DataFrames with [`~Dataset.from_pandas`]:
