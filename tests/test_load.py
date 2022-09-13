@@ -697,11 +697,11 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
             assert "Using the latest cached version of the module" in caplog.text
     with pytest.raises(FileNotFoundError) as exc_info:
         datasets.load_dataset(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST)
-    m_combined_path = re.search(
-        rf"http\S*{re.escape(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '/' + SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '.py')}\b",
-        str(exc_info.value),
+    assert f"Dataset '{SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST}' doesn't exist on the Hub" in str(exc_info.value)
+    expected_script_location = (
+        Path() / SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST / f"{SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST}.py"
     )
-    assert m_combined_path is not None and is_remote_url(m_combined_path.group())
+    assert f"Couldn't find a dataset script at {expected_script_location.resolve()}" in str(exc_info.value)
     assert os.path.abspath(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST) in str(exc_info.value)
 
 

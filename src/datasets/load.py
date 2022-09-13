@@ -739,7 +739,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.data_dir = data_dir
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
-        assert self.name.count("/") == 1
+        assert self.name.count("/") <= 1
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
