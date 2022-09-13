@@ -38,6 +38,14 @@ def minimal_tf_collate_fn(features):
     return batch
 
 
+def minimal_tf_collate_fn_with_renaming(features):
+    batch = minimal_tf_collate_fn(features)
+    if "label" in batch:
+        batch["labels"] = batch["label"]
+        del batch["label"]
+    return batch
+
+
 def is_numeric_pa_type(pa_type):
     if pa.types.is_list(pa_type):
         return is_numeric_pa_type(pa_type.value_type)
