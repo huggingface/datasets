@@ -18,6 +18,7 @@ from .features import Features
 from .features.features import FeatureType
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .info import DatasetInfo
+from .naming import _split_re
 from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import Table
 from .tasks import TaskTemplate
@@ -1344,6 +1345,11 @@ class DatasetDict(dict):
         info_to_dump: DatasetInfo = next(iter(self.values())).info.copy()
         dataset_name = repo_id.split("/")[-1]
         info_to_dump.splits = SplitDict(dataset_name=dataset_name)
+
+        for split in self.keys():
+            if not re.match(_split_re, split):
+                raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
+
         for split in self.keys():
             logger.warning(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
