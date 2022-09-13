@@ -1,6 +1,5 @@
 import importlib
 import os
-import re
 import shutil
 import tempfile
 import time
@@ -34,7 +33,6 @@ from datasets.load import (
     infer_module_for_data_files,
     infer_module_for_data_files_in_archives,
 )
-from datasets.utils.file_utils import is_remote_url
 
 from .utils import (
     OfflineSimulationMode,
