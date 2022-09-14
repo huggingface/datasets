@@ -72,3 +72,8 @@ jobs:
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
+      - name: Test torchaudio>=0.12
+        run: |
+          pip install "torchaudio>=0.12"
+          python -m pytest -rfExX -m torchaudio_latest -n 2 --dist loadfile -sv ./tests/features/test_audio.py
+          

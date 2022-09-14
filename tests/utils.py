@@ -64,7 +64,16 @@ require_sox = pytest.mark.skipif(
     find_library("sox") is None,
     reason="test requires sox OS dependency; only available on non-Windows: 'sudo apt-get install sox'",
 )
-require_torchaudio = pytest.mark.skipif(find_spec("torchaudio") is None, reason="test requires torchaudio")
+require_torchaudio = pytest.mark.skipif(
+    find_spec("torchaudio") is None
+    or version.parse(import_module("torchaudio").__version__) > version.parse("0.12.0"),
+    reason="test requires torchaudio<0.12",
+)
+require_torchaudio_latest = pytest.mark.skipif(
+    find_spec("torchaudio") is None
+    or version.parse(import_module("torchaudio").__version__) < version.parse("0.12.0"),
+    reason="test requires torchaudio>=0.12",
+)
 
 
 def require_beam(test_case):

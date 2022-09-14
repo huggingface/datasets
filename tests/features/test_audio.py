@@ -7,7 +7,13 @@ import pytest
 from datasets import Dataset, concatenate_datasets, load_dataset
 from datasets.features import Audio, Features, Sequence, Value
 
-from ..utils import require_libsndfile_with_opus, require_sndfile, require_sox, require_torchaudio
+from ..utils import (
+    require_libsndfile_with_opus,
+    require_sndfile,
+    require_sox,
+    require_torchaudio,
+    require_torchaudio_latest,
+)
 
 
 @pytest.fixture()
@@ -135,6 +141,17 @@ def test_audio_decode_example_mp3(shared_datadir):
     assert decoded_example["sampling_rate"] == 44100
 
 
+@pytest.mark.torchaudio_latest
+@require_torchaudio_latest
+def test_audio_decode_example_mp3_torchaudio_latest(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_44100.mp3")
+    audio = Audio()
+    decoded_example = audio.decode_example(audio.encode_example(audio_path))
+    assert decoded_example["path"] == audio_path
+    assert decoded_example["array"].shape == (110592,)
+    assert decoded_example["sampling_rate"] == 44100
+
+
 @require_libsndfile_with_opus
 def test_audio_decode_example_opus(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_48000.opus")
@@ -175,6 +192,26 @@ def test_audio_resampling_mp3_different_sampling_rates(shared_datadir):
     assert decoded_example.keys() == {"path", "array", "sampling_rate"}
     assert decoded_example["path"] == audio_path2
     assert decoded_example["array"].shape == (120960,)
+    assert decoded_example["sampling_rate"] == 48000
+
+
+@pytest.mark.torchaudio_latest
+@require_torchaudio_latest
+def test_audio_resampling_mp3_different_sampling_rates_torchaudio_latest(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_44100.mp3")
+    audio_path2 = str(shared_datadir / "test_audio_16000.mp3")
+    audio = Audio(sampling_rate=48000)
+
+    decoded_example = audio.decode_example(audio.encode_example(audio_path))
+    assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+    assert decoded_example["path"] == audio_path
+    assert decoded_example["array"].shape == (120373,)
+    assert decoded_example["sampling_rate"] == 48000
+
+    decoded_example = audio.decode_example(audio.encode_example(audio_path2))
+    assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+    assert decoded_example["path"] == audio_path2
+    assert decoded_example["array"].shape == (122688,)
     assert decoded_example["sampling_rate"] == 48000
 
 
