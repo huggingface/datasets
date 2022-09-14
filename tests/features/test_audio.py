@@ -327,8 +327,7 @@ def test_resampling_at_loading_dataset_with_audio_feature(shared_datadir):
     assert column[0]["sampling_rate"] == 16000
 
 
-@require_sox
-@require_sndfile
+@require_torchaudio
 def test_resampling_at_loading_dataset_with_audio_feature_mp3(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
     data = {"audio": [audio_path]}
@@ -385,8 +384,7 @@ def test_resampling_after_loading_dataset_with_audio_feature(shared_datadir):
     assert column[0]["sampling_rate"] == 16000
 
 
-@require_sox
-@require_sndfile
+@require_torchaudio
 def test_resampling_after_loading_dataset_with_audio_feature_mp3(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
     data = {"audio": [audio_path]}
