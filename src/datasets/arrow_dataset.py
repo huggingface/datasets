@@ -962,10 +962,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
-        >>> def gen(example):
+        >>> def gen():
         ...     yield {"text": "Good", "label": 0}
         ...     yield {"text": "Bad", "label": 1}
         >>> ds = Dataset.from_generator(gen)
+        ```
         """
         from .io.generator import GeneratorDatasetInputStream
 
