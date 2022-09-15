@@ -1660,8 +1660,8 @@ class BeamBasedBuilder(DatasetBuilder):
 
         if max_shard_size is not None:
             raise NotImplementedError(
-                "max_shard_size is not supported for Beam datasets, please."
-                "Set it to None to use the default Apache Beam sharding and get the best performance."
+                "max_shard_size is not supported for Beam datasets."
+                "Please set it to None to use the default Apache Beam sharding and get the best performance."
             )
 
         # To write examples in filesystem:
