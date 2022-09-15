@@ -69,9 +69,6 @@ jobs:
       - name: Install PyArrow ${{ matrix.pyarrow_version }}
         if: ${{ matrix.pyarrow_version != 'latest' }}
         run: pip install pyarrow==${{ matrix.pyarrow_version }}
-#      - name: Test with pytest
-#        run: |
-#          python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
       - name: Test torchaudio>=0.12
         run: |
           pip uninstall torchaudio torch
