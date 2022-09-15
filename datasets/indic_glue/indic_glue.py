@@ -327,38 +327,38 @@ _TEXT_FEATURES = {
 }
 
 _DATA_URLS = {
-    "wnli": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wnli-translated.tar.gz",
-    "copa": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/copa-translated.tar.gz",
-    "sna": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/soham-articles.tar.gz",
-    "csqa": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-cloze.tar.gz",
-    "wstp": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-section-titles.tar.gz",
-    "inltkh": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/inltk-headlines.tar.gz",
-    "bbca": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/bbc-articles.tar.gz",
-    "cvit-mkb-clsr": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/cvit-mkb.tar.gz",
-    "iitp-mr": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/iitp-movie-reviews.tar.gz",
-    "iitp-pr": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/iitp-product-reviews.tar.gz",
-    "actsa-sc": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/actsa.tar.gz",
-    "md": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/midas-discourse.tar.gz",
-    "wiki-ner": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wikiann-ner.tar.gz",
+    "wnli": "https://ai4b-public-nlu-nlg.objectstore.e2enetworks.net/IndicGLUE/wnli-translated.tar.gz",
+    "copa": "https://ai4b-public-nlu-nlg.objectstore.e2enetworks.net/IndicGLUE/copa-translated.tar.gz",
+    "sna": "https://ai4b-public-nlu-nlg.objectstore.e2enetworks.net/IndicGLUE/soham-articles.tar.gz",
+    "csqa": "https://ai4b-public-nlu-nlg.objectstore.e2enetworks.net/IndicGLUE/wiki-cloze.tar.gz",
+    "wstp": "https://ai4b-public-nlu-nlg.objectstore.e2enetworks.net/IndicGLUE/wiki-section-titles.tar.gz",
+    "inltkh": "https://ai4b-public-nlu-nlg.objectstore.e2enetworks.net/IndicGLUE/inltk-headlines.tar.gz",
+    "bbca": "https://ai4b-public-nlu-nlg.objectstore.e2enetworks.net/IndicGLUE/bbc-articles.tar.gz",
+    "cvit-mkb-clsr": "https://ai4b-public-nlu-nlg.objectstore.e2enetworks.net/IndicGLUE/cvit-mkb.tar.gz",
+    "iitp-mr": "https://ai4b-public-nlu-nlg.objectstore.e2enetworks.net/IndicGLUE/iitp-movie-reviews.tar.gz",
+    "iitp-pr": "https://ai4b-public-nlu-nlg.objectstore.e2enetworks.net/IndicGLUE/iitp-product-reviews.tar.gz",
+    "actsa-sc": "https://ai4b-public-nlu-nlg.objectstore.e2enetworks.net/IndicGLUE/actsa.tar.gz",
+    "md": "https://ai4b-public-nlu-nlg.objectstore.e2enetworks.net/IndicGLUE/midas-discourse.tar.gz",
+    "wiki-ner": "https://ai4b-public-nlu-nlg.objectstore.e2enetworks.net/IndicGLUE/wikiann-ner.tar.gz",
 }
 
 _URLS = {
-    "wnli": "https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference",
-    "copa": "https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference",
-    "sna": "https://indicnlp.ai4bharat.org/indic-glue/#news-category-classification",
-    "csqa": "https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering",
-    "wstp": "https://indicnlp.ai4bharat.org/indic-glue/#wikipedia-section-title-prediction",
-    "inltkh": "https://indicnlp.ai4bharat.org/indic-glue/#news-category-classification",
-    "bbca": "https://indicnlp.ai4bharat.org/indic-glue/#news-category-classification",
-    "cvit-mkb-clsr": "https://indicnlp.ai4bharat.org/indic-glue/#cross-lingual-sentence-retrieval",
-    "iitp-mr": "https://indicnlp.ai4bharat.org/indic-glue/#sentiment-analysis",
-    "iitp-pr": "https://indicnlp.ai4bharat.org/indic-glue/#sentiment-analysis",
-    "actsa-sc": "https://indicnlp.ai4bharat.org/indic-glue/#sentiment-analysis",
-    "md": "https://indicnlp.ai4bharat.org/indic-glue/#discourse-analysis",
-    "wiki-ner": "https://indicnlp.ai4bharat.org/indic-glue/#named-entity-recognition",
+    "wnli": "https://ai4bharat.iitm.ac.in/indic-glue",
+    "copa": "https://ai4bharat.iitm.ac.in/indic-glue",
+    "sna": "https://ai4bharat.iitm.ac.in/indic-glue",
+    "csqa": "https://ai4bharat.iitm.ac.in/indic-glue",
+    "wstp": "https://ai4bharat.iitm.ac.in/indic-glue",
+    "inltkh": "https://ai4bharat.iitm.ac.in/indic-glue",
+    "bbca": "https://ai4bharat.iitm.ac.in/indic-glue",
+    "cvit-mkb-clsr": "https://ai4bharat.iitm.ac.in/indic-glue",
+    "iitp-mr": "https://ai4bharat.iitm.ac.in/indic-glue",
+    "iitp-pr": "https://ai4bharat.iitm.ac.in/indic-glue",
+    "actsa-sc": "https://ai4bharat.iitm.ac.in/indic-glue",
+    "md": "https://ai4bharat.iitm.ac.in/indic-glue",
+    "wiki-ner": "https://ai4bharat.iitm.ac.in/indic-glue",
 }
 
-_INDIC_GLUE_URL = "https://indicnlp.ai4bharat.org/indic-glue/"
+_INDIC_GLUE_URL = "https://ai4bharat.iitm.ac.in/indic-glue"
 
 _WNLI_LANGS = ["en", "hi", "gu", "mr"]
 _COPA_LANGS = ["en", "hi", "gu", "mr"]
