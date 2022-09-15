@@ -4052,7 +4052,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         branch: Optional[str] = None,
-        max_shard_size: Union[int, str] = "500MB",
+        max_shard_size: Optional[Union[int, str]] = None,
         embed_external_files: bool = True,
     ) -> Tuple[str, str, int, int]:
         """Pushes the dataset to the hub.
@@ -4098,8 +4098,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
         ```
         """
-
-        max_shard_size = convert_file_size_to_int(max_shard_size)
+        max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
 
         api = HfApi(endpoint=config.HF_ENDPOINT)
         token = token if token is not None else HfFolder.get_token()
@@ -4270,7 +4269,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         branch: Optional[str] = None,
-        max_shard_size: Union[int, str] = "500MB",
+        max_shard_size: Optional[Union[int, str]] = None,
         shard_size: Optional[int] = "deprecated",
         embed_external_files: bool = True,
     ):
