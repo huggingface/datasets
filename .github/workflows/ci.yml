@@ -71,7 +71,7 @@ jobs:
         run: pip install pyarrow==${{ matrix.pyarrow_version }}
       - name: Test torchaudio>=0.12
         run: |
-          pip uninstall torchaudio torch
+          pip uninstall -y torchaudio torch
           pip install "torchaudio>=0.12"
           echo "TORCHAUDIO VERSION"
           pip freeze | grep torch
