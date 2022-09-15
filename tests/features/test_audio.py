@@ -1,5 +1,6 @@
 import os
 import tarfile
+from unittest.mock import patch
 
 import pyarrow as pa
 import pytest
@@ -152,6 +153,23 @@ def test_audio_decode_example_mp3_torchaudio_latest(shared_datadir):
     assert decoded_example["sampling_rate"] == 44100
 
 
+@pytest.mark.torchaudio_latest
+@require_torchaudio_latest
+def test_audio_decode_example_mp3_torchaudio_latest_failed(shared_datadir, caplog):
+    # if torchaudio>=0.12 failed, mp3 must be decoded anyway (with librosa)
+    with patch("torchaudio.load") as load_mock:
+        load_mock.side_effect = RuntimeError()
+        audio_path = str(shared_datadir / "test_audio_44100.mp3")
+        audio = Audio()
+        decoded_example = audio.decode_example(audio.encode_example(audio_path))
+        assert any(
+            "decoding mp3 with `librosa` instead of `torchaudio`" in record.msg.lower() for record in caplog.records
+        )
+        assert decoded_example["path"] == audio_path
+        assert decoded_example["array"].shape == (110592,)
+        assert decoded_example["sampling_rate"] == 44100
+
+
 @require_libsndfile_with_opus
 def test_audio_decode_example_opus(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_48000.opus")
@@ -213,6 +231,38 @@ def test_audio_resampling_mp3_different_sampling_rates_torchaudio_latest(shared_
     assert decoded_example["path"] == audio_path2
     assert decoded_example["array"].shape == (122688,)
     assert decoded_example["sampling_rate"] == 48000
+
+
+@pytest.mark.torchaudio_latest
+@require_torchaudio_latest
+def test_audio_resampling_mp3_different_sampling_rates_torchaudio_latest_failed(shared_datadir, caplog):
+    audio_path = str(shared_datadir / "test_audio_44100.mp3")
+    audio_path2 = str(shared_datadir / "test_audio_16000.mp3")
+    audio = Audio(sampling_rate=48000)
+
+    # if torchaudio>=0.12 failed, mp3 must be decoded anyway (with librosa)
+    with patch("torchaudio.load") as load_mock:
+        load_mock.side_effect = RuntimeError()
+        decoded_example = audio.decode_example(audio.encode_example(audio_path))
+        assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+        assert decoded_example["path"] == audio_path
+        assert decoded_example["array"].shape == (120373,)
+        assert decoded_example["sampling_rate"] == 48000
+
+        decoded_example = audio.decode_example(audio.encode_example(audio_path2))
+        assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+        assert decoded_example["path"] == audio_path2
+        assert decoded_example["array"].shape == (122688,)
+        assert decoded_example["sampling_rate"] == 48000
+
+        # we get warnings at each decoding
+        assert (
+            sum(
+                "decoding mp3 with `librosa` instead of `torchaudio`" in record.msg.lower()
+                for record in caplog.records
+            )
+            == 2
+        )
 
 
 @require_sndfile
@@ -301,6 +351,77 @@ def test_dataset_with_audio_feature_tar_mp3(tar_mp3_path):
     assert column[0]["path"] == audio_filename
     assert column[0]["array"].shape == (109440,)
     assert column[0]["sampling_rate"] == 44100
+
+
+@pytest.mark.torchaudio_latest
+@require_torchaudio_latest
+def test_dataset_with_audio_feature_tar_mp3_torchaudio_latest(tar_mp3_path):
+    audio_filename = "test_audio_44100.mp3"
+    data = {"audio": []}
+    for file_path, file_obj in iter_archive(tar_mp3_path):
+        data["audio"].append({"path": file_path, "bytes": file_obj.read()})
+        break
+    features = Features({"audio": Audio()})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"audio"}
+    assert item["audio"].keys() == {"path", "array", "sampling_rate"}
+    assert item["audio"]["path"] == audio_filename
+    assert item["audio"]["array"].shape == (110592,)
+    assert item["audio"]["sampling_rate"] == 44100
+    batch = dset[:1]
+    assert batch.keys() == {"audio"}
+    assert len(batch["audio"]) == 1
+    assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
+    assert batch["audio"][0]["path"] == audio_filename
+    assert batch["audio"][0]["array"].shape == (110592,)
+    assert batch["audio"][0]["sampling_rate"] == 44100
+    column = dset["audio"]
+    assert len(column) == 1
+    assert column[0].keys() == {"path", "array", "sampling_rate"}
+    assert column[0]["path"] == audio_filename
+    assert column[0]["array"].shape == (110592,)
+    assert column[0]["sampling_rate"] == 44100
+
+
+# @pytest.mark.torchaudio_latest
+# @require_torchaudio_latest
+# def test_dataset_with_audio_feature_tar_mp3_torchaudio_latest_failed(tar_mp3_path, caplog):
+#     audio_filename = "test_audio_44100.mp3"
+#     data = {"audio": []}
+#     for file_path, file_obj in iter_archive(tar_mp3_path):
+#         data["audio"].append({"path": file_path, "bytes": file_obj.read()})
+#         break
+#     features = Features({"audio": Audio()})
+#     dset = Dataset.from_dict(data, features=features)
+#
+#     # if torchaudio>=0.12 failed, mp3 must be decoded anyway (with librosa)
+#     with patch("torchaudio.load") as load_mock:
+#         load_mock.side_effect = RuntimeError()
+#         item = dset[0]
+#         assert item.keys() == {"audio"}
+#         assert item["audio"].keys() == {"path", "array", "sampling_rate"}
+#         assert item["audio"]["path"] == audio_filename
+#         assert item["audio"]["array"].shape == (110592,)
+#         assert item["audio"]["sampling_rate"] == 44100
+#         batch = dset[:1]
+#         assert batch.keys() == {"audio"}
+#         assert len(batch["audio"]) == 1
+#         assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
+#         assert batch["audio"][0]["path"] == audio_filename
+#         assert batch["audio"][0]["array"].shape == (110592,)
+#         assert batch["audio"][0]["sampling_rate"] == 44100
+#         column = dset["audio"]
+#         assert len(column) == 1
+#         assert column[0].keys() == {"path", "array", "sampling_rate"}
+#         assert column[0]["path"] == audio_filename
+#         assert column[0]["array"].shape == (110592,)
+#         assert column[0]["sampling_rate"] == 44100
+#
+#         # we get warnings at each decoding
+#         assert sum(
+#             "decoding mp3 with `librosa` instead of `torchaudio`" in record.msg.lower() for record in caplog.records
+#         ) == 2
 
 
 @require_sndfile
