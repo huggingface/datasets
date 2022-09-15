@@ -172,6 +172,9 @@ DEFAULT_MAX_BATCH_SIZE = 10_000
 # For big tables, we write them on disk instead
 MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
 
+# Max shard size in bytes (e.g. to shard parquet datasets in push_to_hub or download_and_prepare)
+MAX_SHARD_SIZE = "500MB"
+
 # Offline mode
 HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper() in ENV_VARS_TRUE_VALUES
 
