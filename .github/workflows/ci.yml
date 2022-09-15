@@ -90,7 +90,7 @@ jobs:
           wget https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/ffmpeg/7:3.4.11-0ubuntu0.1/ffmpeg_3.4.11.orig.tar.xz
           tar -xvf ffmpeg_3.4.11.orig.tar.xz
           cd ffmpeg-3.4.11
-          ./configure --disable-doc --disable-openssl --enable-avresample --enable-gnutls --enable-gpl --enable-hardcoded-tables --enable-libfreetype --enable-libopenh264 --enable-libx264 --enable-pic --enable-pthreads --enable-shared --enable-static --enable-version3 --enable-zlib --enable-libmp3lame
+          ./configure --disable-x86asm --disable-doc --disable-openssl --enable-avresample --enable-gnutls --enable-gpl --enable-hardcoded-tables --enable-libfreetype --enable-libopenh264 --enable-libx264 --enable-pic --enable-pthreads --enable-shared --enable-static --enable-version3 --enable-zlib --enable-libmp3lame
           make
           make install
           ffmpeg
