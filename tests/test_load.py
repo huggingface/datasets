@@ -476,7 +476,6 @@ class ModuleFactoryTest(TestCase):
     [
         CachedDatasetModuleFactory,
         CachedMetricModuleFactory,
-        GithubDatasetModuleFactory,
         GithubMetricModuleFactory,
         HubDatasetModuleFactoryWithoutScript,
         HubDatasetModuleFactoryWithScript,
