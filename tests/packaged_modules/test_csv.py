@@ -12,7 +12,7 @@ from ..utils import require_pil
 
 @pytest.fixture
 def csv_file(tmp_path):
-    filename = tmp_path / "malformed_file.csv"
+    filename = tmp_path / "file.csv"
     data = textwrap.dedent(
         """\
         header1,header2
