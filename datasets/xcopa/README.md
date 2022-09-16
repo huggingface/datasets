@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - et
 - ht
 - id
@@ -15,7 +15,7 @@ languages:
 - tr
 - vi
 - zh
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - multilingual
@@ -96,8 +96,6 @@ Xcopa language et
 - zh
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -49,10 +49,10 @@ pretty_name: FreebaseQA
 ## Dataset Description
  
 - **Homepage:**
-- **Repository: [FreebaseQA repository](https://github.com/kelvin-jiang/FreebaseQA)**
-- **Paper: [FreebaseQA ACL paper](https://www.aclweb.org/anthology/N19-1028.pdf)**
+- **Repository:** [FreebaseQA repository](https://github.com/kelvin-jiang/FreebaseQA)
+- **Paper:** [FreebaseQA ACL paper](https://www.aclweb.org/anthology/N19-1028.pdf)
 - **Leaderboard:**
-- **Point of Contact: [Kelvin Jiang](https://github.com/kelvin-jiang)**
+- **Point of Contact:** [Kelvin Jiang](https://github.com/kelvin-jiang)
  
 ### Dataset Summary
  

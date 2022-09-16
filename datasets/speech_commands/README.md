@@ -3,24 +3,25 @@ annotations_creators:
 - other
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
 pretty_name: SpeechCommands
-size_categories:
-  v0.01:
-    - 10K<n<100K
-  v0.02:
-    - 100K<n<1M
 source_datasets:
 - original
 task_categories:
-- speech-processing
+- audio-classification
 task_ids:
-- other-other-keyword-spotting
+- keyword-spotting
+size_categories:
+- 100K<n<1M
+- 10K<n<100K
+configs:
+- v0.01
+- v0.02
 ---
 
 # Dataset Card for SpeechCommands

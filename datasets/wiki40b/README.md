@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: wiki-40b
 pretty_name: Wiki-40B
@@ -59,8 +59,6 @@ that removes non-content sections and structured objects.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

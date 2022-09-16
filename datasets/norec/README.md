@@ -4,11 +4,11 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - nb
 - nn
 - 'no'
-licenses:
+license:
 - cc-by-nc-4.0
 multilinguality:
 - monolingual
@@ -17,13 +17,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: norec
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for NoReC
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

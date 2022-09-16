@@ -1,3 +1,6 @@
+# WARNING: Please, do not use the code in this script as a template to create another script:
+# - It is a bad practice to use `datasets.load_dataset` inside a loading script. Please, avoid doing it.
+
 import json
 import math
 
@@ -80,7 +83,7 @@ def wikipedia_article_snippets(article, passage_len=100, overlap=0):
     for i in range(math.ceil(len(word_map) / step_size)):
         pre_toks = word_map[i * step_size : i * step_size + passage_len]
         start_section_id = max([0] + [j for j in section_indices if j <= pre_toks[0][0]])
-        section_ids = [j for j in section_indices if j >= start_section_id and j <= pre_toks[-1][0]]
+        section_ids = [j for j in section_indices if start_section_id <= j <= pre_toks[-1][0]]
         section_ids = section_ids if len(section_ids) > 0 else [-1]
         passage_text = " ".join([w for p_id, s_id, w in pre_toks])
         passages += [
@@ -98,15 +101,15 @@ def wikipedia_article_snippets(article, passage_len=100, overlap=0):
     return passages
 
 
-_SPLIT_FUCNTION_MAP = {
+_SPLIT_FUNCTION_MAP = {
     "wikipedia": wikipedia_article_snippets,
     "wiki40b": wiki40b_article_snippets,
 }
 
 
-def generate_snippets(wikipedia, split_funtion, passage_len=100, overlap=0):
+def generate_snippets(wikipedia, split_function, passage_len=100, overlap=0):
     for i, article in enumerate(wikipedia):
-        for doc in split_funtion(article, passage_len, overlap):
+        for doc in split_function(article, passage_len, overlap):
             part_id = json.dumps(
                 {
                     "datasets_id": i,
@@ -152,9 +155,9 @@ class WikiSnippets(datasets.GeneratorBasedBuilder):
         ),
         WikiSnippetsConfig(
             name="wikipedia_en_100_0",
-            version=datasets.Version("1.0.0"),
+            version=datasets.Version("2.0.0"),
             wikipedia_name="wikipedia",
-            wikipedia_version_name="20200501.en",
+            wikipedia_version_name="20220301.en",
             snippets_length=100,
             snippets_overlap=0,
         ),
@@ -185,7 +188,7 @@ class WikiSnippets(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-
+        # WARNING: It is a bad practice to use `datasets.load_dataset` inside a loading script. Please, avoid doing it.
         wikipedia = datasets.load_dataset(
             path=self.config.wikipedia_name,
             name=self.config.wikipedia_version_name,
@@ -199,7 +202,7 @@ class WikiSnippets(datasets.GeneratorBasedBuilder):
         logger.info(f"generating examples from = {self.config.wikipedia_name} {self.config.wikipedia_version_name}")
         for split in wikipedia:
             dset = wikipedia[split]
-            split_function = _SPLIT_FUCNTION_MAP[self.config.wikipedia_name]
+            split_function = _SPLIT_FUNCTION_MAP[self.config.wikipedia_name]
             for doc in generate_snippets(
                 dset, split_function, passage_len=self.config.snippets_length, overlap=self.config.snippets_overlap
             ):

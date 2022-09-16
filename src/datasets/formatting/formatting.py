@@ -194,11 +194,11 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
                 array: List = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
         if len(array) > 0:
             if any(
-                (isinstance(x, np.ndarray) and (x.dtype == np.object or x.shape != array[0].shape))
+                (isinstance(x, np.ndarray) and (x.dtype == object or x.shape != array[0].shape))
                 or (isinstance(x, float) and np.isnan(x))
                 for x in array
             ):
-                return np.array(array, copy=False, **{**self.np_array_kwargs, "dtype": np.object})
+                return np.array(array, copy=False, **{**self.np_array_kwargs, "dtype": object})
         return np.array(array, copy=False, **self.np_array_kwargs)
 
 

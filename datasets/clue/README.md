@@ -1,6 +1,30 @@
 ---
+annotations_creators:
+- other
+language:
+- zh
+language_creators:
+- other
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: "CLUE: Chinese Language Understanding Evaluation benchmark"
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- text-classification
+- multiple-choice
+task_ids:
+- topic-classification
+- semantic-similarity-scoring
+- natural-language-inference
+- text-classification-other-coreference-nli
+- text-classification-other-qa-nli
+- multiple-choice-qa
 paperswithcode_id: clue
-pretty_name: Chinese Language Understanding Evaluation Benchmark
 ---
 
 # Dataset Card for "clue"
@@ -31,10 +55,10 @@ pretty_name: Chinese Language Understanding Evaluation Benchmark
 
 ## Dataset Description
 
-- **Homepage:** [https://dc.cloud.alipay.com/index#/topic/data?id=8](https://dc.cloud.alipay.com/index#/topic/data?id=8)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Homepage:** https://www.cluebenchmarks.com
+- **Repository:** https://github.com/CLUEbenchmark/CLUE
+- **Paper:** [CLUE: A Chinese Language Understanding Evaluation Benchmark](https://aclanthology.org/2020.coling-main.419/)
+- **Point of Contact:** [Zhenzhong Lan](mailto:lanzhenzhong@westlake.edu.cn)
 - **Size of downloaded dataset files:** 189.48 MB
 - **Size of the generated dataset:** 463.81 MB
 - **Total amount of disk used:** 653.29 MB
@@ -54,8 +78,6 @@ evaluating, and analyzing Chinese language understanding systems.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -259,16 +281,49 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
-@misc{xu2020clue,
-    title={CLUE: A Chinese Language Understanding Evaluation Benchmark},
-    author={Liang Xu and Xuanwei Zhang and Lu Li and Hai Hu and Chenjie Cao and Weitang Liu and Junyi Li and Yudong Li and Kai Sun and Yechen Xu and Yiming Cui and Cong Yu and Qianqian Dong and Yin Tian and Dian Yu and Bo Shi and Jun Zeng and Rongzhao Wang and Weijian Xie and Yanting Li and Yina Patterson and Zuoyu Tian and Yiwen Zhang and He Zhou and Shaoweihua Liu and Qipeng Zhao and Cong Yue and Xinrui Zhang and Zhengliang Yang and Zhenzhong Lan},
-    year={2020},
-    eprint={2004.05986},
-    archivePrefix={arXiv},
-    primaryClass={cs.CL}
+@inproceedings{xu-etal-2020-clue,
+    title = "{CLUE}: A {C}hinese Language Understanding Evaluation Benchmark",
+    author = "Xu, Liang  and
+      Hu, Hai  and
+      Zhang, Xuanwei  and
+      Li, Lu  and
+      Cao, Chenjie  and
+      Li, Yudong  and
+      Xu, Yechen  and
+      Sun, Kai  and
+      Yu, Dian  and
+      Yu, Cong  and
+      Tian, Yin  and
+      Dong, Qianqian  and
+      Liu, Weitang  and
+      Shi, Bo  and
+      Cui, Yiming  and
+      Li, Junyi  and
+      Zeng, Jun  and
+      Wang, Rongzhao  and
+      Xie, Weijian  and
+      Li, Yanting  and
+      Patterson, Yina  and
+      Tian, Zuoyu  and
+      Zhang, Yiwen  and
+      Zhou, He  and
+      Liu, Shaoweihua  and
+      Zhao, Zhe  and
+      Zhao, Qipeng  and
+      Yue, Cong  and
+      Zhang, Xinrui  and
+      Yang, Zhengliang  and
+      Richardson, Kyle  and
+      Lan, Zhenzhong",
+    booktitle = "Proceedings of the 28th International Conference on Computational Linguistics",
+    month = dec,
+    year = "2020",
+    address = "Barcelona, Spain (Online)",
+    publisher = "International Committee on Computational Linguistics",
+    url = "https://aclanthology.org/2020.coling-main.419",
+    doi = "10.18653/v1/2020.coling-main.419",
+    pages = "4762--4772",
 }
-
 ```
 
 

@@ -3,13 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
-  wi:
-  - other-wi-license
-  locness:
-  - other-locness-license
+license:
+- other
 multilinguality:
 - monolingual
 - other-language-learner
@@ -18,13 +15,14 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
-- conditional-text-generation-other-grammatical-error-correction
+- text2text-generation-other-grammatical-error-correction
 paperswithcode_id: locness-corpus
-pretty_name:
-  wi: Cambridge English Write & Improve
-  locness: LOCNESS
+pretty_name: Cambridge English Write & Improve + LOCNESS
+configs:
+- locness
+- wi
 ---
 
 # Dataset Card for Cambridge English Write & Improve + LOCNESS Dataset

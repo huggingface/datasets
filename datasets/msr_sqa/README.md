@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - ms-pl
 multilinguality:
 - monolingual
@@ -49,9 +49,9 @@ pretty_name: Microsoft Research Sequential Question Answering
 
 ## Dataset Description
 
-- **Homepage:[Microsoft Research Sequential Question Answering (SQA) Dataset](https://msropendata.com/datasets/b25190ed-0f59-47b1-9211-5962858142c2)**
+- **Homepage:** [Microsoft Research Sequential Question Answering (SQA) Dataset](https://msropendata.com/datasets/b25190ed-0f59-47b1-9211-5962858142c2)
 - **Repository:**
-- **Paper:[https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/acl17-dynsp.pdf](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/acl17-dynsp.pdf)**
+- **Paper:** [https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/acl17-dynsp.pdf](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/acl17-dynsp.pdf)
 - **Leaderboard:**
 - **Point of Contact:**
   - Scott Wen-tau Yih        scottyih@microsoft.com

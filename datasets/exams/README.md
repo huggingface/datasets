@@ -4,248 +4,32 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
-  alignments:
-  - ar
-  - bg
-  - de
-  - es
-  - fr
-  - hr
-  - hu
-  - it
-  - lt
-  - mk
-  - pl
-  - pt
-  - sq
-  - sr
-  - tr
-  - vi
-  crosslingual_bg:
-  - bg
-  crosslingual_hr:
-  - hr
-  crosslingual_hu:
-  - hu
-  crosslingual_it:
-  - it
-  crosslingual_mk:
-  - mk
-  crosslingual_pl:
-  - pl
-  crosslingual_pt:
-  - pt
-  crosslingual_sq:
-  - sq
-  crosslingual_sr:
-  - sr
-  crosslingual_test:
-  - ar
-  - bg
-  - de
-  - es
-  - fr
-  - hr
-  - hu
-  - it
-  - lt
-  - mk
-  - pl
-  - pt
-  - sq
-  - sr
-  - tr
-  - vi
-  crosslingual_tr:
-  - tr
-  crosslingual_vi:
-  - vi
-  crosslingual_with_para_bg:
-  - bg
-  crosslingual_with_para_hr:
-  - hr
-  crosslingual_with_para_hu:
-  - hu
-  crosslingual_with_para_it:
-  - it
-  crosslingual_with_para_mk:
-  - mk
-  crosslingual_with_para_pl:
-  - pl
-  crosslingual_with_para_pt:
-  - pt
-  crosslingual_with_para_sq:
-  - sq
-  crosslingual_with_para_sr:
-  - sr
-  crosslingual_with_para_test:
-  - ar
-  - bg
-  - de
-  - es
-  - fr
-  - hr
-  - hu
-  - it
-  - lt
-  - mk
-  - pl
-  - pt
-  - sq
-  - sr
-  - tr
-  - vi
-  crosslingual_with_para_tr:
-  - tr
-  crosslingual_with_para_vi:
-  - vi
-  multilingual:
-  - ar
-  - bg
-  - de
-  - es
-  - fr
-  - hr
-  - hu
-  - it
-  - lt
-  - mk
-  - pl
-  - pt
-  - sq
-  - sr
-  - tr
-  - vi
-  multilingual_with_para:
-  - ar
-  - bg
-  - de
-  - es
-  - fr
-  - hr
-  - hu
-  - it
-  - lt
-  - mk
-  - pl
-  - pt
-  - sq
-  - sr
-  - tr
-  - vi
-licenses:
+language:
+- ar
+- bg
+- de
+- es
+- fr
+- hr
+- hu
+- it
+- lt
+- mk
+- pl
+- pt
+- sq
+- sr
+- tr
+- vi
+license:
 - cc-by-sa-4.0
 multilinguality:
-  alignments:
-  - multilingual
-  crosslingual_bg:
-  - monolingual
-  crosslingual_hr:
-  - monolingual
-  crosslingual_hu:
-  - monolingual
-  crosslingual_it:
-  - monolingual
-  crosslingual_mk:
-  - monolingual
-  crosslingual_pl:
-  - monolingual
-  crosslingual_pt:
-  - monolingual
-  crosslingual_sq:
-  - monolingual
-  crosslingual_sr:
-  - monolingual
-  crosslingual_test:
-  - multilingual
-  crosslingual_tr:
-  - monolingual
-  crosslingual_vi:
-  - monolingual
-  crosslingual_with_para_bg:
-  - monolingual
-  crosslingual_with_para_hr:
-  - monolingual
-  crosslingual_with_para_hu:
-  - monolingual
-  crosslingual_with_para_it:
-  - monolingual
-  crosslingual_with_para_mk:
-  - monolingual
-  crosslingual_with_para_pl:
-  - monolingual
-  crosslingual_with_para_pt:
-  - monolingual
-  crosslingual_with_para_sq:
-  - monolingual
-  crosslingual_with_para_sr:
-  - monolingual
-  crosslingual_with_para_test:
-  - multilingual
-  crosslingual_with_para_tr:
-  - monolingual
-  crosslingual_with_para_vi:
-  - monolingual
-  multilingual:
-  - multilingual
-  multilingual_with_para:
-  - multilingual
+- monolingual
+- multilingual
 size_categories:
-  alignments:
-  - 10K<n<100K
-  crosslingual_bg:
-  - 1K<n<10K
-  crosslingual_hr:
-  - 1K<n<10K
-  crosslingual_hu:
-  - 1K<n<10K
-  crosslingual_it:
-  - 1K<n<10K
-  crosslingual_mk:
-  - 1K<n<10K
-  crosslingual_pl:
-  - 1K<n<10K
-  crosslingual_pt:
-  - n<1K
-  crosslingual_sq:
-  - 1K<n<10K
-  crosslingual_sr:
-  - 1K<n<10K
-  crosslingual_test:
-  - 10K<n<100K
-  crosslingual_tr:
-  - 1K<n<10K
-  crosslingual_vi:
-  - 1K<n<10K
-  crosslingual_with_para_bg:
-  - 1K<n<10K
-  crosslingual_with_para_hr:
-  - 1K<n<10K
-  crosslingual_with_para_hu:
-  - 1K<n<10K
-  crosslingual_with_para_it:
-  - 1K<n<10K
-  crosslingual_with_para_mk:
-  - 1K<n<10K
-  crosslingual_with_para_pl:
-  - 1K<n<10K
-  crosslingual_with_para_pt:
-  - n<1K
-  crosslingual_with_para_sq:
-  - 1K<n<10K
-  crosslingual_with_para_sr:
-  - 1K<n<10K
-  crosslingual_with_para_test:
-  - 10K<n<100K
-  crosslingual_with_para_tr:
-  - 1K<n<10K
-  crosslingual_with_para_vi:
-  - 1K<n<10K
-  multilingual:
-  - 10K<n<100K
-  multilingual_with_para:
-  - 10K<n<100K
+- 10K<n<100K
+- 1K<n<10K
+- n<1K
 source_datasets:
 - original
 task_categories:
@@ -253,6 +37,34 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: exams
+configs:
+- alignments
+- crosslingual_bg
+- crosslingual_hr
+- crosslingual_hu
+- crosslingual_it
+- crosslingual_mk
+- crosslingual_pl
+- crosslingual_pt
+- crosslingual_sq
+- crosslingual_sr
+- crosslingual_test
+- crosslingual_tr
+- crosslingual_vi
+- crosslingual_with_para_bg
+- crosslingual_with_para_hr
+- crosslingual_with_para_hu
+- crosslingual_with_para_it
+- crosslingual_with_para_mk
+- crosslingual_with_para_pl
+- crosslingual_with_para_pt
+- crosslingual_with_para_sq
+- crosslingual_with_para_sr
+- crosslingual_with_para_test
+- crosslingual_with_para_tr
+- crosslingual_with_para_vi
+- multilingual
+- multilingual_with_para
 ---
 
 # Dataset Card for [Dataset Name]
@@ -283,13 +95,13 @@ paperswithcode_id: exams
 
 ## Dataset Description
 
-- **Repository:** [EXAMS github repository](https://github.com/mhardalov/exams-qa)
+- **Repository:** https://github.com/mhardalov/exams-qa
 - **Paper:** [EXAMS: A Multi-Subject High School Examinations Dataset for Cross-Lingual and Multilingual Question Answering](https://arxiv.org/abs/2011.03080)
 - **Point of Contact:** [hardalov@@fmi.uni-sofia.bg](hardalov@@fmi.uni-sofia.bg)
 
 ### Dataset Summary
 
-Eχαµs is a benchmark dataset for multilingual and cross-lingual question answering from high school examinations. It consists of more than 24,000 high-quality high school exam questions in 16 languages, covering 8 language families and 24 school subjects from Natural Sciences and Social Sciences, among others.
+EXAMS is a benchmark dataset for multilingual and cross-lingual question answering from high school examinations. It consists of more than 24,000 high-quality high school exam questions in 16 languages, covering 8 language families and 24 school subjects from Natural Sciences and Social Sciences, among others.
 
 ### Supported Tasks and Leaderboards
 
@@ -297,7 +109,23 @@ Eχαµs is a benchmark dataset for multilingual and cross-lingual question answ
 
 ### Languages
 
-[More Information Needed]
+The languages in the dataset are:
+- ar
+- bg
+- de
+- es
+- fr
+- hr
+- hu
+- it
+- lt
+- mk
+- pl
+- pt
+- sq
+- sr
+- tr
+- vi
 
 ## Dataset Structure
 
@@ -338,7 +166,11 @@ A data instance contains the following fields:
 
 ### Data Splits
 
-[More Information Needed]
+Depending on the configuration, the dataset have different splits:
+- "alignments": a single "full" split
+- "multilingual" and "multilingual_with_para": "train", "validation" and "test" splits
+- "crosslingual_test" and "crosslingual_with_para_test": a single "test" split
+- the rest of crosslingual configurations: "train" and "validation" splits
 
 ## Dataset Creation
 
@@ -354,7 +186,7 @@ Eχαµs was collected from official state exams prepared by the ministries of e
 
 The questions cover a large variety of subjects and material based on the country’s education system. They cover major school subjects such as Biology, Chemistry, Geography, History, and Physics, but we also  highly specialized ones such as Agriculture, Geology, Informatics, as well as some applied and profiled studies.
 
-Some countries allow students to take official examinations in several languages. This dataset rprovides 9,857 parallel question pairs spread across seven languages coming from Croatia (Croatian, Serbian, Italian, Hungarian), Hungary (Hungarian, German, French, Spanish, Croatian, Serbian, Italian), and North Macedonia (Macedonian, Albanian, Turkish).
+Some countries allow students to take official examinations in several languages. This dataset provides 9,857 parallel question pairs spread across seven languages coming from Croatia (Croatian, Serbian, Italian, Hungarian), Hungary (Hungarian, German, French, Spanish, Croatian, Serbian, Italian), and North Macedonia (Macedonian, Albanian, Turkish).
 
 For all languages in the dataset, the first step in the process of data collection was to download the PDF files per year, per subject, and per language (when parallel languages were available in the same source), convert the PDF files to text, and select those that were well formatted and followed the document structure.
 

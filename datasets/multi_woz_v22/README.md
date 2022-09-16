@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - machine-generated
-languages:
+language:
 - en
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual
@@ -15,8 +15,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
-- structure-prediction
+- text-generation
+- fill-mask
+- token-classification
 - text-classification
 task_ids:
 - dialogue-modeling

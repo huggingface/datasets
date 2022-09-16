@@ -4,10 +4,10 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - code
-licenses:
-- 0bsd
+license:
+- bsd-2-clause
 - mit
 multilinguality:
 - monolingual
@@ -16,9 +16,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text2text-generation
+- text-generation
+- fill-mask
 task_ids:
-- sequence-modeling-other-code-modeling
+- text2text-generation-other-code-generation
+- text-generation-other-code-modeling
 paperswithcode_id: null
 ---
 # Dataset Card for [py_ast]
@@ -50,16 +53,16 @@ paperswithcode_id: null
 ## Dataset Description
 
 - **homepage**: [py150](https://www.sri.inf.ethz.ch/py150) 
-- **Paper**: [Probabilistic Model for Code with Decision Trees](https://dl.acm.org/doi/10.1145/3022671.2984041)
+- **Paper**: [Probabilistic Model for Code with Decision Trees](https://www.semanticscholar.org/paper/Probabilistic-model-for-code-with-decision-trees-Raychev-Bielik/62e176977d439aac2e2d7eca834a7a99016dfcaf)
 - **Leaderboard:**
 - **Point of Contact:**
 
 ### Dataset Summary
 
-The dataset consists of parsed Parsed ASTs that were used to train and evaluate the DeepSyn tool. 
+The dataset consists of parsed ASTs that were used to train and evaluate the DeepSyn tool.
 The Python programs are collected from GitHub repositories
-by removing duplicate files, removing project forks (copy of another existing repository)
-,keeping only programs that parse and have at most 30'000 nodes in the AST and 
+by removing duplicate files, removing project forks (copy of another existing repository),
+keeping only programs that parse and have at most 30'000 nodes in the AST and
 we aim to remove obfuscated files
 
 ### Supported Tasks and Leaderboards
@@ -152,6 +155,25 @@ title = {Probabilistic Model for Code with Decision Trees.},
 authors={Raychev, V., Bielik, P., and Vechev, M.},
 year={2016}
 }
+
+```
+@inproceedings{10.1145/2983990.2984041,
+author = {Raychev, Veselin and Bielik, Pavol and Vechev, Martin},
+title = {Probabilistic Model for Code with Decision Trees},
+year = {2016},
+isbn = {9781450344449},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/2983990.2984041},
+doi = {10.1145/2983990.2984041},
+booktitle = {Proceedings of the 2016 ACM SIGPLAN International Conference on Object-Oriented Programming, Systems, Languages, and Applications},
+pages = {731–747},
+numpages = {17},
+keywords = {Code Completion, Decision Trees, Probabilistic Models of Code},
+location = {Amsterdam, Netherlands},
+series = {OOPSLA 2016}
+}
+```
 
 ### Contributions
 

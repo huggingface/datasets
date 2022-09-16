@@ -1,8 +1,25 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+- expert-generated
+language:
 - en
-paperswithcode_id: null
+language_creators:
+- found
+license:
+- cc-by-4.0
+multilinguality:
+- monolingual
 pretty_name: HyperpartisanNewsDetection
+size_categories:
+- 1M<n<10M
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- text-classification-other-bias-classification
+paperswithcode_id: null
 ---
 
 # Dataset Card for "hyperpartisan_news_detection"
@@ -34,7 +51,7 @@ pretty_name: HyperpartisanNewsDetection
 ## Dataset Description
 
 - **Homepage:** [https://pan.webis.de/semeval19/semeval19-web/](https://pan.webis.de/semeval19/semeval19-web/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/pan-webis-de/pan-code/tree/master/semeval19
 - **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 957.68 MB
@@ -59,8 +76,6 @@ There are 2 parts:
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -188,7 +203,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The collection (including labels) are licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
 
 ### Citation Information
 
@@ -198,9 +213,7 @@ The data fields are the same among all splits.
   author={Kiesel, Johannes and Mestre, Maria and Shukla, Rishabh and Vincent, Emmanuel and Corney, David and Adineh, Payam and Stein, Benno and Potthast, Martin},
   year={2019}
 }
-
 ```
-
 
 ### Contributions
 

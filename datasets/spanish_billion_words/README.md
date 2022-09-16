@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - expert-generated
-languages:
+language:
 - es
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -15,9 +15,11 @@ source_datasets:
 - original
 task_categories:
 - other
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 - other-other-pretraining-language-models
 paperswithcode_id: sbwce
 pretty_name: Spanish Billion Word Corpus and Embeddings

@@ -1,37 +1,34 @@
 ---
 pretty_name: "PAWS: Paraphrase Adversaries from Word Scrambling"
 annotations_creators:
-  labeled_final:
-  - expert-generated
-  labeled_swap:
-  - expert-generated
-  unlabeled_final:
-  - machine-generated
+- expert-generated
+- machine-generated
 language_creators:
 - machine-generated
-languages:
+language:
 - en
-licenses:
+license:
 - other
 multilinguality:
 - monolingual
 size_categories:
-  labeled_final:
-  - 10K<n<100K
-  labeled_swap:
-  - 10K<n<100K
-  unlabeled_final:
-  - 100K<n<1M
+- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
 - semantic-similarity-classification
 - semantic-similarity-scoring
-- text-scoring-other-paraphrase-identification
+- text-classification-other-paraphrase-identification
+- text-scoring
+- multi-input-text-classification
 paperswithcode_id: paws
+configs:
+- labeled_final
+- labeled_swap
+- unlabeled_final
 ---
 
 # Dataset Card for PAWS: Paraphrase Adversaries from Word Scrambling

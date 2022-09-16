@@ -1,9 +1,11 @@
 ---
-annotations_creators: []
-language_creators: []
-languages:
+annotations_creators:
+- found
+language_creators:
+- found
+language:
 - my
-licenses:
+license:
 - gpl-3.0
 multilinguality:
 - monolingual
@@ -23,7 +25,7 @@ pretty_name: MyanmarNews
 
 ## Dataset Description
 
-- **Repository: ** https://github.com/ayehninnkhine/MyanmarNewsClassificationSystem
+- **Repository:** https://github.com/ayehninnkhine/MyanmarNewsClassificationSystem
 
 ### Dataset Summary
 

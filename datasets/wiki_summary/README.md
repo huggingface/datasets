@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - crowdsourced
-languages:
+language:
 - fa
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual
@@ -14,15 +14,16 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
+- translation
 - question-answering
+- summarization
 task_ids:
 - abstractive-qa
 - explanation-generation
 - extractive-qa
-- machine-translation
 - open-domain-qa
-- summarization
+- open-domain-abstractive-qa
 - text-simplification
 pretty_name: WikiSummary
 ---

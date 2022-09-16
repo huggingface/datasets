@@ -362,6 +362,9 @@ class NamedSplit(SplitBase):
         else:
             raise ValueError(f"Equality not supported between split {self} and {other}")
 
+    def __lt__(self, other):
+        return self._name < other._name  # pylint: disable=protected-access
+
     def __hash__(self):
         return hash(self._name)
 
@@ -402,6 +405,23 @@ class Split:
     Note: All splits, including compositions inherit from `datasets.SplitBase`
 
     See the :doc:`guide on splits </loading>` for more information.
+
+    Example:
+
+    ```py
+    >>> datasets.SplitGenerator(
+    ...     name=datasets.Split.TRAIN,
+    ...     gen_kwargs={"split_key": "train", "files": dl_manager.download_and extract(url)},
+    ... ),
+    ... datasets.SplitGenerator(
+    ...     name=datasets.Split.VALIDATION,
+    ...     gen_kwargs={"split_key": "validation", "files": dl_manager.download_and extract(url)},
+    ... ),
+    ... datasets.SplitGenerator(
+    ...     name=datasets.Split.TEST,
+    ...     gen_kwargs={"split_key": "test", "files": dl_manager.download_and extract(url)},
+    ... )
+    ```
     """
     # pylint: enable=line-too-long
     TRAIN = NamedSplit("train")
@@ -559,6 +579,15 @@ class SplitGenerator:
             create the examples.
         **gen_kwargs: Keyword arguments to forward to the :meth:`DatasetBuilder._generate_examples` method
             of the builder.
+
+    Example:
+
+    ```py
+    >>> datasets.SplitGenerator(
+    ...     name=datasets.Split.TRAIN,
+    ...     gen_kwargs={"split_key": "train", "files": dl_manager.download_and_extract(url)},
+    ... )
+    ```
     """
 
     name: str

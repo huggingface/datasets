@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - he
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -14,9 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: null
 pretty_name: Hebrew Projectbenyehuda
 ---

@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - gpl-3.0
 multilinguality:
 - monolingual
@@ -14,8 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
+- text-scoring
 - semantic-similarity-scoring
 paperswithcode_id: biosses
 pretty_name: BIOSSES

@@ -4,10 +4,10 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - machine-generated
-languages:
+language:
 - en
 - hi
-licenses:
+license:
 - cc-by-nc-sa-3.0
 multilinguality:
 - translation
@@ -16,9 +16,8 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: hindencorp
 pretty_name: HindEnCorp
 ---
@@ -51,9 +50,9 @@ pretty_name: HindEnCorp
 
 ## Dataset Description
 
-- **Homepage:https://lindat.mff.cuni.cz/repository/xmlui/handle/11858/00-097C-0000-0023-625F-0**
-- **Repository:https://lindat.mff.cuni.cz/repository/xmlui/**
-- **Paper:http://www.lrec-conf.org/proceedings/lrec2014/pdf/835_Paper.pdf**
+- **Homepage:** https://lindat.mff.cuni.cz/repository/xmlui/handle/11858/00-097C-0000-0023-625F-0
+- **Repository:** https://lindat.mff.cuni.cz/repository/xmlui/
+- **Paper:** http://www.lrec-conf.org/proceedings/lrec2014/pdf/835_Paper.pdf
 - **Leaderboard:**
 - **Point of Contact:**
 

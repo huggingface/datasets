@@ -3,7 +3,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - bg
 - cs
 - da
@@ -28,7 +28,7 @@ languages:
 - sk
 - sl
 - sv
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - translation
@@ -38,9 +38,8 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: paracrawl
 ---
 
@@ -93,8 +92,6 @@ Web-Scale Parallel Corpora for Official European Languages.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

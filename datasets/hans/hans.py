@@ -118,10 +118,10 @@ class Hans(datasets.GeneratorBasedBuilder):
         Yields:
           dictionaries containing "premise", "hypothesis" and "label" strings
         """
-        for idx, line in enumerate(open(filepath, "rb")):
+        for idx, line in enumerate(open(filepath, "r", encoding="utf-8")):
             if idx == 0:
                 continue  # skip header
-            line = line.strip().decode("utf-8")
+            line = line.strip()
             split_line = line.split("\t")
             # Examples not marked with a three out of five consensus are marked with
             # "-" and should not be used in standard evaluations.

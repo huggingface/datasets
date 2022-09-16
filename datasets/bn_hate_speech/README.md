@@ -4,9 +4,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - bn
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -50,10 +50,10 @@ pretty_name: Bengali Hate Speech Dataset
 
 ## Dataset Description
 
-- **Homepage: [Bengali Hate Speech Dataset](https://github.com/rezacsedu/Bengali-Hate-Speech-Dataset)**
-- **Repository: [Bengali Hate Speech Dataset](https://github.com/rezacsedu/Bengali-Hate-Speech-Dataset)**
-- **Paper: [Classification Benchmarks for Under-resourced Bengali Language based on Multichannel Convolutional-LSTM Network](https://arxiv.org/abs/2004.07807)**
-- **Point of Contact: [Md. Rezaul Karim](rezaul.karim.fit@gmail.com)**
+- **Homepage:** [Bengali Hate Speech Dataset](https://github.com/rezacsedu/Bengali-Hate-Speech-Dataset)
+- **Repository:** [Bengali Hate Speech Dataset](https://github.com/rezacsedu/Bengali-Hate-Speech-Dataset)
+- **Paper:** [Classification Benchmarks for Under-resourced Bengali Language based on Multichannel Convolutional-LSTM Network](https://arxiv.org/abs/2004.07807)
+- **Point of Contact:** [Md. Rezaul Karim](rezaul.karim.fit@gmail.com)
 
 ### Dataset Summary
 

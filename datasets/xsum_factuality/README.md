@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - extended|other-xsum
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- summarization-other-hallucinations
 paperswithcode_id: null
 pretty_name: XSum Hallucination Annotations
 ---

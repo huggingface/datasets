@@ -54,10 +54,10 @@ Clean up the cache files in the directory with [`Dataset.cleanup_cache_files`]:
 
 ## Enable or disable caching
 
-If you're using a cached file locally, it will automatically reload the dataset with any previous transforms you applied to the dataset. Disable this behavior by setting the argument `load_from_cache=False` in [`Dataset.map`]:
+If you're using a cached file locally, it will automatically reload the dataset with any previous transforms you applied to the dataset. Disable this behavior by setting the argument `load_from_cache_file=False` in [`Dataset.map`]:
 
 ```py
->>> updated_dataset = small_dataset.map(add_prefix, load_from_cache=False)
+>>> updated_dataset = small_dataset.map(add_prefix, load_from_cache_file=False)
 ```
 
 In the example above, 🤗 Datasets will execute the function `add_prefix` over the entire dataset again instead of loading the dataset from its previous state.

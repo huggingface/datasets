@@ -3,35 +3,34 @@ annotations_creators:
 - no-annotation
 language_creators:
 - machine-generated
-languages:
+language:
 - code
-licenses:
-- other-several-licenses
+license:
+- other
 multilinguality:
 - multilingual
 size_categories:
-  all:
-  - 1M<n<10M
-  go:
-  - 100K<n<1M
-  java:
-  - 100K<n<1M
-  javascript:
-  - 100K<n<1M
-  php:
-  - 100K<n<1M
-  python:
-  - 100K<n<1M
-  ruby:
-  - 10K<n<100K
+- 100K<n<1M
+- 10K<n<100K
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: codesearchnet
 pretty_name: CodeSearchNet
+configs:
+- all
+- go
+- java
+- javascript
+- php
+- python
+- ruby
 ---
 
 # Dataset Card for CodeSearchNet corpus

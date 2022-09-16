@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
-- other-non-commercial-research-purpose-only
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -15,7 +15,8 @@ source_datasets:
 - original
 task_categories:
 - other
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - other-other-relation-extraction
 - dialogue-modeling

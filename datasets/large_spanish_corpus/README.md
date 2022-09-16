@@ -3,76 +3,18 @@ annotations_creators:
 - no-annotation
 language_creators:
 - expert-generated
-languages:
+language:
 - es
-licenses:
-  DGT:
-  - mit
-  DOGC:
-  - mit
-  ECB:
-  - mit
-  EMEA:
-  - mit
-  EUBookShop:
-  - mit
-  Europarl:
-  - mit
-  GlobalVoices:
-  - mit
-  JRC:
-  - mit
-  NewsCommentary11:
-  - mit
-  OpenSubtitles2018:
-  - mit
-  ParaCrawl:
-  - mit
-  TED:
-  - mit
-  UN:
-  - mit
-  all_wikis:
-  - mit
-  combined:
-  - mit
-  multiUN:
-  - mit
+license:
+- mit
 multilinguality:
 - monolingual
 size_categories:
-  DGT:
-  - 1M<n<10M
-  DOGC:
-  - 10M<n<100M
-  ECB:
-  - 1M<n<10M
-  EMEA:
-  - 1M<n<10M
-  EUBookShop:
-  - 1M<n<10M
-  Europarl:
-  - 1M<n<10M
-  GlobalVoices:
-  - 100K<n<1M
-  JRC:
-  - 1M<n<10M
-  NewsCommentary11:
-  - 100K<n<1M
-  OpenSubtitles2018:
-  - 100M<n<1B
-  ParaCrawl:
-  - 10M<n<100M
-  TED:
-  - 100K<n<1M
-  UN:
-  - 10K<n<100K
-  all_wikis:
-  - 10M<n<100M
-  combined:
-  - 100M<n<1B
-  multiUN:
-  - 10M<n<100M
+- 100K<n<1M
+- 100M<n<1B
+- 10K<n<100K
+- 10M<n<100M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -81,6 +23,23 @@ task_ids:
 - other-other-pretraining-language-models
 paperswithcode_id: null
 pretty_name: The Large Spanish Corpus
+configs:
+- DGT
+- DOGC
+- ECB
+- EMEA
+- EUBookShop
+- Europarl
+- GlobalVoices
+- JRC
+- NewsCommentary11
+- OpenSubtitles2018
+- ParaCrawl
+- TED
+- UN
+- all_wikis
+- combined
+- multiUN
 ---
 
 # Dataset Card for The Large Spanish Corpus

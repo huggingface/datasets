@@ -1,12 +1,12 @@
 ---
 annotations_creators:
-- unknown
+- other
 language_creators:
 - machine-generated
-languages:
+language:
 - en
-licenses:
-- cc-by-4.0
+license:
+- cc-by-sa-4.0
 multilinguality:
 - monolingual
 pretty_name: Adversarial GLUE
@@ -15,31 +15,19 @@ size_categories:
 source_datasets:
 - extended|glue
 task_categories:
-  adv_mnli:
-  - text-classification
-  adv_mnli_mismatched:
-  - text-classification
-  adv_qnli:
-  - text-classification
-  adv_qqp:
-  - text-classification
-  adv_rte:
-  - text-classification
-  adv_sst2:
-  - text-classification
+- text-classification
 task_ids:
-  adv_mnli:
-  - natural-language-inference
-  adv_mnli_mismatched:
-  - natural-language-inference
-  adv_qnli:
-  - text-classification-other-qa-nli
-  adv_qqp:
-  - text-classification-other-paraphrase-identification
-  adv_rte:
-  - natural-language-inference
-  adv_sst2:
-  - sentiment-classification
+- natural-language-inference
+- sentiment-classification
+- text-classification-other-paraphrase-identification
+- text-classification-other-qa-nli
+configs:
+- adv_mnli
+- adv_mnli_mismatched
+- adv_qnli
+- adv_qqp
+- adv_rte
+- adv_sst2
 ---
 
 # Dataset Card for Adversarial GLUE
@@ -77,6 +65,9 @@ task_ids:
 - **Paper:** [arXiv](https://arxiv.org/pdf/2111.02840.pdf)
 - **Leaderboard:**
 - **Point of Contact:**
+
+### Dataset Summary
+
 Adversarial GLUE Benchmark (AdvGLUE) is a comprehensive robustness evaluation benchmark that focuses on the adversarial robustness evaluation of language models. It covers five natural language understanding tasks from the famous GLUE tasks and is an adversarial version of GLUE benchmark.
 
 AdvGLUE considers textual adversarial attacks from different perspectives and hierarchies, including word-level transformations, sentence-level manipulations, and human-written adversarial examples, which provide comprehensive coverage of various adversarial linguistic phenomena.
@@ -90,8 +81,6 @@ Leaderboard available on the homepage: [https://adversarialglue.github.io/](http
 AdvGLUE deviates from the GLUE dataset, which has a base language of English.
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -157,9 +146,21 @@ Adversarial GLUE provides only a 'dev' split.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed]
+
+#### Who are the source language producers?
+
 [More Information Needed]
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
 
 [More Information Needed]
 
@@ -182,6 +183,14 @@ Adversarial GLUE provides only a 'dev' split.
 [More Information Needed]
 
 ## Additional Information
+
+### Dataset Curators
+
+[More Information Needed]
+
+### Licensing Information
+
+The dataset is distributed under the [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/legalcode) license.
 
 ### Citation Information
 

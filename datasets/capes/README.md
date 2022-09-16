@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
 - pt
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -15,9 +15,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- translation
 task_ids:
-- machine-translation
+- translaiton-other-theses-translation
+- translaiton-other-dissertation-abstracts-translation
 paperswithcode_id: capes
 pretty_name: CAPES
 ---

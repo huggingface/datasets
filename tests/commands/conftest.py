@@ -66,8 +66,8 @@ def dataset_loading_script_code():
 @pytest.fixture
 def dataset_loading_script_dir(dataset_loading_script_name, dataset_loading_script_code, tmp_path):
     script_name = dataset_loading_script_name
-    script_dir = tmp_path / script_name
-    script_dir.mkdir()
+    script_dir = tmp_path / "datasets" / script_name
+    script_dir.mkdir(parents=True)
     script_path = script_dir / f"{script_name}.py"
     with open(script_path, "w") as f:
         f.write(dataset_loading_script_code)

@@ -1,10 +1,12 @@
 ---
-annotations_creators: []
-language_creators: []
-languages:
+annotations_creators:
+- found
+language_creators:
+- found
+language:
 - th
-licenses:
-- lgpl-3.0-only
+license:
+- lgpl-3.0
 multilinguality:
 - monolingual
 size_categories:
@@ -23,7 +25,7 @@ pretty_name: WongnaiReviews
 
 ## Dataset Description
 
-- **Repository: ** https://github.com/wongnai/wongnai-corpus
+- **Repository:** https://github.com/wongnai/wongnai-corpus
 
 ### Dataset Summary
 

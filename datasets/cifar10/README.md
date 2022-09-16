@@ -4,9 +4,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -16,8 +16,7 @@ source_datasets:
 - extended|other-80-Million-Tiny-Images
 task_categories:
 - image-classification
-task_ids:
-- single-label-image-classification
+task_ids: []
 paperswithcode_id: cifar-10
 ---
 

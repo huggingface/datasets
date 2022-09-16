@@ -1,8 +1,25 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
-paperswithcode_id: squad-shifts
+language_creators:
+- crowdsourced
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
 pretty_name: SQuAD-shifts
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
+paperswithcode_id: squad-shifts
 ---
 
 # Dataset Card for "squadshifts"
@@ -55,8 +72,6 @@ Times articles, Reddit comments, and Amazon product reviews. Each dataset was ge
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

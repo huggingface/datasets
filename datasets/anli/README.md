@@ -1,8 +1,27 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+- machine-generated
+language:
 - en
-paperswithcode_id: anli
+language_creators:
+- found
+license:
+- cc-by-nc-4.0
+multilinguality:
+- monolingual
 pretty_name: Adversarial NLI
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+- extended|hotpot_qa
+task_categories:
+- text-classification
+task_ids:
+- natural-language-inference
+- multi-input-text-classification
+paperswithcode_id: anli
 ---
 
 # Dataset Card for "anli"
@@ -33,9 +52,9 @@ pretty_name: Adversarial NLI
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/facebookresearch/anli/](https://github.com/facebookresearch/anli/)
+- **Homepage:**
 - **Repository:** [https://github.com/facebookresearch/anli/](https://github.com/facebookresearch/anli/)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [Adversarial NLI: A New Benchmark for Natural Language Understanding](https://arxiv.org/abs/1910.14599)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 17.76 MB
 - **Size of the generated dataset:** 73.55 MB
@@ -57,8 +76,6 @@ It contains three rounds. Each round has train/dev/test splits.
 English
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

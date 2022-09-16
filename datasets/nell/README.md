@@ -3,32 +3,33 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
 size_categories:
-  nell_belief:
-  - 1M<n<10M
-  nell_belief_sentences:
-  - 10M<n<100M
-  nell_candidate:
-  - 10M<n<100M
-  nell_candidate_sentences:
-  - 100M<n<1B
+- 100M<n<1B
+- 10M<n<100M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- other-text-to-tabular
 - text-retrieval
+- other-text-to-structured
 task_ids:
 - entity-linking-retrieval
 - fact-checking-retrieval
-- other-structured-to-text
+- other-relation-extraction
 paperswithcode_id: nell
 pretty_name: Never Ending Language Learning (NELL)
+configs:
+- nell_belief
+- nell_belief_sentences
+- nell_candidate
+- nell_candidate_sentences
 ---
 
 # Dataset Card for Never Ending Language Learning (NELL)

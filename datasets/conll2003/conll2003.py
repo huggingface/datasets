@@ -234,10 +234,11 @@ class Conll2003(datasets.GeneratorBasedBuilder):
                     chunk_tags.append(splits[2])
                     ner_tags.append(splits[3].rstrip())
             # last example
-            yield guid, {
-                "id": str(guid),
-                "tokens": tokens,
-                "pos_tags": pos_tags,
-                "chunk_tags": chunk_tags,
-                "ner_tags": ner_tags,
-            }
+            if tokens:
+                yield guid, {
+                    "id": str(guid),
+                    "tokens": tokens,
+                    "pos_tags": pos_tags,
+                    "chunk_tags": chunk_tags,
+                    "ner_tags": ner_tags,
+                }

@@ -1,12 +1,12 @@
 ---
 pretty_name: Ohsumed
 annotations_creators:
-- human-annotated
+- expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-nc-4.0
 multilinguality:
 - monolingual
@@ -49,11 +49,11 @@ paperswithcode_id: null
 
 ## Dataset Description
 
-- **Homepage: http://davis.wpi.edu/xmdv/datasets/ohsumed.html**
-- **Repository: https://trec.nist.gov/data/filtering/t9.filtering.tar.gz**
-- **Paper: https://link.springer.com/chapter/10.1007/978-1-4471-2099-5_20**
+- **Homepage:** http://davis.wpi.edu/xmdv/datasets/ohsumed.html
+- **Repository:** https://trec.nist.gov/data/filtering/t9.filtering.tar.gz
+- **Paper:** https://link.springer.com/chapter/10.1007/978-1-4471-2099-5_20
 - **Leaderboard:**
-- **Point of Contact: [William Hersh](mailto:hersh@OHSU.EDU) [Aakash Gupta](mailto:aakashg80@gmail.com)**
+- **Point of Contact:** [William Hersh](mailto:hersh@OHSU.EDU) [Aakash Gupta](mailto:aakashg80@gmail.com)
 
 ### Dataset Summary
 

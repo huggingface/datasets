@@ -2,15 +2,19 @@ import copy
 import os
 import tempfile
 from unittest import TestCase
+from unittest.mock import patch
 
 import numpy as np
 import pyarrow as pa
+import pyarrow.parquet as pq
 import pytest
 
-from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, TypedSequence
-from datasets.features import Array2D, ClassLabel, Features, Value
-from datasets.features.features import Array2DExtensionType
+from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
+from datasets.features import Array2D, ClassLabel, Features, Image, Value
+from datasets.features.features import Array2DExtensionType, cast_to_python_objects
 from datasets.keyhash import DuplicatedKeysError, InvalidKeyError
+
+from .utils import require_pil
 
 
 class TypedSequenceTest(TestCase):
@@ -57,6 +61,19 @@ class TypedSequenceTest(TestCase):
     def test_try_incompatible_extension_type(self):
         arr = pa.array(TypedSequence(["foo", "bar"], try_type=Array2D((1, 3), "int64")))
         self.assertEqual(arr.type, pa.string())
+
+    @require_pil
+    def test_exhaustive_cast(self):
+        import PIL.Image
+
+        pil_image = PIL.Image.fromarray(np.arange(10, dtype=np.uint8).reshape(2, 5))
+        with patch(
+            "datasets.arrow_writer.cast_to_python_objects", side_effect=cast_to_python_objects
+        ) as mock_cast_to_python_objects:
+            _ = pa.array(TypedSequence([{"path": None, "bytes": b"image_bytes"}, pil_image], type=Image()))
+            args, kwargs = mock_cast_to_python_objects.call_args_list[-1]
+            self.assertIn("optimize_list_casting", kwargs)
+            self.assertFalse(kwargs["optimize_list_casting"])
 
 
 def _check_output(output, expected_num_chunks: int):
@@ -163,6 +180,7 @@ def test_write_batch(fields, writer_batch_size):
     schema = pa.schema(fields) if fields else None
     with ArrowWriter(stream=output, schema=schema, writer_batch_size=writer_batch_size) as writer:
         writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
+        writer.write_batch({"col_1": [], "col_2": []})
         num_examples, num_bytes = writer.finalize()
     assert num_examples == 2
     assert num_bytes > 0
@@ -282,3 +300,29 @@ def test_arrow_writer_closes_stream(raise_exception, tmp_path):
         pass
     finally:
         assert writer.stream.closed
+
+
+def test_arrow_writer_with_filesystem(mockfs):
+    path = "mock://dataset-train.arrow"
+    with ArrowWriter(path=path, storage_options=mockfs.storage_options) as writer:
+        assert isinstance(writer._fs, type(mockfs))
+        assert writer._fs.storage_options == mockfs.storage_options
+        writer.write({"col_1": "foo", "col_2": 1})
+        writer.write({"col_1": "bar", "col_2": 2})
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 2
+    assert num_bytes > 0
+    assert mockfs.exists(path)
+
+
+def test_parquet_writer_write():
+    output = pa.BufferOutputStream()
+    with ParquetWriter(stream=output) as writer:
+        writer.write({"col_1": "foo", "col_2": 1})
+        writer.write({"col_1": "bar", "col_2": 2})
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 2
+    assert num_bytes > 0
+    stream = pa.BufferReader(output.getvalue())
+    pa_table: pa.Table = pq.read_table(stream)
+    assert pa_table.to_pydict() == {"col_1": ["foo", "bar"], "col_2": [1, 2]}

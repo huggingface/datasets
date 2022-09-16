@@ -6,8 +6,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Dataset, Features, Image, Sequence, Value, load_dataset
-from datasets.arrow_dataset import concatenate_datasets
+from datasets import Dataset, Features, Image, Sequence, Value, concatenate_datasets, load_dataset
 from datasets.features.image import image_to_bytes
 
 from ..utils import require_pil

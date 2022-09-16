@@ -5,9 +5,9 @@ language_creators:
 - crowdsourced
 - found
 - machine-generated
-languages:
-- en
+language:
 - de
+- en
 - es
 - fr
 - it
@@ -16,8 +16,8 @@ languages:
 - pt
 - ru
 - zh
-licenses:
-- custom
+license:
+- other
 multilinguality:
 - multilingual
 size_categories:
@@ -25,8 +25,9 @@ size_categories:
 source_datasets:
 - extended|other-sts-b
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
+- text-scoring
 - semantic-similarity-scoring
 paperswithcode_id: null
 pretty_name: STSb Multi MT

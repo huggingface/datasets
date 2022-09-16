@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - he
-licenses:
-- agpl-3.0-or-later
+license:
+- agpl-3.0
 multilinguality:
 - monolingual
 size_categories:
@@ -14,9 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: null
 pretty_name: HebrewSentiment
 ---

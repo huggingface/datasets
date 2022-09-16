@@ -3,19 +3,15 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
 size_categories:
-  combined-csv:
-  - 100K<n<1M
-  combined-json:
-  - 10K<n<100K
-  split:
-  - 100K<n<1M
+- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -24,6 +20,10 @@ task_ids:
 - extractive-qa
 paperswithcode_id: newsqa
 pretty_name: NewsQA
+configs:
+- combined-csv
+- combined-json
+- split
 ---
 
 # Dataset Card for NewsQA

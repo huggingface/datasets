@@ -72,7 +72,8 @@ _HOMEPAGE = "https://www.kaggle.com/ankurzing/sentiment-analysis-for-financial-n
 
 _LICENSE = "Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License"
 
-_URL = "https://www.researchgate.net/profile/Pekka_Malo/publication/251231364_FinancialPhraseBank-v10/data/0c96051eee4fb1d56e000000/FinancialPhraseBank-v10.zip"
+_REPO = "https://huggingface.co/datasets/financial_phrasebank/resolve/main/data"
+_URL = f"{_REPO}/FinancialPhraseBank-v1.0.zip"
 
 
 _VERSION = datasets.Version("1.0.0")

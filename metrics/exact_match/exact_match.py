@@ -26,8 +26,8 @@ Returns the rate at which the input predicted strings exactly match their refere
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions: Predicted labels, as returned by a model.
-    references: Ground truth labels.
+    predictions: List of predicted texts.
+    references: List of reference texts.
     regexes_to_ignore: List, defaults to None. Regex expressions of characters to
         ignore when calculating the exact matches. Note: these regexes are removed
         from the input data before the changes based on the options below (e.g. ignore_case,
@@ -45,14 +45,14 @@ Examples:
     >>> refs = ["the cat", "theater", "YELLING", "agent007"]
     >>> preds = ["cat?", "theater", "yelling", "agent"]
     >>> results = exact_match.compute(references=refs, predictions=preds)
-    >>> round(results["exact_match"], 1)
+    >>> print(round(results["exact_match"], 1))
     25.0
 
     >>> exact_match = datasets.load_metric("exact_match")
     >>> refs = ["the cat", "theater", "YELLING", "agent007"]
     >>> preds = ["cat?", "theater", "yelling", "agent"]
     >>> results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", "yell"], ignore_case=True, ignore_punctuation=True)
-    >>> round(results["exact_match"], 1)
+    >>> print(round(results["exact_match"], 1))
     50.0
 
 
@@ -60,15 +60,22 @@ Examples:
     >>> refs = ["the cat", "theater", "YELLING", "agent007"]
     >>> preds = ["cat?", "theater", "yelling", "agent"]
     >>> results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", "yell", "YELL"], ignore_case=True, ignore_punctuation=True)
-    >>> round(results["exact_match"], 1)
+    >>> print(round(results["exact_match"], 1))
     75.0
 
     >>> exact_match = datasets.load_metric("exact_match")
     >>> refs = ["the cat", "theater", "YELLING", "agent007"]
     >>> preds = ["cat?", "theater", "yelling", "agent"]
     >>> results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", "yell", "YELL"], ignore_case=True, ignore_punctuation=True, ignore_numbers=True)
-    >>> round(results["exact_match"], 1)
+    >>> print(round(results["exact_match"], 1))
     100.0
+
+    >>> exact_match = datasets.load_metric("exact_match")
+    >>> refs = ["The cat sat on the mat.", "Theaters are great.", "It's like comparing oranges and apples."]
+    >>> preds = ["The cat sat on the mat?", "Theaters are great.", "It's like comparing apples and oranges."]
+    >>> results = exact_match.compute(references=refs, predictions=preds)
+    >>> print(round(results["exact_match"], 1))
+    33.3
 
 """
 

@@ -23,7 +23,7 @@ from datasets.tasks import ImageClassification
 
 logger = datasets.logging.get_logger(__name__)
 
-_URL = "https://download.microsoft.com/download/3/E/1/3E1C3F21-ECDB-4869-8368-6DEBA77B919F/kagglecatsanddogs_3367a.zip"
+_URL = "https://download.microsoft.com/download/3/E/1/3E1C3F21-ECDB-4869-8368-6DEBA77B919F/kagglecatsanddogs_5340.zip"
 
 _HOMEPAGE = "https://www.microsoft.com/en-us/download/details.aspx?id=54765"
 
@@ -44,14 +44,13 @@ _CITATION = """\
 
 
 class CatsVsDogs(datasets.GeneratorBasedBuilder):
-    VERSION = datasets.Version("0.0.1")
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "image_file_path": datasets.Value("string"),
                     "image": datasets.Image(),
                     "labels": datasets.features.ClassLabel(names=["cat", "dog"]),
                 }
@@ -76,7 +75,6 @@ class CatsVsDogs(datasets.GeneratorBasedBuilder):
                 with open(file, "rb") as f:
                     if b"JFIF" in f.peek(10):
                         yield str(i), {
-                            "image_file_path": file,
                             "image": file,
                             "labels": os.path.basename(os.path.dirname(file)).lower(),
                         }

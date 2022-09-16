@@ -3,27 +3,18 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
-  kannada:
-  - en
-  - kn
-  malayalam:
-  - en
-  - ml
-  tamil:
-  - en
-  - ta
-licenses:
+language:
+- en
+- kn
+- ml
+- ta
+license:
 - cc-by-4.0
 multilinguality:
 - multilingual
 size_categories:
-  kannada:
-  - 1K<n<10K
-  malayalam:
-  - 10K<n<100K
-  tamil:
-  - 10K<n<100K
+- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -32,6 +23,10 @@ task_ids:
 - text-classification-other-offensive-language
 paperswithcode_id: null
 pretty_name: Offenseval Dravidian
+configs:
+- kannada
+- malayalam
+- tamil
 ---
 
 # Dataset Card for Offenseval Dravidian

@@ -792,8 +792,9 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                     result = {key: value for key, value in zip(data_fields, field_values)}
 
                     # set audio feature
+                    path = os.path.join(local_extracted_archive, path) if local_extracted_archive else path
                     result["audio"] = {"path": path, "bytes": f.read()}
                     # set path to None if the audio file doesn't exist locally (i.e. in streaming mode)
-                    result["path"] = os.path.join(local_extracted_archive, path) if local_extracted_archive else None
+                    result["path"] = path if local_extracted_archive else None
 
                     yield path, result

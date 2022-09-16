@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
-- other-requires-accepting-data-licensing-terms-for-non-commercial-research-and-educational-purposes-only
+license:
+- other
 multilinguality:
 - monolingual
 pretty_name: CORNELL NEWSROOM
@@ -15,9 +15,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- news-articles-summarization
 paperswithcode_id: newsroom
 ---
 
@@ -89,8 +89,6 @@ This dataset can be downloaded upon requests. Unzip all the contents
 English (`en`).
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

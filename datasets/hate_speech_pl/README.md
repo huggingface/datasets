@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - pl
-licenses:
-- cc-by-nc-sa-1.0
+license:
+- cc-by-nc-sa-3.0
 multilinguality:
 - monolingual
 size_categories:
@@ -15,8 +15,8 @@ source_datasets:
 - original
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
+- text-scoring
 - multi-class-classification
 - multi-label-classification
 - sentiment-classification

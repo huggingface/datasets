@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - am
 - ar
 - az
@@ -46,7 +46,7 @@ languages:
 - ur
 - uz
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -55,14 +55,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
 pretty_name: tanzil
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for tanzil
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

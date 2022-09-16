@@ -58,8 +58,6 @@ alzheimers data, and the other on entrance exams data.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### 2011.main.DE

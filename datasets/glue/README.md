@@ -1,97 +1,234 @@
 ---
 annotations_creators:
-- unknown
+- other
 language_creators:
-- unknown
-languages:
+- other
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
 size_categories:
 - 10K<n<100K
 source_datasets:
-- unknown
+- original
 task_categories:
-  ax:
-  - text-classification
-  cola:
-  - text-classification
-  mnli:
-  - text-classification
-  mnli_matched:
-  - text-classification
-  mnli_mismatched:
-  - text-classification
-  mrpc:
-  - text-classification
-  qnli:
-  - text-classification
-  qqp:
-  - text-classification
-  rte:
-  - text-classification
-  sst2:
-  - text-classification
-  stsb:
-  - text-scoring
-  wnli:
-  - text-classification
+- text-classification
 task_ids:
-  ax:
-  - natural-language-inference
-  cola:
-  - acceptability-classification
-  mnli:
-  - natural-language-inference
-  mnli_matched:
-  - natural-language-inference
-  mnli_mismatched:
-  - natural-language-inference
-  mrpc:
-  - text-classification-other-paraphrase-identification
-  qnli:
-  - text-classification-other-qa-nli
-  qqp:
-  - text-classification-other-paraphrase-identification
-  rte:
-  - natural-language-inference
-  sst2:
-  - sentiment-classification
-  stsb:
-  - semantic-similarity-scoring
-  wnli:
-  - text-classification-other-coreference-nli
+- acceptability-classification
+- natural-language-inference
+- semantic-similarity-scoring
+- sentiment-classification
+- text-classification-other-coreference-nli
+- text-classification-other-paraphrase-identification
+- text-classification-other-qa-nli
+- text-scoring
 paperswithcode_id: glue
 pretty_name: GLUE (General Language Understanding Evaluation benchmark)
+train-eval-index:
+- config: cola
+  task: text-classification
+  task_id: binary_classification
+  splits:
+    train_split: train
+    eval_split: validation
+  col_mapping:
+    sentence: text
+    label: target
+- config: sst2
+  task: text-classification
+  task_id: binary_classification
+  splits:
+    train_split: train
+    eval_split: validation
+  col_mapping:
+    sentence: text
+    label: target
+- config: mrpc
+  task: text-classification
+  task_id: natural_language_inference
+  splits:
+    train_split: train
+    eval_split: validation
+  col_mapping:
+    sentence1: text1
+    sentence2: text2
+    label: target
+- config: qqp
+  task: text-classification
+  task_id: natural_language_inference
+  splits:
+    train_split: train
+    eval_split: validation
+  col_mapping:
+    question1: text1
+    question2: text2
+    label: target
+- config: stsb
+  task: text-classification
+  task_id: natural_language_inference
+  splits:
+    train_split: train
+    eval_split: validation
+  col_mapping:
+    sentence1: text1
+    sentence2: text2
+    label: target
+- config: mnli
+  task: text-classification
+  task_id: natural_language_inference
+  splits:
+    train_split: train
+    eval_split: validation_matched
+  col_mapping:
+    premise: text1
+    hypothesis: text2
+    label: target
+- config: mnli_mismatched
+  task: text-classification
+  task_id: natural_language_inference
+  splits:
+    train_split: train
+    eval_split: validation
+  col_mapping:
+    premise: text1
+    hypothesis: text2
+    label: target
+- config: mnli_matched
+  task: text-classification
+  task_id: natural_language_inference
+  splits:
+    train_split: train
+    eval_split: validation
+  col_mapping:
+    premise: text1
+    hypothesis: text2
+    label: target
+- config: qnli
+  task: text-classification
+  task_id: natural_language_inference
+  splits:
+    train_split: train
+    eval_split: validation
+  col_mapping:
+    question: text1
+    sentence: text2
+    label: target
+- config: rte
+  task: text-classification
+  task_id: natural_language_inference
+  splits:
+    train_split: train
+    eval_split: validation
+  col_mapping:
+    sentence1: text1
+    sentence2: text2
+    label: target
+- config: wnli
+  task: text-classification
+  task_id: natural_language_inference
+  splits:
+    train_split: train
+    eval_split: validation
+  col_mapping:
+    sentence1: text1
+    sentence2: text2
+    label: target
+configs:
+- ax
+- cola
+- mnli
+- mnli_matched
+- mnli_mismatched
+- mrpc
+- qnli
+- qqp
+- rte
+- sst2
+- stsb
+- wnli
 ---
 
 # Dataset Card for GLUE
 
 ## Table of Contents
-- [Dataset Description](#dataset-description)
-  - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-  - [Languages](#languages)
-- [Dataset Structure](#dataset-structure)
-  - [Data Instances](#data-instances)
-  - [Data Fields](#data-fields)
-  - [Data Splits](#data-splits)
-- [Dataset Creation](#dataset-creation)
-  - [Curation Rationale](#curation-rationale)
-  - [Source Data](#source-data)
-  - [Annotations](#annotations)
-  - [Personal and Sensitive Information](#personal-and-sensitive-information)
-- [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Impact of Dataset](#social-impact-of-dataset)
-  - [Discussion of Biases](#discussion-of-biases)
-  - [Other Known Limitations](#other-known-limitations)
-- [Additional Information](#additional-information)
-  - [Dataset Curators](#dataset-curators)
-  - [Licensing Information](#licensing-information)
-  - [Citation Information](#citation-information)
-  - [Contributions](#contributions)
+- [Dataset Card for GLUE](#dataset-card-for-glue)
+  - [Table of Contents](#table-of-contents)
+  - [Dataset Description](#dataset-description)
+    - [Dataset Summary](#dataset-summary)
+    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+      - [ax](#ax)
+      - [cola](#cola)
+      - [mnli](#mnli)
+      - [mnli_matched](#mnli_matched)
+      - [mnli_mismatched](#mnli_mismatched)
+      - [mrpc](#mrpc)
+      - [qnli](#qnli)
+      - [qqp](#qqp)
+      - [rte](#rte)
+      - [sst2](#sst2)
+      - [stsb](#stsb)
+      - [wnli](#wnli)
+    - [Languages](#languages)
+  - [Dataset Structure](#dataset-structure)
+    - [Data Instances](#data-instances)
+      - [ax](#ax-1)
+      - [cola](#cola-1)
+      - [mnli](#mnli-1)
+      - [mnli_matched](#mnli_matched-1)
+      - [mnli_mismatched](#mnli_mismatched-1)
+      - [mrpc](#mrpc-1)
+      - [qnli](#qnli-1)
+      - [qqp](#qqp-1)
+      - [rte](#rte-1)
+      - [sst2](#sst2-1)
+      - [stsb](#stsb-1)
+      - [wnli](#wnli-1)
+    - [Data Fields](#data-fields)
+      - [ax](#ax-2)
+      - [cola](#cola-2)
+      - [mnli](#mnli-2)
+      - [mnli_matched](#mnli_matched-2)
+      - [mnli_mismatched](#mnli_mismatched-2)
+      - [mrpc](#mrpc-2)
+      - [qnli](#qnli-2)
+      - [qqp](#qqp-2)
+      - [rte](#rte-2)
+      - [sst2](#sst2-2)
+      - [stsb](#stsb-2)
+      - [wnli](#wnli-2)
+    - [Data Splits](#data-splits)
+      - [ax](#ax-3)
+      - [cola](#cola-3)
+      - [mnli](#mnli-3)
+      - [mnli_matched](#mnli_matched-3)
+      - [mnli_mismatched](#mnli_mismatched-3)
+      - [mrpc](#mrpc-3)
+      - [qnli](#qnli-3)
+      - [qqp](#qqp-3)
+      - [rte](#rte-3)
+      - [sst2](#sst2-3)
+      - [stsb](#stsb-3)
+      - [wnli](#wnli-3)
+  - [Dataset Creation](#dataset-creation)
+    - [Curation Rationale](#curation-rationale)
+    - [Source Data](#source-data)
+      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
+      - [Who are the source language producers?](#who-are-the-source-language-producers)
+    - [Annotations](#annotations)
+      - [Annotation process](#annotation-process)
+      - [Who are the annotators?](#who-are-the-annotators)
+    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Considerations for Using the Data](#considerations-for-using-the-data)
+    - [Social Impact of Dataset](#social-impact-of-dataset)
+    - [Discussion of Biases](#discussion-of-biases)
+    - [Other Known Limitations](#other-known-limitations)
+  - [Additional Information](#additional-information)
+    - [Dataset Curators](#dataset-curators)
+    - [Licensing Information](#licensing-information)
+    - [Citation Information](#citation-information)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -164,8 +301,6 @@ The Winograd Schema Challenge (Levesque et al., 2011) is a reading comprehension
 The language data in GLUE is in English (BCP-47 `en`)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

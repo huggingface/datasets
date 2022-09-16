@@ -16,16 +16,16 @@ import tempfile
 import time
 import urllib
 from contextlib import closing, contextmanager
-from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, List, Optional, Type, TypeVar, Union
+from typing import List, Optional, Type, TypeVar, Union
 from urllib.parse import urljoin, urlparse
 
 import requests
 
 from .. import __version__, config
+from ..download.download_config import DownloadConfig
 from . import logging
 from .extract import ExtractManager
 from .filelock import FileLock
@@ -106,9 +106,9 @@ def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = 
         return config.REPO_METRICS_URL.format(revision=revision, path=path, name=name)
 
 
-def hf_hub_url(path: str, name: str, revision: Optional[str] = None) -> str:
+def hf_hub_url(repo_id: str, path: str, revision: Optional[str] = None) -> str:
     revision = revision or config.HUB_DEFAULT_VERSION
-    return config.HUB_DATASETS_URL.format(path=path, name=name, revision=revision)
+    return config.HUB_DATASETS_URL.format(repo_id=repo_id, path=path, revision=revision)
 
 
 def url_or_path_join(base_name: str, *pathnames: str) -> str:
@@ -147,55 +147,6 @@ def hash_url_to_filename(url, etag=None):
         filename += ".py"
 
     return filename
-
-
-@dataclass
-class DownloadConfig:
-    """Configuration for our cached path manager.
-
-    Attributes:
-        cache_dir (:obj:`str` or :obj:`Path`, optional): Specify a cache directory to save the file to (overwrite the
-            default cache dir).
-        force_download (:obj:`bool`, default ``False``): If True, re-dowload the file even if it's already cached in
-            the cache dir.
-        resume_download (:obj:`bool`, default ``False``): If True, resume the download if incompletly recieved file is
-            found.
-        proxies (:obj:`dict`, optional):
-        user_agent (:obj:`str`, optional): Optional string or dict that will be appended to the user-agent on remote
-            requests.
-        extract_compressed_file (:obj:`bool`, default ``False``): If True and the path point to a zip or tar file,
-            extract the compressed file in a folder along the archive.
-        force_extract (:obj:`bool`, default ``False``): If True when extract_compressed_file is True and the archive
-            was already extracted, re-extract the archive and override the folder where it was extracted.
-        delete_extracted (:obj:`bool`, default ``False``): Whether to delete (or keep) the extracted files.
-        use_etag (:obj:`bool`, default ``True``): Whether to use the ETag HTTP response header to validate the cached files.
-        num_proc (:obj:`int`, optional): The number of processes to launch to download the files in parallel.
-        max_retries (:obj:`int`, default ``1``): The number of times to retry an HTTP request if it fails.
-        use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
-            for remote files on the Datasets Hub. If True, will get token from ~/.huggingface.
-        ignore_url_params (:obj:`bool`, default ``False``): Whether to strip all query parameters and #fragments from
-            the download URL before using it for caching the file.
-        download_desc (:obj:`str`, optional): A description to be displayed alongside with the progress bar while downloading the files.
-    """
-
-    cache_dir: Optional[Union[str, Path]] = None
-    force_download: bool = False
-    resume_download: bool = False
-    local_files_only: bool = False
-    proxies: Optional[Dict] = None
-    user_agent: Optional[str] = None
-    extract_compressed_file: bool = False
-    force_extract: bool = False
-    delete_extracted: bool = False
-    use_etag: bool = True
-    num_proc: Optional[int] = None
-    max_retries: int = 1
-    use_auth_token: Optional[Union[str, bool]] = None
-    ignore_url_params: bool = False
-    download_desc: Optional[str] = None
-
-    def copy(self) -> "DownloadConfig":
-        return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
 
 
 def cached_path(
@@ -358,7 +309,7 @@ def _request_with_retry(
         base_wait_time (float): Duration (in seconds) to wait before retrying the first time. Wait time between
             retries then grows exponentially, capped by max_wait_time.
         max_wait_time (float): Maximum amount of time between two retries, in seconds.
-        **params: Params to pass to :obj:`requests.request`.
+        **params (additional keyword arguments): Params to pass to :obj:`requests.request`.
     """
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
     tries, success = 0, False
@@ -558,7 +509,7 @@ def get_from_cache(
                 logger.info(f"Couldn't get ETag version for url {url}")
             elif response.status_code == 401 and config.HF_ENDPOINT in url and use_auth_token is None:
                 raise ConnectionError(
-                    f"Unauthorized for URL {url}. Please use the parameter ``use_auth_token=True`` after logging in with ``huggingface-cli login``"
+                    f"Unauthorized for URL {url}. Please use the parameter `use_auth_token=True` after logging in with `huggingface-cli login`"
                 )
         except (OSError, requests.exceptions.Timeout) as e:
             # not connected

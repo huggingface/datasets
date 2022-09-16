@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -15,10 +15,23 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- speech-processing
-task_ids:
 - automatic-speech-recognition
+task_ids: []
 paperswithcode_id: vctk
+train-eval-index:
+- config: main
+  task: automatic-speech-recognition
+  task_id: speech_recognition
+  splits:
+    train_split: train
+  col_mapping:
+    file: path
+    text: text
+  metrics:
+    - type: wer
+      name: WER
+    - type: cer
+      name: CER
 ---
 
 # Dataset Card for VCTK
@@ -50,7 +63,7 @@ paperswithcode_id: vctk
 ## Dataset Description
 
 - **Homepage:** [Edinburg DataShare](https://doi.org/10.7488/ds/2645)
-- **Repository:** 
+- **Repository:**
 - **Paper:**
 - **Leaderboard:**
 - **Point of Contact:**
@@ -71,24 +84,24 @@ This CSTR VCTK Corpus includes speech data uttered by 110 English speakers with 
 
 ### Data Instances
 
-A data point comprises the path to the audio file, called `file` and its transcription, called `text`. 
+A data point comprises the path to the audio file, called `file` and its transcription, called `text`.
 
 ```
 {
   'speaker_id': 'p225',
   'text_id': '001',
   'text': 'Please call Stella.',
-  'age': '23', 
-  'gender': 'F', 
-  'accent': 'English', 
-  'region': 'Southern England', 
-  'file': '/datasets/downloads/extracted/8ed7dad05dfffdb552a3699777442af8e8ed11e656feb277f35bf9aea448f49e/wav48_silence_trimmed/p225/p225_001_mic1.flac', 
-  'audio': 
+  'age': '23',
+  'gender': 'F',
+  'accent': 'English',
+  'region': 'Southern England',
+  'file': '/datasets/downloads/extracted/8ed7dad05dfffdb552a3699777442af8e8ed11e656feb277f35bf9aea448f49e/wav48_silence_trimmed/p225/p225_001_mic1.flac',
+  'audio':
     {
-      'path': '/datasets/downloads/extracted/8ed7dad05dfffdb552a3699777442af8e8ed11e656feb277f35bf9aea448f49e/wav48_silence_trimmed/p225/p225_001_mic1.flac', 
-      'array': array([0.00485229, 0.00689697, 0.00619507, ..., 0.00811768, 0.00836182, 0.00854492], dtype=float32), 
+      'path': '/datasets/downloads/extracted/8ed7dad05dfffdb552a3699777442af8e8ed11e656feb277f35bf9aea448f49e/wav48_silence_trimmed/p225/p225_001_mic1.flac',
+      'array': array([0.00485229, 0.00689697, 0.00619507, ..., 0.00811768, 0.00836182, 0.00854492], dtype=float32),
       'sampling_rate': 48000
-    }, 
+    },
   'comment': ''
 }
 ```

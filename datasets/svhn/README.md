@@ -4,9 +4,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - machine-generated
-languages:
+language:
 - en
-licenses:
+license:
 - other
 multilinguality:
 - monolingual
@@ -17,8 +17,7 @@ source_datasets:
 task_categories:
 - image-classification
 - object-detection
-task_ids:
-- single-label-image-classification
+task_ids: []
 paperswithcode_id: svhn
 pretty_name: Street View House Numbers
 ---

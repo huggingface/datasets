@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - crowdsourced
-languages:
+language:
 - eu
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -15,9 +15,9 @@ source_datasets:
 - original
 task_categories:
 - question-answering
-- other-dialogue
 task_ids:
 - extractive-qa
+- question-ansering-other-dialogue-qa
 pretty_name: ElkarHizketak
 ---
 

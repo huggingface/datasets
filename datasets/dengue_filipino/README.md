@@ -4,9 +4,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - tl
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -50,11 +50,11 @@ pretty_name: Dengue Dataset in Filipino
 
 ## Dataset Description
 
-- **Homepage: [Dengue Dataset in Filipino homepage](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)**
-- **Repository: [Dengue Dataset in Filipino repository](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)**
-- **Paper: [IEEE paper](https://ieeexplore.ieee.org/document/8459963)**
+- **Homepage:** [Dengue Dataset in Filipino homepage](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
+- **Repository:** [Dengue Dataset in Filipino repository](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
+- **Paper:** [IEEE paper](https://ieeexplore.ieee.org/document/8459963)
 - **Leaderboard:**
-- **Point of Contact: [Jan Christian Cruz](mailto:jan_christian_cruz@dlsu.edu.ph)**
+- **Point of Contact:** [Jan Christian Cruz](mailto:jan_christian_cruz@dlsu.edu.ph)
 
 ### Dataset Summary
 

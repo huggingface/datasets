@@ -3,26 +3,26 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
-- other-university-of-washington-academic
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:
-  ollie_lemmagrep:
-  - 10M<n<100M
-  ollie_patterned:
-  - 1M<n<10M
+- 10M<n<100M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- other
+- other-text-to-structured
 task_ids:
-- other-structured-to-text
-- other-other-relation-extraction
+- other-relation-extraction
 paperswithcode_id: null
 pretty_name: Ollie
+configs:
+- ollie_lemmagrep
+- ollie_patterned
 ---
 
 # Dataset Card for Ollie

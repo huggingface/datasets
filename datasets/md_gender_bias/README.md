@@ -1,106 +1,46 @@
 ---
 pretty_name: Multi-Dimensional Gender Bias Classification
 annotations_creators:
-  convai2_inferred:
-  - machine-generated
-  funpedia:
-  - found
-  gendered_words:
-  - found
-  image_chat:
-  - found
-  light_inferred:
-  - machine-generated
-  name_genders:
-  - found
-  new_data:
-  - crowdsourced
-  - found
-  opensubtitles_inferred:
-  - machine-generated
-  wizard:
-  - found
-  yelp_inferred:
-  - machine-generated
+- crowdsourced
+- found
+- machine-generated
 language_creators:
-  convai2_inferred:
-  - found
-  funpedia:
-  - found
-  gendered_words:
-  - found
-  image_chat:
-  - found
-  light_inferred:
-  - found
-  name_genders:
-  - found
-  new_data:
-  - crowdsourced
-  - found
-  opensubtitles_inferred:
-  - found
-  wizard:
-  - found
-  yelp_inferred:
-  - found
-languages:
+- crowdsourced
+- found
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
 size_categories:
-  convai2_inferred:
-  - 100K<n<1M
-  funpedia:
-  - 10K<n<100K
-  gendered_words:
-  - n<1K
-  image_chat:
-  - 100K<n<1M
-  light_inferred:
-  - 100K<n<1M
-  name_genders:
-  - 1M<n<10M
-  new_data:
-  - 1K<n<10K
-  opensubtitles_inferred:
-  - 100K<n<1M
-  wizard:
-  - 10K<n<100K
-  yelp_inferred:
-  - 1M<n<10M
+- 100K<n<1M
+- 10K<n<100K
+- 1K<n<10K
+- 1M<n<10M
+- n<1K
 source_datasets:
-  convai2_inferred:
-  - extended|other-convai2
-  - original
-  funpedia:
-  - original
-  gendered_words:
-  - original
-  image_chat:
-  - original
-  light_inferred:
-  - extended|other-light
-  - original
-  name_genders:
-  - original
-  new_data:
-  - original
-  opensubtitles_inferred:
-  - extended|other-opensubtitles
-  - original
-  wizard:
-  - original
-  yelp_inferred:
-  - extended|other-yelp
-  - original
+- extended|other-convai2
+- extended|other-light
+- extended|other-opensubtitles
+- extended|other-yelp
+- original
 task_categories:
 - text-classification
 task_ids:
 - text-classification-other-gender-bias
 paperswithcode_id: md-gender
+configs:
+- convai2_inferred
+- funpedia
+- gendered_words
+- image_chat
+- light_inferred
+- name_genders
+- new_data
+- opensubtitles_inferred
+- wizard
+- yelp_inferred
 ---
 
 # Dataset Card for Multi-Dimensional Gender Bias Classification

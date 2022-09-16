@@ -3,391 +3,176 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
-  all_languages:
-  - af
-  - ar
-  - az
-  - be
-  - ber
-  - bg
-  - bn
-  - br
-  - ca
-  - cbk
-  - cmn
-  - cs
-  - da
-  - de
-  - el
-  - en
-  - eo
-  - es
-  - et
-  - eu
-  - fi
-  - fr
-  - gl
-  - gos
-  - he
-  - hi
-  - hr
-  - hu
-  - hy
-  - ia
-  - id
-  - ie
-  - io
-  - is
-  - it
-  - ja
-  - jbo
-  - kab
-  - ko
-  - kw
-  - la
-  - lfn
-  - lt
-  - mk
-  - mr
-  - nb
-  - nds
-  - nl
-  - orv
-  - ota
-  - pes
-  - pl
-  - pt
-  - rn
-  - ro
-  - ru
-  - sl
-  - sr
-  - sv
-  - tk
-  - tl
-  - tlh
-  - toki
-  - tr
-  - tt
-  - ug
-  - uk
-  - ur
-  - vi
-  - vo
-  - war
-  - wuu
-  - yue
-  af:
-  - af
-  ar:
-  - ar
-  az:
-  - az
-  be:
-  - be
-  ber:
-  - ber
-  bg:
-  - bg
-  bn:
-  - bn
-  br:
-  - br
-  ca:
-  - ca
-  cbk:
-  - cbk
-  cmn:
-  - cmn
-  cs:
-  - cs
-  da:
-  - da
-  de:
-  - de
-  el:
-  - el
-  en:
-  - en
-  eo:
-  - eo
-  es:
-  - es
-  et:
-  - et
-  eu:
-  - eu
-  fi:
-  - fi
-  fr:
-  - fr
-  gl:
-  - gl
-  gos:
-  - gos
-  he:
-  - he
-  hi:
-  - hi
-  hr:
-  - hr
-  hu:
-  - hu
-  hy:
-  - hy
-  ia:
-  - ia
-  id:
-  - id
-  ie:
-  - ie
-  io:
-  - io
-  is:
-  - is
-  it:
-  - it
-  ja:
-  - ja
-  jbo:
-  - jbo
-  kab:
-  - kab
-  ko:
-  - ko
-  kw:
-  - kw
-  la:
-  - la
-  lfn:
-  - lfn
-  lt:
-  - lt
-  mk:
-  - mk
-  mr:
-  - mr
-  nb:
-  - nb
-  nds:
-  - nds
-  nl:
-  - nl
-  orv:
-  - orv
-  ota:
-  - ota
-  pes:
-  - pes
-  pl:
-  - pl
-  pt:
-  - pt
-  rn:
-  - rn
-  ro:
-  - ro
-  ru:
-  - ru
-  sl:
-  - sl
-  sr:
-  - sr
-  sv:
-  - sv
-  tk:
-  - tk
-  tl:
-  - tl
-  tlh:
-  - tlh
-  toki:
-  - toki
-  tr:
-  - tr
-  tt:
-  - tt
-  ug:
-  - ug
-  uk:
-  - uk
-  ur:
-  - ur
-  vi:
-  - vi
-  vo:
-  - vo
-  war:
-  - war
-  wuu:
-  - wuu
-  yue:
-  - yue
-licenses:
+language:
+- af
+- ar
+- az
+- be
+- ber
+- bg
+- bn
+- br
+- ca
+- cbk
+- cmn
+- cs
+- da
+- de
+- el
+- en
+- eo
+- es
+- et
+- eu
+- fi
+- fr
+- gl
+- gos
+- he
+- hi
+- hr
+- hu
+- hy
+- ia
+- id
+- ie
+- io
+- is
+- it
+- ja
+- jbo
+- kab
+- ko
+- kw
+- la
+- lfn
+- lt
+- mk
+- mr
+- nb
+- nds
+- nl
+- orv
+- ota
+- pes
+- pl
+- pt
+- rn
+- ro
+- ru
+- sl
+- sr
+- sv
+- tk
+- tl
+- tlh
+- tok
+- tr
+- tt
+- ug
+- uk
+- ur
+- vi
+- vo
+- war
+- wuu
+- yue
+license:
 - cc-by-2.0
 multilinguality:
 - multilingual
 size_categories:
-  af:
-  - n<1K
-  all_languages:
-  - 1M<n<10M
-  ar:
-  - 1K<n<10K
-  az:
-  - n<1K
-  be:
-  - 1K<n<10K
-  ber:
-  - 10K<n<100K
-  bg:
-  - 1K<n<10K
-  bn:
-  - 1K<n<10K
-  br:
-  - 1K<n<10K
-  ca:
-  - n<1K
-  cbk:
-  - n<1K
-  cmn:
-  - 10K<n<100K
-  cs:
-  - 1K<n<10K
-  da:
-  - 10K<n<100K
-  de:
-  - 100K<n<1M
-  el:
-  - 10K<n<100K
-  en:
-  - 100K<n<1M
-  eo:
-  - 100K<n<1M
-  es:
-  - 10K<n<100K
-  et:
-  - n<1K
-  eu:
-  - n<1K
-  fi:
-  - 10K<n<100K
-  fr:
-  - 100K<n<1M
-  gl:
-  - n<1K
-  gos:
-  - n<1K
-  he:
-  - 10K<n<100K
-  hi:
-  - 1K<n<10K
-  hr:
-  - n<1K
-  hu:
-  - 10K<n<100K
-  hy:
-  - n<1K
-  ia:
-  - 1K<n<10K
-  id:
-  - 1K<n<10K
-  ie:
-  - n<1K
-  io:
-  - n<1K
-  is:
-  - 1K<n<10K
-  it:
-  - 100K<n<1M
-  ja:
-  - 10K<n<100K
-  jbo:
-  - 1K<n<10K
-  kab:
-  - 10K<n<100K
-  ko:
-  - n<1K
-  kw:
-  - 1K<n<10K
-  la:
-  - 1K<n<10K
-  lfn:
-  - 1K<n<10K
-  lt:
-  - 1K<n<10K
-  mk:
-  - 10K<n<100K
-  mr:
-  - 10K<n<100K
-  nb:
-  - 1K<n<10K
-  nds:
-  - 1K<n<10K
-  nl:
-  - 10K<n<100K
-  orv:
-  - n<1K
-  ota:
-  - n<1K
-  pes:
-  - 1K<n<10K
-  pl:
-  - 10K<n<100K
-  pt:
-  - 10K<n<100K
-  rn:
-  - n<1K
-  ro:
-  - 1K<n<10K
-  ru:
-  - 100K<n<1M
-  sl:
-  - n<1K
-  sr:
-  - 1K<n<10K
-  sv:
-  - 1K<n<10K
-  tk:
-  - 1K<n<10K
-  tl:
-  - 1K<n<10K
-  tlh:
-  - 1K<n<10K
-  toki:
-  - 1K<n<10K
-  tr:
-  - 100K<n<1M
-  tt:
-  - 1K<n<10K
-  ug:
-  - 1K<n<10K
-  uk:
-  - 10K<n<100K
-  ur:
-  - n<1K
-  vi:
-  - n<1K
-  vo:
-  - n<1K
-  war:
-  - n<1K
-  wuu:
-  - n<1K
-  yue:
-  - n<1K
+- 100K<n<1M
+- 10K<n<100K
+- 1K<n<10K
+- 1M<n<10M
+- n<1K
 source_datasets:
 - extended|other-tatoeba
 task_categories:
-- conditional-text-generation
+- text2text-generation
+- translation
 - text-classification
 task_ids:
-- conditional-text-generation-other-given-a-sentence-generate-a-paraphrase-either-in-same-language-or-another-language
-- machine-translation
+- text2text-generation-other-paraphrase-generation
 - semantic-similarity-classification
 paperswithcode_id: tapaco
 pretty_name: TaPaCo Corpus
+configs:
+- af
+- all_languages
+- ar
+- az
+- be
+- ber
+- bg
+- bn
+- br
+- ca
+- cbk
+- cmn
+- cs
+- da
+- de
+- el
+- en
+- eo
+- es
+- et
+- eu
+- fi
+- fr
+- gl
+- gos
+- he
+- hi
+- hr
+- hu
+- hy
+- ia
+- id
+- ie
+- io
+- is
+- it
+- ja
+- jbo
+- kab
+- ko
+- kw
+- la
+- lfn
+- lt
+- mk
+- mr
+- nb
+- nds
+- nl
+- orv
+- ota
+- pes
+- pl
+- pt
+- rn
+- ro
+- ru
+- sl
+- sr
+- sv
+- tk
+- tl
+- tlh
+- tok
+- tr
+- tt
+- ug
+- uk
+- ur
+- vi
+- vo
+- war
+- wuu
+- yue
 ---
 
 # Dataset Card for TaPaCo Corpus

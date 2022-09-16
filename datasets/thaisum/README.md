@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - th
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -14,11 +14,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- sequence-modeling
+- summarization
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
-- summarization
+- masked-language-modeling
 paperswithcode_id: null
 pretty_name: ThaiSum
 ---

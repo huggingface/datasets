@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: event2mind
 pretty_name: Event2Mind
@@ -54,8 +54,6 @@ In Event2Mind, we explore the task of understanding stereotypical intents and re
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

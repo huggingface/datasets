@@ -2,55 +2,83 @@
   - local: index
     title: 🤗 Datasets
   - local: quickstart
-    title: Quick start
+    title: Quickstart
+  - local: installation
+    title: Installation
   title: Get started
 - sections:
   - local: tutorial
     title: Overview
-  - local: installation
-    title: Installation
   - local: load_hub
-    title: Hugging Face Hub
+    title: Load a dataset from the Hub
   - local: access
-    title: The Dataset object
+    title: Know your dataset
   - local: use_dataset
-    title: Train with 🤗 Datasets
+    title: Preprocess
   - local: metrics
     title: Evaluate predictions
   - local: upload_dataset
-    title: Upload a dataset to the Hub
+    title: Share a dataset to the Hub
   title: "Tutorials"
 - sections:
   - local: how_to
     title: Overview
-  - local: loading
-    title: Load
-  - local: process
-    title: Process
-  - local: audio_process
-    title: Process audio data
-  - local: image_process
-    title: Process image data
-  - local: stream
-    title: Stream
-  - local: share
-    title: Share
-  - local: dataset_script
-    title: Create a dataset loading script
-  - local: dataset_card
-    title: Create a dataset card
-  - local: repository_structure
-    title: Structure your repository
-  - local: cache
-    title: Cache management
-  - local: filesystems
-    title: Cloud storage
-  - local: faiss_es
-    title: Search index
-  - local: how_to_metrics
-    title: Metrics
-  - local: beam
-    title: Beam Datasets
+  - sections:
+    - local: loading
+      title: Load
+    - local: process
+      title: Process
+    - local: stream
+      title: Stream
+    - local: use_with_tensorflow
+      title: Use with TensorFlow
+    - local: use_with_pytorch
+      title: Use with PyTorch
+    - local: cache
+      title: Cache management
+    - local: filesystems
+      title: Cloud storage
+    - local: faiss_es
+      title: Search index
+    - local: how_to_metrics
+      title: Metrics
+    - local: beam
+      title: Beam Datasets
+    title: "General usage"
+  - sections:
+    - local: audio_load
+      title: Load audio data
+    - local: audio_process
+      title: Process audio data
+    title: "Audio"
+  - sections:
+    - local: image_load
+      title: Load image data
+    - local: image_process
+      title: Process image data
+    - local: image_dataset_script
+      title: Create an image dataset
+    - local: image_classification
+      title: Image classification
+    - local: object_detection
+      title: Object detection
+    title: "Vision"
+  - sections:
+    - local: nlp_load
+      title: Load text data
+    - local: nlp_process
+      title: Process text data
+    title: "Text"
+  - sections:
+    - local: share
+      title: Share
+    - local: dataset_script
+      title: Create a dataset loading script
+    - local: dataset_card
+      title: Create a dataset card
+    - local: repository_structure
+      title: Structure your repository
+    title: "Dataset repository"
   title: "How-to guides"
 - sections:
   - local: about_arrow

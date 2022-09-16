@@ -3,48 +3,48 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
-- ca
-- de
-- es
-- fi
-- hi
-- id
-- ko
-- ms
-- pl
-- ru
-- sr
-- tl
-- vi
+language:
 - ar
-- cs
-- el
-- et
-- fr
-- hr
-- it
-- lt
-- nl
-- pt
-- sk
-- sv
-- tr
-- zh
 - bg
+- ca
+- cs
 - da
+- de
+- el
 - en
+- es
+- et
 - fa
+- fi
+- fr
 - he
+- hi
+- hr
 - hu
+- id
+- it
 - ja
+- ko
+- lt
 - lv
-- "no"
+- ms
+- nl
+- 'no'
+- pl
+- pt
 - ro
+- ru
+- sk
 - sl
+- sr
+- sv
 - th
+- tl
+- tr
 - uk
-licenses:
+- vi
+- zh
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -54,7 +54,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: polyglot-ner
@@ -115,8 +115,6 @@ corresponding to a different language. For example, "es" includes only spanish e
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

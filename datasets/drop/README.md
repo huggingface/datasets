@@ -4,9 +4,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -16,6 +16,7 @@ source_datasets:
 - original
 task_categories:
 - question-answering
+- text2text-generation
 task_ids:
 - extractive-qa
 - abstractive-qa
@@ -75,8 +76,6 @@ question, perhaps to multiple input positions, and perform discrete operations o
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

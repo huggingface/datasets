@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-nc-sa-3.0
 multilinguality:
 - monolingual
@@ -49,11 +49,11 @@ pretty_name: The Switchboard Dialog Act Corpus (SwDA)
 
 ## Dataset Description
 
-- **Homepage: [The Switchboard Dialog Act Corpus](http://compprag.christopherpotts.net/swda.html)**
-- **Repository: [NathanDuran/Switchboard-Corpus](https://github.com/cgpotts/swda)**
-- **Paper:[The Switchboard Dialog Act Corpus](http://compprag.christopherpotts.net/swda.html)**
+- **Homepage:** [The Switchboard Dialog Act Corpus](http://compprag.christopherpotts.net/swda.html)
+- **Repository:** [NathanDuran/Switchboard-Corpus](https://github.com/cgpotts/swda)
+- **Paper:** [The Switchboard Dialog Act Corpus](http://compprag.christopherpotts.net/swda.html)
 = **Leaderboard: [Dialogue act classification](https://github.com/sebastianruder/NLP-progress/blob/master/english/dialogue.md#dialogue-act-classification)**
-- **Point of Contact: [Christopher Potts](https://web.stanford.edu/~cgpotts/)**
+- **Point of Contact:** [Christopher Potts](https://web.stanford.edu/~cgpotts/)
 
 ### Dataset Summary
 

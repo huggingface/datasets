@@ -4,68 +4,40 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
-  SLR32:
-  - af
-  - st
-  - tn
-  - xh
-  SLR35:
-  - jv
-  SLR36:
-  - su
-  SLR41:
-  - jv
-  SLR42:
-  - km
-  SLR43:
-  - ne
-  SLR44:
-  - su
-  SLR52:
-  - si
-  SLR53:
-  - bn
-  SLR54:
-  - ne
-  SLR63:
-  - ml
-  SLR64:
-  - mr
-  SLR65:
-  - ta
-  SLR66:
-  - te
-  SLR69:
-  - ca
-  SLR70:
-  - en-NG
-  SLR71:
-  - es-CL
-  SLR72:
-  - es-CO
-  SLR73:
-  - es-PE
-  SLR74:
-  - es-PR
-  SLR75:
-  - ve
-  SLR76:
-  - eu
-  SLR77:
-  - gl
-  SLR78:
-  - gu
-  SLR79:
-  - kn
-  SLR80:
-  - my
-  SLR83:
-  - en-GB
-  - en-IE
-  SLR86:
-  - yo
-licenses:
+language:
+- af
+- bn
+- ca
+- en
+- es
+- eu
+- gl
+- gu
+- jv
+- km
+- kn
+- ml
+- mr
+- my
+- ne
+- si
+- st
+- su
+- ta
+- te
+- tn
+- ve
+- xh
+- yo
+language_bcp47:
+- en-GB
+- en-IE
+- en-NG
+- es-CL
+- es-CO
+- es-PE
+- es-PR
+license:
 - cc-by-sa-4.0
 multilinguality:
 - multilingual
@@ -74,10 +46,38 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- speech-processing
-task_ids:
 - automatic-speech-recognition
+task_ids: []
 paperswithcode_id: null
+configs:
+- SLR32
+- SLR35
+- SLR36
+- SLR41
+- SLR42
+- SLR43
+- SLR44
+- SLR52
+- SLR53
+- SLR54
+- SLR63
+- SLR64
+- SLR65
+- SLR66
+- SLR69
+- SLR70
+- SLR71
+- SLR72
+- SLR73
+- SLR74
+- SLR75
+- SLR76
+- SLR77
+- SLR78
+- SLR79
+- SLR80
+- SLR83
+- SLR86
 ---
 
 # Dataset Card for openslr

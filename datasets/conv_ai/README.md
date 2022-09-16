@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -14,15 +14,16 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- text-scoring
+- conversational
+- text-classification
 task_ids:
-- text-scoring-other-evaluating-dialogue-systems
+- text-scoring
+- text-classification-other-evaluating-dialogue-systems
 paperswithcode_id: null
 pretty_name: ConvAi
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for ConvAi
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

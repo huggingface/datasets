@@ -1,8 +1,24 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
-paperswithcode_id: opinosis
+language_creators:
+- found
+license:
+- apache-2.0
+multilinguality:
+- monolingual
 pretty_name: Opinosis
+size_categories:
+- n<1K
+source_datasets:
+- original
+task_categories:
+- summarization
+task_ids:
+- summarization-other-abstractive-summarization
+paperswithcode_id: opinosis
 ---
 
 # Dataset Card for "opinosis"
@@ -33,10 +49,10 @@ pretty_name: Opinosis
 
 ## Dataset Description
 
-- **Homepage:** [http://kavita-ganesan.com/opinosis/](http://kavita-ganesan.com/opinosis/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Homepage:** http://kavita-ganesan.com/opinosis-opinion-dataset/
+- **Repository:** https://github.com/kavgan/opinosis-summarization
+- **Paper:** [Opinosis: A Graph Based Approach to Abstractive Summarization of Highly Redundant Opinions](https://aclanthology.org/C10-1039/)
+- **Point of Contact:** [Kavita Ganesan](mailto:kavita@opinosis.ai)
 - **Size of downloaded dataset files:** 0.72 MB
 - **Size of the generated dataset:** 0.71 MB
 - **Total amount of disk used:** 1.43 MB
@@ -55,8 +71,6 @@ Topics and opinions are obtained from Tripadvisor, Edmunds.com and Amazon.com.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -140,12 +154,11 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The license for this dataset is Apache License 2.0 and can be found [here](https://github.com/kavgan/opinosis-summarization/blob/master/LICENSE).
 
 ### Citation Information
 
 ```
-
 @inproceedings{ganesan2010opinosis,
   title={Opinosis: a graph-based approach to abstractive summarization of highly redundant opinions},
   author={Ganesan, Kavita and Zhai, ChengXiang and Han, Jiawei},
@@ -154,9 +167,7 @@ The data fields are the same among all splits.
   year={2010},
   organization={Association for Computational Linguistics}
 }
-
 ```
-
 
 ### Contributions
 

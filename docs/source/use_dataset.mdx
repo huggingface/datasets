@@ -1,136 +1,189 @@
-# Train with 🤗 Datasets
+# Preprocess
 
-So far, you loaded a dataset from the Hugging Face Hub and learned how to access the information stored inside the dataset. Now you will tokenize and use your dataset with a framework such as PyTorch or TensorFlow. By default, all the dataset columns are returned as Python objects. But you can bridge the gap between a Python object and your machine learning framework by setting the format of a dataset. Formatting casts the columns into compatible PyTorch or TensorFlow types.
+In addition to loading datasets, 🤗 Datasets other main goal is to offer a diverse set of preprocessing functions to get a dataset into an appropriate format for training with your machine learning framework. 
 
-<Tip warning={true}>
+There are many possible ways to preprocess a dataset, and it all depends on your specific dataset. Sometimes you may need to rename a column, and other times you might need to unflatten nested fields. 🤗 Datasets provides a way to do most of these things. But in nearly all preprocessing cases, depending on your dataset modality, you'll need to:
 
-Often times you may want to modify the structure and content of your dataset before you use it to train a model. For example, you may want to remove a column or cast it as a different type. 🤗 Datasets provides the necessary tools to do this, but since each dataset is so different, the processing approach will vary individually. For more detailed information about preprocessing data, take a look at our [guide](https://huggingface.co/transformers/preprocessing#) from the 🤗 Transformers library. Then come back and read our [How-to Process](./process) guide to see all the different methods for processing your dataset.
+- Tokenize a text dataset.
+- Resample an audio dataset.
+- Apply transforms to an image dataset.
 
-</Tip>
+The last preprocessing step is usually setting your dataset format to be compatible with your machine learning framework's expected input format.
 
-## Tokenize
+In this tutorial, you'll also need to install the 🤗 Transformers library:
 
-Tokenization divides text into individual words called tokens. Tokens are converted into numbers, which is what the model receives as its input. 
-
-The first step is to install the 🤗 Transformers library:
-
-```
+```bash
 pip install transformers
 ```
 
-Next, import a tokenizer. It is important to use the tokenizer that is associated with the model you are using, so the text is split in the same way. In this example, load the [BERT tokenizer](https://huggingface.co/transformers/model_doc/bert#berttokenizerfast) because you are using the [BERT](https://huggingface.co/bert-base-cased) model:
+Grab a dataset of your choice and follow along!
 
-```py
->>> from transformers import BertTokenizerFast
->>> tokenizer = BertTokenizerFast.from_pretrained('bert-base-cased')
-```
+## Tokenize text
 
-Now you can tokenize `sentence1` field of the dataset:
-
-```py
->>> encoded_dataset = dataset.map(lambda examples: tokenizer(examples['sentence1']), batched=True)
->>> encoded_dataset.column_names
-['sentence1', 'sentence2', 'label', 'idx', 'input_ids', 'token_type_ids', 'attention_mask']
->>> encoded_dataset[0]
-{'sentence1': 'Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
-'sentence2': 'Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .',
-'label': 1,
-'idx': 0,
-'input_ids': [  101,  7277,  2180,  5303,  4806,  1117,  1711,   117,  2292, 1119,  1270,   107,  1103,  7737,   107,   117,  1104,  9938, 4267, 12223, 21811,  1117,  2554,   119,   102],
-'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-}
-```
-
-The tokenization process creates three new columns: `input_ids`, `token_type_ids`, and `attention_mask`. These are the inputs to the model.
-
-## Use in PyTorch or TensorFlow
-
-Next, format the dataset into compatible PyTorch or TensorFlow types.
-
-### PyTorch
-
-If you are using PyTorch, set the format with [`Dataset.set_format`], which accepts two main arguments:
-
-1. `type` defines the type of column to cast to. For example, `torch` returns PyTorch tensors.
-
-2. `columns` specify which columns should be formatted.
-
-After you set the format, wrap the dataset with `torch.utils.data.DataLoader`. Your dataset is now ready for use in a training loop!
-
-```py
->>> import torch
->>> from datasets import load_dataset
->>> from transformers import AutoTokenizer
->>> dataset = load_dataset('glue', 'mrpc', split='train')
->>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
->>> dataset = dataset.map(lambda e: tokenizer(e['sentence1'], truncation=True, padding='max_length'), batched=True)
->>> dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
->>> dataloader = torch.utils.data.DataLoader(dataset, batch_size=32)
->>> next(iter(dataloader))
-{'attention_mask': tensor([[1, 1, 1,  ..., 0, 0, 0],
-                         ...,
-                         [1, 1, 1,  ..., 0, 0, 0]]),
-'input_ids': tensor([[  101,  7277,  2180,  ...,     0,     0,     0],
-                    ...,
-                    [  101,  1109,  4173,  ...,     0,     0,     0]]),
-'label': tensor([1, 0, 1, 0, 1, 1, 0, 1]),
-'token_type_ids': tensor([[0, 0, 0,  ..., 0, 0, 0],
-                         ...,
-                         [0, 0, 0,  ..., 0, 0, 0]])}
-```
-
-### TensorFlow
-
-If you are using TensorFlow, you can use [`Dataset.to_tf_dataset`] to wrap the dataset with a **tf.data.Dataset**, which is natively understood by Keras.
-This means a **tf.data.Dataset** object can be iterated over to yield batches of data, and can be passed directly to methods like **model.fit()**.
-[`Dataset.to_tf_dataset`] accepts several arguments:
-
-1. `columns` specify which columns should be formatted (includes the inputs and labels).
-
-2. `shuffle` determines whether the dataset should be shuffled.
-
-3. `batch_size` specifies the batch size.
-
-4. `collate_fn` specifies a data collator that will batch each processed example and apply padding. If you are using a `DataCollator`, make sure you set `return_tensors="tf"` when you initialize it to return `tf.Tensor` outputs.
-
-```py
->>> import tensorflow as tf
->>> from datasets import load_dataset
->>> from transformers import AutoTokenizer
->>> dataset = load_dataset('glue', 'mrpc', split='train')
->>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
->>> dataset = dataset.map(lambda e: tokenizer(e['sentence1'], truncation=True, padding='max_length'), batched=True)
->>> data_collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="tf")
->>> train_dataset = dataset["train"].to_tf_dataset(
-...   columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'],
-...   shuffle=True,
-...   batch_size=16,
-...   collate_fn=data_collator,
-... )
->>> model.fit(train_dataset)  # The output tf.data.Dataset is ready for training immediately
->>> next(iter(train_dataset))  # You can also iterate over the dataset manually to get batches
-{'attention_mask': <tf.Tensor: shape=(16, 512), dtype=int64, numpy=
- array([[1, 1, 1, ..., 0, 0, 0],
-      ...,
-      [1, 1, 1, ..., 0, 0, 0]])>,
- 'input_ids': <tf.Tensor: shape=(16, 512), dtype=int64, numpy=
-  array([[  101, 11336, 11154, ...,     0,     0,     0],
-      ..., 
-      [  101,   156, 22705, ...,     0,     0,     0]])>,
- 'labels': <tf.Tensor: shape=(16,), dtype=int64, numpy=
-  array([1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0])>,
- 'token_type_ids': <tf.Tensor: shape=(16, 512), dtype=int64, numpy=
-  array([[0, 0, 0, ..., 0, 0, 0],
-       ...,
-      [0, 0, 0, ..., 0, 0, 0]])>
-}
-```
+Models cannot process raw text, so you'll need to convert the text into numbers. Tokenization provides a way to do this by dividing text into individual words called *tokens*. Tokens are finally converted to numbers.
 
 <Tip>
 
-[`Dataset.to_tf_dataset`] is the easiest way to create a TensorFlow compatible dataset. If you don't want a `tf.data.Dataset` and would rather the dataset emit `tf.Tensor` objects, take a look at the [format](./process#format) section instead!
+Check out the [Tokenizers](https://huggingface.co/course/chapter2/4?fw=pt) section in Chapter 2 of the Hugging Face course to learn more about tokenization and different tokenization algorithms.
 
 </Tip>
 
-Your dataset is now ready for use in a training loop!
+**1**. Start by loading the [rotten_tomatoes](https://huggingface.co/datasets/rotten_tomatoes) dataset and the tokenizer corresponding to a pretrained [BERT](https://huggingface.co/bert-base-uncased) model. Using the same tokenizer as the pretrained model is important because you want to make sure the text is split in the same way.
+
+```py
+>>> from transformers import AutoTokenizer
+>>> from datasets import load_dataset
+
+>>> tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+>>> dataset = load_dataset("rotten_tomatoes", split="train")
+```
+
+**2**. Call your tokenizer on the first row of `text` in the dataset:
+
+```py
+>>> tokenizer(dataset[0]["text"])
+{'input_ids': [101, 1103, 2067, 1110, 17348, 1106, 1129, 1103, 6880, 1432, 112, 188, 1207, 107, 14255, 1389, 107, 1105, 1115, 1119, 112, 188, 1280, 1106, 1294, 170, 24194, 1256, 3407, 1190, 170, 11791, 5253, 188, 1732, 7200, 10947, 12606, 2895, 117, 179, 7766, 118, 172, 15554, 1181, 3498, 6961, 3263, 1137, 188, 1566, 7912, 14516, 6997, 119, 102], 
+ 'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+ 'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]}
+```
+
+The tokenizer returns a dictionary with three items:
+
+- `input_ids`: the numbers representing the tokens in the text.
+- `token_type_ids`: indicates which sequence a token belongs to if there is more than one sequence.
+- `attention_mask`: indicates whether a token should be masked or not.
+
+These values are actually the model inputs.
+
+**3**. The fastest way to tokenize your entire dataset is to use the [`~Dataset.map`] function. This function speeds up tokenization by applying the tokenizer to batches of examples instead of individual examples. Set the `batched` parameter to `True`:
+
+```py
+>>> def tokenization(example):
+...     return tokenizer(example["text"])
+
+>>> dataset = dataset.map(tokenization, batched=True)
+```
+
+**4**. Set the format of your dataset to be compatible with your machine learning framework:
+
+<frameworkcontent>
+<pt>
+Use the [`~Dataset.set_format`] function to set the dataset format to be compatible with PyTorch:
+
+```py
+>>> dataset.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "labels"])
+>>> dataset.format['type']
+'torch'
+```
+</pt>
+<tf>
+Use the [`~Dataset.to_tf_dataset`] function to set the dataset format to be compatible with TensorFlow. You'll also need to import a [data collator](https://huggingface.co/docs/transformers/main_classes/data_collator#transformers.DataCollatorWithPadding) from 🤗 Transformers to combine the varying sequence lengths into a single batch of equal lengths:
+
+```py
+>>> from transformers import DataCollatorWithPadding
+
+>>> data_collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="tf")
+>>> tf_dataset = dataset.to_tf_dataset(
+...     columns=["input_ids", "token_type_ids", "attention_mask"],
+...     label_cols=["labels"],
+...     batch_size=2,
+...     collate_fn=data_collator,
+...     shuffle=True
+... )
+```
+</tf>
+</frameworkcontent>
+
+**5**. The dataset is now ready for training with your machine learning framework!
+
+## Resample audio signals
+
+Audio inputs like text datasets need to be divided into discrete data points. This is known as *sampling*; the sampling rate tells you how much of the speech signal is captured per second. It is important to make sure the sampling rate of your dataset matches the sampling rate of the data used to pretrain the model you're using. If the sampling rates are different, the pretrained model may perform poorly on your dataset because it doesn't recognize the differences in the sampling rate.
+
+**1**. Start by loading the [MInDS-14](https://huggingface.co/datasets/PolyAI/minds14) dataset, the [`Audio`] feature, and the feature extractor corresponding to a pretrained [Wav2Vec2](https://huggingface.co/facebook/wav2vec2-base-960h) model:
+
+```py
+>>> from transformers import AutoFeatureExtractor
+>>> from datasets import load_dataset, Audio
+
+>>> feature_extractor = AutoFeatureExtractor.from_pretrained("facebook/wav2vec2-base-960h")
+>>> dataset = load_dataset("PolyAI/minds14", "en-US", split="train")
+```
+
+**2**. Index into the first row of the dataset. When you call the `audio` column of the dataset, it is automatically decoded and resampled:
+
+```py
+>>> dataset[0]["audio"]
+{'array': array([ 0.        ,  0.00024414, -0.00024414, ..., -0.00024414,
+         0.        ,  0.        ], dtype=float32),
+ 'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav',
+ 'sampling_rate': 8000}
+```
+
+**3**. Reading a dataset card is incredibly useful and can give you a lot of information about the dataset. A quick look at the MInDS-14 dataset card tells you the sampling rate is 8kHz. Likewise, you can get many details about a model from its model card. The Wav2Vec2 model card says it was sampled on 16kHz speech audio. This means you'll need to upsample the MInDS-14 dataset to match the sampling rate of the model.
+
+Use the [`~Dataset.cast_column`] function and set the `sampling_rate` parameter in the [`Audio`] feature to upsample the audio signal. When you call the `audio` column now, it is decoded and resampled to 16kHz:
+
+```py
+>>> dataset = dataset.cast_column("audio", Audio(sampling_rate=16_000))
+>>> dataset[0]["audio"]
+{'array': array([ 2.3443763e-05,  2.1729663e-04,  2.2145823e-04, ...,
+         3.8356509e-05, -7.3497440e-06, -2.1754686e-05], dtype=float32),
+ 'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav',
+ 'sampling_rate': 16000}
+```
+
+**4**. Use the [`~Dataset.map`] function to resample the entire dataset to 16kHz. This function speeds up resampling by applying the feature extractor to batches of examples instead of individual examples. Set the `batched` parameter to `True`:
+
+```py
+>>> def preprocess_function(examples):
+...     audio_arrays = [x["array"] for x in examples["audio"]]
+...     inputs = feature_extractor(
+...         audio_arrays, sampling_rate=feature_extractor.sampling_rate, max_length=16000, truncation=True
+...     )
+...     return inputs
+
+>>> dataset = dataset.map(preprocess_function, batched=True)
+```
+
+**5**. The dataset is now ready for training with your machine learning framework!
+
+## Apply data augmentations
+
+The most common preprocessing you'll do with image datasets is *data augmentation*, a process that introduces random variations to an image without changing the meaning of the data. This can mean changing the color properties of an image or randomly cropping an image. You are free to use any data augmentation library you like, and 🤗 Datasets will help you apply your data augmentations to your dataset.
+
+**1**. Start by loading the [Beans](https://huggingface.co/datasets/beans) dataset, the `Image` feature, and the feature extractor corresponding to a pretrained [ViT](https://huggingface.co/google/vit-base-patch16-224-in21k) model:
+
+```py
+>>> from transformers import AutoFeatureExtractor
+>>> from datasets import load_dataset, Image
+
+>>> feature_extractor = AutoFeatureExtractor.from_pretrained("google/vit-base-patch16-224-in21k")
+>>> dataset = load_dataset("beans", split="train")
+```
+
+**2**. Index into the first row of the dataset. When you call the `image` column of the dataset, the underlying PIL object is automatically decoded into an image.
+
+```py
+>>> dataset[0]["image"]
+```
+
+**3**. Now, you can apply some transforms to the image. Feel free to take a look at the [various transforms available](https://pytorch.org/vision/stable/auto_examples/plot_transforms.html#sphx-glr-auto-examples-plot-transforms-py) in torchvision and choose one you'd like to experiment with. This example applies a transform that randomly rotates the image:
+
+```py
+>>> from torchvision.transforms import RandomRotation
+
+>>> rotate = RandomRotation(degrees=(0, 90))
+>>> def transforms(examples):
+...     examples["pixel_values"] = [rotate(image.convert("RGB")) for image in examples["image"]]
+...     return examples
+```
+
+**4**. Use the [`~Dataset.set_transform`] function to apply the transform on-the-fly. When you index into the image `pixel_values`, the transform is applied, and your image gets rotated.
+
+```py
+>>> dataset.set_transform(transforms)
+>>> dataset[0]["pixel_values"]
+```
+
+**5**. The dataset is now ready for training with your machine learning framework!

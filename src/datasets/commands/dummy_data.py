@@ -10,11 +10,11 @@ from typing import Optional
 
 from datasets import config
 from datasets.commands import BaseDatasetsCLICommand
+from datasets.download.download_config import DownloadConfig
+from datasets.download.download_manager import DownloadManager
+from datasets.download.mock_download_manager import MockDownloadManager
 from datasets.load import dataset_module_factory, import_main_class
-from datasets.utils.download_manager import DownloadManager
-from datasets.utils.file_utils import DownloadConfig
 from datasets.utils.logging import get_logger, set_verbosity_warning
-from datasets.utils.mock_download_manager import MockDownloadManager
 from datasets.utils.py_utils import map_nested
 
 
@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 DEFAULT_ENCODING = "utf-8"
 
 
-def test_command_factory(args):
+def dummy_data_command_factory(args):
     return DummyDataCommand(
         args.path_to_dataset,
         args.auto_generate,
@@ -256,7 +256,7 @@ class DummyDataCommand(BaseDatasetsCLICommand):
             help=f"Encoding to use when auto-generating dummy data. Defaults to {DEFAULT_ENCODING}",
         )
         test_parser.add_argument("path_to_dataset", type=str, help="Path to the dataset (example: ./datasets/squad)")
-        test_parser.set_defaults(func=test_command_factory)
+        test_parser.set_defaults(func=dummy_data_command_factory)
 
     def __init__(
         self,
@@ -295,14 +295,9 @@ class DummyDataCommand(BaseDatasetsCLICommand):
         auto_generate_results = []
         with tempfile.TemporaryDirectory() as tmp_dir:
             for builder_config in builder_configs:
-                if builder_config is None:
-                    name = None
-                    version = builder_cls.VERSION
-                else:
-                    version = builder_config.version
-                    name = builder_config.name
-
-                dataset_builder = builder_cls(name=name, hash=dataset_module.hash, cache_dir=tmp_dir)
+                config_name = builder_config.name if builder_config else None
+                dataset_builder = builder_cls(config_name=config_name, hash=dataset_module.hash, cache_dir=tmp_dir)
+                version = builder_config.version if builder_config else dataset_builder.config.version
                 mock_dl_manager = MockDownloadManager(
                     dataset_name=self._dataset_name,
                     config=builder_config,
@@ -358,7 +353,7 @@ class DummyDataCommand(BaseDatasetsCLICommand):
             try:
                 split_generators = dataset_builder._split_generators(mock_dl_manager)
                 for split_generator in split_generators:
-                    dataset_builder._prepare_split(split_generator)
+                    dataset_builder._prepare_split(split_generator, check_duplicate_keys=False)
                     n_examples_per_split[split_generator.name] = split_generator.split_info.num_examples
             except OSError as e:
                 logger.error(

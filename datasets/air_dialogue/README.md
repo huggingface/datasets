@@ -1,12 +1,12 @@
 ---
 pretty_name: AirDialogue
 annotations_creators:
-- human-annotated
+- crowdsourced
 language_creators:
 - machine-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-nc-4.0
 multilinguality:
 - monolingual
@@ -15,12 +15,14 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- sequence-modeling
+- conversational
+- text-generation
+- fill-mask
 task_ids:
-- conditional-text-generation-other-dialogue-generation
+- dialogue-generation
 - dialogue-modeling
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: null
 ---
 

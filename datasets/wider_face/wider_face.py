@@ -21,7 +21,7 @@ import datasets
 
 _HOMEPAGE = "http://shuoyang1213.me/WIDERFACE/"
 
-_LICENSE = "Unknown"
+_LICENSE = "Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)"
 
 _CITATION = """\
 @inproceedings{yang2016wider,
@@ -43,10 +43,14 @@ we do not release bounding box ground truth for the test images. Users are
 required to submit final prediction files, which we shall proceed to evaluate.
 """
 
-_TRAIN_DOWNLOAD_URL = "https://drive.google.com/u/0/uc?id=15hGDLhsx8bLgLcIRD5DhYt5iBxnjNF1M&export=download"
-_TEST_DOWNLOAD_URL = "https://drive.google.com/u/0/uc?id=1HIfDbVEWKmsYKJZm4lchTBDLW5N7dY5T&export=download"
-_VALIDATION_DOWNLOAD_URL = "https://drive.google.com/u/0/uc?id=1GUCogbp16PMGa39thoMMeWxp7Rp5oM8Q&export=download"
-_ANNOT_DOWNLOAD_URL = "http://shuoyang1213.me/WIDERFACE/support/bbx_annotation/wider_face_split.zip"
+
+_REPO = "https://huggingface.co/datasets/wider_face/resolve/main/data"
+_URLS = {
+    "train": f"{_REPO}/WIDER_train.zip",
+    "validation": f"{_REPO}/WIDER_val.zip",
+    "test": f"{_REPO}/WIDER_test.zip",
+    "annot": f"{_REPO}/wider_face_split.zip",
+}
 
 
 class WiderFace(datasets.GeneratorBasedBuilder):
@@ -80,32 +84,30 @@ class WiderFace(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        train_dir, test_dir, validation_dir, annot_dir = dl_manager.download_and_extract(
-            [_TRAIN_DOWNLOAD_URL, _TEST_DOWNLOAD_URL, _VALIDATION_DOWNLOAD_URL, _ANNOT_DOWNLOAD_URL]
-        )
+        data_dir = dl_manager.download_and_extract(_URLS)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "split": "train",
-                    "data_dir": train_dir,
-                    "annot_dir": annot_dir,
+                    "data_dir": data_dir["train"],
+                    "annot_dir": data_dir["annot"],
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
                     "split": "test",
-                    "data_dir": test_dir,
-                    "annot_dir": annot_dir,
+                    "data_dir": data_dir["test"],
+                    "annot_dir": data_dir["annot"],
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "split": "val",
-                    "data_dir": validation_dir,
-                    "annot_dir": annot_dir,
+                    "data_dir": data_dir["validation"],
+                    "annot_dir": data_dir["annot"],
                 },
             ),
         ]

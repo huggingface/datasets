@@ -3,10 +3,11 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - nso
-licenses:
-- other-Creative Commons Attribution 2.5 South Africa License
+license:
+- other
+license_details: "Creative Commons Attribution 2.5 South Africa License"
 multilinguality:
 - monolingual
 size_categories:
@@ -14,7 +15,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null

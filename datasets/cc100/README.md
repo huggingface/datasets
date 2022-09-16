@@ -3,7 +3,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - af
 - am
 - ar
@@ -12,7 +12,6 @@ languages:
 - be
 - bg
 - bn
-- bn-Latn
 - br
 - bs
 - ca
@@ -39,7 +38,6 @@ languages:
 - ha
 - he
 - hi
-- hi-Latn
 - hr
 - ht
 - hu
@@ -71,7 +69,6 @@ languages:
 - mr
 - ms
 - my
-- my-x-zawgyi
 - ne
 - nl
 - 'no'
@@ -87,9 +84,9 @@ languages:
 - ro
 - ru
 - sa
-- si
 - sc
 - sd
+- si
 - sk
 - sl
 - so
@@ -100,9 +97,7 @@ languages:
 - sv
 - sw
 - ta
-- ta-Latn
 - te
-- te-Latn
 - th
 - tl
 - tn
@@ -110,33 +105,43 @@ languages:
 - ug
 - uk
 - ur
-- ur-Latn
 - uz
 - vi
 - wo
 - xh
 - yi
 - yo
+- zh
+- zu
+language_bcp47:
+- bn-Latn
+- hi-Latn
+- my-x-zawgyi
+- ta-Latn
+- te-Latn
+- ur-Latn
 - zh-Hans
 - zh-Hant
-- zu
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
 size_categories:
-  am:
-  - 1M<n<10M
-  sr:
-  - 10M<n<100M
+- 10M<n<100M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: cc100
 pretty_name: CC100
+configs:
+- am
+- sr
 ---
 
 # Dataset Card for CC100

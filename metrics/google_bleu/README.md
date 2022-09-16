@@ -19,20 +19,19 @@ This metric is generally used to evaluate machine translation models. It is espe
 Because it performs better on individual sentence pairs as compared to BLEU, Google BLEU has also been used in RL experiments.
 
 ## How to Use
-This metric takes a list of predicted sentences, as well as a list of references. 
-
+At minimum, this metric takes predictions and references:
 ```python
-sentence1 = "the cat sat on the mat"
-sentence2 = "the cat ate the mat"
-google_bleu = datasets.load_metric("google_bleu")
-result = google_bleu.compute(predictions=[sentence1], references=[sentence2])
-print(result)
->>> True
+>>> sentence1 = "the cat sat on the mat".split()
+>>> sentence2 = "the cat ate the mat".split()
+>>> google_bleu = datasets.load_metric("google_bleu")
+>>> result = google_bleu.compute(predictions=[sentence1], references=[[sentence2]])
+>>> print(result)
+{'google_bleu': 0.3333333333333333}
 ```
 
 ### Inputs
-- **predictions** (list of str): list of translations to score. Each translation should be tokenized into a list of tokens.
-- **references** (list of list of str): list of lists of references for each translation. Each reference should be tokenized into a list of tokens.
+- **predictions** (list of list of str): list of translations to score. Each translation should be tokenized into a list of tokens.
+- **references** (list of list of list of str): list of lists of references for each translation. Each reference should be tokenized into a list of tokens.
 - **min_len** (int): The minimum order of n-gram this function should extract. Defaults to 1.
 - **max_len** (int): The maximum order of n-gram this function should extract. Defaults to 4.
 
@@ -65,108 +64,108 @@ print(result_a == result_b)
 ### Examples
 Example with one reference per sample:
 ```python
-hyp1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'which',
-        'ensures', 'that', 'the', 'rubber', 'duck', 'always',
-        'disobeys', 'the', 'commands', 'of', 'the', 'cat']
-ref1a = ['It', 'is', 'the', 'guiding', 'principle', 'which',
-         'guarantees', 'the', 'rubber', 'duck', 'forces', 'never',
-         'being', 'under', 'the', 'command', 'of', 'the', 'cat']
+>>> hyp1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'which',
+...         'ensures', 'that', 'the', 'rubber', 'duck', 'always',
+...         'disobeys', 'the', 'commands', 'of', 'the', 'cat']
+>>> ref1a = ['It', 'is', 'the', 'guiding', 'principle', 'which',
+...          'guarantees', 'the', 'rubber', 'duck', 'forces', 'never',
+...          'being', 'under', 'the', 'command', 'of', 'the', 'cat']
 
-hyp2 = ['he', 'read', 'the', 'book', 'because', 'he', 'was',
-        'interested', 'in', 'world', 'history']
-ref2a = ['he', 'was', 'interested', 'in', 'world', 'history',
-         'because', 'he', 'read', 'the', 'book']
+>>> hyp2 = ['he', 'read', 'the', 'book', 'because', 'he', 'was',
+...         'interested', 'in', 'world', 'history']
+>>> ref2a = ['he', 'was', 'interested', 'in', 'world', 'history',
+...          'because', 'he', 'read', 'the', 'book']
 
-list_of_references = [[ref1a], [ref2a]]
-hypotheses = [hyp1, hyp2]
-google_bleu = datasets.load_metric("google_bleu")
-results = google_bleu.compute(predictions=hypotheses, references=list_of_references)
-print(round(results["google_bleu"], 2))
->>> 0.44
+>>> list_of_references = [[ref1a], [ref2a]]
+>>> hypotheses = [hyp1, hyp2]
+>>> google_bleu = datasets.load_metric("google_bleu")
+>>> results = google_bleu.compute(predictions=hypotheses, references=list_of_references)
+>>> print(round(results["google_bleu"], 2))
+0.44
 ```
 
 Example with multiple references for the first sample:
 ```python
-hyp1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'which',
-        'ensures', 'that', 'the', 'rubber', 'duck', 'always',
-        'disobeys', 'the', 'commands', 'of', 'the', 'cat']
-ref1a = ['It', 'is', 'the', 'guiding', 'principle', 'which',
-         'guarantees', 'the', 'rubber', 'duck', 'forces', 'never',
-         'being', 'under', 'the', 'command', 'of', 'the', 'cat']
-ref1b = ['It', 'is', 'a', 'guide', 'to', 'action', 'that',
-         'ensures', 'that', 'the', 'rubber', 'duck', 'will', 'never',
-         'heed', 'the', 'cat', 'commands']
-ref1c = ['It', 'is', 'the', 'practical', 'guide', 'for', 'the',
-         'rubber', 'duck', 'army', 'never', 'to', 'heed', 'the',
-         'directions', 'of', 'the', 'cat']
+>>> hyp1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'which',
+...         'ensures', 'that', 'the', 'rubber', 'duck', 'always',
+...         'disobeys', 'the', 'commands', 'of', 'the', 'cat']
+>>> ref1a = ['It', 'is', 'the', 'guiding', 'principle', 'which',
+...          'guarantees', 'the', 'rubber', 'duck', 'forces', 'never',
+...          'being', 'under', 'the', 'command', 'of', 'the', 'cat']
+>>> ref1b = ['It', 'is', 'a', 'guide', 'to', 'action', 'that',
+...          'ensures', 'that', 'the', 'rubber', 'duck', 'will', 'never',
+...          'heed', 'the', 'cat', 'commands']
+>>> ref1c = ['It', 'is', 'the', 'practical', 'guide', 'for', 'the',
+...          'rubber', 'duck', 'army', 'never', 'to', 'heed', 'the', 'directions',
+...          'of', 'the', 'cat']
 
-hyp2 = ['he', 'read', 'the', 'book', 'because', 'he', 'was',
-        'interested', 'in', 'world', 'history']
-ref2a = ['he', 'was', 'interested', 'in', 'world', 'history',
-         'because', 'he', 'read', 'the', 'book']
+>>> hyp2 = ['he', 'read', 'the', 'book', 'because', 'he', 'was',
+...         'interested', 'in', 'world', 'history']
+>>> ref2a = ['he', 'was', 'interested', 'in', 'world', 'history',
+...          'because', 'he', 'read', 'the', 'book']
 
-list_of_references = [[ref1a, ref1b, ref1c], [ref2a]]
-hypotheses = [hyp1, hyp2]
-google_bleu = datasets.load_metric("google_bleu")
-results = google_bleu.compute(predictions=hypotheses, references=list_of_references)
-print(round(results["google_bleu"], 2))
->>> 0.61
+>>> list_of_references = [[ref1a, ref1b, ref1c], [ref2a]]
+>>> hypotheses = [hyp1, hyp2]
+>>> google_bleu = datasets.load_metric("google_bleu")
+>>> results = google_bleu.compute(predictions=hypotheses, references=list_of_references)
+>>> print(round(results["google_bleu"], 2))
+0.61
 ```
 
 Example with multiple references for the first sample, and with `min_len` adjusted to `2`, instead of the default `1`:
 ```python
-hyp1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'which',
-        'ensures', 'that', 'the', 'rubber', 'duck', 'always',
-        'disobeys', 'the', 'commands', 'of', 'the', 'cat']
-ref1a = ['It', 'is', 'the', 'guiding', 'principle', 'which',
-         'guarantees', 'the', 'rubber', 'duck', 'forces', 'never',
-         'being', 'under', 'the', 'command', 'of', 'the', 'cat']
-ref1b = ['It', 'is', 'a', 'guide', 'to', 'action', 'that',
-         'ensures', 'that', 'the', 'rubber', 'duck', 'will', 'never',
-         'heed', 'the', 'cat', 'commands']
-ref1c = ['It', 'is', 'the', 'practical', 'guide', 'for', 'the',
-         'rubber', 'duck', 'army', 'never', 'to', 'heed', 'the',
-         'directions', 'of', 'the', 'cat']
+>>> hyp1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'which',
+...         'ensures', 'that', 'the', 'rubber', 'duck', 'always',
+...         'disobeys', 'the', 'commands', 'of', 'the', 'cat']
+>>> ref1a = ['It', 'is', 'the', 'guiding', 'principle', 'which',
+...          'guarantees', 'the', 'rubber', 'duck', 'forces', 'never',
+...          'being', 'under', 'the', 'command', 'of', 'the', 'cat']
+>>> ref1b = ['It', 'is', 'a', 'guide', 'to', 'action', 'that',
+...          'ensures', 'that', 'the', 'rubber', 'duck', 'will', 'never',
+...          'heed', 'the', 'cat', 'commands']
+>>> ref1c = ['It', 'is', 'the', 'practical', 'guide', 'for', 'the',
+...          'rubber', 'duck', 'army', 'never', 'to', 'heed', 'the', 'directions',
+...          'of', 'the', 'cat']
 
-hyp2 = ['he', 'read', 'the', 'book', 'because', 'he', 'was',
-        'interested', 'in', 'world', 'history']
-ref2a = ['he', 'was', 'interested', 'in', 'world', 'history',
-         'because', 'he', 'read', 'the', 'book']
+>>> hyp2 = ['he', 'read', 'the', 'book', 'because', 'he', 'was',
+...         'interested', 'in', 'world', 'history']
+>>> ref2a = ['he', 'was', 'interested', 'in', 'world', 'history',
+...          'because', 'he', 'read', 'the', 'book']
 
-list_of_references = [[ref1a, ref1b, ref1c], [ref2a]]
-hypotheses = [hyp1, hyp2]
-google_bleu = datasets.load_metric("google_bleu")
-results = google_bleu.compute(predictions=hypotheses, references=list_of_references, min_len=2)
-print(results["google_bleu"])
->>> 0.53
+>>> list_of_references = [[ref1a, ref1b, ref1c], [ref2a]]
+>>> hypotheses = [hyp1, hyp2]
+>>> google_bleu = datasets.load_metric("google_bleu")
+>>> results = google_bleu.compute(predictions=hypotheses, references=list_of_references, min_len=2)
+>>> print(round(results["google_bleu"], 2))
+0.53
 ```
 
 Example with multiple references for the first sample, with `min_len` adjusted to `2`, instead of the default `1`, and `max_len` adjusted to `6` instead of the default `4`:
 ```python
-hyp1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'which',
-        'ensures', 'that', 'the', 'rubber', 'duck', 'always',
-        'disobeys', 'the', 'commands', 'of', 'the', 'cat']
-ref1a = ['It', 'is', 'the', 'guiding', 'principle', 'which',
-         'guarantees', 'the', 'rubber', 'duck', 'forces', 'never',
-         'being', 'under', 'the', 'command', 'of', 'the', 'cat']
-ref1b = ['It', 'is', 'a', 'guide', 'to', 'action', 'that',
-         'ensures', 'that', 'the', 'rubber', 'duck', 'will', 'never',
-         'heed', 'the', 'cat', 'commands']
-ref1c = ['It', 'is', 'the', 'practical', 'guide', 'for', 'the',
-         'rubber', 'duck', 'army', 'never', 'to', 'heed', 'the',
-         'directions', 'of', 'the', 'cat']
+>>> hyp1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'which',
+...         'ensures', 'that', 'the', 'rubber', 'duck', 'always',
+...         'disobeys', 'the', 'commands', 'of', 'the', 'cat']
+>>> ref1a = ['It', 'is', 'the', 'guiding', 'principle', 'which',
+...          'guarantees', 'the', 'rubber', 'duck', 'forces', 'never',
+...          'being', 'under', 'the', 'command', 'of', 'the', 'cat']
+>>> ref1b = ['It', 'is', 'a', 'guide', 'to', 'action', 'that',
+...          'ensures', 'that', 'the', 'rubber', 'duck', 'will', 'never',
+...          'heed', 'the', 'cat', 'commands']
+>>> ref1c = ['It', 'is', 'the', 'practical', 'guide', 'for', 'the',
+...          'rubber', 'duck', 'army', 'never', 'to', 'heed', 'the', 'directions',
+...          'of', 'the', 'cat']
 
-hyp2 = ['he', 'read', 'the', 'book', 'because', 'he', 'was',
-        'interested', 'in', 'world', 'history']
-ref2a = ['he', 'was', 'interested', 'in', 'world', 'history',
-         'because', 'he', 'read', 'the', 'book']
+>>> hyp2 = ['he', 'read', 'the', 'book', 'because', 'he', 'was',
+...         'interested', 'in', 'world', 'history']
+>>> ref2a = ['he', 'was', 'interested', 'in', 'world', 'history',
+...          'because', 'he', 'read', 'the', 'book']
 
-list_of_references = [[ref1a, ref1b, ref1c], [ref2a]]
-hypotheses = [hyp1, hyp2]
-google_bleu = datasets.load_metric("google_bleu")
-results = google_bleu.compute(predictions=hypotheses, references=list_of_references, min_len=2, max_len=6)
-print(results["google_bleu"])
->>> 0.4
+>>> list_of_references = [[ref1a, ref1b, ref1c], [ref2a]]
+>>> hypotheses = [hyp1, hyp2]
+>>> google_bleu = datasets.load_metric("google_bleu")
+>>> results = google_bleu.compute(predictions=hypotheses,references=list_of_references, min_len=2, max_len=6)
+>>> print(round(results["google_bleu"], 2))
+0.4
 ```
 
 ## Limitations and Bias

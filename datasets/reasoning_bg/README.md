@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - bg
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual
@@ -170,8 +170,14 @@ Data has been sourced from the matriculation exams and online quizzes.
 
 ### Citation Information
 
-[Needs More Information]
-
+```
+@article{hardalov2019beyond,
+  title={Beyond english-only reading comprehension: Experiments in zero-shot multilingual transfer for bulgarian},
+  author={Hardalov, Momchil and Koychev, Ivan and Nakov, Preslav},
+  journal={arXiv preprint arXiv:1908.01519},
+  year={2019}
+}
+```
 
 ### Contributions
 

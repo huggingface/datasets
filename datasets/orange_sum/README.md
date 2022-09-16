@@ -4,9 +4,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - fr
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -15,9 +15,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- news-articles-headline-generation
+- news-articles-summarization
 paperswithcode_id: orangesum
 ---
 

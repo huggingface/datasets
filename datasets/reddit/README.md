@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -16,9 +16,21 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- summarization-other-reddit-posts-summarization
+train-eval-index:
+- config: default
+  task: summarization
+  task_id: summarization
+  splits:
+    train_split: train
+  col_mapping:
+    content: text
+    summary: target
+  metrics:
+    - type: rouge
+      name: Rouge
 ---
 
 # Dataset Card for Reddit Webis-TLDR-17
@@ -49,7 +61,7 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [https://webis.de/data/webis-tldr-17.html](https://webis.de/data/webis-tldr-17.html) 
+- **Homepage:** [https://webis.de/data/webis-tldr-17.html](https://webis.de/data/webis-tldr-17.html)
 - **Repository:** [https://github.com/webis-de/webis-tldr-17-corpus](https://github.com/webis-de/webis-tldr-17-corpus)
 - **Paper:** [https://aclanthology.org/W17-4508]
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
@@ -81,11 +93,9 @@ Known ROUGE scores achieved for the Webis-TLDR-17:
 
 ### Languages
 
-English 
+English
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -178,7 +188,7 @@ This dataset has been created to serve as a source of large-scale summarization 
 
 Reddit users write TL;DRs with various intentions, such as providing a “true” summary, asking questions or for help, or forming judgments and conclusions. As noted in the paper introducing the dataset, although the first kind of TL;DR posts are most important for training summarization models, yet, the latter allow for various alternative summarization-related tasks.
 
-Although filtering was performed abusive language maybe still be present. 
+Although filtering was performed abusive language maybe still be present.
 
 ## Additional Information
 

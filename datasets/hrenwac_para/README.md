@@ -3,10 +3,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - en
 - hr
-licenses:
+license:
 - cc-by-sa-3.0
 multilinguality:
 - translation
@@ -15,9 +15,8 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
 pretty_name: HrenwacPara
 ---

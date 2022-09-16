@@ -3,6 +3,7 @@ import re
 from hashlib import sha256
 from typing import List
 
+from .audiofolder import audiofolder
 from .csv import csv
 from .imagefolder import imagefolder
 from .json import json
@@ -32,14 +33,19 @@ _PACKAGED_DATASETS_MODULES = {
     "parquet": (parquet.__name__, _hash_python_lines(inspect.getsource(parquet).splitlines())),
     "text": (text.__name__, _hash_python_lines(inspect.getsource(text).splitlines())),
     "imagefolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(imagefolder).splitlines())),
+    "audiofolder": (audiofolder.__name__, _hash_python_lines(inspect.getsource(audiofolder).splitlines())),
 }
 
 _EXTENSION_TO_MODULE = {
-    "csv": "csv",
-    "tsv": "csv",
-    "json": "json",
-    "jsonl": "json",
-    "parquet": "parquet",
-    "txt": "text",
+    "csv": ("csv", {}),
+    "tsv": ("csv", {"sep": "\t"}),
+    "json": ("json", {}),
+    "jsonl": ("json", {}),
+    "parquet": ("parquet", {}),
+    "txt": ("text", {}),
 }
-_EXTENSION_TO_MODULE.update({ext[1:]: "imagefolder" for ext in imagefolder.ImageFolder.IMAGE_EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext[1:]: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext[1:].upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext[1:]: ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext[1:].upper(): ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
+_MODULE_SUPPORTS_METADATA = {"imagefolder", "audiofolder"}

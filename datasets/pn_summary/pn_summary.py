@@ -39,9 +39,10 @@ It is imperative to consider that the newlines were replaced with the `[n]` symb
 _HOMEPAGE = "https://github.com/hooshvare/pn-summary"
 _LICENSE = "MIT License"
 
+_REPO = "https://huggingface.co/datasets/pn_summary/resolve/main/data"
 _URLs = {
     "1.0.0": {
-        "data": "https://drive.google.com/u/0/uc?id=16OgJ_OrfzUF_i3ftLjFn9kpcyoi7UJeO&export=download",
+        "data": f"{_REPO}/pn_summary.zip",
         "features": [
             {"name": "id", "type": datasets.Value("string")},
             {"name": "title", "type": datasets.Value("string")},

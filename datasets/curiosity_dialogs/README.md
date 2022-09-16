@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-nc-4.0
 multilinguality:
 - monolingual
@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - dialogue-modeling
-- sequence-modeling-other-conversational-curiosity
+- fill-mask-other-conversational-curiosity
 paperswithcode_id: curiosity
 pretty_name: Curiosity Dataset
 ---
@@ -61,7 +62,7 @@ Curiosity dataset consists of 14K English dialogs (181K utterances) where users 
 
 ### Supported Tasks and Leaderboards
 
-* `sequence-modeling-other-conversational-curiosity`: The dataset can be used to train a model for Conversational Curiosity, which consists in the testing of the hypothesis that engagement increases when users are presented with facts related to what they know. Success on this task is typically measured by achieving a *high* [Accuracy](https://huggingface.co/metrics/accuracy) and [F1 Score](https://huggingface.co/metrics/f1).
+* `text-generation-other-conversational-curiosity`: The dataset can be used to train a model for Conversational Curiosity, which consists in the testing of the hypothesis that engagement increases when users are presented with facts related to what they know. Success on this task is typically measured by achieving a *high* [Accuracy](https://huggingface.co/metrics/accuracy) and [F1 Score](https://huggingface.co/metrics/f1).
 
 ### Languages
 

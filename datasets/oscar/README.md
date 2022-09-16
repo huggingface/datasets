@@ -4,7 +4,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - af
 - als
 - am
@@ -171,682 +171,360 @@ languages:
 - yo
 - yue
 - zh
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - multilingual
 size_categories:
-  unshuffled_deduplicated_af:
-  - 100K<n<1M
-  unshuffled_deduplicated_als:
-  - 1K<n<10K
-  unshuffled_deduplicated_am:
-  - 10K<n<100K
-  unshuffled_deduplicated_an:
-  - 1K<n<10K
-  unshuffled_deduplicated_ar:
-  - 1M<n<10M
-  unshuffled_deduplicated_arz:
-  - 10K<n<100K
-  unshuffled_deduplicated_as:
-  - 1K<n<10K
-  unshuffled_deduplicated_ast:
-  - 1K<n<10K
-  unshuffled_deduplicated_av:
-  - n<1K
-  unshuffled_deduplicated_az:
-  - 100K<n<1M
-  unshuffled_deduplicated_azb:
-  - 1K<n<10K
-  unshuffled_deduplicated_ba:
-  - 10K<n<100K
-  unshuffled_deduplicated_bar:
-  - n<1K
-  unshuffled_deduplicated_bcl:
-  - n<1K
-  unshuffled_deduplicated_be:
-  - 100K<n<1M
-  unshuffled_deduplicated_bg:
-  - 1M<n<10M
-  unshuffled_deduplicated_bh:
-  - n<1K
-  unshuffled_deduplicated_bn:
-  - 1M<n<10M
-  unshuffled_deduplicated_bo:
-  - 10K<n<100K
-  unshuffled_deduplicated_bpy:
-  - 1K<n<10K
-  unshuffled_deduplicated_br:
-  - 10K<n<100K
-  unshuffled_deduplicated_bs:
-  - n<1K
-  unshuffled_deduplicated_bxr:
-  - n<1K
-  unshuffled_deduplicated_ca:
-  - 1M<n<10M
-  unshuffled_deduplicated_cbk:
-  - n<1K
-  unshuffled_deduplicated_ce:
-  - 1K<n<10K
-  unshuffled_deduplicated_ceb:
-  - 10K<n<100K
-  unshuffled_deduplicated_ckb:
-  - 10K<n<100K
-  unshuffled_deduplicated_cs:
-  - 10M<n<100M
-  unshuffled_deduplicated_cv:
-  - 10K<n<100K
-  unshuffled_deduplicated_cy:
-  - 10K<n<100K
-  unshuffled_deduplicated_da:
-  - 1M<n<10M
-  unshuffled_deduplicated_de:
-  - 10M<n<100M
-  unshuffled_deduplicated_diq:
-  - n<1K
-  unshuffled_deduplicated_dsb:
-  - n<1K
-  unshuffled_deduplicated_dv:
-  - 10K<n<100K
-  unshuffled_deduplicated_el:
-  - 1M<n<10M
-  unshuffled_deduplicated_eml:
-  - n<1K
-  unshuffled_deduplicated_en:
-  - 100M<n<1B
-  unshuffled_deduplicated_eo:
-  - 10K<n<100K
-  unshuffled_deduplicated_es:
-  - 10M<n<100M
-  unshuffled_deduplicated_et:
-  - 1M<n<10M
-  unshuffled_deduplicated_eu:
-  - 100K<n<1M
-  unshuffled_deduplicated_fa:
-  - 1M<n<10M
-  unshuffled_deduplicated_fi:
-  - 1M<n<10M
-  unshuffled_deduplicated_fr:
-  - 10M<n<100M
-  unshuffled_deduplicated_frr:
-  - n<1K
-  unshuffled_deduplicated_fy:
-  - 10K<n<100K
-  unshuffled_deduplicated_ga:
-  - 10K<n<100K
-  unshuffled_deduplicated_gd:
-  - 1K<n<10K
-  unshuffled_deduplicated_gl:
-  - 100K<n<1M
-  unshuffled_deduplicated_gn:
-  - n<1K
-  unshuffled_deduplicated_gom:
-  - n<1K
-  unshuffled_deduplicated_gu:
-  - 100K<n<1M
-  unshuffled_deduplicated_he:
-  - 1M<n<10M
-  unshuffled_deduplicated_hi:
-  - 1M<n<10M
-  unshuffled_deduplicated_hr:
-  - 100K<n<1M
-  unshuffled_deduplicated_hsb:
-  - 1K<n<10K
-  unshuffled_deduplicated_ht:
-  - n<1K
-  unshuffled_deduplicated_hu:
-  - 1M<n<10M
-  unshuffled_deduplicated_hy:
-  - 100K<n<1M
-  unshuffled_deduplicated_ia:
-  - n<1K
-  unshuffled_deduplicated_id:
-  - 1M<n<10M
-  unshuffled_deduplicated_ie:
-  - n<1K
-  unshuffled_deduplicated_ilo:
-  - 1K<n<10K
-  unshuffled_deduplicated_io:
-  - n<1K
-  unshuffled_deduplicated_is:
-  - 100K<n<1M
-  unshuffled_deduplicated_it:
-  - 10M<n<100M
-  unshuffled_deduplicated_ja:
-  - 10M<n<100M
-  unshuffled_deduplicated_jbo:
-  - n<1K
-  unshuffled_deduplicated_jv:
-  - 1K<n<10K
-  unshuffled_deduplicated_ka:
-  - 100K<n<1M
-  unshuffled_deduplicated_kk:
-  - 100K<n<1M
-  unshuffled_deduplicated_km:
-  - 100K<n<1M
-  unshuffled_deduplicated_kn:
-  - 100K<n<1M
-  unshuffled_deduplicated_ko:
-  - 1M<n<10M
-  unshuffled_deduplicated_krc:
-  - 1K<n<10K
-  unshuffled_deduplicated_ku:
-  - 10K<n<100K
-  unshuffled_deduplicated_kv:
-  - n<1K
-  unshuffled_deduplicated_kw:
-  - n<1K
-  unshuffled_deduplicated_ky:
-  - 10K<n<100K
-  unshuffled_deduplicated_la:
-  - 10K<n<100K
-  unshuffled_deduplicated_lb:
-  - 10K<n<100K
-  unshuffled_deduplicated_lez:
-  - 1K<n<10K
-  unshuffled_deduplicated_li:
-  - n<1K
-  unshuffled_deduplicated_lmo:
-  - 1K<n<10K
-  unshuffled_deduplicated_lo:
-  - 10K<n<100K
-  unshuffled_deduplicated_lrc:
-  - n<1K
-  unshuffled_deduplicated_lt:
-  - 1M<n<10M
-  unshuffled_deduplicated_lv:
-  - 100K<n<1M
-  unshuffled_deduplicated_mai:
-  - n<1K
-  unshuffled_deduplicated_mg:
-  - 10K<n<100K
-  unshuffled_deduplicated_mhr:
-  - 1K<n<10K
-  unshuffled_deduplicated_min:
-  - n<1K
-  unshuffled_deduplicated_mk:
-  - 100K<n<1M
-  unshuffled_deduplicated_ml:
-  - 100K<n<1M
-  unshuffled_deduplicated_mn:
-  - 100K<n<1M
-  unshuffled_deduplicated_mr:
-  - 100K<n<1M
-  unshuffled_deduplicated_mrj:
-  - n<1K
-  unshuffled_deduplicated_ms:
-  - 100K<n<1M
-  unshuffled_deduplicated_mt:
-  - 10K<n<100K
-  unshuffled_deduplicated_mwl:
-  - n<1K
-  unshuffled_deduplicated_my:
-  - 100K<n<1M
-  unshuffled_deduplicated_myv:
-  - n<1K
-  unshuffled_deduplicated_mzn:
-  - n<1K
-  unshuffled_deduplicated_nah:
-  - n<1K
-  unshuffled_deduplicated_nap:
-  - n<1K
-  unshuffled_deduplicated_nds:
-  - 1K<n<10K
-  unshuffled_deduplicated_ne:
-  - 100K<n<1M
-  unshuffled_deduplicated_new:
-  - 1K<n<10K
-  unshuffled_deduplicated_nl:
-  - 10M<n<100M
-  unshuffled_deduplicated_nn:
-  - 100K<n<1M
-  unshuffled_deduplicated_no:
-  - 1M<n<10M
-  unshuffled_deduplicated_oc:
-  - 1K<n<10K
-  unshuffled_deduplicated_or:
-  - 10K<n<100K
-  unshuffled_deduplicated_os:
-  - 1K<n<10K
-  unshuffled_deduplicated_pa:
-  - 10K<n<100K
-  unshuffled_deduplicated_pam:
-  - n<1K
-  unshuffled_deduplicated_pl:
-  - 10M<n<100M
-  unshuffled_deduplicated_pms:
-  - 1K<n<10K
-  unshuffled_deduplicated_pnb:
-  - 1K<n<10K
-  unshuffled_deduplicated_ps:
-  - 10K<n<100K
-  unshuffled_deduplicated_pt:
-  - 10M<n<100M
-  unshuffled_deduplicated_qu:
-  - n<1K
-  unshuffled_deduplicated_rm:
-  - n<1K
-  unshuffled_deduplicated_ro:
-  - 1M<n<10M
-  unshuffled_deduplicated_ru:
-  - 100M<n<1B
-  unshuffled_deduplicated_sa:
-  - 1K<n<10K
-  unshuffled_deduplicated_sah:
-  - 1K<n<10K
-  unshuffled_deduplicated_scn:
-  - n<1K
-  unshuffled_deduplicated_sd:
-  - 10K<n<100K
-  unshuffled_deduplicated_sh:
-  - 10K<n<100K
-  unshuffled_deduplicated_si:
-  - 100K<n<1M
-  unshuffled_deduplicated_sk:
-  - 1M<n<10M
-  unshuffled_deduplicated_sl:
-  - 100K<n<1M
-  unshuffled_deduplicated_so:
-  - n<1K
-  unshuffled_deduplicated_sq:
-  - 100K<n<1M
-  unshuffled_deduplicated_sr:
-  - 100K<n<1M
-  unshuffled_deduplicated_su:
-  - n<1K
-  unshuffled_deduplicated_sv:
-  - 10M<n<100M
-  unshuffled_deduplicated_sw:
-  - 10K<n<100K
-  unshuffled_deduplicated_ta:
-  - 100K<n<1M
-  unshuffled_deduplicated_te:
-  - 100K<n<1M
-  unshuffled_deduplicated_tg:
-  - 10K<n<100K
-  unshuffled_deduplicated_th:
-  - 1M<n<10M
-  unshuffled_deduplicated_tk:
-  - 1K<n<10K
-  unshuffled_deduplicated_tl:
-  - 100K<n<1M
-  unshuffled_deduplicated_tr:
-  - 10M<n<100M
-  unshuffled_deduplicated_tt:
-  - 10K<n<100K
-  unshuffled_deduplicated_tyv:
-  - n<1K
-  unshuffled_deduplicated_ug:
-  - 10K<n<100K
-  unshuffled_deduplicated_uk:
-  - 1M<n<10M
-  unshuffled_deduplicated_ur:
-  - 100K<n<1M
-  unshuffled_deduplicated_uz:
-  - 10K<n<100K
-  unshuffled_deduplicated_vec:
-  - n<1K
-  unshuffled_deduplicated_vi:
-  - 1M<n<10M
-  unshuffled_deduplicated_vo:
-  - 1K<n<10K
-  unshuffled_deduplicated_wa:
-  - n<1K
-  unshuffled_deduplicated_war:
-  - 1K<n<10K
-  unshuffled_deduplicated_wuu:
-  - n<1K
-  unshuffled_deduplicated_xal:
-  - n<1K
-  unshuffled_deduplicated_xmf:
-  - 1K<n<10K
-  unshuffled_deduplicated_yi:
-  - 10K<n<100K
-  unshuffled_deduplicated_yo:
-  - n<1K
-  unshuffled_deduplicated_yue:
-  - n<1K
-  unshuffled_deduplicated_zh:
-  - 10M<n<100M
-  unshuffled_original_af:
-  - 100K<n<1M
-  unshuffled_original_als:
-  - 1K<n<10K
-  unshuffled_original_am:
-  - 10K<n<100K
-  unshuffled_original_an:
-  - 1K<n<10K
-  unshuffled_original_ar:
-  - 10M<n<100M
-  unshuffled_original_arz:
-  - 100K<n<1M
-  unshuffled_original_as:
-  - 10K<n<100K
-  unshuffled_original_ast:
-  - 1K<n<10K
-  unshuffled_original_av:
-  - n<1K
-  unshuffled_original_az:
-  - 100K<n<1M
-  unshuffled_original_azb:
-  - 10K<n<100K
-  unshuffled_original_ba:
-  - 10K<n<100K
-  unshuffled_original_bar:
-  - n<1K
-  unshuffled_original_bcl:
-  - n<1K
-  unshuffled_original_be:
-  - 100K<n<1M
-  unshuffled_original_bg:
-  - 1M<n<10M
-  unshuffled_original_bh:
-  - n<1K
-  unshuffled_original_bn:
-  - 1M<n<10M
-  unshuffled_original_bo:
-  - 10K<n<100K
-  unshuffled_original_bpy:
-  - 1K<n<10K
-  unshuffled_original_br:
-  - 10K<n<100K
-  unshuffled_original_bs:
-  - 1K<n<10K
-  unshuffled_original_bxr:
-  - n<1K
-  unshuffled_original_ca:
-  - 1M<n<10M
-  unshuffled_original_cbk:
-  - n<1K
-  unshuffled_original_ce:
-  - 1K<n<10K
-  unshuffled_original_ceb:
-  - 10K<n<100K
-  unshuffled_original_ckb:
-  - 100K<n<1M
-  unshuffled_original_cs:
-  - 10M<n<100M
-  unshuffled_original_cv:
-  - 10K<n<100K
-  unshuffled_original_cy:
-  - 100K<n<1M
-  unshuffled_original_da:
-  - 1M<n<10M
-  unshuffled_original_de:
-  - 100M<n<1B
-  unshuffled_original_diq:
-  - n<1K
-  unshuffled_original_dsb:
-  - n<1K
-  unshuffled_original_dv:
-  - 10K<n<100K
-  unshuffled_original_el:
-  - 10M<n<100M
-  unshuffled_original_eml:
-  - n<1K
-  unshuffled_original_en:
-  - 100M<n<1B
-  unshuffled_original_eo:
-  - 100K<n<1M
-  unshuffled_original_es:
-  - 10M<n<100M
-  unshuffled_original_et:
-  - 1M<n<10M
-  unshuffled_original_eu:
-  - 100K<n<1M
-  unshuffled_original_fa:
-  - 10M<n<100M
-  unshuffled_original_fi:
-  - 1M<n<10M
-  unshuffled_original_fr:
-  - 10M<n<100M
-  unshuffled_original_frr:
-  - n<1K
-  unshuffled_original_fy:
-  - 10K<n<100K
-  unshuffled_original_ga:
-  - 10K<n<100K
-  unshuffled_original_gd:
-  - 1K<n<10K
-  unshuffled_original_gl:
-  - 100K<n<1M
-  unshuffled_original_gn:
-  - n<1K
-  unshuffled_original_gom:
-  - n<1K
-  unshuffled_original_gu:
-  - 100K<n<1M
-  unshuffled_original_he:
-  - 1M<n<10M
-  unshuffled_original_hi:
-  - 1M<n<10M
-  unshuffled_original_hr:
-  - 100K<n<1M
-  unshuffled_original_hsb:
-  - 1K<n<10K
-  unshuffled_original_ht:
-  - n<1K
-  unshuffled_original_hu:
-  - 10M<n<100M
-  unshuffled_original_hy:
-  - 100K<n<1M
-  unshuffled_original_ia:
-  - 1K<n<10K
-  unshuffled_original_id:
-  - 10M<n<100M
-  unshuffled_original_ie:
-  - n<1K
-  unshuffled_original_ilo:
-  - 1K<n<10K
-  unshuffled_original_io:
-  - n<1K
-  unshuffled_original_is:
-  - 100K<n<1M
-  unshuffled_original_it:
-  - 10M<n<100M
-  unshuffled_original_ja:
-  - 10M<n<100M
-  unshuffled_original_jbo:
-  - n<1K
-  unshuffled_original_jv:
-  - 1K<n<10K
-  unshuffled_original_ka:
-  - 100K<n<1M
-  unshuffled_original_kk:
-  - 100K<n<1M
-  unshuffled_original_km:
-  - 100K<n<1M
-  unshuffled_original_kn:
-  - 100K<n<1M
-  unshuffled_original_ko:
-  - 1M<n<10M
-  unshuffled_original_krc:
-  - 1K<n<10K
-  unshuffled_original_ku:
-  - 10K<n<100K
-  unshuffled_original_kv:
-  - 1K<n<10K
-  unshuffled_original_kw:
-  - n<1K
-  unshuffled_original_ky:
-  - 100K<n<1M
-  unshuffled_original_la:
-  - 10K<n<100K
-  unshuffled_original_lb:
-  - 10K<n<100K
-  unshuffled_original_lez:
-  - 1K<n<10K
-  unshuffled_original_li:
-  - n<1K
-  unshuffled_original_lmo:
-  - 1K<n<10K
-  unshuffled_original_lo:
-  - 10K<n<100K
-  unshuffled_original_lrc:
-  - n<1K
-  unshuffled_original_lt:
-  - 1M<n<10M
-  unshuffled_original_lv:
-  - 1M<n<10M
-  unshuffled_original_mai:
-  - n<1K
-  unshuffled_original_mg:
-  - 10K<n<100K
-  unshuffled_original_mhr:
-  - 1K<n<10K
-  unshuffled_original_min:
-  - n<1K
-  unshuffled_original_mk:
-  - 100K<n<1M
-  unshuffled_original_ml:
-  - 100K<n<1M
-  unshuffled_original_mn:
-  - 100K<n<1M
-  unshuffled_original_mr:
-  - 100K<n<1M
-  unshuffled_original_mrj:
-  - n<1K
-  unshuffled_original_ms:
-  - 100K<n<1M
-  unshuffled_original_mt:
-  - 10K<n<100K
-  unshuffled_original_mwl:
-  - n<1K
-  unshuffled_original_my:
-  - 100K<n<1M
-  unshuffled_original_myv:
-  - n<1K
-  unshuffled_original_mzn:
-  - 1K<n<10K
-  unshuffled_original_nah:
-  - n<1K
-  unshuffled_original_nap:
-  - n<1K
-  unshuffled_original_nds:
-  - 10K<n<100K
-  unshuffled_original_ne:
-  - 100K<n<1M
-  unshuffled_original_new:
-  - 1K<n<10K
-  unshuffled_original_nl:
-  - 10M<n<100M
-  unshuffled_original_nn:
-  - 100K<n<1M
-  unshuffled_original_no:
-  - 1M<n<10M
-  unshuffled_original_oc:
-  - 10K<n<100K
-  unshuffled_original_or:
-  - 10K<n<100K
-  unshuffled_original_os:
-  - 1K<n<10K
-  unshuffled_original_pa:
-  - 100K<n<1M
-  unshuffled_original_pam:
-  - n<1K
-  unshuffled_original_pl:
-  - 10M<n<100M
-  unshuffled_original_pms:
-  - 1K<n<10K
-  unshuffled_original_pnb:
-  - 1K<n<10K
-  unshuffled_original_ps:
-  - 10K<n<100K
-  unshuffled_original_pt:
-  - 10M<n<100M
-  unshuffled_original_qu:
-  - n<1K
-  unshuffled_original_rm:
-  - n<1K
-  unshuffled_original_ro:
-  - 1M<n<10M
-  unshuffled_original_ru:
-  - 100M<n<1B
-  unshuffled_original_sa:
-  - 10K<n<100K
-  unshuffled_original_sah:
-  - 10K<n<100K
-  unshuffled_original_scn:
-  - n<1K
-  unshuffled_original_sd:
-  - 10K<n<100K
-  unshuffled_original_sh:
-  - 10K<n<100K
-  unshuffled_original_si:
-  - 100K<n<1M
-  unshuffled_original_sk:
-  - 1M<n<10M
-  unshuffled_original_sl:
-  - 1M<n<10M
-  unshuffled_original_so:
-  - n<1K
-  unshuffled_original_sq:
-  - 100K<n<1M
-  unshuffled_original_sr:
-  - 1M<n<10M
-  unshuffled_original_su:
-  - n<1K
-  unshuffled_original_sv:
-  - 10M<n<100M
-  unshuffled_original_sw:
-  - 10K<n<100K
-  unshuffled_original_ta:
-  - 1M<n<10M
-  unshuffled_original_te:
-  - 100K<n<1M
-  unshuffled_original_tg:
-  - 10K<n<100K
-  unshuffled_original_th:
-  - 1M<n<10M
-  unshuffled_original_tk:
-  - 1K<n<10K
-  unshuffled_original_tl:
-  - 100K<n<1M
-  unshuffled_original_tr:
-  - 10M<n<100M
-  unshuffled_original_tt:
-  - 100K<n<1M
-  unshuffled_original_tyv:
-  - n<1K
-  unshuffled_original_ug:
-  - 10K<n<100K
-  unshuffled_original_uk:
-  - 10M<n<100M
-  unshuffled_original_ur:
-  - 100K<n<1M
-  unshuffled_original_uz:
-  - 10K<n<100K
-  unshuffled_original_vec:
-  - n<1K
-  unshuffled_original_vi:
-  - 10M<n<100M
-  unshuffled_original_vo:
-  - 1K<n<10K
-  unshuffled_original_wa:
-  - 1K<n<10K
-  unshuffled_original_war:
-  - 1K<n<10K
-  unshuffled_original_wuu:
-  - n<1K
-  unshuffled_original_xal:
-  - n<1K
-  unshuffled_original_xmf:
-  - 1K<n<10K
-  unshuffled_original_yi:
-  - 10K<n<100K
-  unshuffled_original_yo:
-  - n<1K
-  unshuffled_original_yue:
-  - n<1K
-  unshuffled_original_zh:
-  - 10M<n<100M
+- 100K<n<1M
+- 100M<n<1B
+- 10K<n<100K
+- 10M<n<100M
+- 1K<n<10K
+- 1M<n<10M
+- n<1K
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: oscar
+configs:
+- unshuffled_deduplicated_af
+- unshuffled_deduplicated_als
+- unshuffled_deduplicated_am
+- unshuffled_deduplicated_an
+- unshuffled_deduplicated_ar
+- unshuffled_deduplicated_arz
+- unshuffled_deduplicated_as
+- unshuffled_deduplicated_ast
+- unshuffled_deduplicated_av
+- unshuffled_deduplicated_az
+- unshuffled_deduplicated_azb
+- unshuffled_deduplicated_ba
+- unshuffled_deduplicated_bar
+- unshuffled_deduplicated_bcl
+- unshuffled_deduplicated_be
+- unshuffled_deduplicated_bg
+- unshuffled_deduplicated_bh
+- unshuffled_deduplicated_bn
+- unshuffled_deduplicated_bo
+- unshuffled_deduplicated_bpy
+- unshuffled_deduplicated_br
+- unshuffled_deduplicated_bs
+- unshuffled_deduplicated_bxr
+- unshuffled_deduplicated_ca
+- unshuffled_deduplicated_cbk
+- unshuffled_deduplicated_ce
+- unshuffled_deduplicated_ceb
+- unshuffled_deduplicated_ckb
+- unshuffled_deduplicated_cs
+- unshuffled_deduplicated_cv
+- unshuffled_deduplicated_cy
+- unshuffled_deduplicated_da
+- unshuffled_deduplicated_de
+- unshuffled_deduplicated_diq
+- unshuffled_deduplicated_dsb
+- unshuffled_deduplicated_dv
+- unshuffled_deduplicated_el
+- unshuffled_deduplicated_eml
+- unshuffled_deduplicated_en
+- unshuffled_deduplicated_eo
+- unshuffled_deduplicated_es
+- unshuffled_deduplicated_et
+- unshuffled_deduplicated_eu
+- unshuffled_deduplicated_fa
+- unshuffled_deduplicated_fi
+- unshuffled_deduplicated_fr
+- unshuffled_deduplicated_frr
+- unshuffled_deduplicated_fy
+- unshuffled_deduplicated_ga
+- unshuffled_deduplicated_gd
+- unshuffled_deduplicated_gl
+- unshuffled_deduplicated_gn
+- unshuffled_deduplicated_gom
+- unshuffled_deduplicated_gu
+- unshuffled_deduplicated_he
+- unshuffled_deduplicated_hi
+- unshuffled_deduplicated_hr
+- unshuffled_deduplicated_hsb
+- unshuffled_deduplicated_ht
+- unshuffled_deduplicated_hu
+- unshuffled_deduplicated_hy
+- unshuffled_deduplicated_ia
+- unshuffled_deduplicated_id
+- unshuffled_deduplicated_ie
+- unshuffled_deduplicated_ilo
+- unshuffled_deduplicated_io
+- unshuffled_deduplicated_is
+- unshuffled_deduplicated_it
+- unshuffled_deduplicated_ja
+- unshuffled_deduplicated_jbo
+- unshuffled_deduplicated_jv
+- unshuffled_deduplicated_ka
+- unshuffled_deduplicated_kk
+- unshuffled_deduplicated_km
+- unshuffled_deduplicated_kn
+- unshuffled_deduplicated_ko
+- unshuffled_deduplicated_krc
+- unshuffled_deduplicated_ku
+- unshuffled_deduplicated_kv
+- unshuffled_deduplicated_kw
+- unshuffled_deduplicated_ky
+- unshuffled_deduplicated_la
+- unshuffled_deduplicated_lb
+- unshuffled_deduplicated_lez
+- unshuffled_deduplicated_li
+- unshuffled_deduplicated_lmo
+- unshuffled_deduplicated_lo
+- unshuffled_deduplicated_lrc
+- unshuffled_deduplicated_lt
+- unshuffled_deduplicated_lv
+- unshuffled_deduplicated_mai
+- unshuffled_deduplicated_mg
+- unshuffled_deduplicated_mhr
+- unshuffled_deduplicated_min
+- unshuffled_deduplicated_mk
+- unshuffled_deduplicated_ml
+- unshuffled_deduplicated_mn
+- unshuffled_deduplicated_mr
+- unshuffled_deduplicated_mrj
+- unshuffled_deduplicated_ms
+- unshuffled_deduplicated_mt
+- unshuffled_deduplicated_mwl
+- unshuffled_deduplicated_my
+- unshuffled_deduplicated_myv
+- unshuffled_deduplicated_mzn
+- unshuffled_deduplicated_nah
+- unshuffled_deduplicated_nap
+- unshuffled_deduplicated_nds
+- unshuffled_deduplicated_ne
+- unshuffled_deduplicated_new
+- unshuffled_deduplicated_nl
+- unshuffled_deduplicated_nn
+- unshuffled_deduplicated_no
+- unshuffled_deduplicated_oc
+- unshuffled_deduplicated_or
+- unshuffled_deduplicated_os
+- unshuffled_deduplicated_pa
+- unshuffled_deduplicated_pam
+- unshuffled_deduplicated_pl
+- unshuffled_deduplicated_pms
+- unshuffled_deduplicated_pnb
+- unshuffled_deduplicated_ps
+- unshuffled_deduplicated_pt
+- unshuffled_deduplicated_qu
+- unshuffled_deduplicated_rm
+- unshuffled_deduplicated_ro
+- unshuffled_deduplicated_ru
+- unshuffled_deduplicated_sa
+- unshuffled_deduplicated_sah
+- unshuffled_deduplicated_scn
+- unshuffled_deduplicated_sd
+- unshuffled_deduplicated_sh
+- unshuffled_deduplicated_si
+- unshuffled_deduplicated_sk
+- unshuffled_deduplicated_sl
+- unshuffled_deduplicated_so
+- unshuffled_deduplicated_sq
+- unshuffled_deduplicated_sr
+- unshuffled_deduplicated_su
+- unshuffled_deduplicated_sv
+- unshuffled_deduplicated_sw
+- unshuffled_deduplicated_ta
+- unshuffled_deduplicated_te
+- unshuffled_deduplicated_tg
+- unshuffled_deduplicated_th
+- unshuffled_deduplicated_tk
+- unshuffled_deduplicated_tl
+- unshuffled_deduplicated_tr
+- unshuffled_deduplicated_tt
+- unshuffled_deduplicated_tyv
+- unshuffled_deduplicated_ug
+- unshuffled_deduplicated_uk
+- unshuffled_deduplicated_ur
+- unshuffled_deduplicated_uz
+- unshuffled_deduplicated_vec
+- unshuffled_deduplicated_vi
+- unshuffled_deduplicated_vo
+- unshuffled_deduplicated_wa
+- unshuffled_deduplicated_war
+- unshuffled_deduplicated_wuu
+- unshuffled_deduplicated_xal
+- unshuffled_deduplicated_xmf
+- unshuffled_deduplicated_yi
+- unshuffled_deduplicated_yo
+- unshuffled_deduplicated_yue
+- unshuffled_deduplicated_zh
+- unshuffled_original_af
+- unshuffled_original_als
+- unshuffled_original_am
+- unshuffled_original_an
+- unshuffled_original_ar
+- unshuffled_original_arz
+- unshuffled_original_as
+- unshuffled_original_ast
+- unshuffled_original_av
+- unshuffled_original_az
+- unshuffled_original_azb
+- unshuffled_original_ba
+- unshuffled_original_bar
+- unshuffled_original_bcl
+- unshuffled_original_be
+- unshuffled_original_bg
+- unshuffled_original_bh
+- unshuffled_original_bn
+- unshuffled_original_bo
+- unshuffled_original_bpy
+- unshuffled_original_br
+- unshuffled_original_bs
+- unshuffled_original_bxr
+- unshuffled_original_ca
+- unshuffled_original_cbk
+- unshuffled_original_ce
+- unshuffled_original_ceb
+- unshuffled_original_ckb
+- unshuffled_original_cs
+- unshuffled_original_cv
+- unshuffled_original_cy
+- unshuffled_original_da
+- unshuffled_original_de
+- unshuffled_original_diq
+- unshuffled_original_dsb
+- unshuffled_original_dv
+- unshuffled_original_el
+- unshuffled_original_eml
+- unshuffled_original_en
+- unshuffled_original_eo
+- unshuffled_original_es
+- unshuffled_original_et
+- unshuffled_original_eu
+- unshuffled_original_fa
+- unshuffled_original_fi
+- unshuffled_original_fr
+- unshuffled_original_frr
+- unshuffled_original_fy
+- unshuffled_original_ga
+- unshuffled_original_gd
+- unshuffled_original_gl
+- unshuffled_original_gn
+- unshuffled_original_gom
+- unshuffled_original_gu
+- unshuffled_original_he
+- unshuffled_original_hi
+- unshuffled_original_hr
+- unshuffled_original_hsb
+- unshuffled_original_ht
+- unshuffled_original_hu
+- unshuffled_original_hy
+- unshuffled_original_ia
+- unshuffled_original_id
+- unshuffled_original_ie
+- unshuffled_original_ilo
+- unshuffled_original_io
+- unshuffled_original_is
+- unshuffled_original_it
+- unshuffled_original_ja
+- unshuffled_original_jbo
+- unshuffled_original_jv
+- unshuffled_original_ka
+- unshuffled_original_kk
+- unshuffled_original_km
+- unshuffled_original_kn
+- unshuffled_original_ko
+- unshuffled_original_krc
+- unshuffled_original_ku
+- unshuffled_original_kv
+- unshuffled_original_kw
+- unshuffled_original_ky
+- unshuffled_original_la
+- unshuffled_original_lb
+- unshuffled_original_lez
+- unshuffled_original_li
+- unshuffled_original_lmo
+- unshuffled_original_lo
+- unshuffled_original_lrc
+- unshuffled_original_lt
+- unshuffled_original_lv
+- unshuffled_original_mai
+- unshuffled_original_mg
+- unshuffled_original_mhr
+- unshuffled_original_min
+- unshuffled_original_mk
+- unshuffled_original_ml
+- unshuffled_original_mn
+- unshuffled_original_mr
+- unshuffled_original_mrj
+- unshuffled_original_ms
+- unshuffled_original_mt
+- unshuffled_original_mwl
+- unshuffled_original_my
+- unshuffled_original_myv
+- unshuffled_original_mzn
+- unshuffled_original_nah
+- unshuffled_original_nap
+- unshuffled_original_nds
+- unshuffled_original_ne
+- unshuffled_original_new
+- unshuffled_original_nl
+- unshuffled_original_nn
+- unshuffled_original_no
+- unshuffled_original_oc
+- unshuffled_original_or
+- unshuffled_original_os
+- unshuffled_original_pa
+- unshuffled_original_pam
+- unshuffled_original_pl
+- unshuffled_original_pms
+- unshuffled_original_pnb
+- unshuffled_original_ps
+- unshuffled_original_pt
+- unshuffled_original_qu
+- unshuffled_original_rm
+- unshuffled_original_ro
+- unshuffled_original_ru
+- unshuffled_original_sa
+- unshuffled_original_sah
+- unshuffled_original_scn
+- unshuffled_original_sd
+- unshuffled_original_sh
+- unshuffled_original_si
+- unshuffled_original_sk
+- unshuffled_original_sl
+- unshuffled_original_so
+- unshuffled_original_sq
+- unshuffled_original_sr
+- unshuffled_original_su
+- unshuffled_original_sv
+- unshuffled_original_sw
+- unshuffled_original_ta
+- unshuffled_original_te
+- unshuffled_original_tg
+- unshuffled_original_th
+- unshuffled_original_tk
+- unshuffled_original_tl
+- unshuffled_original_tr
+- unshuffled_original_tt
+- unshuffled_original_tyv
+- unshuffled_original_ug
+- unshuffled_original_uk
+- unshuffled_original_ur
+- unshuffled_original_uz
+- unshuffled_original_vec
+- unshuffled_original_vi
+- unshuffled_original_vo
+- unshuffled_original_wa
+- unshuffled_original_war
+- unshuffled_original_wuu
+- unshuffled_original_xal
+- unshuffled_original_xmf
+- unshuffled_original_yi
+- unshuffled_original_yo
+- unshuffled_original_yue
+- unshuffled_original_zh
 ---
 
 # Dataset Card for "oscar"

@@ -3,17 +3,15 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-nc-4.0
 multilinguality:
 - monolingual
 size_categories:
-  fctchk_politifact_wapo:
-  - 1K<n<10K
-  weekly_standard:
-  - n<1K
+- 1K<n<10K
+- n<1K
 source_datasets:
 - original
 task_categories:
@@ -22,6 +20,9 @@ task_ids:
 - fact-checking
 paperswithcode_id: null
 pretty_name: DataCommons Fact Checked claims
+configs:
+- fctchk_politifact_wapo
+- weekly_standard
 ---
 
 # Dataset Card for DataCommons Fact Checked claims
@@ -162,7 +163,7 @@ All fact checked items are released under a `CC-BY-NC-4.0` License.
 
 ### Citation Information
 
-[More Information Needed]
+Data Commons 2020, Fact Checks, electronic dataset, Data Commons, viewed 16 Dec 2020, <https://datacommons.org>.
 
 ### Contributions
 
