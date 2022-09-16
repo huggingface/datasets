@@ -149,7 +149,7 @@ class Json(datasets.ArrowBasedBuilder):
                             except json.JSONDecodeError:
                                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                                 raise e
-                            # If possible, parse the file as a list of json objects and break the loop
+                            # If possible, parse the file as a list of json objects and exit the loop
                             if isinstance(dataset, list):  # list is the only sequence type supported in JSON
                                 try:
                                     pa_table = pa_table_from_pylist(dataset)
