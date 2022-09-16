@@ -619,6 +619,7 @@ class DatasetBuilder:
                 If True, will get token from ~/.huggingface.
             file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
                 Supported formats: "arrow", "parquet". Default to "arrow" format.
+                If the format is "parquet", then image and audio data are embedded into the Parquet files instead of pointing to local files.
 
                 <Added version="2.5.0"/>
             max_shard_size (:obj:`Union[str, int]`, optional): Maximum number of bytes written per shard.
@@ -1348,6 +1349,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         generator = self._generate_examples(**split_generator.gen_kwargs)
 
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
+        embed_local_files = file_format == "parquet"
 
         shard_id = 0
         # TODO: embed the images/audio files inside parquet files.
@@ -1358,6 +1360,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             hash_salt=split_info.name,
             check_duplicates=check_duplicate_keys,
             storage_options=self._fs.storage_options,
+            embed_local_files=embed_local_files,
         )
         total_num_examples, total_num_bytes = 0, 0
         try:
@@ -1381,6 +1384,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                         hash_salt=split_info.name,
                         check_duplicates=check_duplicate_keys,
                         storage_options=self._fs.storage_options,
+                        embed_local_files=embed_local_files,
                     )
                 example = self.info.features.encode_example(record)
                 writer.write(example, key)
@@ -1474,6 +1478,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         generator = self._generate_tables(**split_generator.gen_kwargs)
 
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
+        embed_local_files = file_format == "parquet"
 
         shard_id = 0
         # TODO: embed the images/audio files inside parquet files.
@@ -1481,6 +1486,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             features=self.info.features,
             path=fpath.replace("SSSSS", f"{shard_id:05d}"),
             storage_options=self._fs.storage_options,
+            embed_local_files=embed_local_files,
         )
         total_num_examples, total_num_bytes = 0, 0
         try:
@@ -1499,6 +1505,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                         features=writer._features,
                         path=fpath.replace("SSSSS", f"{shard_id:05d}"),
                         storage_options=self._fs.storage_options,
+                        embed_local_files=embed_local_files,
                     )
                 writer.write_table(table)
         finally:
