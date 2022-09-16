@@ -20,8 +20,6 @@ class GeneratorConfig(datasets.BuilderConfig):
 class Generator(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = GeneratorConfig
 
-    INFER_FEATURES_IF_NONE = True
-
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
 

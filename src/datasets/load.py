@@ -217,7 +217,7 @@ def _download_additional_modules(
         raise ImportError(
             f"To be able to use {name}, you need to install the following {_depencencies_str}: "
             f"{', '.join(needs_to_be_installed)}.\nPlease install {_them_str} using 'pip install "
-            f"{' '.join(needs_to_be_installed.values())}' for instance'"
+            f"{' '.join(needs_to_be_installed.values())}' for instance."
         )
     return local_imports
 
@@ -740,7 +740,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "config_name": os.path.basename(self.path),
+            "config_name": os.path.basename(self.path.rstrip("/")),
             "base_path": self.path,
             **builder_kwargs,
         }
