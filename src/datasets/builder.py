@@ -1371,6 +1371,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             ):
                 if max_shard_size is not None and writer._num_bytes > max_shard_size:
                     num_examples, num_bytes = writer.finalize()
+                    writer.close()
                     total_num_examples += num_examples
                     total_num_bytes += num_bytes
                     shard_id += 1
@@ -1382,11 +1383,12 @@ class GeneratorBasedBuilder(DatasetBuilder):
                         check_duplicates=check_duplicate_keys,
                         storage_options=self._fs.storage_options,
                     )
-                example = self.info.features.encode_example(record)
+                example = self.info.features.encode_example(record) if self.info.features is not None else record
                 writer.write(example, key)
         finally:
             num_shards = shard_id + 1
             num_examples, num_bytes = writer.finalize()
+            writer.close()
             total_num_examples += num_examples
             total_num_bytes += num_bytes
 
@@ -1492,6 +1494,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             ):
                 if max_shard_size is not None and writer._num_bytes > max_shard_size:
                     num_examples, num_bytes = writer.finalize()
+                    writer.close()
                     total_num_examples += num_examples
                     total_num_bytes += num_bytes
                     shard_id += 1
@@ -1504,6 +1507,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         finally:
             num_shards = shard_id + 1
             num_examples, num_bytes = writer.finalize()
+            writer.close()
             total_num_examples += num_examples
             total_num_bytes += num_bytes
 
