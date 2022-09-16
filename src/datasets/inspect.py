@@ -303,6 +303,8 @@ def get_dataset_config_names(
      'rte',
      'wnli',
      'ax']
+
+    Note that you can fetch the list of configs for a dataset on the Hugging Face Hub via an HTTP request with the [Datasets REST API endpoint /splits](https://huggingface.co/docs/datasets-server/splits).
     ```
     """
     dataset_module = dataset_module_factory(
@@ -422,6 +424,8 @@ def get_dataset_split_names(
     >>> get_dataset_split_names('rotten_tomatoes')
     ['train', 'validation', 'test']
     ```
+
+    Note that you can fetch the list of split names for a dataset on the Hugging Face Hub via an HTTP request with the [Datasets REST API endpoint /splits](https://huggingface.co/docs/datasets-server/splits).
     """
     info = get_dataset_config_info(
         path,
