@@ -965,6 +965,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> def gen():
         ...     yield {"text": "Good", "label": 0}
         ...     yield {"text": "Bad", "label": 1}
+        ...
         >>> ds = Dataset.from_generator(gen)
         ```
         """
