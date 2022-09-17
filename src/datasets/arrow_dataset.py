@@ -1096,7 +1096,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def from_sql(
         path_or_paths: Union[PathLike, List[PathLike]],
         table_name: str,
-        split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
@@ -1105,9 +1104,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Create Dataset from SQLite file(s).
 
         Args:
-            path_or_paths (path-like or list of path-like): Path(s) of the SQLite file(s).
+            path_or_paths (path-like or list of path-like): Path(s) of the SQLite URI(s).
             table_name (``str``): Name of the SQL table to read from.
-            split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
             features (:class:`Features`, optional): Dataset features.
             cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
@@ -1127,7 +1125,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return SqlDatasetReader(
             path_or_paths,
             table_name=table_name,
-            split=split,
             features=features,
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,

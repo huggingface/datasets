@@ -4,29 +4,26 @@ import os
 from sqlite3 import Connection, connect
 from typing import Optional, Union
 
-from .. import Dataset, Features, NamedSplit, config
+from .. import Dataset, Features, config
 from ..formatting import query_table
 from ..packaged_modules.sql.sql import Sql
 from ..utils import logging
 from ..utils.typing import NestedDataStructureLike, PathLike
-from .abc import AbstractDatasetReader
+from .abc import AbstractDatasetInputStream
 
 
-class SqlDatasetReader(AbstractDatasetReader):
+class SqlDatasetReader(AbstractDatasetInputStream):
     def __init__(
         self,
         conn: NestedDataStructureLike[Union[PathLike, Connection]],
         table_name: str,
-        split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
         **kwargs,
     ):
-        super().__init__(
-            conn, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
-        )
-        conn = conn if isinstance(conn, dict) else {self.split: conn}
+        super().__init__(features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs)
+        conn = conn if isinstance(conn, dict) else {"train": conn}
         self.builder = Sql(
             cache_dir=cache_dir,
             conn=conn,
@@ -53,7 +50,7 @@ class SqlDatasetReader(AbstractDatasetReader):
 
         # Build dataset for splits
         dataset = self.builder.as_dataset(
-            split=self.split, ignore_verifications=ignore_verifications, in_memory=self.keep_in_memory
+            split="train", ignore_verifications=ignore_verifications, in_memory=self.keep_in_memory
         )
         return dataset
 

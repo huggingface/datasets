@@ -3337,15 +3337,6 @@ def test_dataset_from_sql_keep_in_memory(keep_in_memory, sql_path, tmp_path):
     _check_sql_dataset(dataset, expected_features)
 
 
-@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
-def test_dataset_from_sql_split(split, sql_path, tmp_path):
-    cache_dir = tmp_path / "cache"
-    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
-    dataset = Dataset.from_sql(sql_path, table_name=SQLITE_TABLE_NAME, cache_dir=cache_dir, split=split)
-    _check_sql_dataset(dataset, expected_features)
-    assert dataset.split == split if split else "train"
-
-
 @pytest.mark.parametrize("path_type", [str, list])
 def test_dataset_from_sql_path_type(path_type, sql_path, tmp_path):
     if issubclass(path_type, str):
