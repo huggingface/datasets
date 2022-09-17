@@ -15,7 +15,7 @@ from .abc import AbstractDatasetReader
 class SqlDatasetReader(AbstractDatasetReader):
     def __init__(
         self,
-        path_or_paths: NestedDataStructureLike[PathLike],
+        conn: NestedDataStructureLike[Union[PathLike, Connection]],
         table_name: str,
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
@@ -24,12 +24,12 @@ class SqlDatasetReader(AbstractDatasetReader):
         **kwargs,
     ):
         super().__init__(
-            path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+            conn, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         )
-        path_or_paths = path_or_paths if isinstance(path_or_paths, dict) else {self.split: path_or_paths}
+        conn = conn if isinstance(conn, dict) else {self.split: conn}
         self.builder = Sql(
             cache_dir=cache_dir,
-            data_files=path_or_paths,
+            conn=conn,
             features=features,
             table_name=table_name,
             **kwargs,

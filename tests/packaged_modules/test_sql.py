@@ -19,11 +19,12 @@ def sqlite_file(tmp_path):
     return filename
 
 
-def test_csv_cast_label(sqlite_file):
+def test_sql_cast_label(sqlite_file):
     table_name = "TABLE_NAME"
     with contextlib.closing(connect(sqlite_file)) as conn:
         labels = pd.read_sql(f"SELECT * FROM {table_name}", conn)["label"].tolist()
     sql = Sql(
+        conn=sqlite_file,
         features=Features(
             {"header1": Value("int32"), "header2": Value("int32"), "label": ClassLabel(names=["good", "bad"])}
         ),
@@ -34,3 +35,21 @@ def test_csv_cast_label(sqlite_file):
     assert pa_table.schema.field("label").type == ClassLabel(names=["good", "bad"])()
     generated_content = pa_table.to_pydict()["label"]
     assert generated_content == [ClassLabel(names=["good", "bad"]).str2int(label) for label in labels]
+
+
+def test_missing_args(sqlite_file):
+    with pytest.raises(ValueError, match="Expected argument `table_name`"):
+        _ = Sql(
+            conn=sqlite_file,
+            features=Features(
+                {"header1": Value("int32"), "header2": Value("int32"), "label": ClassLabel(names=["good", "bad"])}
+            ),
+        )
+
+    with pytest.raises(ValueError, match="Expected argument `conn`"):
+        _ = Sql(
+            features=Features(
+                {"header1": Value("int32"), "header2": Value("int32"), "label": ClassLabel(names=["good", "bad"])}
+            ),
+            table_name="TABLE_NAME",
+        )

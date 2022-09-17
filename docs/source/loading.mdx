@@ -201,8 +201,8 @@ To load remote Parquet files via HTTP, pass the URLs instead:
 Datasets stored as a Table in a SQLite file can be loaded with:
 
 ```py
->>> from datasets import load_dataset
->>> dataset = load_dataset('sql', data_files={'train': 'sqlite_file.db'}, table_name='Dataset')
+>>> from datasets import Dataset
+>>> dataset = Dataset.from_sql('sqlite_file.db' table_name='Dataset')
 ```
 
 ## In-memory data

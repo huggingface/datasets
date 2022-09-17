@@ -1,7 +1,7 @@
 import contextlib
 import itertools
 from dataclasses import dataclass
-from sqlite3 import connect
+from sqlite3 import Connection, connect
 from typing import Dict, List, Optional, Sequence, Union
 
 import pandas as pd
@@ -10,8 +10,10 @@ from typing_extensions import Literal
 
 import datasets
 import datasets.config
+from datasets import NamedSplit
 from datasets.features.features import require_storage_cast
 from datasets.table import table_cast
+from datasets.utils.typing import NestedDataStructureLike, PathLike
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -22,7 +24,9 @@ class SqlConfig(datasets.BuilderConfig):
     """BuilderConfig for SQL."""
 
     index_col: Optional[Union[int, str, List[int], List[str]]] = None
-    table_name: str = "Dataset"
+    conn: Dict[Optional[NamedSplit], NestedDataStructureLike[Union[PathLike, Connection]]] = None
+    table_name: str = None
+    query: str = "SELECT * FROM `{table_name}`"
     coerce_float: bool = True
     params: Optional[Union[Sequence, Dict]] = None
     parse_dates: Optional[Union[List, Dict]] = None
@@ -31,6 +35,12 @@ class SqlConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
     encoding_errors: Optional[str] = "strict"
     on_bad_lines: Literal["error", "warn", "skip"] = "error"
+
+    def __post_init__(self):
+        if self.table_name is None:
+            raise ValueError("Expected argument `table_name` to be supplied.")
+        if self.conn is None:
+            raise ValueError("Expected argument `conn` to connect to the database")
 
     @property
     def read_sql_kwargs(self):
@@ -52,10 +62,8 @@ class Sql(datasets.ArrowBasedBuilder):
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
-        """We handle string, list and dicts in datafiles"""
-        if not self.config.data_files:
-            raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
-        data_files = dl_manager.download_and_extract(self.config.data_files)
+        """We handle string, Connection, list and dicts in datafiles"""
+        data_files = self.config.conn
         if isinstance(data_files, (str, list, tuple)):
             files = data_files
             if isinstance(files, str):
@@ -85,7 +93,7 @@ class Sql(datasets.ArrowBasedBuilder):
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             with contextlib.closing(connect(file)) as conn:
                 sql_file_reader = pd.read_sql(
-                    f"SELECT * FROM `{self.config.table_name}`", conn, **self.config.read_sql_kwargs
+                    self.config.query.format(table_name=self.config.table_name), conn, **self.config.read_sql_kwargs
                 )
                 try:
                     for batch_idx, df in enumerate(sql_file_reader):
