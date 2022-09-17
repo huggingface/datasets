@@ -1,5 +1,45 @@
 ---
+annotations_creators:
+- other
+language:
+- as
+- bn
+- en
+- gu
+- hi
+- kn
+- ml
+- mr
+- or
+- pa
+- ta
+- te
+language_creators:
+- found
+license:
+- other
+multilinguality:
+- multilingual
 pretty_name: IndicGLUE
+size_categories:
+- 100K<n<1M
+source_datasets:
+- extended|other
+task_categories:
+- text-classification
+- token-classification
+- multiple-choice
+task_ids:
+- topic-classification
+- natural-language-inference
+- sentiment-analysis
+- semantic-similarity-scoring
+- text-classification-other-headline-classification
+- text-classification-other-paraphrase-identification
+- text-classification-other-cross-lingual-similarity
+- text-classification-other-discourse-mode-classification
+- named-entity-recognition
+- multiple-choice-qa
 paperswithcode_id: null
 ---
 
@@ -31,9 +71,9 @@ paperswithcode_id: null
 
 ## Dataset Description
 
-- **Homepage:** [https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference](https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference)
+- **Homepage:** https://ai4bharat.iitm.ac.in/indic-glue
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages](https://aclanthology.org/2020.findings-emnlp.445/)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 3351.18 MB
 - **Size of the generated dataset:** 1573.33 MB
@@ -41,8 +81,8 @@ paperswithcode_id: null
 
 ### Dataset Summary
 
-    IndicGLUE is a natural language understanding benchmark for Indian languages. It contains a wide
-    variety of tasks and covers 11 major Indian languages - as, bn, gu, hi, kn, ml, mr, or, pa, ta, te.
+IndicGLUE is a natural language understanding benchmark for Indian languages. It contains a wide
+variety of tasks and covers 11 major Indian languages - as, bn, gu, hi, kn, ml, mr, or, pa, ta, te.
 
 The Winograd Schema Challenge (Levesque et al., 2011) is a reading comprehension task
 in which a system must read a sentence with a pronoun and select the referent of that pronoun from
@@ -280,28 +320,32 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-    @inproceedings{kakwani2020indicnlpsuite,
-    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},
-    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
-    year={2020},
-    booktitle={Findings of EMNLP},
+@inproceedings{kakwani-etal-2020-indicnlpsuite,
+    title = "{I}ndic{NLPS}uite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for {I}ndian Languages",
+    author = "Kakwani, Divyanshu  and
+      Kunchukuttan, Anoop  and
+      Golla, Satish  and
+      N.C., Gokul  and
+      Bhattacharyya, Avik  and
+      Khapra, Mitesh M.  and
+      Kumar, Pratyush",
+    booktitle = "Findings of the Association for Computational Linguistics: EMNLP 2020",
+    month = nov,
+    year = "2020",
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2020.findings-emnlp.445",
+    doi = "10.18653/v1/2020.findings-emnlp.445",
+    pages = "4948--4961",
 }
 
-@inproceedings{kakwani2020indicnlpsuite,
-title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},
-author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
-year={2020},
-booktitle={Findings of EMNLP},
-}
 @inproceedings{Levesque2011TheWS,
 title={The Winograd Schema Challenge},
 author={H. Levesque and E. Davis and L. Morgenstern},
 booktitle={KR},
 year={2011}
 }
-
 ```
-
 
 ### Contributions
 

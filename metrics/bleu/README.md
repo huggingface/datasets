@@ -25,11 +25,11 @@ This metric takes as input lists of predicted sentences and reference sentences:
 >>> bleu = datasets.load_metric("bleu")
 >>> results = bleu.compute(predictions=predictions, references=references)
 >>> print(results)
-{'bleu': 0.6370964381207871, 'precisions': [0.8333333333333334, 0.75, 1.0, 1.0], 'brevity_penalty': 0.7165313105737893, 'length_ratio': 0.75, 'translation_length': 6, 'reference_length': 8}
+{'bleu': 1.0, 'precisions': [1.0, 1.0, 1.0, 1.0], 'brevity_penalty': 1.0, 'length_ratio': 1.0, 'translation_length': 7, 'reference_length': 7}
 ```
 
 ### Inputs
-- **predictions** (`list` of `list`s): Translations to score. Each translation should be tokenized into a list of tokens.
+- **predictions** (`list`): Translations to score. Each translation should be tokenized into a list of tokens.
 - **references** (`list` of `list`s): references for each translation. Each reference should be tokenized into a list of tokens.
 - **max_order** (`int`): Maximum n-gram order to use when computing BLEU score. Defaults to `4`.
 - **smooth** (`boolean`): Whether or not to apply Lin et al. 2004 smoothing. Defaults to `False`.
@@ -59,8 +59,8 @@ The [Attention is All you Need paper](https://proceedings.neurips.cc/paper/2017/
 Example where each sample has 1 reference:
 ```python
 >>> predictions = [
-...     ["hello", "there", "general", "kenobi",
-...     ["foo", "bar" "foobar"]
+...     ["hello", "there", "general", "kenobi"],
+...     ["foo", "bar", "foobar"]
 ... ]
 >>> references = [
 ...     [["hello", "there", "general", "kenobi"]],
@@ -69,14 +69,14 @@ Example where each sample has 1 reference:
 >>> bleu = datasets.load_metric("bleu")
 >>> results = bleu.compute(predictions=predictions, references=references)
 >>> print(results)
-{'bleu': 0.6370964381207871, 'precisions': [0.8333333333333334, 0.75, 1.0, 1.0], 'brevity_penalty': 0.7165313105737893, 'length_ratio': 0.75, 'translation_length': 6, 'reference_length': 8}
+{'bleu': 1.0, 'precisions': [1.0, 1.0, 1.0, 1.0], 'brevity_penalty': 1.0, 'length_ratio': 1.0, 'translation_length': 7, 'reference_length': 7}
 ```
 
-Example where the second sample has 2 references:
+Example where the first sample has 2 references:
 ```python
 >>> predictions = [
-...     ["hello", "there", "general", "kenobi",
-...     ["foo", "bar" "foobar"]
+...     ["hello", "there", "general", "kenobi"],
+...     ["foo", "bar", "foobar"]
 ... ]
 >>> references = [
 ...     [["hello", "there", "general", "kenobi"], ["hello", "there", "!"]],

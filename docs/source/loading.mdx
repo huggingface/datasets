@@ -229,6 +229,21 @@ Load a list of Python dictionaries with [`~Dataset.from_list`]:
 >>> dataset = Dataset.from_list(my_list)
 ```
 
+### Python generator
+
+Create a dataset from a Python generator with [`~Dataset.from_generator`]:
+
+```py
+>>> from datasets import Dataset
+>>> def my_gen():
+...     for i in range(1, 4):
+...         yield {"a": i}
+...
+>>> dataset = Dataset.from_generator(my_dict)
+```
+
+This approach supports loading data larger than available memory.
+
 ### Pandas DataFrame
 
 Load Pandas DataFrames with [`~Dataset.from_pandas`]:
@@ -284,7 +299,7 @@ Or select a percentage of a split with:
 Select a combination of percentages from each split:
 
 ```py
->>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split="tr"in[:10%]+train[-80%:]")
+>>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split="train[:10%]+train[-80%:]")
 ===STRINGAPI-READINSTRUCTION-SPLIT===
 >>> ri = (datasets.ReadInstruction("train", to=10, unit="%") + datasets.ReadInstruction("train", from_=-80, unit="%"))
 >>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split=ri)

@@ -1,8 +1,24 @@
 ---
+annotations_creators:
+- machine-generated
 language:
 - en
-paperswithcode_id: discofuse
+language_creators:
+- found
+license:
+- cc-by-sa-3.0
+multilinguality:
+- monolingual
 pretty_name: DiscoFuse
+size_categories:
+- 10M<n<100M
+source_datasets:
+- original
+task_categories:
+- text2text-generation
+task_ids:
+- text2text-generation-other-sentence-fusion
+paperswithcode_id: discofuse
 ---
 
 # Dataset Card for "discofuse"
@@ -33,9 +49,8 @@ pretty_name: DiscoFuse
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/google-research-datasets/discofuse](https://github.com/google-research-datasets/discofuse)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/google-research-datasets/discofuse
+- **Paper:** [DiscoFuse: A Large-Scale Dataset for Discourse-Based Sentence Fusion](https://arxiv.org/abs/1902.10526)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 5764.06 MB
 - **Size of the generated dataset:** 20547.64 MB
@@ -43,7 +58,7 @@ pretty_name: DiscoFuse
 
 ### Dataset Summary
 
- DISCOFUSE is a large scale dataset for discourse-based sentence fusion.
+DiscoFuse is a large scale dataset for discourse-based sentence fusion.
 
 ### Supported Tasks and Leaderboards
 
@@ -180,7 +195,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The data is licensed under [Creative Commons Attribution-ShareAlike 3.0](https://creativecommons.org/licenses/by-sa/3.0/) license.
 
 ### Citation Information
 
@@ -192,9 +207,7 @@ The data fields are the same among all splits.
   note = {arXiv preprint arXiv:1902.10526},
   year = {2019}
 }
-
 ```
-
 
 ### Contributions
 

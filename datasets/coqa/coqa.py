@@ -1,4 +1,4 @@
-"""TODO(coqa): Add a description here."""
+"""CoQA dataset."""
 
 
 import json
@@ -6,18 +6,25 @@ import json
 import datasets
 
 
-# TODO(coqa): BibTeX citation
-_CITATION = """\
-@InProceedings{SivaAndAl:Coca,
-       author = {Siva, Reddy and Danqi, Chen and  Christopher D., Manning},
-        title = {WikiQA: A Challenge Dataset for Open-Domain Question Answering},
-      journal = { arXiv},
-         year = {2018},
+_HOMEPAGE = "https://stanfordnlp.github.io/coqa/"
 
+_CITATION = """\
+@article{reddy-etal-2019-coqa,
+    title = "{C}o{QA}: A Conversational Question Answering Challenge",
+    author = "Reddy, Siva  and
+      Chen, Danqi  and
+      Manning, Christopher D.",
+    journal = "Transactions of the Association for Computational Linguistics",
+    volume = "7",
+    year = "2019",
+    address = "Cambridge, MA",
+    publisher = "MIT Press",
+    url = "https://aclanthology.org/Q19-1016",
+    doi = "10.1162/tacl_a_00266",
+    pages = "249--266",
 }
 """
 
-# TODO(coqa):
 _DESCRIPTION = """\
 CoQA: A Conversational Question Answering Challenge
 """
@@ -27,17 +34,12 @@ _DEV_DATA_URL = "https://nlp.stanford.edu/data/coqa/coqa-dev-v1.0.json"
 
 
 class Coqa(datasets.GeneratorBasedBuilder):
-    """TODO(coqa): Short description of my dataset."""
 
-    # TODO(coqa): Set up version.
     VERSION = datasets.Version("1.0.0")
 
     def _info(self):
-        # TODO(coqa): Specifies the datasets.DatasetInfo object
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # datasets.features.FeatureConnectors
             features=datasets.Features(
                 {
                     "source": datasets.Value("string"),
@@ -52,20 +54,12 @@ class Coqa(datasets.GeneratorBasedBuilder):
                     ),
                 }
             ),
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
-            supervised_keys=None,
-            # Homepage of the dataset for documentation
-            homepage="https://stanfordnlp.github.io/coqa/",
+            homepage=_HOMEPAGE,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO(coqa): Downloads the data and defines the splits
-        # dl_manager is a datasets.download.DownloadManager that can be used to
-        # download and extract URLs
         urls_to_download = {"train": _TRAIN_DATA_URL, "dev": _DEV_DATA_URL}
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
@@ -80,7 +74,6 @@ class Coqa(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """Yields examples."""
-        # TODO(coqa): Yields (key, example) tuples from the dataset
         with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for row in data["data"]:
