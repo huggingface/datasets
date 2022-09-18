@@ -15,7 +15,7 @@ from .abc import AbstractDatasetInputStream
 class SqlDatasetReader(AbstractDatasetInputStream):
     def __init__(
         self,
-        conn: NestedDataStructureLike[Union[PathLike, Connection]],
+        conn: NestedDataStructureLike[PathLike],
         table_name: str,
         features: Optional[Features] = None,
         cache_dir: str = None,
