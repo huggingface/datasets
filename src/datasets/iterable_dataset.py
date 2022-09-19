@@ -334,6 +334,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         batch_size: int = 1000,
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
+        fn_kwargs: Optional[dict] = None,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
@@ -343,6 +344,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         self.remove_columns = remove_columns
         self.with_indices = with_indices
         self.input_columns = input_columns
+        self.fn_kwargs = fn_kwargs or {}
 
     def __iter__(self):
         iterator = iter(self.ex_iterable)
@@ -363,7 +365,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self.with_indices:
                     function_args.append([current_idx + i for i in range(len(key_examples_list))])
                 transformed_batch = dict(batch)  # this will be updated with the function output
-                transformed_batch.update(self.function(*function_args))
+                transformed_batch.update(self.function(*function_args, **self.fn_kwargs))
                 # then remove the unwanted columns
                 if self.remove_columns:
                     for c in self.remove_columns:
@@ -396,7 +398,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self.with_indices:
                     function_args.append(current_idx)
                 transformed_example = dict(example)  # this will be updated with the function output
-                transformed_example.update(self.function(*function_args))
+                transformed_example.update(self.function(*function_args, **self.fn_kwargs))
                 # then we remove the unwanted columns
                 if self.remove_columns:
                     for c in self.remove_columns:
@@ -414,6 +416,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             batched=self.batched,
             batch_size=self.batch_size,
             remove_columns=self.remove_columns,
+            fn_kwargs=self.fn_kwargs,
         )
 
     def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
@@ -426,6 +429,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             batched=self.batched,
             batch_size=self.batch_size,
             remove_columns=self.remove_columns,
+            fn_kwargs=self.fn_kwargs,
         )
 
     @property
@@ -759,6 +763,7 @@ class IterableDataset(DatasetInfoMixin):
         batch_size: int = 1000,
         drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, List[str]]] = None,
+        fn_kwargs: Optional[dict] = None,
     ) -> "IterableDataset":
         """
         Apply a function to all the examples in the iterable dataset (individually or in batches) and update them.
@@ -797,6 +802,7 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
+            fn_kwargs (:obj:`Dict`, optional, default `None`): Keyword arguments to be passed to `function`.
 
         Example:
 
@@ -821,6 +827,8 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns = [remove_columns]
         if function is None:
             function = lambda x: x  # noqa: E731
+        if fn_kwargs is None:
+            fn_kwargs = {}
         info = self._info.copy()
         info.features = None
         ex_iterable = MappedExamplesIterable(
@@ -834,6 +842,7 @@ class IterableDataset(DatasetInfoMixin):
             batch_size=batch_size,
             drop_last_batch=drop_last_batch,
             remove_columns=remove_columns,
+            fn_kwargs=fn_kwargs,
         )
         return iterable_dataset(
             ex_iterable=ex_iterable,

@@ -1,6 +1,5 @@
 import importlib
 import os
-import re
 import shutil
 import tempfile
 import time
@@ -13,7 +12,7 @@ import pytest
 import requests
 
 import datasets
-from datasets import SCRIPTS_VERSION, config, load_dataset, load_from_disk
+from datasets import config, load_dataset, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.builder import DatasetBuilder
 from datasets.data_files import DataFilesDict
@@ -24,7 +23,6 @@ from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
     CachedDatasetModuleFactory,
     CachedMetricModuleFactory,
-    GithubDatasetModuleFactory,
     GithubMetricModuleFactory,
     HubDatasetModuleFactoryWithoutScript,
     HubDatasetModuleFactoryWithScript,
@@ -35,7 +33,6 @@ from datasets.load import (
     infer_module_for_data_files,
     infer_module_for_data_files_in_archives,
 )
-from datasets.utils.file_utils import is_remote_url
 
 from .utils import (
     OfflineSimulationMode,
@@ -255,9 +252,9 @@ class ModuleFactoryTest(TestCase):
             hf_modules_cache=self.hf_modules_cache,
         )
 
-    def test_GithubDatasetModuleFactory(self):
+    def test_HubDatasetModuleFactoryWithScript_with_github_dataset(self):
         # "wmt_t2t" has additional imports (internal)
-        factory = GithubDatasetModuleFactory(
+        factory = HubDatasetModuleFactoryWithScript(
             "wmt_t2t", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
         )
         module_factory_result = factory.get_module()
@@ -479,7 +476,6 @@ class ModuleFactoryTest(TestCase):
     [
         CachedDatasetModuleFactory,
         CachedMetricModuleFactory,
-        GithubDatasetModuleFactory,
         GithubMetricModuleFactory,
         HubDatasetModuleFactoryWithoutScript,
         HubDatasetModuleFactoryWithScript,
@@ -577,17 +573,16 @@ class LoadTest(TestCase):
                 self.assertIn("Using the latest cached version of the module", self._caplog.text)
 
     def test_load_dataset_from_github(self):
-        scripts_version = os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy")
         self.assertIn(
-            "https://raw.githubusercontent.com/huggingface/datasets/main/datasets/_dummy/_dummy.py",
+            "Dataset '_dummy' doesn't exist on the Hub",
             str(context.exception),
         )
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy", revision="0.0.0")
         self.assertIn(
-            "https://raw.githubusercontent.com/huggingface/datasets/0.0.0/datasets/_dummy/_dummy.py",
+            "Dataset '_dummy' doesn't exist on the Hub at revision '0.0.0'",
             str(context.exception),
         )
         for offline_simulation_mode in list(OfflineSimulationMode):
@@ -596,7 +591,7 @@ class LoadTest(TestCase):
                     datasets.load_dataset("_dummy")
                 if offline_simulation_mode != OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1:
                     self.assertIn(
-                        f"https://raw.githubusercontent.com/huggingface/datasets/{scripts_version}/datasets/_dummy/_dummy.py",
+                        "Couldn't reach '_dummy' on the Hub",
                         str(context.exception),
                     )
 
@@ -708,11 +703,7 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
             assert "Using the latest cached version of the module" in caplog.text
     with pytest.raises(FileNotFoundError) as exc_info:
         datasets.load_dataset(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST)
-    m_combined_path = re.search(
-        rf"http\S*{re.escape(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '/' + SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '.py')}\b",
-        str(exc_info.value),
-    )
-    assert m_combined_path is not None and is_remote_url(m_combined_path.group())
+    assert f"Dataset '{SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST}' doesn't exist on the Hub" in str(exc_info.value)
     assert os.path.abspath(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST) in str(exc_info.value)
 
 
