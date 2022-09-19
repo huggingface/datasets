@@ -75,11 +75,8 @@ jobs:
           pip install "torchaudio>=0.12"
           echo "TORCHAUDIO VERSION"
           pip freeze | grep torch
-      - name: Install ffmpeg on Ubuntu
+      - name: Install ffmpeg and test torchaudio>=0.12 on Ubuntu
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: sudo apt-get -y install ffmpeg
-      - name: Test torchaudio>=0.12
         run: |
-#          echo "FFMPEG VERSION"
-#          ffmpeg -version
+          sudo apt-get -y install ffmpeg
           python -m pytest -rfExX -m torchaudio_latest -n 2 --dist loadfile -sv ./tests/features/test_audio.py
