@@ -9,6 +9,7 @@ from datasets import Dataset, concatenate_datasets, load_dataset
 from datasets.features import Audio, Features, Sequence, Value
 
 from ..utils import (
+    require_ffmpeg,
     require_libsndfile_with_opus,
     require_sndfile,
     require_sox,
@@ -155,6 +156,7 @@ def test_audio_decode_example_mp3_torchaudio_latest(shared_datadir):
 
 @pytest.mark.torchaudio_latest
 @require_torchaudio_latest
+@require_ffmpeg
 def test_audio_decode_example_mp3_torchaudio_latest_failed(shared_datadir, caplog):
     # if torchaudio>=0.12 failed, mp3 must be decoded anyway (with librosa)
     with patch("torchaudio.load") as load_mock:
