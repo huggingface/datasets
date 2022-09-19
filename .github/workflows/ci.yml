@@ -80,6 +80,6 @@ jobs:
         run: sudo apt-get -y install ffmpeg
       - name: Test torchaudio>=0.12
         run: |
-          echo "FFMPEG VERSION"
-          ffmpeg -version
+#          echo "FFMPEG VERSION"
+#          ffmpeg -version
           python -m pytest -rfExX -m torchaudio_latest -n 2 --dist loadfile -sv ./tests/features/test_audio.py
