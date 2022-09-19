@@ -50,8 +50,8 @@
       title: Load audio data
     - local: audio_process
       title: Process audio data
-    - local: audio_dataset_script
-      title: Create an audio dataset
+    - local: audio_dataset_repo
+      title: Create an audio dataset repo
     title: "Audio"
   - sections:
     - local: image_load

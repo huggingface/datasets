@@ -1,10 +1,21 @@
-# Create an audio dataset
+# Share an audio dataset
 
-There are two methods for creating an audio dataset you can share. This guide will show you how to:
+You can share a dataset with your team or with anyone in the community by creating a dataset repository on the Hugging Face Hub:
 
-* Create an audio dataset with `AudioFolder` and metadata. This is a no-code solution for quickly creating a smaller dataset to experiment with.
+```py
+from datasets import load_dataset
 
-* Create an audio dataset by writing a loading script. This method requires more effort and coding, but you have greater flexibility over how a dataset is defined, downloaded, and generated.
+dataset = load_dataset("<username>/my_dataset")
+```
+
+There are several methods for sharing an audio dataset:
+
+1. Share an audio dataset from local files in python with [`Dataset.push_to_hub`]. This the recommended way and requires only a few steps in python.
+
+1. Share an audio dataset repository with the `AudioFolder` format with metadata. This is a no-code solution for quickly creating small dataset to experiment with.
+
+1. Share an audio dataset by writing a loading script. This method is for advanced users and requires more effort and coding, but you have greater flexibility over how a dataset is defined, downloaded, and generated.
+
 
 <Tip>
 
@@ -12,9 +23,50 @@ You can control access to your dataset by requiring users to share their contact
 
 </Tip>
 
+## Local files
+
+You can load your own dataset using the paths to your audio files. Use the [`~Dataset.cast_column`] function to take a column of audio file paths, and cast it to the [`Audio`] feature:
+
+```py
+>>> audio_dataset = Dataset.from_dict({"audio": ["path/to/audio_1", "path/to/audio_2", ..., "path/to/audio_n"]}).cast_column("audio", Audio())
+>>> audio_dataset[0]["audio"]
+{'array': array([ 0.        ,  0.00024414, -0.00024414, ..., -0.00024414,
+         0.        ,  0.        ], dtype=float32),
+ 'path': 'path/to/audio_1',
+ 'sampling_rate': 16000}
+```
+
+Then upload the dataset to the Hugging Face Hub using [`Dataset.push_to_hub`]:
+
+```py
+audio_dataset.push_to_hub("<username>/my_dataset")
+```
+
+This will create a dataset repository containing your audio dataset:
+
+```
+my_dataset/
+├── README.md
+└── data/
+    └── train-00000-of-00001.parquet
+```
+
 ## AudioFolder
 
-The `AudioFolder` is a dataset builder designed to quickly load an audio dataset without requiring you to write any code. Any additional information about your dataset - such as transcription, speaker accent, or speaker intent - is automatically loaded by `AudioFolder` as long as you include this information in a metadata file (`metadata.csv`/`metadata.jsonl`). 
+The `AudioFolder` is a dataset builder designed to quickly load an audio dataset without requiring you to write any code.
+Any additional information about your dataset - such as transcription, speaker accent, or speaker intent - is automatically loaded by `AudioFolder` as long as you include this information in a metadata file (`metadata.csv`/`metadata.jsonl`). 
+
+Create a dataset repository on the Hugging Face Hub and upload your dataset directory following the `AudioFolder` structure:
+
+```
+my_dataset/
+├── README.md
+├── metadata.csv
+└── data/
+```
+
+The `data` folder can be any name you want, it doesn't have to be `data`.
+
 
 <Tip>
 
@@ -34,10 +86,10 @@ third_audio_file.mp3,pewnie kędyś w obłędzie ubite minęły szlaki zaczekajm
 Then you can store your dataset in a directory structure like this:
 
 ```
-folder/train/metadata.csv
-folder/train/first_audio_file.mp3
-folder/train/second_audio_file.mp3
-folder/train/third_audio_file.mp3
+data/train/metadata.csv
+data/train/first_audio_file.mp3
+data/train/second_audio_file.mp3
+data/train/third_audio_file.mp3
 ```
 
 Users can now load your dataset and the associated metadata by specifying `audiofolder` in [`load_dataset`] and the dataset directory in `data_dir`:
@@ -57,11 +109,11 @@ Users can now load your dataset and the associated metadata by specifying `audio
 For audio datasets that don't have any associated metadata, `AudioFolder` automatically infers the class labels of the dataset based on the directory name. In this case, your dataset directory might look like:
 
 ```
-folder/train/en_us/14223464699748513050.wav
-folder/train/en_us/363601479976099198.wav
-folder/train/en_us/9644097927007796370.wav
+data/train/en_us/14223464699748513050.wav
+data/train/en_us/363601479976099198.wav
+data/train/en_us/9644097927007796370.wav
 
-folder/train/fr_fr/14945328524472190788.wav
+data/train/fr_fr/14945328524472190788.wav
 ```
 
 ### Language identification
@@ -69,11 +121,11 @@ folder/train/fr_fr/14945328524472190788.wav
 Language identification datasets have audio recordings of speech in multiple languages:
 
 ```
-folder/train/ar/0197_720_0207_190.wav
-folder/train/ar/0179_830_0185_540.mp3
-folder/train/ar/0179_830_0185_540.mp3
+data/train/ar/0197_720_0207_190.wav
+data/train/ar/0179_830_0185_540.mp3
+data/train/ar/0179_830_0185_540.mp3
 
-folder/train/zh/0442_690_0454_380.mp3
+data/train/zh/0442_690_0454_380.mp3
 ```
 
 Load the dataset with `AudioFolder`, and it will create a `label` column from the directory name (language id):
@@ -89,9 +141,11 @@ Load the dataset with `AudioFolder`, and it will create a `label` column from th
 }
 ```
 
-## Loading script
+## (Advanced) Loading script
 
-Write a dataset loading script to manually create a dataset. It defines a dataset's splits and configurations, and handles downloading and generating the dataset examples. The script should have the same name as your dataset folder or repository:
+Write a dataset loading script to manually create a dataset.
+It defines a dataset's splits and configurations, and handles downloading and generating the dataset examples.
+The script should have the same name as your dataset folder or repository:
 
 ```
 my_dataset/
@@ -414,24 +468,6 @@ def _generate_examples(
                 yield id_, result
                 id_ += 1
 ```
-
-### Generate the dataset metadata (optional)
-
-The dataset metadata you added earlier now needs to be generated and stored in a file called `datasets_infos.json`. In addition to information about a datasets features and description, this file also contains data file checksums to ensure integrity.
-
-Run the following command to generate your dataset metadata in `dataset_infos.json` and make sure your new loading script works correctly:
-
-<Tip warning={true}>
-
-Generating your dataset metadata requires downloading all the dataset files, which can take a lot of time and disk space if your dataset is large!
-
-</Tip>
-
-```bash
-datasets-cli test path/to/<your-dataset-loading-script> --save_infos --all_configs
-```
-
-If your loading script passed the test, you should now have a `dataset_infos.json` file in your dataset folder.
 
 ### Upload the dataset to the Hub
 
