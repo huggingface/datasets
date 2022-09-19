@@ -1265,7 +1265,21 @@ class ConcatenationTable(Table):
         pa_tables = [table.table if hasattr(table, "table") else table for table in blocks]
         if axis == 0:
             # we set promote=True to fill missing columns with null values
-            return pa.concat_tables(pa_tables, promote=True)
+            large_list_schema_map = {field.name: field for field in pa_tables[0].schema}  # intialize
+            large_list_flag = False
+            for table in pa_tables:
+                for field in table.schema:
+                    if pa.types.is_large_list(field.type):
+                        large_list_schema_map[field.name] = field
+                        large_list_flag = True
+            if large_list_flag:  # cast ListArray to LargeListArray
+                large_list_schema = pa.schema(list(large_list_schema_map.values()))
+                new_tables = []
+                for table in pa_tables:
+                    new_tables.append(table.cast(large_list_schema))
+                return pa.concat_tables(new_tables, promote=True)
+            else:
+                return pa.concat_tables(pa_tables, promote=True)
         elif axis == 1:
             for i, table in enumerate(pa_tables):
                 if i == 0:
