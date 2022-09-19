@@ -297,7 +297,6 @@ class Audio:
             array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
         else:
             try:  # try torchaudio anyway because sometimes it works (depending on the machine)
-                # TODO: should any backend be set here?
                 array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
             except RuntimeError:
                 try:
@@ -311,9 +310,15 @@ class Audio:
                         "To support decoding 'mp3' audio files without `torchaudio`, please install `librosa`: "
                         "`pip install librosa`. Note that decoding will be extremely slow in that case."
                     ) from err
-                # use librosa for torchaudio>=0.12.0 as a workaround
+                # try to decode with librosa for torchaudio>=0.12.0 as a workaround
                 logger.warning("Decoding mp3 with `librosa` instead of `torchaudio`, decoding is slow.")
-                array, sampling_rate = self._decode_mp3_librosa(path_or_file)
+                try:
+                    array, sampling_rate = self._decode_mp3_librosa(path_or_file)
+                except RuntimeError as err:
+                    raise RuntimeError(
+                        "Decoding of 'mp3' failed, probably because of streaming mode "
+                        "(`librosa` cannot decode 'mp3' file-like objects, only path-like)."
+                    ) from err
 
         return array, sampling_rate
 
