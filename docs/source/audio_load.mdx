@@ -24,16 +24,29 @@ You can load your own dataset using the paths to your audio files. Use the [`~Da
 
 ## AudioFolder
 
-You can also load an audio dataset with an `AudioFolder` dataset builder and any associated metadata (like transcriptions and labels) in a metadata file (`metadata.csv`/`metadata.jsonl`). This does not require writing a custom dataloader, making it useful for quickly loading audio data. Your audio dataset structure should look like this:
+You can also load a dataset with an `AudioFolder` dataset builder. It does not require writing a custom dataloader, making it useful for quickly loading audio data.
+
+## AudioFolder with metadata
+
+To link your audio files with metadata information, make sure your dataset has a `metadata.csv` file. Your dataset structure might look like:
 
 ```
-folder/train/metadata.jsonl
+folder/train/metadata.csv
 folder/train/first_audio_file.mp3
 folder/train/second_audio_file.mp3
 folder/train/third_audio_file.mp3
 ```
 
-Load your dataset by specifying `audiofolder` and the dataset directory in `data_dir`. Associated metadata from `metadata.jsonl` is automatically loaded.
+Your `metadata.csv` file must have a `file_name` column which links audio files with their metadata. An example `metadata.csv` file might look like:
+
+```text
+file_name,transcription
+first_audio_file.mp3,znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi
+second_audio_file.mp3,już u źwierzyńca podwojów król zasiada przy nim książęta i panowie rada a gdzie wzniosły krążył ganek rycerze obok kochanek król skinął palcem zaczęto igrzysko
+third_audio_file.mp3,pewnie kędyś w obłędzie ubite minęły szlaki zaczekajmy dzień jaki poślemy szukać wszędzie dziś jutro pewnie będzie posłali wszędzie sługi czekali dzień i drugi gdy nic nie doczekali z płaczem chcą jechać dali
+```
+
+`AudioFolder` will load audio data and create a `transcription` column containing texts from `metadata.csv`:
 
 ```py
 >>> from datasets import load_dataset
@@ -48,6 +61,8 @@ You can load remote datasets from their URLs with the data_files parameter:
 ```py
 >>> dataset = load_dataset("audiofolder", data_files=["https://foo.bar/audio_1", "https://foo.bar/audio_2", ..., "https://foo.bar/audio_n"])
 ```
+
+Metadata can also be specified as JSON Lines, in which case use `metadata.jsonl` as the name of the metadata file. This format is helpful in scenarios when one of the columns is complex, e.g. a list of floats, to avoid parsing errors or reading the complex values as strings.
 
 To ignore the information in the metadata file, set `drop_metadata=True` in [`load_dataset`]:
 

@@ -1,5 +1,13 @@
 # Create a dataset loading script
 
+
+<Tip>
+
+The dataset script is optional if your dataset is in one of the following formats: CSV, JSON, JSON lines, text or Parquet.
+With those formats, you should be able to load your dataset automatically with [`~datasets.load_dataset`].
+
+</Tip>
+
 Write a dataset script to load and share your own datasets. It is a Python file that defines the different configurations and splits of your dataset, as well as how to download and process the data.
 
 The script can download data files from any website, or from the same dataset repository.
@@ -119,7 +127,7 @@ class SuperGlueConfig(datasets.BuilderConfig):
         #        the full release (v2.0).
         # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
         # 0.0.2: Initial version.
-        super(SuperGlueConfig, self).__init__(version=datasets.Version("1.0.2"), **kwargs)
+        super().__init__(version=datasets.Version("1.0.2"), **kwargs)
         self.features = features
         self.label_classes = label_classes
         self.data_url = data_url

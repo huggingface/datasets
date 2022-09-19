@@ -58,6 +58,8 @@
       title: Load image data
     - local: image_process
       title: Process image data
+    - local: image_dataset_script
+      title: Create an image dataset
     - local: image_classification
       title: Image classification
     - local: object_detection

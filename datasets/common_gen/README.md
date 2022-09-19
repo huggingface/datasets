@@ -1,12 +1,25 @@
 ---
+annotations_creators:
+- crowdsourced
 language:
 - en
-paperswithcode_id: commongen
+language_creators:
+- found
+- crowdsourced
+license:
+- mit
+multilinguality:
+- monolingual
 pretty_name: CommonGen
-task_ids:
-- text2text-generation-other-concepts-to-text
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
 task_categories:
 - text2text-generation
+task_ids:
+- text2text-generation-other-concepts-to-text
+paperswithcode_id: commongen
 ---
 
 # Dataset Card for "common_gen"
@@ -38,8 +51,8 @@ task_categories:
 ## Dataset Description
 
 - **Homepage:** [https://inklab.usc.edu/CommonGen/index.html](https://inklab.usc.edu/CommonGen/index.html)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/INK-USC/CommonGen
+- **Paper:** [CommonGen: A Constrained Text Generation Challenge for Generative Commonsense Reasoning](https://arxiv.org/abs/1911.03705)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 1.76 MB
 - **Size of the generated dataset:** 6.88 MB
@@ -152,7 +165,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The dataset is licensed under [MIT License](https://github.com/INK-USC/CommonGen/blob/master/LICENSE).
 
 ### Citation Information
 
@@ -175,7 +188,6 @@ The data fields are the same among all splits.
     doi = "10.18653/v1/2020.findings-emnlp.165",
     pages = "1823--1840"
 }
-
 ```
 
 

@@ -566,6 +566,7 @@ def mock_fs(file_paths: List[str]):
         {"train": "dataset.txt"},
         {"train": "data/dataset.txt"},
         {"train": ["data/image.jpg", "metadata.jsonl"]},
+        {"train": ["data/image.jpg", "metadata.csv"]},
         # With prefix or suffix in directory or file names
         {"train": "my_train_dir/dataset.txt"},
         {"train": "data/my_train_file.txt"},
@@ -581,6 +582,9 @@ def mock_fs(file_paths: List[str]):
         {"validation": "dev.txt"},
         {"validation": "data/dev.txt"},
         {"validation": "dev/dataset.txt"},
+        # With valid<>val aliases
+        {"validation": "val.txt"},
+        {"validation": "data/val.txt"},
         # With other extensions
         {"train": "train.parquet", "test": "test.parquet", "validation": "valid.parquet"},
         # With "dev" or "eval" without separators
@@ -615,8 +619,10 @@ def test_get_data_files_patterns(data_file_per_split):
     [
         # metadata files at the root
         ["metadata.jsonl"],
+        ["metadata.csv"],
         # nested metadata files
         ["data/metadata.jsonl", "data/train/metadata.jsonl"],
+        ["data/metadata.csv", "data/train/metadata.csv"],
     ],
 )
 def test_get_metadata_files_patterns(metadata_files):

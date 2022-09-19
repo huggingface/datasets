@@ -1341,6 +1341,23 @@ class BaseDatasetTest(TestCase):
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
+    def test_map_input_columns(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                with dset.map(lambda col_1: {"label": col_1 % 2}, input_columns="col_1") as mapped_dset:
+                    self.assertEqual(mapped_dset[0].keys(), {"col_1", "col_2", "col_3", "label"})
+                    self.assertEqual(
+                        mapped_dset.features,
+                        Features(
+                            {
+                                "col_1": Value("int64"),
+                                "col_2": Value("string"),
+                                "col_3": Value("bool"),
+                                "label": Value("int64"),
+                            }
+                        ),
+                    )
+
     def test_map_remove_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -2389,6 +2406,66 @@ class BaseDatasetTest(TestCase):
         del tf_dataset  # For correct cleanup
 
     @require_tf
+    def test_tf_label_renaming(self, in_memory):
+        # Protect TF-specific imports in here
+        import tensorflow as tf
+
+        from datasets.utils.tf_utils import minimal_tf_collate_fn_with_renaming
+
+        tmp_dir = tempfile.TemporaryDirectory()
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            with dset.rename_columns({"col_1": "features", "col_2": "label"}) as new_dset:
+                tf_dataset = new_dset.to_tf_dataset(collate_fn=minimal_tf_collate_fn_with_renaming, batch_size=4)
+                batch = next(iter(tf_dataset))
+                self.assertTrue("labels" in batch and "features" in batch)
+
+                tf_dataset = new_dset.to_tf_dataset(
+                    columns=["features", "labels"], collate_fn=minimal_tf_collate_fn_with_renaming, batch_size=4
+                )
+                batch = next(iter(tf_dataset))
+                self.assertTrue("labels" in batch and "features" in batch)
+
+                tf_dataset = new_dset.to_tf_dataset(
+                    columns=["features", "label"], collate_fn=minimal_tf_collate_fn_with_renaming, batch_size=4
+                )
+                batch = next(iter(tf_dataset))
+                self.assertTrue("labels" in batch and "features" in batch)  # Assert renaming was handled correctly
+
+                tf_dataset = new_dset.to_tf_dataset(
+                    columns=["features"],
+                    label_cols=["labels"],
+                    collate_fn=minimal_tf_collate_fn_with_renaming,
+                    batch_size=4,
+                )
+                batch = next(iter(tf_dataset))
+                self.assertEqual(len(batch), 2)
+                # Assert that we don't have any empty entries here
+                self.assertTrue(isinstance(batch[0], tf.Tensor) and isinstance(batch[1], tf.Tensor))
+
+                tf_dataset = new_dset.to_tf_dataset(
+                    columns=["features"],
+                    label_cols=["label"],
+                    collate_fn=minimal_tf_collate_fn_with_renaming,
+                    batch_size=4,
+                )
+                batch = next(iter(tf_dataset))
+                self.assertEqual(len(batch), 2)
+                # Assert that we don't have any empty entries here
+                self.assertTrue(isinstance(batch[0], tf.Tensor) and isinstance(batch[1], tf.Tensor))
+
+                tf_dataset = new_dset.to_tf_dataset(
+                    columns=["features"],
+                    collate_fn=minimal_tf_collate_fn_with_renaming,
+                    batch_size=4,
+                )
+                batch = next(iter(tf_dataset))
+                # Assert that labels didn't creep in when we don't ask for them
+                # just because the collate_fn added them
+                self.assertTrue(isinstance(batch, tf.Tensor))
+
+        del tf_dataset  # For correct cleanup
+
+    @require_tf
     def test_tf_dataset_options(self, in_memory):
         tmp_dir = tempfile.TemporaryDirectory()
         # Test that batch_size option works as expected
@@ -2688,6 +2765,41 @@ def test_interleave_datasets_probabilities():
     assert dataset["a"] == expected_values
     assert (
         dataset._fingerprint == interleave_datasets([d1, d2, d3], probabilities=probabilities, seed=seed)._fingerprint
+    )
+
+
+def test_interleave_datasets_oversampling_strategy():
+    d1 = Dataset.from_dict({"a": [0, 1, 2]})
+    d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})
+    d3 = Dataset.from_dict({"a": [22, 21, 20]}).select([2, 1, 0])
+    dataset = interleave_datasets([d1, d2, d3], stopping_strategy="all_exhausted")
+    expected_length = 3 * max(len(d1), len(d2), len(d3))
+    expected_values = [0, 10, 20, 1, 11, 21, 2, 12, 22, 0, 13, 20]  # hardcoded
+    assert isinstance(dataset, Dataset)
+    assert len(dataset) == expected_length
+    assert dataset["a"] == expected_values
+    assert dataset._fingerprint == interleave_datasets([d1, d2, d3], stopping_strategy="all_exhausted")._fingerprint
+
+
+def test_interleave_datasets_probabilities_oversampling_strategy():
+    seed = 42
+    probabilities = [0.3, 0.5, 0.2]
+    d1 = Dataset.from_dict({"a": [0, 1, 2]})
+    d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})
+    d3 = Dataset.from_dict({"a": [22, 21, 20]}).select([2, 1, 0])
+    dataset = interleave_datasets(
+        [d1, d2, d3], stopping_strategy="all_exhausted", probabilities=probabilities, seed=seed
+    )
+    expected_length = 16  # hardcoded
+    expected_values = [10, 11, 20, 12, 0, 21, 13, 10, 1, 11, 12, 22, 13, 20, 10, 2]  # hardcoded
+    assert isinstance(dataset, Dataset)
+    assert len(dataset) == expected_length
+    assert dataset["a"] == expected_values
+    assert (
+        dataset._fingerprint
+        == interleave_datasets(
+            [d1, d2, d3], stopping_strategy="all_exhausted", probabilities=probabilities, seed=seed
+        )._fingerprint
     )
 
 
@@ -3064,6 +3176,60 @@ def test_dataset_from_text_path_type(path_type, text_path, tmp_path):
     expected_features = {"text": "string"}
     dataset = Dataset.from_text(path, cache_dir=cache_dir)
     _check_text_dataset(dataset, expected_features)
+
+
+@pytest.fixture
+def data_generator():
+    def _gen():
+        data = [
+            {"col_1": "0", "col_2": 0, "col_3": 0.0},
+            {"col_1": "1", "col_2": 1, "col_3": 1.0},
+            {"col_1": "2", "col_2": 2, "col_3": 2.0},
+            {"col_1": "3", "col_2": 3, "col_3": 3.0},
+        ]
+        for item in data:
+            yield item
+
+    return _gen
+
+
+def _check_generator_dataset(dataset, expected_features):
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_dataset_from_generator_keep_in_memory(keep_in_memory, data_generator, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = Dataset.from_generator(data_generator, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    _check_generator_dataset(dataset, expected_features)
+
+
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+def test_dataset_from_generator_features(features, data_generator, tmp_path):
+    cache_dir = tmp_path / "cache"
+    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = Dataset.from_generator(data_generator, features=features, cache_dir=cache_dir)
+    _check_generator_dataset(dataset, expected_features)
 
 
 def test_dataset_to_json(dataset, tmp_path):

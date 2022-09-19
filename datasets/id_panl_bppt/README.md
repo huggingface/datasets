@@ -161,7 +161,14 @@ The dataset is splitted in to train, validation and test sets.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@inproceedings{id_panl_bppt,
+  author    = {PAN Localization - BPPT},
+  title     = {Parallel Text Corpora, English Indonesian},
+  year      = {2009},
+  url       = {http://digilib.bppt.go.id/sampul/p92-budiono.pdf},
+}
+```
 
 ### Contributions
 

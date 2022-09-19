@@ -63,7 +63,7 @@ It represents a small portion of the English language subset of the CC-News data
 
 ### Supported Tasks and Leaderboards
 
-[N/A]
+CC-News has been mostly used for language model training.
 
 ### Languages
 
@@ -113,7 +113,9 @@ CC-News dataset has only the training set, i.e. it has to be loaded with `train`
 
 ## Dataset Creation
 
-CC-News has been mostly used for language model training.
+### Curation Rationale
+
+[More Information Needed]
 
 ### Source Data
 
@@ -176,4 +178,19 @@ The purpose of this dataset is to help language model researchers develop better
 
 ### Citation Information
 
-[More Information Needed]
+```
+@InProceedings{Hamborg2017,
+  author     = {Hamborg, Felix and Meuschke, Norman and Breitinger, Corinna and Gipp, Bela},
+  title      = {news-please: A Generic News Crawler and Extractor},
+  year       = {2017},
+  booktitle  = {Proceedings of the 15th International Symposium of Information Science},
+  location   = {Berlin},
+  doi        = {10.5281/zenodo.4120316},
+  pages      = {218--223},
+  month      = {March}
+}
+```
+
+### Contributions
+
+Thanks to [@vblagoje](https://github.com/vblagoje) for adding this dataset.
