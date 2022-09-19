@@ -64,10 +64,6 @@ require_sox = pytest.mark.skipif(
     find_library("sox") is None,
     reason="test requires sox OS dependency; only available on non-Windows: 'sudo apt-get install sox'",
 )
-require_ffmpeg = pytest.mark.skipif(
-    find_library("ffmpeg") is None,
-    reason="test requires ffmpeg (>v4) OS dependency; must be manually compiled on Windows",
-)
 require_torchaudio = pytest.mark.skipif(
     find_spec("torchaudio") is None
     or version.parse(import_module("torchaudio").__version__) > version.parse("0.12.0"),
