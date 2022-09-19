@@ -296,7 +296,7 @@ class Audio:
                 raise ImportError("To support decoding 'mp3' audio files, please install 'sox'.") from err
             array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
         else:
-            try:  # try torchaudio anyway because sometimes it works (depending on the machine)
+            try:  # try torchaudio anyway because sometimes it works (depending on the os and os packages installed)
                 array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
             except RuntimeError:
                 try:
