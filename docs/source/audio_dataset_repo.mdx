@@ -182,7 +182,9 @@ In addition to learning how to create a streamable dataset, you'll also learn ho
 * Generate the dataset metadata (optional).
 * Upload the dataset to the Hub.
 
-The best way to learn is to open up an existing audio dataset loading script, like [LibriVox Indonesia](https://huggingface.co/datasets/indonesian-nlp/librivox-indonesia), and follow along!
+The best way to learn is to open up an existing audio dataset loading script, like [Vivos](https://huggingface.co/datasets/vivos/blob/main/vivos.py), and follow along!
+
+This guide shows how to process audio data stored in TAR archive - the most frequent case for audio datasets. To get an example of an audio script which uses ZIP archives, check out [minds14](https://huggingface.co/datasets/PolyAI/minds14/blob/main/minds14.py) dataset.
 
 <Tip>
 
@@ -201,18 +203,22 @@ To help you get started, we created a loading script [template](https://github.c
 Start by creating your dataset class as a subclass of [`GeneratorBasedBuilder`] and add the three methods. Don't worry about filling in each of these methods yet, you'll develop those over the next few sections:
 
 ```py
-class LibriVoxIndonesia(datasets.GeneratorBasedBuilder):
+class VivosDataset(datasets.GeneratorBasedBuilder):
+    """VIVOS is a free Vietnamese speech corpus consisting of 15 hours of recording speech prepared for
+    Vietnamese Automatic Speech Recognition task."""
 
     def _info(self):
 
     def _split_generators(self, dl_manager):
 
-    def _generate_examples(self, local_extracted_archive, audio_files, metadata_path, path_to_clips,):
+    def _generate_examples(self, prompts_path, path_to_clips, audio_files):
+
 ```
 
+# TODO: CONFIGURATIONS EXAMPLE
 #### Multiple configurations
 
-In some cases, a dataset may have more than one configuration. The Vivos dataset has several configurations corresponding to different languages.
+In some cases, a dataset may have more than one configuration. For example, [LibriVox Indonesia](https://huggingface.co/datasets/indonesian-nlp/librivox-indonesia) dataset has several configurations corresponding to different languages.
 
 To create different configurations, use the [`BuilderConfig`] class to create a subclass of your dataset. The only required parameter is the `name` of the configuration, which must be passed to the configuration's superclass `__init__()`. Otherwise, you can specify any custom parameters you want in your configuration class.
 
@@ -277,11 +283,11 @@ Now if users want to load the Balinese (`bal`) configuration, they can use the c
 
 ### Add dataset metadata
 
-Adding information about your dataset helps users learn more about it. This information is stored in the [`DatasetInfo`] class which is returned by the `info` method. Users can access this information by:
+Adding information about your dataset helps users to learn more about it. This information is stored in the [`DatasetInfo`] class which is returned by the `info` method. Users can access this information by:
 
 ```py
 >>> from datasets import load_dataset_builder
->>> ds_builder = load_dataset_builder("indonesian-nlp/librivox-indonesia")
+>>> ds_builder = load_dataset_builder("vivos")
 >>> ds_builder.info
 ```
 
@@ -301,31 +307,20 @@ You'll notice a lot of the dataset information is defined earlier in the loading
 
 ```py
 def _info(self):
-    total_languages = len(STATS["locales"])
-    total_hours = self.config.total_hr
-    description = (
-        "LibriVox-Indonesia is a speech dataset generated from LibriVox with only languages from Indonesia."
-        f"The dataset currently consists of {total_hours} hours of speech "
-        f" in {total_languages} languages, but more voices and languages are always added."
-    )
-    features = datasets.Features(
-        {
-            "path": datasets.Value("string"),
-            "language": datasets.Value("string"),
-            "reader": datasets.Value("string"),
-            "sentence": datasets.Value("string"),
-            "audio": datasets.features.Audio(sampling_rate=44100)
-        }
-    )
-
     return datasets.DatasetInfo(
-        description=description,
-        features=features,
+        description=_DESCRIPTION,
+        features=datasets.Features(
+            {
+                "speaker_id": datasets.Value("string"),
+                "path": datasets.Value("string"),
+                "audio": datasets.Audio(sampling_rate=16_000),
+                "sentence": datasets.Value("string"),
+            }
+        ),
         supervised_keys=None,
         homepage=_HOMEPAGE,
         license=_LICENSE,
         citation=_CITATION,
-        version=self.config.version,
     )
 ```
 
@@ -333,19 +328,91 @@ def _info(self):
 
 Now that you've added some information about your dataset, the next step is to download the dataset and define the splits.
 
-1. Use the [`~DownloadManager.download`] method to download the audio data specified in `_AUDIO_URL`. If you're not enabling streaming, this method returns a path to a local archive. However, if you're planning on enabling streaming, this method opens the data at the URL remotely. This method accepts:
+1. Use the [`~DownloadManager.download`] method to download metadata file at `_PROMPTS_URLS` and audio TAR archive at `_DATA_URL`. This method returns a path to a local file/archive. However, in streaming mode, this method doesn't download the data but opens it at the URL remotely and returns the same URL. This method accepts:
 
     * a relative path to a file inside a Hub dataset repository (for example, in the `data/` folder)
     * a URL to a file hosted somewhere else
     * a (nested) list or dictionary of file names or URLs
 
-2. If you aren't planning on making your dataset streamable, then you can use the [`~DownloadManager.extract`] method to extract the TAR archive locally. This returns a local path to the extracted archive directory:
+2. After you've downloaded the dataset, use the [`SplitGenerator`] to organize the audio files and sentence prompts in each split. Name each split with a standard name like: `Split.TRAIN`, `Split.TEST`, and `SPLIT.Validation`.
+
+    In the `gen_kwargs` parameter, specify the file path to the `prompts_path` and `path_to_clips`. For `audio_files`, you'll need to use [`~DownloadManager.iter_archive`] to iterate over the audio files in the TAR archive. This enables streaming for your dataset. All of these file paths are passed onto the next step where you'll actually generate the dataset.
+
+<Tip warning={true}>
+
+This implementation does not extract downloaded archives. If you want to extract files after download, you need to use ... But
+How tod it bescribet below
+
+</Tip>
+
+
+### Generate the dataset
+
+The last method in the [`GeneratorBasedBuilder`] class actually generates the audio data and sentences in the dataset. It yields a dataset according to the stucture specified in `features` from the `info` method. As you can see, `generate_examples` accepts the `prompts_path`, `path_to_clips`, and `audio_files` from the previous method as arguments.
+
+<Tip warning={true}>
+
+TAR files are accessed and yielded sequentially. This means you need to have the information/metadata associated with the audio files in the TAR file in hand first so you can yield it with its corresponding audio file.
+
+</Tip>
+
+Now you can write a function for opening and loading examples from the dataset:
+
+```py
+def _generate_examples(self, prompts_path, path_to_clips, audio_files):
+    """Yields examples as (key, example) tuples."""
+    examples = {}
+    with open(prompts_path, encoding="utf-8") as f:
+        for row in f:
+            data = row.strip().split(" ", 1)
+            speaker_id = data[0].split("_")[0]
+            audio_path = "/".join([path_to_clips, speaker_id, data[0] + ".wav"])
+            examples[audio_path] = {
+                "speaker_id": speaker_id,
+                "path": audio_path,
+                "sentence": data[1],
+            }
+    inside_clips_dir = False
+    id_ = 0
+    for path, f in audio_files:
+        if path.startswith(path_to_clips):
+            inside_clips_dir = True
+            if path in examples:
+                audio = {"path": path, "bytes": f.read()}
+                yield id_, {**examples[path], "audio": audio}
+                id_ += 1
+        elif inside_clips_dir:
+            break
+```
+
+### Upload the dataset to the Hub
+
+Once your script is ready, [create a dataset card](./dataset_card) and [upload it to the Hub](./share).
+
+Congratulations, you can now load your dataset from the Hub! 🥳
+
+```py
+>>> from datasets import load_dataset
+>>> load_dataset("<username>/my_dataset")
+```
+
+## (Advanced+) Extract TAR archives inside a script
+
+In the example above downloaded archives are not extracted and therefore examples do not contain information about where they are stored locally.
+To explain how to do the ectraction, we will briefly go through a [LibriVox Indonesia](https://huggingface.co/datasets/indonesian-nlp/librivox-indonesia) loading script.
+
+
+### Download and define the dataset splits
+
+1. Use the [`~DownloadManager.download`] method to download the audio data specified in `_AUDIO_URL`.
+
+2. To extract audio TAR archive locally, use the [`~DownloadManager.extract`]. You can use this method only in non-streaming mode (when `dl_manager.is_streaming=False`). This returns a local path to the extracted archive directory:
 
    ```py
    local_extracted_archive = dl_manager.extract(audio_path) if not dl_manager.is_streaming else None
    ```
 
-3. But if you want your dataset to be streamable, then you'll need to use the [`~DownloadManager.iter_archive`] method to iterate over the `audio_path` after it's downloaded. This allows 🤗 Datasets to iterate over the files inside the TAR archive when you generate examples from your dataset. However, [`~DownloadManager.iter_archive`] doesn't provide any information about the full local paths even if they exist locally. As a result, you need to pass the `local_extracted_archive` path to the next step inside `gen_kwargs`, in order to preserve information about where the locally extracted files are. This is required to construct the correct paths to the local files when you generate the examples.
+3. Use the [`~DownloadManager.iter_archive`] method to iterate over the archive at `audio_path` after it's downloaded, just as in the Vivos example above. [`~DownloadManager.iter_archive`] doesn't provide any information about the full local paths of files inside the archive, even if they exist locally. As a result, you need to pass the `local_extracted_archive` path to the next step inside `gen_kwargs`, in order to preserve information about where the locally extracted files are. This is required to construct the correct paths to the local files when you generate the examples.
 
 <Tip>
 
@@ -353,22 +420,13 @@ The reason you need to use a combination of [`~DownloadManager.download`] and [`
 
 </Tip>
 
-4. Use the [`~DownloadManager.download_and_extract`] method to download the metadata file specified in `_METADATA_URL`. If you're not enabling streaming, this method returns a path to a local file. However, if you're planning on enabling streaming, this method opens the file at the URL remotely. 
+4. Use the [`~DownloadManager.download_and_extract`] method to download the metadata file specified in `_METADATA_URL`. If you're not enabling streaming, this method returns a path to a local file. However, if you're planning on enabling streaming, this method opens the file at the URL remotely.
 
-    While you can use [`~DownloadManager.download_and_extract`] to extract TAR archives, this method on its own does not support streaming. To use  [`~DownloadManager.download_and_extract`] for streaming, you also need to use [`~DownloadManager.iter_archive`].
+    While you can use [`~DownloadManager.download_and_extract`] to download and extract TAR archives too, but this method would throw an error in streaming mode.
 
 5. Now use the [`SplitGenerator`] to organize the audio files and metadata in each split. Name each split with a standard name like: `Split.TRAIN`, `Split.TEST`, and `SPLIT.Validation`.
 
     In the `gen_kwargs` parameter, specify the file paths to `local_extracted_archive`, `audio_files`, `metadata_path`, and `path_to_clips`. Remember, for `audio_files`, you need to use [`~DownloadManager.iter_archive`] to iterate over the audio files in the TAR archives. This enables streaming for your dataset! All of these file paths are passed onto the next step where the dataset samples are generated.
-
-For a quick and handy reference, check out the table below to help you decide which download method (or combination of download methods) to use:
-
-| Method                               | File type                     | Streamable |
-|--------------------------------------|-------------------------------|------------|
-| download_and_extract                 | tar                           | no         |
-| download_and_extract                 | zip, gzip, xz, zstd, bz2, lz4 | yes        |
-| download + iter_archives             | tar, rar, 7z                  | yes        |
-| download_and_extract + iter_archives | any                           | yes        |
 
 ```py
 def _split_generators(self, dl_manager):
@@ -403,7 +461,7 @@ def _split_generators(self, dl_manager):
 
 ### Generate the dataset
 
-The last method in the [`GeneratorBasedBuilder`] class actually generates the audio data and metadata in the dataset. It yields a dataset according to the structure specified in `features` from the `info` method. As you can see, `generate_examples` accepts `local_extracted_archive`, `audio_files`, `metadata_path`, and `path_to_clips` from the previous method as arguments.
+Here `generate_examples` accepts `local_extracted_archive`, `audio_files`, `metadata_path`, and `path_to_clips` from the previous method as arguments.
 
 1. To stream a TAR archive, it needs to be opened and read first. TAR files are accessed and yielded sequentially. This means you need to have the metadata in `metadata_path` associated with the audio files in the TAR file in hand first so you can yield it with its corresponding audio file:
 
@@ -467,15 +525,4 @@ def _generate_examples(
                 result["path"] = path
                 yield id_, result
                 id_ += 1
-```
-
-### Upload the dataset to the Hub
-
-Once your script is ready, [create a dataset card](./dataset_card) and [upload it to the Hub](./share).
-
-Congratulations, you can now load your dataset from the Hub! 🥳
-
-```py
->>> from datasets import load_dataset
->>> load_dataset("<username>/my_dataset")
 ```
