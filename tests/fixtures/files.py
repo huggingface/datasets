@@ -196,6 +196,35 @@ def xml_file(tmp_path_factory):
     return filename
 
 
+XML_DATA = """\
+<?xml version="1.0"?>
+<data>
+    <country name="Liechtenstein">
+        <rank>1</rank>
+        <year>2008</year>
+        <gdppc>141100</gdppc>
+    </country>
+    <country name="Singapore">
+        <rank>4</rank>
+        <year>2011</year>
+        <gdppc>59900</gdppc>
+    </country>
+    <country name="Panama">
+        <rank>68</rank>
+        <year>2011</year>
+        <gdppc>13600</gdppc>
+    </country>
+</data>"""
+
+
+@pytest.fixture(scope="session")
+def xml_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset.xml")
+    with open(path, "w") as f:
+        f.write(XML_DATA)
+    return path
+
+
 DATA = [
     {"col_1": "0", "col_2": 0, "col_3": 0.0},
     {"col_1": "1", "col_2": 1, "col_3": 1.0},
