@@ -146,11 +146,14 @@ def test_audio_decode_example_mp3(shared_datadir):
 @pytest.mark.torchaudio_latest
 @require_torchaudio_latest
 @pytest.mark.parametrize("torchaudio_failed", [False, True])
-def test_audio_decode_example_mp3_torchaudio_latest(shared_datadir, torchaudio_failed, caplog):
+def test_audio_decode_example_mp3_torchaudio_latest(shared_datadir, torchaudio_failed):
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
     audio = Audio()
 
-    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock:
+    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock, pytest.warns(
+        UserWarning, match=r"Decoding mp3 with `librosa` instead of `torchaudio`.+?"
+    ) if torchaudio_failed else nullcontext():
+
         if torchaudio_failed:
             load_mock.side_effect = RuntimeError()
 
@@ -158,10 +161,6 @@ def test_audio_decode_example_mp3_torchaudio_latest(shared_datadir, torchaudio_f
         assert decoded_example["path"] == audio_path
         assert decoded_example["array"].shape == (110592,)
         assert decoded_example["sampling_rate"] == 44100
-        warning_in_logs = sum(
-            "decoding mp3 with `librosa` instead of `torchaudio`" in record.msg.lower() for record in caplog.records
-        )
-        assert warning_in_logs == 1 if torchaudio_failed else warning_in_logs == 0
 
 
 @require_libsndfile_with_opus
@@ -210,13 +209,15 @@ def test_audio_resampling_mp3_different_sampling_rates(shared_datadir):
 @pytest.mark.torchaudio_latest
 @require_torchaudio_latest
 @pytest.mark.parametrize("torchaudio_failed", [False, True])
-def test_audio_resampling_mp3_different_sampling_rates_torchaudio_latest(shared_datadir, torchaudio_failed, caplog):
+def test_audio_resampling_mp3_different_sampling_rates_torchaudio_latest(shared_datadir, torchaudio_failed):
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
     audio_path2 = str(shared_datadir / "test_audio_16000.mp3")
     audio = Audio(sampling_rate=48000)
 
     # if torchaudio>=0.12 failed, mp3 must be decoded anyway (with librosa)
-    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock:
+    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock, pytest.warns(
+        UserWarning, match=r"Decoding mp3 with `librosa` instead of `torchaudio`.+?"
+    ) if torchaudio_failed else nullcontext():
         if torchaudio_failed:
             load_mock.side_effect = RuntimeError()
 
@@ -231,12 +232,6 @@ def test_audio_resampling_mp3_different_sampling_rates_torchaudio_latest(shared_
         assert decoded_example["path"] == audio_path2
         assert decoded_example["array"].shape == (122688,)
         assert decoded_example["sampling_rate"] == 48000
-
-        # we get warnings at each decoding
-        warnings_in_logs = sum(
-            "decoding mp3 with `librosa` instead of `torchaudio`" in record.msg.lower() for record in caplog.records
-        )
-        assert warnings_in_logs == 2 if torchaudio_failed else warnings_in_logs == 0
 
 
 @require_sndfile
@@ -329,7 +324,7 @@ def test_dataset_with_audio_feature_tar_mp3(tar_mp3_path):
 
 @pytest.mark.torchaudio_latest
 @require_torchaudio_latest
-def test_dataset_with_audio_feature_tar_mp3_torchaudio_latest(tar_mp3_path, caplog):
+def test_dataset_with_audio_feature_tar_mp3_torchaudio_latest(tar_mp3_path):
     # no test for librosa here because it doesn't support file-like objects, only paths
     audio_filename = "test_audio_44100.mp3"
     data = {"audio": []}
@@ -451,16 +446,16 @@ def test_resampling_at_loading_dataset_with_audio_feature_mp3(shared_datadir):
 @pytest.mark.torchaudio_latest
 @require_torchaudio_latest
 @pytest.mark.parametrize("torchaudio_failed", [False, True])
-def test_resampling_at_loading_dataset_with_audio_feature_mp3_torchaudio_latest(
-    shared_datadir, torchaudio_failed, caplog
-):
+def test_resampling_at_loading_dataset_with_audio_feature_mp3_torchaudio_latest(shared_datadir, torchaudio_failed):
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
     data = {"audio": [audio_path]}
     features = Features({"audio": Audio(sampling_rate=16000)})
     dset = Dataset.from_dict(data, features=features)
 
     # if torchaudio>=0.12 failed, mp3 must be decoded anyway (with librosa)
-    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock:
+    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock, pytest.warns(
+        UserWarning, match=r"Decoding mp3 with `librosa` instead of `torchaudio`.+?"
+    ) if torchaudio_failed else nullcontext():
         if torchaudio_failed:
             load_mock.side_effect = RuntimeError()
 
@@ -483,12 +478,6 @@ def test_resampling_at_loading_dataset_with_audio_feature_mp3_torchaudio_latest(
         assert column[0]["path"] == audio_path
         assert column[0]["array"].shape == (40125,)
         assert column[0]["sampling_rate"] == 16000
-
-        # we get warnings at each decoding
-        warnings_in_logs = sum(
-            "decoding mp3 with `librosa` instead of `torchaudio`" in record.msg.lower() for record in caplog.records
-        )
-        assert warnings_in_logs == 3 if torchaudio_failed else warnings_in_logs == 0
 
 
 @require_sndfile
@@ -555,16 +544,16 @@ def test_resampling_after_loading_dataset_with_audio_feature_mp3(shared_datadir)
 @pytest.mark.torchaudio_latest
 @require_torchaudio_latest
 @pytest.mark.parametrize("torchaudio_failed", [False, True])
-def test_resampling_after_loading_dataset_with_audio_feature_mp3_torchaudio_latest(
-    shared_datadir, torchaudio_failed, caplog
-):
+def test_resampling_after_loading_dataset_with_audio_feature_mp3_torchaudio_latest(shared_datadir, torchaudio_failed):
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
     data = {"audio": [audio_path]}
     features = Features({"audio": Audio()})
     dset = Dataset.from_dict(data, features=features)
 
     # if torchaudio>=0.12 failed, mp3 must be decoded anyway (with librosa)
-    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock:
+    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock, pytest.warns(
+        UserWarning, match=r"Decoding mp3 with `librosa` instead of `torchaudio`.+?"
+    ) if torchaudio_failed else nullcontext():
         if torchaudio_failed:
             load_mock.side_effect = RuntimeError()
 
@@ -590,12 +579,6 @@ def test_resampling_after_loading_dataset_with_audio_feature_mp3_torchaudio_late
         assert column[0]["path"] == audio_path
         assert column[0]["array"].shape == (40125,)
         assert column[0]["sampling_rate"] == 16000
-
-        # we get warnings at each decoding
-        warnings_in_logs = sum(
-            "decoding mp3 with `librosa` instead of `torchaudio`" in record.msg.lower() for record in caplog.records
-        )
-        assert warnings_in_logs == 4 if torchaudio_failed else warnings_in_logs == 0
 
 
 @pytest.mark.parametrize(
