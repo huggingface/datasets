@@ -24,6 +24,10 @@ class Url(str):
     pass
 
 
+class EmptyDatasetError(FileNotFoundError):
+    pass
+
+
 SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
 
 TRAIN_KEYWORDS = ["train", "training"]
@@ -453,7 +457,7 @@ def get_data_patterns_locally(base_path: str) -> Dict[str, List[str]]:
     try:
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:
-        raise FileNotFoundError(f"The directory at {base_path} doesn't contain any data file") from None
+        raise EmptyDatasetError(f"The directory at {base_path} doesn't contain any data file") from None
 
 
 def get_metadata_patterns_locally(base_path: str) -> List[str]:
@@ -669,7 +673,7 @@ def get_data_patterns_in_dataset_repository(
     try:
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:
-        raise FileNotFoundError(
+        raise EmptyDatasetError(
             f"The dataset repository at '{dataset_info.id}' doesn't contain any data file."
         ) from None
 

@@ -38,6 +38,7 @@ from .data_files import (
     DEFAULT_PATTERNS_ALL,
     DataFilesDict,
     DataFilesList,
+    EmptyDatasetError,
     get_data_patterns_in_dataset_repository,
     get_data_patterns_locally,
     get_metadata_patterns_in_dataset_repository,
@@ -1166,6 +1167,8 @@ def dataset_module_factory(
             except Exception as e2:  # noqa: if it's not in the cache, then it doesn't exist.
                 if isinstance(e1, OfflineModeIsEnabled):
                     raise ConnectionError(f"Couln't reach the Hugging Face Hub for dataset '{path}': {e1}") from None
+                if isinstance(e1, EmptyDatasetError):
+                    raise e1 from None
                 if isinstance(e1, FileNotFoundError):
                     raise FileNotFoundError(
                         f"Couldn't find a dataset script at {relative_to_absolute_path(combined_path)} or any data file in the same directory. "
