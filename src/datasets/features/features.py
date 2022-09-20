@@ -379,12 +379,12 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                     for elmt in obj
                 ], True
             else:
-                if isinstance(obj, list):
+                if isinstance(obj, (list, tuple)):
                     return obj, False
                 else:
                     return list(obj), True
         else:
-            return obj if isinstance(obj, list) else [], isinstance(obj, tuple)
+            return obj, False
     else:
         return obj, False
 
