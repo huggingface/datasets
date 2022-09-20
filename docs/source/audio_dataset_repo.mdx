@@ -1,4 +1,4 @@
-# Share an audio dataset
+# Create an audio dataset repository
 
 You can share a dataset with your team or with anyone in the community by creating a dataset repository on the Hugging Face Hub:
 
@@ -8,13 +8,13 @@ from datasets import load_dataset
 dataset = load_dataset("<username>/my_dataset")
 ```
 
-There are several methods for sharing an audio dataset:
+There are several methods for creating and sharing an audio dataset:
 
-1. Share an audio dataset from local files in python with [`Dataset.push_to_hub`]. This the recommended way and requires only a few steps in python.
+1. Create an audio dataset from local files in python with [`Dataset.push_to_hub`]. This is an easy way that requires only a few steps in python.
 
-1. Share an audio dataset repository with the `AudioFolder` format with metadata. This is a no-code solution for quickly creating small dataset to experiment with.
+1. Create an audio dataset repository with the `AudioFolder` builder. This is a no-code solution for quickly creating small dataset to experiment with.
 
-1. Share an audio dataset by writing a loading script. This method is for advanced users and requires more effort and coding, but you have greater flexibility over how a dataset is defined, downloaded, and generated.
+1. Create an audio dataset by writing a loading script. This method is for advanced users and requires more effort and coding, but you have greater flexibility over how a dataset is defined, downloaded, and generated.
 
 
 <Tip>
@@ -62,11 +62,8 @@ Create a dataset repository on the Hugging Face Hub and upload your dataset dire
 my_dataset/
 ├── README.md
 ├── metadata.csv
-└── data/
+└── data/  # can be any name you want
 ```
-
-The `data` folder can be any name you want, it doesn't have to be `data`.
-
 
 <Tip>
 
@@ -78,25 +75,26 @@ The metadata file should include a `file_name` column to link an audio file to i
 
 ```csv
 file_name,transcription
-first_audio_file.mp3,znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi
-second_audio_file.mp3,już u źwierzyńca podwojów król zasiada przy nim książęta i panowie rada a gdzie wzniosły krążył ganek rycerze obok kochanek król skinął palcem zaczęto igrzysko
-third_audio_file.mp3,pewnie kędyś w obłędzie ubite minęły szlaki zaczekajmy dzień jaki poślemy szukać wszędzie dziś jutro pewnie będzie posłali wszędzie sługi czekali dzień i drugi gdy nic nie doczekali z płaczem chcą jechać dali
+data/first_audio_file.mp3,znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi
+data/second_audio_file.mp3,już u źwierzyńca podwojów król zasiada przy nim książęta i panowie rada a gdzie wzniosły krążył ganek rycerze obok kochanek król skinął palcem zaczęto igrzysko
+data/third_audio_file.mp3,pewnie kędyś w obłędzie ubite minęły szlaki zaczekajmy dzień jaki poślemy szukać wszędzie dziś jutro pewnie będzie posłali wszędzie sługi czekali dzień i drugi gdy nic nie doczekali z płaczem chcą jechać dali
 ```
 
 Then you can store your dataset in a directory structure like this:
 
 ```
-data/train/metadata.csv
-data/train/first_audio_file.mp3
-data/train/second_audio_file.mp3
-data/train/third_audio_file.mp3
+metadata.csv
+data/first_audio_file.mp3
+data/second_audio_file.mp3
+data/third_audio_file.mp3
+
 ```
 
 Users can now load your dataset and the associated metadata by specifying `audiofolder` in [`load_dataset`] and the dataset directory in `data_dir`:
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder")
+>>> dataset = load_dataset("audiofolder", data_dir="/path/to/data")
 >>> dataset["train"][0]
 {'audio':
     {'path': '/path/to/extracted/audio/first_audio_file.mp3',
@@ -106,40 +104,61 @@ Users can now load your dataset and the associated metadata by specifying `audio
 }
 ```
 
-For audio datasets that don't have any associated metadata, `AudioFolder` automatically infers the class labels of the dataset based on the directory name. In this case, your dataset directory might look like:
+You can also use `audiofolder` to load datasets involving multiple splits. To do so, your dataset directory might have the following structure:
 
 ```
-data/train/en_us/14223464699748513050.wav
-data/train/en_us/363601479976099198.wav
-data/train/en_us/9644097927007796370.wav
+data/train/first_train_audio_file.mp3
+data/train/second_train_audio_file.mp3
 
-data/train/fr_fr/14945328524472190788.wav
-```
-
-### Language identification
-
-Language identification datasets have audio recordings of speech in multiple languages:
+data/test/first_test_audio_file.mp3
+data/test/second_test_audio_file.mp3
 
 ```
-data/train/ar/0197_720_0207_190.wav
-data/train/ar/0179_830_0185_540.mp3
-data/train/ar/0179_830_0185_540.mp3
 
-data/train/zh/0442_690_0454_380.mp3
+<Tip warning={true}>
+
+    Note that if audio files are located not right next to a metadata file, `file_name` column should be a full relative path to an audio file, not just its filename.
+
+</Tip>
+
+For audio datasets that don't have any associated metadata, `AudioFolder` automatically infers the class labels of the dataset based on the directory name. It might be useful for audio classification tasks. Your dataset directory might look like:
+
+```
+data/train/electronic/01.mp3
+data/train/punk/01.mp3
+
+data/test/electronic/09.mp3
+data/test/punk/09.mp3
 ```
 
 Load the dataset with `AudioFolder`, and it will create a `label` column from the directory name (language id):
 
 ```py
->>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder", drop_labels=False)
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("audiofolder", data_dir="/path/to/data")
 >>> dataset["train"][0]
 {'audio':
-    {'path': '/path/to/extracted/audio/0197_720_0207_190.mp3',
-    'array': array([-3.6621094e-04, -6.1035156e-05,  6.1035156e-05, ..., -5.1879883e-04, -1.0070801e-03, -7.6293945e-04],
-    'sampling_rate': 16000}
- 'label': 0  # "ar"
+    {'path': '/path/to/electronic/01.mp3',
+     'array': array([ 3.9714024e-07,  7.3031038e-07,  7.5640685e-07, ...,
+         -1.1963668e-01, -1.1681189e-01, -1.1244172e-01], dtype=float32),
+     'sampling_rate': 44100},
+ 'label': 0  # "electronic"
+}
+>>> dataset["train"][-1]
+{'audio':
+    {'path': '/path/to/punk/01.mp3',
+     'array': array([0.15237972, 0.13222949, 0.10627693, ..., 0.41940814, 0.37578005,
+         0.33717662], dtype=float32),
+     'sampling_rate': 44100},
+ 'label': 1  # "punk"
 }
 ```
+
+<Tip>
+
+Some audio datasets, like those found in [Kaggle competitions](https://www.kaggle.com/), have separate metadata files for each split. Provided the metadata features are the same for each split, `audiofolder` can be used to load all splits at once. If the metadata features differ across each split, you should load them with separate `load_dataset()` calls.
+
+</Tip>
 
 ## (Advanced) Loading script
 
@@ -151,14 +170,10 @@ The script should have the same name as your dataset folder or repository:
 my_dataset/
 ├── README.md
 ├── my_dataset.py
-└── data/
+└── data/  # can be any name you want
 ```
 
-<Tip>
-
-The `data` folder can be any name you want, it doesn't have to be `data`! This folder is optional, unless you're hosting your dataset on the Hub.
-
-</Tip>
+The `data` folder can be any name you want, it doesn't have to be `data`. This folder is optional, unless you're hosting your dataset on the Hub.
 
 This directory structure allows your dataset to be loaded in one line:
 
@@ -167,7 +182,7 @@ This directory structure allows your dataset to be loaded in one line:
 >>> dataset = load_dataset("path/to/my_dataset")
 ```
 
-This guide will show you how to create a dataset loading script for audio datasets, which is a bit different from <a class="underline decoration-green-400 decoration-2 font-semibold" href="./dataset_script">creating a loading script for text datasets</a>. Audio datasets are commonly stored in `tar.gz` archives which requires a separate approach to support streaming mode. While streaming is not required, we highly encourage enabling streaming support in your audio dataset because:
+This guide will show you how to create a dataset loading script for audio datasets, which is a bit different from <a class="underline decoration-green-400 decoration-2 font-semibold" href="./dataset_script">creating a loading script for text datasets</a>. Audio datasets are commonly stored in `tar.gz` archives which requires a particular approach to support streaming mode. While streaming is not required, we highly encourage enabling streaming support in your audio dataset because:
 
 1. Users without a lot of disk space can use your dataset without waiting for the entire dataset to be downloaded. Learn more about streaming in the [Stream](./stream) guide!
 2. Users can preview a dataset in the dataset viewer.
@@ -184,7 +199,11 @@ In addition to learning how to create a streamable dataset, you'll also learn ho
 
 The best way to learn is to open up an existing audio dataset loading script, like [Vivos](https://huggingface.co/datasets/vivos/blob/main/vivos.py), and follow along!
 
-This guide shows how to process audio data stored in TAR archive - the most frequent case for audio datasets. To get an example of an audio script which uses ZIP archives, check out [minds14](https://huggingface.co/datasets/PolyAI/minds14/blob/main/minds14.py) dataset.
+<Tip warning=True>
+
+    This guide shows how to process audio data stored in TAR archives - the most frequent case for audio datasets. Check out [minds14](https://huggingface.co/datasets/PolyAI/minds14/blob/main/minds14.py) dataset for an example of an audio script which uses ZIP archives.
+
+</Tip>
 
 <Tip>
 
@@ -196,9 +215,9 @@ To help you get started, we created a loading script [template](https://github.c
 
 [`GeneratorBasedBuilder`] is the base class for datasets generated from a dictionary generator. Within this class, there are three methods to help create your dataset:
 
-* `info` stores information about your dataset like its description, license, and features.
-* `split_generators` downloads the dataset and defines its splits.
-* `generate_examples` generates the dataset's samples containing the audio data and other features specified in `info` for each split.
+* `_info` stores information about your dataset like its description, license, and features.
+* `_split_generators` downloads the dataset and defines its splits.
+* `_generate_examples` generates the dataset's samples containing the audio data and other features specified in `info` for each split.
 
 Start by creating your dataset class as a subclass of [`GeneratorBasedBuilder`] and add the three methods. Don't worry about filling in each of these methods yet, you'll develop those over the next few sections:
 
@@ -300,7 +319,7 @@ There is a lot of information you can include about your dataset, but some impor
 
 <Tip>
 
-You'll notice a lot of the dataset information is defined earlier in the loading script which can make it easier to read. There are also other [`~Datasets.Features`] you can input, so be sure to check out the full list for more details.
+You'll notice a lot of the dataset information is defined earlier in the loading script which can make it easier to read. There are also other [`~Dataset.Features`] you can input, so be sure to check out the full list and [features guide](./audio_dataset_features) for more details.
 
 </Tip>
 
@@ -327,7 +346,7 @@ def _info(self):
 
 Now that you've added some information about your dataset, the next step is to download the dataset and define the splits.
 
-1. Use the [`~DownloadManager.download`] method to download metadata file at `_PROMPTS_URLS` and audio TAR archive at `_DATA_URL`. This method returns the path to the local file/archive. In streaming mode, it returns an URL to stream the data from. This method accepts:
+1. Use the [`~DownloadManager.download`] method to download metadata file at `_PROMPTS_URLS` and audio TAR archive at `_DATA_URL`. This method returns the path to the local file/archive. In streaming mode, it returns a URL to stream the data from. This method accepts:
 
     * a relative path to a file inside a Hub dataset repository (for example, in the `data/` folder)
     * a URL to a file hosted somewhere else
@@ -337,25 +356,79 @@ Now that you've added some information about your dataset, the next step is to d
 
     In the `gen_kwargs` parameter, specify the file path to the `prompts_path` and `path_to_clips`. For `audio_files`, you'll need to use [`~DownloadManager.iter_archive`] to iterate over the audio files in the TAR archive. This enables streaming for your dataset. All of these file paths are passed onto the next step where you'll actually generate the dataset.
 
+```py
+def _split_generators(self, dl_manager):
+    """Returns SplitGenerators."""
+    prompts_paths = dl_manager.download(_PROMPTS_URLS)
+    archive = dl_manager.download(_DATA_URL)
+    train_dir = "vivos/train"
+    test_dir = "vivos/test"
+
+    return [
+        datasets.SplitGenerator(
+            name=datasets.Split.TRAIN,
+            gen_kwargs={
+                "prompts_path": prompts_paths["train"],
+                "path_to_clips": train_dir + "/waves",
+                "audio_files": dl_manager.iter_archive(archive),
+            },
+        ),
+        datasets.SplitGenerator(
+            name=datasets.Split.TEST,
+            gen_kwargs={
+                "prompts_path": prompts_paths["test"],
+                "path_to_clips": test_dir + "/waves",
+                "audio_files": dl_manager.iter_archive(archive),
+            },
+        ),
+    ]
+```
+
+
 <Tip warning={true}>
 
-This implementation does not extract downloaded archives. If you want to extract files after download, you need to additionally use `dl_manager.extract` (see the [(Advanced) Extract TAR archives](#advanced-extract-tar-archives-inside-a-script) section)
-How tod it bescribet below
+This implementation does not extract downloaded archives. If you want to extract files after download, you need to additionally use [`~DownloadManager.extract`], see the [(Advanced) Extract TAR archives](#advanced-extract-tar-archives-inside-a-script) section.
 
 </Tip>
 
 
 ### Generate the dataset
 
-The last method in the [`GeneratorBasedBuilder`] class actually generates the audio data and sentences in the dataset. It yields a dataset according to the stucture specified in `features` from the `info` method. As you can see, `generate_examples` accepts the `prompts_path`, `path_to_clips`, and `audio_files` from the previous method as arguments.
+The last method in the [`GeneratorBasedBuilder`] class actually generates the samples in the dataset. It yields a dataset according to the structure specified in `features` from the `info` method. As you can see, `generate_examples` accepts the `prompts_path`, `path_to_clips`, and `audio_files` from the previous method as arguments.
 
-<Tip warning={true}>
+Files inside TAR archives are accessed and yielded sequentially. This means you need to have the metadata associated with the audio files in the TAR file in hand first so you can yield it with its corresponding audio file.
 
-TAR files are accessed and yielded sequentially. This means you need to have the information/metadata associated with the audio files in the TAR file in hand first so you can yield it with its corresponding audio file.
+```py
+examples = {}
+with open(prompts_path, encoding="utf-8") as f:
+    for row in f:
+        data = row.strip().split(" ", 1)
+        speaker_id = data[0].split("_")[0]
+        audio_path = "/".join([path_to_clips, speaker_id, data[0] + ".wav"])
+        examples[audio_path] = {
+            "speaker_id": speaker_id,
+            "path": audio_path,
+            "sentence": data[1],
+        }
+```
 
-</Tip>
+Finally, iterate over files in `audio_files` and yield them along with their corresponding metadata. [`~DownloadManager.iter_archive`] yields a tuple of (`path`, `f`) where `path` is a **relative** path to a file inside TAR archive and `f` is a file object itself.
 
-Now you can write a function for opening and loading examples from the dataset:
+```py
+inside_clips_dir = False
+id_ = 0
+for path, f in audio_files:
+    if path.startswith(path_to_clips):
+        inside_clips_dir = True
+        if path in examples:
+            audio = {"path": path, "bytes": f.read()}
+            yield id_, {**examples[path], "audio": audio}
+            id_ += 1
+    elif inside_clips_dir:
+        break
+```
+
+Put these two steps together, and the whole `_generate_examples` method looks like:
 
 ```py
 def _generate_examples(self, prompts_path, path_to_clips, audio_files):
@@ -395,15 +468,14 @@ Congratulations, you can now load your dataset from the Hub! 🥳
 >>> load_dataset("<username>/my_dataset")
 ```
 
-## (Advanced+) Extract TAR archives inside a script
+## (Advanced) Extract TAR archives locally
 
 In the example above downloaded archives are not extracted and therefore examples do not contain information about where they are stored locally.
-To explain how to do the ectraction, we will briefly go through a [LibriVox Indonesia](https://huggingface.co/datasets/indonesian-nlp/librivox-indonesia) loading script.
-
+To explain how to do the extraction in a way that it also supports streaming, we will briefly go through the [LibriVox Indonesia](https://huggingface.co/datasets/indonesian-nlp/librivox-indonesia/blob/main/librivox-indonesia.py) loading script.
 
 ### Download and define the dataset splits
 
-1. Use the [`~DownloadManager.download`] method to download the audio data specified in `_AUDIO_URL`.
+1. Use the [`~DownloadManager.download`] method to download the audio data at `_AUDIO_URL`.
 
 2. To extract audio TAR archive locally, use the [`~DownloadManager.extract`]. You can use this method only in non-streaming mode (when `dl_manager.is_streaming=False`). This returns a local path to the extracted archive directory:
 
@@ -411,7 +483,7 @@ To explain how to do the ectraction, we will briefly go through a [LibriVox Indo
    local_extracted_archive = dl_manager.extract(audio_path) if not dl_manager.is_streaming else None
    ```
 
-3. Use the [`~DownloadManager.iter_archive`] method to iterate over the archive at `audio_path` after it's downloaded, just as in the Vivos example above. [`~DownloadManager.iter_archive`] doesn't provide any information about the full local paths of files inside the archive, even if they exist locally. As a result, you need to pass the `local_extracted_archive` path to the next step inside `gen_kwargs`, in order to preserve information about where the locally extracted files are. This is required to construct the correct paths to the local files when you generate the examples.
+3. Use the [`~DownloadManager.iter_archive`] method to iterate over the archive at `audio_path` after it's downloaded, just like in the Vivos example above. [`~DownloadManager.iter_archive`] doesn't provide any information about the full paths of files from the archive, even if it has been extracted. As a result, you need to pass the `local_extracted_archive` path to the next step in `gen_kwargs`, in order to preserve information about where the archive was extracted to. This is required to construct the correct paths to the local files when you generate the examples.
 
 <Tip>
 
@@ -419,9 +491,13 @@ The reason you need to use a combination of [`~DownloadManager.download`] and [`
 
 </Tip>
 
-4. Use the [`~DownloadManager.download_and_extract`] method to download the metadata file specified in `_METADATA_URL`. If you're not enabling streaming, this method returns a path to a local file. However, if you're planning on enabling streaming, this method opens the file at the URL remotely.
+4. Use the [`~DownloadManager.download_and_extract`] method to download the metadata file specified in `_METADATA_URL`. This method returns a path to a local file in non-streaming mode. In streaming mode, it opens the file at the URL remotely and returns this URL.
 
-    While you can use [`~DownloadManager.download_and_extract`] to download and extract TAR archives too, but this method would throw an error in streaming mode.
+<Tip>
+
+    You can use [`~DownloadManager.download_and_extract`] to download and extract TAR archives too, but this method, as well as [`~DownloadManager.extract`], would throw an error if you run [`~Datasets.load_dataset`] in streaming mode, i.e. with `streaming=True`. This is the reason you need to use a combination of [`~DownloadManager.download`] and [`~DownloadManager.iter_archive`]. Files in TAR archives can't be accessed directly by their paths. Instead, you have to sequentially iterate over the files within the archive to find a specific file.
+
+</Tip>
 
 5. Now use the [`SplitGenerator`] to organize the audio files and metadata in each split. Name each split with a standard name like: `Split.TRAIN`, `Split.TEST`, and `SPLIT.Validation`.
 
@@ -460,9 +536,9 @@ def _split_generators(self, dl_manager):
 
 ### Generate the dataset
 
-Here `generate_examples` accepts `local_extracted_archive`, `audio_files`, `metadata_path`, and `path_to_clips` from the previous method as arguments.
+Here `_generate_examples` accepts `local_extracted_archive`, `audio_files`, `metadata_path`, and `path_to_clips` from the previous method as arguments.
 
-1. To stream a TAR archive, it needs to be opened and read first. TAR files are accessed and yielded sequentially. This means you need to have the metadata in `metadata_path` associated with the audio files in the TAR file in hand first so you can yield it with its corresponding audio file:
+1. TAR files are accessed and yielded sequentially. This means you need to have the metadata in `metadata_path` associated with the audio files in the TAR file in hand first so that you can yield it with its corresponding audio file further:
 
    ```py
    with open(metadata_path, "r", encoding="utf-8") as f:
@@ -477,7 +553,7 @@ Here `generate_examples` accepts `local_extracted_archive`, `audio_files`, `meta
                metadata[row["path"]] = row
    ```
 
-2. Now you can open the files stored in `audio_files`. When you used [`~DownloadManager.iter_archive`] earlier, it yielded a tuple of a *relative* path to a file inside the archive, and the file itself. To get the *full path* to the locally extracted file, join the path of the directory (`local_extracted_path`) where the archive is extracted to and the relative audio file path (`path`):
+2. Now you can yield the files in `audio_files` archive. When you use [`~DownloadManager.iter_archive`], it yielded a tuple of (`path`, `f`) where `path` is a **relative path** to a file inside the archive, and `f` is the file object itself. To get the **full path** to the locally extracted file, join the path of the directory (`local_extracted_path`) where the archive is extracted to and the relative audio file path (`path`):
 
    ```py
    for path, f in audio_files:
