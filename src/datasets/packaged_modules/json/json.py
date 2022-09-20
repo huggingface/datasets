@@ -23,6 +23,7 @@ if datasets.config.PYARROW_VERSION.major >= 7:
 else:
 
     def pa_table_from_pylist(mapping):
+        # Copied from: https://github.com/apache/arrow/blob/master/python/pyarrow/table.pxi#L5193
         arrays = []
         names = []
         if mapping:
