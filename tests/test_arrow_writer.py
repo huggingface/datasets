@@ -326,3 +326,28 @@ def test_parquet_writer_write():
     stream = pa.BufferReader(output.getvalue())
     pa_table: pa.Table = pq.read_table(stream)
     assert pa_table.to_pydict() == {"col_1": ["foo", "bar"], "col_2": [1, 2]}
+
+
+@require_pil
+@pytest.mark.parametrize("embed_local_files", [False, True])
+def test_writer_embed_local_files(tmp_path, embed_local_files):
+    import PIL.Image
+
+    image_path = str(tmp_path / "test_image_rgb.jpg")
+    PIL.Image.fromarray(np.zeros((5, 5), dtype=np.uint8)).save(image_path, format="png")
+    output = pa.BufferOutputStream()
+    with ParquetWriter(
+        stream=output, features=Features({"image": Image()}), embed_local_files=embed_local_files
+    ) as writer:
+        writer.write({"image": image_path})
+        writer.finalize()
+    stream = pa.BufferReader(output.getvalue())
+    pa_table: pa.Table = pq.read_table(stream)
+    out = pa_table.to_pydict()
+    if embed_local_files:
+        assert out["image"][0]["path"] is None
+        with open(image_path, "rb") as f:
+            assert out["image"][0]["bytes"] == f.read()
+    else:
+        assert out["image"][0]["path"] == image_path
+        assert out["image"][0]["bytes"] is None
