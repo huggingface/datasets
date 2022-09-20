@@ -1,7 +1,25 @@
 ---
-pretty_name: SciCite
+annotations_creators:
+- crowdsourced
+- expert-generated
 language:
 - en
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: SciCite
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- intent-classification
+- multi-class-classification
 paperswithcode_id: scicite
 ---
 
@@ -33,9 +51,9 @@ paperswithcode_id: scicite
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/allenai/scicite](https://github.com/allenai/scicite)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Homepage:**
+- **Repository:** https://github.com/allenai/scicite
+- **Paper:** [Structural Scaffolds for Citation Intent Classification in Scientific Publications](https://arxiv.org/abs/1904.01608)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 22.12 MB
 - **Size of the generated dataset:** 4.91 MB
@@ -181,16 +199,22 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
-@InProceedings{Cohan2019Structural,
-  author={Arman Cohan and Waleed Ammar and Madeleine Van Zuylen and Field Cady},
-  title={Structural Scaffolds for Citation Intent Classification in Scientific Publications},
-  booktitle="NAACL",
-  year="2019"
+@inproceedings{cohan-etal-2019-structural,
+    title = "Structural Scaffolds for Citation Intent Classification in Scientific Publications",
+    author = "Cohan, Arman  and
+      Ammar, Waleed  and
+      van Zuylen, Madeleine  and
+      Cady, Field",
+    booktitle = "Proceedings of the 2019 Conference of the North {A}merican Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers)",
+    month = jun,
+    year = "2019",
+    address = "Minneapolis, Minnesota",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/N19-1361",
+    doi = "10.18653/v1/N19-1361",
+    pages = "3586--3596",
 }
-
 ```
-
 
 ### Contributions
 

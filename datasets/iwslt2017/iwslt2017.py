@@ -21,23 +21,28 @@ import datasets
 
 
 _CITATION = """\
-@inproceedings{cettoloEtAl:EAMT2012,
-Address = {Trento, Italy},
-Author = {Mauro Cettolo and Christian Girardi and Marcello Federico},
-Booktitle = {Proceedings of the 16$^{th}$ Conference of the European Association for Machine Translation (EAMT)},
-Date = {28-30},
-Month = {May},
-Pages = {261--268},
-Title = {WIT$^3$: Web Inventory of Transcribed and Translated Talks},
-Year = {2012}}
+@inproceedings{cettolo-etal-2017-overview,
+    title = "Overview of the {IWSLT} 2017 Evaluation Campaign",
+    author = {Cettolo, Mauro  and
+      Federico, Marcello  and
+      Bentivogli, Luisa  and
+      Niehues, Jan  and
+      St{\\"u}ker, Sebastian  and
+      Sudoh, Katsuhito  and
+      Yoshino, Koichiro  and
+      Federmann, Christian},
+    booktitle = "Proceedings of the 14th International Conference on Spoken Language Translation",
+    month = dec # " 14-15",
+    year = "2017",
+    address = "Tokyo, Japan",
+    publisher = "International Workshop on Spoken Language Translation",
+    url = "https://aclanthology.org/2017.iwslt-1.1",
+    pages = "2--14",
+}
 """
 
 _DESCRIPTION = """\
-The IWSLT 2017 Evaluation Campaign includes a multilingual TED Talks MT task. The languages involved are five:
-
-  German, English, Italian, Dutch, Romanian.
-
-For each language pair, training and development sets are available through the entry of the table below: by clicking, an archive will be downloaded which contains the sets and a README file. Numbers in the table refer to millions of units (untokenized words) of the target side of all parallel training sets.
+The IWSLT 2017 Multilingual Task addresses text translation, including zero-shot translation, with a single MT system across all directions including English, German, Dutch, Italian and Romanian. As unofficial task, conventional bilingual text translation is offered between English and Arabic, French, Japanese, Chinese, German and Korean.
 """
 
 MULTI_URL = "https://huggingface.co/datasets/iwslt2017/resolve/ebd7c60d9800c2a1be010a227e5f0a2363730f7a/data/2017-01-trnmted/texts/DeEnItNlRo/DeEnItNlRo/DeEnItNlRo-DeEnItNlRo.tgz"
