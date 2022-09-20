@@ -215,7 +215,6 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
 
 ```
 
-# TODO: CONFIGURATIONS EXAMPLE
 #### Multiple configurations
 
 In some cases, a dataset may have more than one configuration. For example, [LibriVox Indonesia](https://huggingface.co/datasets/indonesian-nlp/librivox-indonesia) dataset has several configurations corresponding to different languages.
@@ -328,7 +327,7 @@ def _info(self):
 
 Now that you've added some information about your dataset, the next step is to download the dataset and define the splits.
 
-1. Use the [`~DownloadManager.download`] method to download metadata file at `_PROMPTS_URLS` and audio TAR archive at `_DATA_URL`. This method returns a path to a local file/archive. However, in streaming mode, this method doesn't download the data but opens it at the URL remotely and returns the same URL. This method accepts:
+1. Use the [`~DownloadManager.download`] method to download metadata file at `_PROMPTS_URLS` and audio TAR archive at `_DATA_URL`. This method returns the path to the local file/archive. In streaming mode, it returns an URL to stream the data from. This method accepts:
 
     * a relative path to a file inside a Hub dataset repository (for example, in the `data/` folder)
     * a URL to a file hosted somewhere else
