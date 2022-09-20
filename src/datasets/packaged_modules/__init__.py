@@ -10,6 +10,7 @@ from .json import json
 from .pandas import pandas
 from .parquet import parquet
 from .text import text
+from .xml import xml
 
 
 def _hash_python_lines(lines: List[str]) -> str:
@@ -32,6 +33,7 @@ _PACKAGED_DATASETS_MODULES = {
     "pandas": (pandas.__name__, _hash_python_lines(inspect.getsource(pandas).splitlines())),
     "parquet": (parquet.__name__, _hash_python_lines(inspect.getsource(parquet).splitlines())),
     "text": (text.__name__, _hash_python_lines(inspect.getsource(text).splitlines())),
+    "xml": (xml.__name__, _hash_python_lines(inspect.getsource(xml).splitlines())),
     "imagefolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(imagefolder).splitlines())),
     "audiofolder": (audiofolder.__name__, _hash_python_lines(inspect.getsource(audiofolder).splitlines())),
 }
@@ -43,6 +45,7 @@ _EXTENSION_TO_MODULE = {
     "jsonl": ("json", {}),
     "parquet": ("parquet", {}),
     "txt": ("text", {}),
+    "xml": ("xml", {}),
 }
 _EXTENSION_TO_MODULE.update({ext[1:]: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext[1:].upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
