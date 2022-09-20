@@ -1,5 +1,5 @@
-import logging
 import os
+import warnings
 from dataclasses import dataclass, field
 from io import BytesIO
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
@@ -11,15 +11,11 @@ from packaging import version
 from .. import config
 from ..download.streaming_download_manager import xopen
 from ..table import array_cast
-from ..utils.logging import get_logger
 from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
 
 
 if TYPE_CHECKING:
     from .features import FeatureType
-
-
-logger = get_logger(__name__)
 
 
 @dataclass
@@ -305,13 +301,13 @@ class Audio:
                 except ImportError as err:
                     raise ImportError(
                         "Your version of `torchaudio` (>=0.12.0) doesn't support decoding 'mp3' files on your machine. "
-                        "To support 'mp3' decoding with `torchaudio>=0.12.0`, please install `ffmpeg>=4` "
+                        "To support 'mp3' decoding with `torchaudio>=0.12.0`, please install `ffmpeg>=4` system package "
                         'or downgrade `torchaudio` to <0.12: `pip install "torchaudio<0.12"`. '
                         "To support decoding 'mp3' audio files without `torchaudio`, please install `librosa`: "
                         "`pip install librosa`. Note that decoding will be extremely slow in that case."
                     ) from err
                 # try to decode with librosa for torchaudio>=0.12.0 as a workaround
-                logger.warning("Decoding mp3 with `librosa` instead of `torchaudio`, decoding is slow.")
+                warnings.warn("Decoding mp3 with `librosa` instead of `torchaudio`, decoding is slow.")
                 try:
                     array, sampling_rate = self._decode_mp3_librosa(path_or_file)
                 except RuntimeError as err:
