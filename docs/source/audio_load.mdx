@@ -59,7 +59,9 @@ third_audio_file.mp3,pewnie kędyś w obłędzie ubite minęły szlaki zaczekajm
 You can load remote datasets from their URLs with the data_files parameter:
 
 ```py
->>> dataset = load_dataset("audiofolder", data_files=["https://foo.bar/audio_1", "https://foo.bar/audio_2", ..., "https://foo.bar/audio_n"])
+>>> dataset = load_dataset("audiofolder", data_files=["https://foo.bar/audio_1", "https://foo.bar/audio_2", ..., "https://foo.bar/audio_n"]
+>>> # for example, pass SpeechCommands archive:
+>>> dataset = load_dataset("audiofolder", data_files="https://s3.amazonaws.com/datasets.huggingface.co/SpeechCommands/v0.01/v0.01_test.tar.gz")
 ```
 
 Metadata can also be specified as JSON Lines, in which case use `metadata.jsonl` as the name of the metadata file. This format is helpful in scenarios when one of the columns is complex, e.g. a list of floats, to avoid parsing errors or reading the complex values as strings.
@@ -84,7 +86,7 @@ In this case, your dataset will only contain an audio column:
 
 <Tip>
 
-For more information about creating your own `AudioFolder` dataset, take a look at the [Create an audio dataset](./audio_dataset_script) guide.
+For more information about creating your own `AudioFolder` dataset, take a look at the [Create an audio dataset](./audio_dataset) guide.
 
 </Tip>
 

@@ -1,0 +1,369 @@
+# Create an audio dataset
+
+There are two methods for creating and sharing an audio dataset. This guide will show you how to:
+
+* Create an audio dataset for use with `AudioFolder` and metadata. This is a no-code solution for quickly creating a smaller audio dataset to experiment with.
+
+* Create an audio dataset by writing a loading script. This method is a bit more involved, but you have greater flexibility over how a dataset is defined, downloaded, and generated.
+
+<Tip>
+
+You can control access to your dataset by requiring users to share their contact information first. Check out the [Gated datasets](https://huggingface.co/docs/hub/datasets-gated) guide for more information about how to enable this feature on the Hub.
+
+</Tip>
+
+## AudioFolder
+
+The `AudioFolder` is a dataset builder designed to quickly load an audio dataset without requiring you to write any code. Any additional information about your dataset - such as transcription, speaker accent, or speaker intent - is automatically loaded by `AudioFolder` as long as you include this information in a metadata file (`metadata.csv`/`metadata.jsonl`). 
+
+<Tip>
+
+It can be helpful to store your metadata as a `jsonl` file if a data columns contains a more complex format (like a list of floats) to avoid parsing errors or reading the complex values as strings.
+
+</Tip>
+
+The metadata file should include a `file_name` column to link an audio file to it's metadata:
+
+```csv
+file_name,transcription
+first_audio_file.mp3,znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi
+second_audio_file.mp3,już u źwierzyńca podwojów król zasiada przy nim książęta i panowie rada a gdzie wzniosły krążył ganek rycerze obok kochanek król skinął palcem zaczęto igrzysko
+third_audio_file.mp3,pewnie kędyś w obłędzie ubite minęły szlaki zaczekajmy dzień jaki poślemy szukać wszędzie dziś jutro pewnie będzie posłali wszędzie sługi czekali dzień i drugi gdy nic nie doczekali z płaczem chcą jechać dali
+```
+
+Then you can store your dataset in a directory structure like this:
+
+```
+folder/train/metadata.csv
+folder/train/first_audio_file.mp3
+folder/train/second_audio_file.mp3
+folder/train/third_audio_file.mp3
+```
+
+Users can now load your dataset and the associated metadata by specifying `audiofolder` in [`load_dataset`] and the dataset directory in `data_dir`:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder")
+>>> dataset["train"][0]
+{'audio':
+    {'path': '/path/to/extracted/audio/first_audio_file.mp3',
+    'array': array([ 0.00088501,  0.0012207 ,  0.00131226, ..., -0.00045776, -0.00054932, -0.00054932], dtype=float32),
+    'sampling_rate': 16000},
+ 'transcription': 'znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi'
+}
+```
+
+For audio datasets that don't have any associated metadata, `AudioFolder` automatically infers the class labels of the dataset based on the directory name. In this case, your dataset directory might look like:
+
+```
+folder/train/en_us/14223464699748513050.wav
+folder/train/en_us/363601479976099198.wav
+folder/train/en_us/9644097927007796370.wav
+
+folder/train/fr_fr/14945328524472190788.wav
+```
+
+### Language identification
+
+Language identification datasets have audio recordings of speech in multiple languages:
+
+```
+folder/train/ar/0197_720_0207_190.wav
+folder/train/ar/0179_830_0185_540.mp3
+folder/train/ar/0179_830_0185_540.mp3
+
+folder/train/zh/0442_690_0454_380.mp3
+```
+
+Load the dataset with `AudioFolder`, and it will create a `label` column from the directory name (language id):
+
+```py
+>>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder", drop_labels=False)
+>>> dataset["train"][0]
+{'audio':
+    {'path': '/path/to/extracted/audio/0197_720_0207_190.mp3',
+    'array': array([-3.6621094e-04, -6.1035156e-05,  6.1035156e-05, ..., -5.1879883e-04, -1.0070801e-03, -7.6293945e-04],
+    'sampling_rate': 16000}
+ 'label': 0  # "ar"
+}
+```
+
+## Loading script
+
+Write a dataset loading script to share a dataset. It defines a dataset's splits and configurations, and handles downloading and generating a dataset. The script should have the same name as your dataset folder or repository:
+
+```
+my_dataset/
+├── README.md
+├── my_dataset.py
+└── data/
+```
+
+<Tip>
+
+The `data` folder can be any name you want, it doesn't have to be `data`! This folder is optional, unless you're hosting your dataset on the Hub.
+
+</Tip>
+
+This directory structure allows your dataset to be loaded in one line:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("path/to/my_dataset")
+```
+
+This guide will show you how to create a dataset loading script for audio datasets, which is a bit different from <a class="underline decoration-green-400 decoration-2 font-semibold" href="./dataset_script">creating a loading script for text datasets</a>. You'll learn how to:
+
+* Create a dataset builder class.
+* Create dataset configurations.
+* Add dataset metadata.
+* Download and define the dataset splits.
+* Generate the dataset.
+* Generate the dataset metadata (optional).
+* Upload the dataset to the Hub.
+
+The best way to learn is to open up an existing audio dataset loading script, like [VIVOS](https://huggingface.co/datasets/vivos), and follow along!
+
+<Tip>
+
+To help you get started, we created a loading script [template](https://github.com/huggingface/datasets/blob/main/templates/new_dataset_script.py) you can copy and use as a starting point!
+
+</Tip>
+
+### Create a dataset builder class
+
+[`GeneratorBasedBuilder`] is the base class for datasets generated from a dictionary generator. Within this class, there are three methods to help create your dataset:
+
+* `info` stores information about your dataset like its description, license, and features.
+* `split_generators` downloads the dataset and defines its splits.
+* `generate_examples` generates the dataset's samples containing the audio data and other features specified in `info` for each split.
+
+Start by creating your dataset class as a subclass of [`GeneratorBasedBuilder`] and add the three methods. Don't worry about filling in each of these methods yet, you'll develop those over the next few sections:
+
+```py
+class VivosDataset(datasets.GeneratorBasedBuilder):
+    """VIVOS is a free Vietnamese speech corpus consisting of 15 hours of recording speech prepared for
+    Vietnamese Automatic Speech Recognition task."""
+
+    def _info(self):
+
+    def _split_generators(self, dl_manager):
+
+    def _generate_examples(self, images, metadata_path):
+```
+
+#### Multiple configurations
+
+In some cases, a dataset may have more than one configuration. For example, if you take a look at the [Multilingual LibriSpeech](https://huggingface.co/datasets/facebook/multilingual_librispeech) dataset, you'll notice there are several configurations corresponding to different languages.
+
+To create different configurations, use the [`BuilderConfig`] class to create a subclass of your dataset. The only required parameter is the `name` of the configuration, which must be passed to the configuration's superclass `__init__()`. Otherwise, you can specify any custom parameters you want in your configuration class. As you can see in this example, the authors also provide a link to download the audio files in `self.data_root_url`.
+
+```py
+class MultilingualLibrispeechConfig(datasets.BuilderConfig):
+    """BuilderConfig for MultilingualLibrispeech."""
+
+    def __init__(self, name, **kwargs):
+        """
+        Args:
+          name: `string`, name of dataset config (=language)
+          **kwargs: keyword arguments forwarded to super.
+        """
+        super(MultilingualLibrispeechConfig, self).__init__(
+            version=datasets.Version("2.1.0", ""), name=name, **kwargs
+        )
+        # relative path to full data inside a repo (for example `data/mls_german`)
+        self.data_root_url = _DL_URL_FORMAT.format(name=name)
+```
+
+Define your configurations in the `BUILDER_CONFIGS` class variable inside [`GeneratorBasedBuilder`]:
+
+```py
+class MultilingualLibrispeech(datasets.GeneratorBasedBuilder):
+    """Multilingual Librispeech dataset."""
+
+    BUILDER_CONFIGS = [
+        MultilingualLibrispeechConfig(name="german", description="German LibriSpeech dataset"),
+        MultilingualLibrispeechConfig(name="dutch", description="Dutch LibriSpeech dataset"),
+        MultilingualLibrispeechConfig(name="french", description="French LibriSpeech dataset"),
+        MultilingualLibrispeechConfig(name="spanish", description="Spanish LibriSpeech dataset"),
+        MultilingualLibrispeechConfig(name="italian", description="Italian LibriSpeech dataset"),
+        MultilingualLibrispeechConfig(name="portuguese", description="Portuguese LibriSpeech dataset"),
+        MultilingualLibrispeechConfig(name="polish", description="Polish LibriSpeech dataset"),
+    ]
+```
+
+Now if users want to load the `polish` configuration, they can use the configuration name:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("facebook/multilingual_librispeech", "polish", split="train")
+```
+
+### Add dataset metadata
+
+Adding information about your dataset helps users to learn more about it. This information is stored in the [`DatasetInfo`] class which is returned by the `info` method. Users can access this information by:
+
+```py
+>>> from datasets import load_dataset_builder
+>>> ds_builder = load_dataset_builder("vivos")
+>>> ds_builder.info
+```
+
+There is a lot of information you can specify about your dataset, but some important ones to include are:
+
+1. `description` provides a concise description of the dataset.
+2. `features` specify the dataset column types. Since you're creating an audio loading script, you'll need to include the [`Audio`] feature and the `sampling_rate` of the dataset.
+3. `homepage` provides a link to the dataset homepage.
+4. `license` specify the permissions for using a dataset as defined by the license type.
+5. `citation` is a BibTeX citation of the dataset.
+
+<Tip>
+
+You'll notice a lot of the dataset information is defined earlier in the loading script which makes it easier to read. There are also other [`~Datasets.Features`] you can input, so be sure to check out the full list for more details.
+
+</Tip>
+
+```py
+def _info(self):
+    return datasets.DatasetInfo(
+        description=_DESCRIPTION,
+        features=datasets.Features(
+            {
+                "speaker_id": datasets.Value("string"),
+                "path": datasets.Value("string"),
+                "audio": datasets.Audio(sampling_rate=16_000),
+                "sentence": datasets.Value("string"),
+            }
+        ),
+        supervised_keys=None,
+        homepage=_HOMEPAGE,
+        license=_LICENSE,
+        citation=_CITATION,
+    )
+```
+
+### Download and define the dataset splits
+
+Now that you've added some information about your dataset, the next step is to download the dataset and define the splits.
+
+1. Use the [`~DownloadManager.download`] method to download and extract the given URLs. The URLs are replaced with a path to the local files. This method accepts:
+
+    * a relative path to a file inside a Hub dataset repository (for example, in the `data/` folder)
+    * a URL to a file hosted somewhere else
+    * a (nested) list or dictionary of file names or URLs
+
+2. After you've downloaded the dataset, use the [`SplitGenerator`] to organize the audio files and sentence prompts in each split. Name each split with a standard name like: `Split.TRAIN`, `Split.TEST`, and `SPLIT.Validation`. 
+
+    In the `gen_kwargs` parameter, specify the file path to the `prompts_path` and `path_to_clips`. For `audio_files`, you'll need to use [`~DownloadManager.iter_archive`] to iterate over the audio files in the TAR archives. This enables streaming for your dataset. All of these file paths are passed onto the next step where you'll actually generate the dataset.
+
+Use the table below to help you decide which download method to use:
+
+| Method                               | File type                     | Streamable |
+|--------------------------------------|-------------------------------|------------|
+| download_and_extract                 | tar                           | no         |
+| download_and_extract                 | zip, gzip, xz, zstd, bz2, lz4 | yes        |
+| download + iter_archives             | tar, rar, 7z                  | yes        |
+| download_and_extract + iter_archives | any                           | yes        |
+
+<Tip warning={true}>
+
+To support streaming TAR archive files, you need to use a combination of [`~DownloadManager.download`] and [`~DownloadManager.iter_archive`]! Data in TAR archives can't be accessed directly by their paths, so you'll need to download it first and then iterate over the files within the archive. The [`~DownloadManager.download_and_extract`] function does not support TAR archives in streaming mode and will raise an error. Streaming allows you to start using a dataset without waiting for it to be downloaded entirely. This is especially useful for audio datasets, which can be quite large!
+
+</Tip>
+
+```py
+def _split_generators(self, dl_manager):
+    """Returns SplitGenerators."""
+    prompts_paths = dl_manager.download(_PROMPTS_URLS)
+    archive = dl_manager.download(_DATA_URL)
+    train_dir = "vivos/train"
+    test_dir = "vivos/test"
+
+    return [
+        datasets.SplitGenerator(
+            name=datasets.Split.TRAIN,
+            gen_kwargs={
+                "prompts_path": prompts_paths["train"],
+                "path_to_clips": train_dir + "/waves",
+                "audio_files": dl_manager.iter_archive(archive),
+            },
+        ),
+        datasets.SplitGenerator(
+            name=datasets.Split.TEST,
+            gen_kwargs={
+                "prompts_path": prompts_paths["test"],
+                "path_to_clips": test_dir + "/waves",
+                "audio_files": dl_manager.iter_archive(archive),
+            },
+        ),
+    ]
+```
+
+### Generate the dataset
+
+The last method in the [`GeneratorBasedBuilder`] class actually generates the audio data and sentences in the dataset. It yields a dataset according to the stucture specified in `features` from the `info` method. As you can see, `generate_examples` accepts the `prompts_path`, `path_to_clips`, and `audio_files` from the previous method as arguments.
+
+<Tip warning={true}>
+
+To stream a TAR archive file, it needs to be opened and read first. TAR files are accessed and yielded sequentially. This means you need to have the information/metadata associated with the audio files in the TAR file in hand first so you can yield it with its corresponding audio file.
+
+</Tip>
+
+Now you can write a function for opening and loading examples from the dataset:
+
+```py
+def _generate_examples(self, prompts_path, path_to_clips, audio_files):
+    """Yields examples as (key, example) tuples."""
+    examples = {}
+    with open(prompts_path, encoding="utf-8") as f:
+        for row in f:
+            data = row.strip().split(" ", 1)
+            speaker_id = data[0].split("_")[0]
+            audio_path = "/".join([path_to_clips, speaker_id, data[0] + ".wav"])
+            examples[audio_path] = {
+                "speaker_id": speaker_id,
+                "path": audio_path,
+                "sentence": data[1],
+            }
+    inside_clips_dir = False
+    id_ = 0
+    for path, f in audio_files:
+        if path.startswith(path_to_clips):
+            inside_clips_dir = True
+            if path in examples:
+                audio = {"path": path, "bytes": f.read()}
+                yield id_, {**examples[path], "audio": audio}
+                id_ += 1
+        elif inside_clips_dir:
+            break
+```
+
+### Generate the dataset metadata (optional)
+
+The dataset metadata you added earlier now needs to be generated and stored in a file called `datasets_infos.json`. In addition to information about a datasets features and description, this file also contains data file checksums to ensure integrity.
+
+Run the following command to generate your dataset metadata in `dataset_infos.json` and make sure your new loading script works correctly:
+
+<Tip warning={true}>
+
+Generating your dataset metadata requires downloading all the dataset files, which can take a lot of time and disk space if your dataset is large!
+
+</Tip>
+
+```bash
+datasets-cli test path/to/<your-dataset-loading-script> --save_infos --all_configs
+```
+
+If your loading script passed the test, you should now have a `dataset_infos.json` file in your dataset folder.
+
+### Upload the dataset to the Hub
+
+Once your script is ready, [create a dataset card](./dataset_card) and [upload it to the Hub](./share).
+
+Congratulations, you can now load your dataset from the Hub! 🥳
+
+```py
+>>> from datasets import load_dataset
+>>> load_dataset("<username>/my_dataset")
+```

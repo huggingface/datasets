@@ -50,7 +50,7 @@
       title: Load audio data
     - local: audio_process
       title: Process audio data
-    - local: audio_dataset_repo
+    - local: audio_dataset
       title: Create an audio dataset repo
     title: "Audio"
   - sections:
@@ -58,7 +58,7 @@
       title: Load image data
     - local: image_process
       title: Process image data
-    - local: image_dataset_script
+    - local: image_dataset
       title: Create an image dataset
     - local: image_classification
       title: Image classification
