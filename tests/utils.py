@@ -66,7 +66,7 @@ require_sox = pytest.mark.skipif(
 )
 require_torchaudio = pytest.mark.skipif(
     find_spec("torchaudio") is None
-    or version.parse(import_module("torchaudio").__version__) > version.parse("0.12.0"),
+    or version.parse(import_module("torchaudio").__version__) >= version.parse("0.12.0"),
     reason="test requires torchaudio<0.12",
 )
 require_torchaudio_latest = pytest.mark.skipif(
