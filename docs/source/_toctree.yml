@@ -51,7 +51,7 @@
     - local: audio_process
       title: Process audio data
     - local: audio_dataset
-      title: Create an audio dataset repo
+      title: Create an audio dataset
     title: "Audio"
   - sections:
     - local: image_load
