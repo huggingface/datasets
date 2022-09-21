@@ -1,34 +1,35 @@
-import contextlib
 import multiprocessing
-import os
-from sqlite3 import Connection, connect
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from .. import Dataset, Features, config
 from ..formatting import query_table
 from ..packaged_modules.sql.sql import Sql
 from ..utils import logging
-from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetInputStream
+
+
+if TYPE_CHECKING:
+    import sqlite3
+
+    import sqlalchemy
 
 
 class SqlDatasetReader(AbstractDatasetInputStream):
     def __init__(
         self,
-        conn: NestedDataStructureLike[PathLike],
-        table_name: str,
+        sql: Union[str, "sqlalchemy.sql.Selectable"],
+        con: str,
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
         **kwargs,
     ):
         super().__init__(features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs)
-        conn = conn if isinstance(conn, dict) else {"train": conn}
         self.builder = Sql(
             cache_dir=cache_dir,
-            conn=conn,
             features=features,
-            table_name=table_name,
+            sql=sql,
+            con=con,
             **kwargs,
         )
 
@@ -59,8 +60,8 @@ class SqlDatasetWriter:
     def __init__(
         self,
         dataset: Dataset,
-        path_or_buf: Union[PathLike, Connection],
-        table_name: str,
+        name: str,
+        con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
         batch_size: Optional[int] = None,
         num_proc: Optional[int] = None,
         **to_sql_kwargs,
@@ -70,35 +71,35 @@ class SqlDatasetWriter:
             raise ValueError(f"num_proc {num_proc} must be an integer > 0.")
 
         self.dataset = dataset
-        self.path_or_buf = path_or_buf
-        self.table_name = table_name
+        self.name = name
+        self.con = con
         self.batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
         self.num_proc = num_proc
-        self.encoding = "utf-8"
         self.to_sql_kwargs = to_sql_kwargs
 
     def write(self) -> int:
-        _ = self.to_sql_kwargs.pop("path_or_buf", None)
+        _ = self.to_sql_kwargs.pop("sql", None)
+        _ = self.to_sql_kwargs.pop("con", None)
 
-        if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
-            with contextlib.closing(connect(self.path_or_buf)) as conn:
-                written = self._write(conn=conn, **self.to_sql_kwargs)
-        else:
-            written = self._write(conn=self.path_or_buf, **self.to_sql_kwargs)
+        written = self._write(**self.to_sql_kwargs)
         return written
 
-    def _batch_sql(self, offset):
+    def _batch_sql(self, args):
+        offset, to_sql_kwargs = args
+        to_sql_kwargs = {**to_sql_kwargs, "if_exists": "append"} if offset > 0 else to_sql_kwargs
         batch = query_table(
             table=self.dataset.data,
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
-        return batch.to_pandas()
+        df = batch.to_pandas()
+        num_rows = df.to_sql(self.name, self.con, **to_sql_kwargs)
+        return num_rows or len(df)
 
-    def _write(self, conn: Connection, **to_sql_kwargs) -> int:
-        """Writes the pyarrow table as SQL to a binary file handle.
+    def _write(self, **to_sql_kwargs) -> int:
+        """Writes the pyarrow table as SQL to a database.
 
-        Caller is responsible for opening and closing the handle.
+        Caller is responsible for opening and closing the SQL connection.
         """
         written = 0
 
@@ -109,19 +110,15 @@ class SqlDatasetWriter:
                 disable=not logging.is_progress_bar_enabled(),
                 desc="Creating SQL from Arrow format",
             ):
-                df = self._batch_sql(offset)
-                written += df.to_sql(
-                    self.table_name, conn, **to_sql_kwargs, if_exists="replace" if offset == 0 else "append"
-                ) or len(df)
-
+                written += self._batch_sql((offset, to_sql_kwargs))
         else:
             num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
-                for idx, df in logging.tqdm(
+                for num_rows in logging.tqdm(
                     enumerate(
                         pool.imap(
                             self._batch_sql,
-                            [offset for offset in range(0, num_rows, batch_size)],
+                            [(offset, to_sql_kwargs) for offset in range(0, num_rows, batch_size)],
                         )
                     ),
                     total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
@@ -129,8 +126,6 @@ class SqlDatasetWriter:
                     disable=not logging.is_progress_bar_enabled(),
                     desc="Creating SQL from Arrow format",
                 ):
-                    written += df.to_sql(
-                        self.table_name, conn, **to_sql_kwargs, if_exists="replace" if idx == 0 else "append"
-                    ) or len(df)
+                    written += num_rows
 
         return written

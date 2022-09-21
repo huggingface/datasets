@@ -1,46 +1,60 @@
-import contextlib
-import itertools
 from dataclasses import dataclass
-from sqlite3 import Connection, connect
-from typing import Dict, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 import pyarrow as pa
-from typing_extensions import Literal
 
 import datasets
 import datasets.config
-from datasets import NamedSplit
 from datasets.features.features import require_storage_cast
 from datasets.table import table_cast
-from datasets.utils.typing import NestedDataStructureLike, PathLike
 
 
-logger = datasets.utils.logging.get_logger(__name__)
+if TYPE_CHECKING:
+    import sqlalchemy
 
 
 @dataclass
 class SqlConfig(datasets.BuilderConfig):
     """BuilderConfig for SQL."""
 
-    index_col: Optional[Union[int, str, List[int], List[str]]] = None
-    conn: Dict[Optional[NamedSplit], NestedDataStructureLike[Union[PathLike, Connection]]] = None
-    table_name: str = None
-    query: str = "SELECT * FROM `{table_name}`"
+    sql: Union[str, "sqlalchemy.sql.Selectable"] = None
+    con: str = None
+    index_col: Optional[Union[str, List[str]]] = None
     coerce_float: bool = True
-    params: Optional[Union[Sequence, Dict]] = None
+    params: Optional[Union[List, Tuple, Dict]] = None
     parse_dates: Optional[Union[List, Dict]] = None
     columns: Optional[List[str]] = None
-    chunksize: int = 10_000
+    chunksize: Optional[int] = 10_000
     features: Optional[datasets.Features] = None
-    encoding_errors: Optional[str] = "strict"
-    on_bad_lines: Literal["error", "warn", "skip"] = "error"
 
     def __post_init__(self):
-        if self.table_name is None:
-            raise ValueError("Expected argument `table_name` to be supplied.")
-        if self.conn is None:
-            raise ValueError("Expected argument `conn` to connect to the database")
+        assert self.sql is not None, "sql must be specified"
+        assert self.con is not None, "con must be specified"
+
+        if not isinstance(self.con, str):
+            raise ValueError(f"con must be a database URI string, but got {self.con} with type {type(self.con)}.")
+
+    def create_config_id(
+        self,
+        config_kwargs: dict,
+        custom_features: Optional[datasets.Features] = None,
+    ) -> str:
+        # We need to stringify the Selectable object to make its hash deterministic
+
+        # The process of stringifying is explained here: http://docs.sqlalchemy.org/en/latest/faq/sqlexpressions.html
+        sql = config_kwargs["sql"]
+        if not isinstance(sql, str):
+            if not datasets.config.SQLALCHEMY_AVAILABLE:
+                raise ImportError("Please pip install sqlalchemy.")
+
+            import sqlalchemy
+
+            config_kwargs = config_kwargs.copy()
+            engine = sqlalchemy.create_engine(config_kwargs["con"].split("://")[0] + "://")
+            sql_str = str(sql.compile(dialect=engine.dialect))
+            config_kwargs["sql"] = sql_str
+        return super().create_config_id(config_kwargs, custom_features=custom_features)
 
     @property
     def read_sql_kwargs(self):
@@ -50,7 +64,6 @@ class SqlConfig(datasets.BuilderConfig):
             params=self.params,
             coerce_float=self.coerce_float,
             parse_dates=self.parse_dates,
-            chunksize=self.chunksize,
         )
         return read_sql_kwargs
 
@@ -62,21 +75,7 @@ class Sql(datasets.ArrowBasedBuilder):
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
-        """We handle string, Connection, list and dicts in datafiles"""
-        data_files = self.config.conn
-        if isinstance(data_files, (str, list, tuple)):
-            files = data_files
-            if isinstance(files, str):
-                files = [files]
-            files = [dl_manager.iter_files(file) for file in files]
-            return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
-        splits = []
-        for split_name, files in data_files.items():
-            if isinstance(files, str):
-                files = [files]
-            files = [dl_manager.iter_files(file) for file in files]
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
-        return splits
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={})]
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.config.features is not None:
@@ -89,20 +88,10 @@ class Sql(datasets.ArrowBasedBuilder):
                 pa_table = table_cast(pa_table, schema)
         return pa_table
 
-    def _generate_tables(self, files):
-        for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            with contextlib.closing(connect(file)) as conn:
-                sql_file_reader = pd.read_sql(
-                    self.config.query.format(table_name=self.config.table_name), conn, **self.config.read_sql_kwargs
-                )
-                try:
-                    for batch_idx, df in enumerate(sql_file_reader):
-                        # Drop index column as it is not relevant.
-                        pa_table = pa.Table.from_pandas(df.drop("index", axis=1, errors="ignore"))
-                        # Uncomment for debugging (will print the Arrow table size and elements)
-                        # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
-                        # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield (file_idx, batch_idx), self._cast_table(pa_table)
-                except ValueError as e:
-                    logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
-                    raise
+    def _generate_tables(self):
+        chunksize = self.config.chunksize
+        sql_reader = pd.read_sql(self.config.sql, self.config.con, chunksize=chunksize, **self.config.read_sql_kwargs)
+        sql_reader = [sql_reader] if chunksize is None else sql_reader
+        for chunk_idx, df in enumerate(sql_reader):
+            pa_table = pa.Table.from_pandas(df)
+            yield chunk_idx, self._cast_table(pa_table)
