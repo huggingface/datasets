@@ -2,12 +2,11 @@ import contextlib
 import csv
 import json
 import os
+import sqlite3
 import tarfile
 import textwrap
 import zipfile
-from sqlite3 import connect
 
-import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
@@ -242,10 +241,14 @@ def arrow_path(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
-def sql_path(tmp_path_factory):
+def sqlite_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.sqlite")
-    with contextlib.closing(connect(path)) as conn:
-        pd.DataFrame.from_records(DATA).to_sql("TABLE_NAME", conn)
+    with contextlib.closing(sqlite3.connect(path)) as con:
+        cur = con.cursor()
+        cur.execute("CREATE TABLE dataset(col_1 text, col_2 int, col_3 real)")
+        for item in DATA:
+            cur.execute("INSERT INTO dataset(col_1, col_2, col_3) VALUES (?, ?, ?)", tuple(item.values()))
+        con.commit()
     return path
 
 

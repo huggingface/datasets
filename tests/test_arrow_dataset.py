@@ -1,4 +1,3 @@
-import contextlib
 import copy
 import itertools
 import json
@@ -8,7 +7,6 @@ import re
 import tempfile
 from functools import partial
 from pathlib import Path
-from sqlite3 import connect
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -55,14 +53,12 @@ from .utils import (
     require_jax,
     require_pil,
     require_s3,
+    require_sqlalchemy,
     require_tf,
     require_torch,
     require_transformers,
     set_current_working_directory_to_temp_dir,
 )
-
-
-SQLITE_TABLE_NAME = "TABLE_NAME"
 
 
 class Unpicklable:
@@ -2037,36 +2033,27 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(parquet_dset.shape, dset.shape)
                 self.assertListEqual(list(parquet_dset.columns), list(dset.column_names))
 
+    @require_sqlalchemy
     def test_to_sql(self, in_memory):
-        table_name = "TABLE_NAME"
-
-        def read_sql(filepath):
-
-            with contextlib.closing(connect(filepath)) as conn:
-                return pd.read_sql(f"SELECT * FROM {table_name}", conn).drop("index", axis=1, errors="ignore")
-
         with tempfile.TemporaryDirectory() as tmp_dir:
             # File path argument
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                file_path = os.path.join(tmp_dir, "test_path.sql")
-                _ = dset.to_sql(path_or_buf=file_path, table_name=table_name)
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, index=False)
 
                 self.assertTrue(os.path.isfile(file_path))
-                # self.assertEqual(bytes_written, os.path.getsize(file_path))
-                sql_dset = read_sql(file_path)
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
 
                 self.assertEqual(sql_dset.shape, dset.shape)
                 self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
 
-            # File buffer argument
+            # Test writing to a database in chunks
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                file_path = os.path.join(tmp_dir, "test_buffer.sql")
-                with contextlib.closing(connect(file_path)) as buffer:
-                    _ = dset.to_sql(path_or_buf=buffer, table_name=table_name)
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, batch_size=1, index=False, if_exists="replace")
 
                 self.assertTrue(os.path.isfile(file_path))
-                # self.assertEqual(bytes_written, os.path.getsize(file_path))
-                sql_dset = read_sql(file_path)
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
 
                 self.assertEqual(sql_dset.shape, dset.shape)
                 self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
@@ -2074,24 +2061,22 @@ class BaseDatasetTest(TestCase):
             # After a select/shuffle transform
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 dset = dset.select(range(0, len(dset), 2)).shuffle()
-                file_path = os.path.join(tmp_dir, "test_path.sql")
-                _ = dset.to_sql(path_or_buf=file_path, table_name=table_name)
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, index=False, if_exists="replace")
 
                 self.assertTrue(os.path.isfile(file_path))
-                # self.assertEqual(bytes_written, os.path.getsize(file_path))
-                sql_dset = read_sql(file_path)
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
 
                 self.assertEqual(sql_dset.shape, dset.shape)
                 self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
 
             # With array features
             with self._create_dummy_dataset(in_memory, tmp_dir, array_features=True) as dset:
-                file_path = os.path.join(tmp_dir, "test_path.sql")
-                _ = dset.to_sql(path_or_buf=file_path, table_name=table_name)
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, index=False, if_exists="replace")
 
                 self.assertTrue(os.path.isfile(file_path))
-                # self.assertEqual(bytes_written, os.path.getsize(file_path))
-                sql_dset = read_sql(file_path)
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
 
                 self.assertEqual(sql_dset.shape, dset.shape)
                 self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
@@ -3305,6 +3290,7 @@ def _check_sql_dataset(dataset, expected_features):
         assert dataset.features[feature].dtype == expected_dtype
 
 
+@require_sqlalchemy
 @pytest.mark.parametrize(
     "features",
     [
@@ -3315,37 +3301,26 @@ def _check_sql_dataset(dataset, expected_features):
         {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
     ],
 )
-def test_dataset_from_sql_features(features, sql_path, tmp_path):
+def test_dataset_from_sql_features(features, sqlite_path, tmp_path):
     cache_dir = tmp_path / "cache"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = (
         Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
     )
-    dataset = Dataset.from_sql(sql_path, table_name=SQLITE_TABLE_NAME, features=features, cache_dir=cache_dir)
+    dataset = Dataset.from_sql("dataset", "sqlite:///" + sqlite_path, features=features, cache_dir=cache_dir)
     _check_sql_dataset(dataset, expected_features)
 
 
+@require_sqlalchemy
 @pytest.mark.parametrize("keep_in_memory", [False, True])
-def test_dataset_from_sql_keep_in_memory(keep_in_memory, sql_path, tmp_path):
+def test_dataset_from_sql_keep_in_memory(keep_in_memory, sqlite_path, tmp_path):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
         dataset = Dataset.from_sql(
-            sql_path, table_name=SQLITE_TABLE_NAME, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+            "dataset", "sqlite:///" + sqlite_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory
         )
-    _check_sql_dataset(dataset, expected_features)
-
-
-@pytest.mark.parametrize("path_type", [str, list])
-def test_dataset_from_sql_path_type(path_type, sql_path, tmp_path):
-    if issubclass(path_type, str):
-        path = sql_path
-    elif issubclass(path_type, list):
-        path = [sql_path]
-    cache_dir = tmp_path / "cache"
-    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
-    dataset = Dataset.from_sql(path, table_name=SQLITE_TABLE_NAME, cache_dir=cache_dir)
     _check_sql_dataset(dataset, expected_features)
 
 
