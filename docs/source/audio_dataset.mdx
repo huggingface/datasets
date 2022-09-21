@@ -162,7 +162,7 @@ Some audio datasets, like those found in [Kaggle competitions](https://www.kaggl
 
 </Tip>
 
-## (Advanced) Loading script
+## Loading script
 
 Write a dataset loading script to manually create a dataset.
 It defines a dataset's splits and configurations, and handles downloading and generating the dataset examples.
@@ -184,10 +184,23 @@ This directory structure allows your dataset to be loaded in one line:
 >>> dataset = load_dataset("path/to/my_dataset")
 ```
 
-This guide will show you how to create a dataset loading script for audio datasets, which is a bit different from <a class="underline decoration-green-400 decoration-2 font-semibold" href="./dataset_script">creating a loading script for text datasets</a>. Audio datasets are commonly stored in `tar.gz` archives which requires a particular approach to support streaming mode. While streaming is not required, we highly encourage enabling streaming support in your audio dataset because:
+This guide will show you how to create a dataset loading script for audio datasets, which is a bit different from <a class="underline decoration-green-400 decoration-2 font-semibold" href="./dataset_script">creating a loading script for text datasets</a>.
+Audio datasets are commonly stored in `tar.gz` archives which requires a particular approach to support streaming mode. While streaming is not required, we highly encourage enabling streaming support in your audio dataset because:
 
 1. Users without a lot of disk space can use your dataset without waiting for the entire dataset to be downloaded. Learn more about streaming in the [Stream](./stream) guide!
 2. Users can preview a dataset in the dataset viewer.
+
+Here is an example using TAR archives:
+
+```
+my_dataset/
+├── README.md
+├── my_dataset.py
+└── data/
+    ├── train.tar.gz
+    ├── test.tar.gz
+    └── metadata.csv
+```
 
 In addition to learning how to create a streamable dataset, you'll also learn how to:
 
@@ -196,7 +209,6 @@ In addition to learning how to create a streamable dataset, you'll also learn ho
 * Add dataset metadata.
 * Download and define the dataset splits.
 * Generate the dataset.
-* Generate the dataset metadata (optional).
 * Upload the dataset to the Hub.
 
 The best way to learn is to open up an existing audio dataset loading script, like [Vivos](https://huggingface.co/datasets/vivos/blob/main/vivos.py), and follow along!
@@ -389,7 +401,7 @@ def _split_generators(self, dl_manager):
 
 <Tip warning={true}>
 
-This implementation does not extract downloaded archives. If you want to extract files after download, you need to additionally use [`~DownloadManager.extract`], see the [(Advanced) Extract TAR archives](#advanced-extract-tar-archives-inside-a-script) section.
+This implementation does not extract downloaded archives. If you want to extract files after download, you need to additionally use [`~DownloadManager.extract`], see the [(Advanced) Extract TAR archives](#advanced-extract-tar-archives-locally) section.
 
 </Tip>
 
@@ -470,12 +482,12 @@ Congratulations, you can now load your dataset from the Hub! 🥳
 >>> load_dataset("<username>/my_dataset")
 ```
 
-## (Advanced) Extract TAR archives locally
+### (Advanced) Extract TAR archives locally
 
 In the example above downloaded archives are not extracted and therefore examples do not contain information about where they are stored locally.
 To explain how to do the extraction in a way that it also supports streaming, we will briefly go through the [LibriVox Indonesia](https://huggingface.co/datasets/indonesian-nlp/librivox-indonesia/blob/main/librivox-indonesia.py) loading script.
 
-### Download and define the dataset splits
+#### Download and define the dataset splits
 
 1. Use the [`~DownloadManager.download`] method to download the audio data at `_AUDIO_URL`.
 
@@ -536,7 +548,7 @@ def _split_generators(self, dl_manager):
     ]
 ```
 
-### Generate the dataset
+#### Generate the dataset
 
 Here `_generate_examples` accepts `local_extracted_archive`, `audio_files`, `metadata_path`, and `path_to_clips` from the previous method as arguments.
 
