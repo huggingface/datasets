@@ -155,6 +155,7 @@ TESTS_REQUIRE = [
     "scipy",
     "sentencepiece",  # for bleurt
     "seqeval",
+    "sqlalchemy"
     "tldextract",
     # to speed up pip backtracking
     "toml>=0.10.1",
