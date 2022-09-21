@@ -15,6 +15,25 @@ from datasets.utils.file_utils import readline
 logger = datasets.utils.logging.get_logger(__name__)
 
 
+if datasets.config.PYARROW_VERSION.major >= 7:
+
+    def pa_table_from_pylist(mapping):
+        return pa.Table.from_pylist(mapping)
+
+else:
+
+    def pa_table_from_pylist(mapping):
+        # Copied from: https://github.com/apache/arrow/blob/master/python/pyarrow/table.pxi#L5193
+        arrays = []
+        names = []
+        if mapping:
+            names = list(mapping[0].keys())
+        for n in names:
+            v = [row[n] if n in row else None for row in mapping]
+            arrays.append(v)
+        return pa.Table.from_arrays(arrays, names)
+
+
 @dataclass
 class JsonConfig(datasets.BuilderConfig):
     """BuilderConfig for JSON."""
@@ -125,18 +144,29 @@ class Json(datasets.ArrowBasedBuilder):
                                         )
                                         block_size *= 2
                         except pa.ArrowInvalid as e:
-                            logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                             try:
                                 with open(file, encoding="utf-8") as f:
                                     dataset = json.load(f)
                             except json.JSONDecodeError:
+                                logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                                 raise e
-                            raise ValueError(
-                                f"Not able to read records in the JSON file at {file}. "
-                                f"You should probably indicate the field of the JSON file containing your records. "
-                                f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
-                                f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
-                            ) from None
+                            # If possible, parse the file as a list of json objects and exit the loop
+                            if isinstance(dataset, list):  # list is the only sequence type supported in JSON
+                                try:
+                                    pa_table = pa_table_from_pylist(dataset)
+                                except (pa.ArrowInvalid, AttributeError) as e:
+                                    logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                                    raise ValueError(f"Not able to read records in the JSON file at {file}.") from None
+                                yield file_idx, self._cast_table(pa_table)
+                                break
+                            else:
+                                logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                                raise ValueError(
+                                    f"Not able to read records in the JSON file at {file}. "
+                                    f"You should probably indicate the field of the JSON file containing your records. "
+                                    f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
+                                    f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
+                                ) from None
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))

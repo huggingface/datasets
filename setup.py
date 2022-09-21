@@ -138,7 +138,7 @@ TESTS_REQUIRE = [
     "openpyxl",
     "py7zr",
     "zstandard",
-    "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz",
+    # "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz",
     "sentencepiece",  # bigbench requires t5 which requires seqio which requires sentencepiece
     "rouge_score",  # required by bigbench: bigbench.api.util.bb_utils > t5.evaluation.metrics > rouge_score
     "sacremoses",
@@ -198,7 +198,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.4.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.5.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

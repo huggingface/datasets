@@ -1342,6 +1342,23 @@ class BaseDatasetTest(TestCase):
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
+    @require_torch
+    def test_map_tensor_batched(self, in_memory):
+        import torch
+
+        def func(batch):
+            return {"tensor": torch.tensor([[1.0, 2, 3]] * len(batch["filename"]))}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func, batched=True) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"filename": Value("string"), "tensor": Sequence(Value("float32"))}),
+                    )
+                    self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
+
     def test_map_input_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:

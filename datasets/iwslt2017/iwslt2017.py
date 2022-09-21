@@ -20,27 +20,36 @@ import os
 import datasets
 
 
-_CITATION = """\
-@inproceedings{cettoloEtAl:EAMT2012,
-Address = {Trento, Italy},
-Author = {Mauro Cettolo and Christian Girardi and Marcello Federico},
-Booktitle = {Proceedings of the 16$^{th}$ Conference of the European Association for Machine Translation (EAMT)},
-Date = {28-30},
-Month = {May},
-Pages = {261--268},
-Title = {WIT$^3$: Web Inventory of Transcribed and Translated Talks},
-Year = {2012}}
-"""
+_HOMEPAGE = "https://sites.google.com/site/iwsltevaluation2017/TED-tasks"
 
 _DESCRIPTION = """\
-The IWSLT 2017 Evaluation Campaign includes a multilingual TED Talks MT task. The languages involved are five:
-
-  German, English, Italian, Dutch, Romanian.
-
-For each language pair, training and development sets are available through the entry of the table below: by clicking, an archive will be downloaded which contains the sets and a README file. Numbers in the table refer to millions of units (untokenized words) of the target side of all parallel training sets.
+The IWSLT 2017 Multilingual Task addresses text translation, including zero-shot translation, with a single MT system across all directions including English, German, Dutch, Italian and Romanian. As unofficial task, conventional bilingual text translation is offered between English and Arabic, French, Japanese, Chinese, German and Korean.
 """
 
-MULTI_URL = "https://huggingface.co/datasets/iwslt2017/resolve/ebd7c60d9800c2a1be010a227e5f0a2363730f7a/data/2017-01-trnmted/texts/DeEnItNlRo/DeEnItNlRo/DeEnItNlRo-DeEnItNlRo.tgz"
+_CITATION = """\
+@inproceedings{cettolo-etal-2017-overview,
+    title = "Overview of the {IWSLT} 2017 Evaluation Campaign",
+    author = {Cettolo, Mauro  and
+      Federico, Marcello  and
+      Bentivogli, Luisa  and
+      Niehues, Jan  and
+      St{\\"u}ker, Sebastian  and
+      Sudoh, Katsuhito  and
+      Yoshino, Koichiro  and
+      Federmann, Christian},
+    booktitle = "Proceedings of the 14th International Conference on Spoken Language Translation",
+    month = dec # " 14-15",
+    year = "2017",
+    address = "Tokyo, Japan",
+    publisher = "International Workshop on Spoken Language Translation",
+    url = "https://aclanthology.org/2017.iwslt-1.1",
+    pages = "2--14",
+}
+"""
+
+REPO_URL = "https://huggingface.co/datasets/iwslt2017/resolve/main/"
+MULTI_URL = REPO_URL + "data/2017-01-trnmted/texts/DeEnItNlRo/DeEnItNlRo/DeEnItNlRo-DeEnItNlRo.zip"
+BI_URL = REPO_URL + "data/2017-01-trnted/texts/{source}/{target}/{source}-{target}.zip"
 
 
 class IWSLT2017Config(datasets.BuilderConfig):
@@ -95,18 +104,11 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # datasets.features.FeatureConnectors
             features=datasets.Features(
                 {"translation": datasets.features.Translation(languages=self.config.pair.split("-"))}
             ),
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
-            supervised_keys=None,
-            # Homepage of the dataset for documentation
-            homepage="https://sites.google.com/site/iwsltevaluation2017/TED-tasks",
+            homepage=_HOMEPAGE,
             citation=_CITATION,
         )
 
@@ -118,14 +120,13 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
             data_dir = os.path.join(dl_dir, "DeEnItNlRo-DeEnItNlRo")
             years = [2010]
         else:
-            bi_url = f"https://huggingface.co/datasets/iwslt2017/resolve/ebd7c60d9800c2a1be010a227e5f0a2363730f7a/data/2017-01-trnted/texts/{source}/{target}/{source}-{target}.tgz"
+            bi_url = BI_URL.format(source=source, target=target)
             dl_dir = dl_manager.download_and_extract(bi_url)
             data_dir = os.path.join(dl_dir, f"{source}-{target}")
             years = [2010, 2011, 2012, 2013, 2014, 2015]
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "source_files": [
                         os.path.join(
@@ -139,12 +140,10 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
                             f"train.tags.{self.config.pair}.{target}",
                         )
                     ],
-                    "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "source_files": [
                         os.path.join(
@@ -160,12 +159,10 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
                         )
                         for year in years
                     ],
-                    "split": "test",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "source_files": [
                         os.path.join(
@@ -179,12 +176,11 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
                             f"IWSLT17.TED.dev2010.{self.config.pair}.{target}.xml",
                         )
                     ],
-                    "split": "dev",
                 },
             ),
         ]
 
-    def _generate_examples(self, source_files, target_files, split):
+    def _generate_examples(self, source_files, target_files):
         """Yields examples."""
         id_ = 0
         source, target = self.config.pair.split("-")
