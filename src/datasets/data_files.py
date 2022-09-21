@@ -457,7 +457,7 @@ def get_data_patterns_locally(base_path: str) -> Dict[str, List[str]]:
     try:
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:
-        raise EmptyDatasetError(f"The directory at {base_path} doesn't contain any data file") from None
+        raise EmptyDatasetError(f"The directory at {base_path} doesn't contain any data files") from None
 
 
 def get_metadata_patterns_locally(base_path: str) -> List[str]:
@@ -674,7 +674,7 @@ def get_data_patterns_in_dataset_repository(
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:
         raise EmptyDatasetError(
-            f"The dataset repository at '{dataset_info.id}' doesn't contain any data file."
+            f"The dataset repository at '{dataset_info.id}' doesn't contain any data files"
         ) from None
 
 
