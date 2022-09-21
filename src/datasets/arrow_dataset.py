@@ -2733,7 +2733,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
-            if self._format_type:
+            if self._format_type or input_columns:
                 inputs = self._getitem(
                     key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1] + 1)),
                     format_type=None,
@@ -2800,8 +2800,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     input_dataset = self.with_format(
                         self._format_type, columns=input_columns, output_all_columns=False, **self._format_kwargs
                     )
-                    if remove_columns:
-                        remove_columns = list(set(remove_columns) & set(input_columns))
                 else:
                     input_dataset = self
 
