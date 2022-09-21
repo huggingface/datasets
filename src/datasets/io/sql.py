@@ -115,11 +115,9 @@ class SqlDatasetWriter:
             num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
                 for num_rows in logging.tqdm(
-                    enumerate(
-                        pool.imap(
-                            self._batch_sql,
-                            [(offset, to_sql_kwargs) for offset in range(0, num_rows, batch_size)],
-                        )
+                    pool.imap(
+                        self._batch_sql,
+                        [(offset, to_sql_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
                     total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",
