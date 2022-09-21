@@ -225,10 +225,12 @@ def xisfile(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
     """Extend `os.path.isfile` function to support remote files.
 
     Args:
-        path (:obj:`str`): URL path.
+        path (`str`): URL path.
+        use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
 
     Returns:
-        :obj:`bool`
+        `bool`
     """
     main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
@@ -252,10 +254,12 @@ def xgetsize(path, use_auth_token: Optional[Union[str, bool]] = None) -> int:
     """Extend `os.path.getsize` function to support remote files.
 
     Args:
-        path (:obj:`str`): URL path.
+        path (`str`): URL path.
+        use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
 
     Returns:
-        :obj:`int`, optional
+        `int`: optional
     """
     main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
@@ -284,10 +288,12 @@ def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
     """Extend `os.path.isdir` function to support remote files.
 
     Args:
-        path (:obj:`str`): URL path.
+        path (`str`): URL path.
+        use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
 
     Returns:
-        :obj:`bool`
+        `bool`
     """
     main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
@@ -313,11 +319,11 @@ def xrelpath(path, start=None):
     """Extend `os.path.relpath` function to support remote files.
 
     Args:
-        path (:obj:`str`): URL path.
-        start (:obj:`str`): Start URL directory path.
+        path (`str`): URL path.
+        start (`str`): Start URL directory path.
 
     Returns:
-        :obj:`str`
+        `str`
     """
     main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
@@ -427,11 +433,21 @@ def _prepare_http_url_kwargs(url: str, use_auth_token: Optional[Union[str, bool]
 
 
 def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
-    """
-    This function extends the builtin `open` function to support remote files using fsspec.
+    """Extend `open` function to support remote files using `fsspec`.
 
     It also has a retry mechanism in case connection fails.
-    The args and kwargs are passed to fsspec.open, except `use_auth_token` which is used for queries to private repos on huggingface.co
+    The `args` and `kwargs` are passed to `fsspec.open`, except `use_auth_token` which is used for queries to private repos on huggingface.co
+
+    Args:
+        file (`str`): Path name of the file to be opened.
+        mode (`str`, *optional*, default "r"): Mode in which the file is opened.
+        *args: Arguments to be passed to `fsspec.open`.
+        use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
+        **kwargs: Keyword arguments to be passed to `fsspec.open`.
+
+    Returns:
+        file object
     """
     # required for `xopen(str(Path(...)))` to work
     file = _as_posix(PurePath(file))
@@ -467,10 +483,12 @@ def xlistdir(path: str, use_auth_token: Optional[Union[str, bool]] = None) -> Li
     """Extend `os.listdir` function to support remote files.
 
     Args:
-        path (:obj:`str`): URL path.
+        path (`str`): URL path.
+        use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
 
     Returns:
-        :obj:`list` of :obj:`str`
+        `list` of `str`
     """
     main_hop, *rest_hops = str(path).split("::")
     if is_local_path(main_hop):
@@ -498,12 +516,14 @@ def xglob(urlpath, *, recursive=False, use_auth_token: Optional[Union[str, bool]
     """Extend `glob.glob` function to support remote files.
 
     Args:
-        urlpath (:obj:`str`): URL path with shell-style wildcard patterns.
-        recursive (:obj:`bool`, default `False`): Whether to match the "**" pattern recursively to zero or more
+        urlpath (`str`): URL path with shell-style wildcard patterns.
+        recursive (`bool`, default `False`): Whether to match the "**" pattern recursively to zero or more
             directories or subdirectories.
+        use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
 
     Returns:
-        :obj:`list` of :obj:`str`
+        `list` of `str`
     """
     main_hop, *rest_hops = str(urlpath).split("::")
     if is_local_path(main_hop):
@@ -534,12 +554,12 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
     """Extend `os.walk` function to support remote files.
 
     Args:
-        urlpath (:obj:`str`): URL root path.
-        use_auth_token (:obj:`bool` or :obj:`str`, optional): Whether to use token or token to authenticate on the
+        urlpath (`str`): URL root path.
+        use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
             Hugging Face Hub for private remote files.
 
     Yields:
-        :obj:`tuple`: 3-tuple (dirpath, dirnames, filenames).
+        `tuple`: 3-tuple (dirpath, dirnames, filenames).
     """
     main_hop, *rest_hops = str(urlpath).split("::")
     if is_local_path(main_hop):
@@ -569,11 +589,12 @@ class xPath(type(Path())):
         """Glob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
         Args:
-            path (:obj:`~pathlib.Path`): Calling Path instance.
-            pattern (:obj:`str`): Pattern that resulting paths must match.
+            pattern (`str`): Pattern that resulting paths must match.
+            use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
+                Hugging Face Hub for private remote files.
 
         Yields:
-            :obj:`~pathlib.Path`
+            [`xPath`]
         """
         posix_path = _as_posix(self)
         main_hop, *rest_hops = posix_path.split("::")
@@ -601,11 +622,10 @@ class xPath(type(Path())):
         """Rglob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
         Args:
-            path (:obj:`~pathlib.Path`): Calling Path instance.
-            pattern (:obj:`str`): Pattern that resulting paths must match.
+            pattern (`str`): Pattern that resulting paths must match.
 
         Yields:
-            :obj:`~pathlib.Path`
+            [`xPath`]
         """
         return self.glob("**/" + pattern, **kwargs)
 
@@ -613,47 +633,35 @@ class xPath(type(Path())):
     def parent(self) -> "xPath":
         """Name function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
-        Args:
-            path (:obj:`~pathlib.Path`): Calling Path instance.
-
         Returns:
-            :obj:`~pathlib.Path`
+            [`xPath`]
         """
         return type(self)(xdirname(_as_posix(self)))
 
     @property
-    def name(self) -> PurePosixPath:
+    def name(self) -> str:
         """Name function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
-        Args:
-            path (:obj:`~pathlib.Path`): Calling Path instance.
-
         Returns:
-            :obj:`str`
+            `str`
         """
         return PurePosixPath(_as_posix(self).split("::")[0]).name
 
     @property
-    def stem(self) -> PurePosixPath:
+    def stem(self) -> str:
         """Stem function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
-        Args:
-            path (:obj:`~pathlib.Path`): Calling Path instance.
-
         Returns:
-            :obj:`str`
+            `str`
         """
         return PurePosixPath(_as_posix(self).split("::")[0]).stem
 
     @property
-    def suffix(self) -> PurePosixPath:
+    def suffix(self) -> str:
         """Suffix function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
-        Args:
-            path (:obj:`~pathlib.Path`): Calling Path instance.
-
         Returns:
-            :obj:`str`
+            `str`
         """
         return PurePosixPath(_as_posix(self).split("::")[0]).suffix
 
@@ -661,11 +669,11 @@ class xPath(type(Path())):
         """Extend :func:`xopen` to support argument of type :obj:`~pathlib.Path`.
 
         Args:
-            path (:obj:`~pathlib.Path`): Calling Path instance.
+            **args: Arguments passed to :func:`fsspec.open`.
             **kwargs: Keyword arguments passed to :func:`fsspec.open`.
 
         Returns:
-            :obj:`io.FileIO`: File-like object.
+            `io.FileIO`: File-like object.
         """
         return xopen(_as_posix(self), *args, **kwargs)
 
@@ -673,11 +681,10 @@ class xPath(type(Path())):
         """Extend :func:`xjoin` to support argument of type :obj:`~pathlib.Path`.
 
         Args:
-            a (:obj:`~pathlib.Path`): Calling Path instance.
-            *p (:obj:`tuple` of :obj:`str`): Other path components.
+            *p (`tuple` of `str`): Other path components.
 
         Returns:
-            obj:`str`
+            [`xPath`]
         """
         return type(self)(xjoin(_as_posix(self), *p))
 
@@ -717,12 +724,12 @@ def xet_parse(source, parser=None, use_auth_token: Optional[Union[str, bool]] = 
 
     Args:
         source: File path or file object.
-        parser (optional, default `XMLParser`): Parser instance.
-        use_auth_token (:obj:`bool` or :obj:`str`, optional): Whether to use token or token to authenticate on the
+        parser (`XMLParser`, *optional*, default `XMLParser`): Parser instance.
+        use_auth_token (`bool` or `str`, optional): Whether to use token or token to authenticate on the
             Hugging Face Hub for private remote files.
 
     Returns:
-        :obj:`xml.etree.ElementTree.Element`: Root element of the given source document.
+        `xml.etree.ElementTree.Element`: Root element of the given source document.
     """
     if hasattr(source, "read"):
         return ET.parse(source, parser=parser)
@@ -863,12 +870,10 @@ class StreamingDownloadManager:
         """Download given url(s).
 
         Args:
-            url_or_urls: url or `list`/`dict` of urls to download and extract. Each
-                url is a `str`.
+            url_or_urls (`str` or `list` or `dict`): URL or URLs to download and extract. Each url is a `str`.
 
         Returns:
-            downloaded_path(s): `str`, The downloaded paths matching the given input
-                url_or_urls.
+            `str`: Downloaded paths matching the given input url_or_urls.
 
         Example:
 
@@ -890,14 +895,10 @@ class StreamingDownloadManager:
         """Extract given path(s).
 
         Args:
-            path_or_paths: path or `list`/`dict` of path of file to extract. Each
-                path is a `str`.
-            num_proc: Use multi-processing if `num_proc` > 1 and the length of
-                `path_or_paths` is larger than `num_proc`
+            path_or_paths (`str` or `list` or `dict`): Path or paths of file to extract. Each path is a `str`.
 
         Returns:
-            extracted_path(s): `str`, The extracted paths matching the given input
-                path_or_paths.
+            `str`: Extracted paths matching the given input path_or_paths.
 
         Example:
 
