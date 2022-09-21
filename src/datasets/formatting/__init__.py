@@ -23,12 +23,12 @@ from .formatting import (
     ArrowFormatter,
     CustomFormatter,
     Formatter,
-    NumpyFormatter,
     PandasFormatter,
     PythonFormatter,
     format_table,
     query_table,
 )
+from .np_formatter import NumpyFormatter
 
 
 logger = logging.get_logger(__name__)

@@ -325,30 +325,6 @@ class PythonFormatter(Formatter[dict, list, dict]):
         return batch
 
 
-class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
-    def __init__(self, features=None, decoded=True, **np_array_kwargs):
-        super().__init__(features=features, decoded=decoded)
-        self.np_array_kwargs = np_array_kwargs
-
-    def format_row(self, pa_table: pa.Table) -> dict:
-        row = self.numpy_arrow_extractor(**self.np_array_kwargs).extract_row(pa_table)
-        if self.decoded:
-            row = self.python_features_decoder.decode_row(row)
-        return row
-
-    def format_column(self, pa_table: pa.Table) -> np.ndarray:
-        column = self.numpy_arrow_extractor(**self.np_array_kwargs).extract_column(pa_table)
-        if self.decoded:
-            column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
-        return column
-
-    def format_batch(self, pa_table: pa.Table) -> dict:
-        batch = self.numpy_arrow_extractor(**self.np_array_kwargs).extract_batch(pa_table)
-        if self.decoded:
-            batch = self.python_features_decoder.decode_batch(batch)
-        return batch
-
-
 class PandasFormatter(Formatter):
     def format_row(self, pa_table: pa.Table) -> pd.DataFrame:
         row = self.pandas_arrow_extractor().extract_row(pa_table)
