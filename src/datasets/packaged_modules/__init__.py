@@ -9,6 +9,7 @@ from .imagefolder import imagefolder
 from .json import json
 from .pandas import pandas
 from .parquet import parquet
+from .sql import sql  # needed for the docs
 from .text import text
 
 
