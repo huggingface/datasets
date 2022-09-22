@@ -329,6 +329,39 @@ def test_mapped_examples_iterable_remove_columns(n, func, batch_size, remove_col
 
 
 @pytest.mark.parametrize(
+    "n, func, batch_size, fn_kwargs",
+    [
+        (3, lambda x, y=0: {"id+y": x["id"] + y}, None, None),
+        (3, lambda x, y=0: {"id+y": x["id"] + y}, None, {"y": 3}),
+        (25, lambda x, y=0: {"id+y": [i + y for i in x["id"]]}, 10, {"y": 3}),
+    ],
+)
+def test_mapped_examples_iterable_fn_kwargs(n, func, batch_size, fn_kwargs):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = MappedExamplesIterable(
+        base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size, fn_kwargs=fn_kwargs
+    )
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    if fn_kwargs is None:
+        fn_kwargs = {}
+    if batch_size is None:
+        expected = [{**x, **func(x, **fn_kwargs)} for x in all_examples]
+    else:
+        # For batched map we have to format the examples as a batch (i.e. in one single dictionary) to pass the batch to the function
+        all_transformed_examples = []
+        for batch_offset in range(0, len(all_examples), batch_size):
+            examples = all_examples[batch_offset : batch_offset + batch_size]
+            batch = _examples_to_batch(examples)
+            transformed_batch = func(batch, **fn_kwargs)
+            all_transformed_examples.extend(_batch_to_examples(transformed_batch))
+        expected = _examples_to_batch(all_examples)
+        expected.update(_examples_to_batch(all_transformed_examples))
+        expected = list(_batch_to_examples(expected))
+    assert next(iter(ex_iterable))[1] == expected[0]
+    assert list(x for _, x in ex_iterable) == expected
+
+
+@pytest.mark.parametrize(
     "n, func, batch_size, input_columns",
     [
         (3, lambda id_: {"id+1": id_ + 1}, None, ["id"]),  # just add 1 to the id

@@ -26,3 +26,21 @@ class AbstractDatasetReader(ABC):
     @abstractmethod
     def read(self) -> Union[Dataset, DatasetDict]:
         pass
+
+
+class AbstractDatasetInputStream(ABC):
+    def __init__(
+        self,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        **kwargs,
+    ):
+        self.features = features
+        self.cache_dir = cache_dir
+        self.keep_in_memory = keep_in_memory
+        self.kwargs = kwargs
+
+    @abstractmethod
+    def read(self) -> Dataset:
+        pass

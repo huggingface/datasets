@@ -20,7 +20,9 @@ import copy
 import itertools
 import json
 import os
+import re
 import shutil
+import sys
 import tempfile
 import warnings
 import weakref
@@ -84,6 +86,7 @@ from .fingerprint import (
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
 from .formatting.formatting import _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
+from .naming import _split_re
 from .search import IndexableMixin
 from .splits import NamedSplit, Split, SplitInfo
 from .table import (
@@ -924,6 +927,46 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return CsvDatasetReader(
             path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()
+
+    @staticmethod
+    def from_generator(
+        generator: Callable,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        gen_kwargs: Optional[dict] = None,
+    ):
+        """Create a Dataset from a generator.
+
+        Args:
+            generator (:obj:`Callable`): A generator function that `yields` examples.
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
+            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            gen_kwargs(:obj:`dict`, optional): Keyword arguments to be passed to the `generator` callable.
+
+        Returns:
+            :class:`Dataset`
+
+        Example:
+
+        ```py
+        >>> def gen():
+        ...     yield {"text": "Good", "label": 0}
+        ...     yield {"text": "Bad", "label": 1}
+        ...
+        >>> ds = Dataset.from_generator(gen)
+        ```
+        """
+        from .io.generator import GeneratorDatasetInputStream
+
+        return GeneratorDatasetInputStream(
+            generator=generator,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            gen_kwargs=gen_kwargs,
         ).read()
 
     @staticmethod
@@ -2649,7 +2692,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"Provided `function` which is applied to all elements of table returns a variable of type {type(processed_inputs)}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects."
                 )
             elif isinstance(indices, list) and isinstance(processed_inputs, Mapping):
-                allowed_batch_return_types = (list, np.ndarray)
+                allowed_batch_return_types = (list, np.ndarray, pd.Series)
+                if config.TF_AVAILABLE and "tensorflow" in sys.modules:
+                    import tensorflow as tf
+
+                    allowed_batch_return_types += (tf.Tensor,)
+                if config.TORCH_AVAILABLE and "torch" in sys.modules:
+                    import torch
+
+                    allowed_batch_return_types += (torch.Tensor,)
+                if config.JAX_AVAILABLE and "jax" in sys.modules:
+                    import jax.numpy as jnp
+
+                    allowed_batch_return_types += (jnp.ndarray,)
                 all_dict_values_are_lists = all(
                     isinstance(value, allowed_batch_return_types) for value in processed_inputs.values()
                 )
@@ -2678,7 +2733,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
-            if self._format_type is not None:
+            if self._format_type:
                 inputs = self._getitem(
                     key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1] + 1)),
                     format_type=None,
@@ -4050,7 +4105,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         branch: Optional[str] = None,
-        max_shard_size: Union[int, str] = "500MB",
+        max_shard_size: Optional[Union[int, str]] = None,
         embed_external_files: bool = True,
     ) -> Tuple[str, str, int, int]:
         """Pushes the dataset to the hub.
@@ -4096,7 +4151,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
         ```
         """
-        max_shard_size = convert_file_size_to_int(max_shard_size)
+        max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
 
         api = HfApi(endpoint=config.HF_ENDPOINT)
         token = token if token is not None else HfFolder.get_token()
@@ -4108,6 +4163,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if split is None:
             split = str(self.split) if self.split is not None else "train"
+
+        if not re.match(_split_re, split):
+            raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
 
         identifier = repo_id.split("/")
 
@@ -4264,7 +4322,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         branch: Optional[str] = None,
-        max_shard_size: Union[int, str] = "500MB",
+        max_shard_size: Optional[Union[int, str]] = None,
         shard_size: Optional[int] = "deprecated",
         embed_external_files: bool = True,
     ):

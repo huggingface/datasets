@@ -114,7 +114,7 @@ def convert_file_size_to_int(size: Union[int, str]) -> int:
     if size.upper().endswith("KB"):
         int_size = int(size[:-2]) * (10**3)
         return int_size // 8 if size.endswith("b") else int_size
-    raise ValueError("`size` is not in a valid format. Use an integer followed by the unit, e.g., '5GB'.")
+    raise ValueError(f"`size={size}` is not in a valid format. Use an integer followed by the unit, e.g., '5GB'.")
 
 
 def string_to_dict(string: str, pattern: str) -> Dict[str, str]:

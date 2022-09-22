@@ -33,6 +33,15 @@ Then users can load your dataset by specifying `imagefolder` in [`load_dataset`]
 >>> dataset = load_dataset("imagefolder", data_dir="/path/to/folder")
 ```
 
+You can also use `imagefolder` to load datasets involving multiple splits. To do so, your dataset directory should have the following structure:
+
+```
+folder/train/dog/golden_retriever.png
+folder/train/cat/maine_coon.png
+folder/test/dog/german_shepherd.png
+folder/test/cat/bengal.png
+```
+
 If there is additional information you'd like to include about your dataset, like text captions or bounding boxes, add it as a `metadata.jsonl` file in your folder. This lets you quickly create datasets for different computer vision tasks like text captioning or object detection.
 
 ```
