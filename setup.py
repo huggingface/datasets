@@ -16,6 +16,10 @@ To create the package for pypi.
    - Create an account in (and join the 'datasets' project):
      - PyPI: https://pypi.org/
      - Test PyPI: https://test.pypi.org/
+   - Don't break `transformers`
+     - Run the `transformers` CI using the `main` branch and make sure it's green.
+       In `transformers`, use "datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets"
+       in both setup.py and src/transformers/dependency_versions_table.py and then run the CI
 
 1. Change the version in:
    - __init__.py
