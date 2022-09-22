@@ -357,21 +357,26 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
         else:
             dataset_metadata = DatasetMetadata()
         if total_dataset_infos:
-            dataset_metadata["dataset_info"] = [
-                dset_info._to_yaml_dict() for dset_info in total_dataset_infos.values()
-            ]
+            total_dataset_infos = {
+                config_name: dset_info._to_yaml_dict() for config_name, dset_info in total_dataset_infos.items()
+            }
             # the config_name from the dataset_infos_dict takes over the config_name of the DatasetInfo
-            for config_name, dset_info_yaml_dict in zip(total_dataset_infos, dataset_metadata["dataset_info"]):
+            for config_name, dset_info_yaml_dict in total_dataset_infos.items():
                 dset_info_yaml_dict["config_name"] = config_name
-            if len(dataset_metadata["dataset_info"]) == 1:
+            if len(total_dataset_infos) == 1:
                 # use a struct instead of a list of configurations, since there's only one
-                dataset_metadata["dataset_info"] = dataset_metadata["dataset_info"][0]
+                dataset_metadata["dataset_info"] = next(iter(total_dataset_infos.values()))
                 # no need to include the configuration name when there's only one configuration and it's called "default"
                 if dataset_metadata["dataset_info"].get("config_name") == "default":
                     dataset_metadata["dataset_info"].pop("config_name", None)
             else:
-                for config_name, dataset_info_yaml_dict in zip(total_dataset_infos, dataset_metadata["dataset_info"]):
-                    dataset_info_yaml_dict["config_name"] = config_name
+                dataset_metadata["dataset_info"] = []
+                for config_name, dataset_info_yaml_dict in total_dataset_infos.items():
+                    # add the config_name field in first position
+                    dataset_info_yaml_dict.pop("config_name", None)
+                    dataset_info_yaml_dict = {"config_name": config_name, **dataset_info_yaml_dict}
+                    dataset_metadata["dataset_info"].append(dataset_info_yaml_dict)
+
             dataset_metadata.to_readme(Path(dataset_readme_path))
 
     @classmethod

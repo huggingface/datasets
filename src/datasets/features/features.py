@@ -1641,6 +1641,15 @@ class Features(dict):
             #
             if isinstance(feature.get("list"), dict) and list(feature["list"]) == ["struct"]:
                 feature["list"] = feature["list"]["struct"]
+
+            #
+            # class_label:              ->              class_label:
+            #   names:                  ->                names:
+            #   - negative              ->                  0: negative
+            #   - positive              ->                  1: positive
+            #
+            if isinstance(feature.get("class_label"), dict) and isinstance(feature["class_label"].get("names"), list):
+                feature["class_label"]["names"] = dict(enumerate(feature["class_label"]["names"]))
             return feature
 
         def to_yaml_inner(obj: Union[dict, list]) -> dict:
@@ -1654,7 +1663,7 @@ class Features(dict):
                 elif _type and not obj:
                     return {"dtype": camelcase_to_snakecase(_type)}
                 elif _type:
-                    return {"dtype": {camelcase_to_snakecase(_type): obj}}
+                    return {"dtype": simplify({camelcase_to_snakecase(_type): obj})}
                 else:
                     return {"struct": [{"name": name, **to_yaml_inner(_feature)} for name, _feature in obj.items()]}
             elif isinstance(obj, list):
@@ -1685,6 +1694,20 @@ class Features(dict):
             #
             if isinstance(feature.get("list"), str):
                 feature["list"] = {"dtype": feature["list"]}
+
+            #
+            # class_label:              ->              class_label:
+            #   names:                  ->                names:
+            #     0: negative              ->               - negative
+            #     1: positive              ->               - positive
+            #
+            if isinstance(feature.get("class_label"), dict) and isinstance(feature["class_label"].get("names"), dict):
+                label_ids = sorted(feature["class_label"]["names"])
+                if label_ids and label_ids != list(range(label_ids[-1] + 1)):
+                    raise ValueError(
+                        f"ClassLabel expected a value for all label ids [0:{label_ids[-1] + 1}] but some ids are missing."
+                    )
+                feature["class_label"]["names"] = [feature["class_label"]["names"][label_id] for label_id in label_ids]
             return feature
 
         def from_yaml_inner(obj: Union[dict, list]) -> Union[dict, list]:
@@ -1712,7 +1735,7 @@ class Features(dict):
                     else:
                         return from_yaml_inner(obj["dtype"])
                 else:
-                    return {"_type": snakecase_to_camelcase(_type), **obj[_type]}
+                    return {"_type": snakecase_to_camelcase(_type), **unsimplify(obj)[_type]}
             elif isinstance(obj, list):
                 names = [_feature.pop("name") for _feature in obj]
                 return {name: from_yaml_inner(_feature) for name, _feature in zip(names, obj)}
