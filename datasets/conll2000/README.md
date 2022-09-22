@@ -3,7 +3,7 @@ language:
 - en
 paperswithcode_id: conll-2000-1
 pretty_name: CoNLL-2000
-dataset_infos:
+dataset_info:
   dataset_size: 6558116
   download_size: 3481560
   features:

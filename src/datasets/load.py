@@ -670,8 +670,8 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 builder_kwargs["info"] = DatasetInfo.from_dict(next(iter(dataset_infos.values())))
         if os.path.isfile(os.path.join(self.path, "README.md")):
             dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
-            if isinstance(dataset_metadata.get("dataset_infos"), list) and dataset_metadata["dataset_infos"]:
-                dataset_info_dict = dataset_metadata["dataset_infos"][0]
+            if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
+                dataset_info_dict = dataset_metadata["dataset_info"][0]
                 builder_kwargs["info"] = DatasetInfo.from_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
@@ -834,8 +834,8 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 download_config=self.download_config,
             )
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
-            if isinstance(dataset_metadata.get("dataset_infos"), list) and dataset_metadata["dataset_infos"]:
-                dataset_info_dict = dataset_metadata["dataset_infos"][0]
+            if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
+                dataset_info_dict = dataset_metadata["dataset_info"][0]
                 builder_kwargs["info"] = DatasetInfo.from_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]

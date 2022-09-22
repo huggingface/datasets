@@ -3,7 +3,7 @@ language:
 - en
 paperswithcode_id: null
 pretty_name: CrimeAndPunish
-dataset_infos:
+dataset_info:
   dataset_size: 1270540
   download_size: 1201735
   features:
