@@ -1362,12 +1362,14 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 with dset.map(lambda col_1: {"label": col_1 % 2}, input_columns="col_1") as mapped_dset:
-                    self.assertEqual(mapped_dset[0].keys(), {"col_1", "label"})
+                    self.assertEqual(mapped_dset[0].keys(), {"col_1", "col_2", "col_3", "label"})
                     self.assertEqual(
                         mapped_dset.features,
                         Features(
                             {
                                 "col_1": Value("int64"),
+                                "col_2": Value("string"),
+                                "col_3": Value("bool"),
                                 "label": Value("int64"),
                             }
                         ),
@@ -1473,6 +1475,15 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(dset["col"], [1, 2])
                     with dset.filter(lambda x: [i < 2 for i in x["col"]], batched=True) as dset:
                         self.assertListEqual(dset["col"], [1])
+
+    def test_filter_input_columns(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = Dataset.from_dict({"col_1": [0, 1, 2], "col_2": ["a", "b", "c"]})
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                with dset.filter(lambda x: x > 0, input_columns=["col_1"]) as filtered_dset:
+                    self.assertListEqual(filtered_dset.column_names, dset.column_names)
+                    self.assertListEqual(filtered_dset["col_1"], [1, 2])
+                    self.assertListEqual(filtered_dset["col_2"], ["b", "c"])
 
     def test_filter_fn_kwargs(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
