@@ -28,14 +28,14 @@ You can also check out the (similar) documentation about [dataset cards on the H
 
 ## More YAML tags
 
-You can use the `dataset_infos` YAML fields to define additional metadata for the dataset. Here is an example for SQuAD:
+You can use the `dataset_info` YAML fields to define additional metadata for the dataset. Here is an example for SQuAD:
 
 ```YAML
 pretty_name: SQuAD
 language:
 - en
 ...
-dataset_infos:
+dataset_info:
   features:
   - name: id
     dtype: string
@@ -92,7 +92,7 @@ Each configuration can have different features, splits and sizes.
 You can specify those fields per configuration using a YAML list:
 
 ```YAML
-dataset_infos:
+dataset_info:
 - config_name: cola
   features:
     ...
