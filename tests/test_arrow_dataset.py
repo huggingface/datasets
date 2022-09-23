@@ -1,3 +1,4 @@
+import contextlib
 import copy
 import itertools
 import json
@@ -2053,10 +2054,24 @@ class BaseDatasetTest(TestCase):
     @require_sqlalchemy
     def test_to_sql(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            # File path argument
+            # Destionation specified as database URI string
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 file_path = os.path.join(tmp_dir, "test_path.sqlite")
                 _ = dset.to_sql("data", "sqlite:///" + file_path, index=False)
+
+                self.assertTrue(os.path.isfile(file_path))
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
+
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
+            # Destionation specified as sqlite3 connection
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                import sqlite3
+
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                with contextlib.closing(sqlite3.connect(file_path)) as con:
+                    _ = dset.to_sql("data", con, index=False, if_exists="replace")
 
                 self.assertTrue(os.path.isfile(file_path))
                 sql_dset = pd.read_sql("data", "sqlite:///" + file_path)

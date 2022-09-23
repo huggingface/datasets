@@ -4175,7 +4175,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds.to_sql("data", "sqlite:///my_own_db.sql")
         >>> # con provided as a sqlite3 connection object
         >>> import sqlite3
-        >>> with sqlite3.connect("my_own_db.sql") as con:
+        >>> con = sqlite3.connect("my_own_db.sql")
+        >>> with con:
         ...     ds.to_sql("data", con)
         ```
         """
