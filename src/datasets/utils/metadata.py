@@ -87,13 +87,15 @@ class DatasetMetadata(dict):
         return cls(**metadata_dict)
 
     def to_yaml_string(self) -> str:
-        return yaml.dump(
+        return yaml.safe_dump(
             {
                 (key.replace("_", "-") if key in self._FIELDS_WITH_DASHES else key): value
                 for key, value in self.items()
             },
             sort_keys=False,
-        )
+            allow_unicode=True,
+            encoding="utf-8",
+        ).decode("utf-8")
 
 
 if __name__ == "__main__":
