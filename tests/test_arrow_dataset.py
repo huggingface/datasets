@@ -749,9 +749,11 @@ class BaseDatasetTest(TestCase):
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
                     fingerprint = dset._fingerprint
+                    dset._format_columns = ["a", "foo"]
                     with dset.flatten() as dset:
                         self.assertListEqual(sorted(dset.column_names), ["a.b.c", "foo"])
                         self.assertListEqual(sorted(dset.features.keys()), ["a.b.c", "foo"])
+                        self.assertListEqual(dset._format_columns, ["a.b.c", "foo"])
                         self.assertDictEqual(
                             dset.features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
                         )

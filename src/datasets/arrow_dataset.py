@@ -1500,6 +1500,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return dset
 
+    @transmit_format
     @fingerprint_transform(inplace=False)
     def flatten(self, new_fingerprint: Optional[str] = None, max_depth=16) -> "Dataset":
         """Flatten the table.
