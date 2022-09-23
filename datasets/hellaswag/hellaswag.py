@@ -16,7 +16,6 @@ _CITATION = """\
 }
 """
 
-# TODO(hellaswag):
 _DESCRIPTION = """
 HellaSwag: Can a Machine Really Finish Your Sentence? is a new dataset for commonsense NLI. A paper was published at ACL2019.
 """
