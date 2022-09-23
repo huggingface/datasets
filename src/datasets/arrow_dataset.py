@@ -1121,7 +1121,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
-        >>> ds = Dataset.from_sql("test_data", "postgres:///db_name"s)
+        >>> ds = Dataset.from_sql("test_data", "postgres:///db_name")
         ```
         """
         from .io.sql import SqlDatasetReader
