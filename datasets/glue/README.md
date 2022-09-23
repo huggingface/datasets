@@ -148,6 +148,309 @@ configs:
 - sst2
 - stsb
 - wnli
+dataset_info:
+- config_name: cola
+  features:
+  - name: sentence
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: unacceptable
+          1: acceptable
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 61049
+    num_examples: 1063
+  - name: train
+    num_bytes: 489149
+    num_examples: 8551
+  - name: validation
+    num_bytes: 60850
+    num_examples: 1043
+  download_size: 376971
+  dataset_size: 611048
+- config_name: sst2
+  features:
+  - name: sentence
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: positive
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 217556
+    num_examples: 1821
+  - name: train
+    num_bytes: 4715283
+    num_examples: 67349
+  - name: validation
+    num_bytes: 106692
+    num_examples: 872
+  download_size: 7439277
+  dataset_size: 5039531
+- config_name: mrpc
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: not_equivalent
+          1: equivalent
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 443498
+    num_examples: 1725
+  - name: train
+    num_bytes: 946146
+    num_examples: 3668
+  - name: validation
+    num_bytes: 106142
+    num_examples: 408
+  download_size: 1494541
+  dataset_size: 1495786
+- config_name: qqp
+  features:
+  - name: question1
+    dtype: string
+  - name: question2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: not_duplicate
+          1: duplicate
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 55171431
+    num_examples: 390965
+  - name: train
+    num_bytes: 50901116
+    num_examples: 363846
+  - name: validation
+    num_bytes: 5653794
+    num_examples: 40430
+  download_size: 41696084
+  dataset_size: 111726341
+- config_name: stsb
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype: float32
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 170847
+    num_examples: 1379
+  - name: train
+    num_bytes: 758394
+    num_examples: 5749
+  - name: validation
+    num_bytes: 217012
+    num_examples: 1500
+  download_size: 802872
+  dataset_size: 1146253
+- config_name: mnli
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test_matched
+    num_bytes: 1854787
+    num_examples: 9796
+  - name: test_mismatched
+    num_bytes: 1956866
+    num_examples: 9847
+  - name: train
+    num_bytes: 74865118
+    num_examples: 392702
+  - name: validation_matched
+    num_bytes: 1839926
+    num_examples: 9815
+  - name: validation_mismatched
+    num_bytes: 1955384
+    num_examples: 9832
+  download_size: 312783507
+  dataset_size: 82472081
+- config_name: mnli_mismatched
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 1956866
+    num_examples: 9847
+  - name: validation
+    num_bytes: 1955384
+    num_examples: 9832
+  download_size: 312783507
+  dataset_size: 3912250
+- config_name: mnli_matched
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 1854787
+    num_examples: 9796
+  - name: validation
+    num_bytes: 1839926
+    num_examples: 9815
+  download_size: 312783507
+  dataset_size: 3694713
+- config_name: qnli
+  features:
+  - name: question
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: not_entailment
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 1376516
+    num_examples: 5463
+  - name: train
+    num_bytes: 25677924
+    num_examples: 104743
+  - name: validation
+    num_bytes: 1371727
+    num_examples: 5463
+  download_size: 10627589
+  dataset_size: 28426167
+- config_name: rte
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: not_entailment
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 975936
+    num_examples: 3000
+  - name: train
+    num_bytes: 848888
+    num_examples: 2490
+  - name: validation
+    num_bytes: 90911
+    num_examples: 277
+  download_size: 697150
+  dataset_size: 1915735
+- config_name: wnli
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: not_entailment
+          1: entailment
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 37992
+    num_examples: 146
+  - name: train
+    num_bytes: 107517
+    num_examples: 635
+  - name: validation
+    num_bytes: 12215
+    num_examples: 71
+  download_size: 28999
+  dataset_size: 157724
+- config_name: ax
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 238392
+    num_examples: 1104
+  download_size: 222257
+  dataset_size: 238392
 ---
 
 # Dataset Card for GLUE

@@ -78,6 +78,33 @@ task_ids:
 - text-classification-other-probing
 paperswithcode_id: null
 pretty_name: MLama
+dataset_info:
+  features:
+  - name: uuid
+    dtype: string
+  - name: lineid
+    dtype: uint32
+  - name: obj_uri
+    dtype: string
+  - name: obj_label
+    dtype: string
+  - name: sub_uri
+    dtype: string
+  - name: sub_label
+    dtype: string
+  - name: template
+    dtype: string
+  - name: language
+    dtype: string
+  - name: predicate_id
+    dtype: string
+  config_name: all
+  splits:
+  - name: test
+    num_bytes: 125919995
+    num_examples: 843143
+  download_size: 40772287
+  dataset_size: 125919995
 ---
 
 # Dataset Card for [Dataset Name]

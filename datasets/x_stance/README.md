@@ -22,6 +22,38 @@ task_categories:
 task_ids:
 - text-classification-other-stance-detection
 paperswithcode_id: x-stance
+dataset_info:
+  features:
+  - name: question
+    dtype: string
+  - name: id
+    dtype: int32
+  - name: question_id
+    dtype: int32
+  - name: language
+    dtype: string
+  - name: comment
+    dtype: string
+  - name: label
+    dtype: string
+  - name: numerical_label
+    dtype: int32
+  - name: author
+    dtype: string
+  - name: topic
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 6607134
+    num_examples: 17705
+  - name: train
+    num_bytes: 17619123
+    num_examples: 45640
+  - name: validation
+    num_bytes: 1505979
+    num_examples: 3926
+  download_size: 6410801
+  dataset_size: 25732236
 ---
 
 # Dataset Card for "x_stance"

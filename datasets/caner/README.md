@@ -19,6 +19,41 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: CANER
+dataset_info:
+  features:
+  - name: token
+    dtype: string
+  - name: ner_tag
+    dtype:
+      class_label:
+        names:
+          0: Allah
+          1: Book
+          2: Clan
+          3: Crime
+          4: Date
+          5: Day
+          6: Hell
+          7: Loc
+          8: Meas
+          9: Mon
+          10: Month
+          11: NatOb
+          12: Number
+          13: O
+          14: Org
+          15: Para
+          16: Pers
+          17: Prophet
+          18: Rlig
+          19: Sect
+          20: Time
+  splits:
+  - name: train
+    num_bytes: 5095721
+    num_examples: 258240
+  download_size: 17063406
+  dataset_size: 5095721
 ---
 
 # Dataset Card for CANER

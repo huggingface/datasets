@@ -21,6 +21,38 @@ task_ids:
 size_categories:
 - 10K<n<100K
 paperswithcode_id: crd3
+dataset_info:
+  features:
+  - name: chunk
+    dtype: string
+  - name: chunk_id
+    dtype: int32
+  - name: turn_start
+    dtype: int32
+  - name: turn_end
+    dtype: int32
+  - name: alignment_score
+    dtype: float32
+  - name: turns
+    list:
+    - name: names
+      sequence: string
+    - name: utterances
+      sequence: string
+    - name: number
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 40269203
+    num_examples: 7500
+  - name: train
+    num_bytes: 236605152
+    num_examples: 38969
+  - name: validation
+    num_bytes: 41543528
+    num_examples: 6327
+  download_size: 117519820
+  dataset_size: 318417883
 ---
 
 # Dataset Card for "crd3"

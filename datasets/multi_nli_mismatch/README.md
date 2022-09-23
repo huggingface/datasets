@@ -11,7 +11,7 @@ license:
 - cc-by-sa-3.0
 - mit
 - other
-license_details: "Open Portion of the American National Corpus"
+license_details: Open Portion of the American National Corpus
 multilinguality:
 - monolingual
 size_categories:
@@ -25,6 +25,24 @@ task_ids:
 - multi-input-text-classification
 paperswithcode_id: multinli
 pretty_name: Multi-Genre Natural Language Inference
+dataset_info:
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype: string
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 75601459
+    num_examples: 392702
+  - name: validation
+    num_bytes: 2009444
+    num_examples: 10000
+  download_size: 226850426
+  dataset_size: 77610903
 ---
 
 # Dataset Card for Multi-Genre Natural Language Inference (Mismatched only)

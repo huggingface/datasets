@@ -21,6 +21,48 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: medmcqa
 pretty_name: MedMCQA
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: opa
+    dtype: string
+  - name: opb
+    dtype: string
+  - name: opc
+    dtype: string
+  - name: opd
+    dtype: string
+  - name: cop
+    dtype:
+      class_label:
+        names:
+          0: a
+          1: b
+          2: c
+          3: d
+  - name: choice_type
+    dtype: string
+  - name: exp
+    dtype: string
+  - name: subject_name
+    dtype: string
+  - name: topic_name
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1447829
+    num_examples: 6150
+  - name: train
+    num_bytes: 131904057
+    num_examples: 182822
+  - name: validation
+    num_bytes: 2221468
+    num_examples: 4183
+  download_size: 55285460
+  dataset_size: 135573354
 ---
 
 # Dataset Card for MedMCQA

@@ -19,6 +19,55 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: null
 pretty_name: polemo2
+dataset_info:
+- config_name: in
+  features:
+  - name: sentence
+    dtype: string
+  - name: target
+    dtype:
+      class_label:
+        names:
+          0: __label__meta_amb
+          1: __label__meta_minus_m
+          2: __label__meta_plus_m
+          3: __label__meta_zero
+  splits:
+  - name: test
+    num_bytes: 582052
+    num_examples: 722
+  - name: train
+    num_bytes: 4810215
+    num_examples: 5783
+  - name: validation
+    num_bytes: 593530
+    num_examples: 723
+  download_size: 2350339
+  dataset_size: 5985797
+- config_name: out
+  features:
+  - name: sentence
+    dtype: string
+  - name: target
+    dtype:
+      class_label:
+        names:
+          0: __label__meta_amb
+          1: __label__meta_minus_m
+          2: __label__meta_plus_m
+          3: __label__meta_zero
+  splits:
+  - name: test
+    num_bytes: 309790
+    num_examples: 494
+  - name: train
+    num_bytes: 4810215
+    num_examples: 5783
+  - name: validation
+    num_bytes: 310977
+    num_examples: 494
+  download_size: 2139891
+  dataset_size: 5430982
 ---
 
 # Dataset Card for [Dataset Name]

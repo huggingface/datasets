@@ -21,6 +21,187 @@ task_ids:
 - dialogue-modeling
 paperswithcode_id: kdconv
 pretty_name: Knowledge-driven Conversation
+dataset_info:
+- config_name: travel_dialogues
+  features:
+  - name: messages
+    sequence:
+    - name: message
+      dtype: string
+    - name: attrs
+      sequence:
+      - name: attrname
+        dtype: string
+      - name: attrvalue
+        dtype: string
+      - name: name
+        dtype: string
+  - name: name
+    dtype: string
+  - name: domain
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 793883
+    num_examples: 150
+  - name: train
+    num_bytes: 3241550
+    num_examples: 1200
+  - name: validation
+    num_bytes: 617177
+    num_examples: 150
+  download_size: 11037768
+  dataset_size: 4652610
+- config_name: travel_knowledge_base
+  features:
+  - name: head_entity
+    dtype: string
+  - name: kb_triplets
+    sequence:
+      sequence: string
+  - name: domain
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1517024
+    num_examples: 1154
+  download_size: 11037768
+  dataset_size: 1517024
+- config_name: music_dialogues
+  features:
+  - name: messages
+    sequence:
+    - name: message
+      dtype: string
+    - name: attrs
+      sequence:
+      - name: attrname
+        dtype: string
+      - name: attrvalue
+        dtype: string
+      - name: name
+        dtype: string
+  - name: name
+    dtype: string
+  - name: domain
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 801012
+    num_examples: 150
+  - name: train
+    num_bytes: 3006192
+    num_examples: 1200
+  - name: validation
+    num_bytes: 633905
+    num_examples: 150
+  download_size: 11037768
+  dataset_size: 4441109
+- config_name: music_knowledge_base
+  features:
+  - name: head_entity
+    dtype: string
+  - name: kb_triplets
+    sequence:
+      sequence: string
+  - name: domain
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 5980643
+    num_examples: 4441
+  download_size: 11037768
+  dataset_size: 5980643
+- config_name: film_dialogues
+  features:
+  - name: messages
+    sequence:
+    - name: message
+      dtype: string
+    - name: attrs
+      sequence:
+      - name: attrname
+        dtype: string
+      - name: attrvalue
+        dtype: string
+      - name: name
+        dtype: string
+  - name: name
+    dtype: string
+  - name: domain
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 956995
+    num_examples: 150
+  - name: train
+    num_bytes: 4867659
+    num_examples: 1200
+  - name: validation
+    num_bytes: 884232
+    num_examples: 150
+  download_size: 11037768
+  dataset_size: 6708886
+- config_name: film_knowledge_base
+  features:
+  - name: head_entity
+    dtype: string
+  - name: kb_triplets
+    sequence:
+      sequence: string
+  - name: domain
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 10500882
+    num_examples: 8090
+  download_size: 11037768
+  dataset_size: 10500882
+- config_name: all_dialogues
+  features:
+  - name: messages
+    sequence:
+    - name: message
+      dtype: string
+    - name: attrs
+      sequence:
+      - name: attrname
+        dtype: string
+      - name: attrvalue
+        dtype: string
+      - name: name
+        dtype: string
+  - name: name
+    dtype: string
+  - name: domain
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2551802
+    num_examples: 450
+  - name: train
+    num_bytes: 11115313
+    num_examples: 3600
+  - name: validation
+    num_bytes: 2135226
+    num_examples: 450
+  download_size: 11037768
+  dataset_size: 15802341
+- config_name: all_knowledge_base
+  features:
+  - name: head_entity
+    dtype: string
+  - name: kb_triplets
+    sequence:
+      sequence: string
+  - name: domain
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 17998529
+    num_examples: 13685
+  download_size: 11037768
+  dataset_size: 17998529
 ---
 
 # Dataset Card for KdConv

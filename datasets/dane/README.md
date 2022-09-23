@@ -20,6 +20,108 @@ task_ids:
 - part-of-speech
 paperswithcode_id: dane
 pretty_name: DaNE
+dataset_info:
+  features:
+  - name: sent_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: tok_ids
+    sequence: int64
+  - name: tokens
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: NUM
+          1: CCONJ
+          2: PRON
+          3: VERB
+          4: INTJ
+          5: AUX
+          6: ADJ
+          7: PROPN
+          8: PART
+          9: ADV
+          10: PUNCT
+          11: ADP
+          12: NOUN
+          13: X
+          14: DET
+          15: SYM
+          16: SCONJ
+  - name: morph_tags
+    sequence: string
+  - name: dep_ids
+    sequence: int64
+  - name: dep_labels
+    sequence:
+      class_label:
+        names:
+          0: parataxis
+          1: mark
+          2: nummod
+          3: discourse
+          4: compound:prt
+          5: reparandum
+          6: vocative
+          7: list
+          8: obj
+          9: dep
+          10: det
+          11: obl:loc
+          12: flat
+          13: iobj
+          14: cop
+          15: expl
+          16: obl
+          17: conj
+          18: nmod
+          19: root
+          20: acl:relcl
+          21: goeswith
+          22: appos
+          23: fixed
+          24: obl:tmod
+          25: xcomp
+          26: advmod
+          27: nmod:poss
+          28: aux
+          29: ccomp
+          30: amod
+          31: cc
+          32: advcl
+          33: nsubj
+          34: punct
+          35: case
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  splits:
+  - name: test
+    num_bytes: 909699
+    num_examples: 565
+  - name: train
+    num_bytes: 7311212
+    num_examples: 4383
+  - name: validation
+    num_bytes: 940413
+    num_examples: 564
+  download_size: 1209710
+  dataset_size: 9161324
 ---
 
 # Dataset Card for DaNE

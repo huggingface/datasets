@@ -19,6 +19,30 @@ task_categories:
 - text-classification
 task_ids:
 - multi-class-classification
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: date
+    dtype: string
+  - name: gender
+    dtype: string
+  - name: age
+    dtype: int32
+  - name: horoscope
+    dtype: string
+  - name: job
+    dtype: string
+  config_name: blog_authorship_corpus
+  splits:
+  - name: train
+    num_bytes: 753833081
+    num_examples: 689793
+  - name: validation
+    num_bytes: 41236028
+    num_examples: 37919
+  download_size: 632898892
+  dataset_size: 795069109
 ---
 
 # Dataset Card for Blog Authorship Corpus

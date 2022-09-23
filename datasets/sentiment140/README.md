@@ -14,44 +14,66 @@ train-eval-index:
     text: text
     sentiment: target
   metrics:
-    - type: accuracy
-      name: Accuracy
-    - type: f1
-      name: F1 macro
-      args:
-        average: macro
-    - type: f1
-      name: F1 micro
-      args:
-        average: micro
-    - type: f1
-      name: F1 weighted
-      args:
-        average: weighted
-    - type: precision
-      name: Precision macro
-      args:
-        average: macro
-    - type: precision
-      name: Precision micro
-      args:
-        average: micro
-    - type: precision
-      name: Precision weighted
-      args:
-        average: weighted
-    - type: recall
-      name: Recall macro
-      args:
-        average: macro
-    - type: recall
-      name: Recall micro
-      args:
-        average: micro
-    - type: recall
-      name: Recall weighted
-      args:
-        average: weighted
+  - type: accuracy
+    name: Accuracy
+  - type: f1
+    name: F1 macro
+    args:
+      average: macro
+  - type: f1
+    name: F1 micro
+    args:
+      average: micro
+  - type: f1
+    name: F1 weighted
+    args:
+      average: weighted
+  - type: precision
+    name: Precision macro
+    args:
+      average: macro
+  - type: precision
+    name: Precision micro
+    args:
+      average: micro
+  - type: precision
+    name: Precision weighted
+    args:
+      average: weighted
+  - type: recall
+    name: Recall macro
+    args:
+      average: macro
+  - type: recall
+    name: Recall micro
+    args:
+      average: micro
+  - type: recall
+    name: Recall weighted
+    args:
+      average: weighted
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: date
+    dtype: string
+  - name: user
+    dtype: string
+  - name: sentiment
+    dtype: int32
+  - name: query
+    dtype: string
+  config_name: sentiment140
+  splits:
+  - name: test
+    num_bytes: 73365
+    num_examples: 498
+  - name: train
+    num_bytes: 225742946
+    num_examples: 1600000
+  download_size: 81363704
+  dataset_size: 225816311
 ---
 
 # Dataset Card for "sentiment140"

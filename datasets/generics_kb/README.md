@@ -25,6 +25,99 @@ configs:
 - generics_kb_best
 - generics_kb_simplewiki
 - generics_kb_waterloo
+dataset_info:
+- config_name: generics_kb_best
+  features:
+  - name: source
+    dtype: string
+  - name: term
+    dtype: string
+  - name: quantifier_frequency
+    dtype: string
+  - name: quantifier_number
+    dtype: string
+  - name: generic_sentence
+    dtype: string
+  - name: score
+    dtype: float64
+  splits:
+  - name: train
+    num_bytes: 99897719
+    num_examples: 1020868
+  download_size: 94850525
+  dataset_size: 99897719
+- config_name: generics_kb
+  features:
+  - name: source
+    dtype: string
+  - name: term
+    dtype: string
+  - name: quantifier_frequency
+    dtype: string
+  - name: quantifier_number
+    dtype: string
+  - name: generic_sentence
+    dtype: string
+  - name: score
+    dtype: float64
+  splits:
+  - name: train
+    num_bytes: 348158966
+    num_examples: 3433000
+  download_size: 343284785
+  dataset_size: 348158966
+- config_name: generics_kb_simplewiki
+  features:
+  - name: source_name
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: sentences_before
+    sequence: string
+  - name: sentences_after
+    sequence: string
+  - name: concept_name
+    dtype: string
+  - name: quantifiers
+    sequence: string
+  - name: id
+    dtype: string
+  - name: bert_score
+    dtype: float64
+  - name: headings
+    sequence: string
+  - name: categories
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 10039355
+    num_examples: 12765
+  download_size: 16437369
+  dataset_size: 10039355
+- config_name: generics_kb_waterloo
+  features:
+  - name: source_name
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: sentences_before
+    sequence: string
+  - name: sentences_after
+    sequence: string
+  - name: concept_name
+    dtype: string
+  - name: quantifiers
+    sequence: string
+  - name: id
+    dtype: string
+  - name: bert_score
+    dtype: float64
+  splits:
+  - name: train
+    num_bytes: 4277214701
+    num_examples: 3666725
+  download_size: 0
+  dataset_size: 4277214701
 ---
 
 # Dataset Card for Generics KB

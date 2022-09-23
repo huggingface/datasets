@@ -19,6 +19,48 @@ task_ids:
 - fact-checking
 paperswithcode_id: null
 pretty_name: FACTCK BR
+dataset_info:
+  features:
+  - name: url
+    dtype: string
+  - name: author
+    dtype: string
+  - name: date
+    dtype: string
+  - name: claim
+    dtype: string
+  - name: review
+    dtype: string
+  - name: title
+    dtype: string
+  - name: rating
+    dtype: float32
+  - name: best_rating
+    dtype: float32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: falso
+          1: distorcido
+          2: impreciso
+          3: exagerado
+          4: insustentável
+          5: verdadeiro
+          6: outros
+          7: subestimado
+          8: impossível provar
+          9: discutível
+          10: sem contexto
+          11: de olho
+          12: verdadeiro, mas
+          13: ainda é cedo para dizer
+  splits:
+  - name: train
+    num_bytes: 750646
+    num_examples: 1313
+  download_size: 721314
+  dataset_size: 750646
 ---
 
 # Dataset Card for FACTCK BR

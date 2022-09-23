@@ -7,7 +7,7 @@ language:
 - en
 license:
 - other
-license_details: "LDC User Agreement for Non-Members"
+license_details: LDC User Agreement for Non-Members
 multilinguality:
 - monolingual
 size_categories:
@@ -22,6 +22,23 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: Penn Treebank
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  config_name: penn_treebank
+  splits:
+  - name: test
+    num_bytes: 453710
+    num_examples: 3761
+  - name: train
+    num_bytes: 5143706
+    num_examples: 42068
+  - name: validation
+    num_bytes: 403156
+    num_examples: 3370
+  download_size: 5951345
+  dataset_size: 6000572
 ---
 
 # Dataset Card for Penn Treebank

@@ -19,6 +19,36 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: cosmosqa
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer0
+    dtype: string
+  - name: answer1
+    dtype: string
+  - name: answer2
+    dtype: string
+  - name: answer3
+    dtype: string
+  - name: label
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 5121479
+    num_examples: 6963
+  - name: train
+    num_bytes: 17159918
+    num_examples: 25262
+  - name: validation
+    num_bytes: 2186987
+    num_examples: 2985
+  download_size: 24399475
+  dataset_size: 24468384
 ---
 
 # Dataset Card for "cosmos_qa"

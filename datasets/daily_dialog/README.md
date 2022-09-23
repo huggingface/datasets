@@ -21,6 +21,42 @@ task_ids:
 - text-classification-other-emotion-classification
 - text-classification-other-dialog-act-classification
 pretty_name: DailyDialog
+dataset_info:
+  features:
+  - name: dialog
+    sequence: string
+  - name: act
+    sequence:
+      class_label:
+        names:
+          0: __dummy__
+          1: inform
+          2: question
+          3: directive
+          4: commissive
+  - name: emotion
+    sequence:
+      class_label:
+        names:
+          0: no emotion
+          1: anger
+          2: disgust
+          3: fear
+          4: happiness
+          5: sadness
+          6: surprise
+  splits:
+  - name: test
+    num_bytes: 655844
+    num_examples: 1000
+  - name: train
+    num_bytes: 7296715
+    num_examples: 11118
+  - name: validation
+    num_bytes: 673943
+    num_examples: 1000
+  download_size: 4475921
+  dataset_size: 8626502
 ---
 
 # Dataset Card for "daily_dialog"

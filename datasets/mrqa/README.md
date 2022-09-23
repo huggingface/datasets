@@ -25,6 +25,59 @@ task_ids:
 - extractive-qa
 paperswithcode_id: mrqa-2019
 pretty_name: MRQA 2019
+dataset_info:
+  features:
+  - name: subset
+    dtype: string
+  - name: context
+    dtype: string
+  - name: context_tokens
+    sequence:
+    - name: tokens
+      dtype: string
+    - name: offsets
+      dtype: int32
+  - name: qid
+    dtype: string
+  - name: question
+    dtype: string
+  - name: question_tokens
+    sequence:
+    - name: tokens
+      dtype: string
+    - name: offsets
+      dtype: int32
+  - name: detected_answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: char_spans
+      sequence:
+      - name: start
+        dtype: int32
+      - name: end
+        dtype: int32
+    - name: token_spans
+      sequence:
+      - name: start
+        dtype: int32
+      - name: end
+        dtype: int32
+  - name: answers
+    sequence: string
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 57712177
+    num_examples: 9633
+  - name: train
+    num_bytes: 4090681873
+    num_examples: 516819
+  - name: validation
+    num_bytes: 484107026
+    num_examples: 58221
+  download_size: 1479518355
+  dataset_size: 4632501076
 ---
 
 # Dataset Card for MRQA 2019

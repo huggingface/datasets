@@ -19,6 +19,42 @@ task_categories:
 task_ids:
 - coreference-resolution
 paperswithcode_id: gap
+dataset_info:
+  features:
+  - name: ID
+    dtype: string
+  - name: Text
+    dtype: string
+  - name: Pronoun
+    dtype: string
+  - name: Pronoun-offset
+    dtype: int32
+  - name: A
+    dtype: string
+  - name: A-offset
+    dtype: int32
+  - name: A-coref
+    dtype: bool
+  - name: B
+    dtype: string
+  - name: B-offset
+    dtype: int32
+  - name: B-coref
+    dtype: bool
+  - name: URL
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1090462
+    num_examples: 2000
+  - name: train
+    num_bytes: 1095623
+    num_examples: 2000
+  - name: validation
+    num_bytes: 248329
+    num_examples: 454
+  download_size: 2401971
+  dataset_size: 2434414
 ---
 
 # Dataset Card for "gap"

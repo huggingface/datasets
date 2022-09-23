@@ -26,6 +26,57 @@ configs:
 - default
 - dictionary
 - ptb
+dataset_info:
+- config_name: default
+  features:
+  - name: sentence
+    dtype: string
+  - name: label
+    dtype: float32
+  - name: tokens
+    dtype: string
+  - name: tree
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 730154
+    num_examples: 2210
+  - name: train
+    num_bytes: 2818768
+    num_examples: 8544
+  - name: validation
+    num_bytes: 366205
+    num_examples: 1101
+  download_size: 7162356
+  dataset_size: 3915127
+- config_name: dictionary
+  features:
+  - name: phrase
+    dtype: string
+  - name: label
+    dtype: float32
+  splits:
+  - name: dictionary
+    num_bytes: 12121843
+    num_examples: 239232
+  download_size: 7162356
+  dataset_size: 12121843
+- config_name: ptb
+  features:
+  - name: ptb_tree
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 566248
+    num_examples: 2210
+  - name: train
+    num_bytes: 2185694
+    num_examples: 8544
+  - name: validation
+    num_bytes: 284132
+    num_examples: 1101
+  download_size: 7162356
+  dataset_size: 3036074
 ---
 
 # Dataset Card for sst

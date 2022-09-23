@@ -19,6 +19,37 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: BioNLP / JNLPBA Shared Task 2004
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-DNA
+          2: I-DNA
+          3: B-RNA
+          4: I-RNA
+          5: B-cell_line
+          6: I-cell_line
+          7: B-cell_type
+          8: I-cell_type
+          9: B-protein
+          10: I-protein
+  config_name: jnlpba
+  splits:
+  - name: train
+    num_bytes: 17562614
+    num_examples: 37094
+  - name: validation
+    num_bytes: 3604282
+    num_examples: 7714
+  download_size: 3171072
+  dataset_size: 21166896
 ---
 
 # Dataset Card for JNLPBA

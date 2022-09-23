@@ -35,6 +35,903 @@ task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
+dataset_info:
+- config_name: X-CSQA-en
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CSQA-zh
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CSQA-de
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CSQA-es
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CSQA-fr
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CSQA-it
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CSQA-jap
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CSQA-nl
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CSQA-pl
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CSQA-pt
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CSQA-ru
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CSQA-ar
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CSQA-vi
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CSQA-hi
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CSQA-sw
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CSQA-ur
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 721549
+    num_examples: 1074
+  - name: validation
+    num_bytes: 689431
+    num_examples: 1000
+  download_size: 7519903
+  dataset_size: 1410980
+- config_name: X-CODAH-en
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1764740
+    num_examples: 1000
+  - name: validation
+    num_bytes: 511779
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 2276519
+- config_name: X-CODAH-zh
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 832040
+    num_examples: 1000
+  - name: validation
+    num_bytes: 241465
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 1073505
+- config_name: X-CODAH-de
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2041351
+    num_examples: 1000
+  - name: validation
+    num_bytes: 590880
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 2632231
+- config_name: X-CODAH-es
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1906430
+    num_examples: 1000
+  - name: validation
+    num_bytes: 548002
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 2454432
+- config_name: X-CODAH-fr
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2024309
+    num_examples: 1000
+  - name: validation
+    num_bytes: 580389
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 2604698
+- config_name: X-CODAH-it
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1956119
+    num_examples: 1000
+  - name: validation
+    num_bytes: 567652
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 2523771
+- config_name: X-CODAH-jap
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1173047
+    num_examples: 1000
+  - name: validation
+    num_bytes: 341716
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 1514763
+- config_name: X-CODAH-nl
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1922420
+    num_examples: 1000
+  - name: validation
+    num_bytes: 552682
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 2475102
+- config_name: X-CODAH-pl
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1786230
+    num_examples: 1000
+  - name: validation
+    num_bytes: 516778
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 2303008
+- config_name: X-CODAH-pt
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1923583
+    num_examples: 1000
+  - name: validation
+    num_bytes: 552849
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 2476432
+- config_name: X-CODAH-ru
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1989775
+    num_examples: 1000
+  - name: validation
+    num_bytes: 568113
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 2557888
+- config_name: X-CODAH-ar
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1659286
+    num_examples: 1000
+  - name: validation
+    num_bytes: 479370
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 2138656
+- config_name: X-CODAH-vi
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1947493
+    num_examples: 1000
+  - name: validation
+    num_bytes: 560024
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 2507517
+- config_name: X-CODAH-hi
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2365525
+    num_examples: 1000
+  - name: validation
+    num_bytes: 685704
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 3051229
+- config_name: X-CODAH-sw
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1797165
+    num_examples: 1000
+  - name: validation
+    num_bytes: 526694
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 2323859
+- config_name: X-CODAH-ur
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: question_tag
+    dtype: string
+  - name: question
+    sequence:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: label
+        dtype: string
+      - name: text
+        dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2056883
+    num_examples: 1000
+  - name: validation
+    num_bytes: 595413
+    num_examples: 300
+  download_size: 7519903
+  dataset_size: 2652296
 ---
 
 # Dataset Card for X-CSR

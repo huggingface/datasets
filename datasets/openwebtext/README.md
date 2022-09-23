@@ -21,6 +21,17 @@ task_ids:
 - language-modeling
 - masked-language-modeling
 paperswithcode_id: openwebtext
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 39769494896
+    num_examples: 8013769
+  download_size: 12880027468
+  dataset_size: 39769494896
 ---
 
 # Dataset Card for "openwebtext"

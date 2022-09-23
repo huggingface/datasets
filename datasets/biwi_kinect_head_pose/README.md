@@ -19,6 +19,78 @@ task_categories:
 task_ids:
 - other-other-head-pose-estimation
 paperswithcode_id: biwi
+dataset_info:
+  features:
+  - name: sequence_number
+    dtype: string
+  - name: subject_id
+    dtype: string
+  - name: rgb
+    sequence: image
+  - name: rgb_cal
+    struct:
+    - name: intrisic_mat
+      dtype:
+        array2_d:
+          shape:
+          - 3
+          - 3
+          dtype: float64
+    - name: extrinsic_mat
+      struct:
+      - name: rotation
+        dtype:
+          array2_d:
+            shape:
+            - 3
+            - 3
+            dtype: float64
+      - name: translation
+        sequence: float64
+        length: 3
+  - name: depth
+    sequence: string
+  - name: depth_cal
+    struct:
+    - name: intrisic_mat
+      dtype:
+        array2_d:
+          shape:
+          - 3
+          - 3
+          dtype: float64
+    - name: extrinsic_mat
+      struct:
+      - name: rotation
+        dtype:
+          array2_d:
+            shape:
+            - 3
+            - 3
+            dtype: float64
+      - name: translation
+        sequence: float64
+        length: 3
+  - name: head_pose_gt
+    sequence:
+    - name: center
+      sequence: float64
+      length: 3
+    - name: rotation
+      dtype:
+        array2_d:
+          shape:
+          - 3
+          - 3
+          dtype: float64
+  - name: head_template
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 6914063
+    num_examples: 24
+  download_size: 6014398431
+  dataset_size: 6914063
 ---
 
 # Dataset Card for Biwi Kinect Head Pose Database

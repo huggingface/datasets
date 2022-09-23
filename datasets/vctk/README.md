@@ -28,10 +28,41 @@ train-eval-index:
     file: path
     text: text
   metrics:
-    - type: wer
-      name: WER
-    - type: cer
-      name: CER
+  - type: wer
+    name: WER
+  - type: cer
+    name: CER
+dataset_info:
+  features:
+  - name: speaker_id
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: file
+    dtype: string
+  - name: text
+    dtype: string
+  - name: text_id
+    dtype: string
+  - name: age
+    dtype: string
+  - name: gender
+    dtype: string
+  - name: accent
+    dtype: string
+  - name: region
+    dtype: string
+  - name: comment
+    dtype: string
+  config_name: main
+  splits:
+  - name: train
+    num_bytes: 40103111
+    num_examples: 88156
+  download_size: 11747302977
+  dataset_size: 40103111
 ---
 
 # Dataset Card for VCTK

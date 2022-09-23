@@ -19,6 +19,151 @@ task_ids:
 - other-other-sentence-compression
 paperswithcode_id: sentence-compression
 pretty_name: Google Sentence Compression
+dataset_info:
+  features:
+  - name: graph
+    struct:
+    - name: id
+      dtype: string
+    - name: sentence
+      dtype: string
+    - name: node
+      sequence:
+      - name: form
+        dtype: string
+      - name: type
+        dtype: string
+      - name: mid
+        dtype: string
+      - name: word
+        sequence:
+        - name: id
+          dtype: int32
+        - name: form
+          dtype: string
+        - name: stem
+          dtype: string
+        - name: tag
+          dtype: string
+      - name: gender
+        dtype: int32
+      - name: head_word_index
+        dtype: int32
+    - name: edge
+      sequence:
+      - name: parent_id
+        dtype: int32
+      - name: child_id
+        dtype: int32
+      - name: label
+        dtype: string
+    - name: entity_mention
+      sequence:
+      - name: start
+        dtype: int32
+      - name: end
+        dtype: int32
+      - name: head
+        dtype: int32
+      - name: name
+        dtype: string
+      - name: type
+        dtype: string
+      - name: mid
+        dtype: string
+      - name: is_proper_name_entity
+        dtype: bool
+      - name: gender
+        dtype: int32
+  - name: compression
+    struct:
+    - name: text
+      dtype: string
+    - name: edge
+      sequence:
+      - name: parent_id
+        dtype: int32
+      - name: child_id
+        dtype: int32
+  - name: headline
+    dtype: string
+  - name: compression_ratio
+    dtype: float32
+  - name: doc_id
+    dtype: string
+  - name: source_tree
+    struct:
+    - name: id
+      dtype: string
+    - name: sentence
+      dtype: string
+    - name: node
+      sequence:
+      - name: form
+        dtype: string
+      - name: type
+        dtype: string
+      - name: mid
+        dtype: string
+      - name: word
+        sequence:
+        - name: id
+          dtype: int32
+        - name: form
+          dtype: string
+        - name: stem
+          dtype: string
+        - name: tag
+          dtype: string
+      - name: gender
+        dtype: int32
+      - name: head_word_index
+        dtype: int32
+    - name: edge
+      sequence:
+      - name: parent_id
+        dtype: int32
+      - name: child_id
+        dtype: int32
+      - name: label
+        dtype: string
+    - name: entity_mention
+      sequence:
+      - name: start
+        dtype: int32
+      - name: end
+        dtype: int32
+      - name: head
+        dtype: int32
+      - name: name
+        dtype: string
+      - name: type
+        dtype: string
+      - name: mid
+        dtype: string
+      - name: is_proper_name_entity
+        dtype: bool
+      - name: gender
+        dtype: int32
+  - name: compression_untransformed
+    struct:
+    - name: text
+      dtype: string
+    - name: edge
+      sequence:
+      - name: parent_id
+        dtype: int32
+      - name: child_id
+        dtype: int32
+  splits:
+  - name: train
+    num_bytes: 1135684803
+    num_examples: 200000
+  - name: validation
+    num_bytes: 55823979
+    num_examples: 10000
+  download_size: 259652560
+  dataset_size: 1191508782
 ---
 
 # Dataset Card for Google Sentence Compression

@@ -43,6 +43,148 @@ configs:
 - SearchQA
 - TextbookQA
 - TriviaQA
+dataset_info:
+- config_name: SearchQA
+  features:
+  - name: candidate_id
+    dtype: string
+  - name: response_start
+    dtype: int32
+  - name: response_end
+    dtype: int32
+  splits:
+  - name: train
+    num_bytes: 183902877
+    num_examples: 3163801
+  - name: validation
+    num_bytes: 26439174
+    num_examples: 454836
+  download_size: 36991959
+  dataset_size: 210342051
+- config_name: TriviaQA
+  features:
+  - name: candidate_id
+    dtype: string
+  - name: response_start
+    dtype: int32
+  - name: response_end
+    dtype: int32
+  splits:
+  - name: train
+    num_bytes: 107326326
+    num_examples: 1893674
+  - name: validation
+    num_bytes: 13508062
+    num_examples: 238339
+  download_size: 21750402
+  dataset_size: 120834388
+- config_name: HotpotQA
+  features:
+  - name: candidate_id
+    dtype: string
+  - name: response_start
+    dtype: int32
+  - name: response_end
+    dtype: int32
+  splits:
+  - name: train
+    num_bytes: 29516866
+    num_examples: 508879
+  - name: validation
+    num_bytes: 3027229
+    num_examples: 52191
+  download_size: 6343389
+  dataset_size: 32544095
+- config_name: SQuAD
+  features:
+  - name: candidate_id
+    dtype: string
+  - name: response_start
+    dtype: int32
+  - name: response_end
+    dtype: int32
+  splits:
+  - name: train
+    num_bytes: 16828974
+    num_examples: 95659
+  - name: validation
+    num_bytes: 2012997
+    num_examples: 10642
+  download_size: 3003646
+  dataset_size: 18841971
+- config_name: NaturalQuestions
+  features:
+  - name: candidate_id
+    dtype: string
+  - name: response_start
+    dtype: int32
+  - name: response_end
+    dtype: int32
+  splits:
+  - name: train
+    num_bytes: 28732767
+    num_examples: 448355
+  - name: validation
+    num_bytes: 1418124
+    num_examples: 22118
+  download_size: 6124487
+  dataset_size: 30150891
+- config_name: BioASQ
+  features:
+  - name: candidate_id
+    dtype: string
+  - name: response_start
+    dtype: int32
+  - name: response_end
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 766190
+    num_examples: 14158
+  download_size: 156649
+  dataset_size: 766190
+- config_name: RelationExtraction
+  features:
+  - name: candidate_id
+    dtype: string
+  - name: response_start
+    dtype: int32
+  - name: response_end
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 217870
+    num_examples: 3301
+  download_size: 73019
+  dataset_size: 217870
+- config_name: TextbookQA
+  features:
+  - name: candidate_id
+    dtype: string
+  - name: response_start
+    dtype: int32
+  - name: response_end
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 4182675
+    num_examples: 71147
+  download_size: 704602
+  dataset_size: 4182675
+- config_name: DuoRC
+  features:
+  - name: candidate_id
+    dtype: string
+  - name: response_start
+    dtype: int32
+  - name: response_end
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 1483518
+    num_examples: 5525
+  download_size: 97625
+  dataset_size: 1483518
 ---
 # Dataset Card for MultiReQA
 

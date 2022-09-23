@@ -19,6 +19,112 @@ task_categories:
 task_ids:
 - text-scoring
 - text-classification-other-toxicity-prediction
+dataset_info:
+  features:
+  - name: target
+    dtype: float32
+  - name: comment_text
+    dtype: string
+  - name: severe_toxicity
+    dtype: float32
+  - name: obscene
+    dtype: float32
+  - name: identity_attack
+    dtype: float32
+  - name: insult
+    dtype: float32
+  - name: threat
+    dtype: float32
+  - name: asian
+    dtype: float32
+  - name: atheist
+    dtype: float32
+  - name: bisexual
+    dtype: float32
+  - name: black
+    dtype: float32
+  - name: buddhist
+    dtype: float32
+  - name: christian
+    dtype: float32
+  - name: female
+    dtype: float32
+  - name: heterosexual
+    dtype: float32
+  - name: hindu
+    dtype: float32
+  - name: homosexual_gay_or_lesbian
+    dtype: float32
+  - name: intellectual_or_learning_disability
+    dtype: float32
+  - name: jewish
+    dtype: float32
+  - name: latino
+    dtype: float32
+  - name: male
+    dtype: float32
+  - name: muslim
+    dtype: float32
+  - name: other_disability
+    dtype: float32
+  - name: other_gender
+    dtype: float32
+  - name: other_race_or_ethnicity
+    dtype: float32
+  - name: other_religion
+    dtype: float32
+  - name: other_sexual_orientation
+    dtype: float32
+  - name: physical_disability
+    dtype: float32
+  - name: psychiatric_or_mental_illness
+    dtype: float32
+  - name: transgender
+    dtype: float32
+  - name: white
+    dtype: float32
+  - name: created_date
+    dtype: string
+  - name: publication_id
+    dtype: int32
+  - name: parent_id
+    dtype: float32
+  - name: article_id
+    dtype: int32
+  - name: rating
+    dtype:
+      class_label:
+        names:
+          0: rejected
+          1: approved
+  - name: funny
+    dtype: int32
+  - name: wow
+    dtype: int32
+  - name: sad
+    dtype: int32
+  - name: likes
+    dtype: int32
+  - name: disagree
+    dtype: int32
+  - name: sexual_explicit
+    dtype: float32
+  - name: identity_annotator_count
+    dtype: int32
+  - name: toxicity_annotator_count
+    dtype: int32
+  splits:
+  - name: test_private_leaderboard
+    num_bytes: 49188921
+    num_examples: 97320
+  - name: test_public_leaderboard
+    num_bytes: 49442360
+    num_examples: 97320
+  - name: train
+    num_bytes: 914264058
+    num_examples: 1804874
+  download_size: 0
+  dataset_size: 1012895339
 ---
 
 # Dataset Card for Jigsaw Unintended Bias in Toxicity Classification

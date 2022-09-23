@@ -39,7 +39,7 @@ train-eval-index:
   - type: f1
     name: F1 micro
     args:
-      average: micro  
+      average: micro
   - type: f1
     name: F1 weighted
     args:
@@ -47,27 +47,50 @@ train-eval-index:
   - type: precision
     name: Precision macro
     args:
-      average: macro  
+      average: macro
   - type: precision
     name: Precision micro
     args:
-      average: micro  
+      average: micro
   - type: precision
     name: Precision weighted
     args:
-      average: weighted  
+      average: weighted
   - type: recall
     name: Recall macro
     args:
-      average: macro  
+      average: macro
   - type: recall
     name: Recall micro
     args:
-      average: micro  
+      average: micro
   - type: recall
     name: Recall weighted
     args:
-      average: weighted 
+      average: weighted
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 32650697
+    num_examples: 25000
+  - name: train
+    num_bytes: 33432835
+    num_examples: 25000
+  - name: unsupervised
+    num_bytes: 67106814
+    num_examples: 50000
+  download_size: 84125825
+  dataset_size: 133190346
 ---
 
 # Dataset Card for "imdb"

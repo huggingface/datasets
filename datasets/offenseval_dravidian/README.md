@@ -27,6 +27,76 @@ configs:
 - kannada
 - malayalam
 - tamil
+dataset_info:
+- config_name: tamil
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Not_offensive
+          1: Offensive_Untargetede
+          2: Offensive_Targeted_Insult_Individual
+          3: Offensive_Targeted_Insult_Group
+          4: Offensive_Targeted_Insult_Other
+          5: not-Tamil
+  splits:
+  - name: train
+    num_bytes: 4214801
+    num_examples: 35139
+  - name: validation
+    num_bytes: 526108
+    num_examples: 4388
+  download_size: 5040217
+  dataset_size: 4740909
+- config_name: malayalam
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Not_offensive
+          1: Offensive_Untargetede
+          2: Offensive_Targeted_Insult_Individual
+          3: Offensive_Targeted_Insult_Group
+          4: Offensive_Targeted_Insult_Other
+          5: not-malayalam
+  splits:
+  - name: train
+    num_bytes: 1944857
+    num_examples: 16010
+  - name: validation
+    num_bytes: 249364
+    num_examples: 1999
+  download_size: 2276736
+  dataset_size: 2194221
+- config_name: kannada
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Not_offensive
+          1: Offensive_Untargetede
+          2: Offensive_Targeted_Insult_Individual
+          3: Offensive_Targeted_Insult_Group
+          4: Offensive_Targeted_Insult_Other
+          5: not-Kannada
+  splits:
+  - name: train
+    num_bytes: 567119
+    num_examples: 6217
+  - name: validation
+    num_bytes: 70147
+    num_examples: 777
+  download_size: 678727
+  dataset_size: 637266
 ---
 
 # Dataset Card for Offenseval Dravidian

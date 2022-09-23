@@ -19,6 +19,22 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: null
 pretty_name: Turkish Product Reviews
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  - name: sentiment
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: positive
+  splits:
+  - name: train
+    num_bytes: 43369710
+    num_examples: 235165
+  download_size: 13184332
+  dataset_size: 43369710
 ---
 
 # Dataset Card for Turkish Product Reviews

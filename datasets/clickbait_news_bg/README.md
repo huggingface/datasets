@@ -19,6 +19,37 @@ task_ids:
 - fact-checking
 paperswithcode_id: null
 pretty_name: Clickbait/Fake News in Bulgarian
+dataset_info:
+  features:
+  - name: fake_news_score
+    dtype:
+      class_label:
+        names:
+          0: legitimate
+          1: fake
+  - name: click_bait_score
+    dtype:
+      class_label:
+        names:
+          0: normal
+          1: clickbait
+  - name: content_title
+    dtype: string
+  - name: content_url
+    dtype: string
+  - name: content_published_time
+    dtype: string
+  - name: content
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 24480402
+    num_examples: 2815
+  - name: validation
+    num_bytes: 6752242
+    num_examples: 761
+  download_size: 8569575
+  dataset_size: 31232644
 ---
 
 # Dataset Card for Clickbait/Fake News in Bulgarian

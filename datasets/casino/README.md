@@ -21,6 +21,149 @@ task_ids:
 - dialogue-modeling
 pretty_name: Campsite Negotiation Dialogues
 paperswithcode_id: casino
+dataset_info:
+  features:
+  - name: chat_logs
+    list:
+    - name: text
+      dtype: string
+    - name: task_data
+      struct:
+      - name: data
+        dtype: string
+      - name: issue2youget
+        struct:
+        - name: Firewood
+          dtype: string
+        - name: Water
+          dtype: string
+        - name: Food
+          dtype: string
+      - name: issue2theyget
+        struct:
+        - name: Firewood
+          dtype: string
+        - name: Water
+          dtype: string
+        - name: Food
+          dtype: string
+    - name: id
+      dtype: string
+  - name: participant_info
+    struct:
+    - name: mturk_agent_1
+      struct:
+      - name: value2issue
+        struct:
+        - name: Low
+          dtype: string
+        - name: Medium
+          dtype: string
+        - name: High
+          dtype: string
+      - name: value2reason
+        struct:
+        - name: Low
+          dtype: string
+        - name: Medium
+          dtype: string
+        - name: High
+          dtype: string
+      - name: outcomes
+        struct:
+        - name: points_scored
+          dtype: int32
+        - name: satisfaction
+          dtype: string
+        - name: opponent_likeness
+          dtype: string
+      - name: demographics
+        struct:
+        - name: age
+          dtype: int32
+        - name: gender
+          dtype: string
+        - name: ethnicity
+          dtype: string
+        - name: education
+          dtype: string
+      - name: personality
+        struct:
+        - name: svo
+          dtype: string
+        - name: big-five
+          struct:
+          - name: extraversion
+            dtype: float32
+          - name: agreeableness
+            dtype: float32
+          - name: conscientiousness
+            dtype: float32
+          - name: emotional-stability
+            dtype: float32
+          - name: openness-to-experiences
+            dtype: float32
+    - name: mturk_agent_2
+      struct:
+      - name: value2issue
+        struct:
+        - name: Low
+          dtype: string
+        - name: Medium
+          dtype: string
+        - name: High
+          dtype: string
+      - name: value2reason
+        struct:
+        - name: Low
+          dtype: string
+        - name: Medium
+          dtype: string
+        - name: High
+          dtype: string
+      - name: outcomes
+        struct:
+        - name: points_scored
+          dtype: int32
+        - name: satisfaction
+          dtype: string
+        - name: opponent_likeness
+          dtype: string
+      - name: demographics
+        struct:
+        - name: age
+          dtype: int32
+        - name: gender
+          dtype: string
+        - name: ethnicity
+          dtype: string
+        - name: education
+          dtype: string
+      - name: personality
+        struct:
+        - name: svo
+          dtype: string
+        - name: big-five
+          struct:
+          - name: extraversion
+            dtype: float32
+          - name: agreeableness
+            dtype: float32
+          - name: conscientiousness
+            dtype: float32
+          - name: emotional-stability
+            dtype: float32
+          - name: openness-to-experiences
+            dtype: float32
+  - name: annotations
+    list:
+      list: string
+  splits:
+  - name: train
+    num_bytes: 3211555
+    num_examples: 1030
+  download_size: 4300019
+  dataset_size: 3211555
 ---
 
 

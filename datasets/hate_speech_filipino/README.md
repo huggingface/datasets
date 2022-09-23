@@ -19,6 +19,28 @@ task_ids:
 - sentiment-analysis
 paperswithcode_id: null
 pretty_name: Hate Speech in Filipino
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 995919
+    num_examples: 10000
+  - name: train
+    num_bytes: 995919
+    num_examples: 10000
+  - name: validation
+    num_bytes: 424365
+    num_examples: 4232
+  download_size: 822927
+  dataset_size: 2416203
 ---
 
 # Dataset Card for Hate Speech in Filipino

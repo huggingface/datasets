@@ -19,6 +19,34 @@ task_categories:
 task_ids:
 - multi-label-classification
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: seq_id
+    dtype: int64
+  - name: medline_ui
+    dtype: int64
+  - name: mesh_terms
+    dtype: string
+  - name: title
+    dtype: string
+  - name: publication_type
+    dtype: string
+  - name: abstract
+    dtype: string
+  - name: author
+    dtype: string
+  - name: source
+    dtype: string
+  config_name: ohsumed
+  splits:
+  - name: test
+    num_bytes: 338533901
+    num_examples: 293855
+  - name: train
+    num_bytes: 60117860
+    num_examples: 54709
+  download_size: 139454017
+  dataset_size: 398651761
 ---
 
 # Dataset Card for ohsumed

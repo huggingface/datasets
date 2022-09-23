@@ -3,6 +3,71 @@ language:
 - en
 paperswithcode_id: ms-marco
 pretty_name: Microsoft Machine Reading Comprehension Dataset
+dataset_info:
+- config_name: v1.1
+  features:
+  - name: answers
+    sequence: string
+  - name: passages
+    sequence:
+    - name: is_selected
+      dtype: int32
+    - name: passage_text
+      dtype: string
+    - name: url
+      dtype: string
+  - name: query
+    dtype: string
+  - name: query_id
+    dtype: int32
+  - name: query_type
+    dtype: string
+  - name: wellFormedAnswers
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 41020711
+    num_examples: 9650
+  - name: train
+    num_bytes: 350884446
+    num_examples: 82326
+  - name: validation
+    num_bytes: 42710107
+    num_examples: 10047
+  download_size: 168698008
+  dataset_size: 434615264
+- config_name: v2.1
+  features:
+  - name: answers
+    sequence: string
+  - name: passages
+    sequence:
+    - name: is_selected
+      dtype: int32
+    - name: passage_text
+      dtype: string
+    - name: url
+      dtype: string
+  - name: query
+    dtype: string
+  - name: query_id
+    dtype: int32
+  - name: query_type
+    dtype: string
+  - name: wellFormedAnswers
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 406197152
+    num_examples: 101092
+  - name: train
+    num_bytes: 3466972085
+    num_examples: 808731
+  - name: validation
+    num_bytes: 414286005
+    num_examples: 101093
+  download_size: 1384271865
+  dataset_size: 4287455242
 ---
 
 # Dataset Card for "ms_marco"

@@ -18,6 +18,27 @@ source_datasets:
 task_categories:
 - automatic-speech-recognition
 task_ids: []
+dataset_info:
+  features:
+  - name: speaker_id
+    dtype: string
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 16000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 86120227
+    num_examples: 760
+  - name: train
+    num_bytes: 1722002133
+    num_examples: 11660
+  download_size: 1475540500
+  dataset_size: 1808122360
 ---
 
 # Dataset Card for VIVOS

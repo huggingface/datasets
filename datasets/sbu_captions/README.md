@@ -19,6 +19,20 @@ task_ids:
 - image-captioning
 paperswithcode_id: sbu-captions-dataset
 pretty_name: SBU Captioned Photo Dataset
+dataset_info:
+  features:
+  - name: image_url
+    dtype: string
+  - name: user_id
+    dtype: string
+  - name: caption
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 143795586
+    num_examples: 1000000
+  download_size: 49787719
+  dataset_size: 143795586
 ---
 
 # Dataset Card for SBU Captioned Photo Dataset

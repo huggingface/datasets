@@ -19,6 +19,42 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: lener-br
 pretty_name: leNER-br
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-ORGANIZACAO
+          2: I-ORGANIZACAO
+          3: B-PESSOA
+          4: I-PESSOA
+          5: B-TEMPO
+          6: I-TEMPO
+          7: B-LOCAL
+          8: I-LOCAL
+          9: B-LEGISLACAO
+          10: I-LEGISLACAO
+          11: B-JURISPRUDENCIA
+          12: I-JURISPRUDENCIA
+  config_name: lener_br
+  splits:
+  - name: test
+    num_bytes: 823708
+    num_examples: 1390
+  - name: train
+    num_bytes: 3984189
+    num_examples: 7828
+  - name: validation
+    num_bytes: 719433
+    num_examples: 1177
+  download_size: 2983137
+  dataset_size: 5527330
 ---
 
 # Dataset Card for leNER-br

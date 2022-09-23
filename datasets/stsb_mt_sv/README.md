@@ -21,6 +21,27 @@ task_ids:
 - semantic-similarity-scoring
 paperswithcode_id: null
 pretty_name: Swedish Machine Translated STS-B
+dataset_info:
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: score
+    dtype: float32
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 171823
+    num_examples: 1379
+  - name: train
+    num_bytes: 772847
+    num_examples: 5749
+  - name: validation
+    num_bytes: 218843
+    num_examples: 1500
+  download_size: 383047
+  dataset_size: 1163513
 ---
 
 # Dataset Card for Swedish Machine Translated STS-B 

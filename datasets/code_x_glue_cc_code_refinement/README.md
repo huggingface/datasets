@@ -18,6 +18,47 @@ task_categories:
 task_ids:
 - text2text-generation-other-debugging
 pretty_name: CodeXGlueCcCodeRefinement
+dataset_info:
+- config_name: medium
+  features:
+  - name: id
+    dtype: int32
+  - name: buggy
+    dtype: string
+  - name: fixed
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 4063673
+    num_examples: 6545
+  - name: train
+    num_bytes: 32614834
+    num_examples: 52364
+  - name: validation
+    num_bytes: 4086741
+    num_examples: 6546
+  download_size: 39979724
+  dataset_size: 40765248
+- config_name: small
+  features:
+  - name: id
+    dtype: int32
+  - name: buggy
+    dtype: string
+  - name: fixed
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1619708
+    num_examples: 5835
+  - name: train
+    num_bytes: 13006719
+    num_examples: 46680
+  - name: validation
+    num_bytes: 1629250
+    num_examples: 5835
+  download_size: 15555421
+  dataset_size: 16255677
 ---
 
 # Dataset Card for "code_x_glue_cc_code_refinement"

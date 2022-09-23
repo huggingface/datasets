@@ -29,6 +29,69 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: tydi-qa
+dataset_info:
+- config_name: primary_task
+  features:
+  - name: passage_answer_candidates
+    sequence:
+    - name: plaintext_start_byte
+      dtype: int32
+    - name: plaintext_end_byte
+      dtype: int32
+  - name: question_text
+    dtype: string
+  - name: document_title
+    dtype: string
+  - name: language
+    dtype: string
+  - name: annotations
+    sequence:
+    - name: passage_answer_candidate_index
+      dtype: int32
+    - name: minimal_answers_start_byte
+      dtype: int32
+    - name: minimal_answers_end_byte
+      dtype: int32
+    - name: yes_no_answer
+      dtype: string
+  - name: document_plaintext
+    dtype: string
+  - name: document_url
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 5550574617
+    num_examples: 166916
+  - name: validation
+    num_bytes: 484380443
+    num_examples: 18670
+  download_size: 1953887429
+  dataset_size: 6034955060
+- config_name: secondary_task
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: train
+    num_bytes: 52948607
+    num_examples: 49881
+  - name: validation
+    num_bytes: 5006461
+    num_examples: 5077
+  download_size: 1953887429
+  dataset_size: 57955068
 ---
 
 # Dataset Card for "tydiqa"

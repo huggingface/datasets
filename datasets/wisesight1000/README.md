@@ -19,6 +19,39 @@ task_ids:
 - token-classification-other-word-tokenization
 paperswithcode_id: null
 pretty_name: wisesight1000
+dataset_info:
+  features:
+  - name: char
+    sequence: string
+  - name: char_type
+    sequence:
+      class_label:
+        names:
+          0: b_e
+          1: c
+          2: d
+          3: n
+          4: o
+          5: p
+          6: q
+          7: s
+          8: s_e
+          9: t
+          10: v
+          11: w
+  - name: is_beginning
+    sequence:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  config_name: wisesight1000
+  splits:
+  - name: train
+    num_bytes: 1735438
+    num_examples: 993
+  download_size: 222691
+  dataset_size: 1735438
 ---
 
 # Dataset Card for `wisesight1000`

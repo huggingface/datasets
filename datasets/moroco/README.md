@@ -20,7 +20,36 @@ task_categories:
 task_ids:
 - topic-classification
 paperswithcode_id: moroco
-pretty_name: "MOROCO: The Moldavian and Romanian Dialectal Corpus"
+pretty_name: 'MOROCO: The Moldavian and Romanian Dialectal Corpus'
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: category
+    dtype:
+      class_label:
+        names:
+          0: culture
+          1: finance
+          2: politics
+          3: science
+          4: sports
+          5: tech
+  - name: sample
+    dtype: string
+  config_name: moroco
+  splits:
+  - name: test
+    num_bytes: 10877813
+    num_examples: 5924
+  - name: train
+    num_bytes: 39314292
+    num_examples: 21719
+  - name: validation
+    num_bytes: 10721304
+    num_examples: 5921
+  download_size: 60711985
+  dataset_size: 60913409
 ---
 
 # Dataset Card for MOROCO
@@ -172,4 +201,3 @@ CC BY-SA 4.0 License
 ### Contributions
 
 Thanks to [@MihaelaGaman](https://github.com/MihaelaGaman) for adding this dataset.
-

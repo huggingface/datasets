@@ -60,6 +60,1300 @@ configs:
 - wiki_lingua_tr_en
 - wiki_lingua_vi_en
 - xsum
+dataset_info:
+- config_name: mlsum_de
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: topic
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: date
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: challenge_test_covid
+    num_bytes: 19771285
+    num_examples: 5058
+  - name: challenge_train_sample
+    num_bytes: 1894220
+    num_examples: 500
+  - name: challenge_validation_sample
+    num_bytes: 2202723
+    num_examples: 500
+  - name: test
+    num_bytes: 49146354
+    num_examples: 10695
+  - name: train
+    num_bytes: 858060337
+    num_examples: 220748
+  - name: validation
+    num_bytes: 49712791
+    num_examples: 11392
+  download_size: 362783528
+  dataset_size: 980787710
+- config_name: mlsum_es
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: topic
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: date
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: challenge_test_covid
+    num_bytes: 13576624
+    num_examples: 1938
+  - name: challenge_train_sample
+    num_bytes: 2366443
+    num_examples: 500
+  - name: challenge_validation_sample
+    num_bytes: 2658596
+    num_examples: 500
+  - name: test
+    num_bytes: 72117564
+    num_examples: 13366
+  - name: train
+    num_bytes: 1211240956
+    num_examples: 259888
+  - name: validation
+    num_bytes: 51611723
+    num_examples: 9977
+  download_size: 525621426
+  dataset_size: 1353571906
+- config_name: wiki_lingua_es_en_v0
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 50195305
+    num_examples: 19797
+  - name: train
+    num_bytes: 215665468
+    num_examples: 79515
+  - name: validation
+    num_bytes: 25891008
+    num_examples: 8835
+  download_size: 169406387
+  dataset_size: 291751781
+- config_name: wiki_lingua_ru_en_v0
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 34865311
+    num_examples: 9094
+  - name: train
+    num_bytes: 159631205
+    num_examples: 36898
+  - name: validation
+    num_bytes: 18626973
+    num_examples: 4100
+  download_size: 169406387
+  dataset_size: 213123489
+- config_name: wiki_lingua_tr_en_v0
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 1875110
+    num_examples: 808
+  - name: train
+    num_bytes: 7689845
+    num_examples: 3193
+  - name: validation
+    num_bytes: 942122
+    num_examples: 355
+  download_size: 169406387
+  dataset_size: 10507077
+- config_name: wiki_lingua_vi_en_v0
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 6267359
+    num_examples: 2167
+  - name: train
+    num_bytes: 31599580
+    num_examples: 9206
+  - name: validation
+    num_bytes: 3618660
+    num_examples: 1023
+  download_size: 169406387
+  dataset_size: 41485599
+- config_name: wiki_lingua_arabic_ar
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - ar
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - ar
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 60915220
+    num_examples: 5841
+  - name: train
+    num_bytes: 208106335
+    num_examples: 20441
+  - name: validation
+    num_bytes: 31126187
+    num_examples: 2919
+  download_size: 58984103
+  dataset_size: 300147742
+- config_name: wiki_lingua_chinese_zh
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - zh
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - zh
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 25310021
+    num_examples: 3775
+  - name: train
+    num_bytes: 86130302
+    num_examples: 13211
+  - name: validation
+    num_bytes: 13060918
+    num_examples: 1886
+  download_size: 32899156
+  dataset_size: 124501241
+- config_name: wiki_lingua_czech_cs
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - cs
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - cs
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 12124770
+    num_examples: 1438
+  - name: train
+    num_bytes: 41107318
+    num_examples: 5033
+  - name: validation
+    num_bytes: 6305328
+    num_examples: 718
+  download_size: 14515534
+  dataset_size: 59537416
+- config_name: wiki_lingua_dutch_nl
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - nl
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - nl
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 49165151
+    num_examples: 6248
+  - name: train
+    num_bytes: 169067454
+    num_examples: 21866
+  - name: validation
+    num_bytes: 25521003
+    num_examples: 3123
+  download_size: 56492150
+  dataset_size: 243753608
+- config_name: wiki_lingua_english_en
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - en
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - en
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 138944243
+    num_examples: 28614
+  - name: train
+    num_bytes: 464171624
+    num_examples: 99020
+  - name: validation
+    num_bytes: 67652281
+    num_examples: 13823
+  download_size: 118031903
+  dataset_size: 670768148
+- config_name: wiki_lingua_french_fr
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - fr
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - fr
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 108831855
+    num_examples: 12731
+  - name: train
+    num_bytes: 372039357
+    num_examples: 44556
+  - name: validation
+    num_bytes: 54992250
+    num_examples: 6364
+  download_size: 118758047
+  dataset_size: 535863462
+- config_name: wiki_lingua_german_de
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - de
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - de
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 93715331
+    num_examples: 11669
+  - name: train
+    num_bytes: 322276536
+    num_examples: 40839
+  - name: validation
+    num_bytes: 47631883
+    num_examples: 5833
+  download_size: 107638803
+  dataset_size: 463623750
+- config_name: wiki_lingua_hindi_hi
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - hi
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - hi
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 28543048
+    num_examples: 1984
+  - name: train
+    num_bytes: 99672133
+    num_examples: 6942
+  - name: validation
+    num_bytes: 14706378
+    num_examples: 991
+  download_size: 21042040
+  dataset_size: 142921559
+- config_name: wiki_lingua_indonesian_id
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - id
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - id
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 76567819
+    num_examples: 9497
+  - name: train
+    num_bytes: 263974954
+    num_examples: 33237
+  - name: validation
+    num_bytes: 39297987
+    num_examples: 4747
+  download_size: 83968162
+  dataset_size: 379840760
+- config_name: wiki_lingua_italian_it
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - it
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - it
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 76840429
+    num_examples: 10189
+  - name: train
+    num_bytes: 267090482
+    num_examples: 35661
+  - name: validation
+    num_bytes: 39227425
+    num_examples: 5093
+  download_size: 88921209
+  dataset_size: 383158336
+- config_name: wiki_lingua_japanese_ja
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - ja
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - ja
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 21175951
+    num_examples: 2530
+  - name: train
+    num_bytes: 73871019
+    num_examples: 8853
+  - name: validation
+    num_bytes: 10807006
+    num_examples: 1264
+  download_size: 22803299
+  dataset_size: 105853976
+- config_name: wiki_lingua_korean_ko
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - ko
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - ko
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 21172641
+    num_examples: 2436
+  - name: train
+    num_bytes: 73106687
+    num_examples: 8524
+  - name: validation
+    num_bytes: 10788276
+    num_examples: 1216
+  download_size: 23336917
+  dataset_size: 105067604
+- config_name: wiki_lingua_portuguese_pt
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - pt
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - pt
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 117775356
+    num_examples: 16331
+  - name: train
+    num_bytes: 405546332
+    num_examples: 57159
+  - name: validation
+    num_bytes: 59729210
+    num_examples: 8165
+  download_size: 137542940
+  dataset_size: 583050898
+- config_name: wiki_lingua_russian_ru
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - ru
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - ru
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 116330937
+    num_examples: 10580
+  - name: train
+    num_bytes: 406299624
+    num_examples: 37028
+  - name: validation
+    num_bytes: 59651340
+    num_examples: 5288
+  download_size: 106281321
+  dataset_size: 582281901
+- config_name: wiki_lingua_spanish_es
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - es
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - es
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 177096288
+    num_examples: 22632
+  - name: train
+    num_bytes: 604276564
+    num_examples: 79212
+  - name: validation
+    num_bytes: 88677656
+    num_examples: 11316
+  download_size: 198247534
+  dataset_size: 870050508
+- config_name: wiki_lingua_thai_th
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - th
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - th
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 40049968
+    num_examples: 2950
+  - name: train
+    num_bytes: 139287649
+    num_examples: 10325
+  - name: validation
+    num_bytes: 21097845
+    num_examples: 1475
+  download_size: 29988180
+  dataset_size: 200435462
+- config_name: wiki_lingua_turkish_tr
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - tr
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - tr
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 6197850
+    num_examples: 900
+  - name: train
+    num_bytes: 21987247
+    num_examples: 3148
+  - name: validation
+    num_bytes: 3229714
+    num_examples: 449
+  download_size: 7055820
+  dataset_size: 31414811
+- config_name: wiki_lingua_vietnamese_vi
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source_aligned
+    dtype:
+      translation:
+        languages:
+        - vi
+        - en
+  - name: target_aligned
+    dtype:
+      translation:
+        languages:
+        - vi
+        - en
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 37430208
+    num_examples: 3917
+  - name: train
+    num_bytes: 128025008
+    num_examples: 13707
+  - name: validation
+    num_bytes: 19414734
+    num_examples: 1957
+  download_size: 38035490
+  dataset_size: 184869950
+- config_name: xsum
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: xsum_id
+    dtype: string
+  - name: document
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: challenge_test_backtranslation
+    num_bytes: 1262047
+    num_examples: 500
+  - name: challenge_test_bfp_02
+    num_bytes: 1090364
+    num_examples: 500
+  - name: challenge_test_bfp_05
+    num_bytes: 1078076
+    num_examples: 500
+  - name: challenge_test_covid
+    num_bytes: 1867180
+    num_examples: 401
+  - name: challenge_test_nopunc
+    num_bytes: 1127796
+    num_examples: 500
+  - name: challenge_train_sample
+    num_bytes: 1429145
+    num_examples: 500
+  - name: challenge_validation_sample
+    num_bytes: 1012689
+    num_examples: 500
+  - name: test
+    num_bytes: 2598509
+    num_examples: 1166
+  - name: train
+    num_bytes: 66299136
+    num_examples: 23206
+  - name: validation
+    num_bytes: 2270306
+    num_examples: 1117
+  download_size: 258277147
+  dataset_size: 80035248
+- config_name: common_gen
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: concept_set_id
+    dtype: int32
+  - name: concepts
+    list: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: challenge_test_scramble
+    num_bytes: 60411
+    num_examples: 500
+  - name: challenge_train_sample
+    num_bytes: 85413
+    num_examples: 500
+  - name: challenge_validation_sample
+    num_bytes: 215192
+    num_examples: 500
+  - name: test
+    num_bytes: 153170
+    num_examples: 1497
+  - name: train
+    num_bytes: 10475926
+    num_examples: 67389
+  - name: validation
+    num_bytes: 405872
+    num_examples: 993
+  download_size: 1933517
+  dataset_size: 11395984
+- config_name: cs_restaurants
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: dialog_act
+    dtype: string
+  - name: dialog_act_delexicalized
+    dtype: string
+  - name: target_delexicalized
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: challenge_test_scramble
+    num_bytes: 185574
+    num_examples: 500
+  - name: challenge_train_sample
+    num_bytes: 127869
+    num_examples: 500
+  - name: challenge_validation_sample
+    num_bytes: 193239
+    num_examples: 500
+  - name: test
+    num_bytes: 295696
+    num_examples: 842
+  - name: train
+    num_bytes: 873145
+    num_examples: 3569
+  - name: validation
+    num_bytes: 288222
+    num_examples: 781
+  download_size: 1531111
+  dataset_size: 1963745
+- config_name: dart
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: dart_id
+    dtype: int32
+  - name: tripleset
+    list:
+      list: string
+  - name: subtree_was_extended
+    dtype: bool
+  - name: target_sources
+    list: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: test
+    num_bytes: 3476953
+    num_examples: 5097
+  - name: train
+    num_bytes: 23047610
+    num_examples: 62659
+  - name: validation
+    num_bytes: 1934054
+    num_examples: 2768
+  download_size: 29939366
+  dataset_size: 28458617
+- config_name: e2e_nlg
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: meaning_representation
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: challenge_test_scramble
+    num_bytes: 236199
+    num_examples: 500
+  - name: challenge_train_sample
+    num_bytes: 145319
+    num_examples: 500
+  - name: challenge_validation_sample
+    num_bytes: 226525
+    num_examples: 500
+  - name: test
+    num_bytes: 2133695
+    num_examples: 4693
+  - name: train
+    num_bytes: 9129030
+    num_examples: 33525
+  - name: validation
+    num_bytes: 1856097
+    num_examples: 4299
+  download_size: 14668048
+  dataset_size: 13726865
+- config_name: totto
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: totto_id
+    dtype: int32
+  - name: table_page_title
+    dtype: string
+  - name: table_webpage_url
+    dtype: string
+  - name: table_section_title
+    dtype: string
+  - name: table_section_text
+    dtype: string
+  - name: table
+    list:
+      list:
+      - name: column_span
+        dtype: int32
+      - name: is_header
+        dtype: bool
+      - name: row_span
+        dtype: int32
+      - name: value
+        dtype: string
+  - name: highlighted_cells
+    list:
+      list: int32
+  - name: example_id
+    dtype: string
+  - name: sentence_annotations
+    list:
+    - name: original_sentence
+      dtype: string
+    - name: sentence_after_deletion
+      dtype: string
+    - name: sentence_after_ambiguity
+      dtype: string
+    - name: final_sentence
+      dtype: string
+  - name: overlap_subset
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: challenge_test_scramble
+    num_bytes: 2638966
+    num_examples: 500
+  - name: challenge_train_sample
+    num_bytes: 2283076
+    num_examples: 500
+  - name: challenge_validation_sample
+    num_bytes: 3398639
+    num_examples: 500
+  - name: test
+    num_bytes: 41330062
+    num_examples: 7700
+  - name: train
+    num_bytes: 676032144
+    num_examples: 121153
+  - name: validation
+    num_bytes: 50736204
+    num_examples: 7700
+  download_size: 189534609
+  dataset_size: 776419091
+- config_name: web_nlg_en
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: input
+    list: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  - name: category
+    dtype: string
+  - name: webnlg_id
+    dtype: string
+  splits:
+  - name: challenge_test_numbers
+    num_bytes: 409213
+    num_examples: 500
+  - name: challenge_test_scramble
+    num_bytes: 402407
+    num_examples: 500
+  - name: challenge_train_sample
+    num_bytes: 193198
+    num_examples: 502
+  - name: challenge_validation_sample
+    num_bytes: 359868
+    num_examples: 499
+  - name: test
+    num_bytes: 1403601
+    num_examples: 1779
+  - name: train
+    num_bytes: 13067615
+    num_examples: 35426
+  - name: validation
+    num_bytes: 1153995
+    num_examples: 1667
+  download_size: 13181969
+  dataset_size: 16989897
+- config_name: web_nlg_ru
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: input
+    list: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  - name: category
+    dtype: string
+  - name: webnlg_id
+    dtype: string
+  splits:
+  - name: challenge_test_scramble
+    num_bytes: 521625
+    num_examples: 500
+  - name: challenge_train_sample
+    num_bytes: 247089
+    num_examples: 501
+  - name: challenge_validation_sample
+    num_bytes: 514117
+    num_examples: 500
+  - name: test
+    num_bytes: 1145282
+    num_examples: 1102
+  - name: train
+    num_bytes: 6888009
+    num_examples: 14630
+  - name: validation
+    num_bytes: 795998
+    num_examples: 790
+  download_size: 7854845
+  dataset_size: 10112120
+- config_name: wiki_auto_asset_turk
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: challenge_test_asset_backtranslation
+    num_bytes: 436820
+    num_examples: 359
+  - name: challenge_test_asset_bfp02
+    num_bytes: 432742
+    num_examples: 359
+  - name: challenge_test_asset_bfp05
+    num_bytes: 432742
+    num_examples: 359
+  - name: challenge_test_asset_nopunc
+    num_bytes: 432735
+    num_examples: 359
+  - name: challenge_test_turk_backtranslation
+    num_bytes: 417204
+    num_examples: 359
+  - name: challenge_test_turk_bfp02
+    num_bytes: 414381
+    num_examples: 359
+  - name: challenge_test_turk_bfp05
+    num_bytes: 414383
+    num_examples: 359
+  - name: challenge_test_turk_nopunc
+    num_bytes: 414388
+    num_examples: 359
+  - name: challenge_train_sample
+    num_bytes: 219542
+    num_examples: 500
+  - name: challenge_validation_sample
+    num_bytes: 213048
+    num_examples: 500
+  - name: test_asset
+    num_bytes: 475336
+    num_examples: 359
+  - name: test_turk
+    num_bytes: 406842
+    num_examples: 359
+  - name: train
+    num_bytes: 161095379
+    num_examples: 483801
+  - name: validation
+    num_bytes: 8211308
+    num_examples: 20000
+  download_size: 126927527
+  dataset_size: 174016850
+- config_name: schema_guided_dialog
+  features:
+  - name: gem_id
+    dtype: string
+  - name: gem_parent_id
+    dtype: string
+  - name: dialog_acts
+    list:
+    - name: act
+      dtype:
+        class_label:
+          names:
+            0: AFFIRM
+            1: AFFIRM_INTENT
+            2: CONFIRM
+            3: GOODBYE
+            4: INFORM
+            5: INFORM_COUNT
+            6: INFORM_INTENT
+            7: NEGATE
+            8: NEGATE_INTENT
+            9: NOTIFY_FAILURE
+            10: NOTIFY_SUCCESS
+            11: OFFER
+            12: OFFER_INTENT
+            13: REQUEST
+            14: REQUEST_ALTS
+            15: REQ_MORE
+            16: SELECT
+            17: THANK_YOU
+    - name: slot
+      dtype: string
+    - name: values
+      list: string
+  - name: context
+    list: string
+  - name: dialog_id
+    dtype: string
+  - name: service
+    dtype: string
+  - name: turn_id
+    dtype: int32
+  - name: prompt
+    dtype: string
+  - name: target
+    dtype: string
+  - name: references
+    list: string
+  splits:
+  - name: challenge_test_backtranslation
+    num_bytes: 512834
+    num_examples: 500
+  - name: challenge_test_bfp02
+    num_bytes: 529404
+    num_examples: 500
+  - name: challenge_test_bfp05
+    num_bytes: 515151
+    num_examples: 500
+  - name: challenge_test_nopunc
+    num_bytes: 509332
+    num_examples: 500
+  - name: challenge_test_scramble
+    num_bytes: 514644
+    num_examples: 500
+  - name: challenge_train_sample
+    num_bytes: 441326
+    num_examples: 500
+  - name: challenge_validation_sample
+    num_bytes: 491492
+    num_examples: 500
+  - name: test
+    num_bytes: 10160596
+    num_examples: 10000
+  - name: train
+    num_bytes: 146648117
+    num_examples: 164982
+  - name: validation
+    num_bytes: 9376504
+    num_examples: 10000
+  download_size: 17826468
+  dataset_size: 169699400
 ---
 
 # Dataset Card for GEM

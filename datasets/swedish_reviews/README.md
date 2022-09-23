@@ -19,6 +19,29 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: null
 pretty_name: Swedish Reviews
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: positive
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 6296541
+    num_examples: 20697
+  - name: train
+    num_bytes: 18842891
+    num_examples: 62089
+  - name: validation
+    num_bytes: 6359227
+    num_examples: 20696
+  download_size: 11841056
+  dataset_size: 31498659
 ---
 
 # Dataset Card for Swedish Reviews

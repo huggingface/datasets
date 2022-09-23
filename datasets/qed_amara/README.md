@@ -237,6 +237,87 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: QedAmara
+dataset_info:
+- config_name: ar-ko
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ar
+        - ko
+  splits:
+  - name: train
+    num_bytes: 79605277
+    num_examples: 592589
+  download_size: 23410393
+  dataset_size: 79605277
+- config_name: de-fr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - fr
+  splits:
+  - name: train
+    num_bytes: 75861416
+    num_examples: 407224
+  download_size: 26579871
+  dataset_size: 75861416
+- config_name: es-it
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - it
+  splits:
+  - name: train
+    num_bytes: 80650321
+    num_examples: 447369
+  download_size: 28344317
+  dataset_size: 80650321
+- config_name: en-ja
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ja
+  splits:
+  - name: train
+    num_bytes: 86731218
+    num_examples: 497531
+  download_size: 29836171
+  dataset_size: 86731218
+- config_name: he-nl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - he
+        - nl
+  splits:
+  - name: train
+    num_bytes: 51448732
+    num_examples: 273165
+  download_size: 16642865
+  dataset_size: 51448732
 ---
 
 # Dataset Card for QedAmara

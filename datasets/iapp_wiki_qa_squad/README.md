@@ -20,6 +20,39 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: null
 pretty_name: IappWikiQaSquad
+dataset_info:
+  features:
+  - name: question_id
+    dtype: string
+  - name: article_id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+    - name: answer_end
+      dtype: int32
+  config_name: iapp_wiki_qa_squad
+  splits:
+  - name: test
+    num_bytes: 2032016
+    num_examples: 739
+  - name: train
+    num_bytes: 16107541
+    num_examples: 5761
+  - name: validation
+    num_bytes: 2120768
+    num_examples: 742
+  download_size: 2876630
+  dataset_size: 20260325
 ---
 
 # Dataset Card for `iapp_wiki_qa_squad`

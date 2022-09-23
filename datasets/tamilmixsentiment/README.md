@@ -20,6 +20,31 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: null
 pretty_name: Tamilmixsentiment
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Positive
+          1: Negative
+          2: Mixed_feelings
+          3: unknown_state
+          4: not-Tamil
+  splits:
+  - name: test
+    num_bytes: 218764
+    num_examples: 3149
+  - name: train
+    num_bytes: 790132
+    num_examples: 11335
+  - name: validation
+    num_bytes: 89618
+    num_examples: 1260
+  download_size: 1150792
+  dataset_size: 1098514
 ---
 
 # Dataset Card for Tamilmixsentiment

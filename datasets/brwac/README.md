@@ -21,6 +21,24 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: brwac
 pretty_name: BrWaC
+dataset_info:
+  features:
+  - name: doc_id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: uri
+    dtype: string
+  - name: text
+    sequence:
+    - name: paragraphs
+      sequence: string
+  splits:
+  - name: train
+    num_bytes: 18828421452
+    num_examples: 3530796
+  download_size: 0
+  dataset_size: 18828421452
 ---
 
 # Dataset Card for BrWaC

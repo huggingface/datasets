@@ -24,6 +24,51 @@ task_categories:
 task_ids: []
 paperswithcode_id: scb-mt-en-th-2020
 pretty_name: ScbMtEnth2020
+dataset_info:
+- config_name: enth
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - th
+  - name: subdataset
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 53782790
+    num_examples: 100177
+  - name: train
+    num_bytes: 390411946
+    num_examples: 801402
+  - name: validation
+    num_bytes: 54167280
+    num_examples: 100173
+  download_size: 138415559
+  dataset_size: 498362016
+- config_name: then
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - th
+        - en
+  - name: subdataset
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 53782790
+    num_examples: 100177
+  - name: train
+    num_bytes: 390411946
+    num_examples: 801402
+  - name: validation
+    num_bytes: 54167280
+    num_examples: 100173
+  download_size: 138415559
+  dataset_size: 498362016
 ---
 
 # Dataset Card for `scb_mt_enth_2020`

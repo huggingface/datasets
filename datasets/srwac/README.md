@@ -21,6 +21,17 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: SrWac
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  config_name: srwac
+  splits:
+  - name: train
+    num_bytes: 17470890484
+    num_examples: 688805174
+  download_size: 3767312759
+  dataset_size: 17470890484
 ---
 
 # Dataset Card for SrWac

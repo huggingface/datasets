@@ -29,36 +29,52 @@ train-eval-index:
     tweet: text
     label: target
     metrics:
-      - type: accuracy
-        name: Accuracy
-      - type: f1
-        name: F1 binary
-        args:
-          average: binary
-      - type: precision
-        name: Precision macro
-        args:
-          average: macro
-      - type: precision
-        name: Precision micro
-        args:
-          average: micro
-      - type: precision
-        name: Precision weighted
-        args:
-          average: weighted
-      - type: recall
-        name: Recall macro
-        args:
-          average: macro
-      - type: recall
-        name: Recall micro
-        args:
-          average: micro
-      - type: recall
-        name: Recall weighted
-        args:
-          average: weighted
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 binary
+      args:
+        average: binary
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
+dataset_info:
+  features:
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: no-hate-speech
+          1: hate-speech
+  - name: tweet
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3191776
+    num_examples: 31962
+  download_size: 3103165
+  dataset_size: 3191776
 ---
 
 # Dataset Card for Tweets Hate Speech Detection

@@ -18,6 +18,32 @@ task_categories:
 task_ids:
 - semantic-similarity-classification
 pretty_name: CodeXGlueCcCloneDetectionBigCloneBench
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: id1
+    dtype: int32
+  - name: id2
+    dtype: int32
+  - name: func1
+    dtype: string
+  - name: func2
+    dtype: string
+  - name: label
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 1220662901
+    num_examples: 415416
+  - name: train
+    num_bytes: 2888035757
+    num_examples: 901028
+  - name: validation
+    num_bytes: 1371399694
+    num_examples: 415416
+  download_size: 47955874
+  dataset_size: 5480098352
 ---
 # Dataset Card for "code_x_glue_cc_clone_detection_big_clone_bench"
 

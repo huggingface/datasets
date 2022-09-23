@@ -19,6 +19,33 @@ task_ids:
 - multiple-choice-qa
 paperswithcode_id: dream
 pretty_name: DREAM
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: dialogue_id
+    dtype: string
+  - name: dialogue
+    sequence: string
+  - name: question
+    dtype: string
+  - name: choice
+    sequence: string
+  - name: answer
+    dtype: string
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 1556379
+    num_examples: 2041
+  - name: train
+    num_bytes: 4775235
+    num_examples: 6116
+  - name: validation
+    num_bytes: 1539272
+    num_examples: 2040
+  download_size: 5558190
+  dataset_size: 7870886
 ---
 
 # Dataset Card for DREAM

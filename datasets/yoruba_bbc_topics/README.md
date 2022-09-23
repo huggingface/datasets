@@ -19,6 +19,37 @@ task_ids:
 - topic-classification
 paperswithcode_id: null
 pretty_name: Yoruba Bbc News Topic Classification Dataset (YorubaBbcTopics)
+dataset_info:
+  features:
+  - name: news_title
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: africa
+          1: entertainment
+          2: health
+          3: nigeria
+          4: politics
+          5: sport
+          6: world
+  - name: date
+    dtype: string
+  - name: bbc_url_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 55652
+    num_examples: 379
+  - name: train
+    num_bytes: 197117
+    num_examples: 1340
+  - name: validation
+    num_bytes: 27771
+    num_examples: 189
+  download_size: 265480
+  dataset_size: 280540
 ---
 
 # Dataset Card for Yoruba BBC News Topic Classification dataset (yoruba_bbc_topics)

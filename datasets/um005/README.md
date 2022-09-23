@@ -19,6 +19,73 @@ task_categories:
 task_ids: []
 paperswithcode_id: umc005-english-urdu
 pretty_name: UMC005 English-Urdu
+dataset_info:
+- config_name: bible
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ur
+        - en
+  splits:
+  - name: test
+    num_bytes: 104678
+    num_examples: 257
+  - name: train
+    num_bytes: 2350730
+    num_examples: 7400
+  - name: validation
+    num_bytes: 113476
+    num_examples: 300
+  download_size: 3683565
+  dataset_size: 2568884
+- config_name: quran
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ur
+        - en
+  splits:
+  - name: test
+    num_bytes: 44413
+    num_examples: 200
+  - name: train
+    num_bytes: 2929711
+    num_examples: 6000
+  - name: validation
+    num_bytes: 43499
+    num_examples: 214
+  download_size: 3683565
+  dataset_size: 3017623
+- config_name: all
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ur
+        - en
+  splits:
+  - name: test
+    num_bytes: 149079
+    num_examples: 457
+  - name: train
+    num_bytes: 5280441
+    num_examples: 13400
+  - name: validation
+    num_bytes: 156963
+    num_examples: 514
+  download_size: 3683565
+  dataset_size: 5586483
 ---
 
 # Dataset Card for UMC005 English-Urdu

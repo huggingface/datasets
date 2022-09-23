@@ -22,6 +22,127 @@ task_ids:
 - closed-domain-qa
 - other-compositionality
 paperswithcode_id: cfq
+dataset_info:
+- config_name: mcd1
+  features:
+  - name: question
+    dtype: string
+  - name: query
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5446503
+    num_examples: 11968
+  - name: train
+    num_bytes: 37408806
+    num_examples: 95743
+  download_size: 267599061
+  dataset_size: 42855309
+- config_name: mcd2
+  features:
+  - name: question
+    dtype: string
+  - name: query
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5314019
+    num_examples: 11968
+  - name: train
+    num_bytes: 39424657
+    num_examples: 95743
+  download_size: 267599061
+  dataset_size: 44738676
+- config_name: mcd3
+  features:
+  - name: question
+    dtype: string
+  - name: query
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5244503
+    num_examples: 11968
+  - name: train
+    num_bytes: 38316345
+    num_examples: 95743
+  download_size: 267599061
+  dataset_size: 43560848
+- config_name: question_complexity_split
+  features:
+  - name: question
+    dtype: string
+  - name: query
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5781561
+    num_examples: 10340
+  - name: train
+    num_bytes: 39989433
+    num_examples: 98999
+  download_size: 267599061
+  dataset_size: 45770994
+- config_name: question_pattern_split
+  features:
+  - name: question
+    dtype: string
+  - name: query
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5179936
+    num_examples: 11909
+  - name: train
+    num_bytes: 41217350
+    num_examples: 95654
+  download_size: 267599061
+  dataset_size: 46397286
+- config_name: query_complexity_split
+  features:
+  - name: question
+    dtype: string
+  - name: query
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5634924
+    num_examples: 9512
+  - name: train
+    num_bytes: 40270175
+    num_examples: 100654
+  download_size: 267599061
+  dataset_size: 45905099
+- config_name: query_pattern_split
+  features:
+  - name: question
+    dtype: string
+  - name: query
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5268358
+    num_examples: 12589
+  - name: train
+    num_bytes: 40811284
+    num_examples: 94600
+  download_size: 267599061
+  dataset_size: 46079642
+- config_name: random_split
+  features:
+  - name: question
+    dtype: string
+  - name: query
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5164923
+    num_examples: 11967
+  - name: train
+    num_bytes: 41279218
+    num_examples: 95744
+  download_size: 267599061
+  dataset_size: 46444141
 ---
 
 # Dataset Card for "cfq"

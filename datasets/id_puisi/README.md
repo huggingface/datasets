@@ -21,6 +21,22 @@ task_ids:
 - text2text-generation-other-poem-generation
 paperswithcode_id: null
 pretty_name: Indonesian Puisi
+dataset_info:
+  features:
+  - name: title
+    dtype: string
+  - name: author
+    dtype: string
+  - name: puisi
+    dtype: string
+  - name: puisi_with_header
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 10613475
+    num_examples: 7223
+  download_size: 10558108
+  dataset_size: 10613475
 ---
 
 # Dataset Card for id_puisi

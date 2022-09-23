@@ -7,7 +7,7 @@ language:
 - en
 license:
 - other
-license_details: "Microsoft Research Data License Agreement"
+license_details: Microsoft Research Data License Agreement
 multilinguality:
 - monolingual
 size_categories:
@@ -18,6 +18,36 @@ task_categories:
 - summarization
 task_ids: []
 pretty_name: MsrTextCompression
+dataset_info:
+  features:
+  - name: source_id
+    dtype: string
+  - name: domain
+    dtype: string
+  - name: source_text
+    dtype: string
+  - name: targets
+    sequence:
+    - name: compressed_text
+      dtype: string
+    - name: judge_id
+      dtype: string
+    - name: num_ratings
+      dtype: int64
+    - name: ratings
+      sequence: int64
+  splits:
+  - name: test
+    num_bytes: 804536
+    num_examples: 785
+  - name: train
+    num_bytes: 5001312
+    num_examples: 4936
+  - name: validation
+    num_bytes: 449691
+    num_examples: 447
+  download_size: 0
+  dataset_size: 6255539
 ---
 
 # Dataset Card for [Dataset Name]

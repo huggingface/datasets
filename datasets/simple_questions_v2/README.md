@@ -19,6 +19,63 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: simplequestions
 pretty_name: SimpleQuestions
+dataset_info:
+- config_name: annotated
+  features:
+  - name: id
+    dtype: string
+  - name: subject_entity
+    dtype: string
+  - name: relationship
+    dtype: string
+  - name: object_entity
+    dtype: string
+  - name: question
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 12376039
+    num_examples: 75910
+  - name: train
+    num_bytes: 12376039
+    num_examples: 75910
+  - name: validation
+    num_bytes: 12376039
+    num_examples: 75910
+  download_size: 423435590
+  dataset_size: 37128117
+- config_name: freebase2m
+  features:
+  - name: id
+    dtype: string
+  - name: subject_entity
+    dtype: string
+  - name: relationship
+    dtype: string
+  - name: object_entities
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 1964037256
+    num_examples: 10843106
+  download_size: 423435590
+  dataset_size: 1964037256
+- config_name: freebase5m
+  features:
+  - name: id
+    dtype: string
+  - name: subject_entity
+    dtype: string
+  - name: relationship
+    dtype: string
+  - name: object_entities
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 2481753516
+    num_examples: 12010500
+  download_size: 423435590
+  dataset_size: 2481753516
 ---
 
 # Dataset Card for SimpleQuestions

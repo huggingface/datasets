@@ -19,6 +19,36 @@ task_ids:
 - extractive-qa
 paperswithcode_id: null
 pretty_name: Microsoft Research Sequential Question Answering
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: annotator
+    dtype: int32
+  - name: position
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: table_file
+    dtype: string
+  - name: table_header
+    sequence: string
+  - name: table_data
+    sequence:
+      sequence: string
+  - name: answer_coordinates
+    sequence: string
+  - name: answer_text
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 4924516
+    num_examples: 3012
+  - name: train
+    num_bytes: 22605449
+    num_examples: 14541
+  download_size: 4796932
+  dataset_size: 27529965
 ---
 
 # Dataset Card for Microsoft Research Sequential Question Answering

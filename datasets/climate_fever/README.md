@@ -26,6 +26,45 @@ task_ids:
 - multi-input-text-classification
 paperswithcode_id: climate-fever
 pretty_name: ClimateFever
+dataset_info:
+  features:
+  - name: claim_id
+    dtype: string
+  - name: claim
+    dtype: string
+  - name: claim_label
+    dtype:
+      class_label:
+        names:
+          0: SUPPORTS
+          1: REFUTES
+          2: NOT_ENOUGH_INFO
+          3: DISPUTED
+  - name: evidences
+    list:
+    - name: evidence_id
+      dtype: string
+    - name: evidence_label
+      dtype:
+        class_label:
+          names:
+            0: SUPPORTS
+            1: REFUTES
+            2: NOT_ENOUGH_INFO
+    - name: article
+      dtype: string
+    - name: evidence
+      dtype: string
+    - name: entropy
+      dtype: float32
+    - name: votes
+      list: string
+  splits:
+  - name: test
+    num_bytes: 2429272
+    num_examples: 1535
+  download_size: 687133
+  dataset_size: 2429272
 ---
 
 # Dataset Card for ClimateFever

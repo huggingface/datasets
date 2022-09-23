@@ -20,6 +20,20 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: BbawEgyptian
+dataset_info:
+  features:
+  - name: transcription
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: hieroglyphs
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 18546162
+    num_examples: 100736
+  download_size: 35348686
+  dataset_size: 18546162
 ---
 
 # Dataset Card for "bbaw_egyptian"

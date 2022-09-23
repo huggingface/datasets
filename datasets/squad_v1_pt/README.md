@@ -20,6 +20,31 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: null
 pretty_name: SquadV1Pt
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: train
+    num_bytes: 85323237
+    num_examples: 87599
+  - name: validation
+    num_bytes: 11265474
+    num_examples: 10570
+  download_size: 39532595
+  dataset_size: 96588711
 ---
 
 # Dataset Card for "squad_v1_pt"

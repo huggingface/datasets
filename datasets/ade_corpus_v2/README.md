@@ -33,48 +33,121 @@ train-eval-index:
     text: text
     label: target
   metrics:
-    - type: accuracy
-      name: Accuracy
-    - type: f1
-      name: F1 macro
-      args:
-        average: macro
-    - type: f1
-      name: F1 micro
-      args:
-        average: micro  
-    - type: f1
-      name: F1 weighted
-      args:
-        average: weighted
-    - type: precision
-      name: Precision macro
-      args:
-        average: macro  
-    - type: precision
-      name: Precision micro
-      args:
-        average: micro  
-    - type: precision
-      name: Precision weighted
-      args:
-        average: weighted  
-    - type: recall
-      name: Recall macro
-      args:
-        average: macro  
-    - type: recall
-      name: Recall micro
-      args:
-        average: micro  
-    - type: recall
-      name: Recall weighted
-      args:
-        average: weighted
+  - type: accuracy
+    name: Accuracy
+  - type: f1
+    name: F1 macro
+    args:
+      average: macro
+  - type: f1
+    name: F1 micro
+    args:
+      average: micro
+  - type: f1
+    name: F1 weighted
+    args:
+      average: weighted
+  - type: precision
+    name: Precision macro
+    args:
+      average: macro
+  - type: precision
+    name: Precision micro
+    args:
+      average: micro
+  - type: precision
+    name: Precision weighted
+    args:
+      average: weighted
+  - type: recall
+    name: Recall macro
+    args:
+      average: macro
+  - type: recall
+    name: Recall micro
+    args:
+      average: micro
+  - type: recall
+    name: Recall weighted
+    args:
+      average: weighted
 configs:
 - Ade_corpus_v2_classification
 - Ade_corpus_v2_drug_ade_relation
 - Ade_corpus_v2_drug_dosage_relation
+dataset_info:
+- config_name: Ade_corpus_v2_classification
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Not-Related
+          1: Related
+  splits:
+  - name: train
+    num_bytes: 3403711
+    num_examples: 23516
+  download_size: 3791162
+  dataset_size: 3403711
+- config_name: Ade_corpus_v2_drug_ade_relation
+  features:
+  - name: text
+    dtype: string
+  - name: drug
+    dtype: string
+  - name: effect
+    dtype: string
+  - name: indexes
+    struct:
+    - name: drug
+      sequence:
+      - name: start_char
+        dtype: int32
+      - name: end_char
+        dtype: int32
+    - name: effect
+      sequence:
+      - name: start_char
+        dtype: int32
+      - name: end_char
+        dtype: int32
+  splits:
+  - name: train
+    num_bytes: 1546021
+    num_examples: 6821
+  download_size: 3791162
+  dataset_size: 1546021
+- config_name: Ade_corpus_v2_drug_dosage_relation
+  features:
+  - name: text
+    dtype: string
+  - name: drug
+    dtype: string
+  - name: dosage
+    dtype: string
+  - name: indexes
+    struct:
+    - name: drug
+      sequence:
+      - name: start_char
+        dtype: int32
+      - name: end_char
+        dtype: int32
+    - name: dosage
+      sequence:
+      - name: start_char
+        dtype: int32
+      - name: end_char
+        dtype: int32
+  splits:
+  - name: train
+    num_bytes: 64725
+    num_examples: 279
+  download_size: 3791162
+  dataset_size: 64725
 ---
 
 # Dataset Card for Adverse Drug Reaction Data v2

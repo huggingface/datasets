@@ -9,7 +9,7 @@ license:
 - unknown
 multilinguality:
 - monolingual
-pretty_name: "CLUE: Chinese Language Understanding Evaluation benchmark"
+pretty_name: 'CLUE: Chinese Language Understanding Evaluation benchmark'
 size_categories:
 - 100K<n<1M
 source_datasets:
@@ -25,6 +25,453 @@ task_ids:
 - text-classification-other-qa-nli
 - multiple-choice-qa
 paperswithcode_id: clue
+dataset_info:
+- config_name: afqmc
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 378726
+    num_examples: 3861
+  - name: train
+    num_bytes: 3396535
+    num_examples: 34334
+  - name: validation
+    num_bytes: 426293
+    num_examples: 4316
+  download_size: 1195044
+  dataset_size: 4201554
+- config_name: tnews
+  features:
+  - name: sentence
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '100'
+          1: '101'
+          2: '102'
+          3: '103'
+          4: '104'
+          5: '106'
+          6: '107'
+          7: '108'
+          8: '109'
+          9: '110'
+          10: '112'
+          11: '113'
+          12: '114'
+          13: '115'
+          14: '116'
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 810974
+    num_examples: 10000
+  - name: train
+    num_bytes: 4245701
+    num_examples: 53360
+  - name: validation
+    num_bytes: 797926
+    num_examples: 10000
+  download_size: 5123575
+  dataset_size: 5854601
+- config_name: iflytek
+  features:
+  - name: sentence
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+          2: '2'
+          3: '3'
+          4: '4'
+          5: '5'
+          6: '6'
+          7: '7'
+          8: '8'
+          9: '9'
+          10: '10'
+          11: '11'
+          12: '12'
+          13: '13'
+          14: '14'
+          15: '15'
+          16: '16'
+          17: '17'
+          18: '18'
+          19: '19'
+          20: '20'
+          21: '21'
+          22: '22'
+          23: '23'
+          24: '24'
+          25: '25'
+          26: '26'
+          27: '27'
+          28: '28'
+          29: '29'
+          30: '30'
+          31: '31'
+          32: '32'
+          33: '33'
+          34: '34'
+          35: '35'
+          36: '36'
+          37: '37'
+          38: '38'
+          39: '39'
+          40: '40'
+          41: '41'
+          42: '42'
+          43: '43'
+          44: '44'
+          45: '45'
+          46: '46'
+          47: '47'
+          48: '48'
+          49: '49'
+          50: '50'
+          51: '51'
+          52: '52'
+          53: '53'
+          54: '54'
+          55: '55'
+          56: '56'
+          57: '57'
+          58: '58'
+          59: '59'
+          60: '60'
+          61: '61'
+          62: '62'
+          63: '63'
+          64: '64'
+          65: '65'
+          66: '66'
+          67: '67'
+          68: '68'
+          69: '69'
+          70: '70'
+          71: '71'
+          72: '72'
+          73: '73'
+          74: '74'
+          75: '75'
+          76: '76'
+          77: '77'
+          78: '78'
+          79: '79'
+          80: '80'
+          81: '81'
+          82: '82'
+          83: '83'
+          84: '84'
+          85: '85'
+          86: '86'
+          87: '87'
+          88: '88'
+          89: '89'
+          90: '90'
+          91: '91'
+          92: '92'
+          93: '93'
+          94: '94'
+          95: '95'
+          96: '96'
+          97: '97'
+          98: '98'
+          99: '99'
+          100: '100'
+          101: '101'
+          102: '102'
+          103: '103'
+          104: '104'
+          105: '105'
+          106: '106'
+          107: '107'
+          108: '108'
+          109: '109'
+          110: '110'
+          111: '111'
+          112: '112'
+          113: '113'
+          114: '114'
+          115: '115'
+          116: '116'
+          117: '117'
+          118: '118'
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 2105688
+    num_examples: 2600
+  - name: train
+    num_bytes: 10028613
+    num_examples: 12133
+  - name: validation
+    num_bytes: 2157123
+    num_examples: 2599
+  download_size: 6505938
+  dataset_size: 14291424
+- config_name: cmnli
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: neutral
+          1: entailment
+          2: contradiction
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 2386837
+    num_examples: 13880
+  - name: train
+    num_bytes: 67685309
+    num_examples: 391783
+  - name: validation
+    num_bytes: 2051845
+    num_examples: 12241
+  download_size: 31404066
+  dataset_size: 72123991
+- config_name: cluewsc2020
+  features:
+  - name: idx
+    dtype: int32
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'true'
+          1: 'false'
+  - name: target
+    struct:
+    - name: span1_text
+      dtype: string
+    - name: span2_text
+      dtype: string
+    - name: span1_index
+      dtype: int32
+    - name: span2_index
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 645649
+    num_examples: 2574
+  - name: train
+    num_bytes: 288828
+    num_examples: 1244
+  - name: validation
+    num_bytes: 72682
+    num_examples: 304
+  download_size: 281384
+  dataset_size: 1007159
+- config_name: csl
+  features:
+  - name: idx
+    dtype: int32
+  - name: corpus_id
+    dtype: int32
+  - name: abst
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  - name: keyword
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 2463740
+    num_examples: 3000
+  - name: train
+    num_bytes: 16478914
+    num_examples: 20000
+  - name: validation
+    num_bytes: 2464575
+    num_examples: 3000
+  download_size: 3234594
+  dataset_size: 21407229
+- config_name: cmrc2018
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 3112066
+    num_examples: 2000
+  - name: train
+    num_bytes: 15508110
+    num_examples: 10142
+  - name: trial
+    num_bytes: 1606931
+    num_examples: 1002
+  - name: validation
+    num_bytes: 5183809
+    num_examples: 3219
+  download_size: 3405146
+  dataset_size: 25410916
+- config_name: drcd
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 4982402
+    num_examples: 3493
+  - name: train
+    num_bytes: 37443458
+    num_examples: 26936
+  - name: validation
+    num_bytes: 5222753
+    num_examples: 3524
+  download_size: 7264200
+  dataset_size: 47648613
+- config_name: chid
+  features:
+  - name: idx
+    dtype: int32
+  - name: candidates
+    sequence: string
+  - name: content
+    sequence: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: candidate_id
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 11480463
+    num_examples: 3447
+  - name: train
+    num_bytes: 252478178
+    num_examples: 84709
+  - name: validation
+    num_bytes: 10117789
+    num_examples: 3218
+  download_size: 139199202
+  dataset_size: 274076430
+- config_name: c3
+  features:
+  - name: id
+    dtype: int32
+  - name: context
+    sequence: string
+  - name: question
+    dtype: string
+  - name: choice
+    sequence: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1600166
+    num_examples: 1625
+  - name: train
+    num_bytes: 9672787
+    num_examples: 11869
+  - name: validation
+    num_bytes: 2990967
+    num_examples: 3816
+  download_size: 3495930
+  dataset_size: 14263920
+- config_name: ocnli
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: neutral
+          1: entailment
+          2: contradiction
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 376066
+    num_examples: 3000
+  - name: train
+    num_bytes: 6187190
+    num_examples: 50437
+  - name: validation
+    num_bytes: 366235
+    num_examples: 2950
+  download_size: 4359754
+  dataset_size: 6929491
+- config_name: diagnostics
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: neutral
+          1: entailment
+          2: contradiction
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 42400
+    num_examples: 514
+  download_size: 12062
+  dataset_size: 42400
 ---
 
 # Dataset Card for "clue"

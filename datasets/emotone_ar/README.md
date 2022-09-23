@@ -19,6 +19,28 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: null
 pretty_name: Emotional Tone in Arabic
+dataset_info:
+  features:
+  - name: tweet
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: none
+          1: anger
+          2: joy
+          3: sadness
+          4: love
+          5: sympathy
+          6: surprise
+          7: fear
+  splits:
+  - name: train
+    num_bytes: 1541746
+    num_examples: 10065
+  download_size: 1563138
+  dataset_size: 1541746
 ---
 
 # Dataset Card for Emotional Tone in Arabic

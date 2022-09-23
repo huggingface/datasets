@@ -19,6 +19,47 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: modern-hebrew-sentiment-dataset
 pretty_name: HebrewSentiment
+dataset_info:
+- config_name: token
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: pos
+          1: neg
+          2: off-topic
+  splits:
+  - name: test
+    num_bytes: 540883
+    num_examples: 2560
+  - name: train
+    num_bytes: 2159738
+    num_examples: 10244
+  download_size: 2593643
+  dataset_size: 2700621
+- config_name: morph
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: pos
+          1: neg
+          2: off-topic
+  splits:
+  - name: test
+    num_bytes: 571401
+    num_examples: 2555
+  - name: train
+    num_bytes: 2258128
+    num_examples: 10221
+  download_size: 2722672
+  dataset_size: 2829529
 ---
 
 # Dataset Card for HebrewSentiment

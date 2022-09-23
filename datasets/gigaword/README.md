@@ -30,8 +30,26 @@ train-eval-index:
     document: text
     summary: target
   metrics:
-    - type: rouge
-      name: Rouge
+  - type: rouge
+    name: Rouge
+dataset_info:
+  features:
+  - name: document
+    dtype: string
+  - name: summary
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 450782
+    num_examples: 1951
+  - name: train
+    num_bytes: 915249388
+    num_examples: 3803957
+  - name: validation
+    num_bytes: 45767096
+    num_examples: 189651
+  download_size: 578402958
+  dataset_size: 961467266
 ---
 
 # Dataset Card for Gigaword

@@ -1,5 +1,5 @@
 ---
-pretty_name: "PAWS-X: A Cross-lingual Adversarial Dataset for Paraphrase Identification"
+pretty_name: 'PAWS-X: A Cross-lingual Adversarial Dataset for Paraphrase Identification'
 annotations_creators:
 - expert-generated
 - machine-generated
@@ -31,6 +31,189 @@ task_ids:
 - text-scoring
 - multi-input-text-classification
 paperswithcode_id: paws-x
+dataset_info:
+- config_name: en
+  features:
+  - name: id
+    dtype: int32
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 494734
+    num_examples: 2000
+  - name: train
+    num_bytes: 12215953
+    num_examples: 49401
+  - name: validation
+    num_bytes: 492287
+    num_examples: 2000
+  download_size: 30282057
+  dataset_size: 13202974
+- config_name: de
+  features:
+  - name: id
+    dtype: int32
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 524214
+    num_examples: 2000
+  - name: train
+    num_bytes: 12801824
+    num_examples: 49401
+  - name: validation
+    num_bytes: 514009
+    num_examples: 2000
+  download_size: 30282057
+  dataset_size: 13840047
+- config_name: es
+  features:
+  - name: id
+    dtype: int32
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 519111
+    num_examples: 2000
+  - name: train
+    num_bytes: 12808486
+    num_examples: 49401
+  - name: validation
+    num_bytes: 513888
+    num_examples: 2000
+  download_size: 30282057
+  dataset_size: 13841485
+- config_name: fr
+  features:
+  - name: id
+    dtype: int32
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 535101
+    num_examples: 2000
+  - name: train
+    num_bytes: 13295597
+    num_examples: 49401
+  - name: validation
+    num_bytes: 533031
+    num_examples: 2000
+  download_size: 30282057
+  dataset_size: 14363729
+- config_name: ja
+  features:
+  - name: id
+    dtype: int32
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 668636
+    num_examples: 2000
+  - name: train
+    num_bytes: 15041632
+    num_examples: 49401
+  - name: validation
+    num_bytes: 661778
+    num_examples: 2000
+  download_size: 30282057
+  dataset_size: 16372046
+- config_name: ko
+  features:
+  - name: id
+    dtype: int32
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 562300
+    num_examples: 2000
+  - name: train
+    num_bytes: 13934221
+    num_examples: 49401
+  - name: validation
+    num_bytes: 554875
+    num_examples: 2000
+  download_size: 30282057
+  dataset_size: 15051396
+- config_name: zh
+  features:
+  - name: id
+    dtype: int32
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 474644
+    num_examples: 2000
+  - name: train
+    num_bytes: 10815499
+    num_examples: 49401
+  - name: validation
+    num_bytes: 473118
+    num_examples: 2000
+  download_size: 30282057
+  dataset_size: 11763261
 ---
 
 # Dataset Card for PAWS-X: A Cross-lingual Adversarial Dataset for Paraphrase Identification

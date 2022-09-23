@@ -22,6 +22,49 @@ task_ids:
 - text-classification-other-legal-judgment-prediction
 paperswithcode_id: ecthr
 pretty_name: European Court of Human Rights Cases
+dataset_info:
+- config_name: alleged-violation-prediction
+  features:
+  - name: facts
+    sequence: string
+  - name: labels
+    sequence: string
+  - name: silver_rationales
+    sequence: int32
+  - name: gold_rationales
+    sequence: int32
+  splits:
+  - name: test
+    num_bytes: 11917598
+    num_examples: 1000
+  - name: train
+    num_bytes: 89835266
+    num_examples: 9000
+  - name: validation
+    num_bytes: 11015998
+    num_examples: 1000
+  download_size: 32815448
+  dataset_size: 112768862
+- config_name: violation-prediction
+  features:
+  - name: facts
+    sequence: string
+  - name: labels
+    sequence: string
+  - name: silver_rationales
+    sequence: int32
+  splits:
+  - name: test
+    num_bytes: 11909314
+    num_examples: 1000
+  - name: train
+    num_bytes: 89776410
+    num_examples: 9000
+  - name: validation
+    num_bytes: 11009350
+    num_examples: 1000
+  download_size: 32815448
+  dataset_size: 112695074
 ---
 
 # Dataset Card for the ECtHR cases dataset

@@ -21,6 +21,47 @@ task_ids:
 - text-classification-other-evaluating-dialogue-systems
 paperswithcode_id: null
 pretty_name: ConvAi
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: dialogId
+    dtype: int32
+  - name: context
+    dtype: string
+  - name: users
+    list:
+    - name: userType
+      dtype: string
+    - name: id
+      dtype: string
+  - name: evaluation
+    list:
+    - name: breadth
+      dtype: int32
+    - name: userId
+      dtype: string
+    - name: quality
+      dtype: int32
+    - name: engagement
+      dtype: int32
+  - name: thread
+    list:
+    - name: evaluation
+      dtype: int32
+    - name: text
+      dtype: string
+    - name: userId
+      dtype: string
+    - name: time
+      dtype: int32
+  config_name: conv_ai
+  splits:
+  - name: train
+    num_bytes: 3924265
+    num_examples: 2778
+  download_size: 5804611
+  dataset_size: 3924265
 ---
 
 # Dataset Card for ConvAi

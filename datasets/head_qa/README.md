@@ -23,6 +23,75 @@ pretty_name: HEAD-QA
 configs:
 - en
 - es
+dataset_info:
+- config_name: es
+  features:
+  - name: name
+    dtype: string
+  - name: year
+    dtype: string
+  - name: category
+    dtype: string
+  - name: qid
+    dtype: int32
+  - name: qtext
+    dtype: string
+  - name: ra
+    dtype: int32
+  - name: image
+    dtype: image
+  - name: answers
+    list:
+    - name: aid
+      dtype: int32
+    - name: atext
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 1204006
+    num_examples: 2742
+  - name: train
+    num_bytes: 1229678
+    num_examples: 2657
+  - name: validation
+    num_bytes: 573354
+    num_examples: 1366
+  download_size: 79365502
+  dataset_size: 3007038
+- config_name: en
+  features:
+  - name: name
+    dtype: string
+  - name: year
+    dtype: string
+  - name: category
+    dtype: string
+  - name: qid
+    dtype: int32
+  - name: qtext
+    dtype: string
+  - name: ra
+    dtype: int32
+  - name: image
+    dtype: image
+  - name: answers
+    list:
+    - name: aid
+      dtype: int32
+    - name: atext
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 1131536
+    num_examples: 2742
+  - name: train
+    num_bytes: 1156808
+    num_examples: 2657
+  - name: validation
+    num_bytes: 539892
+    num_examples: 1366
+  download_size: 79365502
+  dataset_size: 2828236
 ---
 
 # Dataset Card for HEAD-QA

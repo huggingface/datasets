@@ -19,6 +19,37 @@ task_ids:
 - text2text-generation-other-math-word-problems
 paperswithcode_id: gsm8k
 pretty_name: Grade School Math 8K
+dataset_info:
+- config_name: main
+  features:
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 713732
+    num_examples: 1319
+  - name: train
+    num_bytes: 3963202
+    num_examples: 7473
+  download_size: 4915944
+  dataset_size: 4676934
+- config_name: socratic
+  features:
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 936859
+    num_examples: 1319
+  - name: train
+    num_bytes: 5198108
+    num_examples: 7473
+  download_size: 6374717
+  dataset_size: 6134967
 ---
 
 # Dataset Card for GSM8K

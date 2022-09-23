@@ -20,6 +20,38 @@ task_ids:
 - extractive-qa
 paperswithcode_id: null
 pretty_name: KorQuAD v2.1
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer
+    struct:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+    - name: html_answer_start
+      dtype: int32
+  - name: url
+    dtype: string
+  - name: raw_html
+    dtype: string
+  config_name: squad_kor_v2
+  splits:
+  - name: train
+    num_bytes: 17983434492
+    num_examples: 83486
+  - name: validation
+    num_bytes: 2230543100
+    num_examples: 10165
+  download_size: 1373763305
+  dataset_size: 20213977592
 ---
 
 # Dataset Card for KorQuAD v2.1

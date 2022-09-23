@@ -19,6 +19,28 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: emocontext
 pretty_name: EmoContext
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: others
+          1: happy
+          2: sad
+          3: angry
+  config_name: emo2019
+  splits:
+  - name: test
+    num_bytes: 421555
+    num_examples: 5509
+  - name: train
+    num_bytes: 2433205
+    num_examples: 30160
+  download_size: 3362556
+  dataset_size: 2854760
 ---
 
 # Dataset Card for "emo"

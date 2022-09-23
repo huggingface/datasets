@@ -31,6 +31,207 @@ task_ids:
 - semantic-similarity-scoring
 paperswithcode_id: null
 pretty_name: STSb Multi MT
+dataset_info:
+- config_name: en
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: similarity_score
+    dtype: float32
+  splits:
+  - name: dev
+    num_bytes: 210072
+    num_examples: 1500
+  - name: test
+    num_bytes: 164466
+    num_examples: 1379
+  - name: train
+    num_bytes: 731803
+    num_examples: 5749
+  download_size: 1072429
+  dataset_size: 1106341
+- config_name: de
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: similarity_score
+    dtype: float32
+  splits:
+  - name: dev
+    num_bytes: 247077
+    num_examples: 1500
+  - name: test
+    num_bytes: 193333
+    num_examples: 1379
+  - name: train
+    num_bytes: 867473
+    num_examples: 5749
+  download_size: 1279173
+  dataset_size: 1307883
+- config_name: es
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: similarity_score
+    dtype: float32
+  splits:
+  - name: dev
+    num_bytes: 245250
+    num_examples: 1500
+  - name: test
+    num_bytes: 194616
+    num_examples: 1379
+  - name: train
+    num_bytes: 887101
+    num_examples: 5749
+  download_size: 1294160
+  dataset_size: 1326967
+- config_name: fr
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: similarity_score
+    dtype: float32
+  splits:
+  - name: dev
+    num_bytes: 254083
+    num_examples: 1500
+  - name: test
+    num_bytes: 200446
+    num_examples: 1379
+  - name: train
+    num_bytes: 910195
+    num_examples: 5749
+  download_size: 1332515
+  dataset_size: 1364724
+- config_name: it
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: similarity_score
+    dtype: float32
+  splits:
+  - name: dev
+    num_bytes: 243144
+    num_examples: 1500
+  - name: test
+    num_bytes: 191647
+    num_examples: 1379
+  - name: train
+    num_bytes: 871526
+    num_examples: 5749
+  download_size: 1273630
+  dataset_size: 1306317
+- config_name: nl
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: similarity_score
+    dtype: float32
+  splits:
+  - name: dev
+    num_bytes: 234887
+    num_examples: 1500
+  - name: test
+    num_bytes: 182904
+    num_examples: 1379
+  - name: train
+    num_bytes: 833667
+    num_examples: 5749
+  download_size: 1217753
+  dataset_size: 1251458
+- config_name: pl
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: similarity_score
+    dtype: float32
+  splits:
+  - name: dev
+    num_bytes: 231758
+    num_examples: 1500
+  - name: test
+    num_bytes: 181266
+    num_examples: 1379
+  - name: train
+    num_bytes: 828433
+    num_examples: 5749
+  download_size: 1212336
+  dataset_size: 1241457
+- config_name: pt
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: similarity_score
+    dtype: float32
+  splits:
+  - name: dev
+    num_bytes: 240559
+    num_examples: 1500
+  - name: test
+    num_bytes: 189163
+    num_examples: 1379
+  - name: train
+    num_bytes: 854356
+    num_examples: 5749
+  download_size: 1251508
+  dataset_size: 1284078
+- config_name: ru
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: similarity_score
+    dtype: float32
+  splits:
+  - name: dev
+    num_bytes: 386268
+    num_examples: 1500
+  - name: test
+    num_bytes: 300007
+    num_examples: 1379
+  - name: train
+    num_bytes: 1391674
+    num_examples: 5749
+  download_size: 2051645
+  dataset_size: 2077949
+- config_name: zh
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: similarity_score
+    dtype: float32
+  splits:
+  - name: dev
+    num_bytes: 195821
+    num_examples: 1500
+  - name: test
+    num_bytes: 154834
+    num_examples: 1379
+  - name: train
+    num_bytes: 694424
+    num_examples: 5749
+  download_size: 1006892
+  dataset_size: 1045079
 ---
 
 # Dataset Card for STSb Multi MT

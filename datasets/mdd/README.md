@@ -26,6 +26,93 @@ configs:
 - task2_recs
 - task3_qarecs
 - task4_reddit
+dataset_info:
+- config_name: task1_qa
+  features:
+  - name: dialogue_turns
+    sequence:
+    - name: speaker
+      dtype: int32
+    - name: utterance
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 894590
+    num_examples: 9952
+  - name: train
+    num_bytes: 8621120
+    num_examples: 96185
+  - name: validation
+    num_bytes: 892540
+    num_examples: 9968
+  download_size: 135614957
+  dataset_size: 10408250
+- config_name: task2_recs
+  features:
+  - name: dialogue_turns
+    sequence:
+    - name: speaker
+      dtype: int32
+    - name: utterance
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 2064509
+    num_examples: 10000
+  - name: train
+    num_bytes: 205936579
+    num_examples: 1000000
+  - name: validation
+    num_bytes: 2057290
+    num_examples: 10000
+  download_size: 135614957
+  dataset_size: 210058378
+- config_name: task3_qarecs
+  features:
+  - name: dialogue_turns
+    sequence:
+    - name: speaker
+      dtype: int32
+    - name: utterance
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 1730291
+    num_examples: 4915
+  - name: train
+    num_bytes: 356789364
+    num_examples: 952125
+  - name: validation
+    num_bytes: 1776506
+    num_examples: 5052
+  download_size: 135614957
+  dataset_size: 360296161
+- config_name: task4_reddit
+  features:
+  - name: dialogue_turns
+    sequence:
+    - name: speaker
+      dtype: int32
+    - name: utterance
+      dtype: string
+  splits:
+  - name: cand_test
+    num_bytes: 1567235
+    num_examples: 10000
+  - name: cand_valid
+    num_bytes: 1521633
+    num_examples: 10000
+  - name: test
+    num_bytes: 5220295
+    num_examples: 10000
+  - name: train
+    num_bytes: 497864160
+    num_examples: 945198
+  - name: validation
+    num_bytes: 5372702
+    num_examples: 10000
+  download_size: 192209920
+  dataset_size: 511546025
 ---
 
 # Dataset Card for MDD

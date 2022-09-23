@@ -23,6 +23,51 @@ pretty_name: DataCommons Fact Checked claims
 configs:
 - fctchk_politifact_wapo
 - weekly_standard
+dataset_info:
+- config_name: fctchk_politifact_wapo
+  features:
+  - name: reviewer_name
+    dtype: string
+  - name: claim_text
+    dtype: string
+  - name: review_date
+    dtype: string
+  - name: review_url
+    dtype: string
+  - name: review_rating
+    dtype: string
+  - name: claim_author_name
+    dtype: string
+  - name: claim_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1772321
+    num_examples: 5632
+  download_size: 671896
+  dataset_size: 1772321
+- config_name: weekly_standard
+  features:
+  - name: reviewer_name
+    dtype: string
+  - name: claim_text
+    dtype: string
+  - name: review_date
+    dtype: string
+  - name: review_url
+    dtype: string
+  - name: review_rating
+    dtype: string
+  - name: claim_author_name
+    dtype: string
+  - name: claim_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 35061
+    num_examples: 132
+  download_size: 671896
+  dataset_size: 35061
 ---
 
 # Dataset Card for DataCommons Fact Checked claims

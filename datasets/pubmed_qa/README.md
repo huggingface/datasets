@@ -26,6 +26,81 @@ configs:
 - pqa_artificial
 - pqa_labeled
 - pqa_unlabeled
+dataset_info:
+- config_name: pqa_labeled
+  features:
+  - name: pubid
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: context
+    sequence:
+    - name: contexts
+      dtype: string
+    - name: labels
+      dtype: string
+    - name: meshes
+      dtype: string
+    - name: reasoning_required_pred
+      dtype: string
+    - name: reasoning_free_pred
+      dtype: string
+  - name: long_answer
+    dtype: string
+  - name: final_decision
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2089200
+    num_examples: 1000
+  download_size: 687882700
+  dataset_size: 2089200
+- config_name: pqa_unlabeled
+  features:
+  - name: pubid
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: context
+    sequence:
+    - name: contexts
+      dtype: string
+    - name: labels
+      dtype: string
+    - name: meshes
+      dtype: string
+  - name: long_answer
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 125938502
+    num_examples: 61249
+  download_size: 687882700
+  dataset_size: 125938502
+- config_name: pqa_artificial
+  features:
+  - name: pubid
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: context
+    sequence:
+    - name: contexts
+      dtype: string
+    - name: labels
+      dtype: string
+    - name: meshes
+      dtype: string
+  - name: long_answer
+    dtype: string
+  - name: final_decision
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 443554667
+    num_examples: 211269
+  download_size: 687882700
+  dataset_size: 443554667
 ---
 
 # Dataset Card for [Dataset Name]

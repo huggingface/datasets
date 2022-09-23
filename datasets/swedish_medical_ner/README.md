@@ -21,6 +21,88 @@ task_categories:
 task_ids:
 - named-entity-recognition
 pretty_name: SwedMedNER
+dataset_info:
+- config_name: wiki
+  features:
+  - name: sid
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: entities
+    sequence:
+    - name: start
+      dtype: int32
+    - name: end
+      dtype: int32
+    - name: text
+      dtype: string
+    - name: type
+      dtype:
+        class_label:
+          names:
+            0: Disorder and Finding
+            1: Pharmaceutical Drug
+            2: Body Structure
+  splits:
+  - name: train
+    num_bytes: 7044714
+    num_examples: 48720
+  download_size: 52272712
+  dataset_size: 7044714
+- config_name: lt
+  features:
+  - name: sid
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: entities
+    sequence:
+    - name: start
+      dtype: int32
+    - name: end
+      dtype: int32
+    - name: text
+      dtype: string
+    - name: type
+      dtype:
+        class_label:
+          names:
+            0: Disorder and Finding
+            1: Pharmaceutical Drug
+            2: Body Structure
+  splits:
+  - name: train
+    num_bytes: 97955287
+    num_examples: 745753
+  download_size: 52272712
+  dataset_size: 97955287
+- config_name: '1177'
+  features:
+  - name: sid
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: entities
+    sequence:
+    - name: start
+      dtype: int32
+    - name: end
+      dtype: int32
+    - name: text
+      dtype: string
+    - name: type
+      dtype:
+        class_label:
+          names:
+            0: Disorder and Finding
+            1: Pharmaceutical Drug
+            2: Body Structure
+  splits:
+  - name: train
+    num_bytes: 159007
+    num_examples: 927
+  download_size: 52272712
+  dataset_size: 159007
 ---
 
 # Dataset Card for swedish_medical_ner

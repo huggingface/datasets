@@ -23,6 +23,57 @@ pretty_name: Ollie
 configs:
 - ollie_lemmagrep
 - ollie_patterned
+dataset_info:
+- config_name: ollie_lemmagrep
+  features:
+  - name: arg1
+    dtype: string
+  - name: arg2
+    dtype: string
+  - name: rel
+    dtype: string
+  - name: search_query
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: words
+    dtype: string
+  - name: pos
+    dtype: string
+  - name: chunk
+    dtype: string
+  - name: sentence_cnt
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 12324648919
+    num_examples: 18674630
+  download_size: 1789363108
+  dataset_size: 12324648919
+- config_name: ollie_patterned
+  features:
+  - name: rel
+    dtype: string
+  - name: arg1
+    dtype: string
+  - name: arg2
+    dtype: string
+  - name: slot0
+    dtype: string
+  - name: search_query
+    dtype: string
+  - name: pattern
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: parse
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2930309084
+    num_examples: 3048961
+  download_size: 387514061
+  dataset_size: 2930309084
 ---
 
 # Dataset Card for Ollie

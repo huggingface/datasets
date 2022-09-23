@@ -40,6 +40,437 @@ configs:
 - oasis
 - sem
 - swda
+dataset_info:
+- config_name: dyda_da
+  features:
+  - name: Utterance
+    dtype: string
+  - name: Dialogue_Act
+    dtype: string
+  - name: Dialogue_ID
+    dtype: string
+  - name: Label
+    dtype:
+      class_label:
+        names:
+          0: commissive
+          1: directive
+          2: inform
+          3: question
+  - name: Idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 740226
+    num_examples: 7740
+  - name: train
+    num_bytes: 8346638
+    num_examples: 87170
+  - name: validation
+    num_bytes: 764277
+    num_examples: 8069
+  download_size: 8874925
+  dataset_size: 9851141
+- config_name: dyda_e
+  features:
+  - name: Utterance
+    dtype: string
+  - name: Emotion
+    dtype: string
+  - name: Dialogue_ID
+    dtype: string
+  - name: Label
+    dtype:
+      class_label:
+        names:
+          0: anger
+          1: disgust
+          2: fear
+          3: happiness
+          4: no emotion
+          5: sadness
+          6: surprise
+  - name: Idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 757670
+    num_examples: 7740
+  - name: train
+    num_bytes: 8547111
+    num_examples: 87170
+  - name: validation
+    num_bytes: 781445
+    num_examples: 8069
+  download_size: 8874925
+  dataset_size: 10086226
+- config_name: iemocap
+  features:
+  - name: Dialogue_ID
+    dtype: string
+  - name: Utterance_ID
+    dtype: string
+  - name: Utterance
+    dtype: string
+  - name: Emotion
+    dtype: string
+  - name: Label
+    dtype:
+      class_label:
+        names:
+          0: ang
+          1: dis
+          2: exc
+          3: fea
+          4: fru
+          5: hap
+          6: neu
+          7: oth
+          8: sad
+          9: sur
+          10: xxx
+  - name: Idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 254248
+    num_examples: 2021
+  - name: train
+    num_bytes: 908180
+    num_examples: 7213
+  - name: validation
+    num_bytes: 100969
+    num_examples: 805
+  download_size: 1158778
+  dataset_size: 1263397
+- config_name: maptask
+  features:
+  - name: Speaker
+    dtype: string
+  - name: Utterance
+    dtype: string
+  - name: Dialogue_Act
+    dtype: string
+  - name: Label
+    dtype:
+      class_label:
+        names:
+          0: acknowledge
+          1: align
+          2: check
+          3: clarify
+          4: explain
+          5: instruct
+          6: query_w
+          7: query_yn
+          8: ready
+          9: reply_n
+          10: reply_w
+          11: reply_y
+  - name: Idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 171806
+    num_examples: 2894
+  - name: train
+    num_bytes: 1260413
+    num_examples: 20905
+  - name: validation
+    num_bytes: 178184
+    num_examples: 2963
+  download_size: 1048357
+  dataset_size: 1610403
+- config_name: meld_e
+  features:
+  - name: Utterance
+    dtype: string
+  - name: Speaker
+    dtype: string
+  - name: Emotion
+    dtype: string
+  - name: Dialogue_ID
+    dtype: string
+  - name: Utterance_ID
+    dtype: string
+  - name: Label
+    dtype:
+      class_label:
+        names:
+          0: anger
+          1: disgust
+          2: fear
+          3: joy
+          4: neutral
+          5: sadness
+          6: surprise
+  - name: Idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 242352
+    num_examples: 2610
+  - name: train
+    num_bytes: 916337
+    num_examples: 9989
+  - name: validation
+    num_bytes: 100234
+    num_examples: 1109
+  download_size: 1553014
+  dataset_size: 1258923
+- config_name: meld_s
+  features:
+  - name: Utterance
+    dtype: string
+  - name: Speaker
+    dtype: string
+  - name: Sentiment
+    dtype: string
+  - name: Dialogue_ID
+    dtype: string
+  - name: Utterance_ID
+    dtype: string
+  - name: Label
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: neutral
+          2: positive
+  - name: Idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 245873
+    num_examples: 2610
+  - name: train
+    num_bytes: 930405
+    num_examples: 9989
+  - name: validation
+    num_bytes: 101801
+    num_examples: 1109
+  download_size: 1553014
+  dataset_size: 1278079
+- config_name: mrda
+  features:
+  - name: Utterance_ID
+    dtype: string
+  - name: Dialogue_Act
+    dtype: string
+  - name: Channel_ID
+    dtype: string
+  - name: Speaker
+    dtype: string
+  - name: Dialogue_ID
+    dtype: string
+  - name: Utterance
+    dtype: string
+  - name: Label
+    dtype:
+      class_label:
+        names:
+          0: s
+          1: d
+          2: b
+          3: f
+          4: q
+  - name: Idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 1807462
+    num_examples: 15470
+  - name: train
+    num_bytes: 9998857
+    num_examples: 83943
+  - name: validation
+    num_bytes: 1143286
+    num_examples: 9815
+  download_size: 10305848
+  dataset_size: 12949605
+- config_name: oasis
+  features:
+  - name: Speaker
+    dtype: string
+  - name: Utterance
+    dtype: string
+  - name: Dialogue_Act
+    dtype: string
+  - name: Label
+    dtype:
+      class_label:
+        names:
+          0: accept
+          1: ackn
+          2: answ
+          3: answElab
+          4: appreciate
+          5: backch
+          6: bye
+          7: complete
+          8: confirm
+          9: correct
+          10: direct
+          11: directElab
+          12: echo
+          13: exclaim
+          14: expressOpinion
+          15: expressPossibility
+          16: expressRegret
+          17: expressWish
+          18: greet
+          19: hold
+          20: identifySelf
+          21: inform
+          22: informCont
+          23: informDisc
+          24: informIntent
+          25: init
+          26: negate
+          27: offer
+          28: pardon
+          29: raiseIssue
+          30: refer
+          31: refuse
+          32: reqDirect
+          33: reqInfo
+          34: reqModal
+          35: selfTalk
+          36: suggest
+          37: thank
+          38: informIntent-hold
+          39: correctSelf
+          40: expressRegret-inform
+          41: thank-identifySelf
+  - name: Idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 119254
+    num_examples: 1478
+  - name: train
+    num_bytes: 887018
+    num_examples: 12076
+  - name: validation
+    num_bytes: 112185
+    num_examples: 1513
+  download_size: 802002
+  dataset_size: 1118457
+- config_name: sem
+  features:
+  - name: Utterance
+    dtype: string
+  - name: NbPairInSession
+    dtype: string
+  - name: Dialogue_ID
+    dtype: string
+  - name: SpeechTurn
+    dtype: string
+  - name: Speaker
+    dtype: string
+  - name: Sentiment
+    dtype: string
+  - name: Label
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 100072
+    num_examples: 878
+  - name: train
+    num_bytes: 496168
+    num_examples: 4264
+  - name: validation
+    num_bytes: 57896
+    num_examples: 485
+  download_size: 513689
+  dataset_size: 654136
+- config_name: swda
+  features:
+  - name: Utterance
+    dtype: string
+  - name: Dialogue_Act
+    dtype: string
+  - name: From_Caller
+    dtype: string
+  - name: To_Caller
+    dtype: string
+  - name: Topic
+    dtype: string
+  - name: Dialogue_ID
+    dtype: string
+  - name: Conv_ID
+    dtype: string
+  - name: Label
+    dtype:
+      class_label:
+        names:
+          0: sd
+          1: b
+          2: sv
+          3: '%'
+          4: aa
+          5: ba
+          6: fc
+          7: qw
+          8: nn
+          9: bk
+          10: h
+          11: qy^d
+          12: bh
+          13: ^q
+          14: bf
+          15: fo_o_fw_"_by_bc
+          16: fo_o_fw_by_bc_"
+          17: na
+          18: ad
+          19: ^2
+          20: b^m
+          21: qo
+          22: qh
+          23: ^h
+          24: ar
+          25: ng
+          26: br
+          27: 'no'
+          28: fp
+          29: qrr
+          30: arp_nd
+          31: t3
+          32: oo_co_cc
+          33: aap_am
+          34: t1
+          35: bd
+          36: ^g
+          37: qw^d
+          38: fa
+          39: ft
+          40: +
+          41: x
+          42: ny
+          43: sv_fx
+          44: qy_qr
+          45: ba_fe
+  - name: Idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 291471
+    num_examples: 2714
+  - name: train
+    num_bytes: 20499788
+    num_examples: 190709
+  - name: validation
+    num_bytes: 2265898
+    num_examples: 21203
+  download_size: 16227500
+  dataset_size: 23057157
 ---
 
 # Dataset Card for SILICONE Benchmark

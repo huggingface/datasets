@@ -23,6 +23,35 @@ task_ids:
 - semantic-similarity-classification
 paperswithcode_id: null
 pretty_name: generated_reviews_enth
+dataset_info:
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - th
+  - name: review_star
+    dtype: int32
+  - name: correct
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  config_name: generated_reviews_enth
+  splits:
+  - name: test
+    num_bytes: 18133523
+    num_examples: 17453
+  - name: train
+    num_bytes: 147673215
+    num_examples: 141369
+  - name: validation
+    num_bytes: 16409966
+    num_examples: 15708
+  download_size: 59490601
+  dataset_size: 182216704
 ---
 
 # Dataset Card for generated_reviews_enth

@@ -19,6 +19,24 @@ task_categories:
 task_ids:
 - closed-domain-qa
 paperswithcode_id: wikimovies
+dataset_info:
+  features:
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 755258
+    num_examples: 9952
+  - name: train
+    num_bytes: 7274490
+    num_examples: 96185
+  - name: validation
+    num_bytes: 754755
+    num_examples: 10000
+  download_size: 57070041
+  dataset_size: 8784503
 ---
 
 

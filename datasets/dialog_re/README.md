@@ -22,6 +22,39 @@ task_ids:
 - dialogue-modeling
 paperswithcode_id: dialogre
 pretty_name: DialogRE
+dataset_info:
+  features:
+  - name: dialog
+    sequence: string
+  - name: relation_data
+    sequence:
+    - name: x
+      dtype: string
+    - name: y
+      dtype: string
+    - name: x_type
+      dtype: string
+    - name: y_type
+      dtype: string
+    - name: r
+      sequence: string
+    - name: rid
+      sequence: int32
+    - name: t
+      sequence: string
+  config_name: dialog_re
+  splits:
+  - name: test
+    num_bytes: 472306
+    num_examples: 357
+  - name: train
+    num_bytes: 1520940
+    num_examples: 1073
+  - name: validation
+    num_bytes: 490580
+    num_examples: 358
+  download_size: 3816234
+  dataset_size: 2483826
 ---
 
 # Dataset Card for [DialogRE]

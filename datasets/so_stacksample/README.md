@@ -20,6 +20,61 @@ task_ids:
 - open-domain-abstractive-qa
 paperswithcode_id: null
 pretty_name: SO StackSample
+dataset_info:
+- config_name: Answers
+  features:
+  - name: Id
+    dtype: int32
+  - name: OwnerUserId
+    dtype: int32
+  - name: CreationDate
+    dtype: string
+  - name: ParentId
+    dtype: int32
+  - name: Score
+    dtype: int32
+  - name: Body
+    dtype: string
+  splits:
+  - name: Answers
+    num_bytes: 1583232304
+    num_examples: 2014516
+  download_size: 0
+  dataset_size: 1583232304
+- config_name: Questions
+  features:
+  - name: Id
+    dtype: int32
+  - name: OwnerUserId
+    dtype: int32
+  - name: CreationDate
+    dtype: string
+  - name: ClosedDate
+    dtype: string
+  - name: Score
+    dtype: int32
+  - name: Title
+    dtype: string
+  - name: Body
+    dtype: string
+  splits:
+  - name: Questions
+    num_bytes: 1913896893
+    num_examples: 1264216
+  download_size: 0
+  dataset_size: 1913896893
+- config_name: Tags
+  features:
+  - name: Id
+    dtype: int32
+  - name: Tag
+    dtype: string
+  splits:
+  - name: Tags
+    num_bytes: 58816824
+    num_examples: 3750994
+  download_size: 0
+  dataset_size: 58816824
 ---
 
 # Dataset Card for SO StackSample

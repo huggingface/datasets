@@ -24,6 +24,703 @@ task_ids:
 - open-domain-abstractive-qa
 - extractive-qa
 - abstractive-qa
+dataset_info:
+- config_name: rc
+  features:
+  - name: question
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_source
+    dtype: string
+  - name: entity_pages
+    sequence:
+    - name: doc_source
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: title
+      dtype: string
+    - name: wiki_context
+      dtype: string
+  - name: search_results
+    sequence:
+    - name: description
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: rank
+      dtype: int32
+    - name: title
+      dtype: string
+    - name: url
+      dtype: string
+    - name: search_context
+      dtype: string
+  - name: answer
+    struct:
+    - name: aliases
+      sequence: string
+    - name: normalized_aliases
+      sequence: string
+    - name: matched_wiki_entity_name
+      dtype: string
+    - name: normalized_matched_wiki_entity_name
+      dtype: string
+    - name: normalized_value
+      dtype: string
+    - name: type
+      dtype: string
+    - name: value
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 1577710751
+    num_examples: 17210
+  - name: train
+    num_bytes: 12749652867
+    num_examples: 138384
+  - name: validation
+    num_bytes: 1662321436
+    num_examples: 17944
+  download_size: 2665779500
+  dataset_size: 15989685054
+- config_name: rc.nocontext
+  features:
+  - name: question
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_source
+    dtype: string
+  - name: entity_pages
+    sequence:
+    - name: doc_source
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: title
+      dtype: string
+    - name: wiki_context
+      dtype: string
+  - name: search_results
+    sequence:
+    - name: description
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: rank
+      dtype: int32
+    - name: title
+      dtype: string
+    - name: url
+      dtype: string
+    - name: search_context
+      dtype: string
+  - name: answer
+    struct:
+    - name: aliases
+      sequence: string
+    - name: normalized_aliases
+      sequence: string
+    - name: matched_wiki_entity_name
+      dtype: string
+    - name: normalized_matched_wiki_entity_name
+      dtype: string
+    - name: normalized_value
+      dtype: string
+    - name: type
+      dtype: string
+    - name: value
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 3668151
+    num_examples: 17210
+  - name: train
+    num_bytes: 106884466
+    num_examples: 138384
+  - name: validation
+    num_bytes: 14060078
+    num_examples: 17944
+  download_size: 2665779500
+  dataset_size: 124612695
+- config_name: unfiltered
+  features:
+  - name: question
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_source
+    dtype: string
+  - name: entity_pages
+    sequence:
+    - name: doc_source
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: title
+      dtype: string
+    - name: wiki_context
+      dtype: string
+  - name: search_results
+    sequence:
+    - name: description
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: rank
+      dtype: int32
+    - name: title
+      dtype: string
+    - name: url
+      dtype: string
+    - name: search_context
+      dtype: string
+  - name: answer
+    struct:
+    - name: aliases
+      sequence: string
+    - name: normalized_aliases
+      sequence: string
+    - name: matched_wiki_entity_name
+      dtype: string
+    - name: normalized_matched_wiki_entity_name
+      dtype: string
+    - name: normalized_value
+      dtype: string
+    - name: type
+      dtype: string
+    - name: value
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 2906455559
+    num_examples: 10832
+  - name: train
+    num_bytes: 25019623548
+    num_examples: 87622
+  - name: validation
+    num_bytes: 3038803991
+    num_examples: 11313
+  download_size: 3298328560
+  dataset_size: 30964883098
+- config_name: unfiltered.nocontext
+  features:
+  - name: question
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_source
+    dtype: string
+  - name: entity_pages
+    sequence:
+    - name: doc_source
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: title
+      dtype: string
+    - name: wiki_context
+      dtype: string
+  - name: search_results
+    sequence:
+    - name: description
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: rank
+      dtype: int32
+    - name: title
+      dtype: string
+    - name: url
+      dtype: string
+    - name: search_context
+      dtype: string
+  - name: answer
+    struct:
+    - name: aliases
+      sequence: string
+    - name: normalized_aliases
+      sequence: string
+    - name: matched_wiki_entity_name
+      dtype: string
+    - name: normalized_matched_wiki_entity_name
+      dtype: string
+    - name: normalized_value
+      dtype: string
+    - name: type
+      dtype: string
+    - name: value
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 2320908
+    num_examples: 10832
+  - name: train
+    num_bytes: 63301342
+    num_examples: 87622
+  - name: validation
+    num_bytes: 8297118
+    num_examples: 11313
+  download_size: 632549060
+  dataset_size: 73919368
+- config_name: rc.web
+  features:
+  - name: question
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_source
+    dtype: string
+  - name: entity_pages
+    sequence:
+    - name: doc_source
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: title
+      dtype: string
+    - name: wiki_context
+      dtype: string
+  - name: search_results
+    sequence:
+    - name: description
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: rank
+      dtype: int32
+    - name: title
+      dtype: string
+    - name: url
+      dtype: string
+    - name: search_context
+      dtype: string
+  - name: answer
+    struct:
+    - name: aliases
+      sequence: string
+    - name: normalized_aliases
+      sequence: string
+    - name: matched_wiki_entity_name
+      dtype: string
+    - name: normalized_matched_wiki_entity_name
+      dtype: string
+    - name: normalized_value
+      dtype: string
+    - name: type
+      dtype: string
+    - name: value
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 1171664123
+    num_examples: 9509
+  - name: train
+    num_bytes: 9408852131
+    num_examples: 76496
+  - name: validation
+    num_bytes: 1232155262
+    num_examples: 9951
+  download_size: 2665779500
+  dataset_size: 11812671516
+- config_name: rc.web.nocontext
+  features:
+  - name: question
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_source
+    dtype: string
+  - name: entity_pages
+    sequence:
+    - name: doc_source
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: title
+      dtype: string
+    - name: wiki_context
+      dtype: string
+  - name: search_results
+    sequence:
+    - name: description
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: rank
+      dtype: int32
+    - name: title
+      dtype: string
+    - name: url
+      dtype: string
+    - name: search_context
+      dtype: string
+  - name: answer
+    struct:
+    - name: aliases
+      sequence: string
+    - name: normalized_aliases
+      sequence: string
+    - name: matched_wiki_entity_name
+      dtype: string
+    - name: normalized_matched_wiki_entity_name
+      dtype: string
+    - name: normalized_value
+      dtype: string
+    - name: type
+      dtype: string
+    - name: value
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 2024871
+    num_examples: 9509
+  - name: train
+    num_bytes: 58524077
+    num_examples: 76496
+  - name: validation
+    num_bytes: 7694681
+    num_examples: 9951
+  download_size: 2665779500
+  dataset_size: 68243629
+- config_name: unfiltered.web
+  features:
+  - name: question
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_source
+    dtype: string
+  - name: entity_pages
+    sequence:
+    - name: doc_source
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: title
+      dtype: string
+    - name: wiki_context
+      dtype: string
+  - name: search_results
+    sequence:
+    - name: description
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: rank
+      dtype: int32
+    - name: title
+      dtype: string
+    - name: url
+      dtype: string
+    - name: search_context
+      dtype: string
+  - name: answer
+    struct:
+    - name: aliases
+      sequence: string
+    - name: normalized_aliases
+      sequence: string
+    - name: matched_wiki_entity_name
+      dtype: string
+    - name: normalized_matched_wiki_entity_name
+      dtype: string
+    - name: normalized_value
+      dtype: string
+    - name: type
+      dtype: string
+    - name: value
+      dtype: string
+  splits:
+  - name: test
+  - name: train
+  - name: validation
+  download_size: 3298328560
+  dataset_size: 0
+- config_name: unfiltered.web.nocontext
+  features:
+  - name: question
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_source
+    dtype: string
+  - name: entity_pages
+    sequence:
+    - name: doc_source
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: title
+      dtype: string
+    - name: wiki_context
+      dtype: string
+  - name: search_results
+    sequence:
+    - name: description
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: rank
+      dtype: int32
+    - name: title
+      dtype: string
+    - name: url
+      dtype: string
+    - name: search_context
+      dtype: string
+  - name: answer
+    struct:
+    - name: aliases
+      sequence: string
+    - name: normalized_aliases
+      sequence: string
+    - name: matched_wiki_entity_name
+      dtype: string
+    - name: normalized_matched_wiki_entity_name
+      dtype: string
+    - name: normalized_value
+      dtype: string
+    - name: type
+      dtype: string
+    - name: value
+      dtype: string
+  splits:
+  - name: test
+  - name: train
+  - name: validation
+  download_size: 632549060
+  dataset_size: 0
+- config_name: rc.wikipedia
+  features:
+  - name: question
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_source
+    dtype: string
+  - name: entity_pages
+    sequence:
+    - name: doc_source
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: title
+      dtype: string
+    - name: wiki_context
+      dtype: string
+  - name: search_results
+    sequence:
+    - name: description
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: rank
+      dtype: int32
+    - name: title
+      dtype: string
+    - name: url
+      dtype: string
+    - name: search_context
+      dtype: string
+  - name: answer
+    struct:
+    - name: aliases
+      sequence: string
+    - name: normalized_aliases
+      sequence: string
+    - name: matched_wiki_entity_name
+      dtype: string
+    - name: normalized_matched_wiki_entity_name
+      dtype: string
+    - name: normalized_value
+      dtype: string
+    - name: type
+      dtype: string
+    - name: value
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 406046628
+    num_examples: 7701
+  - name: train
+    num_bytes: 3340800860
+    num_examples: 61888
+  - name: validation
+    num_bytes: 430166174
+    num_examples: 7993
+  download_size: 2665779500
+  dataset_size: 4177013662
+- config_name: rc.wikipedia.nocontext
+  features:
+  - name: question
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_source
+    dtype: string
+  - name: entity_pages
+    sequence:
+    - name: doc_source
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: title
+      dtype: string
+    - name: wiki_context
+      dtype: string
+  - name: search_results
+    sequence:
+    - name: description
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: rank
+      dtype: int32
+    - name: title
+      dtype: string
+    - name: url
+      dtype: string
+    - name: search_context
+      dtype: string
+  - name: answer
+    struct:
+    - name: aliases
+      sequence: string
+    - name: normalized_aliases
+      sequence: string
+    - name: matched_wiki_entity_name
+      dtype: string
+    - name: normalized_matched_wiki_entity_name
+      dtype: string
+    - name: normalized_value
+      dtype: string
+    - name: type
+      dtype: string
+    - name: value
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 1643280
+    num_examples: 7701
+  - name: train
+    num_bytes: 48360513
+    num_examples: 61888
+  - name: validation
+    num_bytes: 6365397
+    num_examples: 7993
+  download_size: 2665779500
+  dataset_size: 56369190
+- config_name: unfiltered.wikipedia
+  features:
+  - name: question
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_source
+    dtype: string
+  - name: entity_pages
+    sequence:
+    - name: doc_source
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: title
+      dtype: string
+    - name: wiki_context
+      dtype: string
+  - name: search_results
+    sequence:
+    - name: description
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: rank
+      dtype: int32
+    - name: title
+      dtype: string
+    - name: url
+      dtype: string
+    - name: search_context
+      dtype: string
+  - name: answer
+    struct:
+    - name: aliases
+      sequence: string
+    - name: normalized_aliases
+      sequence: string
+    - name: matched_wiki_entity_name
+      dtype: string
+    - name: normalized_matched_wiki_entity_name
+      dtype: string
+    - name: normalized_value
+      dtype: string
+    - name: type
+      dtype: string
+    - name: value
+      dtype: string
+  splits:
+  - name: test
+  - name: train
+  - name: validation
+  download_size: 3298328560
+  dataset_size: 0
+- config_name: unfiltered.wikipedia.nocontext
+  features:
+  - name: question
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_source
+    dtype: string
+  - name: entity_pages
+    sequence:
+    - name: doc_source
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: title
+      dtype: string
+    - name: wiki_context
+      dtype: string
+  - name: search_results
+    sequence:
+    - name: description
+      dtype: string
+    - name: filename
+      dtype: string
+    - name: rank
+      dtype: int32
+    - name: title
+      dtype: string
+    - name: url
+      dtype: string
+    - name: search_context
+      dtype: string
+  - name: answer
+    struct:
+    - name: aliases
+      sequence: string
+    - name: normalized_aliases
+      sequence: string
+    - name: matched_wiki_entity_name
+      dtype: string
+    - name: normalized_matched_wiki_entity_name
+      dtype: string
+    - name: normalized_value
+      dtype: string
+    - name: type
+      dtype: string
+    - name: value
+      dtype: string
+  splits:
+  - name: test
+  - name: train
+  - name: validation
+  download_size: 632549060
+  dataset_size: 0
 ---
 
 # Dataset Card for "trivia_qa"

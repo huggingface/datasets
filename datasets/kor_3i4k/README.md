@@ -19,6 +19,30 @@ task_ids:
 - intent-classification
 paperswithcode_id: null
 pretty_name: 3i4K
+dataset_info:
+  features:
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: fragment
+          1: statement
+          2: question
+          3: command
+          4: rhetorical question
+          5: rhetorical command
+          6: intonation-dependent utterance
+  - name: text
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 344028
+    num_examples: 6121
+  - name: train
+    num_bytes: 3102158
+    num_examples: 55134
+  download_size: 2956114
+  dataset_size: 3446186
 ---
 
 # Dataset Card for 3i4K

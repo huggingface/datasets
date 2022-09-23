@@ -21,6 +21,29 @@ task_ids:
 - language-modeling
 - masked-language-modeling
 paperswithcode_id: cc-news
+dataset_info:
+  features:
+  - name: title
+    dtype: string
+  - name: text
+    dtype: string
+  - name: domain
+    dtype: string
+  - name: date
+    dtype: string
+  - name: description
+    dtype: string
+  - name: url
+    dtype: string
+  - name: image_url
+    dtype: string
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 2016418133
+    num_examples: 708241
+  download_size: 845131146
+  dataset_size: 2016418133
 ---
 
 # Dataset Card for CC-News

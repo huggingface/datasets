@@ -19,6 +19,31 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: Igbo NER dataset
+dataset_info:
+- config_name: ner_data
+  features:
+  - name: content_n
+    dtype: string
+  - name: named_entity
+    dtype: string
+  - name: sentences
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 60315228
+    num_examples: 30715
+  download_size: 3311204
+  dataset_size: 60315228
+- config_name: free_text
+  features:
+  - name: sentences
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1172152
+    num_examples: 10000
+  download_size: 1132151
+  dataset_size: 1172152
 ---
 
 # Dataset Card for Igbo NER dataset

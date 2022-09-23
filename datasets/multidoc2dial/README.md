@@ -26,6 +26,124 @@ configs:
 - dialogue_domain
 - document_domain
 - multidoc2dial
+dataset_info:
+- config_name: dialogue_domain
+  features:
+  - name: dial_id
+    dtype: string
+  - name: domain
+    dtype: string
+  - name: turns
+    list:
+    - name: turn_id
+      dtype: int32
+    - name: role
+      dtype: string
+    - name: da
+      dtype: string
+    - name: references
+      list:
+      - name: id_sp
+        dtype: string
+      - name: label
+        dtype: string
+      - name: doc_id
+        dtype: string
+    - name: utterance
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 11700598
+    num_examples: 3474
+  - name: validation
+    num_bytes: 2210378
+    num_examples: 661
+  download_size: 6451144
+  dataset_size: 13910976
+- config_name: document_domain
+  features:
+  - name: domain
+    dtype: string
+  - name: doc_id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: doc_text
+    dtype: string
+  - name: spans
+    list:
+    - name: id_sp
+      dtype: string
+    - name: tag
+      dtype: string
+    - name: start_sp
+      dtype: int32
+    - name: end_sp
+      dtype: int32
+    - name: text_sp
+      dtype: string
+    - name: title
+      dtype: string
+    - name: parent_titles
+      sequence:
+      - name: id_sp
+        dtype: string
+      - name: text
+        dtype: string
+      - name: level
+        dtype: string
+    - name: id_sec
+      dtype: string
+    - name: start_sec
+      dtype: int32
+    - name: text_sec
+      dtype: string
+    - name: end_sec
+      dtype: int32
+  - name: doc_html_ts
+    dtype: string
+  - name: doc_html_raw
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 29378955
+    num_examples: 488
+  download_size: 6451144
+  dataset_size: 29378955
+- config_name: multidoc2dial
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: da
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  - name: utterance
+    dtype: string
+  - name: domain
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 33032
+    num_examples: 5
+  - name: train
+    num_bytes: 126589982
+    num_examples: 21451
+  - name: validation
+    num_bytes: 24331976
+    num_examples: 4201
+  download_size: 6451144
+  dataset_size: 150954990
 ---
 
 # Dataset Card for MultiDoc2Dial

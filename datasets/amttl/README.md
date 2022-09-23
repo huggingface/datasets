@@ -19,6 +19,33 @@ task_ids:
 - parsing
 paperswithcode_id: null
 pretty_name: AMTTL
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: tags
+    sequence:
+      class_label:
+        names:
+          0: B
+          1: I
+          2: E
+          3: S
+  config_name: amttl
+  splits:
+  - name: test
+    num_bytes: 328525
+    num_examples: 908
+  - name: train
+    num_bytes: 1132212
+    num_examples: 3063
+  - name: validation
+    num_bytes: 324374
+    num_examples: 822
+  download_size: 685534
+  dataset_size: 1785111
 ---
 
 # Dataset Card for AMTTL

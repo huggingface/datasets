@@ -23,6 +23,103 @@ pretty_name: MultiBooked
 configs:
 - ca
 - eu
+dataset_info:
+- config_name: ca
+  features:
+  - name: text
+    sequence:
+    - name: wid
+      dtype: string
+    - name: sent
+      dtype: string
+    - name: para
+      dtype: string
+    - name: word
+      dtype: string
+  - name: terms
+    sequence:
+    - name: tid
+      dtype: string
+    - name: lemma
+      dtype: string
+    - name: morphofeat
+      dtype: string
+    - name: pos
+      dtype: string
+    - name: target
+      sequence: string
+  - name: opinions
+    sequence:
+    - name: oid
+      dtype: string
+    - name: opinion_holder_target
+      sequence: string
+    - name: opinion_target_target
+      sequence: string
+    - name: opinion_expression_polarity
+      dtype:
+        class_label:
+          names:
+            0: StrongNegative
+            1: Negative
+            2: Positive
+            3: StrongPositive
+    - name: opinion_expression_target
+      sequence: string
+  splits:
+  - name: train
+    num_bytes: 1952731
+    num_examples: 567
+  download_size: 4429415
+  dataset_size: 1952731
+- config_name: eu
+  features:
+  - name: text
+    sequence:
+    - name: wid
+      dtype: string
+    - name: sent
+      dtype: string
+    - name: para
+      dtype: string
+    - name: word
+      dtype: string
+  - name: terms
+    sequence:
+    - name: tid
+      dtype: string
+    - name: lemma
+      dtype: string
+    - name: morphofeat
+      dtype: string
+    - name: pos
+      dtype: string
+    - name: target
+      sequence: string
+  - name: opinions
+    sequence:
+    - name: oid
+      dtype: string
+    - name: opinion_holder_target
+      sequence: string
+    - name: opinion_target_target
+      sequence: string
+    - name: opinion_expression_polarity
+      dtype:
+        class_label:
+          names:
+            0: StrongNegative
+            1: Negative
+            2: Positive
+            3: StrongPositive
+    - name: opinion_expression_target
+      sequence: string
+  splits:
+  - name: train
+    num_bytes: 1175816
+    num_examples: 343
+  download_size: 4429415
+  dataset_size: 1175816
 ---
 
 # Dataset Card for MultiBooked

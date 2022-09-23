@@ -19,6 +19,76 @@ task_categories:
 task_ids:
 - question-answering-other-multi-hop
 paperswithcode_id: hotpotqa
+dataset_info:
+- config_name: distractor
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: type
+    dtype: string
+  - name: level
+    dtype: string
+  - name: supporting_facts
+    sequence:
+    - name: title
+      dtype: string
+    - name: sent_id
+      dtype: int32
+  - name: context
+    sequence:
+    - name: title
+      dtype: string
+    - name: sentences
+      sequence: string
+  splits:
+  - name: train
+    num_bytes: 552949315
+    num_examples: 90447
+  - name: validation
+    num_bytes: 45716111
+    num_examples: 7405
+  download_size: 612746344
+  dataset_size: 598665426
+- config_name: fullwiki
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: type
+    dtype: string
+  - name: level
+    dtype: string
+  - name: supporting_facts
+    sequence:
+    - name: title
+      dtype: string
+    - name: sent_id
+      dtype: int32
+  - name: context
+    sequence:
+    - name: title
+      dtype: string
+    - name: sentences
+      sequence: string
+  splits:
+  - name: test
+    num_bytes: 46000102
+    num_examples: 7405
+  - name: train
+    num_bytes: 552949315
+    num_examples: 90447
+  - name: validation
+    num_bytes: 46848601
+    num_examples: 7405
+  download_size: 660094672
+  dataset_size: 645798018
 ---
 
 # Dataset Card for "hotpot_qa"

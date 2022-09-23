@@ -20,6 +20,22 @@ task_ids:
 - sentiment-scoring
 paperswithcode_id: null
 pretty_name: AppReviews
+dataset_info:
+  features:
+  - name: package_name
+    dtype: string
+  - name: review
+    dtype: string
+  - name: date
+    dtype: string
+  - name: star
+    dtype: int8
+  splits:
+  - name: train
+    num_bytes: 32769079
+    num_examples: 288065
+  download_size: 42592679
+  dataset_size: 32769079
 ---
 
 # Dataset Card for [Dataset Name]

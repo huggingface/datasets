@@ -23,6 +23,36 @@ task_ids:
 - token-classification-other-output-structure
 paperswithcode_id: zest
 pretty_name: ZEST
+dataset_info:
+  features:
+  - name: task_id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: generalization_type
+    dtype: string
+  - name: derives_from
+    sequence: string
+  - name: domain
+    dtype: string
+  - name: context
+    dtype: string
+  - name: answer
+    sequence: string
+  - name: all_answers
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 9280845
+    num_examples: 11980
+  - name: train
+    num_bytes: 9588987
+    num_examples: 10766
+  - name: validation
+    num_bytes: 2056804
+    num_examples: 2280
+  download_size: 5796188
+  dataset_size: 20926636
 ---
 
 # Dataset Card for "ZEST: ZEroShot learning from Task descriptions"

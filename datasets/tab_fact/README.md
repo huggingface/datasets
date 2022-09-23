@@ -19,6 +19,57 @@ task_ids:
 - fact-checking
 paperswithcode_id: tabfact
 pretty_name: TabFact
+dataset_info:
+- config_name: tab_fact
+  features:
+  - name: id
+    dtype: int32
+  - name: table_id
+    dtype: string
+  - name: table_text
+    dtype: string
+  - name: table_caption
+    dtype: string
+  - name: statement
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: refuted
+          1: entailed
+  splits:
+  - name: test
+    num_bytes: 13493391
+    num_examples: 12779
+  - name: train
+    num_bytes: 99852664
+    num_examples: 92283
+  - name: validation
+    num_bytes: 13846872
+    num_examples: 12792
+  download_size: 196508436
+  dataset_size: 127192927
+- config_name: blind_test
+  features:
+  - name: id
+    dtype: int32
+  - name: table_id
+    dtype: string
+  - name: table_text
+    dtype: string
+  - name: table_caption
+    dtype: string
+  - name: statement
+    dtype: string
+  - name: test_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 10954442
+    num_examples: 9750
+  download_size: 196508436
+  dataset_size: 10954442
 ---
 
 # Dataset Card for TabFact

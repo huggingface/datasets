@@ -9,7 +9,8 @@ license:
 - apache-2.0
 multilinguality:
 - monolingual
-pretty_name: The Corpus for Emotions Detecting in Russian-language text sentences (CEDR)
+pretty_name: The Corpus for Emotions Detecting in Russian-language text sentences
+  (CEDR)
 size_categories:
 - 1K<n<10K
 source_datasets:
@@ -20,6 +21,62 @@ task_ids:
 - sentiment-classification
 - multi-label-classification
 - text-classification-other-emotion-classification
+dataset_info:
+- config_name: main
+  features:
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: joy
+          1: sadness
+          2: surprise
+          3: fear
+          4: anger
+  - name: source
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 350275
+    num_examples: 1882
+  - name: train
+    num_bytes: 1418355
+    num_examples: 7528
+  download_size: 693026
+  dataset_size: 1768630
+- config_name: enriched
+  features:
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: joy
+          1: sadness
+          2: surprise
+          3: fear
+          4: anger
+  - name: source
+    dtype: string
+  - name: sentences
+    list:
+      list:
+      - name: forma
+        dtype: string
+      - name: lemma
+        dtype: string
+  splits:
+  - name: test
+    num_bytes: 1182343
+    num_examples: 1882
+  - name: train
+    num_bytes: 4792366
+    num_examples: 7528
+  download_size: 1822522
+  dataset_size: 5974709
 ---
 
 # Dataset Card for [cedr]

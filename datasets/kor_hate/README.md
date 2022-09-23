@@ -20,6 +20,39 @@ task_ids:
 - multi-label-classification
 paperswithcode_id: korean-hatespeech-dataset
 pretty_name: Korean HateSpeech Dataset
+dataset_info:
+  features:
+  - name: comments
+    dtype: string
+  - name: contain_gender_bias
+    dtype:
+      class_label:
+        names:
+          0: 'False'
+          1: 'True'
+  - name: bias
+    dtype:
+      class_label:
+        names:
+          0: none
+          1: gender
+          2: others
+  - name: hate
+    dtype:
+      class_label:
+        names:
+          0: hate
+          1: offensive
+          2: none
+  splits:
+  - name: test
+    num_bytes: 58913
+    num_examples: 471
+  - name: train
+    num_bytes: 983608
+    num_examples: 7896
+  download_size: 968449
+  dataset_size: 1042521
 ---
 
 # Dataset Card for [Dataset Name]

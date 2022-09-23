@@ -18,6 +18,106 @@ task_categories:
 - text-retrieval
 task_ids:
 - document-retrieval
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: nps
+    list:
+    - name: text
+      dtype: string
+    - name: first_char
+      dtype: int32
+    - name: last_char
+      dtype: int32
+    - name: first_token
+      dtype: int32
+    - name: last_token
+      dtype: int32
+    - name: id
+      dtype: string
+  - name: np_relations
+    list:
+    - name: anchor
+      dtype: string
+    - name: complement
+      dtype: string
+    - name: preposition
+      dtype:
+        class_label:
+          names:
+            0: about
+            1: for
+            2: with
+            3: from
+            4: among
+            5: by
+            6: 'on'
+            7: at
+            8: during
+            9: of
+            10: member(s) of
+            11: in
+            12: after
+            13: under
+            14: to
+            15: into
+            16: before
+            17: near
+            18: outside
+            19: around
+            20: between
+            21: against
+            22: over
+            23: inside
+    - name: complement_coref_cluster_id
+      dtype: string
+  - name: coref
+    list:
+    - name: id
+      dtype: string
+    - name: members
+      sequence: string
+    - name: np_type
+      dtype:
+        class_label:
+          names:
+            0: standard
+            1: time/date/measurement
+            2: idiomatic
+  - name: metadata
+    struct:
+    - name: annotators
+      struct:
+      - name: coref_worker
+        dtype: int32
+      - name: consolidator_worker
+        dtype: int32
+      - name: np-relations_worker
+        sequence: int32
+    - name: url
+      dtype: string
+    - name: source
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 2203716
+    num_examples: 500
+  - name: test_ood
+    num_bytes: 2249352
+    num_examples: 509
+  - name: train
+    num_bytes: 41308170
+    num_examples: 3988
+  - name: validation
+    num_bytes: 5495419
+    num_examples: 500
+  download_size: 14194578
+  dataset_size: 51256657
 ---
 
 # Dataset Card for Text-based NP Enrichment

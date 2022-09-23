@@ -42,6 +42,871 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: CoVoST 2
+dataset_info:
+- config_name: en_de
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5689684
+    num_examples: 15531
+  - name: train
+    num_bytes: 110716293
+    num_examples: 289430
+  - name: validation
+    num_bytes: 5971731
+    num_examples: 15531
+  download_size: 25779505
+  dataset_size: 122377708
+- config_name: en_tr
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5619271
+    num_examples: 15531
+  - name: train
+    num_bytes: 109474265
+    num_examples: 289430
+  - name: validation
+    num_bytes: 5914622
+    num_examples: 15531
+  download_size: 23659131
+  dataset_size: 121008158
+- config_name: en_fa
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 6103617
+    num_examples: 15531
+  - name: train
+    num_bytes: 119490720
+    num_examples: 289430
+  - name: validation
+    num_bytes: 6423535
+    num_examples: 15531
+  download_size: 26148420
+  dataset_size: 132017872
+- config_name: en_sv-SE
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5580039
+    num_examples: 15531
+  - name: train
+    num_bytes: 108557530
+    num_examples: 289430
+  - name: validation
+    num_bytes: 5845918
+    num_examples: 15531
+  download_size: 23671482
+  dataset_size: 119983487
+- config_name: en_mn
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 6293633
+    num_examples: 15531
+  - name: train
+    num_bytes: 123950136
+    num_examples: 289430
+  - name: validation
+    num_bytes: 6693044
+    num_examples: 15531
+  download_size: 27527436
+  dataset_size: 136936813
+- config_name: en_zh-CN
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5487808
+    num_examples: 15531
+  - name: train
+    num_bytes: 106490939
+    num_examples: 289430
+  - name: validation
+    num_bytes: 5735331
+    num_examples: 15531
+  download_size: 24280932
+  dataset_size: 117714078
+- config_name: en_cy
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5626428
+    num_examples: 15531
+  - name: train
+    num_bytes: 109317182
+    num_examples: 289430
+  - name: validation
+    num_bytes: 5894579
+    num_examples: 15531
+  download_size: 24224499
+  dataset_size: 120838189
+- config_name: en_ca
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5623227
+    num_examples: 15531
+  - name: train
+    num_bytes: 109922455
+    num_examples: 289430
+  - name: validation
+    num_bytes: 5924345
+    num_examples: 15531
+  download_size: 24167201
+  dataset_size: 121470027
+- config_name: en_sl
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5537805
+    num_examples: 15531
+  - name: train
+    num_bytes: 107987860
+    num_examples: 289430
+  - name: validation
+    num_bytes: 5838299
+    num_examples: 15531
+  download_size: 23421999
+  dataset_size: 119363964
+- config_name: en_et
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5543309
+    num_examples: 15531
+  - name: train
+    num_bytes: 107707024
+    num_examples: 289430
+  - name: validation
+    num_bytes: 5810185
+    num_examples: 15531
+  download_size: 23223843
+  dataset_size: 119060518
+- config_name: en_id
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5634939
+    num_examples: 15531
+  - name: train
+    num_bytes: 109456930
+    num_examples: 289430
+  - name: validation
+    num_bytes: 5896953
+    num_examples: 15531
+  download_size: 22904065
+  dataset_size: 120988822
+- config_name: en_ar
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5947069
+    num_examples: 15531
+  - name: train
+    num_bytes: 116732296
+    num_examples: 289430
+  - name: validation
+    num_bytes: 6280190
+    num_examples: 15531
+  download_size: 25301304
+  dataset_size: 128959555
+- config_name: en_ta
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 7411400
+    num_examples: 15531
+  - name: train
+    num_bytes: 146318684
+    num_examples: 289430
+  - name: validation
+    num_bytes: 7944020
+    num_examples: 15531
+  download_size: 30037790
+  dataset_size: 161674104
+- config_name: en_lv
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5625189
+    num_examples: 15531
+  - name: train
+    num_bytes: 109532576
+    num_examples: 289430
+  - name: validation
+    num_bytes: 5905197
+    num_examples: 15531
+  download_size: 24573927
+  dataset_size: 121062962
+- config_name: en_ja
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5883608
+    num_examples: 15531
+  - name: train
+    num_bytes: 114741253
+    num_examples: 289430
+  - name: validation
+    num_bytes: 6161930
+    num_examples: 15531
+  download_size: 26664247
+  dataset_size: 126786791
+- config_name: fr_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5525498
+    num_examples: 14760
+  - name: train
+    num_bytes: 75792665
+    num_examples: 207374
+  - name: validation
+    num_bytes: 5487082
+    num_examples: 14760
+  download_size: 7282129
+  dataset_size: 86805245
+- config_name: de_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5066500
+    num_examples: 13511
+  - name: train
+    num_bytes: 47678171
+    num_examples: 127834
+  - name: validation
+    num_bytes: 5106253
+    num_examples: 13511
+  download_size: 9926797
+  dataset_size: 57850924
+- config_name: es_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 4983920
+    num_examples: 13221
+  - name: train
+    num_bytes: 29152515
+    num_examples: 79015
+  - name: validation
+    num_bytes: 4974593
+    num_examples: 13221
+  download_size: 3202080
+  dataset_size: 39111028
+- config_name: ca_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 4804941
+    num_examples: 12730
+  - name: train
+    num_bytes: 35902579
+    num_examples: 95854
+  - name: validation
+    num_bytes: 4798435
+    num_examples: 12730
+  download_size: 5021926
+  dataset_size: 45505955
+- config_name: it_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 3412207
+    num_examples: 8951
+  - name: train
+    num_bytes: 11952709
+    num_examples: 31698
+  - name: validation
+    num_bytes: 3393315
+    num_examples: 8940
+  download_size: 1691247
+  dataset_size: 18758231
+- config_name: ru_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2923961
+    num_examples: 6300
+  - name: train
+    num_bytes: 5610194
+    num_examples: 12112
+  - name: validation
+    num_bytes: 2819414
+    num_examples: 6110
+  download_size: 1443078
+  dataset_size: 11353569
+- config_name: zh-CN_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1908633
+    num_examples: 4898
+  - name: train
+    num_bytes: 2791288
+    num_examples: 7085
+  - name: validation
+    num_bytes: 1918796
+    num_examples: 4843
+  download_size: 587550
+  dataset_size: 6618717
+- config_name: pt_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1384251
+    num_examples: 4023
+  - name: train
+    num_bytes: 3095722
+    num_examples: 9158
+  - name: validation
+    num_bytes: 1133404
+    num_examples: 3318
+  download_size: 476419
+  dataset_size: 5613377
+- config_name: fa_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1263271
+    num_examples: 3445
+  - name: train
+    num_bytes: 18015738
+    num_examples: 53949
+  - name: validation
+    num_bytes: 1241531
+    num_examples: 3445
+  download_size: 3864623
+  dataset_size: 20520540
+- config_name: et_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 685375
+    num_examples: 1571
+  - name: train
+    num_bytes: 808508
+    num_examples: 1782
+  - name: validation
+    num_bytes: 690694
+    num_examples: 1576
+  download_size: 246569
+  dataset_size: 2184577
+- config_name: mn_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 762577
+    num_examples: 1759
+  - name: train
+    num_bytes: 900588
+    num_examples: 2067
+  - name: validation
+    num_bytes: 765543
+    num_examples: 1761
+  download_size: 189710
+  dataset_size: 2428708
+- config_name: nl_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 594979
+    num_examples: 1699
+  - name: train
+    num_bytes: 2468140
+    num_examples: 7108
+  - name: validation
+    num_bytes: 594458
+    num_examples: 1699
+  download_size: 543795
+  dataset_size: 3657577
+- config_name: tr_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 570760
+    num_examples: 1629
+  - name: train
+    num_bytes: 1391148
+    num_examples: 3966
+  - name: validation
+    num_bytes: 566458
+    num_examples: 1624
+  download_size: 280904
+  dataset_size: 2528366
+- config_name: ar_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 552356
+    num_examples: 1695
+  - name: train
+    num_bytes: 743065
+    num_examples: 2283
+  - name: validation
+    num_bytes: 575077
+    num_examples: 1758
+  download_size: 109802
+  dataset_size: 1870498
+- config_name: sv-SE_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 517738
+    num_examples: 1595
+  - name: train
+    num_bytes: 698800
+    num_examples: 2160
+  - name: validation
+    num_bytes: 438319
+    num_examples: 1349
+  download_size: 96161
+  dataset_size: 1654857
+- config_name: lv_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 519183
+    num_examples: 1629
+  - name: train
+    num_bytes: 747290
+    num_examples: 2337
+  - name: validation
+    num_bytes: 360941
+    num_examples: 1125
+  download_size: 88836
+  dataset_size: 1627414
+- config_name: sl_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 115414
+    num_examples: 360
+  - name: train
+    num_bytes: 602420
+    num_examples: 1843
+  - name: validation
+    num_bytes: 165977
+    num_examples: 509
+  download_size: 58445
+  dataset_size: 883811
+- config_name: ta_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 303843
+    num_examples: 786
+  - name: train
+    num_bytes: 534564
+    num_examples: 1358
+  - name: validation
+    num_bytes: 150428
+    num_examples: 384
+  download_size: 55659
+  dataset_size: 988835
+- config_name: ja_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 241310
+    num_examples: 684
+  - name: train
+    num_bytes: 396334
+    num_examples: 1119
+  - name: validation
+    num_bytes: 226054
+    num_examples: 635
+  download_size: 54666
+  dataset_size: 863698
+- config_name: id_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 277053
+    num_examples: 844
+  - name: train
+    num_bytes: 406989
+    num_examples: 1243
+  - name: validation
+    num_bytes: 259134
+    num_examples: 792
+  download_size: 51755
+  dataset_size: 943176
+- config_name: cy_en
+  features:
+  - name: client_id
+    dtype: string
+  - name: file
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: translation
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 236713
+    num_examples: 690
+  - name: train
+    num_bytes: 432071
+    num_examples: 1241
+  - name: validation
+    num_bytes: 236107
+    num_examples: 690
+  download_size: 875557
+  dataset_size: 904891
 ---
 
 # Dataset Card for covost2

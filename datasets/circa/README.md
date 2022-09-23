@@ -20,6 +20,45 @@ task_ids:
 - text-classification-other-question-answer-pair-classification
 paperswithcode_id: circa
 pretty_name: CIRCA
+dataset_info:
+  features:
+  - name: context
+    dtype: string
+  - name: question-X
+    dtype: string
+  - name: canquestion-X
+    dtype: string
+  - name: answer-Y
+    dtype: string
+  - name: judgements
+    dtype: string
+  - name: goldstandard1
+    dtype:
+      class_label:
+        names:
+          0: 'Yes'
+          1: 'No'
+          2: In the middle, neither yes nor no
+          3: Probably yes / sometimes yes
+          4: Probably no
+          5: Yes, subject to some conditions
+          6: Other
+          7: I am not sure how X will interpret Y’s answer
+  - name: goldstandard2
+    dtype:
+      class_label:
+        names:
+          0: 'Yes'
+          1: 'No'
+          2: In the middle, neither yes nor no
+          3: Yes, subject to some conditions
+          4: Other
+  splits:
+  - name: train
+    num_bytes: 8149489
+    num_examples: 34268
+  download_size: 7766077
+  dataset_size: 8149489
 ---
 
 # Dataset Card for CIRCA

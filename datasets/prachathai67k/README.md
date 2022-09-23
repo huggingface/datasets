@@ -19,6 +19,101 @@ task_ids:
 - topic-classification
 paperswithcode_id: prachathai-67k
 pretty_name: prachathai67k
+dataset_info:
+  features:
+  - name: url
+    dtype: string
+  - name: date
+    dtype: string
+  - name: title
+    dtype: string
+  - name: body_text
+    dtype: string
+  - name: politics
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  - name: human_rights
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  - name: quality_of_life
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  - name: international
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  - name: social
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  - name: environment
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  - name: economics
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  - name: culture
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  - name: labor
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  - name: national_security
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  - name: ict
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  - name: education
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  config_name: prachathai67k
+  splits:
+  - name: test
+    num_bytes: 110034036
+    num_examples: 6789
+  - name: train
+    num_bytes: 865848436
+    num_examples: 54379
+  - name: validation
+    num_bytes: 108641386
+    num_examples: 6721
+  download_size: 254240975
+  dataset_size: 1084523858
 ---
 
 # Dataset Card for `prachathai67k`

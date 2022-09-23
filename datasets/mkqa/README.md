@@ -44,6 +44,595 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: mkqa
 pretty_name: Multilingual Knowledge Questions and Answers
+dataset_info:
+  features:
+  - name: example_id
+    dtype: string
+  - name: queries
+    struct:
+    - name: ar
+      dtype: string
+    - name: da
+      dtype: string
+    - name: de
+      dtype: string
+    - name: en
+      dtype: string
+    - name: es
+      dtype: string
+    - name: fi
+      dtype: string
+    - name: fr
+      dtype: string
+    - name: he
+      dtype: string
+    - name: hu
+      dtype: string
+    - name: it
+      dtype: string
+    - name: ja
+      dtype: string
+    - name: ko
+      dtype: string
+    - name: km
+      dtype: string
+    - name: ms
+      dtype: string
+    - name: nl
+      dtype: string
+    - name: 'no'
+      dtype: string
+    - name: pl
+      dtype: string
+    - name: pt
+      dtype: string
+    - name: ru
+      dtype: string
+    - name: sv
+      dtype: string
+    - name: th
+      dtype: string
+    - name: tr
+      dtype: string
+    - name: vi
+      dtype: string
+    - name: zh_cn
+      dtype: string
+    - name: zh_hk
+      dtype: string
+    - name: zh_tw
+      dtype: string
+  - name: query
+    dtype: string
+  - name: answers
+    struct:
+    - name: ar
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: da
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: de
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: en
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: es
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: fi
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: fr
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: he
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: hu
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: it
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: ja
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: ko
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: km
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: ms
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: nl
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: 'no'
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: pl
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: pt
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: ru
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: sv
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: th
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: tr
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: vi
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: zh_cn
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: zh_hk
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+    - name: zh_tw
+      list:
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: entity
+              1: long_answer
+              2: unanswerable
+              3: date
+              4: number
+              5: number_with_unit
+              6: short_phrase
+              7: binary
+      - name: entity
+        dtype: string
+      - name: text
+        dtype: string
+      - name: aliases
+        list: string
+  config_name: mkqa
+  splits:
+  - name: train
+    num_bytes: 36005650
+    num_examples: 10000
+  download_size: 11903948
+  dataset_size: 36005650
 ---
 
 # Dataset Card for MKQA: Multilingual Knowledge Questions & Answers

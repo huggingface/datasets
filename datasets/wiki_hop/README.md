@@ -20,6 +20,55 @@ task_ids:
 - question-answering-other-multi-hop
 paperswithcode_id: wikihop
 pretty_name: WikiHop
+dataset_info:
+- config_name: original
+  features:
+  - name: id
+    dtype: string
+  - name: query
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: candidates
+    sequence: string
+  - name: supports
+    sequence: string
+  - name: annotations
+    sequence:
+      sequence: string
+  splits:
+  - name: train
+    num_bytes: 325952974
+    num_examples: 43738
+  - name: validation
+    num_bytes: 41246536
+    num_examples: 5129
+  download_size: 339843061
+  dataset_size: 367199510
+- config_name: masked
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: candidates
+    sequence: string
+  - name: supports
+    sequence: string
+  - name: annotations
+    sequence:
+      sequence: string
+  splits:
+  - name: train
+    num_bytes: 348249138
+    num_examples: 43738
+  - name: validation
+    num_bytes: 44066862
+    num_examples: 5129
+  download_size: 339843061
+  dataset_size: 392316000
 ---
 
 # Dataset Card for WikiHop

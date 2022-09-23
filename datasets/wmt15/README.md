@@ -26,6 +26,107 @@ task_categories:
 task_ids: []
 pretty_name: WMT15
 paperswithcode_id: wmt-2015
+dataset_info:
+- config_name: cs-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - cs
+        - en
+  splits:
+  - name: test
+    num_bytes: 572203
+    num_examples: 2656
+  - name: train
+    num_bytes: 282996942
+    num_examples: 959768
+  - name: validation
+    num_bytes: 757817
+    num_examples: 3003
+  download_size: 1740666258
+  dataset_size: 284326962
+- config_name: de-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - en
+  splits:
+  - name: test
+    num_bytes: 522989
+    num_examples: 2169
+  - name: train
+    num_bytes: 1364002869
+    num_examples: 4522998
+  - name: validation
+    num_bytes: 777334
+    num_examples: 3003
+  download_size: 1740666258
+  dataset_size: 1365303192
+- config_name: fi-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fi
+        - en
+  splits:
+  - name: test
+    num_bytes: 306335
+    num_examples: 1370
+  - name: train
+    num_bytes: 605146817
+    num_examples: 2073394
+  - name: validation
+    num_bytes: 363941
+    num_examples: 1500
+  download_size: 273390220
+  dataset_size: 605817093
+- config_name: fr-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr
+        - en
+  splits:
+  - name: test
+    num_bytes: 298771
+    num_examples: 1500
+  - name: train
+    num_bytes: 14758986622
+    num_examples: 40853137
+  - name: validation
+    num_bytes: 1138737
+    num_examples: 4503
+  download_size: 6702781608
+  dataset_size: 14760424130
+- config_name: ru-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - en
+  splits:
+  - name: test
+    num_bytes: 955972
+    num_examples: 2818
+  - name: train
+    num_bytes: 437752256
+    num_examples: 1495081
+  - name: validation
+    num_bytes: 1087746
+    num_examples: 3003
+  download_size: 1092059435
+  dataset_size: 439795974
 ---
 
 # Dataset Card for "wmt15"

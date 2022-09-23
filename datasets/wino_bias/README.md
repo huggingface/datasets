@@ -19,6 +19,675 @@ task_ids:
 - coreference-resolution
 paperswithcode_id: winobias
 pretty_name: WinoBias
+dataset_info:
+- config_name: wino_bias
+  features:
+  - name: document_id
+    dtype: string
+  - name: part_number
+    dtype: string
+  - name: word_number
+    sequence: int32
+  - name: tokens
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: '"'
+          1: ''''''
+          2: '#'
+          3: $
+          4: (
+          5: )
+          6: ','
+          7: .
+          8: ':'
+          9: '``'
+          10: CC
+          11: CD
+          12: DT
+          13: EX
+          14: FW
+          15: IN
+          16: JJ
+          17: JJR
+          18: JJS
+          19: LS
+          20: MD
+          21: NN
+          22: NNP
+          23: NNPS
+          24: NNS
+          25: NN|SYM
+          26: PDT
+          27: POS
+          28: PRP
+          29: PRP$
+          30: RB
+          31: RBR
+          32: RBS
+          33: RP
+          34: SYM
+          35: TO
+          36: UH
+          37: VB
+          38: VBD
+          39: VBG
+          40: VBN
+          41: VBP
+          42: VBZ
+          43: WDT
+          44: WP
+          45: WP$
+          46: WRB
+          47: HYPH
+          48: XX
+          49: NFP
+          50: AFX
+          51: ADD
+          52: -LRB-
+          53: -RRB-
+  - name: parse_bit
+    sequence: string
+  - name: predicate_lemma
+    sequence: string
+  - name: predicate_framenet_id
+    sequence: string
+  - name: word_sense
+    sequence: string
+  - name: speaker
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-PERSON
+          1: I-PERSON
+          2: B-NORP
+          3: I-NORP
+          4: B-FAC
+          5: I-FAC
+          6: B-ORG
+          7: I-ORG
+          8: B-GPE
+          9: I-GPE
+          10: B-LOC
+          11: I-LOC
+          12: B-PRODUCT
+          13: I-PRODUCT
+          14: B-EVENT
+          15: I-EVENT
+          16: B-WORK_OF_ART
+          17: I-WORK_OF_ART
+          18: B-LAW
+          19: I-LAW
+          20: B-LANGUAGE
+          21: I-LANGUAGE
+          22: B-DATE
+          23: I-DATE
+          24: B-TIME
+          25: I-TIME
+          26: B-PERCENT
+          27: I-PERCENT
+          28: B-MONEY
+          29: I-MONEY
+          30: B-QUANTITY
+          31: I-QUANTITY
+          32: B-ORDINAL
+          33: I-ORDINAL
+          34: B-CARDINAL
+          35: I-CARDINAL
+          36: '*'
+          37: '0'
+  - name: verbal_predicates
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 173899234
+    num_examples: 150335
+  download_size: 268725744
+  dataset_size: 173899234
+- config_name: type1_pro
+  features:
+  - name: document_id
+    dtype: string
+  - name: part_number
+    dtype: string
+  - name: word_number
+    sequence: int32
+  - name: tokens
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: '"'
+          1: ''''''
+          2: '#'
+          3: $
+          4: (
+          5: )
+          6: ','
+          7: .
+          8: ':'
+          9: '``'
+          10: CC
+          11: CD
+          12: DT
+          13: EX
+          14: FW
+          15: IN
+          16: JJ
+          17: JJR
+          18: JJS
+          19: LS
+          20: MD
+          21: NN
+          22: NNP
+          23: NNPS
+          24: NNS
+          25: NN|SYM
+          26: PDT
+          27: POS
+          28: PRP
+          29: PRP$
+          30: RB
+          31: RBR
+          32: RBS
+          33: RP
+          34: SYM
+          35: TO
+          36: UH
+          37: VB
+          38: VBD
+          39: VBG
+          40: VBN
+          41: VBP
+          42: VBZ
+          43: WDT
+          44: WP
+          45: WP$
+          46: WRB
+          47: HYPH
+          48: XX
+          49: NFP
+          50: AFX
+          51: ADD
+          52: -LRB-
+          53: -RRB-
+          54: '-'
+  - name: parse_bit
+    sequence: string
+  - name: predicate_lemma
+    sequence: string
+  - name: predicate_framenet_id
+    sequence: string
+  - name: word_sense
+    sequence: string
+  - name: speaker
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-PERSON
+          1: I-PERSON
+          2: B-NORP
+          3: I-NORP
+          4: B-FAC
+          5: I-FAC
+          6: B-ORG
+          7: I-ORG
+          8: B-GPE
+          9: I-GPE
+          10: B-LOC
+          11: I-LOC
+          12: B-PRODUCT
+          13: I-PRODUCT
+          14: B-EVENT
+          15: I-EVENT
+          16: B-WORK_OF_ART
+          17: I-WORK_OF_ART
+          18: B-LAW
+          19: I-LAW
+          20: B-LANGUAGE
+          21: I-LANGUAGE
+          22: B-DATE
+          23: I-DATE
+          24: B-TIME
+          25: I-TIME
+          26: B-PERCENT
+          27: I-PERCENT
+          28: B-MONEY
+          29: I-MONEY
+          30: B-QUANTITY
+          31: I-QUANTITY
+          32: B-ORDINAL
+          33: I-ORDINAL
+          34: B-CARDINAL
+          35: I-CARDINAL
+          36: '*'
+          37: '0'
+          38: '-'
+  - name: verbal_predicates
+    sequence: string
+  - name: coreference_clusters
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 402041
+    num_examples: 396
+  - name: validation
+    num_bytes: 379380
+    num_examples: 396
+  download_size: 846198
+  dataset_size: 781421
+- config_name: type1_anti
+  features:
+  - name: document_id
+    dtype: string
+  - name: part_number
+    dtype: string
+  - name: word_number
+    sequence: int32
+  - name: tokens
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: '"'
+          1: ''''''
+          2: '#'
+          3: $
+          4: (
+          5: )
+          6: ','
+          7: .
+          8: ':'
+          9: '``'
+          10: CC
+          11: CD
+          12: DT
+          13: EX
+          14: FW
+          15: IN
+          16: JJ
+          17: JJR
+          18: JJS
+          19: LS
+          20: MD
+          21: NN
+          22: NNP
+          23: NNPS
+          24: NNS
+          25: NN|SYM
+          26: PDT
+          27: POS
+          28: PRP
+          29: PRP$
+          30: RB
+          31: RBR
+          32: RBS
+          33: RP
+          34: SYM
+          35: TO
+          36: UH
+          37: VB
+          38: VBD
+          39: VBG
+          40: VBN
+          41: VBP
+          42: VBZ
+          43: WDT
+          44: WP
+          45: WP$
+          46: WRB
+          47: HYPH
+          48: XX
+          49: NFP
+          50: AFX
+          51: ADD
+          52: -LRB-
+          53: -RRB-
+          54: '-'
+  - name: parse_bit
+    sequence: string
+  - name: predicate_lemma
+    sequence: string
+  - name: predicate_framenet_id
+    sequence: string
+  - name: word_sense
+    sequence: string
+  - name: speaker
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-PERSON
+          1: I-PERSON
+          2: B-NORP
+          3: I-NORP
+          4: B-FAC
+          5: I-FAC
+          6: B-ORG
+          7: I-ORG
+          8: B-GPE
+          9: I-GPE
+          10: B-LOC
+          11: I-LOC
+          12: B-PRODUCT
+          13: I-PRODUCT
+          14: B-EVENT
+          15: I-EVENT
+          16: B-WORK_OF_ART
+          17: I-WORK_OF_ART
+          18: B-LAW
+          19: I-LAW
+          20: B-LANGUAGE
+          21: I-LANGUAGE
+          22: B-DATE
+          23: I-DATE
+          24: B-TIME
+          25: I-TIME
+          26: B-PERCENT
+          27: I-PERCENT
+          28: B-MONEY
+          29: I-MONEY
+          30: B-QUANTITY
+          31: I-QUANTITY
+          32: B-ORDINAL
+          33: I-ORDINAL
+          34: B-CARDINAL
+          35: I-CARDINAL
+          36: '*'
+          37: '0'
+          38: '-'
+  - name: verbal_predicates
+    sequence: string
+  - name: coreference_clusters
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 403229
+    num_examples: 396
+  - name: validation
+    num_bytes: 380846
+    num_examples: 396
+  download_size: 894311
+  dataset_size: 784075
+- config_name: type2_pro
+  features:
+  - name: document_id
+    dtype: string
+  - name: part_number
+    dtype: string
+  - name: word_number
+    sequence: int32
+  - name: tokens
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: '"'
+          1: ''''''
+          2: '#'
+          3: $
+          4: (
+          5: )
+          6: ','
+          7: .
+          8: ':'
+          9: '``'
+          10: CC
+          11: CD
+          12: DT
+          13: EX
+          14: FW
+          15: IN
+          16: JJ
+          17: JJR
+          18: JJS
+          19: LS
+          20: MD
+          21: NN
+          22: NNP
+          23: NNPS
+          24: NNS
+          25: NN|SYM
+          26: PDT
+          27: POS
+          28: PRP
+          29: PRP$
+          30: RB
+          31: RBR
+          32: RBS
+          33: RP
+          34: SYM
+          35: TO
+          36: UH
+          37: VB
+          38: VBD
+          39: VBG
+          40: VBN
+          41: VBP
+          42: VBZ
+          43: WDT
+          44: WP
+          45: WP$
+          46: WRB
+          47: HYPH
+          48: XX
+          49: NFP
+          50: AFX
+          51: ADD
+          52: -LRB-
+          53: -RRB-
+          54: '-'
+  - name: parse_bit
+    sequence: string
+  - name: predicate_lemma
+    sequence: string
+  - name: predicate_framenet_id
+    sequence: string
+  - name: word_sense
+    sequence: string
+  - name: speaker
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-PERSON
+          1: I-PERSON
+          2: B-NORP
+          3: I-NORP
+          4: B-FAC
+          5: I-FAC
+          6: B-ORG
+          7: I-ORG
+          8: B-GPE
+          9: I-GPE
+          10: B-LOC
+          11: I-LOC
+          12: B-PRODUCT
+          13: I-PRODUCT
+          14: B-EVENT
+          15: I-EVENT
+          16: B-WORK_OF_ART
+          17: I-WORK_OF_ART
+          18: B-LAW
+          19: I-LAW
+          20: B-LANGUAGE
+          21: I-LANGUAGE
+          22: B-DATE
+          23: I-DATE
+          24: B-TIME
+          25: I-TIME
+          26: B-PERCENT
+          27: I-PERCENT
+          28: B-MONEY
+          29: I-MONEY
+          30: B-QUANTITY
+          31: I-QUANTITY
+          32: B-ORDINAL
+          33: I-ORDINAL
+          34: B-CARDINAL
+          35: I-CARDINAL
+          36: '*'
+          37: '0'
+          38: '-'
+  - name: verbal_predicates
+    sequence: string
+  - name: coreference_clusters
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 375480
+    num_examples: 396
+  - name: validation
+    num_bytes: 367293
+    num_examples: 396
+  download_size: 802425
+  dataset_size: 742773
+- config_name: type2_anti
+  features:
+  - name: document_id
+    dtype: string
+  - name: part_number
+    dtype: string
+  - name: word_number
+    sequence: int32
+  - name: tokens
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: '"'
+          1: ''''''
+          2: '#'
+          3: $
+          4: (
+          5: )
+          6: ','
+          7: .
+          8: ':'
+          9: '``'
+          10: CC
+          11: CD
+          12: DT
+          13: EX
+          14: FW
+          15: IN
+          16: JJ
+          17: JJR
+          18: JJS
+          19: LS
+          20: MD
+          21: NN
+          22: NNP
+          23: NNPS
+          24: NNS
+          25: NN|SYM
+          26: PDT
+          27: POS
+          28: PRP
+          29: PRP$
+          30: RB
+          31: RBR
+          32: RBS
+          33: RP
+          34: SYM
+          35: TO
+          36: UH
+          37: VB
+          38: VBD
+          39: VBG
+          40: VBN
+          41: VBP
+          42: VBZ
+          43: WDT
+          44: WP
+          45: WP$
+          46: WRB
+          47: HYPH
+          48: XX
+          49: NFP
+          50: AFX
+          51: ADD
+          52: -LRB-
+          53: -RRB-
+          54: '-'
+  - name: parse_bit
+    sequence: string
+  - name: predicate_lemma
+    sequence: string
+  - name: predicate_framenet_id
+    sequence: string
+  - name: word_sense
+    sequence: string
+  - name: speaker
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-PERSON
+          1: I-PERSON
+          2: B-NORP
+          3: I-NORP
+          4: B-FAC
+          5: I-FAC
+          6: B-ORG
+          7: I-ORG
+          8: B-GPE
+          9: I-GPE
+          10: B-LOC
+          11: I-LOC
+          12: B-PRODUCT
+          13: I-PRODUCT
+          14: B-EVENT
+          15: I-EVENT
+          16: B-WORK_OF_ART
+          17: I-WORK_OF_ART
+          18: B-LAW
+          19: I-LAW
+          20: B-LANGUAGE
+          21: I-LANGUAGE
+          22: B-DATE
+          23: I-DATE
+          24: B-TIME
+          25: I-TIME
+          26: B-PERCENT
+          27: I-PERCENT
+          28: B-MONEY
+          29: I-MONEY
+          30: B-QUANTITY
+          31: I-QUANTITY
+          32: B-ORDINAL
+          33: I-ORDINAL
+          34: B-CARDINAL
+          35: I-CARDINAL
+          36: '*'
+          37: '0'
+          38: '-'
+  - name: verbal_predicates
+    sequence: string
+  - name: coreference_clusters
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 377262
+    num_examples: 396
+  - name: validation
+    num_bytes: 368757
+    num_examples: 396
+  download_size: 848804
+  dataset_size: 746019
 ---
 
 # Dataset Card for Wino_Bias dataset

@@ -19,6 +19,34 @@ task_ids:
 - text-classification-other-hate-speech-detection
 paperswithcode_id: null
 pretty_name: HateSpeechPortuguese
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: no-hate
+          1: hate
+  - name: hatespeech_G1
+    dtype: string
+  - name: annotator_G1
+    dtype: string
+  - name: hatespeech_G2
+    dtype: string
+  - name: annotator_G2
+    dtype: string
+  - name: hatespeech_G3
+    dtype: string
+  - name: annotator_G3
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 826130
+    num_examples: 5670
+  download_size: 763846
+  dataset_size: 826130
 ---
 
 # Dataset Card for [Dataset Name]

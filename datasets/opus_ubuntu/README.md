@@ -274,6 +274,167 @@ configs:
 - br-uz
 - br-yi
 - bs-szl
+dataset_info:
+- config_name: as-bs
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - as
+        - bs
+  splits:
+  - name: train
+    num_bytes: 1037811
+    num_examples: 8583
+  download_size: 229723
+  dataset_size: 1037811
+- config_name: az-cs
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - az
+        - cs
+  splits:
+  - name: train
+    num_bytes: 17821
+    num_examples: 293
+  download_size: 9501
+  dataset_size: 17821
+- config_name: bg-de
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - bg
+        - de
+  splits:
+  - name: train
+    num_bytes: 27627
+    num_examples: 184
+  download_size: 9994
+  dataset_size: 27627
+- config_name: br-es_PR
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - br
+        - es_PR
+  splits:
+  - name: train
+    num_bytes: 8875
+    num_examples: 125
+  download_size: 5494
+  dataset_size: 8875
+- config_name: bn-ga
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - bn
+        - ga
+  splits:
+  - name: train
+    num_bytes: 584629
+    num_examples: 7324
+  download_size: 142710
+  dataset_size: 584629
+- config_name: br-hi
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - br
+        - hi
+  splits:
+  - name: train
+    num_bytes: 1300081
+    num_examples: 15551
+  download_size: 325415
+  dataset_size: 1300081
+- config_name: br-la
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - br
+        - la
+  splits:
+  - name: train
+    num_bytes: 29341
+    num_examples: 527
+  download_size: 11565
+  dataset_size: 29341
+- config_name: bs-szl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - bs
+        - szl
+  splits:
+  - name: train
+    num_bytes: 41116
+    num_examples: 646
+  download_size: 18134
+  dataset_size: 41116
+- config_name: br-uz
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - br
+        - uz
+  splits:
+  - name: train
+    num_bytes: 110278
+    num_examples: 1416
+  download_size: 33595
+  dataset_size: 110278
+- config_name: br-yi
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - br
+        - yi
+  splits:
+  - name: train
+    num_bytes: 172846
+    num_examples: 2799
+  download_size: 41956
+  dataset_size: 172846
 ---
 
 # Dataset Card for Opus Ubuntu

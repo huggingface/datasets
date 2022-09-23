@@ -31,44 +31,82 @@ train-eval-index:
     claim: text
     label: target
   metrics:
-    - type: accuracy
-      name: Accuracy
-    - type: f1
-      name: F1 macro
-      args:
-        average: macro
-    - type: f1
-      name: F1 micro
-      args:
-        average: micro
-    - type: f1
-      name: F1 weighted
-      args:
-        average: weighted
-    - type: precision
-      name: Precision macro
-      args:
-        average: macro
-    - type: precision
-      name: Precision micro
-      args:
-        average: micro
-    - type: precision
-      name: Precision weighted
-      args:
-        average: weighted
-    - type: recall
-      name: Recall macro
-      args:
-        average: macro
-    - type: recall
-      name: Recall micro
-      args:
-        average: micro
-    - type: recall
-      name: Recall weighted
-      args:
-        average: weighted
+  - type: accuracy
+    name: Accuracy
+  - type: f1
+    name: F1 macro
+    args:
+      average: macro
+  - type: f1
+    name: F1 micro
+    args:
+      average: micro
+  - type: f1
+    name: F1 weighted
+    args:
+      average: weighted
+  - type: precision
+    name: Precision macro
+    args:
+      average: macro
+  - type: precision
+    name: Precision micro
+    args:
+      average: micro
+  - type: precision
+    name: Precision weighted
+    args:
+      average: weighted
+  - type: recall
+    name: Recall macro
+    args:
+      average: macro
+  - type: recall
+    name: Recall micro
+    args:
+      average: micro
+  - type: recall
+    name: Recall weighted
+    args:
+      average: weighted
+dataset_info:
+  features:
+  - name: claim_id
+    dtype: string
+  - name: claim
+    dtype: string
+  - name: date_published
+    dtype: string
+  - name: explanation
+    dtype: string
+  - name: fact_checkers
+    dtype: string
+  - name: main_text
+    dtype: string
+  - name: sources
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: mixture
+          2: 'true'
+          3: unproven
+  - name: subjects
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 6825221
+    num_examples: 1235
+  - name: train
+    num_bytes: 53985377
+    num_examples: 9832
+  - name: validation
+    num_bytes: 6653044
+    num_examples: 1225
+  download_size: 24892660
+  dataset_size: 67463642
 ---
 
 # Dataset Card for PUBHEALTH

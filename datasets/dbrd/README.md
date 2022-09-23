@@ -23,6 +23,29 @@ task_ids:
 - masked-language-modeling
 - sentiment-classification
 paperswithcode_id: dbrd
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 3246243
+    num_examples: 2224
+  - name: train
+    num_bytes: 29496333
+    num_examples: 20028
+  - name: unsupervised
+    num_bytes: 152733031
+    num_examples: 96264
+  download_size: 79065872
+  dataset_size: 185475607
 ---
 
 # Dataset Card for DBRD

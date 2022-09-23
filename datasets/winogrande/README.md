@@ -3,6 +3,139 @@ language:
 - en
 paperswithcode_id: winogrande
 pretty_name: WinoGrande
+dataset_info:
+- config_name: winogrande_xs
+  features:
+  - name: sentence
+    dtype: string
+  - name: option1
+    dtype: string
+  - name: option2
+    dtype: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 227649
+    num_examples: 1767
+  - name: train
+    num_bytes: 20704
+    num_examples: 160
+  - name: validation
+    num_bytes: 164199
+    num_examples: 1267
+  download_size: 3395492
+  dataset_size: 412552
+- config_name: winogrande_s
+  features:
+  - name: sentence
+    dtype: string
+  - name: option1
+    dtype: string
+  - name: option2
+    dtype: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 227649
+    num_examples: 1767
+  - name: train
+    num_bytes: 82308
+    num_examples: 640
+  - name: validation
+    num_bytes: 164199
+    num_examples: 1267
+  download_size: 3395492
+  dataset_size: 474156
+- config_name: winogrande_m
+  features:
+  - name: sentence
+    dtype: string
+  - name: option1
+    dtype: string
+  - name: option2
+    dtype: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 227649
+    num_examples: 1767
+  - name: train
+    num_bytes: 329001
+    num_examples: 2558
+  - name: validation
+    num_bytes: 164199
+    num_examples: 1267
+  download_size: 3395492
+  dataset_size: 720849
+- config_name: winogrande_l
+  features:
+  - name: sentence
+    dtype: string
+  - name: option1
+    dtype: string
+  - name: option2
+    dtype: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 227649
+    num_examples: 1767
+  - name: train
+    num_bytes: 1319576
+    num_examples: 10234
+  - name: validation
+    num_bytes: 164199
+    num_examples: 1267
+  download_size: 3395492
+  dataset_size: 1711424
+- config_name: winogrande_xl
+  features:
+  - name: sentence
+    dtype: string
+  - name: option1
+    dtype: string
+  - name: option2
+    dtype: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 227649
+    num_examples: 1767
+  - name: train
+    num_bytes: 5185832
+    num_examples: 40398
+  - name: validation
+    num_bytes: 164199
+    num_examples: 1267
+  download_size: 3395492
+  dataset_size: 5577680
+- config_name: winogrande_debiased
+  features:
+  - name: sentence
+    dtype: string
+  - name: option1
+    dtype: string
+  - name: option2
+    dtype: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 227649
+    num_examples: 1767
+  - name: train
+    num_bytes: 1203420
+    num_examples: 9248
+  - name: validation
+    num_bytes: 164199
+    num_examples: 1267
+  download_size: 3395492
+  dataset_size: 1595268
 ---
 
 # Dataset Card for "winogrande"

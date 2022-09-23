@@ -20,6 +20,33 @@ task_ids:
 - multiple-choice-qa
 paperswithcode_id: piqa
 pretty_name: 'Physical Interaction: Question Answering'
+dataset_info:
+  features:
+  - name: goal
+    dtype: string
+  - name: sol1
+    dtype: string
+  - name: sol2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 761521
+    num_examples: 3084
+  - name: train
+    num_bytes: 4104026
+    num_examples: 16113
+  - name: validation
+    num_bytes: 464321
+    num_examples: 1838
+  download_size: 2638625
+  dataset_size: 5329868
 ---
 
 # Dataset Card for "Physical Interaction: Question Answering"

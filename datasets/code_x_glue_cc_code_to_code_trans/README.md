@@ -18,6 +18,26 @@ task_categories:
 task_ids:
 - translation-other-code-to-code
 pretty_name: CodeXGlueCcCodeToCodeTrans
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: java
+    dtype: string
+  - name: cs
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 418595
+    num_examples: 1000
+  - name: train
+    num_bytes: 4372657
+    num_examples: 10300
+  - name: validation
+    num_bytes: 226415
+    num_examples: 500
+  download_size: 4876035
+  dataset_size: 5017667
 ---
 # Dataset Card for "code_x_glue_cc_code_to_code_trans"
 

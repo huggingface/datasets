@@ -21,6 +21,95 @@ task_ids:
 - other-other-knowledge-extraction
 paperswithcode_id: cord-19
 pretty_name: CORD-19
+dataset_info:
+- config_name: metadata
+  features:
+  - name: cord_uid
+    dtype: string
+  - name: sha
+    dtype: string
+  - name: source_x
+    dtype: string
+  - name: title
+    dtype: string
+  - name: doi
+    dtype: string
+  - name: abstract
+    dtype: string
+  - name: publish_time
+    dtype: string
+  - name: authors
+    dtype: string
+  - name: journal
+    dtype: string
+  - name: url
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 496247275
+    num_examples: 368618
+  download_size: 6142360818
+  dataset_size: 496247275
+- config_name: fulltext
+  features:
+  - name: cord_uid
+    dtype: string
+  - name: sha
+    dtype: string
+  - name: source_x
+    dtype: string
+  - name: title
+    dtype: string
+  - name: doi
+    dtype: string
+  - name: abstract
+    dtype: string
+  - name: publish_time
+    dtype: string
+  - name: authors
+    dtype: string
+  - name: journal
+    dtype: string
+  - name: url
+    dtype: string
+  - name: fulltext
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3718245736
+    num_examples: 368618
+  download_size: 6142360818
+  dataset_size: 3718245736
+- config_name: embeddings
+  features:
+  - name: cord_uid
+    dtype: string
+  - name: sha
+    dtype: string
+  - name: source_x
+    dtype: string
+  - name: title
+    dtype: string
+  - name: doi
+    dtype: string
+  - name: abstract
+    dtype: string
+  - name: publish_time
+    dtype: string
+  - name: authors
+    dtype: string
+  - name: journal
+    dtype: string
+  - name: url
+    dtype: string
+  - name: doc_embeddings
+    sequence: float64
+  splits:
+  - name: train
+    num_bytes: 2759561943
+    num_examples: 368618
+  download_size: 6142360818
+  dataset_size: 2759561943
 ---
 
 # Dataset Card for CORD-19

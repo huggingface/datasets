@@ -26,6 +26,79 @@ configs:
 - all
 - happy
 - offmychest
+dataset_info:
+- config_name: happy
+  features:
+  - name: personas
+    sequence: string
+  - name: context
+    sequence: string
+  - name: context_speakers
+    sequence: string
+  - name: response
+    dtype: string
+  - name: response_speaker
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 92003042
+    num_examples: 22730
+  - name: train
+    num_bytes: 643196978
+    num_examples: 157195
+  - name: validation
+    num_bytes: 81132088
+    num_examples: 19829
+  download_size: 252434681
+  dataset_size: 816332108
+- config_name: offmychest
+  features:
+  - name: personas
+    sequence: string
+  - name: context
+    sequence: string
+  - name: context_speakers
+    sequence: string
+  - name: response
+    dtype: string
+  - name: response_speaker
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 64173390
+    num_examples: 15324
+  - name: train
+    num_bytes: 518616402
+    num_examples: 123968
+  - name: validation
+    num_bytes: 66675909
+    num_examples: 16004
+  download_size: 252434681
+  dataset_size: 649465701
+- config_name: all
+  features:
+  - name: personas
+    sequence: string
+  - name: context
+    sequence: string
+  - name: context_speakers
+    sequence: string
+  - name: response
+    dtype: string
+  - name: response_speaker
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 156310498
+    num_examples: 38054
+  - name: train
+    num_bytes: 1162655628
+    num_examples: 281163
+  - name: validation
+    num_bytes: 147940164
+    num_examples: 35833
+  download_size: 252434681
+  dataset_size: 1466906290
 ---
 
 # Dataset Card for PEC

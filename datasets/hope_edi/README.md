@@ -22,11 +22,73 @@ task_categories:
 task_ids:
 - text-classification-other-hope-speech-classification
 paperswithcode_id: hopeedi
-pretty_name: 'HopeEDI: A Multilingual Hope Speech Detection Dataset for Equality, Diversity, and Inclusion'
+pretty_name: 'HopeEDI: A Multilingual Hope Speech Detection Dataset for Equality,
+  Diversity, and Inclusion'
 configs:
 - english
 - malayalam
 - tamil
+dataset_info:
+- config_name: english
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Hope_speech
+          1: Non_hope_speech
+          2: not-English
+  splits:
+  - name: train
+    num_bytes: 2306656
+    num_examples: 22762
+  - name: validation
+    num_bytes: 288663
+    num_examples: 2843
+  download_size: 2739901
+  dataset_size: 2595319
+- config_name: tamil
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Hope_speech
+          1: Non_hope_speech
+          2: not-Tamil
+  splits:
+  - name: train
+    num_bytes: 1531013
+    num_examples: 16160
+  - name: validation
+    num_bytes: 197378
+    num_examples: 2018
+  download_size: 1795767
+  dataset_size: 1728391
+- config_name: malayalam
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Hope_speech
+          1: Non_hope_speech
+          2: not-malayalam
+  splits:
+  - name: train
+    num_bytes: 1492031
+    num_examples: 8564
+  - name: validation
+    num_bytes: 180713
+    num_examples: 1070
+  download_size: 1721534
+  dataset_size: 1672744
 ---
 
 # Dataset Card for [Dataset Name]

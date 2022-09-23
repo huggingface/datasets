@@ -22,6 +22,20 @@ task_ids:
 - text-simplification
 paperswithcode_id: null
 pretty_name: Times of India News Headlines
+dataset_info:
+  features:
+  - name: publish_date
+    dtype: string
+  - name: headline_category
+    dtype: string
+  - name: headline_text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 260939306
+    num_examples: 3297173
+  download_size: 0
+  dataset_size: 260939306
 ---
 
 # Dataset Card for Times of India News Headlines

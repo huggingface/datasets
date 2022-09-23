@@ -20,6 +20,143 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: adversarialqa
 pretty_name: adversarialQA
+dataset_info:
+- config_name: adversarialQA
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  - name: metadata
+    struct:
+    - name: split
+      dtype: string
+    - name: model_in_the_loop
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 2919643
+    num_examples: 3000
+  - name: train
+    num_bytes: 27858794
+    num_examples: 30000
+  - name: validation
+    num_bytes: 2757128
+    num_examples: 3000
+  download_size: 9018914
+  dataset_size: 33535565
+- config_name: dbidaf
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  - name: metadata
+    struct:
+    - name: split
+      dtype: string
+    - name: model_in_the_loop
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 947111
+    num_examples: 1000
+  - name: train
+    num_bytes: 9282518
+    num_examples: 10000
+  - name: validation
+    num_bytes: 917943
+    num_examples: 1000
+  download_size: 9018914
+  dataset_size: 11147572
+- config_name: dbert
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  - name: metadata
+    struct:
+    - name: split
+      dtype: string
+    - name: model_in_the_loop
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 971454
+    num_examples: 1000
+  - name: train
+    num_bytes: 9345557
+    num_examples: 10000
+  - name: validation
+    num_bytes: 918192
+    num_examples: 1000
+  download_size: 9018914
+  dataset_size: 11235203
+- config_name: droberta
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  - name: metadata
+    struct:
+    - name: split
+      dtype: string
+    - name: model_in_the_loop
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 1005406
+    num_examples: 1000
+  - name: train
+    num_bytes: 9270719
+    num_examples: 10000
+  - name: validation
+    num_bytes: 925065
+    num_examples: 1000
+  download_size: 9018914
+  dataset_size: 11201190
 ---
 
 # Dataset Card for adversarialQA

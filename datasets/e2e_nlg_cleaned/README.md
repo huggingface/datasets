@@ -19,6 +19,24 @@ task_ids:
 - text2text-generation-other-meaning-representtion-to-text
 paperswithcode_id: null
 pretty_name: the Cleaned Version of the E2E Dataset
+dataset_info:
+  features:
+  - name: meaning_representation
+    dtype: string
+  - name: human_reference
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1262597
+    num_examples: 4693
+  - name: train
+    num_bytes: 7474936
+    num_examples: 33525
+  - name: validation
+    num_bytes: 1056527
+    num_examples: 4299
+  download_size: 14597407
+  dataset_size: 9794060
 ---
 
 # Dataset Card for the Cleaned Version of the E2E Dataset

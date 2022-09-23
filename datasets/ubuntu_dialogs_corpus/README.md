@@ -9,7 +9,7 @@ license:
 - unknown
 multilinguality:
 - monolingual
-pretty_name: "UDC (Ubuntu Dialogue Corpus)"
+pretty_name: UDC (Ubuntu Dialogue Corpus)
 size_categories:
 - 1M<n<10M
 source_datasets:
@@ -19,6 +19,54 @@ task_categories:
 task_ids:
 - dialogue-generation
 paperswithcode_id: ubuntu-dialogue-corpus
+dataset_info:
+- config_name: train
+  features:
+  - name: Context
+    dtype: string
+  - name: Utterance
+    dtype: string
+  - name: Label
+    dtype: int32
+  splits:
+  - name: train
+    num_bytes: 525126729
+    num_examples: 1000000
+  download_size: 0
+  dataset_size: 525126729
+- config_name: dev_test
+  features:
+  - name: Context
+    dtype: string
+  - name: Ground Truth Utterance
+    dtype: string
+  - name: Distractor_0
+    dtype: string
+  - name: Distractor_1
+    dtype: string
+  - name: Distractor_2
+    dtype: string
+  - name: Distractor_3
+    dtype: string
+  - name: Distractor_4
+    dtype: string
+  - name: Distractor_5
+    dtype: string
+  - name: Distractor_6
+    dtype: string
+  - name: Distractor_7
+    dtype: string
+  - name: Distractor_8
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 27060502
+    num_examples: 18920
+  - name: validation
+    num_bytes: 27663181
+    num_examples: 19560
+  download_size: 0
+  dataset_size: 54723683
 ---
 
 # Dataset Card for "ubuntu_dialogs_corpus"

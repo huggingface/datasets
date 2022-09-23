@@ -1,6 +1,217 @@
 ---
 paperswithcode_id: lince
 pretty_name: Linguistic Code-switching Evaluation Dataset
+dataset_info:
+- config_name: lid_spaeng
+  features:
+  - name: idx
+    dtype: int32
+  - name: words
+    sequence: string
+  - name: lid
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 1337727
+    num_examples: 8289
+  - name: train
+    num_bytes: 4745003
+    num_examples: 21030
+  - name: validation
+    num_bytes: 739950
+    num_examples: 3332
+  download_size: 1188861
+  dataset_size: 6822680
+- config_name: lid_hineng
+  features:
+  - name: idx
+    dtype: int32
+  - name: words
+    sequence: string
+  - name: lid
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 456850
+    num_examples: 1854
+  - name: train
+    num_bytes: 1662284
+    num_examples: 4823
+  - name: validation
+    num_bytes: 268930
+    num_examples: 744
+  download_size: 432854
+  dataset_size: 2388064
+- config_name: lid_msaea
+  features:
+  - name: idx
+    dtype: int32
+  - name: words
+    sequence: string
+  - name: lid
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 590488
+    num_examples: 1663
+  - name: train
+    num_bytes: 3804156
+    num_examples: 8464
+  - name: validation
+    num_bytes: 490566
+    num_examples: 1116
+  download_size: 803806
+  dataset_size: 4885210
+- config_name: lid_nepeng
+  features:
+  - name: idx
+    dtype: int32
+  - name: words
+    sequence: string
+  - name: lid
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 620512
+    num_examples: 3228
+  - name: train
+    num_bytes: 2239014
+    num_examples: 8451
+  - name: validation
+    num_bytes: 351649
+    num_examples: 1332
+  download_size: 545342
+  dataset_size: 3211175
+- config_name: pos_spaeng
+  features:
+  - name: idx
+    dtype: int32
+  - name: words
+    sequence: string
+  - name: lid
+    sequence: string
+  - name: pos
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 1758626
+    num_examples: 10720
+  - name: train
+    num_bytes: 5467832
+    num_examples: 27893
+  - name: validation
+    num_bytes: 840593
+    num_examples: 4298
+  download_size: 819657
+  dataset_size: 8067051
+- config_name: pos_hineng
+  features:
+  - name: idx
+    dtype: int32
+  - name: words
+    sequence: string
+  - name: lid
+    sequence: string
+  - name: pos
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 131192
+    num_examples: 299
+  - name: train
+    num_bytes: 537541
+    num_examples: 1030
+  - name: validation
+    num_bytes: 80886
+    num_examples: 160
+  download_size: 113872
+  dataset_size: 749619
+- config_name: ner_spaeng
+  features:
+  - name: idx
+    dtype: int32
+  - name: words
+    sequence: string
+  - name: lid
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 6530956
+    num_examples: 23527
+  - name: train
+    num_bytes: 9836312
+    num_examples: 33611
+  - name: validation
+    num_bytes: 2980990
+    num_examples: 10085
+  download_size: 3075520
+  dataset_size: 19348258
+- config_name: ner_msaea
+  features:
+  - name: idx
+    dtype: int32
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 367310
+    num_examples: 1110
+  - name: train
+    num_bytes: 3887684
+    num_examples: 10103
+  - name: validation
+    num_bytes: 431414
+    num_examples: 1122
+  download_size: 938671
+  dataset_size: 4686408
+- config_name: ner_hineng
+  features:
+  - name: idx
+    dtype: int32
+  - name: words
+    sequence: string
+  - name: lid
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 185220
+    num_examples: 522
+  - name: train
+    num_bytes: 474639
+    num_examples: 1243
+  - name: validation
+    num_bytes: 121403
+    num_examples: 314
+  download_size: 141285
+  dataset_size: 781262
+- config_name: sa_spaeng
+  features:
+  - name: idx
+    dtype: int32
+  - name: words
+    sequence: string
+  - name: lid
+    sequence: string
+  - name: sa
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1349407
+    num_examples: 4736
+  - name: train
+    num_bytes: 3587783
+    num_examples: 12194
+  - name: validation
+    num_bytes: 546692
+    num_examples: 1859
+  download_size: 1031412
+  dataset_size: 5483882
 ---
 
 # Dataset Card for "lince"

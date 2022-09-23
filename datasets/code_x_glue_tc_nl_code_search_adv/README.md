@@ -19,6 +19,58 @@ task_categories:
 task_ids:
 - document-retrieval
 pretty_name: CodeXGlueTcNlCodeSearchAdv
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: repo
+    dtype: string
+  - name: path
+    dtype: string
+  - name: func_name
+    dtype: string
+  - name: original_string
+    dtype: string
+  - name: language
+    dtype: string
+  - name: code
+    dtype: string
+  - name: code_tokens
+    sequence: string
+  - name: docstring
+    dtype: string
+  - name: docstring_tokens
+    sequence: string
+  - name: sha
+    dtype: string
+  - name: url
+    dtype: string
+  - name: docstring_summary
+    dtype: string
+  - name: parameters
+    dtype: string
+  - name: return_statement
+    dtype: string
+  - name: argument_list
+    dtype: string
+  - name: identifier
+    dtype: string
+  - name: nwo
+    dtype: string
+  - name: score
+    dtype: float32
+  splits:
+  - name: test
+    num_bytes: 47433760
+    num_examples: 19210
+  - name: train
+    num_bytes: 820716084
+    num_examples: 251820
+  - name: validation
+    num_bytes: 23468834
+    num_examples: 9604
+  download_size: 966025624
+  dataset_size: 891618678
 ---
 # Dataset Card for "code_x_glue_tc_nl_code_search_adv"
 

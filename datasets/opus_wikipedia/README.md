@@ -44,6 +44,87 @@ configs:
 - en-ru
 - en-sl
 - en-vi
+dataset_info:
+- config_name: ar-en
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ar
+        - en
+  splits:
+  - name: train
+    num_bytes: 45207715
+    num_examples: 151136
+  download_size: 16097997
+  dataset_size: 45207715
+- config_name: ar-pl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ar
+        - pl
+  splits:
+  - name: train
+    num_bytes: 304851676
+    num_examples: 823715
+  download_size: 104585718
+  dataset_size: 304851676
+- config_name: en-sl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - sl
+  splits:
+  - name: train
+    num_bytes: 30479739
+    num_examples: 140124
+  download_size: 11727538
+  dataset_size: 30479739
+- config_name: en-ru
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ru
+  splits:
+  - name: train
+    num_bytes: 167649057
+    num_examples: 572717
+  download_size: 57356138
+  dataset_size: 167649057
+- config_name: en-vi
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - vi
+  splits:
+  - name: train
+    num_bytes: 7571598
+    num_examples: 58116
+  download_size: 2422413
+  dataset_size: 7571598
 ---
 
 # Dataset Card for OpusWikipedia

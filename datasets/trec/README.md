@@ -19,6 +19,83 @@ task_categories:
 task_ids:
 - multi-class-classification
 paperswithcode_id: trecqa
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: coarse_label
+    dtype:
+      class_label:
+        names:
+          0: ABBR
+          1: ENTY
+          2: DESC
+          3: HUM
+          4: LOC
+          5: NUM
+  - name: fine_label
+    dtype:
+      class_label:
+        names:
+          0: ABBR:abb
+          1: ABBR:exp
+          2: ENTY:animal
+          3: ENTY:body
+          4: ENTY:color
+          5: ENTY:cremat
+          6: ENTY:currency
+          7: ENTY:dismed
+          8: ENTY:event
+          9: ENTY:food
+          10: ENTY:instru
+          11: ENTY:lang
+          12: ENTY:letter
+          13: ENTY:other
+          14: ENTY:plant
+          15: ENTY:product
+          16: ENTY:religion
+          17: ENTY:sport
+          18: ENTY:substance
+          19: ENTY:symbol
+          20: ENTY:techmeth
+          21: ENTY:termeq
+          22: ENTY:veh
+          23: ENTY:word
+          24: DESC:def
+          25: DESC:desc
+          26: DESC:manner
+          27: DESC:reason
+          28: HUM:gr
+          29: HUM:ind
+          30: HUM:title
+          31: HUM:desc
+          32: LOC:city
+          33: LOC:country
+          34: LOC:mount
+          35: LOC:other
+          36: LOC:state
+          37: NUM:code
+          38: NUM:count
+          39: NUM:date
+          40: NUM:dist
+          41: NUM:money
+          42: NUM:ord
+          43: NUM:other
+          44: NUM:period
+          45: NUM:perc
+          46: NUM:speed
+          47: NUM:temp
+          48: NUM:volsize
+          49: NUM:weight
+  splits:
+  - name: test
+    num_bytes: 27983
+    num_examples: 500
+  - name: train
+    num_bytes: 385090
+    num_examples: 5452
+  download_size: 359212
+  dataset_size: 413073
 ---
 
 # Dataset Card for "trec"

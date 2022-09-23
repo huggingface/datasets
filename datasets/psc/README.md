@@ -19,6 +19,27 @@ task_ids:
 - news-articles-summarization
 paperswithcode_id: null
 pretty_name: psc
+dataset_info:
+  features:
+  - name: extract_text
+    dtype: string
+  - name: summary_text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 1292103
+    num_examples: 1078
+  - name: train
+    num_bytes: 5026582
+    num_examples: 4302
+  download_size: 2357808
+  dataset_size: 6318685
 ---
 
 # Dataset Card for [Dataset Name]

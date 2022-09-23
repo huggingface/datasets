@@ -30,8 +30,28 @@ train-eval-index:
     text: text
     summary: target
   metrics:
-    - type: rouge
-      name: Rouge
+  - type: rouge
+    name: Rouge
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: summary
+    dtype: string
+  - name: title
+    dtype: string
+  splits:
+  - name: ca_test
+    num_bytes: 14945291
+    num_examples: 1237
+  - name: test
+    num_bytes: 37866257
+    num_examples: 3269
+  - name: train
+    num_bytes: 219596090
+    num_examples: 18949
+  download_size: 67260676
+  dataset_size: 272407638
 ---
 
 # Dataset Card for "billsum"

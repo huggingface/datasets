@@ -19,6 +19,23 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: urdu-sentiment-corpus
 pretty_name: Urdu Sentiment Corpus (USC)
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  - name: sentiment
+    dtype:
+      class_label:
+        names:
+          0: P
+          1: N
+          2: O
+  splits:
+  - name: train
+    num_bytes: 161190
+    num_examples: 1000
+  download_size: 51583
+  dataset_size: 161190
 ---
 
 # Dataset Card for Urdu Sentiment Corpus (USC)

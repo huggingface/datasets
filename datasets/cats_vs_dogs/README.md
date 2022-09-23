@@ -19,6 +19,22 @@ task_categories:
 task_ids:
 - multi-class-image-classification
 paperswithcode_id: cats-vs-dogs
+dataset_info:
+  features:
+  - name: image
+    dtype: image
+  - name: labels
+    dtype:
+      class_label:
+        names:
+          0: cat
+          1: dog
+  splits:
+  - name: train
+    num_bytes: 3893603
+    num_examples: 23422
+  download_size: 824887076
+  dataset_size: 3893603
 ---
 
 # Dataset Card for Cats Vs. Dogs

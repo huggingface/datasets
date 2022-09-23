@@ -20,6 +20,35 @@ task_categories:
 task_ids:
 - natural-language-inference
 paperswithcode_id: indonli
+dataset_info:
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  config_name: indonli
+  splits:
+  - name: test_expert
+    num_bytes: 911916
+    num_examples: 2984
+  - name: test_lay
+    num_bytes: 473849
+    num_examples: 2201
+  - name: train
+    num_bytes: 2265687
+    num_examples: 10330
+  - name: validation
+    num_bytes: 465299
+    num_examples: 2197
+  download_size: 6977877
+  dataset_size: 4116751
 ---
 
 # Dataset Card for IndoNLI

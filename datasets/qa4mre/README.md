@@ -13,7 +13,7 @@ license:
 - unknown
 multilinguality:
 - multilingual
-pretty_name: "QA4MRE: Question Answering for Machine Reading Evaluation"
+pretty_name: 'QA4MRE: Question Answering for Machine Reading Evaluation'
 size_categories:
 - 1K<n<10K
 source_datasets:
@@ -23,6 +23,647 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: null
+dataset_info:
+- config_name: 2011.main.DE
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1747118
+    num_examples: 120
+  download_size: 222289
+  dataset_size: 1747118
+- config_name: 2011.main.EN
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1569676
+    num_examples: 120
+  download_size: 202490
+  dataset_size: 1569676
+- config_name: 2011.main.ES
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1694460
+    num_examples: 120
+  download_size: 217617
+  dataset_size: 1694460
+- config_name: 2011.main.IT
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1667188
+    num_examples: 120
+  download_size: 214764
+  dataset_size: 1667188
+- config_name: 2011.main.RO
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1740419
+    num_examples: 120
+  download_size: 221510
+  dataset_size: 1740419
+- config_name: 2012.main.AR
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2710656
+    num_examples: 160
+  download_size: 356178
+  dataset_size: 2710656
+- config_name: 2012.main.BG
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3454215
+    num_examples: 160
+  download_size: 445060
+  dataset_size: 3454215
+- config_name: 2012.main.DE
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2087466
+    num_examples: 160
+  download_size: 281600
+  dataset_size: 2087466
+- config_name: 2012.main.EN
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1757586
+    num_examples: 160
+  download_size: 243467
+  dataset_size: 1757586
+- config_name: 2012.main.ES
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2057402
+    num_examples: 160
+  download_size: 278445
+  dataset_size: 2057402
+- config_name: 2012.main.IT
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2071710
+    num_examples: 160
+  download_size: 280051
+  dataset_size: 2071710
+- config_name: 2012.main.RO
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2074930
+    num_examples: 160
+  download_size: 279541
+  dataset_size: 2074930
+- config_name: 2012.alzheimers.EN
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1637988
+    num_examples: 40
+  download_size: 177345
+  dataset_size: 1637988
+- config_name: 2013.main.AR
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4180979
+    num_examples: 284
+  download_size: 378302
+  dataset_size: 4180979
+- config_name: 2013.main.BG
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 5403246
+    num_examples: 284
+  download_size: 463605
+  dataset_size: 5403246
+- config_name: 2013.main.EN
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2887866
+    num_examples: 284
+  download_size: 274969
+  dataset_size: 2887866
+- config_name: 2013.main.ES
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3449693
+    num_examples: 284
+  download_size: 315166
+  dataset_size: 3449693
+- config_name: 2013.main.RO
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3363049
+    num_examples: 284
+  download_size: 313510
+  dataset_size: 3363049
+- config_name: 2013.alzheimers.EN
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2614812
+    num_examples: 40
+  download_size: 274413
+  dataset_size: 2614812
+- config_name: 2013.entrance_exam.EN
+  features:
+  - name: topic_id
+    dtype: string
+  - name: topic_name
+    dtype: string
+  - name: test_id
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: document_str
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question_str
+    dtype: string
+  - name: answer_options
+    sequence:
+    - name: answer_id
+      dtype: string
+    - name: answer_str
+      dtype: string
+  - name: correct_answer_id
+    dtype: string
+  - name: correct_answer_str
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 180827
+    num_examples: 46
+  download_size: 54598
+  dataset_size: 180827
 ---
 
 # Dataset Card for "qa4mre"

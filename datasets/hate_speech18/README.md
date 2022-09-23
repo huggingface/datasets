@@ -29,44 +29,68 @@ train-eval-index:
     text: text
     label: target
   metrics:
-    - type: accuracy
-      name: Accuracy
-    - type: f1
-      name: F1 macro
-      args:
-        average: macro
-    - type: f1
-      name: F1 micro
-      args:
-        average: micro
-    - type: f1
-      name: F1 weighted
-      args:
-        average: weighted
-    - type: precision
-      name: Precision macro
-      args:
-        average: macro
-    - type: precision
-      name: Precision micro
-      args:
-        average: micro
-    - type: precision
-      name: Precision weighted
-      args:
-        average: weighted
-    - type: recall
-      name: Recall macro
-      args:
-        average: macro
-    - type: recall
-      name: Recall micro
-      args:
-        average: micro
-    - type: recall
-      name: Recall weighted
-      args:
-        average: weighted
+  - type: accuracy
+    name: Accuracy
+  - type: f1
+    name: F1 macro
+    args:
+      average: macro
+  - type: f1
+    name: F1 micro
+    args:
+      average: micro
+  - type: f1
+    name: F1 weighted
+    args:
+      average: weighted
+  - type: precision
+    name: Precision macro
+    args:
+      average: macro
+  - type: precision
+    name: Precision micro
+    args:
+      average: micro
+  - type: precision
+    name: Precision weighted
+    args:
+      average: weighted
+  - type: recall
+    name: Recall macro
+    args:
+      average: macro
+  - type: recall
+    name: Recall micro
+    args:
+      average: micro
+  - type: recall
+    name: Recall weighted
+    args:
+      average: weighted
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: user_id
+    dtype: int64
+  - name: subforum_id
+    dtype: int64
+  - name: num_contexts
+    dtype: int64
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: noHate
+          1: hate
+          2: idk/skip
+          3: relation
+  splits:
+  - name: train
+    num_bytes: 1375340
+    num_examples: 10944
+  download_size: 3664530
+  dataset_size: 1375340
 ---
 
 # Dataset Card for [Dataset Name]

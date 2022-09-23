@@ -21,6 +21,32 @@ task_ids:
 - multi-input-text-classification
 paperswithcode_id: snli
 pretty_name: Stanford Natural Language Inference
+dataset_info:
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 1263912
+    num_examples: 10000
+  - name: train
+    num_bytes: 66159510
+    num_examples: 550152
+  - name: validation
+    num_bytes: 1268044
+    num_examples: 10000
+  download_size: 94550081
+  dataset_size: 68691466
 ---
 # Dataset Card for SNLI
 

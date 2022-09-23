@@ -19,6 +19,32 @@ task_ids:
 - topic-classification
 paperswithcode_id: null
 pretty_name: 10k German News Articles Datasets
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Web
+          1: Panorama
+          2: International
+          3: Wirtschaft
+          4: Sport
+          5: Inland
+          6: Etat
+          7: Wissenschaft
+          8: Kultur
+  splits:
+  - name: test
+    num_bytes: 2756405
+    num_examples: 1028
+  - name: train
+    num_bytes: 24418224
+    num_examples: 9245
+  download_size: 27160809
+  dataset_size: 27174629
 ---
 
 # Dataset Card for 10k German News Articles Datasets

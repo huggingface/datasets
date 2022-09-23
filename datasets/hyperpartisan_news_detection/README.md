@@ -20,6 +20,55 @@ task_categories:
 task_ids:
 - text-classification-other-bias-classification
 paperswithcode_id: null
+dataset_info:
+- config_name: byarticle
+  features:
+  - name: text
+    dtype: string
+  - name: title
+    dtype: string
+  - name: hyperpartisan
+    dtype: bool
+  - name: url
+    dtype: string
+  - name: published_at
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2803943
+    num_examples: 645
+  download_size: 1000352
+  dataset_size: 2803943
+- config_name: bypublisher
+  features:
+  - name: text
+    dtype: string
+  - name: title
+    dtype: string
+  - name: hyperpartisan
+    dtype: bool
+  - name: url
+    dtype: string
+  - name: published_at
+    dtype: string
+  - name: bias
+    dtype:
+      class_label:
+        names:
+          0: right
+          1: right-center
+          2: least
+          3: left-center
+          4: left
+  splits:
+  - name: train
+    num_bytes: 2805711609
+    num_examples: 600000
+  - name: validation
+    num_bytes: 2805711609
+    num_examples: 600000
+  download_size: 1003195420
+  dataset_size: 5611423218
 ---
 
 # Dataset Card for "hyperpartisan_news_detection"

@@ -22,6 +22,134 @@ size_categories:
 configs:
 - v0.01
 - v0.02
+dataset_info:
+- config_name: v0.01
+  features:
+  - name: file
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 16000
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'yes'
+          1: 'no'
+          2: up
+          3: down
+          4: left
+          5: right
+          6: 'on'
+          7: 'off'
+          8: stop
+          9: go
+          10: zero
+          11: one
+          12: two
+          13: three
+          14: four
+          15: five
+          16: six
+          17: seven
+          18: eight
+          19: nine
+          20: bed
+          21: bird
+          22: cat
+          23: dog
+          24: happy
+          25: house
+          26: marvin
+          27: sheila
+          28: tree
+          29: wow
+          30: _silence_
+  - name: is_unknown
+    dtype: bool
+  - name: speaker_id
+    dtype: string
+  - name: utterance_id
+    dtype: int8
+  splits:
+  - name: test
+    num_bytes: 98979965
+    num_examples: 3081
+  - name: train
+    num_bytes: 1626283624
+    num_examples: 51093
+  - name: validation
+    num_bytes: 217204539
+    num_examples: 6799
+  download_size: 1454702755
+  dataset_size: 1942468128
+- config_name: v0.02
+  features:
+  - name: file
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 16000
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'yes'
+          1: 'no'
+          2: up
+          3: down
+          4: left
+          5: right
+          6: 'on'
+          7: 'off'
+          8: stop
+          9: go
+          10: zero
+          11: one
+          12: two
+          13: three
+          14: four
+          15: five
+          16: six
+          17: seven
+          18: eight
+          19: nine
+          20: bed
+          21: bird
+          22: cat
+          23: dog
+          24: happy
+          25: house
+          26: marvin
+          27: sheila
+          28: tree
+          29: wow
+          30: backward
+          31: forward
+          32: follow
+          33: learn
+          34: visual
+          35: _silence_
+  - name: is_unknown
+    dtype: bool
+  - name: speaker_id
+    dtype: string
+  - name: utterance_id
+    dtype: int8
+  splits:
+  - name: test
+    num_bytes: 157096106
+    num_examples: 4890
+  - name: train
+    num_bytes: 2684381672
+    num_examples: 84848
+  - name: validation
+    num_bytes: 316435178
+    num_examples: 9982
+  download_size: 2285975869
+  dataset_size: 3157912956
 ---
 
 # Dataset Card for SpeechCommands

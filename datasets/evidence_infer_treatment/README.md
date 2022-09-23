@@ -19,6 +19,115 @@ task_categories:
 task_ids:
 - fact-checking-retrieval
 paperswithcode_id: null
+dataset_info:
+- config_name: '2.0'
+  features:
+  - name: Text
+    dtype: string
+  - name: PMCID
+    dtype: int32
+  - name: Prompts
+    sequence:
+    - name: PromptID
+      dtype: int32
+    - name: PMCID
+      dtype: int32
+    - name: Outcome
+      dtype: string
+    - name: Intervention
+      dtype: string
+    - name: Comparator
+      dtype: string
+    - name: Annotations
+      sequence:
+      - name: UserID
+        dtype: int32
+      - name: PromptID
+        dtype: int32
+      - name: PMCID
+        dtype: int32
+      - name: Valid Label
+        dtype: bool
+      - name: Valid Reasoning
+        dtype: bool
+      - name: Label
+        dtype: string
+      - name: Annotations
+        dtype: string
+      - name: Label Code
+        dtype: int32
+      - name: In Abstract
+        dtype: bool
+      - name: Evidence Start
+        dtype: int32
+      - name: Evidence End
+        dtype: int32
+  splits:
+  - name: test
+    num_bytes: 9436674
+    num_examples: 334
+  - name: train
+    num_bytes: 77045294
+    num_examples: 2690
+  - name: validation
+    num_bytes: 10113982
+    num_examples: 340
+  download_size: 163515689
+  dataset_size: 96595950
+- config_name: '1.1'
+  features:
+  - name: Text
+    dtype: string
+  - name: PMCID
+    dtype: int32
+  - name: Prompts
+    sequence:
+    - name: PromptID
+      dtype: int32
+    - name: PMCID
+      dtype: int32
+    - name: Outcome
+      dtype: string
+    - name: Intervention
+      dtype: string
+    - name: Comparator
+      dtype: string
+    - name: Annotations
+      sequence:
+      - name: UserID
+        dtype: int32
+      - name: PromptID
+        dtype: int32
+      - name: PMCID
+        dtype: int32
+      - name: Valid Label
+        dtype: bool
+      - name: Valid Reasoning
+        dtype: bool
+      - name: Label
+        dtype: string
+      - name: Annotations
+        dtype: string
+      - name: Label Code
+        dtype: int32
+      - name: In Abstract
+        dtype: bool
+      - name: Evidence Start
+        dtype: int32
+      - name: Evidence End
+        dtype: int32
+  splits:
+  - name: test
+    num_bytes: 6877338
+    num_examples: 240
+  - name: train
+    num_bytes: 55375971
+    num_examples: 1931
+  - name: validation
+    num_bytes: 7359847
+    num_examples: 248
+  download_size: 114452688
+  dataset_size: 69613156
 ---
 # Dataset Card for Evidence Infer
 

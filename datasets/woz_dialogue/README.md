@@ -32,6 +32,207 @@ configs:
 - en
 - it
 - it_en
+dataset_info:
+- config_name: en
+  features:
+  - name: dialogue_idx
+    dtype: int32
+  - name: dialogue
+    list:
+    - name: turn_label
+      sequence:
+        sequence: string
+    - name: asr
+      sequence:
+        sequence: string
+    - name: system_transcript
+      dtype: string
+    - name: turn_idx
+      dtype: int32
+    - name: belief_state
+      list:
+      - name: slots
+        sequence:
+          sequence: string
+      - name: act
+        dtype: string
+    - name: transcript
+      dtype: string
+    - name: system_acts
+      sequence:
+        sequence: string
+  splits:
+  - name: test
+    num_bytes: 537557
+    num_examples: 400
+  - name: train
+    num_bytes: 827189
+    num_examples: 600
+  - name: validation
+    num_bytes: 265684
+    num_examples: 200
+  download_size: 7529221
+  dataset_size: 1630430
+- config_name: de
+  features:
+  - name: dialogue_idx
+    dtype: int32
+  - name: dialogue
+    list:
+    - name: turn_label
+      sequence:
+        sequence: string
+    - name: asr
+      sequence:
+        sequence: string
+    - name: system_transcript
+      dtype: string
+    - name: turn_idx
+      dtype: int32
+    - name: belief_state
+      list:
+      - name: slots
+        sequence:
+          sequence: string
+      - name: act
+        dtype: string
+    - name: transcript
+      dtype: string
+    - name: system_acts
+      sequence:
+        sequence: string
+  splits:
+  - name: test
+    num_bytes: 569703
+    num_examples: 400
+  - name: train
+    num_bytes: 881478
+    num_examples: 600
+  - name: validation
+    num_bytes: 276758
+    num_examples: 200
+  download_size: 7626734
+  dataset_size: 1727939
+- config_name: de_en
+  features:
+  - name: dialogue_idx
+    dtype: int32
+  - name: dialogue
+    list:
+    - name: turn_label
+      sequence:
+        sequence: string
+    - name: asr
+      sequence:
+        sequence: string
+    - name: system_transcript
+      dtype: string
+    - name: turn_idx
+      dtype: int32
+    - name: belief_state
+      list:
+      - name: slots
+        sequence:
+          sequence: string
+      - name: act
+        dtype: string
+    - name: transcript
+      dtype: string
+    - name: system_acts
+      sequence:
+        sequence: string
+  splits:
+  - name: test
+    num_bytes: 555841
+    num_examples: 400
+  - name: train
+    num_bytes: 860151
+    num_examples: 600
+  - name: validation
+    num_bytes: 269966
+    num_examples: 200
+  download_size: 7584753
+  dataset_size: 1685958
+- config_name: it
+  features:
+  - name: dialogue_idx
+    dtype: int32
+  - name: dialogue
+    list:
+    - name: turn_label
+      sequence:
+        sequence: string
+    - name: asr
+      sequence:
+        sequence: string
+    - name: system_transcript
+      dtype: string
+    - name: turn_idx
+      dtype: int32
+    - name: belief_state
+      list:
+      - name: slots
+        sequence:
+          sequence: string
+      - name: act
+        dtype: string
+    - name: transcript
+      dtype: string
+    - name: system_acts
+      sequence:
+        sequence: string
+  splits:
+  - name: test
+    num_bytes: 547759
+    num_examples: 400
+  - name: train
+    num_bytes: 842799
+    num_examples: 600
+  - name: validation
+    num_bytes: 270258
+    num_examples: 200
+  download_size: 7559615
+  dataset_size: 1660816
+- config_name: it_en
+  features:
+  - name: dialogue_idx
+    dtype: int32
+  - name: dialogue
+    list:
+    - name: turn_label
+      sequence:
+        sequence: string
+    - name: asr
+      sequence:
+        sequence: string
+    - name: system_transcript
+      dtype: string
+    - name: turn_idx
+      dtype: int32
+    - name: belief_state
+      list:
+      - name: slots
+        sequence:
+          sequence: string
+      - name: act
+        dtype: string
+    - name: transcript
+      dtype: string
+    - name: system_acts
+      sequence:
+        sequence: string
+  splits:
+  - name: test
+    num_bytes: 548979
+    num_examples: 400
+  - name: train
+    num_bytes: 845095
+    num_examples: 600
+  - name: validation
+    num_bytes: 270942
+    num_examples: 200
+  download_size: 7563815
+  dataset_size: 1665016
 ---
 
 # Dataset Card for Wizard-of-Oz

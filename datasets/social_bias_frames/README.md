@@ -21,6 +21,58 @@ task_ids:
 - text2text-generation-other-explanation-generation
 - hate-speech-detection
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: whoTarget
+    dtype: string
+  - name: intentYN
+    dtype: string
+  - name: sexYN
+    dtype: string
+  - name: sexReason
+    dtype: string
+  - name: offensiveYN
+    dtype: string
+  - name: annotatorGender
+    dtype: string
+  - name: annotatorMinority
+    dtype: string
+  - name: sexPhrase
+    dtype: string
+  - name: speakerMinorityYN
+    dtype: string
+  - name: WorkerId
+    dtype: string
+  - name: HITId
+    dtype: string
+  - name: annotatorPolitics
+    dtype: string
+  - name: annotatorRace
+    dtype: string
+  - name: annotatorAge
+    dtype: string
+  - name: post
+    dtype: string
+  - name: targetMinority
+    dtype: string
+  - name: targetCategory
+    dtype: string
+  - name: targetStereotype
+    dtype: string
+  - name: dataSource
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5371665
+    num_examples: 17501
+  - name: train
+    num_bytes: 34006886
+    num_examples: 112900
+  - name: validation
+    num_bytes: 5096009
+    num_examples: 16738
+  download_size: 9464583
+  dataset_size: 44474560
 ---
 
 

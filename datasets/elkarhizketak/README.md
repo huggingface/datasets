@@ -19,6 +19,56 @@ task_ids:
 - extractive-qa
 - question-ansering-other-dialogue-qa
 pretty_name: ElkarHizketak
+dataset_info:
+  features:
+  - name: dialogue_id
+    dtype: string
+  - name: wikipedia_page_title
+    dtype: string
+  - name: background
+    dtype: string
+  - name: section_title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: turn_ids
+    sequence: string
+  - name: questions
+    sequence: string
+  - name: yesnos
+    sequence:
+      class_label:
+        names:
+          0: y
+          1: n
+          2: x
+  - name: answers
+    sequence:
+    - name: texts
+      sequence: string
+    - name: answer_starts
+      sequence: int32
+    - name: input_texts
+      sequence: string
+  - name: orig_answers
+    struct:
+    - name: texts
+      sequence: string
+    - name: answer_starts
+      sequence: int32
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 127640
+    num_examples: 38
+  - name: train
+    num_bytes: 1024378
+    num_examples: 301
+  - name: validation
+    num_bytes: 125667
+    num_examples: 38
+  download_size: 1927474
+  dataset_size: 1277685
 ---
 
 # Dataset Card for ElkarHizketak

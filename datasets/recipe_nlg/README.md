@@ -27,6 +27,32 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: recipenlg
 pretty_name: RecipeNLG
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: title
+    dtype: string
+  - name: ingredients
+    sequence: string
+  - name: directions
+    sequence: string
+  - name: link
+    dtype: string
+  - name: source
+    dtype:
+      class_label:
+        names:
+          0: Gathered
+          1: Recipes1M
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 2194783815
+    num_examples: 2231142
+  download_size: 0
+  dataset_size: 2194783815
 ---
 
 

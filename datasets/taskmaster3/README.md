@@ -20,6 +20,60 @@ task_ids:
 - dialogue-modeling
 paperswithcode_id: null
 pretty_name: taskmaster3
+dataset_info:
+  features:
+  - name: conversation_id
+    dtype: string
+  - name: vertical
+    dtype: string
+  - name: instructions
+    dtype: string
+  - name: scenario
+    dtype: string
+  - name: utterances
+    list:
+    - name: index
+      dtype: int32
+    - name: speaker
+      dtype: string
+    - name: text
+      dtype: string
+    - name: apis
+      list:
+      - name: name
+        dtype: string
+      - name: index
+        dtype: int32
+      - name: args
+        list:
+        - name: arg_name
+          dtype: string
+        - name: arg_value
+          dtype: string
+      - name: response
+        list:
+        - name: response_name
+          dtype: string
+        - name: response_value
+          dtype: string
+    - name: segments
+      list:
+      - name: start_index
+        dtype: int32
+      - name: end_index
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: annotations
+        list:
+        - name: name
+          dtype: string
+  splits:
+  - name: train
+    num_bytes: 143609327
+    num_examples: 23757
+  download_size: 313402141
+  dataset_size: 143609327
 ---
 
 # Dataset Card for taskmaster3

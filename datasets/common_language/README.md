@@ -67,6 +67,80 @@ task_categories:
 - audio-classification
 task_ids:
 - speaker-identification
+dataset_info:
+  features:
+  - name: client_id
+    dtype: string
+  - name: path
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: age
+    dtype: string
+  - name: gender
+    dtype: string
+  - name: language
+    dtype:
+      class_label:
+        names:
+          0: Arabic
+          1: Basque
+          2: Breton
+          3: Catalan
+          4: Chinese_China
+          5: Chinese_Hongkong
+          6: Chinese_Taiwan
+          7: Chuvash
+          8: Czech
+          9: Dhivehi
+          10: Dutch
+          11: English
+          12: Esperanto
+          13: Estonian
+          14: French
+          15: Frisian
+          16: Georgian
+          17: German
+          18: Greek
+          19: Hakha_Chin
+          20: Indonesian
+          21: Interlingua
+          22: Italian
+          23: Japanese
+          24: Kabyle
+          25: Kinyarwanda
+          26: Kyrgyz
+          27: Latvian
+          28: Maltese
+          29: Mangolian
+          30: Persian
+          31: Polish
+          32: Portuguese
+          33: Romanian
+          34: Romansh_Sursilvan
+          35: Russian
+          36: Sakha
+          37: Slovenian
+          38: Spanish
+          39: Swedish
+          40: Tamil
+          41: Tatar
+          42: Turkish
+          43: Ukranian
+          44: Welsh
+  config_name: full
+  splits:
+  - name: test
+    num_bytes: 1877970
+    num_examples: 5963
+  - name: train
+    num_bytes: 7116761
+    num_examples: 22194
+  - name: validation
+    num_bytes: 1855233
+    num_examples: 5888
+  download_size: 3761951178
+  dataset_size: 10849964
 ---
 
 # Dataset Card for common_language

@@ -19,6 +19,22 @@ task_ids:
 - text-simplification
 paperswithcode_id: null
 pretty_name: TURK
+dataset_info:
+  features:
+  - name: original
+    dtype: string
+  - name: simplifications
+    sequence: string
+  config_name: simplification
+  splits:
+  - name: test
+    num_bytes: 396378
+    num_examples: 359
+  - name: validation
+    num_bytes: 2120187
+    num_examples: 2000
+  download_size: 2443394
+  dataset_size: 2516565
 ---
 
 # Dataset Card for TURK

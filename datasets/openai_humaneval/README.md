@@ -18,6 +18,25 @@ task_categories:
 - text2text-generation
 task_ids:
 - text2text-generation-other-code-generation
+dataset_info:
+  features:
+  - name: task_id
+    dtype: string
+  - name: prompt
+    dtype: string
+  - name: canonical_solution
+    dtype: string
+  - name: test
+    dtype: string
+  - name: entry_point
+    dtype: string
+  config_name: openai_humaneval
+  splits:
+  - name: test
+    num_bytes: 194414
+    num_examples: 164
+  download_size: 44877
+  dataset_size: 194414
 ---
 
 # Dataset Card for OpenAI HumanEval

@@ -22,6 +22,36 @@ task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
+dataset_info:
+  features:
+  - name: title
+    dtype: string
+  - name: paragraph
+    dtype: string
+  - name: level
+    dtype:
+      class_label:
+        names:
+          0: Adv
+          1: Int
+          2: Ele
+  - name: question
+    dtype: string
+  - name: paragraph_index
+    dtype: int32
+  - name: answers
+    sequence: string
+    length: 4
+  - name: a_span
+    sequence: int32
+  - name: d_span
+    sequence: int32
+  splits:
+  - name: train
+    num_bytes: 1423090
+    num_examples: 1458
+  download_size: 118173
+  dataset_size: 1423090
 ---
 
 # Dataset Card for OneStopQA

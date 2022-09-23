@@ -19,6 +19,47 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: RO-STS-Parallel
+dataset_info:
+- config_name: ro_sts_parallel
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ro
+        - en
+  splits:
+  - name: test
+    num_bytes: 347590
+    num_examples: 2759
+  - name: train
+    num_bytes: 1563909
+    num_examples: 11499
+  - name: validation
+    num_bytes: 443787
+    num_examples: 3001
+  download_size: 2251694
+  dataset_size: 2355286
+- config_name: rosts-parallel-en-ro
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ro
+  splits:
+  - name: test
+    num_bytes: 347590
+    num_examples: 2759
+  - name: train
+    num_bytes: 1563909
+    num_examples: 11499
+  - name: validation
+    num_bytes: 443787
+    num_examples: 3001
+  download_size: 2251694
+  dataset_size: 2355286
 ---
 
 # Dataset Card for RO-STS-Parallel

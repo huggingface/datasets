@@ -18,6 +18,179 @@ source_datasets:
 task_categories:
 - automatic-speech-recognition
 task_ids: []
+dataset_info:
+- config_name: microphone-single
+  features:
+  - name: word_ids
+    sequence: string
+  - name: word_start_times
+    sequence: float32
+  - name: word_end_times
+    sequence: float32
+  - name: word_speakers
+    sequence: string
+  - name: segment_ids
+    sequence: string
+  - name: segment_start_times
+    sequence: float32
+  - name: segment_end_times
+    sequence: float32
+  - name: segment_speakers
+    sequence: string
+  - name: words
+    sequence: string
+  - name: channels
+    sequence: string
+  - name: file
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 16000
+  splits:
+  - name: test
+    num_bytes: 4821283
+    num_examples: 16
+  - name: train
+    num_bytes: 42013753
+    num_examples: 134
+  - name: validation
+    num_bytes: 5110497
+    num_examples: 18
+  download_size: 11387715153
+  dataset_size: 51945533
+- config_name: microphone-multi
+  features:
+  - name: word_ids
+    sequence: string
+  - name: word_start_times
+    sequence: float32
+  - name: word_end_times
+    sequence: float32
+  - name: word_speakers
+    sequence: string
+  - name: segment_ids
+    sequence: string
+  - name: segment_start_times
+    sequence: float32
+  - name: segment_end_times
+    sequence: float32
+  - name: segment_speakers
+    sequence: string
+  - name: words
+    sequence: string
+  - name: channels
+    sequence: string
+  - name: file-1-1
+    dtype: string
+  - name: file-1-2
+    dtype: string
+  - name: file-1-3
+    dtype: string
+  - name: file-1-4
+    dtype: string
+  - name: file-1-5
+    dtype: string
+  - name: file-1-6
+    dtype: string
+  - name: file-1-7
+    dtype: string
+  - name: file-1-8
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 4834751
+    num_examples: 16
+  - name: train
+    num_bytes: 42126341
+    num_examples: 134
+  - name: validation
+    num_bytes: 5125645
+    num_examples: 18
+  download_size: 90941506169
+  dataset_size: 52086737
+- config_name: headset-single
+  features:
+  - name: word_ids
+    sequence: string
+  - name: word_start_times
+    sequence: float32
+  - name: word_end_times
+    sequence: float32
+  - name: word_speakers
+    sequence: string
+  - name: segment_ids
+    sequence: string
+  - name: segment_start_times
+    sequence: float32
+  - name: segment_end_times
+    sequence: float32
+  - name: segment_speakers
+    sequence: string
+  - name: words
+    sequence: string
+  - name: channels
+    sequence: string
+  - name: file
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 16000
+  splits:
+  - name: test
+    num_bytes: 4821283
+    num_examples: 16
+  - name: train
+    num_bytes: 42491091
+    num_examples: 136
+  - name: validation
+    num_bytes: 5110497
+    num_examples: 18
+  download_size: 11505070978
+  dataset_size: 52422871
+- config_name: headset-multi
+  features:
+  - name: word_ids
+    sequence: string
+  - name: word_start_times
+    sequence: float32
+  - name: word_end_times
+    sequence: float32
+  - name: word_speakers
+    sequence: string
+  - name: segment_ids
+    sequence: string
+  - name: segment_start_times
+    sequence: float32
+  - name: segment_end_times
+    sequence: float32
+  - name: segment_speakers
+    sequence: string
+  - name: words
+    sequence: string
+  - name: channels
+    sequence: string
+  - name: file-0
+    dtype: string
+  - name: file-1
+    dtype: string
+  - name: file-2
+    dtype: string
+  - name: file-3
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 4827055
+    num_examples: 16
+  - name: train
+    num_bytes: 42540063
+    num_examples: 136
+  - name: validation
+    num_bytes: 5116989
+    num_examples: 18
+  download_size: 45951596391
+  dataset_size: 52484107
 ---
 
 # Dataset Card for AMI Corpus

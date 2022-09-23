@@ -1,5 +1,5 @@
 ---
-pretty_name: "PAWS: Paraphrase Adversaries from Word Scrambling"
+pretty_name: 'PAWS: Paraphrase Adversaries from Word Scrambling'
 annotations_creators:
 - expert-generated
 - machine-generated
@@ -29,6 +29,76 @@ configs:
 - labeled_final
 - labeled_swap
 - unlabeled_final
+dataset_info:
+- config_name: labeled_final
+  features:
+  - name: id
+    dtype: int32
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 1987802
+    num_examples: 8000
+  - name: train
+    num_bytes: 12239978
+    num_examples: 49401
+  - name: validation
+    num_bytes: 1975870
+    num_examples: 8000
+  download_size: 4687157
+  dataset_size: 16203650
+- config_name: labeled_swap
+  features:
+  - name: id
+    dtype: int32
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: train
+    num_bytes: 7963651
+    num_examples: 30397
+  download_size: 2257283
+  dataset_size: 7963651
+- config_name: unlabeled_final
+  features:
+  - name: id
+    dtype: int32
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: train
+    num_bytes: 157806996
+    num_examples: 645652
+  - name: validation
+    num_bytes: 2442173
+    num_examples: 10000
+  download_size: 47393331
+  dataset_size: 160249169
 ---
 
 # Dataset Card for PAWS: Paraphrase Adversaries from Word Scrambling

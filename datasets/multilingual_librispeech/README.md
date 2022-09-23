@@ -27,6 +27,245 @@ task_categories:
 - audio-classification
 task_ids:
 - speaker-identification
+dataset_info:
+- config_name: polish
+  features:
+  - name: file
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 16000
+  - name: text
+    dtype: string
+  - name: speaker_id
+    dtype: int64
+  - name: chapter_id
+    dtype: int64
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 332317
+    num_examples: 520
+  - name: train
+    num_bytes: 16136430
+    num_examples: 25043
+  - name: train.1h
+    num_bytes: 145411
+    num_examples: 238
+  - name: train.9h
+    num_bytes: 1383232
+    num_examples: 2173
+  - name: validation
+    num_bytes: 318964
+    num_examples: 512
+  download_size: 6609569551
+  dataset_size: 18316354
+- config_name: german
+  features:
+  - name: file
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 16000
+  - name: text
+    dtype: string
+  - name: speaker_id
+    dtype: int64
+  - name: chapter_id
+    dtype: int64
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2131177
+    num_examples: 3394
+  - name: train
+    num_bytes: 277089334
+    num_examples: 469942
+  - name: train.1h
+    num_bytes: 145998
+    num_examples: 241
+  - name: train.9h
+    num_bytes: 1325460
+    num_examples: 2194
+  - name: validation
+    num_bytes: 2160779
+    num_examples: 3469
+  download_size: 122944886305
+  dataset_size: 282852748
+- config_name: dutch
+  features:
+  - name: file
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 16000
+  - name: text
+    dtype: string
+  - name: speaker_id
+    dtype: int64
+  - name: chapter_id
+    dtype: int64
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1945428
+    num_examples: 3075
+  - name: train
+    num_bytes: 218648573
+    num_examples: 374287
+  - name: train.1h
+    num_bytes: 141672
+    num_examples: 234
+  - name: train.9h
+    num_bytes: 1281951
+    num_examples: 2153
+  - name: validation
+    num_bytes: 1984165
+    num_examples: 3095
+  download_size: 92158429530
+  dataset_size: 224001789
+- config_name: french
+  features:
+  - name: file
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 16000
+  - name: text
+    dtype: string
+  - name: speaker_id
+    dtype: int64
+  - name: chapter_id
+    dtype: int64
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1539152
+    num_examples: 2426
+  - name: train
+    num_bytes: 162009691
+    num_examples: 258213
+  - name: train.1h
+    num_bytes: 146699
+    num_examples: 241
+  - name: train.9h
+    num_bytes: 1347707
+    num_examples: 2167
+  - name: validation
+    num_bytes: 1482961
+    num_examples: 2416
+  download_size: 64474642518
+  dataset_size: 166526210
+- config_name: spanish
+  features:
+  - name: file
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 16000
+  - name: text
+    dtype: string
+  - name: speaker_id
+    dtype: int64
+  - name: chapter_id
+    dtype: int64
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1464565
+    num_examples: 2385
+  - name: train
+    num_bytes: 136743162
+    num_examples: 220701
+  - name: train.1h
+    num_bytes: 138734
+    num_examples: 233
+  - name: train.9h
+    num_bytes: 1288180
+    num_examples: 2110
+  - name: validation
+    num_bytes: 1463115
+    num_examples: 2408
+  download_size: 53296894035
+  dataset_size: 141097756
+- config_name: italian
+  features:
+  - name: file
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 16000
+  - name: text
+    dtype: string
+  - name: speaker_id
+    dtype: int64
+  - name: chapter_id
+    dtype: int64
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 746977
+    num_examples: 1262
+  - name: train
+    num_bytes: 36008104
+    num_examples: 59623
+  - name: train.1h
+    num_bytes: 145006
+    num_examples: 240
+  - name: train.9h
+    num_bytes: 1325927
+    num_examples: 2173
+  - name: validation
+    num_bytes: 732210
+    num_examples: 1248
+  download_size: 15395281399
+  dataset_size: 38958224
+- config_name: portuguese
+  features:
+  - name: file
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 16000
+  - name: text
+    dtype: string
+  - name: speaker_id
+    dtype: int64
+  - name: chapter_id
+    dtype: int64
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 549893
+    num_examples: 871
+  - name: train
+    num_bytes: 23036487
+    num_examples: 37533
+  - name: train.1h
+    num_bytes: 143781
+    num_examples: 236
+  - name: train.9h
+    num_bytes: 1305698
+    num_examples: 2116
+  - name: validation
+    num_bytes: 512463
+    num_examples: 826
+  download_size: 9982803818
+  dataset_size: 25548322
 ---
 
 # Dataset Card for MultiLingual LibriSpeech

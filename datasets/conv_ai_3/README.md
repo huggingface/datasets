@@ -21,6 +21,36 @@ task_ids:
 - text-scoring-other-evaluating-dialogue-systems
 paperswithcode_id: null
 pretty_name: More Information Needed
+dataset_info:
+  features:
+  - name: topic_id
+    dtype: int32
+  - name: initial_request
+    dtype: string
+  - name: topic_desc
+    dtype: string
+  - name: clarification_need
+    dtype: int32
+  - name: facet_id
+    dtype: string
+  - name: facet_desc
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  config_name: conv_ai_3
+  splits:
+  - name: train
+    num_bytes: 2567404
+    num_examples: 9176
+  - name: validation
+    num_bytes: 639351
+    num_examples: 2313
+  download_size: 2940038
+  dataset_size: 3206755
 ---
 
 # Dataset Card for [More Information Needed]

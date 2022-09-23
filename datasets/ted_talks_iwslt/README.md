@@ -145,6 +145,217 @@ configs:
 - nl_hi_2014
 - nl_hi_2015
 - nl_hi_2016
+dataset_info:
+- config_name: eu_ca_2014
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - eu
+        - ca
+  splits:
+  - name: train
+    num_bytes: 15200
+    num_examples: 44
+  download_size: 1666674366
+  dataset_size: 15200
+- config_name: eu_ca_2015
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - eu
+        - ca
+  splits:
+  - name: train
+    num_bytes: 18776
+    num_examples: 52
+  download_size: 1666674366
+  dataset_size: 18776
+- config_name: eu_ca_2016
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - eu
+        - ca
+  splits:
+  - name: train
+    num_bytes: 19514
+    num_examples: 54
+  download_size: 1666674366
+  dataset_size: 19514
+- config_name: nl_en_2014
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - nl
+        - en
+  splits:
+  - name: train
+    num_bytes: 1035553
+    num_examples: 2966
+  download_size: 1666674366
+  dataset_size: 1035553
+- config_name: nl_en_2015
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - nl
+        - en
+  splits:
+  - name: train
+    num_bytes: 1292618
+    num_examples: 3550
+  download_size: 1666674366
+  dataset_size: 1292618
+- config_name: nl_en_2016
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - nl
+        - en
+  splits:
+  - name: train
+    num_bytes: 1434215
+    num_examples: 3852
+  download_size: 1666674366
+  dataset_size: 1434215
+- config_name: nl_hi_2014
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - nl
+        - hi
+  splits:
+  - name: train
+    num_bytes: 214878
+    num_examples: 367
+  download_size: 1666674366
+  dataset_size: 214878
+- config_name: nl_hi_2015
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - nl
+        - hi
+  splits:
+  - name: train
+    num_bytes: 252200
+    num_examples: 421
+  download_size: 1666674366
+  dataset_size: 252200
+- config_name: nl_hi_2016
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - nl
+        - hi
+  splits:
+  - name: train
+    num_bytes: 310930
+    num_examples: 496
+  download_size: 1666674366
+  dataset_size: 310930
+- config_name: de_ja_2014
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - ja
+  splits:
+  - name: train
+    num_bytes: 1074411
+    num_examples: 2536
+  download_size: 1666674366
+  dataset_size: 1074411
+- config_name: de_ja_2015
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - ja
+  splits:
+  - name: train
+    num_bytes: 1442055
+    num_examples: 3247
+  download_size: 1666674366
+  dataset_size: 1442055
+- config_name: de_ja_2016
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - ja
+  splits:
+  - name: train
+    num_bytes: 1630737
+    num_examples: 3590
+  download_size: 1666674366
+  dataset_size: 1630737
+- config_name: fr-ca_hi_2014
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr-ca
+        - hi
+  splits:
+  - name: train
+    num_bytes: 74480
+    num_examples: 127
+  download_size: 1666674366
+  dataset_size: 74480
+- config_name: fr-ca_hi_2015
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr-ca
+        - hi
+  splits:
+  - name: train
+    num_bytes: 82456
+    num_examples: 141
+  download_size: 1666674366
+  dataset_size: 82456
+- config_name: fr-ca_hi_2016
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr-ca
+        - hi
+  splits:
+  - name: train
+    num_bytes: 93433
+    num_examples: 156
+  download_size: 1666674366
+  dataset_size: 93433
 ---
 
 # Dataset Card for Web Inventory of Transcribed & Translated(WIT) Ted Talks

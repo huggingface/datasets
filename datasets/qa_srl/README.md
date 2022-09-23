@@ -20,6 +20,33 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: qa-srl
 pretty_name: QA-SRL
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  - name: sent_id
+    dtype: string
+  - name: predicate_idx
+    dtype: int32
+  - name: predicate
+    dtype: string
+  - name: question
+    sequence: string
+  - name: answers
+    sequence: string
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 637317
+    num_examples: 2201
+  - name: train
+    num_bytes: 1835549
+    num_examples: 6414
+  - name: validation
+    num_bytes: 632992
+    num_examples: 2183
+  download_size: 1087729
+  dataset_size: 3105858
 ---
 
 # Dataset Card for QA-SRL

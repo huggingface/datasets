@@ -21,6 +21,36 @@ task_ids:
 - dialogue-generation
 - open-domain-qa
 paperswithcode_id: empatheticdialogues
+dataset_info:
+  features:
+  - name: conv_id
+    dtype: string
+  - name: utterance_idx
+    dtype: int32
+  - name: context
+    dtype: string
+  - name: prompt
+    dtype: string
+  - name: speaker_idx
+    dtype: int32
+  - name: utterance
+    dtype: string
+  - name: selfeval
+    dtype: string
+  - name: tags
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 3011332
+    num_examples: 10943
+  - name: train
+    num_bytes: 19040509
+    num_examples: 76673
+  - name: validation
+    num_bytes: 3077481
+    num_examples: 12030
+  download_size: 28022709
+  dataset_size: 25129322
 ---
 
 # Dataset Card for "empathetic_dialogues"

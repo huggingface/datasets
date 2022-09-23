@@ -20,6 +20,31 @@ task_ids:
 - extractive-qa
 paperswithcode_id: null
 pretty_name: COVID-QA
+dataset_info:
+  features:
+  - name: document_id
+    dtype: int32
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: is_impossible
+    dtype: bool
+  - name: id
+    dtype: int32
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  config_name: covid_qa_deepset
+  splits:
+  - name: train
+    num_bytes: 65151262
+    num_examples: 2019
+  download_size: 4418117
+  dataset_size: 65151262
 ---
 
 

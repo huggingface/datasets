@@ -19,6 +19,32 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: NJKP NER
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  - name: target
+    dtype:
+      class_label:
+        names:
+          0: geogName
+          1: noEntity
+          2: orgName
+          3: persName
+          4: placeName
+          5: time
+  splits:
+  - name: test
+    num_bytes: 221092
+    num_examples: 2058
+  - name: train
+    num_bytes: 1612125
+    num_examples: 15794
+  - name: validation
+    num_bytes: 196652
+    num_examples: 1941
+  download_size: 821629
+  dataset_size: 2029869
 ---
 
 # Dataset Card for NJKP NER

@@ -19,6 +19,29 @@ task_categories:
 task_ids: []
 paperswithcode_id: igbonlp-datasets
 pretty_name: IgboNLP Datasets
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ig
+        - en
+  config_name: ig-en
+  splits:
+  - name: test
+    num_bytes: 298670
+    num_examples: 552
+  - name: train
+    num_bytes: 2367989
+    num_examples: 10000
+  - name: validation
+    num_bytes: 60154
+    num_examples: 200
+  download_size: 2580255
+  dataset_size: 2726813
 ---
 
 # Dataset Card for IgboNLP Datasets

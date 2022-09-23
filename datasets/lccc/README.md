@@ -10,7 +10,7 @@ license:
 multilinguality:
 - monolingual
 paperswithcode_id: lccc
-pretty_name: "LCCC: Large-scale Cleaned Chinese Conversation corpus"
+pretty_name: 'LCCC: Large-scale Cleaned Chinese Conversation corpus'
 size_categories:
 - 10M<n<100M
 source_datasets:
@@ -19,6 +19,33 @@ task_categories:
 - conversational
 task_ids:
 - dialogue-generation
+dataset_info:
+- config_name: large
+  features:
+  - name: dialog
+    list: string
+  splits:
+  - name: train
+    num_bytes: 1530827965
+    num_examples: 12007759
+  download_size: 607605643
+  dataset_size: 1530827965
+- config_name: base
+  features:
+  - name: dialog
+    list: string
+  splits:
+  - name: test
+    num_bytes: 1498216
+    num_examples: 10000
+  - name: train
+    num_bytes: 932634902
+    num_examples: 6820506
+  - name: validation
+    num_bytes: 2922731
+    num_examples: 20000
+  download_size: 371475095
+  dataset_size: 937055849
 ---
 
 # Dataset Card for LCCC

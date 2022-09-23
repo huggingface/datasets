@@ -19,6 +19,28 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: tweetqa
 pretty_name: TweetQA
+dataset_info:
+  features:
+  - name: Question
+    dtype: string
+  - name: Answer
+    sequence: string
+  - name: Tweet
+    dtype: string
+  - name: qid
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 473730
+    num_examples: 1979
+  - name: train
+    num_bytes: 2770036
+    num_examples: 10692
+  - name: validation
+    num_bytes: 295435
+    num_examples: 1086
+  download_size: 1573980
+  dataset_size: 3539201
 ---
 
 # Dataset Card for TweetQA

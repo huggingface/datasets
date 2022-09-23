@@ -19,6 +19,34 @@ task_categories:
 task_ids:
 - text2text-generation-other-common-sense-inference
 paperswithcode_id: event2mind
+dataset_info:
+  features:
+  - name: Source
+    dtype: string
+  - name: Event
+    dtype: string
+  - name: Xintent
+    dtype: string
+  - name: Xemotion
+    dtype: string
+  - name: Otheremotion
+    dtype: string
+  - name: Xsent
+    dtype: string
+  - name: Osent
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 649273
+    num_examples: 5221
+  - name: train
+    num_bytes: 5916384
+    num_examples: 46472
+  - name: validation
+    num_bytes: 672365
+    num_examples: 5401
+  download_size: 1300770
+  dataset_size: 7238022
 ---
 
 # Dataset Card for "event2Mind"

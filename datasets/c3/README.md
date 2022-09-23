@@ -19,6 +19,59 @@ task_ids:
 - multiple-choice-qa
 paperswithcode_id: c3
 pretty_name: C3
+dataset_info:
+- config_name: mixed
+  features:
+  - name: documents
+    sequence: string
+  - name: document_id
+    dtype: string
+  - name: questions
+    sequence:
+    - name: question
+      dtype: string
+    - name: answer
+      dtype: string
+    - name: choice
+      sequence: string
+  splits:
+  - name: test
+    num_bytes: 891619
+    num_examples: 1045
+  - name: train
+    num_bytes: 2710513
+    num_examples: 3138
+  - name: validation
+    num_bytes: 910799
+    num_examples: 1046
+  download_size: 5481785
+  dataset_size: 4512931
+- config_name: dialog
+  features:
+  - name: documents
+    sequence: string
+  - name: document_id
+    dtype: string
+  - name: questions
+    sequence:
+    - name: question
+      dtype: string
+    - name: answer
+      dtype: string
+    - name: choice
+      sequence: string
+  splits:
+  - name: test
+    num_bytes: 646995
+    num_examples: 1627
+  - name: train
+    num_bytes: 2039819
+    num_examples: 4885
+  - name: validation
+    num_bytes: 611146
+    num_examples: 1628
+  download_size: 4352392
+  dataset_size: 3297960
 ---
 # Dataset Card for C3
 

@@ -44,6 +44,263 @@ configs:
 - russian_insertions
 - spanish_deletions
 - spanish_insertions
+dataset_info:
+- config_name: german_insertions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1072443082
+    num_examples: 3343403
+  download_size: 274280387
+  dataset_size: 1072443082
+- config_name: german_deletions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 624070402
+    num_examples: 1994329
+  download_size: 160133549
+  dataset_size: 624070402
+- config_name: english_insertions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4258411914
+    num_examples: 13737796
+  download_size: 1090652177
+  dataset_size: 4258411914
+- config_name: english_deletions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2865754626
+    num_examples: 9352389
+  download_size: 736560902
+  dataset_size: 2865754626
+- config_name: spanish_insertions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 481145004
+    num_examples: 1380934
+  download_size: 118837934
+  dataset_size: 481145004
+- config_name: spanish_deletions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 317253196
+    num_examples: 908276
+  download_size: 78485695
+  dataset_size: 317253196
+- config_name: french_insertions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 651525210
+    num_examples: 2038305
+  download_size: 160442894
+  dataset_size: 651525210
+- config_name: french_deletions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 626323354
+    num_examples: 2060242
+  download_size: 155263358
+  dataset_size: 626323354
+- config_name: italian_insertions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 372950256
+    num_examples: 1078814
+  download_size: 92302006
+  dataset_size: 372950256
+- config_name: italian_deletions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 198598618
+    num_examples: 583316
+  download_size: 49048596
+  dataset_size: 198598618
+- config_name: japanese_insertions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 765754162
+    num_examples: 2249527
+  download_size: 185766012
+  dataset_size: 765754162
+- config_name: japanese_deletions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 459683880
+    num_examples: 1352162
+  download_size: 110513593
+  dataset_size: 459683880
+- config_name: russian_insertions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 790822192
+    num_examples: 1471638
+  download_size: 152985812
+  dataset_size: 790822192
+- config_name: russian_deletions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 514750186
+    num_examples: 960976
+  download_size: 100033230
+  dataset_size: 514750186
+- config_name: chinese_insertions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 233367646
+    num_examples: 746509
+  download_size: 66124094
+  dataset_size: 233367646
+- config_name: chinese_deletions
+  features:
+  - name: id
+    dtype: int32
+  - name: base_sentence
+    dtype: string
+  - name: phrase
+    dtype: string
+  - name: edited_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 144269112
+    num_examples: 467271
+  download_size: 40898651
+  dataset_size: 144269112
 ---
 
 # Dataset Card for WikiAtomicEdits

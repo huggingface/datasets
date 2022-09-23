@@ -65,6 +65,929 @@ configs:
 - crosslingual_with_para_vi
 - multilingual
 - multilingual_with_para
+dataset_info:
+- config_name: alignments
+  features:
+  - name: source_id
+    dtype: string
+  - name: target_id_list
+    sequence: string
+  splits:
+  - name: full
+    num_bytes: 1265280
+    num_examples: 10834
+  download_size: 169745177
+  dataset_size: 1265280
+- config_name: multilingual
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 5753625
+    num_examples: 13510
+  - name: train
+    num_bytes: 3385865
+    num_examples: 7961
+  - name: validation
+    num_bytes: 1143067
+    num_examples: 2672
+  download_size: 169745177
+  dataset_size: 10282557
+- config_name: multilingual_with_para
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 207981218
+    num_examples: 13510
+  - name: train
+    num_bytes: 127298595
+    num_examples: 7961
+  - name: validation
+    num_bytes: 42713069
+    num_examples: 2672
+  download_size: 169745177
+  dataset_size: 377992882
+- config_name: crosslingual_test
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 8412531
+    num_examples: 19736
+  download_size: 169745177
+  dataset_size: 8412531
+- config_name: crosslingual_with_para_test
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 207981218
+    num_examples: 13510
+  download_size: 169745177
+  dataset_size: 207981218
+- config_name: crosslingual_bg
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 1078545
+    num_examples: 2344
+  - name: validation
+    num_bytes: 282115
+    num_examples: 593
+  download_size: 169745177
+  dataset_size: 1360660
+- config_name: crosslingual_with_para_bg
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 47068024
+    num_examples: 2344
+  - name: validation
+    num_bytes: 11916370
+    num_examples: 593
+  download_size: 169745177
+  dataset_size: 58984394
+- config_name: crosslingual_hr
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 808320
+    num_examples: 2341
+  - name: validation
+    num_bytes: 176910
+    num_examples: 538
+  download_size: 169745177
+  dataset_size: 985230
+- config_name: crosslingual_with_para_hr
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 24890820
+    num_examples: 2341
+  - name: validation
+    num_bytes: 5695382
+    num_examples: 538
+  download_size: 169745177
+  dataset_size: 30586202
+- config_name: crosslingual_hu
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 678447
+    num_examples: 1731
+  - name: validation
+    num_bytes: 202324
+    num_examples: 536
+  download_size: 169745177
+  dataset_size: 880771
+- config_name: crosslingual_with_para_hu
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 19036575
+    num_examples: 1731
+  - name: validation
+    num_bytes: 6043577
+    num_examples: 536
+  download_size: 169745177
+  dataset_size: 25080152
+- config_name: crosslingual_it
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 399864
+    num_examples: 1010
+  - name: validation
+    num_bytes: 93343
+    num_examples: 246
+  download_size: 169745177
+  dataset_size: 493207
+- config_name: crosslingual_with_para_it
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 16409787
+    num_examples: 1010
+  - name: validation
+    num_bytes: 4018497
+    num_examples: 246
+  download_size: 169745177
+  dataset_size: 20428284
+- config_name: crosslingual_mk
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 826582
+    num_examples: 1665
+  - name: validation
+    num_bytes: 204570
+    num_examples: 410
+  download_size: 169745177
+  dataset_size: 1031152
+- config_name: crosslingual_with_para_mk
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 38446774
+    num_examples: 1665
+  - name: validation
+    num_bytes: 9673826
+    num_examples: 410
+  download_size: 169745177
+  dataset_size: 48120600
+- config_name: crosslingual_pl
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 574246
+    num_examples: 1577
+  - name: validation
+    num_bytes: 141877
+    num_examples: 394
+  download_size: 169745177
+  dataset_size: 716123
+- config_name: crosslingual_with_para_pl
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 16374617
+    num_examples: 1577
+  - name: validation
+    num_bytes: 4159076
+    num_examples: 394
+  download_size: 169745177
+  dataset_size: 20533693
+- config_name: crosslingual_pt
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 375214
+    num_examples: 740
+  - name: validation
+    num_bytes: 87850
+    num_examples: 184
+  download_size: 169745177
+  dataset_size: 463064
+- config_name: crosslingual_with_para_pt
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 12185799
+    num_examples: 740
+  - name: validation
+    num_bytes: 3093848
+    num_examples: 184
+  download_size: 169745177
+  dataset_size: 15279647
+- config_name: crosslingual_sq
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 424388
+    num_examples: 1194
+  - name: validation
+    num_bytes: 110293
+    num_examples: 311
+  download_size: 169745177
+  dataset_size: 534681
+- config_name: crosslingual_with_para_sq
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 17341921
+    num_examples: 1194
+  - name: validation
+    num_bytes: 4450152
+    num_examples: 311
+  download_size: 169745177
+  dataset_size: 21792073
+- config_name: crosslingual_sr
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 650268
+    num_examples: 1323
+  - name: validation
+    num_bytes: 145928
+    num_examples: 314
+  download_size: 169745177
+  dataset_size: 796196
+- config_name: crosslingual_with_para_sr
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 24576553
+    num_examples: 1323
+  - name: validation
+    num_bytes: 5772713
+    num_examples: 314
+  download_size: 169745177
+  dataset_size: 30349266
+- config_name: crosslingual_tr
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 718431
+    num_examples: 1571
+  - name: validation
+    num_bytes: 182974
+    num_examples: 393
+  download_size: 169745177
+  dataset_size: 901405
+- config_name: crosslingual_with_para_tr
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 18597963
+    num_examples: 1571
+  - name: validation
+    num_bytes: 4763341
+    num_examples: 393
+  download_size: 169745177
+  dataset_size: 23361304
+- config_name: crosslingual_vi
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 954191
+    num_examples: 1955
+  - name: validation
+    num_bytes: 232264
+    num_examples: 488
+  download_size: 169745177
+  dataset_size: 1186455
+- config_name: crosslingual_with_para_vi
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    struct:
+    - name: stem
+      dtype: string
+    - name: choices
+      sequence:
+      - name: text
+        dtype: string
+      - name: label
+        dtype: string
+      - name: para
+        dtype: string
+  - name: answerKey
+    dtype: string
+  - name: info
+    struct:
+    - name: grade
+      dtype: int32
+    - name: subject
+      dtype: string
+    - name: language
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 40884023
+    num_examples: 1955
+  - name: validation
+    num_bytes: 10260662
+    num_examples: 488
+  download_size: 169745177
+  dataset_size: 51144685
 ---
 
 # Dataset Card for [Dataset Name]

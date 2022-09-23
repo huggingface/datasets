@@ -20,6 +20,32 @@ task_ids:
 - text-classification-other-social-media-shares-prediction
 paperswithcode_id: null
 pretty_name: News Popularity in Multiple Social Media Platforms
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: title
+    dtype: string
+  - name: headline
+    dtype: string
+  - name: source
+    dtype: string
+  - name: topic
+    dtype: string
+  - name: publish_date
+    dtype: string
+  - name: facebook
+    dtype: int32
+  - name: google_plus
+    dtype: int32
+  - name: linked_in
+    dtype: int32
+  splits:
+  - name: train
+    num_bytes: 27927641
+    num_examples: 93239
+  download_size: 30338277
+  dataset_size: 27927641
 ---
 
 # Dataset Card for News Popularity in Multiple Social Media Platforms

@@ -19,6 +19,21 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: OpusMontenegrinsubs
+dataset_info:
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - me
+  config_name: en-me
+  splits:
+  - name: train
+    num_bytes: 4896403
+    num_examples: 65043
+  download_size: 1990570
+  dataset_size: 4896403
 ---
 
 # Dataset Card for [opus_montenegrinsubs]

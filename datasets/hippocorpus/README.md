@@ -20,6 +20,60 @@ task_ids:
 - text-classification-other-narrative-flow
 paperswithcode_id: null
 pretty_name: hippocorpus
+dataset_info:
+  features:
+  - name: AssignmentId
+    dtype: string
+  - name: WorkTimeInSeconds
+    dtype: string
+  - name: WorkerId
+    dtype: string
+  - name: annotatorAge
+    dtype: float32
+  - name: annotatorGender
+    dtype: string
+  - name: annotatorRace
+    dtype: string
+  - name: distracted
+    dtype: float32
+  - name: draining
+    dtype: float32
+  - name: frequency
+    dtype: float32
+  - name: importance
+    dtype: float32
+  - name: logTimeSinceEvent
+    dtype: string
+  - name: mainEvent
+    dtype: string
+  - name: memType
+    dtype: string
+  - name: mostSurprising
+    dtype: string
+  - name: openness
+    dtype: string
+  - name: recAgnPairId
+    dtype: string
+  - name: recImgPairId
+    dtype: string
+  - name: similarity
+    dtype: string
+  - name: similarityReason
+    dtype: string
+  - name: story
+    dtype: string
+  - name: stressful
+    dtype: string
+  - name: summary
+    dtype: string
+  - name: timeSinceEvent
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 7229795
+    num_examples: 6854
+  download_size: 0
+  dataset_size: 7229795
 ---
 
 # Dataset Card for [Dataset Name]

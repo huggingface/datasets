@@ -55,6 +55,167 @@ configs:
 - hr-sk
 - hr-sv
 - mt-sh
+dataset_info:
+- config_name: bg-ga
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - bg
+        - ga
+  splits:
+  - name: train
+    num_bytes: 82972428
+    num_examples: 179142
+  download_size: 15935979
+  dataset_size: 82972428
+- config_name: bg-hr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - bg
+        - hr
+  splits:
+  - name: train
+    num_bytes: 239828651
+    num_examples: 701572
+  download_size: 46804111
+  dataset_size: 239828651
+- config_name: bg-sh
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - bg
+        - sh
+  splits:
+  - name: train
+    num_bytes: 498884905
+    num_examples: 1488507
+  download_size: 97402723
+  dataset_size: 498884905
+- config_name: fi-ga
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fi
+        - ga
+  splits:
+  - name: train
+    num_bytes: 61313136
+    num_examples: 178619
+  download_size: 14385114
+  dataset_size: 61313136
+- config_name: es-ga
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - ga
+  splits:
+  - name: train
+    num_bytes: 63115666
+    num_examples: 178696
+  download_size: 14447359
+  dataset_size: 63115666
+- config_name: ga-sh
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ga
+        - sh
+  splits:
+  - name: train
+    num_bytes: 28666585
+    num_examples: 91613
+  download_size: 6963357
+  dataset_size: 28666585
+- config_name: hr-sk
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - hr
+        - sk
+  splits:
+  - name: train
+    num_bytes: 170718371
+    num_examples: 689263
+  download_size: 42579941
+  dataset_size: 170718371
+- config_name: mt-sh
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - mt
+        - sh
+  splits:
+  - name: train
+    num_bytes: 368562443
+    num_examples: 1450424
+  download_size: 88598048
+  dataset_size: 368562443
+- config_name: hr-sv
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - hr
+        - sv
+  splits:
+  - name: train
+    num_bytes: 171858392
+    num_examples: 696334
+  download_size: 41410203
+  dataset_size: 171858392
+- config_name: ga-nl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ga
+        - nl
+  splits:
+  - name: train
+    num_bytes: 59065574
+    num_examples: 170644
+  download_size: 13730934
+  dataset_size: 59065574
 ---
 
 # Dataset Card for OpusDgt

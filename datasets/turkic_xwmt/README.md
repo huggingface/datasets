@@ -117,6 +117,1267 @@ configs:
 - uz-ru
 - uz-sah
 - uz-tr
+dataset_info:
+- config_name: az-ba
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - az
+        - ba
+  splits:
+  - name: test
+    num_bytes: 266801
+    num_examples: 600
+  download_size: 12862396
+  dataset_size: 266801
+- config_name: az-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - az
+        - en
+  splits:
+  - name: test
+    num_bytes: 181156
+    num_examples: 600
+  download_size: 12862396
+  dataset_size: 181156
+- config_name: az-kaa
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - az
+        - kaa
+  splits:
+  - name: test
+    num_bytes: 134071
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 134071
+- config_name: az-kk
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - az
+        - kk
+  splits:
+  - name: test
+    num_bytes: 203798
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 203798
+- config_name: az-ky
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - az
+        - ky
+  splits:
+  - name: test
+    num_bytes: 210549
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 210549
+- config_name: az-ru
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - az
+        - ru
+  splits:
+  - name: test
+    num_bytes: 262739
+    num_examples: 600
+  download_size: 12862396
+  dataset_size: 262739
+- config_name: az-sah
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - az
+        - sah
+  splits:
+  - name: test
+    num_bytes: 144198
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 144198
+- config_name: az-tr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - az
+        - tr
+  splits:
+  - name: test
+    num_bytes: 162447
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 162447
+- config_name: az-uz
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - az
+        - uz
+  splits:
+  - name: test
+    num_bytes: 194231
+    num_examples: 600
+  download_size: 12862396
+  dataset_size: 194231
+- config_name: ba-az
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ba
+        - az
+  splits:
+  - name: test
+    num_bytes: 266801
+    num_examples: 600
+  download_size: 12862396
+  dataset_size: 266801
+- config_name: ba-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ba
+        - en
+  splits:
+  - name: test
+    num_bytes: 431223
+    num_examples: 1000
+  download_size: 12862396
+  dataset_size: 431223
+- config_name: ba-kaa
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ba
+        - kaa
+  splits:
+  - name: test
+    num_bytes: 168895
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 168895
+- config_name: ba-kk
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ba
+        - kk
+  splits:
+  - name: test
+    num_bytes: 374756
+    num_examples: 700
+  download_size: 12862396
+  dataset_size: 374756
+- config_name: ba-ky
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ba
+        - ky
+  splits:
+  - name: test
+    num_bytes: 268986
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 268986
+- config_name: ba-ru
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ba
+        - ru
+  splits:
+  - name: test
+    num_bytes: 568101
+    num_examples: 1000
+  download_size: 12862396
+  dataset_size: 568101
+- config_name: ba-sah
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ba
+        - sah
+  splits:
+  - name: test
+    num_bytes: 179022
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 179022
+- config_name: ba-tr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ba
+        - tr
+  splits:
+  - name: test
+    num_bytes: 309455
+    num_examples: 700
+  download_size: 12862396
+  dataset_size: 309455
+- config_name: ba-uz
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ba
+        - uz
+  splits:
+  - name: test
+    num_bytes: 410874
+    num_examples: 900
+  download_size: 12862396
+  dataset_size: 410874
+- config_name: en-az
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - az
+  splits:
+  - name: test
+    num_bytes: 181156
+    num_examples: 600
+  download_size: 12862396
+  dataset_size: 181156
+- config_name: en-ba
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ba
+  splits:
+  - name: test
+    num_bytes: 431223
+    num_examples: 1000
+  download_size: 12862396
+  dataset_size: 431223
+- config_name: en-kaa
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - kaa
+  splits:
+  - name: test
+    num_bytes: 126304
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 126304
+- config_name: en-kk
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - kk
+  splits:
+  - name: test
+    num_bytes: 274728
+    num_examples: 700
+  download_size: 12862396
+  dataset_size: 274728
+- config_name: en-ky
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ky
+  splits:
+  - name: test
+    num_bytes: 198854
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 198854
+- config_name: en-ru
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ru
+  splits:
+  - name: test
+    num_bytes: 422718
+    num_examples: 1000
+  download_size: 12862396
+  dataset_size: 422718
+- config_name: en-sah
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - sah
+  splits:
+  - name: test
+    num_bytes: 136431
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 136431
+- config_name: en-tr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - tr
+  splits:
+  - name: test
+    num_bytes: 210144
+    num_examples: 700
+  download_size: 12862396
+  dataset_size: 210144
+- config_name: en-uz
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - uz
+  splits:
+  - name: test
+    num_bytes: 278971
+    num_examples: 900
+  download_size: 12862396
+  dataset_size: 278971
+- config_name: kaa-az
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kaa
+        - az
+  splits:
+  - name: test
+    num_bytes: 134071
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 134071
+- config_name: kaa-ba
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kaa
+        - ba
+  splits:
+  - name: test
+    num_bytes: 168895
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 168895
+- config_name: kaa-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kaa
+        - en
+  splits:
+  - name: test
+    num_bytes: 126304
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 126304
+- config_name: kaa-kk
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kaa
+        - kk
+  splits:
+  - name: test
+    num_bytes: 160022
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 160022
+- config_name: kaa-ky
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kaa
+        - ky
+  splits:
+  - name: test
+    num_bytes: 163763
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 163763
+- config_name: kaa-ru
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kaa
+        - ru
+  splits:
+  - name: test
+    num_bytes: 168349
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 168349
+- config_name: kaa-sah
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kaa
+        - sah
+  splits:
+  - name: test
+    num_bytes: 177151
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 177151
+- config_name: kaa-tr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kaa
+        - tr
+  splits:
+  - name: test
+    num_bytes: 132055
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 132055
+- config_name: kaa-uz
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kaa
+        - uz
+  splits:
+  - name: test
+    num_bytes: 132789
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 132789
+- config_name: kk-az
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kk
+        - az
+  splits:
+  - name: test
+    num_bytes: 203798
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 203798
+- config_name: kk-ba
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kk
+        - ba
+  splits:
+  - name: test
+    num_bytes: 374756
+    num_examples: 700
+  download_size: 12862396
+  dataset_size: 374756
+- config_name: kk-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kk
+        - en
+  splits:
+  - name: test
+    num_bytes: 274728
+    num_examples: 700
+  download_size: 12862396
+  dataset_size: 274728
+- config_name: kk-kaa
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kk
+        - kaa
+  splits:
+  - name: test
+    num_bytes: 160022
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 160022
+- config_name: kk-ky
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kk
+        - ky
+  splits:
+  - name: test
+    num_bytes: 253421
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 253421
+- config_name: kk-ru
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kk
+        - ru
+  splits:
+  - name: test
+    num_bytes: 369633
+    num_examples: 700
+  download_size: 12862396
+  dataset_size: 369633
+- config_name: kk-sah
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kk
+        - sah
+  splits:
+  - name: test
+    num_bytes: 170149
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 170149
+- config_name: kk-tr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kk
+        - tr
+  splits:
+  - name: test
+    num_bytes: 204442
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 204442
+- config_name: kk-uz
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kk
+        - uz
+  splits:
+  - name: test
+    num_bytes: 290325
+    num_examples: 700
+  download_size: 12862396
+  dataset_size: 290325
+- config_name: ky-az
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ky
+        - az
+  splits:
+  - name: test
+    num_bytes: 210549
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 210549
+- config_name: ky-ba
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ky
+        - ba
+  splits:
+  - name: test
+    num_bytes: 268986
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 268986
+- config_name: ky-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ky
+        - en
+  splits:
+  - name: test
+    num_bytes: 198854
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 198854
+- config_name: ky-kaa
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ky
+        - kaa
+  splits:
+  - name: test
+    num_bytes: 163763
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 163763
+- config_name: ky-kk
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ky
+        - kk
+  splits:
+  - name: test
+    num_bytes: 253421
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 253421
+- config_name: ky-ru
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ky
+        - ru
+  splits:
+  - name: test
+    num_bytes: 265803
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 265803
+- config_name: ky-sah
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ky
+        - sah
+  splits:
+  - name: test
+    num_bytes: 173890
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 173890
+- config_name: ky-tr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ky
+        - tr
+  splits:
+  - name: test
+    num_bytes: 168026
+    num_examples: 400
+  download_size: 12862396
+  dataset_size: 168026
+- config_name: ky-uz
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ky
+        - uz
+  splits:
+  - name: test
+    num_bytes: 209619
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 209619
+- config_name: ru-az
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - az
+  splits:
+  - name: test
+    num_bytes: 262739
+    num_examples: 600
+  download_size: 12862396
+  dataset_size: 262739
+- config_name: ru-ba
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - ba
+  splits:
+  - name: test
+    num_bytes: 568101
+    num_examples: 1000
+  download_size: 12862396
+  dataset_size: 568101
+- config_name: ru-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - en
+  splits:
+  - name: test
+    num_bytes: 422718
+    num_examples: 1000
+  download_size: 12862396
+  dataset_size: 422718
+- config_name: ru-kaa
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - kaa
+  splits:
+  - name: test
+    num_bytes: 168349
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 168349
+- config_name: ru-kk
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - kk
+  splits:
+  - name: test
+    num_bytes: 369633
+    num_examples: 700
+  download_size: 12862396
+  dataset_size: 369633
+- config_name: ru-ky
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - ky
+  splits:
+  - name: test
+    num_bytes: 265803
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 265803
+- config_name: ru-sah
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - sah
+  splits:
+  - name: test
+    num_bytes: 178476
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 178476
+- config_name: ru-tr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - tr
+  splits:
+  - name: test
+    num_bytes: 304586
+    num_examples: 700
+  download_size: 12862396
+  dataset_size: 304586
+- config_name: ru-uz
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - uz
+  splits:
+  - name: test
+    num_bytes: 403551
+    num_examples: 900
+  download_size: 12862396
+  dataset_size: 403551
+- config_name: sah-az
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - sah
+        - az
+  splits:
+  - name: test
+    num_bytes: 144198
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 144198
+- config_name: sah-ba
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - sah
+        - ba
+  splits:
+  - name: test
+    num_bytes: 179022
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 179022
+- config_name: sah-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - sah
+        - en
+  splits:
+  - name: test
+    num_bytes: 136431
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 136431
+- config_name: sah-kaa
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - sah
+        - kaa
+  splits:
+  - name: test
+    num_bytes: 177151
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 177151
+- config_name: sah-kk
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - sah
+        - kk
+  splits:
+  - name: test
+    num_bytes: 170149
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 170149
+- config_name: sah-ky
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - sah
+        - ky
+  splits:
+  - name: test
+    num_bytes: 173890
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 173890
+- config_name: sah-ru
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - sah
+        - ru
+  splits:
+  - name: test
+    num_bytes: 178476
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 178476
+- config_name: sah-tr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - sah
+        - tr
+  splits:
+  - name: test
+    num_bytes: 142182
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 142182
+- config_name: sah-uz
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - sah
+        - uz
+  splits:
+  - name: test
+    num_bytes: 142916
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 142916
+- config_name: tr-az
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - tr
+        - az
+  splits:
+  - name: test
+    num_bytes: 162447
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 162447
+- config_name: tr-ba
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - tr
+        - ba
+  splits:
+  - name: test
+    num_bytes: 309455
+    num_examples: 700
+  download_size: 12862396
+  dataset_size: 309455
+- config_name: tr-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - tr
+        - en
+  splits:
+  - name: test
+    num_bytes: 210144
+    num_examples: 700
+  download_size: 12862396
+  dataset_size: 210144
+- config_name: tr-kaa
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - tr
+        - kaa
+  splits:
+  - name: test
+    num_bytes: 132055
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 132055
+- config_name: tr-kk
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - tr
+        - kk
+  splits:
+  - name: test
+    num_bytes: 204442
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 204442
+- config_name: tr-ky
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - tr
+        - ky
+  splits:
+  - name: test
+    num_bytes: 168026
+    num_examples: 400
+  download_size: 12862396
+  dataset_size: 168026
+- config_name: tr-ru
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - tr
+        - ru
+  splits:
+  - name: test
+    num_bytes: 304586
+    num_examples: 700
+  download_size: 12862396
+  dataset_size: 304586
+- config_name: tr-sah
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - tr
+        - sah
+  splits:
+  - name: test
+    num_bytes: 142182
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 142182
+- config_name: tr-uz
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - tr
+        - uz
+  splits:
+  - name: test
+    num_bytes: 194761
+    num_examples: 600
+  download_size: 12862396
+  dataset_size: 194761
+- config_name: uz-az
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - uz
+        - az
+  splits:
+  - name: test
+    num_bytes: 194231
+    num_examples: 600
+  download_size: 12862396
+  dataset_size: 194231
+- config_name: uz-ba
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - uz
+        - ba
+  splits:
+  - name: test
+    num_bytes: 410874
+    num_examples: 900
+  download_size: 12862396
+  dataset_size: 410874
+- config_name: uz-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - uz
+        - en
+  splits:
+  - name: test
+    num_bytes: 278971
+    num_examples: 900
+  download_size: 12862396
+  dataset_size: 278971
+- config_name: uz-kaa
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - uz
+        - kaa
+  splits:
+  - name: test
+    num_bytes: 132789
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 132789
+- config_name: uz-kk
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - uz
+        - kk
+  splits:
+  - name: test
+    num_bytes: 290325
+    num_examples: 700
+  download_size: 12862396
+  dataset_size: 290325
+- config_name: uz-ky
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - uz
+        - ky
+  splits:
+  - name: test
+    num_bytes: 209619
+    num_examples: 500
+  download_size: 12862396
+  dataset_size: 209619
+- config_name: uz-ru
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - uz
+        - ru
+  splits:
+  - name: test
+    num_bytes: 403551
+    num_examples: 900
+  download_size: 12862396
+  dataset_size: 403551
+- config_name: uz-sah
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - uz
+        - sah
+  splits:
+  - name: test
+    num_bytes: 142916
+    num_examples: 300
+  download_size: 12862396
+  dataset_size: 142916
+- config_name: uz-tr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - uz
+        - tr
+  splits:
+  - name: test
+    num_bytes: 194761
+    num_examples: 600
+  download_size: 12862396
+  dataset_size: 194761
 ---
 
 # Dataset Card for turkic_xwmt

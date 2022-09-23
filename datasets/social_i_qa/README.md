@@ -3,6 +3,29 @@ language:
 - en
 paperswithcode_id: social-iqa
 pretty_name: Social Interaction QA
+dataset_info:
+  features:
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answerA
+    dtype: string
+  - name: answerB
+    dtype: string
+  - name: answerC
+    dtype: string
+  - name: label
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 6389954
+    num_examples: 33410
+  - name: validation
+    num_bytes: 376508
+    num_examples: 1954
+  download_size: 2198056
+  dataset_size: 6766462
 ---
 
 # Dataset Card for "social_i_qa"

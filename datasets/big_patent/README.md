@@ -32,6 +32,187 @@ configs:
 - g
 - h
 - y
+dataset_info:
+- config_name: all
+  features:
+  - name: description
+    dtype: string
+  - name: abstract
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1296234391
+    num_examples: 67072
+  - name: train
+    num_bytes: 23363518650
+    num_examples: 1207222
+  - name: validation
+    num_bytes: 1290154487
+    num_examples: 67068
+  download_size: 6447221554
+  dataset_size: 25949907528
+- config_name: a
+  features:
+  - name: description
+    dtype: string
+  - name: abstract
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 185987552
+    num_examples: 9675
+  - name: train
+    num_bytes: 3329778447
+    num_examples: 174134
+  - name: validation
+    num_bytes: 184116486
+    num_examples: 9674
+  download_size: 6447221554
+  dataset_size: 3699882485
+- config_name: b
+  features:
+  - name: description
+    dtype: string
+  - name: abstract
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 140741033
+    num_examples: 8974
+  - name: train
+    num_bytes: 2574594655
+    num_examples: 161520
+  - name: validation
+    num_bytes: 143029380
+    num_examples: 8973
+  download_size: 6447221554
+  dataset_size: 2858365068
+- config_name: c
+  features:
+  - name: description
+    dtype: string
+  - name: abstract
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 149052258
+    num_examples: 5614
+  - name: train
+    num_bytes: 2641973267
+    num_examples: 101042
+  - name: validation
+    num_bytes: 145441704
+    num_examples: 5613
+  download_size: 6447221554
+  dataset_size: 2936467229
+- config_name: d
+  features:
+  - name: description
+    dtype: string
+  - name: abstract
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 8713720
+    num_examples: 565
+  - name: train
+    num_bytes: 160467163
+    num_examples: 10164
+  - name: validation
+    num_bytes: 8667961
+    num_examples: 565
+  download_size: 6447221554
+  dataset_size: 177848844
+- config_name: e
+  features:
+  - name: description
+    dtype: string
+  - name: abstract
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 29843613
+    num_examples: 1914
+  - name: train
+    num_bytes: 535567259
+    num_examples: 34443
+  - name: validation
+    num_bytes: 28549964
+    num_examples: 1914
+  download_size: 6447221554
+  dataset_size: 593960836
+- config_name: f
+  features:
+  - name: description
+    dtype: string
+  - name: abstract
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 71676041
+    num_examples: 4754
+  - name: train
+    num_bytes: 1297707404
+    num_examples: 85568
+  - name: validation
+    num_bytes: 72367466
+    num_examples: 4754
+  download_size: 6447221554
+  dataset_size: 1441750911
+- config_name: g
+  features:
+  - name: description
+    dtype: string
+  - name: abstract
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 310624265
+    num_examples: 14386
+  - name: train
+    num_bytes: 5571186559
+    num_examples: 258935
+  - name: validation
+    num_bytes: 309182447
+    num_examples: 14385
+  download_size: 6447221554
+  dataset_size: 6190993271
+- config_name: h
+  features:
+  - name: description
+    dtype: string
+  - name: abstract
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 274505113
+    num_examples: 14279
+  - name: train
+    num_bytes: 4988365946
+    num_examples: 257019
+  - name: validation
+    num_bytes: 275293153
+    num_examples: 14279
+  download_size: 6447221554
+  dataset_size: 5538164212
+- config_name: y
+  features:
+  - name: description
+    dtype: string
+  - name: abstract
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 125090828
+    num_examples: 6911
+  - name: train
+    num_bytes: 2263877990
+    num_examples: 124397
+  - name: validation
+    num_bytes: 123505958
+    num_examples: 6911
+  download_size: 6447221554
+  dataset_size: 2512474776
 ---
 
 # Dataset Card for Big Patent

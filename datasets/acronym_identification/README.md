@@ -28,6 +28,33 @@ train-eval-index:
   col_mapping:
     tokens: tokens
     labels: tags
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: B-long
+          1: B-short
+          2: I-long
+          3: I-short
+          4: O
+  splits:
+  - name: test
+    num_bytes: 987728
+    num_examples: 1750
+  - name: train
+    num_bytes: 7792803
+    num_examples: 14006
+  - name: validation
+    num_bytes: 952705
+    num_examples: 1717
+  download_size: 8556464
+  dataset_size: 9733236
 ---
 
 # Dataset Card for Acronym Identification Dataset

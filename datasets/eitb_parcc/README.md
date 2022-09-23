@@ -19,6 +19,21 @@ task_categories:
 task_ids: []
 paperswithcode_id: eitb-parcc
 pretty_name: EiTB-ParCC
+dataset_info:
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - eu
+  config_name: es-eu
+  splits:
+  - name: train
+    num_bytes: 139039398
+    num_examples: 637183
+  download_size: 57244346
+  dataset_size: 139039398
 ---
 
 # Dataset Card for [Dataset Name]

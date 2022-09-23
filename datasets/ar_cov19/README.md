@@ -17,6 +17,17 @@ task_ids:
 - other-other-data-mining
 paperswithcode_id: arcov-19
 pretty_name: ArCOV19
+dataset_info:
+  features:
+  - name: tweetID
+    dtype: int64
+  config_name: ar_cov19
+  splits:
+  - name: train
+    num_bytes: 8724728
+    num_examples: 1090591
+  download_size: 54902390
+  dataset_size: 8724728
 ---
 
 # Dataset Card for ArCOV19

@@ -21,6 +21,17 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: HrWac
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  config_name: hrwac
+  splits:
+  - name: train
+    num_bytes: 43994569015
+    num_examples: 1736944727
+  download_size: 9217221471
+  dataset_size: 43994569015
 ---
 
 # Dataset Card for HrWac

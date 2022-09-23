@@ -20,6 +20,42 @@ task_ids:
 - language-modeling
 - masked-language-modeling
 pretty_name: CodeXGlueCcCodeCompletionToken
+dataset_info:
+- config_name: java
+  features:
+  - name: id
+    dtype: int32
+  - name: code
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 43027956
+    num_examples: 8268
+  - name: train
+    num_bytes: 128312061
+    num_examples: 12934
+  - name: validation
+    num_bytes: 30259174
+    num_examples: 7189
+  download_size: 126856519
+  dataset_size: 201599191
+- config_name: python
+  features:
+  - name: id
+    dtype: int32
+  - name: path
+    dtype: string
+  - name: code
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 333978088
+    num_examples: 50000
+  - name: train
+    num_bytes: 684319575
+    num_examples: 100000
+  download_size: 199067128
+  dataset_size: 1018297663
 ---
 # Dataset Card for "code_x_glue_cc_code_completion_token"
 

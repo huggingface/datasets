@@ -24,6 +24,103 @@ size_categories:
 - 10M<n<100M
 language:
 - en
+dataset_info:
+- config_name: psgs_w100.nq.exact
+  features:
+  - name: id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: title
+    dtype: string
+  - name: embeddings
+    sequence: float32
+  splits:
+  - name: train
+    num_bytes: 78419281788
+    num_examples: 21015300
+  download_size: 70965697456
+  dataset_size: 78419281788
+- config_name: psgs_w100.nq.compressed
+  features:
+  - name: id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: title
+    dtype: string
+  - name: embeddings
+    sequence: float32
+  splits:
+  - name: train
+    num_bytes: 78419281788
+    num_examples: 21015300
+  download_size: 70965697456
+  dataset_size: 78419281788
+- config_name: psgs_w100.nq.no_index
+  features:
+  - name: id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: title
+    dtype: string
+  - name: embeddings
+    sequence: float32
+  splits:
+  - name: train
+    num_bytes: 78419281788
+    num_examples: 21015300
+  download_size: 70965697456
+  dataset_size: 78419281788
+- config_name: psgs_w100.multiset.exact
+  features:
+  - name: id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: title
+    dtype: string
+  - name: embeddings
+    sequence: float32
+  splits:
+  - name: train
+    num_bytes: 78419281788
+    num_examples: 21015300
+  download_size: 70965697456
+  dataset_size: 78419281788
+- config_name: psgs_w100.multiset.compressed
+  features:
+  - name: id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: title
+    dtype: string
+  - name: embeddings
+    sequence: float32
+  splits:
+  - name: train
+    num_bytes: 78419281788
+    num_examples: 21015300
+  download_size: 70965697456
+  dataset_size: 78419281788
+- config_name: psgs_w100.multiset.no_index
+  features:
+  - name: id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: title
+    dtype: string
+  - name: embeddings
+    sequence: float32
+  splits:
+  - name: train
+    num_bytes: 78419281788
+    num_examples: 21015300
+  download_size: 70965697456
+  dataset_size: 78419281788
 ---
 
 # Dataset Card for "wiki_dpr"

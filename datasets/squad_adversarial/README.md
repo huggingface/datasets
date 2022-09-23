@@ -19,6 +19,76 @@ task_ids:
 - extractive-qa
 paperswithcode_id: null
 pretty_name: '''Adversarial Examples for SQuAD'''
+dataset_info:
+- config_name: squad_adversarial
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: AddOneSent
+    num_bytes: 1864767
+    num_examples: 1787
+  - name: AddSent
+    num_bytes: 3803551
+    num_examples: 3560
+  download_size: 5994513
+  dataset_size: 5668318
+- config_name: AddSent
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 3803551
+    num_examples: 3560
+  download_size: 5994513
+  dataset_size: 3803551
+- config_name: AddOneSent
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 1864767
+    num_examples: 1787
+  download_size: 5994513
+  dataset_size: 1864767
 ---
 
 # Dataset Card for 'Adversarial Examples for SQuAD'

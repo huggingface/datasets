@@ -30,44 +30,66 @@ train-eval-index:
     content: text
     label: target
   metrics:
-    - type: accuracy
-      name: Accuracy
-    - type: f1
-      name: F1 macro
-      args:
-        average: macro
-    - type: f1
-      name: F1 micro
-      args:
-        average: micro  
-    - type: f1
-      name: F1 weighted
-      args:
-        average: weighted
-    - type: precision
-      name: Precision macro
-      args:
-        average: macro  
-    - type: precision
-      name: Precision micro
-      args:
-        average: micro  
-    - type: precision
-      name: Precision weighted
-      args:
-        average: weighted  
-    - type: recall
-      name: Recall macro
-      args:
-        average: macro  
-    - type: recall
-      name: Recall micro
-      args:
-        average: micro  
-    - type: recall
-      name: Recall weighted
-      args:
-        average: weighted
+  - type: accuracy
+    name: Accuracy
+  - type: f1
+    name: F1 macro
+    args:
+      average: macro
+  - type: f1
+    name: F1 micro
+    args:
+      average: micro
+  - type: f1
+    name: F1 weighted
+    args:
+      average: weighted
+  - type: precision
+    name: Precision macro
+    args:
+      average: macro
+  - type: precision
+    name: Precision micro
+    args:
+      average: micro
+  - type: precision
+    name: Precision weighted
+    args:
+      average: weighted
+  - type: recall
+    name: Recall macro
+    args:
+      average: macro
+  - type: recall
+    name: Recall micro
+    args:
+      average: micro
+  - type: recall
+    name: Recall weighted
+    args:
+      average: weighted
+dataset_info:
+  features:
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: positive
+  - name: title
+    dtype: string
+  - name: content
+    dtype: string
+  config_name: amazon_polarity
+  splits:
+  - name: test
+    num_bytes: 178176193
+    num_examples: 400000
+  - name: train
+    num_bytes: 1604364432
+    num_examples: 3600000
+  download_size: 688339454
+  dataset_size: 1782540625
 ---
 
 # Dataset Card for Amazon Review Polarity

@@ -19,6 +19,117 @@ task_ids:
 - open-domain-abstractive-qa
 paperswithcode_id: break
 pretty_name: BREAK
+dataset_info:
+- config_name: QDMR-high-level
+  features:
+  - name: question_id
+    dtype: string
+  - name: question_text
+    dtype: string
+  - name: decomposition
+    dtype: string
+  - name: operators
+    dtype: string
+  - name: split
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 482339
+    num_examples: 3195
+  - name: train
+    num_bytes: 5148086
+    num_examples: 17503
+  - name: validation
+    num_bytes: 914780
+    num_examples: 3130
+  download_size: 15971078
+  dataset_size: 6545205
+- config_name: QDMR-high-level-lexicon
+  features:
+  - name: source
+    dtype: string
+  - name: allowed_tokens
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 4240755
+    num_examples: 3195
+  - name: train
+    num_bytes: 23234518
+    num_examples: 17503
+  - name: validation
+    num_bytes: 4158679
+    num_examples: 3130
+  download_size: 15971078
+  dataset_size: 31633952
+- config_name: QDMR
+  features:
+  - name: question_id
+    dtype: string
+  - name: question_text
+    dtype: string
+  - name: decomposition
+    dtype: string
+  - name: operators
+    dtype: string
+  - name: split
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 900632
+    num_examples: 8069
+  - name: train
+    num_bytes: 12790466
+    num_examples: 44321
+  - name: validation
+    num_bytes: 2237472
+    num_examples: 7760
+  download_size: 15971078
+  dataset_size: 15928570
+- config_name: QDMR-lexicon
+  features:
+  - name: source
+    dtype: string
+  - name: allowed_tokens
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 10331822
+    num_examples: 8069
+  - name: train
+    num_bytes: 56913064
+    num_examples: 44321
+  - name: validation
+    num_bytes: 9936933
+    num_examples: 7760
+  download_size: 15971078
+  dataset_size: 77181819
+- config_name: logical-forms
+  features:
+  - name: question_id
+    dtype: string
+  - name: question_text
+    dtype: string
+  - name: decomposition
+    dtype: string
+  - name: operators
+    dtype: string
+  - name: split
+    dtype: string
+  - name: program
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 927038
+    num_examples: 8006
+  - name: train
+    num_bytes: 19821676
+    num_examples: 44098
+  - name: validation
+    num_bytes: 3504893
+    num_examples: 7719
+  download_size: 15971078
+  dataset_size: 24253607
 ---
 
 # Dataset Card for "break_data"

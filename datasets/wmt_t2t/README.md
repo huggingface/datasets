@@ -22,6 +22,27 @@ task_categories:
 task_ids: []
 pretty_name: WMT T2T
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - en
+  config_name: de-en
+  splits:
+  - name: test
+    num_bytes: 777334
+    num_examples: 3003
+  - name: train
+    num_bytes: 1385110179
+    num_examples: 4592289
+  - name: validation
+    num_bytes: 736415
+    num_examples: 3000
+  download_size: 1728762345
+  dataset_size: 1386623928
 ---
 
 # Dataset Card for "wmt_t2t"

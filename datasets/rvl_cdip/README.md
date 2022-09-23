@@ -19,6 +19,42 @@ task_ids:
 - multi-class-image-classification
 paperswithcode_id: rvl-cdip
 pretty_name: RVL-CDIP
+dataset_info:
+  features:
+  - name: image
+    dtype: image
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: letter
+          1: form
+          2: email
+          3: handwritten
+          4: advertisement
+          5: scientific report
+          6: scientific publication
+          7: specification
+          8: file folder
+          9: news article
+          10: budget
+          11: invoice
+          12: presentation
+          13: questionnaire
+          14: resume
+          15: memo
+  splits:
+  - name: test
+    num_bytes: 4863300853
+    num_examples: 40000
+  - name: train
+    num_bytes: 38816373360
+    num_examples: 320000
+  - name: validation
+    num_bytes: 4868685208
+    num_examples: 40000
+  download_size: 38779484559
+  dataset_size: 48548359421
 ---
 
 # Dataset Card for RVL-CDIP

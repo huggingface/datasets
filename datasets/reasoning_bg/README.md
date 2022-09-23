@@ -19,6 +19,107 @@ task_ids:
 - multiple-choice-qa
 paperswithcode_id: null
 pretty_name: ReasoningBg
+dataset_info:
+- config_name: biology-12th
+  features:
+  - name: id
+    dtype: string
+  - name: url
+    dtype: string
+  - name: qid
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: correct
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 197725
+    num_examples: 437
+  download_size: 1753795
+  dataset_size: 197725
+- config_name: philosophy-12th
+  features:
+  - name: id
+    dtype: string
+  - name: url
+    dtype: string
+  - name: qid
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: correct
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 286999
+    num_examples: 630
+  download_size: 1753795
+  dataset_size: 286999
+- config_name: geography-12th
+  features:
+  - name: id
+    dtype: string
+  - name: url
+    dtype: string
+  - name: qid
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: correct
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 283417
+    num_examples: 612
+  download_size: 1753795
+  dataset_size: 283417
+- config_name: history-12th
+  features:
+  - name: id
+    dtype: string
+  - name: url
+    dtype: string
+  - name: qid
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: correct
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 341472
+    num_examples: 542
+  download_size: 1753795
+  dataset_size: 341472
+- config_name: history-quiz
+  features:
+  - name: id
+    dtype: string
+  - name: url
+    dtype: string
+  - name: qid
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: correct
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 164495
+    num_examples: 412
+  download_size: 1753795
+  dataset_size: 164495
 ---
 # Dataset Card for reasoning_bg
 

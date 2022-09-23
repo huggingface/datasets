@@ -21,6 +21,25 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: Indonesian Newspapers 2018
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: url
+    dtype: string
+  - name: date
+    dtype: string
+  - name: title
+    dtype: string
+  - name: content
+    dtype: string
+  config_name: id_newspapers_2018
+  splits:
+  - name: train
+    num_bytes: 1116031922
+    num_examples: 499164
+  download_size: 446018349
+  dataset_size: 1116031922
 ---
 
 # Dataset Card for Indonesian Newspapers 2018

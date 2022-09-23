@@ -26,6 +26,127 @@ configs:
 - auto_full_no_split
 - auto_full_with_split
 - manual
+dataset_info:
+- config_name: manual
+  features:
+  - name: alignment_label
+    dtype:
+      class_label:
+        names:
+          0: notAligned
+          1: aligned
+          2: partialAligned
+  - name: normal_sentence_id
+    dtype: string
+  - name: simple_sentence_id
+    dtype: string
+  - name: normal_sentence
+    dtype: string
+  - name: simple_sentence
+    dtype: string
+  - name: gleu_score
+    dtype: float32
+  splits:
+  - name: dev
+    num_bytes: 21112775
+    num_examples: 73249
+  - name: test
+    num_bytes: 33851634
+    num_examples: 118074
+  - name: train
+    num_bytes: 110838475
+    num_examples: 373801
+  download_size: 168957430
+  dataset_size: 165802884
+- config_name: auto_acl
+  features:
+  - name: normal_sentence
+    dtype: string
+  - name: simple_sentence
+    dtype: string
+  splits:
+  - name: full
+    num_bytes: 121975414
+    num_examples: 488332
+  download_size: 118068366
+  dataset_size: 121975414
+- config_name: auto
+  features:
+  - name: example_id
+    dtype: string
+  - name: normal
+    struct:
+    - name: normal_article_id
+      dtype: int32
+    - name: normal_article_title
+      dtype: string
+    - name: normal_article_url
+      dtype: string
+    - name: normal_article_content
+      sequence:
+      - name: normal_sentence_id
+        dtype: string
+      - name: normal_sentence
+        dtype: string
+  - name: simple
+    struct:
+    - name: simple_article_id
+      dtype: int32
+    - name: simple_article_title
+      dtype: string
+    - name: simple_article_url
+      dtype: string
+    - name: simple_article_content
+      sequence:
+      - name: simple_sentence_id
+        dtype: string
+      - name: simple_sentence
+        dtype: string
+  - name: paragraph_alignment
+    sequence:
+    - name: normal_paragraph_id
+      dtype: string
+    - name: simple_paragraph_id
+      dtype: string
+  - name: sentence_alignment
+    sequence:
+    - name: normal_sentence_id
+      dtype: string
+    - name: simple_sentence_id
+      dtype: string
+  splits:
+  - name: part_1
+    num_bytes: 1773240295
+    num_examples: 125059
+  - name: part_2
+    num_bytes: 80417651
+    num_examples: 13036
+  download_size: 2160638921
+  dataset_size: 1853657946
+- config_name: auto_full_no_split
+  features:
+  - name: normal_sentence
+    dtype: string
+  - name: simple_sentence
+    dtype: string
+  splits:
+  - name: full
+    num_bytes: 146310611
+    num_examples: 591994
+  download_size: 141574179
+  dataset_size: 146310611
+- config_name: auto_full_with_split
+  features:
+  - name: normal_sentence
+    dtype: string
+  - name: simple_sentence
+    dtype: string
+  splits:
+  - name: full
+    num_bytes: 124549115
+    num_examples: 483801
+  download_size: 120678315
+  dataset_size: 124549115
 ---
 
 # Dataset Card for WikiAuto

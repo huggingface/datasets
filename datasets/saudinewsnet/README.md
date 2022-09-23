@@ -21,6 +21,26 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: saudinewsnet
+dataset_info:
+  features:
+  - name: source
+    dtype: string
+  - name: url
+    dtype: string
+  - name: date_extracted
+    dtype: string
+  - name: title
+    dtype: string
+  - name: author
+    dtype: string
+  - name: content
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 103654105
+    num_examples: 31030
+  download_size: 29014166
+  dataset_size: 103654105
 ---
 
 # Dataset Card for "saudinewsnet"

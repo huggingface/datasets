@@ -19,6 +19,89 @@ task_ids:
 - text-classification-other-stereotype-detection
 paperswithcode_id: stereoset
 pretty_name: StereoSet
+dataset_info:
+- config_name: intersentence
+  features:
+  - name: id
+    dtype: string
+  - name: target
+    dtype: string
+  - name: bias_type
+    dtype: string
+  - name: context
+    dtype: string
+  - name: sentences
+    sequence:
+    - name: sentence
+      dtype: string
+    - name: id
+      dtype: string
+    - name: labels
+      sequence:
+      - name: label
+        dtype:
+          class_label:
+            names:
+              0: anti-stereotype
+              1: stereotype
+              2: unrelated
+              3: related
+      - name: human_id
+        dtype: string
+    - name: gold_label
+      dtype:
+        class_label:
+          names:
+            0: anti-stereotype
+            1: stereotype
+            2: unrelated
+  splits:
+  - name: validation
+    num_bytes: 2286120
+    num_examples: 2123
+  download_size: 12502245
+  dataset_size: 2286120
+- config_name: intrasentence
+  features:
+  - name: id
+    dtype: string
+  - name: target
+    dtype: string
+  - name: bias_type
+    dtype: string
+  - name: context
+    dtype: string
+  - name: sentences
+    sequence:
+    - name: sentence
+      dtype: string
+    - name: id
+      dtype: string
+    - name: labels
+      sequence:
+      - name: label
+        dtype:
+          class_label:
+            names:
+              0: anti-stereotype
+              1: stereotype
+              2: unrelated
+              3: related
+      - name: human_id
+        dtype: string
+    - name: gold_label
+      dtype:
+        class_label:
+          names:
+            0: anti-stereotype
+            1: stereotype
+            2: unrelated
+  splits:
+  - name: validation
+    num_bytes: 2289458
+    num_examples: 2106
+  download_size: 12502245
+  dataset_size: 2289458
 ---
 
 # Dataset Card for StereoSet

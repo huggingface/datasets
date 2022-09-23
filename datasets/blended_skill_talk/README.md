@@ -19,6 +19,45 @@ task_categories:
 task_ids:
 - dialogue-generation
 paperswithcode_id: blended-skill-talk
+dataset_info:
+  features:
+  - name: personas
+    sequence: string
+  - name: additional_context
+    dtype: string
+  - name: previous_utterance
+    sequence: string
+  - name: context
+    dtype: string
+  - name: free_messages
+    sequence: string
+  - name: guided_messages
+    sequence: string
+  - name: suggestions
+    sequence:
+    - name: convai2
+      dtype: string
+    - name: empathetic_dialogues
+      dtype: string
+    - name: wizard_of_wikipedia
+      dtype: string
+  - name: guided_chosen_suggestions
+    sequence: string
+  - name: label_candidates
+    sequence:
+      sequence: string
+  splits:
+  - name: test
+    num_bytes: 44450102
+    num_examples: 980
+  - name: train
+    num_bytes: 10831361
+    num_examples: 4819
+  - name: validation
+    num_bytes: 43961658
+    num_examples: 1009
+  download_size: 38101408
+  dataset_size: 99243121
 ---
 
 # Dataset Card for "blended_skill_talk"

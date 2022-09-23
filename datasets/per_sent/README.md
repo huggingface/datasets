@@ -19,6 +19,152 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: persent
 pretty_name: PerSenT
+dataset_info:
+  features:
+  - name: DOCUMENT_INDEX
+    dtype: int64
+  - name: TITLE
+    dtype: string
+  - name: TARGET_ENTITY
+    dtype: string
+  - name: DOCUMENT
+    dtype: string
+  - name: MASKED_DOCUMENT
+    dtype: string
+  - name: TRUE_SENTIMENT
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph0
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph1
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph2
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph3
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph4
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph5
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph6
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph7
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph8
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph9
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph10
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph11
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph12
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph13
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph14
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  - name: Paragraph15
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Neutral
+          2: Positive
+  splits:
+  - name: test_fixed
+    num_bytes: 3881800
+    num_examples: 827
+  - name: test_random
+    num_bytes: 2629500
+    num_examples: 579
+  - name: train
+    num_bytes: 14595163
+    num_examples: 3355
+  - name: validation
+    num_bytes: 2322922
+    num_examples: 578
+  download_size: 23117196
+  dataset_size: 23429385
 ---
 
 # Dataset Card for PerSenT

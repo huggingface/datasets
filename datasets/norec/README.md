@@ -21,6 +21,61 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: norec
+dataset_info:
+  features:
+  - name: idx
+    dtype: string
+  - name: text
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: ADJ
+          1: ADP
+          2: ADV
+          3: AUX
+          4: CCONJ
+          5: DET
+          6: INTJ
+          7: NOUN
+          8: NUM
+          9: PART
+          10: PRON
+          11: PROPN
+          12: PUNCT
+          13: SCONJ
+          14: SYM
+          15: VERB
+          16: X
+  - name: xpos_tags
+    sequence: string
+  - name: feats
+    sequence: string
+  - name: head
+    sequence: string
+  - name: deprel
+    sequence: string
+  - name: deps
+    sequence: string
+  - name: misc
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 193801708
+    num_examples: 101594
+  - name: train
+    num_bytes: 1254757266
+    num_examples: 680792
+  - name: validation
+    num_bytes: 189534106
+    num_examples: 101106
+  download_size: 212492611
+  dataset_size: 1638093080
 ---
 
 # Dataset Card for NoReC

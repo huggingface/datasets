@@ -21,6 +21,118 @@ task_categories:
 - text-generation-other-common-sense-inference
 paperswithcode_id: glucose
 pretty_name: GLUCOSE
+dataset_info:
+  features:
+  - name: experiment_id
+    dtype: string
+  - name: story_id
+    dtype: string
+  - name: worker_id
+    dtype: int64
+  - name: worker_ids
+    dtype: string
+  - name: submission_time_normalized
+    dtype: string
+  - name: worker_quality_assessment
+    dtype: int64
+  - name: selected_sentence_index
+    dtype: int64
+  - name: story
+    dtype: string
+  - name: selected_sentence
+    dtype: string
+  - name: number_filled_in
+    dtype: int64
+  - name: 1_specificNL
+    dtype: string
+  - name: 1_specificStructured
+    dtype: string
+  - name: 1_generalNL
+    dtype: string
+  - name: 1_generalStructured
+    dtype: string
+  - name: 2_specificNL
+    dtype: string
+  - name: 2_specificStructured
+    dtype: string
+  - name: 2_generalNL
+    dtype: string
+  - name: 2_generalStructured
+    dtype: string
+  - name: 3_specificNL
+    dtype: string
+  - name: 3_specificStructured
+    dtype: string
+  - name: 3_generalNL
+    dtype: string
+  - name: 3_generalStructured
+    dtype: string
+  - name: 4_specificNL
+    dtype: string
+  - name: 4_specificStructured
+    dtype: string
+  - name: 4_generalNL
+    dtype: string
+  - name: 4_generalStructured
+    dtype: string
+  - name: 5_specificNL
+    dtype: string
+  - name: 5_specificStructured
+    dtype: string
+  - name: 5_generalNL
+    dtype: string
+  - name: 5_generalStructured
+    dtype: string
+  - name: 6_specificNL
+    dtype: string
+  - name: 6_specificStructured
+    dtype: string
+  - name: 6_generalNL
+    dtype: string
+  - name: 6_generalStructured
+    dtype: string
+  - name: 7_specificNL
+    dtype: string
+  - name: 7_specificStructured
+    dtype: string
+  - name: 7_generalNL
+    dtype: string
+  - name: 7_generalStructured
+    dtype: string
+  - name: 8_specificNL
+    dtype: string
+  - name: 8_specificStructured
+    dtype: string
+  - name: 8_generalNL
+    dtype: string
+  - name: 8_generalStructured
+    dtype: string
+  - name: 9_specificNL
+    dtype: string
+  - name: 9_specificStructured
+    dtype: string
+  - name: 9_generalNL
+    dtype: string
+  - name: 9_generalStructured
+    dtype: string
+  - name: 10_specificNL
+    dtype: string
+  - name: 10_specificStructured
+    dtype: string
+  - name: 10_generalNL
+    dtype: string
+  - name: 10_generalStructured
+    dtype: string
+  config_name: glucose
+  splits:
+  - name: test
+    num_bytes: 355757
+    num_examples: 500
+  - name: train
+    num_bytes: 204605370
+    num_examples: 65522
+  download_size: 30362105
+  dataset_size: 204961127
 ---
 
 # Dataset Card for [Dataset Name]

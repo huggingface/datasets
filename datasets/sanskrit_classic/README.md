@@ -21,6 +21,17 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: SanskritClassic
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  config_name: combined
+  splits:
+  - name: train
+    num_bytes: 40299787
+    num_examples: 342033
+  download_size: 7258904
+  dataset_size: 40299787
 ---
 
 # Dataset Card for [Dataset Name]

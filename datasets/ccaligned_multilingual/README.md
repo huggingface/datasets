@@ -149,6 +149,115 @@ task_ids:
 - other-other-translation
 paperswithcode_id: ccaligned
 pretty_name: CCAligned
+dataset_info:
+- config_name: documents-zz_TR
+  features:
+  - name: Domain
+    dtype: string
+  - name: Source_URL
+    dtype: string
+  - name: Target_URL
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en_XX
+        - zz_TR
+  splits:
+  - name: train
+    num_bytes: 641412
+    num_examples: 41
+  download_size: 125488
+  dataset_size: 641412
+- config_name: sentences-zz_TR
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en_XX
+        - zz_TR
+  - name: LASER_similarity
+    dtype: float32
+  splits:
+  - name: train
+    num_bytes: 4056
+    num_examples: 34
+  download_size: 1428
+  dataset_size: 4056
+- config_name: documents-tz_MA
+  features:
+  - name: Domain
+    dtype: string
+  - name: Source_URL
+    dtype: string
+  - name: Target_URL
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en_XX
+        - tz_MA
+  splits:
+  - name: train
+    num_bytes: 51782
+    num_examples: 4
+  download_size: 11996
+  dataset_size: 51782
+- config_name: sentences-tz_MA
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en_XX
+        - tz_MA
+  - name: LASER_similarity
+    dtype: float32
+  splits:
+  - name: train
+    num_bytes: 6256
+    num_examples: 33
+  download_size: 2420
+  dataset_size: 6256
+- config_name: documents-ak_GH
+  features:
+  - name: Domain
+    dtype: string
+  - name: Source_URL
+    dtype: string
+  - name: Target_URL
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en_XX
+        - ak_GH
+  splits:
+  - name: train
+    num_bytes: 10738312
+    num_examples: 249
+  download_size: 399236
+  dataset_size: 10738312
+- config_name: sentences-ak_GH
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en_XX
+        - ak_GH
+  - name: LASER_similarity
+    dtype: float32
+  splits:
+  - name: train
+    num_bytes: 50110
+    num_examples: 478
+  download_size: 17636
+  dataset_size: 50110
 ---
 
 # Dataset Card for ccaligned_multilingual

@@ -36,6 +36,87 @@ task_categories:
 task_ids: []
 paperswithcode_id: ecb
 pretty_name: extension to the EventCorefBank
+dataset_info:
+- config_name: de-fr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - fr
+  splits:
+  - name: train
+    num_bytes: 39514115
+    num_examples: 105116
+  download_size: 10326178
+  dataset_size: 39514115
+- config_name: cs-en
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - cs
+        - en
+  splits:
+  - name: train
+    num_bytes: 19524831
+    num_examples: 63716
+  download_size: 5360485
+  dataset_size: 19524831
+- config_name: el-it
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - el
+        - it
+  splits:
+  - name: train
+    num_bytes: 47300471
+    num_examples: 94712
+  download_size: 10394277
+  dataset_size: 47300471
+- config_name: en-nl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - nl
+  splits:
+  - name: train
+    num_bytes: 43118164
+    num_examples: 126482
+  download_size: 11360895
+  dataset_size: 43118164
+- config_name: fi-pl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fi
+        - pl
+  splits:
+  - name: train
+    num_bytes: 12973283
+    num_examples: 41686
+  download_size: 3521950
+  dataset_size: 12973283
 ---
 
 # Dataset Card for extension to the EventCorefBank

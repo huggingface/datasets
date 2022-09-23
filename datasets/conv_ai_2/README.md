@@ -21,6 +21,39 @@ task_ids:
 - text-scoring-other-evaluating-dialogue-systems
 paperswithcode_id: convai2
 pretty_name: Conversational Intelligence Challenge 2
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: dialog_id
+    dtype: string
+  - name: dialog
+    list:
+    - name: id
+      dtype: int32
+    - name: sender
+      dtype: string
+    - name: text
+      dtype: string
+    - name: sender_class
+      dtype: string
+  - name: bot_profile
+    sequence:
+      list: string
+  - name: user_profile
+    sequence:
+      list: string
+  - name: eval_score
+    dtype: int32
+  - name: profile_match
+    dtype: int32
+  config_name: conv_ai_2
+  splits:
+  - name: train
+    num_bytes: 8403805
+    num_examples: 3495
+  download_size: 6636788
+  dataset_size: 8403805
 ---
 
 # Dataset Card for conv_ai_2

@@ -18,6 +18,58 @@ task_categories:
 task_ids: []
 paperswithcode_id: totto
 pretty_name: ToTTo
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: table_page_title
+    dtype: string
+  - name: table_webpage_url
+    dtype: string
+  - name: table_section_title
+    dtype: string
+  - name: table_section_text
+    dtype: string
+  - name: table
+    list:
+      list:
+      - name: column_span
+        dtype: int32
+      - name: is_header
+        dtype: bool
+      - name: row_span
+        dtype: int32
+      - name: value
+        dtype: string
+  - name: highlighted_cells
+    sequence:
+      sequence: int32
+  - name: example_id
+    dtype: string
+  - name: sentence_annotations
+    sequence:
+    - name: original_sentence
+      dtype: string
+    - name: sentence_after_deletion
+      dtype: string
+    - name: sentence_after_ambiguity
+      dtype: string
+    - name: final_sentence
+      dtype: string
+  - name: overlap_subset
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 40883586
+    num_examples: 7700
+  - name: train
+    num_bytes: 652754806
+    num_examples: 120761
+  - name: validation
+    num_bytes: 47277039
+    num_examples: 7700
+  download_size: 187724372
+  dataset_size: 740915431
 ---
 
 # Dataset Card for ToTTo

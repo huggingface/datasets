@@ -20,6 +20,90 @@ task_ids:
 - question-answering-other-explanations-in-question-answering
 paperswithcode_id: qed
 pretty_name: QED
+dataset_info:
+  features:
+  - name: example_id
+    dtype: int64
+  - name: title_text
+    dtype: string
+  - name: url
+    dtype: string
+  - name: question
+    dtype: string
+  - name: paragraph_text
+    dtype: string
+  - name: sentence_starts
+    sequence: int32
+  - name: original_nq_answers
+    list:
+    - name: start
+      dtype: int32
+    - name: end
+      dtype: int32
+    - name: string
+      dtype: string
+  - name: annotation
+    struct:
+    - name: referential_equalities
+      list:
+      - name: question_reference
+        struct:
+        - name: start
+          dtype: int32
+        - name: end
+          dtype: int32
+        - name: string
+          dtype: string
+      - name: sentence_reference
+        struct:
+        - name: start
+          dtype: int32
+        - name: end
+          dtype: int32
+        - name: bridge
+          dtype: string
+        - name: string
+          dtype: string
+    - name: answer
+      list:
+      - name: sentence_reference
+        struct:
+        - name: start
+          dtype: int32
+        - name: end
+          dtype: int32
+        - name: bridge
+          dtype: string
+        - name: string
+          dtype: string
+      - name: paragraph_reference
+        struct:
+        - name: start
+          dtype: int32
+        - name: end
+          dtype: int32
+        - name: string
+          dtype: string
+    - name: explanation_type
+      dtype: string
+    - name: selected_sentence
+      struct:
+      - name: start
+        dtype: int32
+      - name: end
+        dtype: int32
+      - name: string
+        dtype: string
+  config_name: qed
+  splits:
+  - name: train
+    num_bytes: 8602094
+    num_examples: 7638
+  - name: validation
+    num_bytes: 1584139
+    num_examples: 1355
+  download_size: 14083968
+  dataset_size: 10186233
 ---
 
 # Dataset Card for QED

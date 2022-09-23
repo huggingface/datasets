@@ -3,6 +3,40 @@ language:
 - en
 paperswithcode_id: cornell-movie-dialogs-corpus
 pretty_name: Cornell Movie-Dialogs Corpus
+dataset_info:
+  features:
+  - name: movieID
+    dtype: string
+  - name: movieTitle
+    dtype: string
+  - name: movieYear
+    dtype: string
+  - name: movieIMDBRating
+    dtype: string
+  - name: movieNoIMDBVotes
+    dtype: string
+  - name: movieGenres
+    sequence: string
+  - name: characterID1
+    dtype: string
+  - name: characterID2
+    dtype: string
+  - name: characterName1
+    dtype: string
+  - name: characterName2
+    dtype: string
+  - name: utterance
+    sequence:
+    - name: text
+      dtype: string
+    - name: LineID
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 19548840
+    num_examples: 83097
+  download_size: 9916637
+  dataset_size: 19548840
 ---
 
 # Dataset Card for "cornell_movie_dialog"

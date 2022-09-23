@@ -57,6 +57,87 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: MultiParaCrawl
+dataset_info:
+- config_name: cs-is
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - cs
+        - is
+  splits:
+  - name: train
+    num_bytes: 148967967
+    num_examples: 691006
+  download_size: 61609317
+  dataset_size: 148967967
+- config_name: ga-sk
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ga
+        - sk
+  splits:
+  - name: train
+    num_bytes: 92802332
+    num_examples: 390327
+  download_size: 39574554
+  dataset_size: 92802332
+- config_name: lv-mt
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - lv
+        - mt
+  splits:
+  - name: train
+    num_bytes: 116533998
+    num_examples: 464160
+  download_size: 49770574
+  dataset_size: 116533998
+- config_name: nb-ru
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - nb
+        - ru
+  splits:
+  - name: train
+    num_bytes: 116899303
+    num_examples: 399050
+  download_size: 40932849
+  dataset_size: 116899303
+- config_name: de-tl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - tl
+  splits:
+  - name: train
+    num_bytes: 30880849
+    num_examples: 98156
+  download_size: 12116471
+  dataset_size: 30880849
 ---
 
 # Dataset Card for MultiParaCrawl

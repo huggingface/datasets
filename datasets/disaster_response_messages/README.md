@@ -26,6 +26,239 @@ task_ids:
 - text-simplification
 paperswithcode_id: null
 pretty_name: Disaster Response Messages
+dataset_info:
+  features:
+  - name: split
+    dtype: string
+  - name: message
+    dtype: string
+  - name: original
+    dtype: string
+  - name: genre
+    dtype: string
+  - name: related
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+          2: maybe
+  - name: PII
+    dtype: int8
+  - name: request
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: offer
+    dtype: int8
+  - name: aid_related
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: medical_help
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: medical_products
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: search_and_rescue
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: security
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: military
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: child_alone
+    dtype: int8
+  - name: water
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: food
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: shelter
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: clothing
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: money
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: missing_people
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: refugees
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: death
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: other_aid
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: infrastructure_related
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: transport
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: buildings
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: electricity
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: tools
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: hospitals
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: shops
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: aid_centers
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: other_infrastructure
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: weather_related
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: floods
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: storm
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: fire
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: earthquake
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: cold
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: other_weather
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: direct_report
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  splits:
+  - name: test
+    num_bytes: 1253810
+    num_examples: 2629
+  - name: train
+    num_bytes: 10060799
+    num_examples: 21046
+  - name: validation
+    num_bytes: 1266874
+    num_examples: 2573
+  download_size: 7201807
+  dataset_size: 12581483
 ---
 
 # Dataset Card for Disaster Response Messages 

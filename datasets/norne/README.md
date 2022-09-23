@@ -19,6 +19,601 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: 'NorNE: Norwegian Named Entities'
+dataset_info:
+- config_name: bokmaal
+  features:
+  - name: idx
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: text
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: NOUN
+          1: PUNCT
+          2: ADP
+          3: NUM
+          4: SYM
+          5: SCONJ
+          6: ADJ
+          7: PART
+          8: DET
+          9: CCONJ
+          10: PROPN
+          11: PRON
+          12: X
+          13: ADV
+          14: INTJ
+          15: VERB
+          16: AUX
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-GPE_LOC
+          6: I-GPE_LOC
+          7: B-PROD
+          8: I-PROD
+          9: B-LOC
+          10: I-LOC
+          11: B-GPE_ORG
+          12: I-GPE_ORG
+          13: B-DRV
+          14: I-DRV
+          15: B-EVT
+          16: I-EVT
+          17: B-MISC
+          18: I-MISC
+  splits:
+  - name: test
+    num_bytes: 1234272
+    num_examples: 1939
+  - name: train
+    num_bytes: 10032169
+    num_examples: 15696
+  - name: validation
+    num_bytes: 1501730
+    num_examples: 2410
+  download_size: 20909241
+  dataset_size: 12768171
+- config_name: nynorsk
+  features:
+  - name: idx
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: text
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: NOUN
+          1: PUNCT
+          2: ADP
+          3: NUM
+          4: SYM
+          5: SCONJ
+          6: ADJ
+          7: PART
+          8: DET
+          9: CCONJ
+          10: PROPN
+          11: PRON
+          12: X
+          13: ADV
+          14: INTJ
+          15: VERB
+          16: AUX
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-GPE_LOC
+          6: I-GPE_LOC
+          7: B-PROD
+          8: I-PROD
+          9: B-LOC
+          10: I-LOC
+          11: B-GPE_ORG
+          12: I-GPE_ORG
+          13: B-DRV
+          14: I-DRV
+          15: B-EVT
+          16: I-EVT
+          17: B-MISC
+          18: I-MISC
+  splits:
+  - name: test
+    num_bytes: 1023358
+    num_examples: 1511
+  - name: train
+    num_bytes: 10072260
+    num_examples: 14174
+  - name: validation
+    num_bytes: 1278029
+    num_examples: 1890
+  download_size: 20209253
+  dataset_size: 12373647
+- config_name: combined
+  features:
+  - name: idx
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: text
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: NOUN
+          1: PUNCT
+          2: ADP
+          3: NUM
+          4: SYM
+          5: SCONJ
+          6: ADJ
+          7: PART
+          8: DET
+          9: CCONJ
+          10: PROPN
+          11: PRON
+          12: X
+          13: ADV
+          14: INTJ
+          15: VERB
+          16: AUX
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-GPE_LOC
+          6: I-GPE_LOC
+          7: B-PROD
+          8: I-PROD
+          9: B-LOC
+          10: I-LOC
+          11: B-GPE_ORG
+          12: I-GPE_ORG
+          13: B-DRV
+          14: I-DRV
+          15: B-EVT
+          16: I-EVT
+          17: B-MISC
+          18: I-MISC
+  splits:
+  - name: test
+    num_bytes: 2257594
+    num_examples: 3450
+  - name: train
+    num_bytes: 20104393
+    num_examples: 29870
+  - name: validation
+    num_bytes: 2779723
+    num_examples: 4300
+  download_size: 41118494
+  dataset_size: 25141710
+- config_name: bokmaal-7
+  features:
+  - name: idx
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: text
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: NOUN
+          1: PUNCT
+          2: ADP
+          3: NUM
+          4: SYM
+          5: SCONJ
+          6: ADJ
+          7: PART
+          8: DET
+          9: CCONJ
+          10: PROPN
+          11: PRON
+          12: X
+          13: ADV
+          14: INTJ
+          15: VERB
+          16: AUX
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-PROD
+          6: I-PROD
+          7: B-LOC
+          8: I-LOC
+          9: B-DRV
+          10: I-DRV
+          11: B-EVT
+          12: I-EVT
+          13: B-MISC
+          14: I-MISC
+  splits:
+  - name: test
+    num_bytes: 1234272
+    num_examples: 1939
+  - name: train
+    num_bytes: 10032169
+    num_examples: 15696
+  - name: validation
+    num_bytes: 1501730
+    num_examples: 2410
+  download_size: 20909241
+  dataset_size: 12768171
+- config_name: nynorsk-7
+  features:
+  - name: idx
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: text
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: NOUN
+          1: PUNCT
+          2: ADP
+          3: NUM
+          4: SYM
+          5: SCONJ
+          6: ADJ
+          7: PART
+          8: DET
+          9: CCONJ
+          10: PROPN
+          11: PRON
+          12: X
+          13: ADV
+          14: INTJ
+          15: VERB
+          16: AUX
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-PROD
+          6: I-PROD
+          7: B-LOC
+          8: I-LOC
+          9: B-DRV
+          10: I-DRV
+          11: B-EVT
+          12: I-EVT
+          13: B-MISC
+          14: I-MISC
+  splits:
+  - name: test
+    num_bytes: 1023358
+    num_examples: 1511
+  - name: train
+    num_bytes: 10072260
+    num_examples: 14174
+  - name: validation
+    num_bytes: 1278029
+    num_examples: 1890
+  download_size: 20209253
+  dataset_size: 12373647
+- config_name: combined-7
+  features:
+  - name: idx
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: text
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: NOUN
+          1: PUNCT
+          2: ADP
+          3: NUM
+          4: SYM
+          5: SCONJ
+          6: ADJ
+          7: PART
+          8: DET
+          9: CCONJ
+          10: PROPN
+          11: PRON
+          12: X
+          13: ADV
+          14: INTJ
+          15: VERB
+          16: AUX
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-PROD
+          6: I-PROD
+          7: B-LOC
+          8: I-LOC
+          9: B-DRV
+          10: I-DRV
+          11: B-EVT
+          12: I-EVT
+          13: B-MISC
+          14: I-MISC
+  splits:
+  - name: test
+    num_bytes: 2257594
+    num_examples: 3450
+  - name: train
+    num_bytes: 20104393
+    num_examples: 29870
+  - name: validation
+    num_bytes: 2779723
+    num_examples: 4300
+  download_size: 41118494
+  dataset_size: 25141710
+- config_name: bokmaal-8
+  features:
+  - name: idx
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: text
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: NOUN
+          1: PUNCT
+          2: ADP
+          3: NUM
+          4: SYM
+          5: SCONJ
+          6: ADJ
+          7: PART
+          8: DET
+          9: CCONJ
+          10: PROPN
+          11: PRON
+          12: X
+          13: ADV
+          14: INTJ
+          15: VERB
+          16: AUX
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-PROD
+          6: I-PROD
+          7: B-LOC
+          8: I-LOC
+          9: B-GPE
+          10: I-GPE
+          11: B-DRV
+          12: I-DRV
+          13: B-EVT
+          14: I-EVT
+          15: B-MISC
+          16: I-MISC
+  splits:
+  - name: test
+    num_bytes: 1234272
+    num_examples: 1939
+  - name: train
+    num_bytes: 10032169
+    num_examples: 15696
+  - name: validation
+    num_bytes: 1501730
+    num_examples: 2410
+  download_size: 20909241
+  dataset_size: 12768171
+- config_name: nynorsk-8
+  features:
+  - name: idx
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: text
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: NOUN
+          1: PUNCT
+          2: ADP
+          3: NUM
+          4: SYM
+          5: SCONJ
+          6: ADJ
+          7: PART
+          8: DET
+          9: CCONJ
+          10: PROPN
+          11: PRON
+          12: X
+          13: ADV
+          14: INTJ
+          15: VERB
+          16: AUX
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-PROD
+          6: I-PROD
+          7: B-LOC
+          8: I-LOC
+          9: B-GPE
+          10: I-GPE
+          11: B-DRV
+          12: I-DRV
+          13: B-EVT
+          14: I-EVT
+          15: B-MISC
+          16: I-MISC
+  splits:
+  - name: test
+    num_bytes: 1023358
+    num_examples: 1511
+  - name: train
+    num_bytes: 10072260
+    num_examples: 14174
+  - name: validation
+    num_bytes: 1278029
+    num_examples: 1890
+  download_size: 20209253
+  dataset_size: 12373647
+- config_name: combined-8
+  features:
+  - name: idx
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: text
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: NOUN
+          1: PUNCT
+          2: ADP
+          3: NUM
+          4: SYM
+          5: SCONJ
+          6: ADJ
+          7: PART
+          8: DET
+          9: CCONJ
+          10: PROPN
+          11: PRON
+          12: X
+          13: ADV
+          14: INTJ
+          15: VERB
+          16: AUX
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-PROD
+          6: I-PROD
+          7: B-LOC
+          8: I-LOC
+          9: B-GPE
+          10: I-GPE
+          11: B-DRV
+          12: I-DRV
+          13: B-EVT
+          14: I-EVT
+          15: B-MISC
+          16: I-MISC
+  splits:
+  - name: test
+    num_bytes: 2257594
+    num_examples: 3450
+  - name: train
+    num_bytes: 20104393
+    num_examples: 29870
+  - name: validation
+    num_bytes: 2779723
+    num_examples: 4300
+  download_size: 41118494
+  dataset_size: 25141710
 ---
 
 # Dataset Card for NorNE: Norwegian Named Entities

@@ -1,6 +1,22 @@
 ---
 paperswithcode_id: null
 pretty_name: TinyShakespeare
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 55780
+    num_examples: 1
+  - name: train
+    num_bytes: 1003864
+    num_examples: 1
+  - name: validation
+    num_bytes: 55780
+    num_examples: 1
+  download_size: 1115394
+  dataset_size: 1115424
 ---
 
 # Dataset Card for "tiny_shakespeare"

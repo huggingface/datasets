@@ -20,6 +20,32 @@ task_ids:
 - multiple-choice-qa
 - multiple-choice-other-inference
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: passage
+    dtype: string
+  - name: query_and_answer
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'False'
+          1: 'True'
+  - name: evidences
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 9194475
+    num_examples: 4848
+  - name: train
+    num_bytes: 47922877
+    num_examples: 24029
+  - name: validation
+    num_bytes: 6529020
+    num_examples: 3214
+  download_size: 1667550
+  dataset_size: 63646372
 ---
 
 # Dataset Card for "eraser_multi_rc"

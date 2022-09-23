@@ -21,6 +21,79 @@ task_ids:
 - multi-label-classification
 paperswithcode_id: metooma
 pretty_name: '#MeTooMA dataset'
+dataset_info:
+  features:
+  - name: TweetId
+    dtype: string
+  - name: Text_Only_Informative
+    dtype:
+      class_label:
+        names:
+          0: Text Non Informative
+          1: Text Informative
+  - name: Image_Only_Informative
+    dtype:
+      class_label:
+        names:
+          0: Image Non Informative
+          1: Image Informative
+  - name: Directed_Hate
+    dtype:
+      class_label:
+        names:
+          0: Directed Hate Absent
+          1: Directed Hate Present
+  - name: Generalized_Hate
+    dtype:
+      class_label:
+        names:
+          0: Generalized Hate Absent
+          1: Generalized Hate Present
+  - name: Sarcasm
+    dtype:
+      class_label:
+        names:
+          0: Sarcasm Absent
+          1: Sarcasm Present
+  - name: Allegation
+    dtype:
+      class_label:
+        names:
+          0: Allegation Absent
+          1: Allegation Present
+  - name: Justification
+    dtype:
+      class_label:
+        names:
+          0: Justification Absent
+          1: Justification Present
+  - name: Refutation
+    dtype:
+      class_label:
+        names:
+          0: Refutation Absent
+          1: Refutation Present
+  - name: Support
+    dtype:
+      class_label:
+        names:
+          0: Support Absent
+          1: Support Present
+  - name: Oppose
+    dtype:
+      class_label:
+        names:
+          0: Oppose Absent
+          1: Oppose Present
+  splits:
+  - name: test
+    num_bytes: 205489
+    num_examples: 1995
+  - name: train
+    num_bytes: 821738
+    num_examples: 7978
+  download_size: 408889
+  dataset_size: 1027227
 ---
 
 # Dataset Card for #MeTooMA dataset

@@ -18,6 +18,30 @@ task_categories:
 task_ids:
 - multi-class-classification
 pretty_name: CodeXGlueCcDefectDetection
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: func
+    dtype: string
+  - name: target
+    dtype: bool
+  - name: project
+    dtype: string
+  - name: commit_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5646752
+    num_examples: 2732
+  - name: train
+    num_bytes: 45723487
+    num_examples: 21854
+  - name: validation
+    num_bytes: 5582545
+    num_examples: 2732
+  download_size: 61685715
+  dataset_size: 56952784
 ---
 # Dataset Card for "code_x_glue_cc_defect_detection"
 

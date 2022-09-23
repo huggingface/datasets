@@ -19,6 +19,31 @@ task_ids:
 - other-other-disambiguation
 paperswithcode_id: medal
 pretty_name: MeDAL
+dataset_info:
+  features:
+  - name: abstract_id
+    dtype: int32
+  - name: text
+    dtype: string
+  - name: location
+    sequence: int32
+  - name: label
+    sequence: string
+  splits:
+  - name: full
+    num_bytes: 15536883723
+    num_examples: 14393619
+  - name: test
+    num_bytes: 1190766821
+    num_examples: 1000000
+  - name: train
+    num_bytes: 3573399948
+    num_examples: 3000000
+  - name: validation
+    num_bytes: 1191410723
+    num_examples: 1000000
+  download_size: 21060929078
+  dataset_size: 21492461215
 ---
 # Dataset Card for the MeDAL dataset
 

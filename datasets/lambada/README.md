@@ -19,6 +19,25 @@ license:
 - cc-by-4.0
 paperswithcode_id: lambada
 pretty_name: LAMBADA
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: domain
+    dtype: string
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 1791831
+    num_examples: 5153
+  - name: train
+    num_bytes: 978174130
+    num_examples: 2662
+  - name: validation
+    num_bytes: 1703490
+    num_examples: 4869
+  download_size: 334527694
+  dataset_size: 981669451
 ---
 
 # Dataset Card for LAMBADA

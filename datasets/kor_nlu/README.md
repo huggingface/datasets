@@ -23,6 +23,86 @@ task_ids:
 - text-scoring
 paperswithcode_id: null
 pretty_name: KorNlu
+dataset_info:
+- config_name: nli
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 1047250
+    num_examples: 4954
+  - name: train
+    num_bytes: 80135707
+    num_examples: 550146
+  - name: validation
+    num_bytes: 318170
+    num_examples: 1570
+  download_size: 80030037
+  dataset_size: 81501127
+- config_name: sts
+  features:
+  - name: genre
+    dtype:
+      class_label:
+        names:
+          0: main-news
+          1: main-captions
+          2: main-forum
+          3: main-forums
+  - name: filename
+    dtype:
+      class_label:
+        names:
+          0: images
+          1: MSRpar
+          2: MSRvid
+          3: headlines
+          4: deft-forum
+          5: deft-news
+          6: track5.en-en
+          7: answers-forums
+          8: answer-answer
+  - name: year
+    dtype:
+      class_label:
+        names:
+          0: '2017'
+          1: '2016'
+          2: '2013'
+          3: 2012train
+          4: '2014'
+          5: '2015'
+          6: 2012test
+  - name: id
+    dtype: int32
+  - name: score
+    dtype: float32
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 249671
+    num_examples: 1379
+  - name: train
+    num_bytes: 1056664
+    num_examples: 5703
+  - name: validation
+    num_bytes: 305009
+    num_examples: 1471
+  download_size: 1603824
+  dataset_size: 1611344
 ---
 
 # Dataset Card for [Dataset Name]

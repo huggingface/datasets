@@ -19,6 +19,38 @@ task_ids:
 - text-classification-other-poetry-classification
 paperswithcode_id: metrec
 pretty_name: MetRec
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: saree
+          1: kamel
+          2: mutakareb
+          3: mutadarak
+          4: munsareh
+          5: madeed
+          6: mujtath
+          7: ramal
+          8: baseet
+          9: khafeef
+          10: taweel
+          11: wafer
+          12: hazaj
+          13: rajaz
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 1037577
+    num_examples: 8316
+  - name: train
+    num_bytes: 5874919
+    num_examples: 47124
+  download_size: 2267882
+  dataset_size: 6912496
 ---
 
 # Dataset Card for MetRec

@@ -19,6 +19,42 @@ task_ids:
 - natural-language-inference
 paperswithcode_id: hans
 pretty_name: Heuristic Analysis for NLI Systems
+dataset_info:
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: non-entailment
+  - name: parse_premise
+    dtype: string
+  - name: parse_hypothesis
+    dtype: string
+  - name: binary_parse_premise
+    dtype: string
+  - name: binary_parse_hypothesis
+    dtype: string
+  - name: heuristic
+    dtype: string
+  - name: subcase
+    dtype: string
+  - name: template
+    dtype: string
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 15916371
+    num_examples: 30000
+  - name: validation
+    num_bytes: 15893137
+    num_examples: 30000
+  download_size: 30947358
+  dataset_size: 31809508
 ---
 
 # Dataset Card for "hans"

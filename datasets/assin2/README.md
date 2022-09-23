@@ -21,6 +21,34 @@ task_ids:
 - semantic-similarity-scoring
 paperswithcode_id: assin2
 pretty_name: ASSIN 2
+dataset_info:
+  features:
+  - name: sentence_pair_id
+    dtype: int64
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: relatedness_score
+    dtype: float32
+  - name: entailment_judgment
+    dtype:
+      class_label:
+        names:
+          0: NONE
+          1: ENTAILMENT
+  splits:
+  - name: test
+    num_bytes: 339580
+    num_examples: 2448
+  - name: train
+    num_bytes: 864816
+    num_examples: 6500
+  - name: validation
+    num_bytes: 66895
+    num_examples: 500
+  download_size: 2113646
+  dataset_size: 1271291
 ---
 
 # Dataset Card for ASSIN 2

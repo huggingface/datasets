@@ -19,6 +19,57 @@ task_ids:
 - question-answering-other-multihop-tabular-text-qa
 paperswithcode_id: hybridqa
 pretty_name: HybridQA
+dataset_info:
+  features:
+  - name: question_id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: table_id
+    dtype: string
+  - name: answer_text
+    dtype: string
+  - name: question_postag
+    dtype: string
+  - name: table
+    struct:
+    - name: url
+      dtype: string
+    - name: title
+      dtype: string
+    - name: header
+      sequence: string
+    - name: data
+      list:
+      - name: value
+        dtype: string
+      - name: urls
+        list:
+        - name: url
+          dtype: string
+        - name: summary
+          dtype: string
+    - name: section_title
+      dtype: string
+    - name: section_text
+      dtype: string
+    - name: uid
+      dtype: string
+    - name: intro
+      dtype: string
+  config_name: hybrid_qa
+  splits:
+  - name: test
+    num_bytes: 148795919
+    num_examples: 3463
+  - name: train
+    num_bytes: 2745712769
+    num_examples: 62682
+  - name: validation
+    num_bytes: 153512016
+    num_examples: 3466
+  download_size: 217436855
+  dataset_size: 3048020704
 ---
 
 # Dataset Card for HybridQA

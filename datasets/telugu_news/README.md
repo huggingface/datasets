@@ -24,6 +24,34 @@ task_ids:
 - topic-classification
 paperswithcode_id: null
 pretty_name: TeluguNews
+dataset_info:
+  features:
+  - name: sno
+    dtype: int32
+  - name: date
+    dtype: string
+  - name: heading
+    dtype: string
+  - name: body
+    dtype: string
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: business
+          1: editorial
+          2: entertainment
+          3: nation
+          4: sports
+  splits:
+  - name: test
+    num_bytes: 17265514
+    num_examples: 4329
+  - name: train
+    num_bytes: 69400234
+    num_examples: 17312
+  download_size: 0
+  dataset_size: 86665748
 ---
 
 # Dataset Card for [Dataset Name]

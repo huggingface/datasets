@@ -19,6 +19,62 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: SmartData
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-DATE
+          2: I-DATE
+          3: B-DISASTER_TYPE
+          4: I-DISASTER_TYPE
+          5: B-DISTANCE
+          6: I-DISTANCE
+          7: B-DURATION
+          8: I-DURATION
+          9: B-LOCATION
+          10: I-LOCATION
+          11: B-LOCATION_CITY
+          12: I-LOCATION_CITY
+          13: B-LOCATION_ROUTE
+          14: I-LOCATION_ROUTE
+          15: B-LOCATION_STOP
+          16: I-LOCATION_STOP
+          17: B-LOCATION_STREET
+          18: I-LOCATION_STREET
+          19: B-NUMBER
+          20: I-NUMBER
+          21: B-ORGANIZATION
+          22: I-ORGANIZATION
+          23: B-ORGANIZATION_COMPANY
+          24: I-ORGANIZATION_COMPANY
+          25: B-ORG_POSITION
+          26: I-ORG_POSITION
+          27: B-PERSON
+          28: I-PERSON
+          29: B-TIME
+          30: I-TIME
+          31: B-TRIGGER
+          32: I-TRIGGER
+  config_name: smartdata-v3_20200302
+  splits:
+  - name: test
+    num_bytes: 266529
+    num_examples: 230
+  - name: train
+    num_bytes: 2124312
+    num_examples: 1861
+  - name: validation
+    num_bytes: 258681
+    num_examples: 228
+  download_size: 18880782
+  dataset_size: 2649522
 ---
 
 # Dataset Card for SmartData

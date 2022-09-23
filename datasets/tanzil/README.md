@@ -59,6 +59,87 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: tanzil
+dataset_info:
+- config_name: bg-en
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - bg
+        - en
+  splits:
+  - name: train
+    num_bytes: 34473016
+    num_examples: 135477
+  download_size: 9305292
+  dataset_size: 34473016
+- config_name: bn-hi
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - bn
+        - hi
+  splits:
+  - name: train
+    num_bytes: 18869103
+    num_examples: 24942
+  download_size: 3542740
+  dataset_size: 18869103
+- config_name: fa-sv
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fa
+        - sv
+  splits:
+  - name: train
+    num_bytes: 29281634
+    num_examples: 68601
+  download_size: 8550826
+  dataset_size: 29281634
+- config_name: ru-zh
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - zh
+  splits:
+  - name: train
+    num_bytes: 59736143
+    num_examples: 99779
+  download_size: 16214659
+  dataset_size: 59736143
+- config_name: en-tr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - tr
+  splits:
+  - name: train
+    num_bytes: 255891913
+    num_examples: 1189967
+  download_size: 82954694
+  dataset_size: 255891913
 ---
 
 # Dataset Card for tanzil

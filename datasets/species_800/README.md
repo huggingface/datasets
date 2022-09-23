@@ -19,6 +19,32 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: species800
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B
+          2: I
+  config_name: species_800
+  splits:
+  - name: test
+    num_bytes: 737760
+    num_examples: 1631
+  - name: train
+    num_bytes: 2579096
+    num_examples: 5734
+  - name: validation
+    num_bytes: 385756
+    num_examples: 831
+  download_size: 18204624
+  dataset_size: 3702612
 ---
 
 # Dataset Card for [Dataset Name]

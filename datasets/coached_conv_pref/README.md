@@ -24,6 +24,55 @@ task_ids:
 - parsing
 paperswithcode_id: coached-conversational-preference-elicitation
 pretty_name: Coached Conversational Preference Elicitation
+dataset_info:
+  features:
+  - name: conversationId
+    dtype: string
+  - name: utterances
+    sequence:
+    - name: index
+      dtype: int32
+    - name: speaker
+      dtype:
+        class_label:
+          names:
+            0: USER
+            1: ASSISTANT
+    - name: text
+      dtype: string
+    - name: segments
+      sequence:
+      - name: startIndex
+        dtype: int32
+      - name: endIndex
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: annotations
+        sequence:
+        - name: annotationType
+          dtype:
+            class_label:
+              names:
+                0: ENTITY_NAME
+                1: ENTITY_PREFERENCE
+                2: ENTITY_DESCRIPTION
+                3: ENTITY_OTHER
+        - name: entityType
+          dtype:
+            class_label:
+              names:
+                0: MOVIE_GENRE_OR_CATEGORY
+                1: MOVIE_OR_SERIES
+                2: PERSON
+                3: SOMETHING_ELSE
+  config_name: coached_conv_pref
+  splits:
+  - name: train
+    num_bytes: 2295579
+    num_examples: 502
+  download_size: 5191959
+  dataset_size: 2295579
 ---
 
 # Dataset Card for Coached Conversational Preference Elicitation

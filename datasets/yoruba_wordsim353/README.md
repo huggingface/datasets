@@ -21,6 +21,24 @@ task_ids:
 - semantic-similarity-scoring
 paperswithcode_id: null
 pretty_name: Wordsim-353 In Yorùbá (YorubaWordsim353)
+dataset_info:
+  features:
+  - name: english1
+    dtype: string
+  - name: english2
+    dtype: string
+  - name: yoruba1
+    dtype: string
+  - name: yoruba2
+    dtype: string
+  - name: similarity
+    dtype: float32
+  splits:
+  - name: test
+    num_bytes: 19299
+    num_examples: 353
+  download_size: 17039
+  dataset_size: 19299
 ---
 
 # Dataset Card for wordsim-353 in Yorùbá (yoruba_wordsim353)

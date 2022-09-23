@@ -32,6 +32,240 @@ configs:
 - annotated_raw
 - raw
 - title_genre_classifiction
+dataset_info:
+- config_name: title_genre_classifiction
+  features:
+  - name: BL record ID
+    dtype: string
+  - name: title
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Fiction
+          1: Non-fiction
+  splits:
+  - name: train
+    num_bytes: 187600
+    num_examples: 1736
+  download_size: 20111420
+  dataset_size: 187600
+- config_name: annotated_raw
+  features:
+  - name: BL record ID
+    dtype: string
+  - name: Name
+    dtype: string
+  - name: Dates associated with name
+    dtype: string
+  - name: Type of name
+    dtype: string
+  - name: Role
+    dtype: string
+  - name: All names
+    sequence: string
+  - name: Title
+    dtype: string
+  - name: Variant titles
+    dtype: string
+  - name: Series title
+    dtype: string
+  - name: Number within series
+    dtype: string
+  - name: Country of publication
+    sequence: string
+  - name: Place of publication
+    sequence: string
+  - name: Publisher
+    dtype: string
+  - name: Date of publication
+    dtype: string
+  - name: Edition
+    dtype: string
+  - name: Physical description
+    dtype: string
+  - name: Dewey classification
+    dtype: string
+  - name: BL shelfmark
+    dtype: string
+  - name: Topics
+    dtype: string
+  - name: Genre
+    dtype: string
+  - name: Languages
+    sequence: string
+  - name: Notes
+    dtype: string
+  - name: BL record ID for physical resource
+    dtype: string
+  - name: classification_id
+    dtype: string
+  - name: user_id
+    dtype: string
+  - name: subject_ids
+    dtype: string
+  - name: annotator_date_pub
+    dtype: string
+  - name: annotator_normalised_date_pub
+    dtype: string
+  - name: annotator_edition_statement
+    dtype: string
+  - name: annotator_FAST_genre_terms
+    dtype: string
+  - name: annotator_FAST_subject_terms
+    dtype: string
+  - name: annotator_comments
+    dtype: string
+  - name: annotator_main_language
+    dtype: string
+  - name: annotator_other_languages_summaries
+    dtype: string
+  - name: annotator_summaries_language
+    dtype: string
+  - name: annotator_translation
+    dtype: string
+  - name: annotator_original_language
+    dtype: string
+  - name: annotator_publisher
+    dtype: string
+  - name: annotator_place_pub
+    dtype: string
+  - name: annotator_country
+    dtype: string
+  - name: annotator_title
+    dtype: string
+  - name: Link to digitised book
+    dtype: string
+  - name: annotated
+    dtype: bool
+  - name: Type of resource
+    dtype:
+      class_label:
+        names:
+          0: Monograph
+          1: Serial
+  - name: created_at
+    dtype: timestamp[s]
+  - name: annotator_genre
+    dtype:
+      class_label:
+        names:
+          0: Fiction
+          1: Can't tell
+          2: Non-fiction
+          3: The book contains both Fiction and Non-Fiction
+  splits:
+  - name: train
+    num_bytes: 3583138
+    num_examples: 4398
+  download_size: 20111420
+  dataset_size: 3583138
+- config_name: raw
+  features:
+  - name: BL record ID
+    dtype: string
+  - name: Name
+    dtype: string
+  - name: Dates associated with name
+    dtype: string
+  - name: Type of name
+    dtype: string
+  - name: Role
+    dtype: string
+  - name: All names
+    sequence: string
+  - name: Title
+    dtype: string
+  - name: Variant titles
+    dtype: string
+  - name: Series title
+    dtype: string
+  - name: Number within series
+    dtype: string
+  - name: Country of publication
+    sequence: string
+  - name: Place of publication
+    sequence: string
+  - name: Publisher
+    dtype: string
+  - name: Date of publication
+    dtype: string
+  - name: Edition
+    dtype: string
+  - name: Physical description
+    dtype: string
+  - name: Dewey classification
+    dtype: string
+  - name: BL shelfmark
+    dtype: string
+  - name: Topics
+    dtype: string
+  - name: Genre
+    dtype: string
+  - name: Languages
+    sequence: string
+  - name: Notes
+    dtype: string
+  - name: BL record ID for physical resource
+    dtype: string
+  - name: classification_id
+    dtype: string
+  - name: user_id
+    dtype: string
+  - name: subject_ids
+    dtype: string
+  - name: annotator_date_pub
+    dtype: string
+  - name: annotator_normalised_date_pub
+    dtype: string
+  - name: annotator_edition_statement
+    dtype: string
+  - name: annotator_FAST_genre_terms
+    dtype: string
+  - name: annotator_FAST_subject_terms
+    dtype: string
+  - name: annotator_comments
+    dtype: string
+  - name: annotator_main_language
+    dtype: string
+  - name: annotator_other_languages_summaries
+    dtype: string
+  - name: annotator_summaries_language
+    dtype: string
+  - name: annotator_translation
+    dtype: string
+  - name: annotator_original_language
+    dtype: string
+  - name: annotator_publisher
+    dtype: string
+  - name: annotator_place_pub
+    dtype: string
+  - name: annotator_country
+    dtype: string
+  - name: annotator_title
+    dtype: string
+  - name: Link to digitised book
+    dtype: string
+  - name: annotated
+    dtype: bool
+  - name: Type of resource
+    dtype:
+      class_label:
+        names:
+          0: Monograph
+          1: Serial
+          2: Monographic component part
+  - name: created_at
+    dtype: string
+  - name: annotator_genre
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 27518816
+    num_examples: 55343
+  download_size: 20111420
+  dataset_size: 27518816
 ---
 
 # Dataset Card for blbooksgenre

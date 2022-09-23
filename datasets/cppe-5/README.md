@@ -19,6 +19,43 @@ task_ids:
 - object-detection-other-medical-personal-protective-equipment-detection
 paperswithcode_id: cppe-5
 pretty_name: CPPE - 5
+dataset_info:
+  features:
+  - name: image_id
+    dtype: int64
+  - name: image
+    dtype: image
+  - name: width
+    dtype: int32
+  - name: height
+    dtype: int32
+  - name: objects
+    sequence:
+    - name: id
+      dtype: int64
+    - name: area
+      dtype: int64
+    - name: bbox
+      sequence: float32
+      length: 4
+    - name: category
+      dtype:
+        class_label:
+          names:
+            0: Coverall
+            1: Face_Shield
+            2: Gloves
+            3: Goggles
+            4: Mask
+  splits:
+  - name: test
+    num_bytes: 4172739
+    num_examples: 29
+  - name: train
+    num_bytes: 240481281
+    num_examples: 1000
+  download_size: 238482705
+  dataset_size: 244654020
 ---
 
 # Dataset Card for CPPE - 5

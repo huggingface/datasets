@@ -19,6 +19,41 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-DATE
+          1: B-EVENT
+          2: B-LOC
+          3: B-ORG
+          4: B-PER
+          5: B-PRO
+          6: I-DATE
+          7: I-EVENT
+          8: I-LOC
+          9: I-ORG
+          10: I-PER
+          11: I-PRO
+          12: O
+  splits:
+  - name: test
+    num_bytes: 416644
+    num_examples: 1555
+  - name: train
+    num_bytes: 3257447
+    num_examples: 12217
+  - name: validation
+    num_bytes: 364223
+    num_examples: 1364
+  download_size: 1659911
+  dataset_size: 4038314
 ---
 
 # Dataset Card for Turku NER corpus

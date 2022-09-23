@@ -23,6 +23,57 @@ pretty_name: Catalonia Independence Corpus
 configs:
 - catalan
 - spanish
+dataset_info:
+- config_name: catalan
+  features:
+  - name: id_str
+    dtype: string
+  - name: TWEET
+    dtype: string
+  - name: LABEL
+    dtype:
+      class_label:
+        names:
+          0: AGAINST
+          1: FAVOR
+          2: NEUTRAL
+  splits:
+  - name: test
+    num_bytes: 469204
+    num_examples: 2010
+  - name: train
+    num_bytes: 1406250
+    num_examples: 6028
+  - name: validation
+    num_bytes: 473393
+    num_examples: 2010
+  download_size: 995415
+  dataset_size: 2348847
+- config_name: spanish
+  features:
+  - name: id_str
+    dtype: string
+  - name: TWEET
+    dtype: string
+  - name: LABEL
+    dtype:
+      class_label:
+        names:
+          0: AGAINST
+          1: FAVOR
+          2: NEUTRAL
+  splits:
+  - name: test
+    num_bytes: 501783
+    num_examples: 2016
+  - name: train
+    num_bytes: 1507388
+    num_examples: 6046
+  - name: validation
+    num_bytes: 505092
+    num_examples: 2015
+  download_size: 1070281
+  dataset_size: 2514263
 ---
 
 # Dataset Card for Catalonia Independence Corpus

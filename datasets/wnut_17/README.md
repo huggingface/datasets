@@ -19,6 +19,42 @@ task_categories:
 - token-classification
 task_ids:
 - named-entity-recognition
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-corporation
+          2: I-corporation
+          3: B-creative-work
+          4: I-creative-work
+          5: B-group
+          6: I-group
+          7: B-location
+          8: I-location
+          9: B-person
+          10: I-person
+          11: B-product
+          12: I-product
+  config_name: wnut_17
+  splits:
+  - name: test
+    num_bytes: 405536
+    num_examples: 1287
+  - name: train
+    num_bytes: 1078379
+    num_examples: 3394
+  - name: validation
+    num_bytes: 259383
+    num_examples: 1009
+  download_size: 800955
+  dataset_size: 1743298
 ---
 
 # Dataset Card for "wnut_17"

@@ -25,6 +25,153 @@ task_ids:
 - parsing
 paperswithcode_id: sgd
 pretty_name: Schema-Guided Dialogue
+dataset_info:
+- config_name: dialogues
+  features:
+  - name: dialogue_id
+    dtype: string
+  - name: services
+    sequence: string
+  - name: turns
+    sequence:
+    - name: speaker
+      dtype:
+        class_label:
+          names:
+            0: USER
+            1: SYSTEM
+    - name: utterance
+      dtype: string
+    - name: frames
+      sequence:
+      - name: service
+        dtype: string
+      - name: slots
+        sequence:
+        - name: slot
+          dtype: string
+        - name: start
+          dtype: int32
+        - name: exclusive_end
+          dtype: int32
+      - name: state
+        struct:
+        - name: active_intent
+          dtype: string
+        - name: requested_slots
+          sequence: string
+        - name: slot_values
+          sequence:
+          - name: slot_name
+            dtype: string
+          - name: slot_value_list
+            sequence: string
+      - name: actions
+        sequence:
+        - name: act
+          dtype:
+            class_label:
+              names:
+                0: AFFIRM
+                1: AFFIRM_INTENT
+                2: CONFIRM
+                3: GOODBYE
+                4: INFORM
+                5: INFORM_COUNT
+                6: INFORM_INTENT
+                7: NEGATE
+                8: NEGATE_INTENT
+                9: NOTIFY_FAILURE
+                10: NOTIFY_SUCCESS
+                11: OFFER
+                12: OFFER_INTENT
+                13: REQUEST
+                14: REQUEST_ALTS
+                15: REQ_MORE
+                16: SELECT
+                17: THANK_YOU
+        - name: slot
+          dtype: string
+        - name: canonical_values
+          sequence: string
+        - name: values
+          sequence: string
+      - name: service_results
+        sequence:
+        - name: service_results_list
+          sequence:
+          - name: service_slot_name
+            dtype: string
+          - name: service_canonical_value
+            dtype: string
+      - name: service_call
+        struct:
+        - name: method
+          dtype: string
+        - name: parameters
+          sequence:
+          - name: parameter_slot_name
+            dtype: string
+          - name: parameter_canonical_value
+            dtype: string
+  splits:
+  - name: test
+    num_bytes: 41342956
+    num_examples: 4201
+  - name: train
+    num_bytes: 158452984
+    num_examples: 16142
+  - name: validation
+    num_bytes: 23553544
+    num_examples: 2482
+  download_size: 617805368
+  dataset_size: 223349484
+- config_name: schema
+  features:
+  - name: service_name
+    dtype: string
+  - name: description
+    dtype: string
+  - name: slots
+    sequence:
+    - name: name
+      dtype: string
+    - name: description
+      dtype: string
+    - name: is_categorical
+      dtype: bool
+    - name: possible_values
+      sequence: string
+  - name: intents
+    sequence:
+    - name: name
+      dtype: string
+    - name: description
+      dtype: string
+    - name: is_transactional
+      dtype: bool
+    - name: required_slots
+      sequence: string
+    - name: optional_slots
+      sequence:
+      - name: slot_name
+        dtype: string
+      - name: slot_value
+        dtype: string
+    - name: result_slots
+      sequence: string
+  splits:
+  - name: test
+    num_bytes: 22487
+    num_examples: 21
+  - name: train
+    num_bytes: 31513
+    num_examples: 26
+  - name: validation
+    num_bytes: 18798
+    num_examples: 17
+  download_size: 617805368
+  dataset_size: 72798
 ---
 
 # Dataset Card for The Schema-Guided Dialogue Dataset

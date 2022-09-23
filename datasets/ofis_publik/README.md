@@ -19,6 +19,23 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: OfisPublik
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - br
+        - fr
+  config_name: br-fr
+  splits:
+  - name: train
+    num_bytes: 12256825
+    num_examples: 63422
+  download_size: 3856983
+  dataset_size: 12256825
 ---
 
 # Dataset Card for OfisPublik

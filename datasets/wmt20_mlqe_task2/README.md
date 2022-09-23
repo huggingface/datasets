@@ -26,6 +26,85 @@ paperswithcode_id: null
 configs:
 - en-de
 - en-zh
+dataset_info:
+- config_name: en-de
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - de
+  - name: src_tags
+    sequence:
+      class_label:
+        names:
+          0: BAD
+          1: OK
+  - name: mt_tags
+    sequence:
+      class_label:
+        names:
+          0: BAD
+          1: OK
+  - name: pe
+    dtype: string
+  - name: hter
+    dtype: float32
+  - name: alignments
+    sequence:
+      sequence: int32
+  splits:
+  - name: test
+    num_bytes: 425582
+    num_examples: 1000
+  - name: train
+    num_bytes: 6463930
+    num_examples: 7000
+  - name: validation
+    num_bytes: 927616
+    num_examples: 1000
+  download_size: 1377020
+  dataset_size: 7817128
+- config_name: en-zh
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - zh
+  - name: src_tags
+    sequence:
+      class_label:
+        names:
+          0: BAD
+          1: OK
+  - name: mt_tags
+    sequence:
+      class_label:
+        names:
+          0: BAD
+          1: OK
+  - name: pe
+    dtype: string
+  - name: hter
+    dtype: float32
+  - name: alignments
+    sequence:
+      sequence: int32
+  splits:
+  - name: test
+    num_bytes: 443740
+    num_examples: 1000
+  - name: train
+    num_bytes: 6786898
+    num_examples: 7000
+  - name: validation
+    num_bytes: 954710
+    num_examples: 1000
+  download_size: 1564953
+  dataset_size: 8185348
 ---
 
 # Dataset Card for WMT20 - MultiLingual Quality Estimation (MLQE) Task2

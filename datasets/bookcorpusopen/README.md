@@ -21,6 +21,19 @@ task_ids:
 - language-modeling
 - masked-language-modeling
 paperswithcode_id: bookcorpus
+dataset_info:
+  features:
+  - name: title
+    dtype: string
+  - name: text
+    dtype: string
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 6643435392
+    num_examples: 17868
+  download_size: 2404269430
+  dataset_size: 6643435392
 ---
 
 # Dataset Card for BookCorpusOpen

@@ -30,8 +30,28 @@ train-eval-index:
     document: text
     summary: target
   metrics:
-    - type: rouge
-      name: Rouge
+  - type: rouge
+    name: Rouge
+dataset_info:
+  features:
+  - name: document
+    dtype: string
+  - name: summary
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 26756165
+    num_examples: 11334
+  - name: train
+    num_bytes: 479206608
+    num_examples: 204045
+  - name: validation
+    num_bytes: 26292901
+    num_examples: 11332
+  download_size: 257302866
+  dataset_size: 532255674
 ---
 
 # Dataset Card for "xsum"

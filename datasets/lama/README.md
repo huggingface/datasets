@@ -1,5 +1,5 @@
 ---
-pretty_name: "LAMA: LAnguage Model Analysis"
+pretty_name: 'LAMA: LAnguage Model Analysis'
 annotations_creators:
 - crowdsourced
 - expert-generated
@@ -35,6 +35,121 @@ configs:
 - google_re
 - squad
 - trex
+dataset_info:
+- config_name: trex
+  features:
+  - name: uuid
+    dtype: string
+  - name: obj_uri
+    dtype: string
+  - name: obj_label
+    dtype: string
+  - name: sub_uri
+    dtype: string
+  - name: sub_label
+    dtype: string
+  - name: predicate_id
+    dtype: string
+  - name: sub_surface
+    dtype: string
+  - name: obj_surface
+    dtype: string
+  - name: masked_sentence
+    dtype: string
+  - name: template
+    dtype: string
+  - name: template_negated
+    dtype: string
+  - name: label
+    dtype: string
+  - name: description
+    dtype: string
+  - name: type
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 656913189
+    num_examples: 1304391
+  download_size: 74652201
+  dataset_size: 656913189
+- config_name: squad
+  features:
+  - name: id
+    dtype: string
+  - name: sub_label
+    dtype: string
+  - name: obj_label
+    dtype: string
+  - name: negated
+    dtype: string
+  - name: masked_sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 57188
+    num_examples: 305
+  download_size: 74639115
+  dataset_size: 57188
+- config_name: google_re
+  features:
+  - name: pred
+    dtype: string
+  - name: sub
+    dtype: string
+  - name: obj
+    dtype: string
+  - name: evidences
+    dtype: string
+  - name: judgments
+    dtype: string
+  - name: sub_w
+    dtype: string
+  - name: sub_label
+    dtype: string
+  - name: sub_aliases
+    dtype: string
+  - name: obj_w
+    dtype: string
+  - name: obj_label
+    dtype: string
+  - name: obj_aliases
+    dtype: string
+  - name: uuid
+    dtype: string
+  - name: masked_sentence
+    dtype: string
+  - name: template
+    dtype: string
+  - name: template_negated
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 7638657
+    num_examples: 6106
+  download_size: 74639115
+  dataset_size: 7638657
+- config_name: conceptnet
+  features:
+  - name: uuid
+    dtype: string
+  - name: sub
+    dtype: string
+  - name: obj
+    dtype: string
+  - name: pred
+    dtype: string
+  - name: obj_label
+    dtype: string
+  - name: masked_sentence
+    dtype: string
+  - name: negated
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4130000
+    num_examples: 29774
+  download_size: 74639115
+  dataset_size: 4130000
 ---
 
 # Dataset Card for LAMA: LAnguage Model Analysis - a dataset for probing and analyzing the factual and commonsense knowledge contained in pretrained language models.

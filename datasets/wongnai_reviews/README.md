@@ -19,6 +19,28 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: null
 pretty_name: WongnaiReviews
+dataset_info:
+  features:
+  - name: review_body
+    dtype: string
+  - name: star_rating
+    dtype:
+      class_label:
+        names:
+          0: '1'
+          1: '2'
+          2: '3'
+          3: '4'
+          4: '5'
+  splits:
+  - name: test
+    num_bytes: 9913686
+    num_examples: 6203
+  - name: train
+    num_bytes: 60691428
+    num_examples: 40000
+  download_size: 16556587
+  dataset_size: 70605114
 ---
 
 # Dataset Card for Wongnai_Reviews

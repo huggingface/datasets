@@ -25,6 +25,45 @@ configs:
 - objects
 - question_answers
 - region_descriptions
+dataset_info:
+  features:
+  - name: image
+    dtype: image
+  - name: image_id
+    dtype: int32
+  - name: url
+    dtype: string
+  - name: width
+    dtype: int32
+  - name: height
+    dtype: int32
+  - name: coco_id
+    dtype: int64
+  - name: flickr_id
+    dtype: int64
+  - name: regions
+    list:
+    - name: region_id
+      dtype: int32
+    - name: image_id
+      dtype: int32
+    - name: phrase
+      dtype: string
+    - name: x
+      dtype: int32
+    - name: y
+      dtype: int32
+    - name: width
+      dtype: int32
+    - name: height
+      dtype: int32
+  config_name: region_descriptions_v1.0.0
+  splits:
+  - name: train
+    num_bytes: 260873884
+    num_examples: 108077
+  download_size: 15304605295
+  dataset_size: 260873884
 ---
 
 # Dataset Card for Visual Genome

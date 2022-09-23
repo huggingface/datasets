@@ -19,6 +19,42 @@ task_categories:
 task_ids:
 - multi-class-classification
 paperswithcode_id: coarse-discourse
+dataset_info:
+  features:
+  - name: title
+    dtype: string
+  - name: is_self_post
+    dtype: bool
+  - name: subreddit
+    dtype: string
+  - name: url
+    dtype: string
+  - name: majority_link
+    dtype: string
+  - name: is_first_post
+    dtype: bool
+  - name: majority_type
+    dtype: string
+  - name: id_post
+    dtype: string
+  - name: post_depth
+    dtype: int32
+  - name: in_reply_to
+    dtype: string
+  - name: annotations
+    sequence:
+    - name: annotator
+      dtype: string
+    - name: link_to_post
+      dtype: string
+    - name: main_type
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 45443464
+    num_examples: 116357
+  download_size: 4636201
+  dataset_size: 45443464
 ---
 
 # Dataset Card for "coarse_discourse"

@@ -20,54 +20,77 @@ task_ids:
 paperswithcode_id: allocine
 pretty_name: Allociné
 train-eval-index:
-  - config: allocine
-    task: text-classification
-    task_id: multi_class_classification
-    splits:
-      train_split: train
-      eval_split: test
-    col_mapping:
-      review: text
-      label: target
-    metrics:
-      - type: accuracy
-        name: Accuracy
-      - type: f1
-        name: F1 macro
-        args:
-          average: macro
-      - type: f1
-        name: F1 micro
-        args:
-          average: micro  
-      - type: f1
-        name: F1 weighted
-        args:
-          average: weighted
-      - type: precision
-        name: Precision macro
-        args:
-          average: macro  
-      - type: precision
-        name: Precision micro
-        args:
-          average: micro  
-      - type: precision
-        name: Precision weighted
-        args:
-          average: weighted  
-      - type: recall
-        name: Recall macro
-        args:
-          average: macro  
-      - type: recall
-        name: Recall micro
-        args:
-          average: micro  
-      - type: recall
-        name: Recall weighted
-        args:
-          average: weighted
+- config: allocine
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    review: text
+    label: target
+  metrics:
+  - type: accuracy
+    name: Accuracy
+  - type: f1
+    name: F1 macro
+    args:
+      average: macro
+  - type: f1
+    name: F1 micro
+    args:
+      average: micro
+  - type: f1
+    name: F1 weighted
+    args:
+      average: weighted
+  - type: precision
+    name: Precision macro
+    args:
+      average: macro
+  - type: precision
+    name: Precision micro
+    args:
+      average: micro
+  - type: precision
+    name: Precision weighted
+    args:
+      average: weighted
+  - type: recall
+    name: Recall macro
+    args:
+      average: macro
+  - type: recall
+    name: Recall micro
+    args:
+      average: micro
+  - type: recall
+    name: Recall weighted
+    args:
+      average: weighted
+dataset_info:
+  features:
+  - name: review
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  config_name: allocine
+  splits:
+  - name: test
+    num_bytes: 11547697
+    num_examples: 20000
+  - name: train
+    num_bytes: 91330696
+    num_examples: 160000
+  - name: validation
+    num_bytes: 11546250
+    num_examples: 20000
+  download_size: 66625305
+  dataset_size: 114424643
 ---
 
 # Dataset Card for Allociné

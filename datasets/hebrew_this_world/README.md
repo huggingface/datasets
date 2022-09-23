@@ -21,6 +21,36 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: HebrewSentiment
+dataset_info:
+  features:
+  - name: issue_num
+    dtype: int64
+  - name: page_count
+    dtype: int64
+  - name: date
+    dtype: string
+  - name: date_he
+    dtype: string
+  - name: year
+    dtype: string
+  - name: href
+    dtype: string
+  - name: pdf
+    dtype: string
+  - name: coverpage
+    dtype: string
+  - name: backpage
+    dtype: string
+  - name: content
+    dtype: string
+  - name: url
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 678389435
+    num_examples: 2028
+  download_size: 678322912
+  dataset_size: 678389435
 ---
 
 # Dataset Card for HebrewSentiment

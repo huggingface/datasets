@@ -19,6 +19,27 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: null
 pretty_name: Muchocine
+dataset_info:
+  features:
+  - name: review_body
+    dtype: string
+  - name: review_summary
+    dtype: string
+  - name: star_rating
+    dtype:
+      class_label:
+        names:
+          0: '1'
+          1: '2'
+          2: '3'
+          3: '4'
+          4: '5'
+  splits:
+  - name: train
+    num_bytes: 11871095
+    num_examples: 3872
+  download_size: 55556703
+  dataset_size: 11871095
 ---
 
 # Dataset Card for Muchocine

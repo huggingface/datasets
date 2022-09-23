@@ -20,6 +20,72 @@ task_categories:
 task_ids: []
 paperswithcode_id: svhn
 pretty_name: Street View House Numbers
+dataset_info:
+- config_name: full_numbers
+  features:
+  - name: image
+    dtype: image
+  - name: digits
+    sequence:
+    - name: bbox
+      sequence: int32
+      length: 4
+    - name: label
+      dtype:
+        class_label:
+          names:
+            0: '0'
+            1: '1'
+            2: '2'
+            3: '3'
+            4: '4'
+            5: '5'
+            6: '6'
+            7: '7'
+            8: '8'
+            9: '9'
+  splits:
+  - name: extra
+    num_bytes: 1868720340
+    num_examples: 202353
+  - name: test
+    num_bytes: 271503052
+    num_examples: 13068
+  - name: train
+    num_bytes: 390404309
+    num_examples: 33402
+  download_size: 2636187279
+  dataset_size: 2530627701
+- config_name: cropped_digits
+  features:
+  - name: image
+    dtype: image
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+          2: '2'
+          3: '3'
+          4: '4'
+          5: '5'
+          6: '6'
+          7: '7'
+          8: '8'
+          9: '9'
+  splits:
+  - name: extra
+    num_bytes: 967853504
+    num_examples: 531131
+  - name: test
+    num_bytes: 44464040
+    num_examples: 26032
+  - name: train
+    num_bytes: 128364360
+    num_examples: 73257
+  download_size: 1575594780
+  dataset_size: 1140681904
 ---
 
 # Dataset Card for Street View House Numbers

@@ -21,6 +21,40 @@ task_ids:
 - extractive-qa
 - multiple-choice-qa
 paperswithcode_id: qasc
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: choices
+    sequence:
+    - name: text
+      dtype: string
+    - name: label
+      dtype: string
+  - name: answerKey
+    dtype: string
+  - name: fact1
+    dtype: string
+  - name: fact2
+    dtype: string
+  - name: combinedfact
+    dtype: string
+  - name: formatted_question
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 393683
+    num_examples: 920
+  - name: train
+    num_bytes: 4919377
+    num_examples: 8134
+  - name: validation
+    num_bytes: 562352
+    num_examples: 926
+  download_size: 1616514
+  dataset_size: 5875412
 ---
 
 # Dataset Card for "qasc"

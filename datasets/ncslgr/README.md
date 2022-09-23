@@ -19,6 +19,43 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: NCSLGR
+dataset_info:
+- config_name: entire_dataset
+  features:
+  - name: eaf
+    dtype: string
+  - name: sentences
+    sequence:
+    - name: gloss
+      dtype: string
+    - name: text
+      dtype: string
+  - name: videos
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 783504
+    num_examples: 870
+  download_size: 4113829143
+  dataset_size: 783504
+- config_name: annotations
+  features:
+  - name: eaf
+    dtype: string
+  - name: sentences
+    sequence:
+    - name: gloss
+      dtype: string
+    - name: text
+      dtype: string
+  - name: videos
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 371725
+    num_examples: 870
+  download_size: 5335358
+  dataset_size: 371725
 ---
 
 # Dataset Card for NCSLGR

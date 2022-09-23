@@ -29,6 +29,83 @@ configs:
 - autshumato-en-zu
 - autshumato-tn
 - autshumato-ts
+dataset_info:
+- config_name: autshumato-en-tn
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - tn
+  splits:
+  - name: train
+    num_bytes: 28826392
+    num_examples: 159000
+  download_size: 9458762
+  dataset_size: 28826392
+- config_name: autshumato-en-zu
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - zu
+  splits:
+  - name: train
+    num_bytes: 7188970
+    num_examples: 35489
+  download_size: 2068891
+  dataset_size: 7188970
+- config_name: autshumato-en-ts
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ts
+  splits:
+  - name: train
+    num_bytes: 50803849
+    num_examples: 450000
+  download_size: 15145915
+  dataset_size: 50803849
+- config_name: autshumato-en-ts-manual
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ts
+  splits:
+  - name: train
+    num_bytes: 10408757
+    num_examples: 92396
+  download_size: 2876924
+  dataset_size: 10408757
+- config_name: autshumato-tn
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 5132267
+    num_examples: 38206
+  download_size: 1599029
+  dataset_size: 5132267
+- config_name: autshumato-ts
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3399674
+    num_examples: 58398
+  download_size: 974488
+  dataset_size: 3399674
 ---
 
 # Dataset Card for autshumato

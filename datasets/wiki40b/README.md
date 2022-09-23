@@ -3,6 +3,27 @@ language:
 - en
 paperswithcode_id: wiki-40b
 pretty_name: Wiki-40B
+dataset_info:
+  features:
+  - name: wikidata_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: version_id
+    dtype: string
+  config_name: en
+  splits:
+  - name: test
+    num_bytes: 522219464
+    num_examples: 162274
+  - name: train
+    num_bytes: 9423623904
+    num_examples: 2926536
+  - name: validation
+    num_bytes: 527383016
+    num_examples: 163597
+  download_size: 0
+  dataset_size: 10473226384
 ---
 
 # Dataset Card for "wiki40b"

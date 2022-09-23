@@ -19,6 +19,51 @@ task_categories:
 - text-retrieval
 task_ids:
 - entity-linking-retrieval
+dataset_info:
+  features:
+  - name: title
+    dtype: string
+  - name: sents
+    sequence:
+      sequence: string
+  - name: vertexSet
+    list:
+      list:
+      - name: name
+        dtype: string
+      - name: sent_id
+        dtype: int32
+      - name: pos
+        sequence: int32
+      - name: type
+        dtype: string
+  - name: labels
+    sequence:
+    - name: head
+      dtype: int32
+    - name: tail
+      dtype: int32
+    - name: relation_id
+      dtype: string
+    - name: relation_text
+      dtype: string
+    - name: evidence
+      sequence: int32
+  splits:
+  - name: test
+    num_bytes: 2843877
+    num_examples: 1000
+  - name: train_annotated
+    num_bytes: 10413156
+    num_examples: 3053
+  - name: train_distant
+    num_bytes: 346001876
+    num_examples: 101873
+  - name: validation
+    num_bytes: 3425030
+    num_examples: 998
+  download_size: 458040413
+  dataset_size: 362683939
 ---
 
 # Dataset Card for DocRED

@@ -61,6 +61,969 @@ configs:
 - triviaqa_support_only
 - wned
 - wow
+dataset_info:
+- config_name: triviaqa_support_only
+  features:
+  - name: id
+    dtype: string
+  - name: input
+    dtype: string
+  - name: meta
+    struct:
+    - name: left_context
+      dtype: string
+    - name: mention
+      dtype: string
+    - name: right_context
+      dtype: string
+    - name: partial_evidence
+      list:
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: title
+        dtype: string
+      - name: section
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+      - name: meta
+        struct:
+        - name: evidence_span
+          list: string
+    - name: obj_surface
+      list: string
+    - name: sub_surface
+      list: string
+    - name: subj_aliases
+      list: string
+    - name: template_questions
+      list: string
+  - name: output
+    list:
+    - name: answer
+      dtype: string
+    - name: meta
+      struct:
+      - name: score
+        dtype: int32
+    - name: provenance
+      list:
+      - name: bleu_score
+        dtype: float32
+      - name: start_character
+        dtype: int32
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_character
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: meta
+        struct:
+        - name: fever_page_id
+          dtype: string
+        - name: fever_sentence_id
+          dtype: int32
+        - name: annotation_id
+          dtype: string
+        - name: yes_no_answer
+          dtype: string
+        - name: evidence_span
+          list: string
+      - name: section
+        dtype: string
+      - name: title
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+  splits:
+  - name: test
+    num_bytes: 341964
+    num_examples: 6586
+  - name: train
+    num_bytes: 72024147
+    num_examples: 61844
+  - name: validation
+    num_bytes: 6824774
+    num_examples: 5359
+  download_size: 111546348
+  dataset_size: 79190885
+- config_name: fever
+  features:
+  - name: id
+    dtype: string
+  - name: input
+    dtype: string
+  - name: meta
+    struct:
+    - name: left_context
+      dtype: string
+    - name: mention
+      dtype: string
+    - name: right_context
+      dtype: string
+    - name: partial_evidence
+      list:
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: title
+        dtype: string
+      - name: section
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+      - name: meta
+        struct:
+        - name: evidence_span
+          list: string
+    - name: obj_surface
+      list: string
+    - name: sub_surface
+      list: string
+    - name: subj_aliases
+      list: string
+    - name: template_questions
+      list: string
+  - name: output
+    list:
+    - name: answer
+      dtype: string
+    - name: meta
+      struct:
+      - name: score
+        dtype: int32
+    - name: provenance
+      list:
+      - name: bleu_score
+        dtype: float32
+      - name: start_character
+        dtype: int32
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_character
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: meta
+        struct:
+        - name: fever_page_id
+          dtype: string
+        - name: fever_sentence_id
+          dtype: int32
+        - name: annotation_id
+          dtype: string
+        - name: yes_no_answer
+          dtype: string
+        - name: evidence_span
+          list: string
+      - name: section
+        dtype: string
+      - name: title
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+  splits:
+  - name: test
+    num_bytes: 1042660
+    num_examples: 10100
+  - name: train
+    num_bytes: 23941622
+    num_examples: 104966
+  - name: validation
+    num_bytes: 3168503
+    num_examples: 10444
+  download_size: 45954548
+  dataset_size: 28152785
+- config_name: aidayago2
+  features:
+  - name: id
+    dtype: string
+  - name: input
+    dtype: string
+  - name: meta
+    struct:
+    - name: left_context
+      dtype: string
+    - name: mention
+      dtype: string
+    - name: right_context
+      dtype: string
+    - name: partial_evidence
+      list:
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: title
+        dtype: string
+      - name: section
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+      - name: meta
+        struct:
+        - name: evidence_span
+          list: string
+    - name: obj_surface
+      list: string
+    - name: sub_surface
+      list: string
+    - name: subj_aliases
+      list: string
+    - name: template_questions
+      list: string
+  - name: output
+    list:
+    - name: answer
+      dtype: string
+    - name: meta
+      struct:
+      - name: score
+        dtype: int32
+    - name: provenance
+      list:
+      - name: bleu_score
+        dtype: float32
+      - name: start_character
+        dtype: int32
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_character
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: meta
+        struct:
+        - name: fever_page_id
+          dtype: string
+        - name: fever_sentence_id
+          dtype: int32
+        - name: annotation_id
+          dtype: string
+        - name: yes_no_answer
+          dtype: string
+        - name: evidence_span
+          list: string
+      - name: section
+        dtype: string
+      - name: title
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+  splits:
+  - name: test
+    num_bytes: 14211859
+    num_examples: 4463
+  - name: train
+    num_bytes: 68944642
+    num_examples: 18395
+  - name: validation
+    num_bytes: 20743548
+    num_examples: 4784
+  download_size: 105637528
+  dataset_size: 103900049
+- config_name: wned
+  features:
+  - name: id
+    dtype: string
+  - name: input
+    dtype: string
+  - name: meta
+    struct:
+    - name: left_context
+      dtype: string
+    - name: mention
+      dtype: string
+    - name: right_context
+      dtype: string
+    - name: partial_evidence
+      list:
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: title
+        dtype: string
+      - name: section
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+      - name: meta
+        struct:
+        - name: evidence_span
+          list: string
+    - name: obj_surface
+      list: string
+    - name: sub_surface
+      list: string
+    - name: subj_aliases
+      list: string
+    - name: template_questions
+      list: string
+  - name: output
+    list:
+    - name: answer
+      dtype: string
+    - name: meta
+      struct:
+      - name: score
+        dtype: int32
+    - name: provenance
+      list:
+      - name: bleu_score
+        dtype: float32
+      - name: start_character
+        dtype: int32
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_character
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: meta
+        struct:
+        - name: fever_page_id
+          dtype: string
+        - name: fever_sentence_id
+          dtype: int32
+        - name: annotation_id
+          dtype: string
+        - name: yes_no_answer
+          dtype: string
+        - name: evidence_span
+          list: string
+      - name: section
+        dtype: string
+      - name: title
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+  splits:
+  - name: test
+    num_bytes: 13082096
+    num_examples: 3376
+  - name: validation
+    num_bytes: 12659894
+    num_examples: 3396
+  download_size: 26163472
+  dataset_size: 25741990
+- config_name: cweb
+  features:
+  - name: id
+    dtype: string
+  - name: input
+    dtype: string
+  - name: meta
+    struct:
+    - name: left_context
+      dtype: string
+    - name: mention
+      dtype: string
+    - name: right_context
+      dtype: string
+    - name: partial_evidence
+      list:
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: title
+        dtype: string
+      - name: section
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+      - name: meta
+        struct:
+        - name: evidence_span
+          list: string
+    - name: obj_surface
+      list: string
+    - name: sub_surface
+      list: string
+    - name: subj_aliases
+      list: string
+    - name: template_questions
+      list: string
+  - name: output
+    list:
+    - name: answer
+      dtype: string
+    - name: meta
+      struct:
+      - name: score
+        dtype: int32
+    - name: provenance
+      list:
+      - name: bleu_score
+        dtype: float32
+      - name: start_character
+        dtype: int32
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_character
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: meta
+        struct:
+        - name: fever_page_id
+          dtype: string
+        - name: fever_sentence_id
+          dtype: int32
+        - name: annotation_id
+          dtype: string
+        - name: yes_no_answer
+          dtype: string
+        - name: evidence_span
+          list: string
+      - name: section
+        dtype: string
+      - name: title
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+  splits:
+  - name: test
+    num_bytes: 99209665
+    num_examples: 5543
+  - name: validation
+    num_bytes: 89819628
+    num_examples: 5599
+  download_size: 190444736
+  dataset_size: 189029293
+- config_name: trex
+  features:
+  - name: id
+    dtype: string
+  - name: input
+    dtype: string
+  - name: meta
+    struct:
+    - name: left_context
+      dtype: string
+    - name: mention
+      dtype: string
+    - name: right_context
+      dtype: string
+    - name: partial_evidence
+      list:
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: title
+        dtype: string
+      - name: section
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+      - name: meta
+        struct:
+        - name: evidence_span
+          list: string
+    - name: obj_surface
+      list: string
+    - name: sub_surface
+      list: string
+    - name: subj_aliases
+      list: string
+    - name: template_questions
+      list: string
+  - name: output
+    list:
+    - name: answer
+      dtype: string
+    - name: meta
+      struct:
+      - name: score
+        dtype: int32
+    - name: provenance
+      list:
+      - name: bleu_score
+        dtype: float32
+      - name: start_character
+        dtype: int32
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_character
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: meta
+        struct:
+        - name: fever_page_id
+          dtype: string
+        - name: fever_sentence_id
+          dtype: int32
+        - name: annotation_id
+          dtype: string
+        - name: yes_no_answer
+          dtype: string
+        - name: evidence_span
+          list: string
+      - name: section
+        dtype: string
+      - name: title
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+  splits:
+  - name: test
+    num_bytes: 758742
+    num_examples: 5000
+  - name: train
+    num_bytes: 1190269126
+    num_examples: 2284168
+  - name: validation
+    num_bytes: 2573820
+    num_examples: 5000
+  download_size: 1757029516
+  dataset_size: 1193601688
+- config_name: structured_zeroshot
+  features:
+  - name: id
+    dtype: string
+  - name: input
+    dtype: string
+  - name: meta
+    struct:
+    - name: left_context
+      dtype: string
+    - name: mention
+      dtype: string
+    - name: right_context
+      dtype: string
+    - name: partial_evidence
+      list:
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: title
+        dtype: string
+      - name: section
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+      - name: meta
+        struct:
+        - name: evidence_span
+          list: string
+    - name: obj_surface
+      list: string
+    - name: sub_surface
+      list: string
+    - name: subj_aliases
+      list: string
+    - name: template_questions
+      list: string
+  - name: output
+    list:
+    - name: answer
+      dtype: string
+    - name: meta
+      struct:
+      - name: score
+        dtype: int32
+    - name: provenance
+      list:
+      - name: bleu_score
+        dtype: float32
+      - name: start_character
+        dtype: int32
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_character
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: meta
+        struct:
+        - name: fever_page_id
+          dtype: string
+        - name: fever_sentence_id
+          dtype: int32
+        - name: annotation_id
+          dtype: string
+        - name: yes_no_answer
+          dtype: string
+        - name: evidence_span
+          list: string
+      - name: section
+        dtype: string
+      - name: title
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+  splits:
+  - name: test
+    num_bytes: 1141537
+    num_examples: 4966
+  - name: train
+    num_bytes: 47171201
+    num_examples: 147909
+  - name: validation
+    num_bytes: 1612499
+    num_examples: 3724
+  download_size: 74927220
+  dataset_size: 49925237
+- config_name: nq
+  features:
+  - name: id
+    dtype: string
+  - name: input
+    dtype: string
+  - name: meta
+    struct:
+    - name: left_context
+      dtype: string
+    - name: mention
+      dtype: string
+    - name: right_context
+      dtype: string
+    - name: partial_evidence
+      list:
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: title
+        dtype: string
+      - name: section
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+      - name: meta
+        struct:
+        - name: evidence_span
+          list: string
+    - name: obj_surface
+      list: string
+    - name: sub_surface
+      list: string
+    - name: subj_aliases
+      list: string
+    - name: template_questions
+      list: string
+  - name: output
+    list:
+    - name: answer
+      dtype: string
+    - name: meta
+      struct:
+      - name: score
+        dtype: int32
+    - name: provenance
+      list:
+      - name: bleu_score
+        dtype: float32
+      - name: start_character
+        dtype: int32
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_character
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: meta
+        struct:
+        - name: fever_page_id
+          dtype: string
+        - name: fever_sentence_id
+          dtype: int32
+        - name: annotation_id
+          dtype: string
+        - name: yes_no_answer
+          dtype: string
+        - name: evidence_span
+          list: string
+      - name: section
+        dtype: string
+      - name: title
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+  splits:
+  - name: test
+    num_bytes: 334178
+    num_examples: 1444
+  - name: train
+    num_bytes: 30388752
+    num_examples: 87372
+  - name: validation
+    num_bytes: 6190493
+    num_examples: 2837
+  download_size: 60166499
+  dataset_size: 36913423
+- config_name: hotpotqa
+  features:
+  - name: id
+    dtype: string
+  - name: input
+    dtype: string
+  - name: meta
+    struct:
+    - name: left_context
+      dtype: string
+    - name: mention
+      dtype: string
+    - name: right_context
+      dtype: string
+    - name: partial_evidence
+      list:
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: title
+        dtype: string
+      - name: section
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+      - name: meta
+        struct:
+        - name: evidence_span
+          list: string
+    - name: obj_surface
+      list: string
+    - name: sub_surface
+      list: string
+    - name: subj_aliases
+      list: string
+    - name: template_questions
+      list: string
+  - name: output
+    list:
+    - name: answer
+      dtype: string
+    - name: meta
+      struct:
+      - name: score
+        dtype: int32
+    - name: provenance
+      list:
+      - name: bleu_score
+        dtype: float32
+      - name: start_character
+        dtype: int32
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_character
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: meta
+        struct:
+        - name: fever_page_id
+          dtype: string
+        - name: fever_sentence_id
+          dtype: int32
+        - name: annotation_id
+          dtype: string
+        - name: yes_no_answer
+          dtype: string
+        - name: evidence_span
+          list: string
+      - name: section
+        dtype: string
+      - name: title
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+  splits:
+  - name: test
+    num_bytes: 888476
+    num_examples: 5569
+  - name: train
+    num_bytes: 33598679
+    num_examples: 88869
+  - name: validation
+    num_bytes: 2371638
+    num_examples: 5600
+  download_size: 57516638
+  dataset_size: 36858793
+- config_name: eli5
+  features:
+  - name: id
+    dtype: string
+  - name: input
+    dtype: string
+  - name: meta
+    struct:
+    - name: left_context
+      dtype: string
+    - name: mention
+      dtype: string
+    - name: right_context
+      dtype: string
+    - name: partial_evidence
+      list:
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: title
+        dtype: string
+      - name: section
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+      - name: meta
+        struct:
+        - name: evidence_span
+          list: string
+    - name: obj_surface
+      list: string
+    - name: sub_surface
+      list: string
+    - name: subj_aliases
+      list: string
+    - name: template_questions
+      list: string
+  - name: output
+    list:
+    - name: answer
+      dtype: string
+    - name: meta
+      struct:
+      - name: score
+        dtype: int32
+    - name: provenance
+      list:
+      - name: bleu_score
+        dtype: float32
+      - name: start_character
+        dtype: int32
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_character
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: meta
+        struct:
+        - name: fever_page_id
+          dtype: string
+        - name: fever_sentence_id
+          dtype: int32
+        - name: annotation_id
+          dtype: string
+        - name: yes_no_answer
+          dtype: string
+        - name: evidence_span
+          list: string
+      - name: section
+        dtype: string
+      - name: title
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+  splits:
+  - name: test
+    num_bytes: 108108
+    num_examples: 600
+  - name: train
+    num_bytes: 525586490
+    num_examples: 272634
+  - name: validation
+    num_bytes: 13860153
+    num_examples: 1507
+  download_size: 562498660
+  dataset_size: 539554751
+- config_name: wow
+  features:
+  - name: id
+    dtype: string
+  - name: input
+    dtype: string
+  - name: meta
+    struct:
+    - name: left_context
+      dtype: string
+    - name: mention
+      dtype: string
+    - name: right_context
+      dtype: string
+    - name: partial_evidence
+      list:
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: title
+        dtype: string
+      - name: section
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+      - name: meta
+        struct:
+        - name: evidence_span
+          list: string
+    - name: obj_surface
+      list: string
+    - name: sub_surface
+      list: string
+    - name: subj_aliases
+      list: string
+    - name: template_questions
+      list: string
+  - name: output
+    list:
+    - name: answer
+      dtype: string
+    - name: meta
+      struct:
+      - name: score
+        dtype: int32
+    - name: provenance
+      list:
+      - name: bleu_score
+        dtype: float32
+      - name: start_character
+        dtype: int32
+      - name: start_paragraph_id
+        dtype: int32
+      - name: end_character
+        dtype: int32
+      - name: end_paragraph_id
+        dtype: int32
+      - name: meta
+        struct:
+        - name: fever_page_id
+          dtype: string
+        - name: fever_sentence_id
+          dtype: int32
+        - name: annotation_id
+          dtype: string
+        - name: yes_no_answer
+          dtype: string
+        - name: evidence_span
+          list: string
+      - name: section
+        dtype: string
+      - name: title
+        dtype: string
+      - name: wikipedia_id
+        dtype: string
+  splits:
+  - name: test
+    num_bytes: 1340818
+    num_examples: 2944
+  - name: train
+    num_bytes: 41873570
+    num_examples: 63734
+  - name: validation
+    num_bytes: 2022128
+    num_examples: 3054
+  download_size: 52647339
+  dataset_size: 45236516
 ---
 
 # Dataset Card for KILT

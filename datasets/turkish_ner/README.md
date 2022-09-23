@@ -19,6 +19,60 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: TurkishNer
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: domain
+    dtype:
+      class_label:
+        names:
+          0: architecture
+          1: basketball
+          2: book
+          3: business
+          4: education
+          5: fictional_universe
+          6: film
+          7: food
+          8: geography
+          9: government
+          10: law
+          11: location
+          12: military
+          13: music
+          14: opera
+          15: organization
+          16: people
+          17: religion
+          18: royalty
+          19: soccer
+          20: sports
+          21: theater
+          22: time
+          23: travel
+          24: tv
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PERSON
+          2: I-PERSON
+          3: B-ORGANIZATION
+          4: I-ORGANIZATION
+          5: B-LOCATION
+          6: I-LOCATION
+          7: B-MISC
+          8: I-MISC
+  splits:
+  - name: train
+    num_bytes: 177658278
+    num_examples: 532629
+  download_size: 204393976
+  dataset_size: 177658278
 ---
 
 

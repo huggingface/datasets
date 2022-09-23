@@ -19,6 +19,28 @@ task_ids:
 - language-modeling
 paperswithcode_id: pg-19
 pretty_name: PG-19
+dataset_info:
+  features:
+  - name: short_book_title
+    dtype: string
+  - name: publication_date
+    dtype: int32
+  - name: url
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 40482864
+    num_examples: 100
+  - name: train
+    num_bytes: 11453688524
+    num_examples: 28602
+  - name: validation
+    num_bytes: 17402307
+    num_examples: 50
+  download_size: 11740484131
+  dataset_size: 11511573695
 ---
 
 # Dataset Card for "pg19"

@@ -18,6 +18,31 @@ task_categories:
 - image-classification
 task_ids:
 - multi-class-image-classification
+dataset_info:
+  features:
+  - name: image_file_path
+    dtype: string
+  - name: image
+    dtype: image
+  - name: labels
+    dtype:
+      class_label:
+        names:
+          0: angular_leaf_spot
+          1: bean_rust
+          2: healthy
+  splits:
+  - name: test
+    num_bytes: 46584
+    num_examples: 128
+  - name: train
+    num_bytes: 382110
+    num_examples: 1034
+  - name: validation
+    num_bytes: 49711
+    num_examples: 133
+  download_size: 180024906
+  dataset_size: 478405
 ---
 
 # Dataset Card for Beans

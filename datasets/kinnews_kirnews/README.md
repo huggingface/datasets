@@ -27,6 +27,151 @@ configs:
 - kinnews_raw
 - kirnews_cleaned
 - kirnews_raw
+dataset_info:
+- config_name: kinnews_raw
+  features:
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: politics
+          1: sport
+          2: economy
+          3: health
+          4: entertainment
+          5: history
+          6: technology
+          7: tourism
+          8: culture
+          9: fashion
+          10: religion
+          11: environment
+          12: education
+          13: relationship
+  - name: kin_label
+    dtype: string
+  - name: en_label
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: content
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 11971938
+    num_examples: 4254
+  - name: train
+    num_bytes: 38316546
+    num_examples: 17014
+  download_size: 27377755
+  dataset_size: 50288484
+- config_name: kinnews_cleaned
+  features:
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: politics
+          1: sport
+          2: economy
+          3: health
+          4: entertainment
+          5: history
+          6: technology
+          7: tourism
+          8: culture
+          9: fashion
+          10: religion
+          11: environment
+          12: education
+          13: relationship
+  - name: title
+    dtype: string
+  - name: content
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 8217453
+    num_examples: 4254
+  - name: train
+    num_bytes: 32780382
+    num_examples: 17014
+  download_size: 27377755
+  dataset_size: 40997835
+- config_name: kirnews_raw
+  features:
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: politics
+          1: sport
+          2: economy
+          3: health
+          4: entertainment
+          5: history
+          6: technology
+          7: tourism
+          8: culture
+          9: fashion
+          10: religion
+          11: environment
+          12: education
+          13: relationship
+  - name: kir_label
+    dtype: string
+  - name: en_label
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: content
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2499189
+    num_examples: 923
+  - name: train
+    num_bytes: 7343223
+    num_examples: 3689
+  download_size: 5186111
+  dataset_size: 9842412
+- config_name: kirnews_cleaned
+  features:
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: politics
+          1: sport
+          2: economy
+          3: health
+          4: entertainment
+          5: history
+          6: technology
+          7: tourism
+          8: culture
+          9: fashion
+          10: religion
+          11: environment
+          12: education
+          13: relationship
+  - name: title
+    dtype: string
+  - name: content
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1570745
+    num_examples: 923
+  - name: train
+    num_bytes: 6629767
+    num_examples: 3689
+  download_size: 5186111
+  dataset_size: 8200512
 ---
 # Dataset Card for kinnews_kirnews
 

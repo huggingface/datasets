@@ -18,7 +18,31 @@ task_categories:
 task_ids:
 - multi-class-classification
 paperswithcode_id: null
-pretty_name: "Swahili : News Classification Dataset"
+pretty_name: 'Swahili : News Classification Dataset'
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: uchumi
+          1: kitaifa
+          2: michezo
+          3: kimataifa
+          4: burudani
+          5: afya
+  config_name: swahili_news
+  splits:
+  - name: test
+    num_bytes: 16093496
+    num_examples: 7338
+  - name: train
+    num_bytes: 49517855
+    num_examples: 22207
+  download_size: 65618408
+  dataset_size: 65611351
 ---
 
 # Dataset Card for Swahili : News Classification Dataset

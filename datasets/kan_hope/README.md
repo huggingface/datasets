@@ -23,6 +23,25 @@ task_categories:
 task_ids:
 - multi-label-classification
 - text-classification-other-Hope Speech Detection
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Not-Hope
+          1: Hope
+  splits:
+  - name: test
+    num_bytes: 65722
+    num_examples: 618
+  - name: train
+    num_bytes: 494898
+    num_examples: 4940
+  download_size: 568972
+  dataset_size: 560620
 ---
 
 # Dataset Card for KanHope

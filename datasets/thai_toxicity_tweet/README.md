@@ -19,6 +19,29 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: null
 pretty_name: ThaiToxicityTweet
+dataset_info:
+  features:
+  - name: tweet_id
+    dtype: string
+  - name: tweet_text
+    dtype: string
+  - name: toxic_votes
+    dtype: int32
+  - name: nontoxic_votes
+    dtype: int32
+  - name: is_toxic
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  config_name: thai_toxicity_tweet
+  splits:
+  - name: train
+    num_bytes: 637387
+    num_examples: 3300
+  download_size: 194740
+  dataset_size: 637387
 ---
 
 # Dataset Card for `thai_toxicity_tweet`

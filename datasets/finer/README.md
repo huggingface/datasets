@@ -19,6 +19,62 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: finer
 pretty_name: Finnish News Corpus for Named Entity Recognition
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-DATE
+          2: B-EVENT
+          3: B-LOC
+          4: B-ORG
+          5: B-PER
+          6: B-PRO
+          7: I-DATE
+          8: I-EVENT
+          9: I-LOC
+          10: I-ORG
+          11: I-PER
+          12: I-PRO
+  - name: nested_ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-DATE
+          2: B-EVENT
+          3: B-LOC
+          4: B-ORG
+          5: B-PER
+          6: B-PRO
+          7: I-DATE
+          8: I-EVENT
+          9: I-LOC
+          10: I-ORG
+          11: I-PER
+          12: I-PRO
+  config_name: finer
+  splits:
+  - name: test
+    num_bytes: 1327354
+    num_examples: 3512
+  - name: test_wikipedia
+    num_bytes: 1404397
+    num_examples: 3360
+  - name: train
+    num_bytes: 5159550
+    num_examples: 13497
+  - name: validation
+    num_bytes: 387494
+    num_examples: 986
+  download_size: 3733127
+  dataset_size: 8278795
 ---
 
 # Dataset Card for [Dataset Name]

@@ -23,6 +23,33 @@ task_ids:
 - slot-filling
 paperswithcode_id: null
 pretty_name: YouTube Caption Corrections
+dataset_info:
+  features:
+  - name: video_ids
+    dtype: string
+  - name: default_seq
+    sequence: string
+  - name: correction_seq
+    sequence: string
+  - name: diff_type
+    sequence:
+      class_label:
+        names:
+          0: NO_DIFF
+          1: CASE_DIFF
+          2: PUNCUATION_DIFF
+          3: CASE_AND_PUNCUATION_DIFF
+          4: STEM_BASED_DIFF
+          5: DIGIT_DIFF
+          6: INTRAWORD_PUNC_DIFF
+          7: UNKNOWN_TYPE_DIFF
+          8: RESERVED_DIFF
+  splits:
+  - name: train
+    num_bytes: 355978939
+    num_examples: 10769
+  download_size: 222479455
+  dataset_size: 355978939
 ---
 
 # Dataset Card for YouTube Caption Corrections

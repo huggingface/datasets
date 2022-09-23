@@ -34,6 +34,167 @@ configs:
 - SaudiYoum
 - Techreen
 - Youm7
+dataset_info:
+- config_name: Alittihad
+  features:
+  - name: url
+    dtype: string
+  - name: head_line
+    dtype: string
+  - name: date
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1601790302
+    num_examples: 349342
+  download_size: 348259999
+  dataset_size: 1601790302
+- config_name: Almasryalyoum
+  features:
+  - name: url
+    dtype: string
+  - name: head_line
+    dtype: string
+  - name: date
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1056197870
+    num_examples: 291723
+  download_size: 242604438
+  dataset_size: 1056197870
+- config_name: Almustaqbal
+  features:
+  - name: url
+    dtype: string
+  - name: head_line
+    dtype: string
+  - name: date
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1545659336
+    num_examples: 446873
+  download_size: 350826797
+  dataset_size: 1545659336
+- config_name: Alqabas
+  features:
+  - name: url
+    dtype: string
+  - name: head_line
+    dtype: string
+  - name: date
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2631729746
+    num_examples: 817274
+  download_size: 595274646
+  dataset_size: 2631729746
+- config_name: Echoroukonline
+  features:
+  - name: url
+    dtype: string
+  - name: head_line
+    dtype: string
+  - name: date
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 464386206
+    num_examples: 139732
+  download_size: 108184378
+  dataset_size: 464386206
+- config_name: Ryiadh
+  features:
+  - name: url
+    dtype: string
+  - name: head_line
+    dtype: string
+  - name: date
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3101294859
+    num_examples: 858188
+  download_size: 691264971
+  dataset_size: 3101294859
+- config_name: Sabanews
+  features:
+  - name: url
+    dtype: string
+  - name: head_line
+    dtype: string
+  - name: date
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 198019614
+    num_examples: 92149
+  download_size: 38214558
+  dataset_size: 198019614
+- config_name: SaudiYoum
+  features:
+  - name: url
+    dtype: string
+  - name: head_line
+    dtype: string
+  - name: date
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2723291416
+    num_examples: 888068
+  download_size: 605537923
+  dataset_size: 2723291416
+- config_name: Techreen
+  features:
+  - name: url
+    dtype: string
+  - name: head_line
+    dtype: string
+  - name: date
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1103458209
+    num_examples: 314597
+  download_size: 252976781
+  dataset_size: 1103458209
+- config_name: Youm7
+  features:
+  - name: url
+    dtype: string
+  - name: head_line
+    dtype: string
+  - name: date
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3004689464
+    num_examples: 1172136
+  download_size: 617708074
+  dataset_size: 3004689464
 ---
 
 # Dataset Card for Arabic Billion Words Corpus

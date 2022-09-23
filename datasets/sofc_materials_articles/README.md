@@ -24,6 +24,195 @@ task_ids:
 - topic-classification
 paperswithcode_id: null
 pretty_name: SofcMaterialsArticles
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: sentence_offsets
+    sequence:
+    - name: begin_char_offset
+      dtype: int64
+    - name: end_char_offset
+      dtype: int64
+  - name: sentences
+    sequence: string
+  - name: sentence_labels
+    sequence: int64
+  - name: token_offsets
+    sequence:
+    - name: offsets
+      sequence:
+      - name: begin_char_offset
+        dtype: int64
+      - name: end_char_offset
+        dtype: int64
+  - name: tokens
+    sequence:
+      sequence: string
+  - name: entity_labels
+    sequence:
+      sequence:
+        class_label:
+          names:
+            0: B-DEVICE
+            1: B-EXPERIMENT
+            2: B-MATERIAL
+            3: B-VALUE
+            4: I-DEVICE
+            5: I-EXPERIMENT
+            6: I-MATERIAL
+            7: I-VALUE
+            8: O
+  - name: slot_labels
+    sequence:
+      sequence:
+        class_label:
+          names:
+            0: B-anode_material
+            1: B-cathode_material
+            2: B-conductivity
+            3: B-current_density
+            4: B-degradation_rate
+            5: B-device
+            6: B-electrolyte_material
+            7: B-experiment_evoking_word
+            8: B-fuel_used
+            9: B-interlayer_material
+            10: B-interconnect_material
+            11: B-open_circuit_voltage
+            12: B-power_density
+            13: B-resistance
+            14: B-support_material
+            15: B-thickness
+            16: B-time_of_operation
+            17: B-voltage
+            18: B-working_temperature
+            19: I-anode_material
+            20: I-cathode_material
+            21: I-conductivity
+            22: I-current_density
+            23: I-degradation_rate
+            24: I-device
+            25: I-electrolyte_material
+            26: I-experiment_evoking_word
+            27: I-fuel_used
+            28: I-interlayer_material
+            29: I-interconnect_material
+            30: I-open_circuit_voltage
+            31: I-power_density
+            32: I-resistance
+            33: I-support_material
+            34: I-thickness
+            35: I-time_of_operation
+            36: I-voltage
+            37: I-working_temperature
+            38: O
+  - name: links
+    sequence:
+    - name: relation_label
+      dtype:
+        class_label:
+          names:
+            0: coreference
+            1: experiment_variation
+            2: same_experiment
+            3: thickness
+    - name: start_span_id
+      dtype: int64
+    - name: end_span_id
+      dtype: int64
+  - name: slots
+    sequence:
+    - name: frame_participant_label
+      dtype:
+        class_label:
+          names:
+            0: anode_material
+            1: cathode_material
+            2: current_density
+            3: degradation_rate
+            4: device
+            5: electrolyte_material
+            6: fuel_used
+            7: interlayer_material
+            8: open_circuit_voltage
+            9: power_density
+            10: resistance
+            11: support_material
+            12: time_of_operation
+            13: voltage
+            14: working_temperature
+    - name: slot_id
+      dtype: int64
+  - name: spans
+    sequence:
+    - name: span_id
+      dtype: int64
+    - name: entity_label
+      dtype:
+        class_label:
+          names:
+            0: ''
+            1: DEVICE
+            2: MATERIAL
+            3: VALUE
+    - name: sentence_id
+      dtype: int64
+    - name: experiment_mention_type
+      dtype:
+        class_label:
+          names:
+            0: ''
+            1: current_exp
+            2: future_work
+            3: general_info
+            4: previous_work
+    - name: begin_char_offset
+      dtype: int64
+    - name: end_char_offset
+      dtype: int64
+  - name: experiments
+    sequence:
+    - name: experiment_id
+      dtype: int64
+    - name: span_id
+      dtype: int64
+    - name: slots
+      sequence:
+      - name: frame_participant_label
+        dtype:
+          class_label:
+            names:
+              0: anode_material
+              1: cathode_material
+              2: current_density
+              3: degradation_rate
+              4: conductivity
+              5: device
+              6: electrolyte_material
+              7: fuel_used
+              8: interlayer_material
+              9: open_circuit_voltage
+              10: power_density
+              11: resistance
+              12: support_material
+              13: time_of_operation
+              14: voltage
+              15: working_temperature
+      - name: slot_id
+        dtype: int64
+  splits:
+  - name: test
+    num_bytes: 2650700
+    num_examples: 11
+  - name: train
+    num_bytes: 7402373
+    num_examples: 26
+  - name: validation
+    num_bytes: 1993857
+    num_examples: 8
+  download_size: 3733137
+  dataset_size: 12046930
 ---
 
 

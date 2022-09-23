@@ -3,6 +3,38 @@ language:
 - en
 paperswithcode_id: e-snli
 pretty_name: e-SNLI
+dataset_info:
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: explanation_1
+    dtype: string
+  - name: explanation_2
+    dtype: string
+  - name: explanation_3
+    dtype: string
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 3387169
+    num_examples: 9824
+  - name: train
+    num_bytes: 108024142
+    num_examples: 549367
+  - name: validation
+    num_bytes: 3423725
+    num_examples: 9842
+  download_size: 204516010
+  dataset_size: 114835036
 ---
 
 # Dataset Card for "esnli"

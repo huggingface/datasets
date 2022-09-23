@@ -19,6 +19,26 @@ task_ids:
 - multi-label-classification
 paperswithcode_id: null
 pretty_name: Fake News English
+dataset_info:
+  features:
+  - name: article_number
+    dtype: int32
+  - name: url_of_article
+    dtype: string
+  - name: fake_or_satire
+    dtype:
+      class_label:
+        names:
+          0: Satire
+          1: Fake
+  - name: url_of_rebutting_article
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 78078
+    num_examples: 492
+  download_size: 3002233
+  dataset_size: 78078
 ---
 
 # Dataset Card for Fake News English

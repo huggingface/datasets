@@ -19,6 +19,27 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: tsac
 pretty_name: Tunisian Sentiment Analysis Corpus
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: target
+    dtype:
+      class_label:
+        names:
+          0: '1'
+          1: '-1'
+  splits:
+  - name: test
+    num_bytes: 268504
+    num_examples: 3400
+  - name: train
+    num_bytes: 1020146
+    num_examples: 13669
+  download_size: 963015
+  dataset_size: 1288650
 ---
 
 # Dataset Card for Tunisian Sentiment Analysis Corpus

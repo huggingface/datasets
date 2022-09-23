@@ -20,6 +20,66 @@ task_ids:
 - dialogue-modeling
 paperswithcode_id: mutualfriends
 pretty_name: MutualFriends
+dataset_info:
+  features:
+  - name: uuid
+    dtype: string
+  - name: scenario_uuid
+    dtype: string
+  - name: scenario_alphas
+    sequence: float32
+  - name: scenario_attributes
+    sequence:
+    - name: unique
+      dtype: bool_
+    - name: value_type
+      dtype: string
+    - name: name
+      dtype: string
+  - name: scenario_kbs
+    sequence:
+      sequence:
+        sequence:
+          sequence: string
+  - name: agents
+    struct:
+    - name: '1'
+      dtype: string
+    - name: '0'
+      dtype: string
+  - name: outcome_reward
+    dtype: int32
+  - name: events
+    struct:
+    - name: actions
+      sequence: string
+    - name: start_times
+      sequence: float32
+    - name: data_messages
+      sequence: string
+    - name: data_selects
+      sequence:
+      - name: attributes
+        sequence: string
+      - name: values
+        sequence: string
+    - name: agents
+      sequence: int32
+    - name: times
+      sequence: float32
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 3327158
+    num_examples: 1107
+  - name: train
+    num_bytes: 26979472
+    num_examples: 8967
+  - name: validation
+    num_bytes: 3267881
+    num_examples: 1083
+  download_size: 41274578
+  dataset_size: 33574511
 ---
 
 # Dataset Card for MutualFriends

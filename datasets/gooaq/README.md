@@ -19,6 +19,38 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: gooaq
 pretty_name: 'GooAQ: Open Question Answering with Diverse Answer Types'
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: short_answer
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: answer_type
+    dtype:
+      class_label:
+        names:
+          0: feat_snip
+          1: collection
+          2: knowledge
+          3: unit_conv
+          4: time_conv
+          5: curr_conv
+  splits:
+  - name: test
+    num_bytes: 445810
+    num_examples: 2500
+  - name: train
+    num_bytes: 974320061
+    num_examples: 3112679
+  - name: validation
+    num_bytes: 444553
+    num_examples: 2500
+  download_size: 2111358901
+  dataset_size: 975210424
 ---
 
 # Dataset Card for GooAQ

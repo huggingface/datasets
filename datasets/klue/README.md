@@ -40,6 +40,278 @@ configs:
 - sts
 - wos
 - ynat
+dataset_info:
+- config_name: ynat
+  features:
+  - name: guid
+    dtype: string
+  - name: title
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: IT과학
+          1: 경제
+          2: 사회
+          3: 생활문화
+          4: 세계
+          5: 스포츠
+          6: 정치
+  - name: url
+    dtype: string
+  - name: date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 10109664
+    num_examples: 45678
+  - name: validation
+    num_bytes: 2039197
+    num_examples: 9107
+  download_size: 4932555
+  dataset_size: 12148861
+- config_name: sts
+  features:
+  - name: guid
+    dtype: string
+  - name: source
+    dtype: string
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: labels
+    struct:
+    - name: label
+      dtype: float64
+    - name: real-label
+      dtype: float64
+    - name: binary-label
+      dtype:
+        class_label:
+          names:
+            0: negative
+            1: positive
+  splits:
+  - name: train
+    num_bytes: 2832921
+    num_examples: 11668
+  - name: validation
+    num_bytes: 122657
+    num_examples: 519
+  download_size: 1349875
+  dataset_size: 2955578
+- config_name: nli
+  features:
+  - name: guid
+    dtype: string
+  - name: source
+    dtype: string
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: train
+    num_bytes: 5719930
+    num_examples: 24998
+  - name: validation
+    num_bytes: 673276
+    num_examples: 3000
+  download_size: 1257374
+  dataset_size: 6393206
+- config_name: ner
+  features:
+  - name: sentence
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-DT
+          1: I-DT
+          2: B-LC
+          3: I-LC
+          4: B-OG
+          5: I-OG
+          6: B-PS
+          7: I-PS
+          8: B-QT
+          9: I-QT
+          10: B-TI
+          11: I-TI
+          12: O
+  splits:
+  - name: train
+    num_bytes: 19891953
+    num_examples: 21008
+  - name: validation
+    num_bytes: 4937579
+    num_examples: 5000
+  download_size: 4308644
+  dataset_size: 24829532
+- config_name: re
+  features:
+  - name: guid
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: subject_entity
+    struct:
+    - name: word
+      dtype: string
+    - name: start_idx
+      dtype: int32
+    - name: end_idx
+      dtype: int32
+    - name: type
+      dtype: string
+  - name: object_entity
+    struct:
+    - name: word
+      dtype: string
+    - name: start_idx
+      dtype: int32
+    - name: end_idx
+      dtype: int32
+    - name: type
+      dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: no_relation
+          1: org:dissolved
+          2: org:founded
+          3: org:place_of_headquarters
+          4: org:alternate_names
+          5: org:member_of
+          6: org:members
+          7: org:political/religious_affiliation
+          8: org:product
+          9: org:founded_by
+          10: org:top_members/employees
+          11: org:number_of_employees/members
+          12: per:date_of_birth
+          13: per:date_of_death
+          14: per:place_of_birth
+          15: per:place_of_death
+          16: per:place_of_residence
+          17: per:origin
+          18: per:employee_of
+          19: per:schools_attended
+          20: per:alternate_names
+          21: per:parents
+          22: per:children
+          23: per:siblings
+          24: per:spouse
+          25: per:other_family
+          26: per:colleagues
+          27: per:product
+          28: per:religion
+          29: per:title
+  - name: source
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 11145538
+    num_examples: 32470
+  - name: validation
+    num_bytes: 2559300
+    num_examples: 7765
+  download_size: 5669259
+  dataset_size: 13704838
+- config_name: dp
+  features:
+  - name: sentence
+    dtype: string
+  - name: index
+    list: int32
+  - name: word_form
+    list: string
+  - name: lemma
+    list: string
+  - name: pos
+    list: string
+  - name: head
+    list: int32
+  - name: deprel
+    list: string
+  splits:
+  - name: train
+    num_bytes: 7900009
+    num_examples: 10000
+  - name: validation
+    num_bytes: 1557506
+    num_examples: 2000
+  download_size: 2033461
+  dataset_size: 9457515
+- config_name: mrc
+  features:
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: news_category
+    dtype: string
+  - name: source
+    dtype: string
+  - name: guid
+    dtype: string
+  - name: is_impossible
+    dtype: bool
+  - name: question_type
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: answer_start
+      dtype: int32
+    - name: text
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 46505665
+    num_examples: 17554
+  - name: validation
+    num_bytes: 15583053
+    num_examples: 5841
+  download_size: 19218422
+  dataset_size: 62088718
+- config_name: wos
+  features:
+  - name: guid
+    dtype: string
+  - name: domains
+    list: string
+  - name: dialogue
+    list:
+    - name: role
+      dtype: string
+    - name: text
+      dtype: string
+    - name: state
+      list: string
+  splits:
+  - name: train
+    num_bytes: 26677002
+    num_examples: 8000
+  - name: validation
+    num_bytes: 3488943
+    num_examples: 1000
+  download_size: 4785657
+  dataset_size: 30165945
 ---
 
 # Dataset Card for KLUE

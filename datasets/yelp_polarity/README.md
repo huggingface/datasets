@@ -14,36 +14,56 @@ train-eval-index:
     text: text
     label: target
   metrics:
-    - type: accuracy
-      name: Accuracy
-    - type: f1
-      name: F1 binary
-      args:
-        average: binary
-    - type: precision
-      name: Precision macro
-      args:
-        average: macro
-    - type: precision
-      name: Precision micro
-      args:
-        average: micro
-    - type: precision
-      name: Precision weighted
-      args:
-        average: weighted
-    - type: recall
-      name: Recall macro
-      args:
-        average: macro
-    - type: recall
-      name: Recall micro
-      args:
-        average: micro
-    - type: recall
-      name: Recall weighted
-      args:
-        average: weighted
+  - type: accuracy
+    name: Accuracy
+  - type: f1
+    name: F1 binary
+    args:
+      average: binary
+  - type: precision
+    name: Precision macro
+    args:
+      average: macro
+  - type: precision
+    name: Precision micro
+    args:
+      average: micro
+  - type: precision
+    name: Precision weighted
+    args:
+      average: weighted
+  - type: recall
+    name: Recall macro
+    args:
+      average: macro
+  - type: recall
+    name: Recall micro
+    args:
+      average: micro
+  - type: recall
+    name: Recall weighted
+    args:
+      average: weighted
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '1'
+          1: '2'
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 27962097
+    num_examples: 38000
+  - name: train
+    num_bytes: 413558837
+    num_examples: 560000
+  download_size: 166373201
+  dataset_size: 441520934
 ---
 
 # Dataset Card for "yelp_polarity"

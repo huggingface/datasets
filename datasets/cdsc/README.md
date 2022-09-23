@@ -19,6 +19,56 @@ task_ids:
 - other-other-sentences entailment and relatedness
 paperswithcode_id: polish-cdscorpus
 pretty_name: Polish CDSCorpus
+dataset_info:
+- config_name: cdsc-e
+  features:
+  - name: pair_ID
+    dtype: int32
+  - name: sentence_A
+    dtype: string
+  - name: sentence_B
+    dtype: string
+  - name: entailment_judgment
+    dtype:
+      class_label:
+        names:
+          0: NEUTRAL
+          1: CONTRADICTION
+          2: ENTAILMENT
+  splits:
+  - name: test
+    num_bytes: 179400
+    num_examples: 1000
+  - name: train
+    num_bytes: 1381902
+    num_examples: 8000
+  - name: validation
+    num_bytes: 174662
+    num_examples: 1000
+  download_size: 376079
+  dataset_size: 1735964
+- config_name: cdsc-r
+  features:
+  - name: pair_ID
+    dtype: int32
+  - name: sentence_A
+    dtype: string
+  - name: sentence_B
+    dtype: string
+  - name: relatedness_score
+    dtype: float32
+  splits:
+  - name: test
+    num_bytes: 175400
+    num_examples: 1000
+  - name: train
+    num_bytes: 1349902
+    num_examples: 8000
+  - name: validation
+    num_bytes: 170662
+    num_examples: 1000
+  download_size: 381525
+  dataset_size: 1695964
 ---
 
 # Dataset Card for [Dataset Name]

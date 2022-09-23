@@ -375,6 +375,87 @@ task_categories:
 task_ids: []
 paperswithcode_id: tatoeba
 pretty_name: Tatoeba
+dataset_info:
+- config_name: en-mr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - mr
+  splits:
+  - name: train
+    num_bytes: 6190484
+    num_examples: 53462
+  download_size: 1436200
+  dataset_size: 6190484
+- config_name: eo-nl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - eo
+        - nl
+  splits:
+  - name: train
+    num_bytes: 8150048
+    num_examples: 93650
+  download_size: 3020382
+  dataset_size: 8150048
+- config_name: es-pt
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - pt
+  splits:
+  - name: train
+    num_bytes: 6180464
+    num_examples: 67782
+  download_size: 2340361
+  dataset_size: 6180464
+- config_name: fr-ru
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr
+        - ru
+  splits:
+  - name: train
+    num_bytes: 19775390
+    num_examples: 195161
+  download_size: 5509784
+  dataset_size: 19775390
+- config_name: es-gl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - gl
+  splits:
+  - name: train
+    num_bytes: 287683
+    num_examples: 3135
+  download_size: 128506
+  dataset_size: 287683
 ---
 # Dataset Card for Tatoeba
 

@@ -19,6 +19,47 @@ task_categories:
 task_ids:
 - summarization-other-abstractive-summarization
 paperswithcode_id: null
+dataset_info:
+- config_name: arxiv
+  features:
+  - name: article
+    dtype: string
+  - name: abstract
+    dtype: string
+  - name: section_names
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 217514961
+    num_examples: 6440
+  - name: train
+    num_bytes: 7148341992
+    num_examples: 203037
+  - name: validation
+    num_bytes: 217125524
+    num_examples: 6436
+  download_size: 4504646347
+  dataset_size: 7582982477
+- config_name: pubmed
+  features:
+  - name: article
+    dtype: string
+  - name: abstract
+    dtype: string
+  - name: section_names
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 127184448
+    num_examples: 6658
+  - name: train
+    num_bytes: 2252027383
+    num_examples: 119924
+  - name: validation
+    num_bytes: 127403398
+    num_examples: 6633
+  download_size: 4504646347
+  dataset_size: 2506615229
 ---
 
 # Dataset Card for "scientific_papers"

@@ -31,6 +31,41 @@ paperswithcode_id: flores
 configs:
 - neen
 - sien
+dataset_info:
+- config_name: neen
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ne
+        - en
+  splits:
+  - name: test
+    num_bytes: 999063
+    num_examples: 2836
+  - name: validation
+    num_bytes: 849380
+    num_examples: 2560
+  download_size: 1542781
+  dataset_size: 1848443
+- config_name: sien
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - si
+        - en
+  splits:
+  - name: test
+    num_bytes: 983563
+    num_examples: 2767
+  - name: validation
+    num_bytes: 1031158
+    num_examples: 2899
+  download_size: 1542781
+  dataset_size: 2014721
 ---
 
 # Dataset Card for "flores"

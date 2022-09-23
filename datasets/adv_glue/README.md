@@ -28,6 +28,127 @@ configs:
 - adv_qqp
 - adv_rte
 - adv_sst2
+dataset_info:
+- config_name: adv_sst2
+  features:
+  - name: sentence
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: positive
+  - name: idx
+    dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 16595
+    num_examples: 148
+  download_size: 40662
+  dataset_size: 16595
+- config_name: adv_qqp
+  features:
+  - name: question1
+    dtype: string
+  - name: question2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: not_duplicate
+          1: duplicate
+  - name: idx
+    dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 9926
+    num_examples: 78
+  download_size: 40662
+  dataset_size: 9926
+- config_name: adv_mnli
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: idx
+    dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 23736
+    num_examples: 121
+  download_size: 40662
+  dataset_size: 23736
+- config_name: adv_mnli_mismatched
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: idx
+    dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 40982
+    num_examples: 162
+  download_size: 40662
+  dataset_size: 40982
+- config_name: adv_qnli
+  features:
+  - name: question
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: not_entailment
+  - name: idx
+    dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 34877
+    num_examples: 148
+  download_size: 40662
+  dataset_size: 34877
+- config_name: adv_rte
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: not_entailment
+  - name: idx
+    dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 25998
+    num_examples: 81
+  download_size: 40662
+  dataset_size: 25998
 ---
 
 # Dataset Card for Adversarial GLUE

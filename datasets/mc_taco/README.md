@@ -21,6 +21,39 @@ task_ids:
 - multiple-choice-qa
 paperswithcode_id: mc-taco
 pretty_name: MC-TACO
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'no'
+          1: 'yes'
+  - name: category
+    dtype:
+      class_label:
+        names:
+          0: Event Duration
+          1: Event Ordering
+          2: Frequency
+          3: Typical Time
+          4: Stationarity
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 1785553
+    num_examples: 9442
+  - name: validation
+    num_bytes: 713023
+    num_examples: 3783
+  download_size: 2385137
+  dataset_size: 2498576
 ---
 
 # Dataset Card for MC-TACO

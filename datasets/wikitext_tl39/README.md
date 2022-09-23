@@ -22,6 +22,23 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: wikitext-tl-39
 pretty_name: WikiText-TL-39
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  config_name: wikitext-tl-39
+  splits:
+  - name: test
+    num_bytes: 46182996
+    num_examples: 376737
+  - name: train
+    num_bytes: 217182748
+    num_examples: 1766072
+  - name: validation
+    num_bytes: 46256674
+    num_examples: 381763
+  download_size: 116335234
+  dataset_size: 309622418
 ---
 
 # Dataset Card for WikiText-TL-39

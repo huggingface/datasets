@@ -21,6 +21,106 @@ task_categories:
 - audio-classification
 task_ids:
 - speaker-identification
+dataset_info:
+- config_name: clean
+  features:
+  - name: file
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 16000
+  - name: text
+    dtype: string
+  - name: speaker_id
+    dtype: int64
+  - name: chapter_id
+    dtype: int64
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 367705423
+    num_examples: 2620
+  - name: train.100
+    num_bytes: 6619683041
+    num_examples: 28539
+  - name: train.360
+    num_bytes: 23898214592
+    num_examples: 104014
+  - name: validation
+    num_bytes: 359572231
+    num_examples: 2703
+  download_size: 30121377654
+  dataset_size: 31245175287
+- config_name: other
+  features:
+  - name: file
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 16000
+  - name: text
+    dtype: string
+  - name: speaker_id
+    dtype: int64
+  - name: chapter_id
+    dtype: int64
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 352396474
+    num_examples: 2939
+  - name: train.500
+    num_bytes: 31810256902
+    num_examples: 148688
+  - name: validation
+    num_bytes: 337283304
+    num_examples: 2864
+  download_size: 31236565377
+  dataset_size: 32499936680
+- config_name: all
+  features:
+  - name: file
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 16000
+  - name: text
+    dtype: string
+  - name: speaker_id
+    dtype: int64
+  - name: chapter_id
+    dtype: int64
+  - name: id
+    dtype: string
+  splits:
+  - name: test.clean
+    num_bytes: 368449831
+    num_examples: 2620
+  - name: test.other
+    num_bytes: 353231518
+    num_examples: 2939
+  - name: train.clean.100
+    num_bytes: 6627791685
+    num_examples: 28539
+  - name: train.clean.360
+    num_bytes: 23927767570
+    num_examples: 104014
+  - name: train.other.500
+    num_bytes: 31852502880
+    num_examples: 148688
+  - name: validation.clean
+    num_bytes: 359505691
+    num_examples: 2703
+  - name: validation.other
+    num_bytes: 337213112
+    num_examples: 2864
+  download_size: 61357943031
+  dataset_size: 63826462287
 ---
 
 # Dataset Card for librispeech_asr

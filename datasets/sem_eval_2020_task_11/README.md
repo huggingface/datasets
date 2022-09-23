@@ -20,7 +20,55 @@ task_ids:
 - text-classification-other-propaganda-technique-classification
 - token-classification-other-propaganda-span-identification
 paperswithcode_id: null
-pretty_name: "SemEval-2020 Task 11"
+pretty_name: SemEval-2020 Task 11
+dataset_info:
+  features:
+  - name: article_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: span_identification
+    sequence:
+    - name: start_char_offset
+      dtype: int64
+    - name: end_char_offset
+      dtype: int64
+  - name: technique_classification
+    sequence:
+    - name: start_char_offset
+      dtype: int64
+    - name: end_char_offset
+      dtype: int64
+    - name: technique
+      dtype:
+        class_label:
+          names:
+            0: Appeal_to_Authority
+            1: Appeal_to_fear-prejudice
+            2: Bandwagon,Reductio_ad_hitlerum
+            3: Black-and-White_Fallacy
+            4: Causal_Oversimplification
+            5: Doubt
+            6: Exaggeration,Minimisation
+            7: Flag-Waving
+            8: Loaded_Language
+            9: Name_Calling,Labeling
+            10: Repetition
+            11: Slogans
+            12: Thought-terminating_Cliches
+            13: Whataboutism,Straw_Men,Red_Herring
+  splits:
+  - name: test
+    num_bytes: 454100
+    num_examples: 90
+  - name: train
+    num_bytes: 2358613
+    num_examples: 371
+  - name: validation
+    num_bytes: 396410
+    num_examples: 75
+  download_size: 0
+  dataset_size: 3209123
 ---
 
 # Dataset Card for SemEval-2020 Task 11

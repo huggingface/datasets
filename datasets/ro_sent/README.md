@@ -19,6 +19,29 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: null
 pretty_name: RoSent
+dataset_info:
+  features:
+  - name: original_id
+    dtype: string
+  - name: id
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: positive
+  splits:
+  - name: test
+    num_bytes: 6837430
+    num_examples: 11005
+  - name: train
+    num_bytes: 8367687
+    num_examples: 17941
+  download_size: 14700057
+  dataset_size: 15205117
 ---
 
 # Dataset Card for RoSent

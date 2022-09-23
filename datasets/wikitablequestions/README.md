@@ -19,6 +19,152 @@ task_categories:
 - question-answering
 task_ids:
 - question-answering-other-table-question-answering
+dataset_info:
+- config_name: random-split-1
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: table
+    struct:
+    - name: header
+      sequence: string
+    - name: rows
+      sequence:
+        sequence: string
+    - name: name
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 11423506
+    num_examples: 4344
+  - name: train
+    num_bytes: 30364389
+    num_examples: 11321
+  - name: validation
+    num_bytes: 7145768
+    num_examples: 2831
+  download_size: 29267445
+  dataset_size: 48933663
+- config_name: random-split-2
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: table
+    struct:
+    - name: header
+      sequence: string
+    - name: rows
+      sequence:
+        sequence: string
+    - name: name
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 11423506
+    num_examples: 4344
+  - name: train
+    num_bytes: 30098954
+    num_examples: 11314
+  - name: validation
+    num_bytes: 7411203
+    num_examples: 2838
+  download_size: 29267445
+  dataset_size: 48933663
+- config_name: random-split-3
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: table
+    struct:
+    - name: header
+      sequence: string
+    - name: rows
+      sequence:
+        sequence: string
+    - name: name
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 11423506
+    num_examples: 4344
+  - name: train
+    num_bytes: 28778697
+    num_examples: 11314
+  - name: validation
+    num_bytes: 8731460
+    num_examples: 2838
+  download_size: 29267445
+  dataset_size: 48933663
+- config_name: random-split-4
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: table
+    struct:
+    - name: header
+      sequence: string
+    - name: rows
+      sequence:
+        sequence: string
+    - name: name
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 11423506
+    num_examples: 4344
+  - name: train
+    num_bytes: 30166421
+    num_examples: 11321
+  - name: validation
+    num_bytes: 7343736
+    num_examples: 2831
+  download_size: 29267445
+  dataset_size: 48933663
+- config_name: random-split-5
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: table
+    struct:
+    - name: header
+      sequence: string
+    - name: rows
+      sequence:
+        sequence: string
+    - name: name
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 11423506
+    num_examples: 4344
+  - name: train
+    num_bytes: 30333964
+    num_examples: 11316
+  - name: validation
+    num_bytes: 7176193
+    num_examples: 2836
+  download_size: 29267445
+  dataset_size: 48933663
 ---
 
 # Dataset Card for WikiTableQuestions

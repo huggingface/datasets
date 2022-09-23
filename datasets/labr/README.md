@@ -19,6 +19,29 @@ task_ids:
 - multi-class-classification
 paperswithcode_id: labr
 pretty_name: LABR
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '1'
+          1: '2'
+          2: '3'
+          3: '4'
+          4: '5'
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 1703399
+    num_examples: 2935
+  - name: train
+    num_bytes: 7051103
+    num_examples: 11760
+  download_size: 39953712
+  dataset_size: 8754502
 ---
 
 # Dataset Card for LABR

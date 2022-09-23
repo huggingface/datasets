@@ -19,6 +19,21 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: OpusMemat
+dataset_info:
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - xh
+        - en
+  config_name: xh-en
+  splits:
+  - name: train
+    num_bytes: 25400570
+    num_examples: 154764
+  download_size: 8382865
+  dataset_size: 25400570
 ---
 
 # Dataset Card for [opus_memat]

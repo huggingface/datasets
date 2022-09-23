@@ -20,6 +20,19 @@ task_categories:
 task_ids:
 - language-modeling
 - masked-language-modeling
+dataset_info:
+  features:
+  - name: title
+    dtype: string
+  - name: text
+    dtype: string
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 108392037000
+    num_examples: 196639
+  download_size: 39516981435
+  dataset_size: 108392037000
 ---
 
 # Dataset Card for the_pile_books3

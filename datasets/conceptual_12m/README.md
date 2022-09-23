@@ -19,6 +19,18 @@ task_ids:
 - image-captioning
 paperswithcode_id: cc12m
 pretty_name: Conceptual 12M
+dataset_info:
+  features:
+  - name: image_url
+    dtype: string
+  - name: caption
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2794168030
+    num_examples: 12423374
+  download_size: 2707204412
+  dataset_size: 2794168030
 ---
 
 # Dataset Card for Conceptual 12M

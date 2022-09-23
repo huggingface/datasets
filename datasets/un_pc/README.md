@@ -39,6 +39,217 @@ configs:
 - fr-ru
 - fr-zh
 - ru-zh
+dataset_info:
+- config_name: ar-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ar
+        - en
+  splits:
+  - name: train
+    num_bytes: 8039689939
+    num_examples: 20044478
+  download_size: 2025106743
+  dataset_size: 8039689939
+- config_name: ar-es
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ar
+        - es
+  splits:
+  - name: train
+    num_bytes: 8715754848
+    num_examples: 20532014
+  download_size: 2167791297
+  dataset_size: 8715754848
+- config_name: ar-fr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ar
+        - fr
+  splits:
+  - name: train
+    num_bytes: 8897848038
+    num_examples: 20281645
+  download_size: 2188765415
+  dataset_size: 8897848038
+- config_name: ar-ru
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ar
+        - ru
+  splits:
+  - name: train
+    num_bytes: 11395923083
+    num_examples: 20571334
+  download_size: 2476562835
+  dataset_size: 11395923083
+- config_name: ar-zh
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ar
+        - zh
+  splits:
+  - name: train
+    num_bytes: 6447658008
+    num_examples: 17306056
+  download_size: 1738869755
+  dataset_size: 6447658008
+- config_name: en-es
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - es
+  splits:
+  - name: train
+    num_bytes: 8241635322
+    num_examples: 25227004
+  download_size: 2300411698
+  dataset_size: 8241635322
+- config_name: en-fr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - fr
+  splits:
+  - name: train
+    num_bytes: 9718522775
+    num_examples: 30340652
+  download_size: 2657208676
+  dataset_size: 9718522775
+- config_name: en-ru
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ru
+  splits:
+  - name: train
+    num_bytes: 11156164691
+    num_examples: 25173398
+  download_size: 2589707636
+  dataset_size: 11156164691
+- config_name: en-zh
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - zh
+  splits:
+  - name: train
+    num_bytes: 4988812558
+    num_examples: 17451549
+  download_size: 1535707641
+  dataset_size: 4988812558
+- config_name: es-fr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - fr
+  splits:
+  - name: train
+    num_bytes: 9230891207
+    num_examples: 25887160
+  download_size: 2492342915
+  dataset_size: 9230891207
+- config_name: es-ru
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - ru
+  splits:
+  - name: train
+    num_bytes: 10789780134
+    num_examples: 22294106
+  download_size: 2487664520
+  dataset_size: 10789780134
+- config_name: es-zh
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - zh
+  splits:
+  - name: train
+    num_bytes: 5475365986
+    num_examples: 17599223
+  download_size: 1639717723
+  dataset_size: 5475365986
+- config_name: fr-ru
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr
+        - ru
+  splits:
+  - name: train
+    num_bytes: 12099669711
+    num_examples: 25219973
+  download_size: 2762585269
+  dataset_size: 12099669711
+- config_name: fr-zh
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr
+        - zh
+  splits:
+  - name: train
+    num_bytes: 5679222134
+    num_examples: 17521170
+  download_size: 1668823634
+  dataset_size: 5679222134
+- config_name: ru-zh
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - zh
+  splits:
+  - name: train
+    num_bytes: 7905443441
+    num_examples: 17920922
+  download_size: 1934425373
+  dataset_size: 7905443441
 ---
 
 # Dataset Card for [Dataset Name]

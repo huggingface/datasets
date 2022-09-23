@@ -28,6 +28,326 @@ task_ids:
 - word-sense-disambiguation
 - coreference-resolution
 - extractive-qa
+dataset_info:
+- config_name: boolq
+  features:
+  - name: question
+    dtype: string
+  - name: passage
+    dtype: string
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'False'
+          1: 'True'
+  splits:
+  - name: test
+    num_bytes: 2107997
+    num_examples: 3245
+  - name: train
+    num_bytes: 6179206
+    num_examples: 9427
+  - name: validation
+    num_bytes: 2118505
+    num_examples: 3270
+  download_size: 4118001
+  dataset_size: 10405708
+- config_name: cb
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: contradiction
+          2: neutral
+  splits:
+  - name: test
+    num_bytes: 93660
+    num_examples: 250
+  - name: train
+    num_bytes: 87218
+    num_examples: 250
+  - name: validation
+    num_bytes: 21894
+    num_examples: 56
+  download_size: 75482
+  dataset_size: 202772
+- config_name: copa
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: choice1
+          1: choice2
+  splits:
+  - name: test
+    num_bytes: 60303
+    num_examples: 500
+  - name: train
+    num_bytes: 49599
+    num_examples: 400
+  - name: validation
+    num_bytes: 12586
+    num_examples: 100
+  download_size: 43986
+  dataset_size: 122488
+- config_name: multirc
+  features:
+  - name: paragraph
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: idx
+    struct:
+    - name: paragraph
+      dtype: int32
+    - name: question
+      dtype: int32
+    - name: answer
+      dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'False'
+          1: 'True'
+  splits:
+  - name: test
+    num_bytes: 14996451
+    num_examples: 9693
+  - name: train
+    num_bytes: 46213579
+    num_examples: 27243
+  - name: validation
+    num_bytes: 7758918
+    num_examples: 4848
+  download_size: 1116225
+  dataset_size: 68968948
+- config_name: record
+  features:
+  - name: passage
+    dtype: string
+  - name: query
+    dtype: string
+  - name: entities
+    sequence: string
+  - name: entity_spans
+    sequence:
+    - name: text
+      dtype: string
+    - name: start
+      dtype: int32
+    - name: end
+      dtype: int32
+  - name: answers
+    sequence: string
+  - name: idx
+    struct:
+    - name: passage
+      dtype: int32
+    - name: query
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 17200575
+    num_examples: 10000
+  - name: train
+    num_bytes: 179232052
+    num_examples: 100730
+  - name: validation
+    num_bytes: 17479084
+    num_examples: 10000
+  download_size: 51757880
+  dataset_size: 213911711
+- config_name: rte
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: not_entailment
+  splits:
+  - name: test
+    num_bytes: 975799
+    num_examples: 3000
+  - name: train
+    num_bytes: 848745
+    num_examples: 2490
+  - name: validation
+    num_bytes: 90899
+    num_examples: 277
+  download_size: 750920
+  dataset_size: 1915443
+- config_name: wic
+  features:
+  - name: word
+    dtype: string
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: start1
+    dtype: int32
+  - name: start2
+    dtype: int32
+  - name: end1
+    dtype: int32
+  - name: end2
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'False'
+          1: 'True'
+  splits:
+  - name: test
+    num_bytes: 180593
+    num_examples: 1400
+  - name: train
+    num_bytes: 665183
+    num_examples: 5428
+  - name: validation
+    num_bytes: 82623
+    num_examples: 638
+  download_size: 396213
+  dataset_size: 928399
+- config_name: wsc
+  features:
+  - name: text
+    dtype: string
+  - name: span1_index
+    dtype: int32
+  - name: span2_index
+    dtype: int32
+  - name: span1_text
+    dtype: string
+  - name: span2_text
+    dtype: string
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'False'
+          1: 'True'
+  splits:
+  - name: test
+    num_bytes: 31572
+    num_examples: 146
+  - name: train
+    num_bytes: 89883
+    num_examples: 554
+  - name: validation
+    num_bytes: 21637
+    num_examples: 104
+  download_size: 32751
+  dataset_size: 143092
+- config_name: wsc.fixed
+  features:
+  - name: text
+    dtype: string
+  - name: span1_index
+    dtype: int32
+  - name: span2_index
+    dtype: int32
+  - name: span1_text
+    dtype: string
+  - name: span2_text
+    dtype: string
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'False'
+          1: 'True'
+  splits:
+  - name: test
+    num_bytes: 31568
+    num_examples: 146
+  - name: train
+    num_bytes: 89883
+    num_examples: 554
+  - name: validation
+    num_bytes: 21637
+    num_examples: 104
+  download_size: 32751
+  dataset_size: 143088
+- config_name: axb
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: not_entailment
+  splits:
+  - name: test
+    num_bytes: 238392
+    num_examples: 1104
+  download_size: 33950
+  dataset_size: 238392
+- config_name: axg
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: not_entailment
+  splits:
+  - name: test
+    num_bytes: 53581
+    num_examples: 356
+  download_size: 10413
+  dataset_size: 53581
 ---
 
 # Dataset Card for "super_glue"

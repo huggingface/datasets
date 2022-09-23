@@ -36,6 +36,32 @@ train-eval-index:
   metrics:
   - type: squad_v2
     name: SQuAD v2
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  config_name: squad_v2
+  splits:
+  - name: train
+    num_bytes: 116699950
+    num_examples: 130319
+  - name: validation
+    num_bytes: 11660302
+    num_examples: 11873
+  download_size: 46494161
+  dataset_size: 128360252
 ---
 
 # Dataset Card for "squad_v2"

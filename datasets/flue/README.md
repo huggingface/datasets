@@ -28,6 +28,102 @@ configs:
 - PAWS-X
 - WSD-V
 - XNLI
+dataset_info:
+- config_name: CLS
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: positive
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 3852344
+    num_examples: 5999
+  - name: train
+    num_bytes: 3853279
+    num_examples: 5997
+  download_size: 314687066
+  dataset_size: 7705623
+- config_name: PAWS-X
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 526953
+    num_examples: 2000
+  - name: train
+    num_bytes: 13096677
+    num_examples: 49399
+  - name: validation
+    num_bytes: 522013
+    num_examples: 1988
+  download_size: 30282057
+  dataset_size: 14145643
+- config_name: XNLI
+  features:
+  - name: premise
+    dtype: string
+  - name: hypo
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: contradiction
+          1: entailment
+          2: neutral
+  - name: idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 1048999
+    num_examples: 5010
+  - name: train
+    num_bytes: 87373154
+    num_examples: 392702
+  - name: validation
+    num_bytes: 520022
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 88942175
+- config_name: WSD-V
+  features:
+  - name: sentence
+    sequence: string
+  - name: pos_tags
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: fine_pos_tags
+    sequence: string
+  - name: disambiguate_tokens_ids
+    sequence: int32
+  - name: disambiguate_labels
+    sequence: string
+  - name: idx
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2722232
+    num_examples: 3121
+  - name: train
+    num_bytes: 206869215
+    num_examples: 269821
+  download_size: 38303600
+  dataset_size: 209591447
 ---
 
 # Dataset Card for FLUE

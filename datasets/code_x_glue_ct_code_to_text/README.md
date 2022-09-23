@@ -27,6 +27,235 @@ configs:
 - php
 - python
 - ruby
+dataset_info:
+- config_name: go
+  features:
+  - name: id
+    dtype: int32
+  - name: repo
+    dtype: string
+  - name: path
+    dtype: string
+  - name: func_name
+    dtype: string
+  - name: original_string
+    dtype: string
+  - name: language
+    dtype: string
+  - name: code
+    dtype: string
+  - name: code_tokens
+    sequence: string
+  - name: docstring
+    dtype: string
+  - name: docstring_tokens
+    sequence: string
+  - name: sha
+    dtype: string
+  - name: url
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 16328458
+    num_examples: 8122
+  - name: train
+    num_bytes: 342244027
+    num_examples: 167288
+  - name: validation
+    num_bytes: 13721912
+    num_examples: 7325
+  download_size: 499922799
+  dataset_size: 372294397
+- config_name: java
+  features:
+  - name: id
+    dtype: int32
+  - name: repo
+    dtype: string
+  - name: path
+    dtype: string
+  - name: func_name
+    dtype: string
+  - name: original_string
+    dtype: string
+  - name: language
+    dtype: string
+  - name: code
+    dtype: string
+  - name: code_tokens
+    sequence: string
+  - name: docstring
+    dtype: string
+  - name: docstring_tokens
+    sequence: string
+  - name: sha
+    dtype: string
+  - name: url
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 29080857
+    num_examples: 10955
+  - name: train
+    num_bytes: 452554719
+    num_examples: 164923
+  - name: validation
+    num_bytes: 13366396
+    num_examples: 5183
+  download_size: 1072966017
+  dataset_size: 495001972
+- config_name: javascript
+  features:
+  - name: id
+    dtype: int32
+  - name: repo
+    dtype: string
+  - name: path
+    dtype: string
+  - name: func_name
+    dtype: string
+  - name: original_string
+    dtype: string
+  - name: language
+    dtype: string
+  - name: code
+    dtype: string
+  - name: code_tokens
+    sequence: string
+  - name: docstring
+    dtype: string
+  - name: docstring_tokens
+    sequence: string
+  - name: sha
+    dtype: string
+  - name: url
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 10190765
+    num_examples: 3291
+  - name: train
+    num_bytes: 160860743
+    num_examples: 58025
+  - name: validation
+    num_bytes: 10337396
+    num_examples: 3885
+  download_size: 1677110214
+  dataset_size: 181388904
+- config_name: php
+  features:
+  - name: id
+    dtype: int32
+  - name: repo
+    dtype: string
+  - name: path
+    dtype: string
+  - name: func_name
+    dtype: string
+  - name: original_string
+    dtype: string
+  - name: language
+    dtype: string
+  - name: code
+    dtype: string
+  - name: code_tokens
+    sequence: string
+  - name: docstring
+    dtype: string
+  - name: docstring_tokens
+    sequence: string
+  - name: sha
+    dtype: string
+  - name: url
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 35375097
+    num_examples: 14014
+  - name: train
+    num_bytes: 614655799
+    num_examples: 241241
+  - name: validation
+    num_bytes: 33283149
+    num_examples: 12982
+  download_size: 864290912
+  dataset_size: 683314045
+- config_name: python
+  features:
+  - name: id
+    dtype: int32
+  - name: repo
+    dtype: string
+  - name: path
+    dtype: string
+  - name: func_name
+    dtype: string
+  - name: original_string
+    dtype: string
+  - name: language
+    dtype: string
+  - name: code
+    dtype: string
+  - name: code_tokens
+    sequence: string
+  - name: docstring
+    dtype: string
+  - name: docstring_tokens
+    sequence: string
+  - name: sha
+    dtype: string
+  - name: url
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 50659792
+    num_examples: 14918
+  - name: train
+    num_bytes: 813664500
+    num_examples: 251820
+  - name: validation
+    num_bytes: 46888668
+    num_examples: 13914
+  download_size: 953306861
+  dataset_size: 911212960
+- config_name: ruby
+  features:
+  - name: id
+    dtype: int32
+  - name: repo
+    dtype: string
+  - name: path
+    dtype: string
+  - name: func_name
+    dtype: string
+  - name: original_string
+    dtype: string
+  - name: language
+    dtype: string
+  - name: code
+    dtype: string
+  - name: code_tokens
+    sequence: string
+  - name: docstring
+    dtype: string
+  - name: docstring_tokens
+    sequence: string
+  - name: sha
+    dtype: string
+  - name: url
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2671603
+    num_examples: 1261
+  - name: train
+    num_bytes: 51956595
+    num_examples: 24927
+  - name: validation
+    num_bytes: 2821089
+    num_examples: 1400
+  download_size: 124154892
+  dataset_size: 57449287
 ---
 # Dataset Card for "code_x_glue_ct_code_to_text"
 

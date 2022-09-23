@@ -19,6 +19,23 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: OpusTedtalks
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - hr
+  config_name: en-hr
+  splits:
+  - name: train
+    num_bytes: 15249417
+    num_examples: 86348
+  download_size: 5639306
+  dataset_size: 15249417
 ---
 
 # Dataset Card for OpusTedtalks

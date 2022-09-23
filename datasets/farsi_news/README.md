@@ -21,6 +21,25 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: FarsiNews
+dataset_info:
+  features:
+  - name: title
+    dtype: string
+  - name: summary
+    dtype: string
+  - name: link
+    dtype: string
+  - name: tags
+    sequence: string
+  splits:
+  - name: hamshahri
+    num_bytes: 1267659
+    num_examples: 2203
+  - name: radiofarda
+    num_bytes: 265272
+    num_examples: 284
+  download_size: 1648337
+  dataset_size: 1532931
 ---
 
 # Dataset Card for FarsiNews

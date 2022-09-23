@@ -27,6 +27,103 @@ configs:
 - php
 - python
 - ruby
+dataset_info:
+- config_name: go
+  features:
+  - name: id
+    dtype: int32
+  - name: idx
+    dtype: string
+  - name: nl_tokens
+    sequence: string
+  - name: pl_tokens
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 204997
+    num_examples: 152
+  download_size: 298893
+  dataset_size: 204997
+- config_name: java
+  features:
+  - name: id
+    dtype: int32
+  - name: idx
+    dtype: string
+  - name: nl_tokens
+    sequence: string
+  - name: pl_tokens
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 785754
+    num_examples: 482
+  download_size: 1097733
+  dataset_size: 785754
+- config_name: javascript
+  features:
+  - name: id
+    dtype: int32
+  - name: idx
+    dtype: string
+  - name: nl_tokens
+    sequence: string
+  - name: pl_tokens
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 594347
+    num_examples: 272
+  download_size: 836112
+  dataset_size: 594347
+- config_name: php
+  features:
+  - name: id
+    dtype: int32
+  - name: idx
+    dtype: string
+  - name: nl_tokens
+    sequence: string
+  - name: pl_tokens
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 705477
+    num_examples: 407
+  download_size: 1010305
+  dataset_size: 705477
+- config_name: python
+  features:
+  - name: id
+    dtype: int32
+  - name: idx
+    dtype: string
+  - name: nl_tokens
+    sequence: string
+  - name: pl_tokens
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 2566353
+    num_examples: 1264
+  download_size: 3577929
+  dataset_size: 2566353
+- config_name: ruby
+  features:
+  - name: id
+    dtype: int32
+  - name: idx
+    dtype: string
+  - name: nl_tokens
+    sequence: string
+  - name: pl_tokens
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 48946
+    num_examples: 38
+  download_size: 67675
+  dataset_size: 48946
 ---
 # Dataset Card for "code_x_glue_cc_cloze_testing_maxmin"
 

@@ -21,6 +21,78 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: protoqa
 pretty_name: ProtoQA
+dataset_info:
+- config_name: proto_qa
+  features:
+  - name: normalized-question
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer-clusters
+    sequence:
+    - name: count
+      dtype: int32
+    - name: clusterid
+      dtype: string
+    - name: answers
+      sequence: string
+  - name: answerstrings
+    sequence: string
+  - name: totalcount
+    dtype: int32
+  - name: id
+    dtype: string
+  - name: source
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3943484
+    num_examples: 8782
+  - name: validation
+    num_bytes: 472121
+    num_examples: 980
+  download_size: 7352932
+  dataset_size: 4415605
+- config_name: proto_qa_cs
+  features:
+  - name: normalized-question
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers-cleaned
+    sequence:
+    - name: count
+      dtype: int32
+    - name: clusterid
+      dtype: string
+    - name: answers
+      sequence: string
+  - name: answerstrings
+    sequence: string
+  - name: totalcount
+    dtype: int32
+  - name: id
+    dtype: string
+  - name: source
+    dtype: string
+  splits:
+  - name: validation
+    num_bytes: 84466
+    num_examples: 52
+  download_size: 115704
+  dataset_size: 84466
+- config_name: proto_qa_cs_assessments
+  features:
+  - name: question
+    dtype: string
+  - name: assessments
+    sequence: string
+  splits:
+  - name: validation
+    num_bytes: 12473
+    num_examples: 52
+  download_size: 24755
+  dataset_size: 12473
 ---
 
 # Dataset Card for [Dataset Name]

@@ -19,6 +19,338 @@ task_ids:
 - multi-label-classification
 paperswithcode_id: null
 pretty_name: The Switchboard Dialog Act Corpus (SwDA)
+dataset_info:
+  features:
+  - name: swda_filename
+    dtype: string
+  - name: ptb_basename
+    dtype: string
+  - name: conversation_no
+    dtype: int64
+  - name: transcript_index
+    dtype: int64
+  - name: act_tag
+    dtype:
+      class_label:
+        names:
+          0: b^m^r
+          1: qw^r^t
+          2: aa^h
+          3: br^m
+          4: fa^r
+          5: aa,ar
+          6: sd^e(^q)^r
+          7: ^2
+          8: sd;qy^d
+          9: oo
+          10: bk^m
+          11: aa^t
+          12: cc^t
+          13: qy^d^c
+          14: qo^t
+          15: ng^m
+          16: qw^h
+          17: qo^r
+          18: aa
+          19: qy^d^t
+          20: qrr^d
+          21: br^r
+          22: fx
+          23: sd,qy^g
+          24: ny^e
+          25: ^h^t
+          26: fc^m
+          27: qw(^q)
+          28: co
+          29: o^t
+          30: b^m^t
+          31: qr^d
+          32: qw^g
+          33: ad(^q)
+          34: qy(^q)
+          35: na^r
+          36: am^r
+          37: qr^t
+          38: ad^c
+          39: qw^c
+          40: bh^r
+          41: h^t
+          42: ft^m
+          43: ba^r
+          44: qw^d^t
+          45: '%'
+          46: t3
+          47: nn
+          48: bd
+          49: h^m
+          50: h^r
+          51: sd^r
+          52: qh^m
+          53: ^q^t
+          54: sv^2
+          55: ft
+          56: ar^m
+          57: qy^h
+          58: sd^e^m
+          59: qh^r
+          60: cc
+          61: fp^m
+          62: ad
+          63: qo
+          64: na^m^t
+          65: fo^c
+          66: qy
+          67: sv^e^r
+          68: aap
+          69: 'no'
+          70: aa^2
+          71: sv(^q)
+          72: sv^e
+          73: nd
+          74: '"'
+          75: bf^2
+          76: bk
+          77: fp
+          78: nn^r^t
+          79: fa^c
+          80: ny^t
+          81: ny^c^r
+          82: qw
+          83: qy^t
+          84: b
+          85: fo
+          86: qw^r
+          87: am
+          88: bf^t
+          89: ^2^t
+          90: b^2
+          91: x
+          92: fc
+          93: qr
+          94: no^t
+          95: bk^t
+          96: bd^r
+          97: bf
+          98: ^2^g
+          99: qh^c
+          100: ny^c
+          101: sd^e^r
+          102: br
+          103: fe
+          104: by
+          105: ^2^r
+          106: fc^r
+          107: b^m
+          108: sd,sv
+          109: fa^t
+          110: sv^m
+          111: qrr
+          112: ^h^r
+          113: na
+          114: fp^r
+          115: o
+          116: h,sd
+          117: t1^t
+          118: nn^r
+          119: cc^r
+          120: sv^c
+          121: co^t
+          122: qy^r
+          123: sv^r
+          124: qy^d^h
+          125: sd
+          126: nn^e
+          127: ny^r
+          128: b^t
+          129: ba^m
+          130: ar
+          131: bf^r
+          132: sv
+          133: bh^m
+          134: qy^g^t
+          135: qo^d^c
+          136: qo^d
+          137: nd^t
+          138: aa^r
+          139: sd^2
+          140: sv;sd
+          141: qy^c^r
+          142: qw^m
+          143: qy^g^r
+          144: no^r
+          145: qh(^q)
+          146: sd;sv
+          147: bf(^q)
+          148: +
+          149: qy^2
+          150: qw^d
+          151: qy^g
+          152: qh^g
+          153: nn^t
+          154: ad^r
+          155: oo^t
+          156: co^c
+          157: ng
+          158: ^q
+          159: qw^d^c
+          160: qrr^t
+          161: ^h
+          162: aap^r
+          163: bc^r
+          164: sd^m
+          165: bk^r
+          166: qy^g^c
+          167: qr(^q)
+          168: ng^t
+          169: arp
+          170: h
+          171: bh
+          172: sd^c
+          173: ^g
+          174: o^r
+          175: qy^c
+          176: sd^e
+          177: fw
+          178: ar^r
+          179: qy^m
+          180: bc
+          181: sv^t
+          182: aap^m
+          183: sd;no
+          184: ng^r
+          185: bf^g
+          186: sd^e^t
+          187: o^c
+          188: b^r
+          189: b^m^g
+          190: ba
+          191: t1
+          192: qy^d(^q)
+          193: nn^m
+          194: ny
+          195: ba,fe
+          196: aa^m
+          197: qh
+          198: na^m
+          199: oo(^q)
+          200: qw^t
+          201: na^t
+          202: qh^h
+          203: qy^d^m
+          204: ny^m
+          205: fa
+          206: qy^d
+          207: fc^t
+          208: sd(^q)
+          209: qy^d^r
+          210: bf^m
+          211: sd(^q)^t
+          212: ft^t
+          213: ^q^r
+          214: sd^t
+          215: sd(^q)^r
+          216: ad^t
+  - name: damsl_act_tag
+    dtype:
+      class_label:
+        names:
+          0: ad
+          1: qo
+          2: qy
+          3: arp_nd
+          4: sd
+          5: h
+          6: bh
+          7: 'no'
+          8: ^2
+          9: ^g
+          10: ar
+          11: aa
+          12: sv
+          13: bk
+          14: fp
+          15: qw
+          16: b
+          17: ba
+          18: t1
+          19: oo_co_cc
+          20: +
+          21: ny
+          22: qw^d
+          23: x
+          24: qh
+          25: fc
+          26: fo_o_fw_"_by_bc
+          27: aap_am
+          28: '%'
+          29: bf
+          30: t3
+          31: nn
+          32: bd
+          33: ng
+          34: ^q
+          35: br
+          36: qy^d
+          37: fa
+          38: ^h
+          39: b^m
+          40: ft
+          41: qrr
+          42: na
+  - name: caller
+    dtype: string
+  - name: utterance_index
+    dtype: int64
+  - name: subutterance_index
+    dtype: int64
+  - name: text
+    dtype: string
+  - name: pos
+    dtype: string
+  - name: trees
+    dtype: string
+  - name: ptb_treenumbers
+    dtype: string
+  - name: talk_day
+    dtype: string
+  - name: length
+    dtype: int64
+  - name: topic_description
+    dtype: string
+  - name: prompt
+    dtype: string
+  - name: from_caller
+    dtype: int64
+  - name: from_caller_sex
+    dtype: string
+  - name: from_caller_education
+    dtype: int64
+  - name: from_caller_birth_year
+    dtype: int64
+  - name: from_caller_dialect_area
+    dtype: string
+  - name: to_caller
+    dtype: int64
+  - name: to_caller_sex
+    dtype: string
+  - name: to_caller_education
+    dtype: int64
+  - name: to_caller_birth_year
+    dtype: int64
+  - name: to_caller_dialect_area
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2560127
+    num_examples: 4514
+  - name: train
+    num_bytes: 128498512
+    num_examples: 213543
+  - name: validation
+    num_bytes: 34749819
+    num_examples: 56729
+  download_size: 14456364
+  dataset_size: 165808458
 ---
 
 # Dataset Card for SwDA

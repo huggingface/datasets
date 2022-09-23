@@ -622,6 +622,103 @@ configs:
 - 20220301.zh-min-nan
 - 20220301.zh-yue
 - 20220301.zu
+dataset_info:
+- config_name: 20220301.de
+  features:
+  - name: id
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 8905282792
+    num_examples: 2665357
+  download_size: 6523215105
+  dataset_size: 8905282792
+- config_name: 20220301.en
+  features:
+  - name: id
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 20275516160
+    num_examples: 6458670
+  download_size: 20598313936
+  dataset_size: 20275516160
+- config_name: 20220301.fr
+  features:
+  - name: id
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 7375920768
+    num_examples: 2402095
+  download_size: 5602565274
+  dataset_size: 7375920768
+- config_name: 20220301.frr
+  features:
+  - name: id
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 9129760
+    num_examples: 15199
+  download_size: 12438017
+  dataset_size: 9129760
+- config_name: 20220301.it
+  features:
+  - name: id
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4539944448
+    num_examples: 1743035
+  download_size: 3516441239
+  dataset_size: 4539944448
+- config_name: 20220301.simple
+  features:
+  - name: id
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 235072360
+    num_examples: 205328
+  download_size: 239682796
+  dataset_size: 235072360
 ---
 
 # Dataset Card for Wikipedia

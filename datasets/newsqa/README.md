@@ -24,6 +24,101 @@ configs:
 - combined-csv
 - combined-json
 - split
+dataset_info:
+- config_name: combined-csv
+  features:
+  - name: story_id
+    dtype: string
+  - name: story_text
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer_char_ranges
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 465942194
+    num_examples: 119633
+  download_size: 0
+  dataset_size: 465942194
+- config_name: combined-json
+  features:
+  - name: storyId
+    dtype: string
+  - name: text
+    dtype: string
+  - name: type
+    dtype: string
+  - name: questions
+    sequence:
+    - name: q
+      dtype: string
+    - name: isAnswerAbsent
+      dtype: int32
+    - name: isQuestionBad
+      dtype: int32
+    - name: consensus
+      struct:
+      - name: s
+        dtype: int32
+      - name: e
+        dtype: int32
+      - name: badQuestion
+        dtype: bool
+      - name: noAnswer
+        dtype: bool
+    - name: answers
+      sequence:
+      - name: sourcerAnswers
+        sequence:
+        - name: s
+          dtype: int32
+        - name: e
+          dtype: int32
+        - name: badQuestion
+          dtype: bool
+        - name: noAnswer
+          dtype: bool
+    - name: validated_answers
+      sequence:
+      - name: s
+        dtype: int32
+      - name: e
+        dtype: int32
+      - name: badQuestion
+        dtype: bool
+      - name: noAnswer
+        dtype: bool
+      - name: count
+        dtype: int32
+  splits:
+  - name: train
+    num_bytes: 68667276
+    num_examples: 12744
+  download_size: 0
+  dataset_size: 68667276
+- config_name: split
+  features:
+  - name: story_id
+    dtype: string
+  - name: story_text
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer_token_ranges
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 19763673
+    num_examples: 5126
+  - name: train
+    num_bytes: 362031288
+    num_examples: 92549
+  - name: validation
+    num_bytes: 19862778
+    num_examples: 5166
+  download_size: 0
+  dataset_size: 401657739
 ---
 
 # Dataset Card for NewsQA

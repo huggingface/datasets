@@ -19,6 +19,30 @@ task_ids:
 - semantic-similarity-classification
 paperswithcode_id: null
 pretty_name: KorQpair
+dataset_info:
+  features:
+  - name: question1
+    dtype: string
+  - name: question2
+    dtype: string
+  - name: is_duplicate
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 63466
+    num_examples: 758
+  - name: train
+    num_bytes: 515365
+    num_examples: 6136
+  - name: validation
+    num_bytes: 57242
+    num_examples: 682
+  download_size: 545236
+  dataset_size: 636073
 ---
 
 # Dataset Card for [Dataset Name]

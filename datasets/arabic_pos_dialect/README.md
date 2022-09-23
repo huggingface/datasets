@@ -19,6 +19,79 @@ task_ids:
 - part-of-speech
 paperswithcode_id: null
 pretty_name: Arabic POS Dialect
+dataset_info:
+- config_name: egy
+  features:
+  - name: fold
+    dtype: int32
+  - name: subfold
+    dtype: string
+  - name: words
+    sequence: string
+  - name: segments
+    sequence: string
+  - name: pos_tags
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 269657
+    num_examples: 350
+  download_size: 1043655
+  dataset_size: 269657
+- config_name: lev
+  features:
+  - name: fold
+    dtype: int32
+  - name: subfold
+    dtype: string
+  - name: words
+    sequence: string
+  - name: segments
+    sequence: string
+  - name: pos_tags
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 263130
+    num_examples: 350
+  download_size: 1043655
+  dataset_size: 263130
+- config_name: glf
+  features:
+  - name: fold
+    dtype: int32
+  - name: subfold
+    dtype: string
+  - name: words
+    sequence: string
+  - name: segments
+    sequence: string
+  - name: pos_tags
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 239911
+    num_examples: 350
+  download_size: 1043655
+  dataset_size: 239911
+- config_name: mgr
+  features:
+  - name: fold
+    dtype: int32
+  - name: subfold
+    dtype: string
+  - name: words
+    sequence: string
+  - name: segments
+    sequence: string
+  - name: pos_tags
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 245745
+    num_examples: 350
+  download_size: 1043655
+  dataset_size: 245745
 ---
 
 # Dataset Card for Arabic POS Dialect

@@ -22,6 +22,19 @@ task_ids:
 - other-diacritics-prediction
 paperswithcode_id: null
 pretty_name: Tashkeela
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: book
+    dtype: string
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 1081110249
+    num_examples: 97
+  download_size: 183393530
+  dataset_size: 1081110249
 ---
 
 # Dataset Card for Tashkeela

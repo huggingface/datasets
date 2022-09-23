@@ -20,6 +20,80 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-knowledge-verification
+dataset_info:
+- config_name: v1.0
+  features:
+  - name: id
+    dtype: int32
+  - name: label
+    dtype: string
+  - name: claim
+    dtype: string
+  - name: evidence_annotation_id
+    dtype: int32
+  - name: evidence_id
+    dtype: int32
+  - name: evidence_wiki_url
+    dtype: string
+  - name: evidence_sentence_id
+    dtype: int32
+  splits:
+  - name: labelled_dev
+    num_bytes: 3643157
+    num_examples: 37566
+  - name: paper_dev
+    num_bytes: 1821489
+    num_examples: 18999
+  - name: paper_test
+    num_bytes: 1821668
+    num_examples: 18567
+  - name: train
+    num_bytes: 29591412
+    num_examples: 311431
+  - name: unlabelled_dev
+    num_bytes: 1548965
+    num_examples: 19998
+  - name: unlabelled_test
+    num_bytes: 1617002
+    num_examples: 19998
+  download_size: 44853972
+  dataset_size: 40043693
+- config_name: v2.0
+  features:
+  - name: id
+    dtype: int32
+  - name: label
+    dtype: string
+  - name: claim
+    dtype: string
+  - name: evidence_annotation_id
+    dtype: int32
+  - name: evidence_id
+    dtype: int32
+  - name: evidence_wiki_url
+    dtype: string
+  - name: evidence_sentence_id
+    dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 306243
+    num_examples: 2384
+  download_size: 392466
+  dataset_size: 306243
+- config_name: wiki_pages
+  features:
+  - name: id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: lines
+    dtype: string
+  splits:
+  - name: wikipedia_pages
+    num_bytes: 7254115038
+    num_examples: 5416537
+  download_size: 1713485474
+  dataset_size: 7254115038
 ---
 
 # Dataset Card for "fever"

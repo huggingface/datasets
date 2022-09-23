@@ -19,6 +19,31 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: asnq
+dataset_info:
+  features:
+  - name: question
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  - name: sentence_in_long_answer
+    dtype: bool
+  - name: short_answer_in_sentence
+    dtype: bool
+  splits:
+  - name: train
+    num_bytes: 3656881376
+    num_examples: 20377568
+  - name: validation
+    num_bytes: 168005155
+    num_examples: 930062
+  download_size: 3563857920
+  dataset_size: 3824886531
 ---
 
 # Dataset Card for "asnq"

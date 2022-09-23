@@ -20,6 +20,26 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: MsrZhenTranslationParity
+dataset_info:
+  features:
+  - name: Reference-HT
+    dtype: string
+  - name: Reference-PE
+    dtype: string
+  - name: Combo-4
+    dtype: string
+  - name: Combo-5
+    dtype: string
+  - name: Combo-6
+    dtype: string
+  - name: Online-A-1710
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1797033
+    num_examples: 2001
+  download_size: 0
+  dataset_size: 1797033
 ---
 
 # Dataset Card for msr_zhen_translation_parity

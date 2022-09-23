@@ -11,7 +11,7 @@ multilinguality:
 - multilingual
 pretty_name: WikiSnippets
 size_categories:
-- "10M<n<100M"
+- 10M<n<100M
 source_datasets:
 - extended|wiki40b
 - extended|wikipedia
@@ -22,6 +22,63 @@ task_ids:
 - language-modeling
 - other-text-search
 paperswithcode_id: null
+dataset_info:
+- config_name: wiki40b_en_100_0
+  features:
+  - name: _id
+    dtype: string
+  - name: datasets_id
+    dtype: int32
+  - name: wiki_id
+    dtype: string
+  - name: start_paragraph
+    dtype: int32
+  - name: start_character
+    dtype: int32
+  - name: end_paragraph
+    dtype: int32
+  - name: end_character
+    dtype: int32
+  - name: article_title
+    dtype: string
+  - name: section_title
+    dtype: string
+  - name: passage_text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 12938641686
+    num_examples: 17553713
+  download_size: 0
+  dataset_size: 12938641686
+- config_name: wikipedia_en_100_0
+  features:
+  - name: _id
+    dtype: string
+  - name: datasets_id
+    dtype: int32
+  - name: wiki_id
+    dtype: string
+  - name: start_paragraph
+    dtype: int32
+  - name: start_character
+    dtype: int32
+  - name: end_paragraph
+    dtype: int32
+  - name: end_character
+    dtype: int32
+  - name: article_title
+    dtype: string
+  - name: section_title
+    dtype: string
+  - name: passage_text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 26407884393
+    num_examples: 33849898
+  download_size: 0
+  dataset_size: 26407884393
 ---
 
 # Dataset Card for "wiki_snippets"

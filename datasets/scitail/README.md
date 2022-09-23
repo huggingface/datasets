@@ -3,6 +3,103 @@ language:
 - en
 paperswithcode_id: scitail
 pretty_name: SciTail
+dataset_info:
+- config_name: snli_format
+  features:
+  - name: sentence1_binary_parse
+    dtype: string
+  - name: sentence1_parse
+    dtype: string
+  - name: sentence1
+    dtype: string
+  - name: sentence2_parse
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: annotator_labels
+    sequence: string
+  - name: gold_label
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2008631
+    num_examples: 2126
+  - name: train
+    num_bytes: 22495833
+    num_examples: 23596
+  - name: validation
+    num_bytes: 1266529
+    num_examples: 1304
+  download_size: 14174621
+  dataset_size: 25770993
+- config_name: tsv_format
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 411343
+    num_examples: 2126
+  - name: train
+    num_bytes: 4618115
+    num_examples: 23097
+  - name: validation
+    num_bytes: 261086
+    num_examples: 1304
+  download_size: 14174621
+  dataset_size: 5290544
+- config_name: dgem_format
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype: string
+  - name: hypothesis_graph_structure
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 608213
+    num_examples: 2126
+  - name: train
+    num_bytes: 6832104
+    num_examples: 23088
+  - name: validation
+    num_bytes: 394040
+    num_examples: 1304
+  download_size: 14174621
+  dataset_size: 7834357
+- config_name: predictor_format
+  features:
+  - name: answer
+    dtype: string
+  - name: sentence2_structure
+    dtype: string
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: gold_label
+    dtype: string
+  - name: question
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 797161
+    num_examples: 2126
+  - name: train
+    num_bytes: 8884823
+    num_examples: 23587
+  - name: validation
+    num_bytes: 511305
+    num_examples: 1304
+  download_size: 14174621
+  dataset_size: 10193289
 ---
 
 # Dataset Card for "scitail"

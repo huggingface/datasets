@@ -19,6 +19,53 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: cos-e
+dataset_info:
+- config_name: v1.0
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: choices
+    sequence: string
+  - name: answer
+    dtype: string
+  - name: abstractive_explanation
+    dtype: string
+  - name: extractive_explanation
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2077517
+    num_examples: 7610
+  - name: validation
+    num_bytes: 261887
+    num_examples: 950
+  download_size: 4295320
+  dataset_size: 2339404
+- config_name: v1.11
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: choices
+    sequence: string
+  - name: answer
+    dtype: string
+  - name: abstractive_explanation
+    dtype: string
+  - name: extractive_explanation
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2717420
+    num_examples: 9741
+  - name: validation
+    num_bytes: 331760
+    num_examples: 1221
+  download_size: 6535534
+  dataset_size: 3049180
 ---
 
 # Dataset Card for "cos_e"

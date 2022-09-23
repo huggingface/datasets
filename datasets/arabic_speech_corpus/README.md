@@ -33,6 +33,30 @@ train-eval-index:
     name: WER
   - type: cer
     name: CER
+dataset_info:
+  features:
+  - name: file
+    dtype: string
+  - name: text
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: phonetic
+    dtype: string
+  - name: orthographic
+    dtype: string
+  config_name: clean
+  splits:
+  - name: test
+    num_bytes: 65784
+    num_examples: 100
+  - name: train
+    num_bytes: 1002365
+    num_examples: 1813
+  download_size: 1192302846
+  dataset_size: 1068149
 ---
 
 # Dataset Card for Arabic Speech Corpus

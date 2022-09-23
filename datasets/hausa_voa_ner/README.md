@@ -19,6 +19,38 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: Hausa VOA NER Corpus
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-DATE
+          8: I-DATE
+  config_name: hausa_voa_ner
+  splits:
+  - name: test
+    num_bytes: 139227
+    num_examples: 292
+  - name: train
+    num_bytes: 483634
+    num_examples: 1015
+  - name: validation
+    num_bytes: 69673
+    num_examples: 146
+  download_size: 324962
+  dataset_size: 692534
 ---
 
 # Dataset Card for Hausa VOA NER Corpus

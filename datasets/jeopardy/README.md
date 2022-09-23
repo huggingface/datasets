@@ -3,6 +3,28 @@ language:
 - en
 paperswithcode_id: null
 pretty_name: jeopardy
+dataset_info:
+  features:
+  - name: category
+    dtype: string
+  - name: air_date
+    dtype: string
+  - name: question
+    dtype: string
+  - name: value
+    dtype: int32
+  - name: answer
+    dtype: string
+  - name: round
+    dtype: string
+  - name: show_number
+    dtype: int32
+  splits:
+  - name: train
+    num_bytes: 35916080
+    num_examples: 216930
+  download_size: 55554625
+  dataset_size: 35916080
 ---
 
 # Dataset Card for "jeopardy"

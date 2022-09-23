@@ -23,6 +23,51 @@ task_ids:
 - language-modeling
 - open-domain-qa
 paperswithcode_id: truthfulqa
+dataset_info:
+- config_name: generation
+  features:
+  - name: type
+    dtype: string
+  - name: category
+    dtype: string
+  - name: question
+    dtype: string
+  - name: best_answer
+    dtype: string
+  - name: correct_answers
+    sequence: string
+  - name: incorrect_answers
+    sequence: string
+  - name: source
+    dtype: string
+  splits:
+  - name: validation
+    num_bytes: 473382
+    num_examples: 817
+  download_size: 443723
+  dataset_size: 473382
+- config_name: multiple_choice
+  features:
+  - name: question
+    dtype: string
+  - name: mc1_targets
+    struct:
+    - name: choices
+      sequence: string
+    - name: labels
+      sequence: int32
+  - name: mc2_targets
+    struct:
+    - name: choices
+      sequence: string
+    - name: labels
+      sequence: int32
+  splits:
+  - name: validation
+    num_bytes: 610333
+    num_examples: 817
+  download_size: 710607
+  dataset_size: 610333
 ---
 
 # Dataset Card for truthful_qa

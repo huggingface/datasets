@@ -19,6 +19,33 @@ task_categories:
 task_ids:
 - question-answering-other-coreference-resolution
 paperswithcode_id: quoref
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: context
+    dtype: string
+  - name: title
+    dtype: string
+  - name: url
+    dtype: string
+  - name: answers
+    sequence:
+    - name: answer_start
+      dtype: int32
+    - name: text
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 44377729
+    num_examples: 19399
+  - name: validation
+    num_bytes: 5442031
+    num_examples: 2418
+  download_size: 5078438
+  dataset_size: 49819760
 ---
 
 # Dataset Card for "quoref"

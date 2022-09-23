@@ -32,6 +32,385 @@ configs:
 - release_v3.0_en
 - release_v3.0_ru
 - webnlg_challenge_2017
+dataset_info:
+- config_name: webnlg_challenge_2017
+  features:
+  - name: category
+    dtype: string
+  - name: size
+    dtype: int32
+  - name: eid
+    dtype: string
+  - name: original_triple_sets
+    sequence:
+    - name: otriple_set
+      sequence: string
+  - name: modified_triple_sets
+    sequence:
+    - name: mtriple_set
+      sequence: string
+  - name: shape
+    dtype: string
+  - name: shape_type
+    dtype: string
+  - name: lex
+    sequence:
+    - name: comment
+      dtype: string
+    - name: lid
+      dtype: string
+    - name: text
+      dtype: string
+    - name: lang
+      dtype: string
+  - name: test_category
+    dtype: string
+  - name: dbpedia_links
+    sequence: string
+  - name: links
+    sequence: string
+  splits:
+  - name: dev
+    num_bytes: 706653
+    num_examples: 872
+  - name: test
+    num_bytes: 3122533
+    num_examples: 4615
+  - name: train
+    num_bytes: 5594812
+    num_examples: 6940
+  download_size: 25499351
+  dataset_size: 9423998
+- config_name: release_v1
+  features:
+  - name: category
+    dtype: string
+  - name: size
+    dtype: int32
+  - name: eid
+    dtype: string
+  - name: original_triple_sets
+    sequence:
+    - name: otriple_set
+      sequence: string
+  - name: modified_triple_sets
+    sequence:
+    - name: mtriple_set
+      sequence: string
+  - name: shape
+    dtype: string
+  - name: shape_type
+    dtype: string
+  - name: lex
+    sequence:
+    - name: comment
+      dtype: string
+    - name: lid
+      dtype: string
+    - name: text
+      dtype: string
+    - name: lang
+      dtype: string
+  - name: test_category
+    dtype: string
+  - name: dbpedia_links
+    sequence: string
+  - name: links
+    sequence: string
+  splits:
+  - name: full
+    num_bytes: 11684308
+    num_examples: 14237
+  download_size: 25499351
+  dataset_size: 11684308
+- config_name: release_v2
+  features:
+  - name: category
+    dtype: string
+  - name: size
+    dtype: int32
+  - name: eid
+    dtype: string
+  - name: original_triple_sets
+    sequence:
+    - name: otriple_set
+      sequence: string
+  - name: modified_triple_sets
+    sequence:
+    - name: mtriple_set
+      sequence: string
+  - name: shape
+    dtype: string
+  - name: shape_type
+    dtype: string
+  - name: lex
+    sequence:
+    - name: comment
+      dtype: string
+    - name: lid
+      dtype: string
+    - name: text
+      dtype: string
+    - name: lang
+      dtype: string
+  - name: test_category
+    dtype: string
+  - name: dbpedia_links
+    sequence: string
+  - name: links
+    sequence: string
+  splits:
+  - name: dev
+    num_bytes: 1360033
+    num_examples: 1619
+  - name: test
+    num_bytes: 1324934
+    num_examples: 1600
+  - name: train
+    num_bytes: 10830413
+    num_examples: 12876
+  download_size: 25499351
+  dataset_size: 13515380
+- config_name: release_v2_constrained
+  features:
+  - name: category
+    dtype: string
+  - name: size
+    dtype: int32
+  - name: eid
+    dtype: string
+  - name: original_triple_sets
+    sequence:
+    - name: otriple_set
+      sequence: string
+  - name: modified_triple_sets
+    sequence:
+    - name: mtriple_set
+      sequence: string
+  - name: shape
+    dtype: string
+  - name: shape_type
+    dtype: string
+  - name: lex
+    sequence:
+    - name: comment
+      dtype: string
+    - name: lid
+      dtype: string
+    - name: text
+      dtype: string
+    - name: lang
+      dtype: string
+  - name: test_category
+    dtype: string
+  - name: dbpedia_links
+    sequence: string
+  - name: links
+    sequence: string
+  splits:
+  - name: dev
+    num_bytes: 1421590
+    num_examples: 1594
+  - name: test
+    num_bytes: 1243182
+    num_examples: 1606
+  - name: train
+    num_bytes: 10853434
+    num_examples: 12895
+  download_size: 25499351
+  dataset_size: 13518206
+- config_name: release_v2.1
+  features:
+  - name: category
+    dtype: string
+  - name: size
+    dtype: int32
+  - name: eid
+    dtype: string
+  - name: original_triple_sets
+    sequence:
+    - name: otriple_set
+      sequence: string
+  - name: modified_triple_sets
+    sequence:
+    - name: mtriple_set
+      sequence: string
+  - name: shape
+    dtype: string
+  - name: shape_type
+    dtype: string
+  - name: lex
+    sequence:
+    - name: comment
+      dtype: string
+    - name: lid
+      dtype: string
+    - name: text
+      dtype: string
+    - name: lang
+      dtype: string
+  - name: test_category
+    dtype: string
+  - name: dbpedia_links
+    sequence: string
+  - name: links
+    sequence: string
+  splits:
+  - name: dev
+    num_bytes: 1362072
+    num_examples: 1619
+  - name: test
+    num_bytes: 1325860
+    num_examples: 1600
+  - name: train
+    num_bytes: 10848793
+    num_examples: 12876
+  download_size: 25499351
+  dataset_size: 13536725
+- config_name: release_v2.1_constrained
+  features:
+  - name: category
+    dtype: string
+  - name: size
+    dtype: int32
+  - name: eid
+    dtype: string
+  - name: original_triple_sets
+    sequence:
+    - name: otriple_set
+      sequence: string
+  - name: modified_triple_sets
+    sequence:
+    - name: mtriple_set
+      sequence: string
+  - name: shape
+    dtype: string
+  - name: shape_type
+    dtype: string
+  - name: lex
+    sequence:
+    - name: comment
+      dtype: string
+    - name: lid
+      dtype: string
+    - name: text
+      dtype: string
+    - name: lang
+      dtype: string
+  - name: test_category
+    dtype: string
+  - name: dbpedia_links
+    sequence: string
+  - name: links
+    sequence: string
+  splits:
+  - name: dev
+    num_bytes: 1284044
+    num_examples: 1594
+  - name: test
+    num_bytes: 1212665
+    num_examples: 1606
+  - name: train
+    num_bytes: 11040016
+    num_examples: 12895
+  download_size: 25499351
+  dataset_size: 13536725
+- config_name: release_v3.0_en
+  features:
+  - name: category
+    dtype: string
+  - name: size
+    dtype: int32
+  - name: eid
+    dtype: string
+  - name: original_triple_sets
+    sequence:
+    - name: otriple_set
+      sequence: string
+  - name: modified_triple_sets
+    sequence:
+    - name: mtriple_set
+      sequence: string
+  - name: shape
+    dtype: string
+  - name: shape_type
+    dtype: string
+  - name: lex
+    sequence:
+    - name: comment
+      dtype: string
+    - name: lid
+      dtype: string
+    - name: text
+      dtype: string
+    - name: lang
+      dtype: string
+  - name: test_category
+    dtype: string
+  - name: dbpedia_links
+    sequence: string
+  - name: links
+    sequence: string
+  splits:
+  - name: dev
+    num_bytes: 1394243
+    num_examples: 1667
+  - name: test
+    num_bytes: 4039282
+    num_examples: 5713
+  - name: train
+    num_bytes: 11084860
+    num_examples: 13211
+  download_size: 25499351
+  dataset_size: 16518385
+- config_name: release_v3.0_ru
+  features:
+  - name: category
+    dtype: string
+  - name: size
+    dtype: int32
+  - name: eid
+    dtype: string
+  - name: original_triple_sets
+    sequence:
+    - name: otriple_set
+      sequence: string
+  - name: modified_triple_sets
+    sequence:
+    - name: mtriple_set
+      sequence: string
+  - name: shape
+    dtype: string
+  - name: shape_type
+    dtype: string
+  - name: lex
+    sequence:
+    - name: comment
+      dtype: string
+    - name: lid
+      dtype: string
+    - name: text
+      dtype: string
+    - name: lang
+      dtype: string
+  - name: test_category
+    dtype: string
+  - name: dbpedia_links
+    sequence: string
+  - name: links
+    sequence: string
+  splits:
+  - name: dev
+    num_bytes: 1314226
+    num_examples: 790
+  - name: test
+    num_bytes: 3656501
+    num_examples: 3410
+  - name: train
+    num_bytes: 9550340
+    num_examples: 5573
+  download_size: 25499351
+  dataset_size: 14521067
 ---
 
 # Dataset Card for WebNLG

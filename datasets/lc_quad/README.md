@@ -9,7 +9,7 @@ license:
 - cc-by-3.0
 multilinguality:
 - monolingual
-pretty_name: "LC-QuAD 2.0: Large-scale Complex Question Answering Dataset"
+pretty_name: 'LC-QuAD 2.0: Large-scale Complex Question Answering Dataset'
 size_categories:
 - 10K<n<100K
 source_datasets:
@@ -19,6 +19,35 @@ task_categories:
 task_ids:
 - question-answering-other-knowledge-base-qa
 paperswithcode_id: lc-quad-2-0
+dataset_info:
+  features:
+  - name: NNQT_question
+    dtype: string
+  - name: uid
+    dtype: int32
+  - name: subgraph
+    dtype: string
+  - name: template_index
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: sparql_wikidata
+    dtype: string
+  - name: sparql_dbpedia18
+    dtype: string
+  - name: template
+    dtype: string
+  - name: paraphrased_question
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 4067092
+    num_examples: 4781
+  - name: train
+    num_bytes: 16637751
+    num_examples: 19293
+  download_size: 3959901
+  dataset_size: 20704843
 ---
 
 # Dataset Card for LC-QuAD 2.0

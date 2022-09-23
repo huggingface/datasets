@@ -20,6 +20,35 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: sberquad
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  config_name: sberquad
+  splits:
+  - name: test
+    num_bytes: 36397848
+    num_examples: 23936
+  - name: train
+    num_bytes: 71631661
+    num_examples: 45328
+  - name: validation
+    num_bytes: 7972977
+    num_examples: 5036
+  download_size: 66047276
+  dataset_size: 116002486
 ---
 
 

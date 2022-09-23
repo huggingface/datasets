@@ -1,6 +1,30 @@
 ---
 pretty_name: Sogou News
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: title
+    dtype: string
+  - name: content
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: sports
+          1: finance
+          2: entertainment
+          3: automobile
+          4: technology
+  splits:
+  - name: test
+    num_bytes: 168645860
+    num_examples: 60000
+  - name: train
+    num_bytes: 1257931136
+    num_examples: 450000
+  download_size: 384269937
+  dataset_size: 1426576996
 ---
 
 # Dataset Card for "sogou_news"

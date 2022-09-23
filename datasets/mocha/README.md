@@ -19,6 +19,47 @@ task_categories:
 task_ids:
 - question-answering-other-generative-reading-comprehension-metric
 paperswithcode_id: mocha
+dataset_info:
+  features:
+  - name: constituent_dataset
+    dtype: string
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: reference
+    dtype: string
+  - name: candidate
+    dtype: string
+  - name: score
+    dtype: float32
+  - name: metadata
+    struct:
+    - name: scores
+      sequence: int32
+    - name: source
+      dtype: string
+  - name: candidate2
+    dtype: string
+  - name: score2
+    dtype: float32
+  splits:
+  - name: minimal_pairs
+    num_bytes: 193560
+    num_examples: 200
+  - name: test
+    num_bytes: 6767409
+    num_examples: 6321
+  - name: train
+    num_bytes: 33292592
+    num_examples: 31069
+  - name: validation
+    num_bytes: 4236883
+    num_examples: 4009
+  download_size: 14452311
+  dataset_size: 44490444
 ---
 
 # Dataset Card for Mocha

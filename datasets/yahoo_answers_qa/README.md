@@ -19,6 +19,25 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: null
 pretty_name: YahooAnswersQa
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: nbestanswers
+    sequence: string
+  - name: main_category
+    dtype: string
+  config_name: yahoo_answers_qa
+  splits:
+  - name: train
+    num_bytes: 138540510
+    num_examples: 87362
+  download_size: 49411220
+  dataset_size: 138540510
 ---
 
 # Dataset Card for YahooAnswersQa

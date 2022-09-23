@@ -24,6 +24,113 @@ task_ids:
 - language-modeling
 - masked-language-modeling
 paperswithcode_id: null
+dataset_info:
+- config_name: air_dialogue_data
+  features:
+  - name: action
+    struct:
+    - name: status
+      dtype: string
+    - name: name
+      dtype: string
+    - name: flight
+      sequence: int32
+  - name: intent
+    struct:
+    - name: return_month
+      dtype: string
+    - name: return_day
+      dtype: string
+    - name: max_price
+      dtype: int32
+    - name: departure_airport
+      dtype: string
+    - name: max_connections
+      dtype: int32
+    - name: departure_day
+      dtype: string
+    - name: goal
+      dtype: string
+    - name: departure_month
+      dtype: string
+    - name: name
+      dtype: string
+    - name: return_airport
+      dtype: string
+  - name: timestamps
+    sequence: int64
+  - name: dialogue
+    sequence: string
+  - name: expected_action
+    struct:
+    - name: status
+      dtype: string
+    - name: name
+      dtype: string
+    - name: flight
+      sequence: int32
+  - name: search_info
+    list:
+    - name: button_name
+      dtype: string
+    - name: field_name
+      dtype: string
+    - name: field_value
+      dtype: string
+    - name: timestmamp
+      dtype: int64
+  - name: correct_sample
+    dtype: bool_
+  splits:
+  - name: train
+    num_bytes: 353721137
+    num_examples: 321459
+  - name: validation
+    num_bytes: 44442238
+    num_examples: 40363
+  download_size: 272898923
+  dataset_size: 398163375
+- config_name: air_dialogue_kb
+  features:
+  - name: kb
+    list:
+    - name: airline
+      dtype: string
+    - name: class
+      dtype: string
+    - name: departure_airport
+      dtype: string
+    - name: departure_day
+      dtype: string
+    - name: departure_month
+      dtype: string
+    - name: departure_time_num
+      dtype: int32
+    - name: flight_number
+      dtype: int32
+    - name: num_connections
+      dtype: int32
+    - name: price
+      dtype: int32
+    - name: return_airport
+      dtype: string
+    - name: return_day
+      dtype: string
+    - name: return_month
+      dtype: string
+    - name: return_time_num
+      dtype: int32
+  - name: reservation
+    dtype: int32
+  splits:
+  - name: train
+    num_bytes: 782592158
+    num_examples: 321459
+  - name: validation
+    num_bytes: 98269789
+    num_examples: 40363
+  download_size: 272898923
+  dataset_size: 880861947
 ---
 
 # Dataset Card for air_dialogue

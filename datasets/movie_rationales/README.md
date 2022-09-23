@@ -19,6 +19,30 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: review
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: NEG
+          1: POS
+  - name: evidences
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 1046377
+    num_examples: 199
+  - name: train
+    num_bytes: 6853624
+    num_examples: 1600
+  - name: validation
+    num_bytes: 830417
+    num_examples: 200
+  download_size: 3899487
+  dataset_size: 8730418
 ---
 
 # Dataset Card for "movie_rationales"

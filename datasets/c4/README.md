@@ -21,6 +21,75 @@ task_ids:
 - language-modeling
 - masked-language-modeling
 paperswithcode_id: c4
+dataset_info:
+- config_name: en
+  features:
+  - name: text
+    dtype: string
+  - name: timestamp
+    dtype: string
+  - name: url
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 828589180707
+    num_examples: 364868892
+  - name: validation
+    num_bytes: 825767266
+    num_examples: 364608
+  download_size: 326778635540
+  dataset_size: 1657178361414
+- config_name: en.noblocklist
+  features:
+  - name: text
+    dtype: string
+  - name: timestamp
+    dtype: string
+  - name: url
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1029628201361
+    num_examples: 393391519
+  - name: validation
+    num_bytes: 1025606012
+    num_examples: 393226
+  download_size: 406611392434
+  dataset_size: 2059256402722
+- config_name: realnewslike
+  features:
+  - name: text
+    dtype: string
+  - name: timestamp
+    dtype: string
+  - name: url
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 38165657946
+    num_examples: 13799838
+  - name: validation
+    num_bytes: 37875873
+    num_examples: 13863
+  download_size: 15419740744
+  dataset_size: 76331315892
+- config_name: en.noclean
+  features:
+  - name: text
+    dtype: string
+  - name: timestamp
+    dtype: string
+  - name: url
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 6715509699938
+    num_examples: 1063805381
+  - name: validation
+    num_bytes: 6706356913
+    num_examples: 1065029
+  download_size: 2430376268625
+  dataset_size: 6722216056851
 ---
 
 # Dataset Card for C4

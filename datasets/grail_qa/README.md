@@ -19,6 +19,74 @@ task_ids:
 - question-answering-other-knowledge-base-qa
 paperswithcode_id: null
 pretty_name: Grail QA
+dataset_info:
+  features:
+  - name: qid
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer
+    sequence:
+    - name: answer_type
+      dtype: string
+    - name: answer_argument
+      dtype: string
+    - name: entity_name
+      dtype: string
+  - name: function
+    dtype: string
+  - name: num_node
+    dtype: int32
+  - name: num_edge
+    dtype: int32
+  - name: graph_query
+    struct:
+    - name: nodes
+      sequence:
+      - name: nid
+        dtype: int32
+      - name: node_type
+        dtype: string
+      - name: id
+        dtype: string
+      - name: class
+        dtype: string
+      - name: friendly_name
+        dtype: string
+      - name: question_node
+        dtype: int32
+      - name: function
+        dtype: string
+    - name: edges
+      sequence:
+      - name: start
+        dtype: int32
+      - name: end
+        dtype: int32
+      - name: relation
+        dtype: string
+      - name: friendly_name
+        dtype: string
+  - name: sparql_query
+    dtype: string
+  - name: domains
+    sequence: string
+  - name: level
+    dtype: string
+  - name: s_expression
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2167256
+    num_examples: 13231
+  - name: train
+    num_bytes: 69433121
+    num_examples: 44337
+  - name: validation
+    num_bytes: 9800544
+    num_examples: 6763
+  download_size: 17636773
+  dataset_size: 81400921
 ---
 
 # Dataset Card for Grail QA

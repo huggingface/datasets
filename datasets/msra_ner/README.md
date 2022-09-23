@@ -30,8 +30,35 @@ train-eval-index:
     tokens: tokens
     ner_tags: tags
   metrics:
-    - type: seqeval
-      name: seqeval
+  - type: seqeval
+    name: seqeval
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+  config_name: msra_ner
+  splits:
+  - name: test
+    num_bytes: 2642934
+    num_examples: 3443
+  - name: train
+    num_bytes: 33323074
+    num_examples: 45001
+  download_size: 15156606
+  dataset_size: 35966008
 ---
 
 # Dataset Card for MSRA NER

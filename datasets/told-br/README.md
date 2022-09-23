@@ -13,7 +13,7 @@ multilinguality:
 - monolingual
 pretty_name: ToLD-Br
 size_categories:
-- 10K<n<100K 
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -21,6 +21,87 @@ task_categories:
 task_ids:
 - text-classification-other-hate-speech-detection
 paperswithcode_id: told-br
+dataset_info:
+- config_name: multilabel
+  features:
+  - name: text
+    dtype: string
+  - name: homophobia
+    dtype:
+      class_label:
+        names:
+          0: zero_votes
+          1: one_vote
+          2: two_votes
+          3: three_votes
+  - name: obscene
+    dtype:
+      class_label:
+        names:
+          0: zero_votes
+          1: one_vote
+          2: two_votes
+          3: three_votes
+  - name: insult
+    dtype:
+      class_label:
+        names:
+          0: zero_votes
+          1: one_vote
+          2: two_votes
+          3: three_votes
+  - name: racism
+    dtype:
+      class_label:
+        names:
+          0: zero_votes
+          1: one_vote
+          2: two_votes
+          3: three_votes
+  - name: misogyny
+    dtype:
+      class_label:
+        names:
+          0: zero_votes
+          1: one_vote
+          2: two_votes
+          3: three_votes
+  - name: xenophobia
+    dtype:
+      class_label:
+        names:
+          0: zero_votes
+          1: one_vote
+          2: two_votes
+          3: three_votes
+  splits:
+  - name: train
+    num_bytes: 2978006
+    num_examples: 21000
+  download_size: 2430416
+  dataset_size: 2978006
+- config_name: binary
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: not-toxic
+          1: toxic
+  splits:
+  - name: test
+    num_bytes: 216297
+    num_examples: 2100
+  - name: train
+    num_bytes: 1709560
+    num_examples: 16800
+  - name: validation
+    num_bytes: 212153
+    num_examples: 2100
+  download_size: 853322
+  dataset_size: 2138010
 ---
 
 # Dataset Card for "ToLD-Br"

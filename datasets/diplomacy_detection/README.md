@@ -19,6 +19,170 @@ task_ids:
 - intent-classification
 paperswithcode_id: null
 pretty_name: HateOffensive
+dataset_info:
+  features:
+  - name: messages
+    sequence: string
+  - name: sender_labels
+    sequence:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: receiver_labels
+    sequence:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+          2: noannotation
+  - name: speakers
+    sequence:
+      class_label:
+        names:
+          0: italy
+          1: turkey
+          2: russia
+          3: england
+          4: austria
+          5: germany
+          6: france
+  - name: receivers
+    sequence:
+      class_label:
+        names:
+          0: italy
+          1: turkey
+          2: russia
+          3: england
+          4: austria
+          5: germany
+          6: france
+  - name: absolute_message_index
+    sequence: int64
+  - name: relative_message_index
+    sequence: int64
+  - name: seasons
+    sequence:
+      class_label:
+        names:
+          0: spring
+          1: fall
+          2: winter
+          3: Spring
+          4: Fall
+          5: Winter
+  - name: years
+    sequence:
+      class_label:
+        names:
+          0: '1901'
+          1: '1902'
+          2: '1903'
+          3: '1904'
+          4: '1905'
+          5: '1906'
+          6: '1907'
+          7: '1908'
+          8: '1909'
+          9: '1910'
+          10: '1911'
+          11: '1912'
+          12: '1913'
+          13: '1914'
+          14: '1915'
+          15: '1916'
+          16: '1917'
+          17: '1918'
+  - name: game_score
+    sequence:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+          2: '2'
+          3: '3'
+          4: '4'
+          5: '5'
+          6: '6'
+          7: '7'
+          8: '8'
+          9: '9'
+          10: '10'
+          11: '11'
+          12: '12'
+          13: '13'
+          14: '14'
+          15: '15'
+          16: '16'
+          17: '17'
+          18: '18'
+  - name: game_score_delta
+    sequence:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+          2: '2'
+          3: '3'
+          4: '4'
+          5: '5'
+          6: '6'
+          7: '7'
+          8: '8'
+          9: '9'
+          10: '10'
+          11: '11'
+          12: '12'
+          13: '13'
+          14: '14'
+          15: '15'
+          16: '16'
+          17: '17'
+          18: '18'
+          19: '-1'
+          20: '-2'
+          21: '-3'
+          22: '-4'
+          23: '-5'
+          24: '-6'
+          25: '-7'
+          26: '-8'
+          27: '-9'
+          28: '-10'
+          29: '-11'
+          30: '-12'
+          31: '-13'
+          32: '-14'
+          33: '-15'
+          34: '-16'
+          35: '-17'
+          36: '-18'
+  - name: players
+    sequence:
+      class_label:
+        names:
+          0: italy
+          1: turkey
+          2: russia
+          3: england
+          4: austria
+          5: germany
+          6: france
+  - name: game_id
+    dtype: int64
+  splits:
+  - name: test
+    num_bytes: 506191
+    num_examples: 42
+  - name: train
+    num_bytes: 2539778
+    num_examples: 189
+  - name: validation
+    num_bytes: 254344
+    num_examples: 21
+  download_size: 3208706
+  dataset_size: 3300313
 ---
 
 # Dataset Card for HateOffensive

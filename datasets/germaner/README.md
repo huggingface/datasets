@@ -19,6 +19,31 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: GermaNER
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-LOC
+          1: B-ORG
+          2: B-OTH
+          3: B-PER
+          4: I-LOC
+          5: I-ORG
+          6: I-OTH
+          7: I-PER
+          8: O
+  splits:
+  - name: train
+    num_bytes: 9059606
+    num_examples: 26200
+  download_size: 4363657
+  dataset_size: 9059606
 ---
 
 # Dataset Card for GermaNER

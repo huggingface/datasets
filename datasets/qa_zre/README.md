@@ -19,6 +19,30 @@ task_categories:
 task_ids:
 - question-answering-other-zero-shot-relation-extraction
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: relation
+    dtype: string
+  - name: question
+    dtype: string
+  - name: subject
+    dtype: string
+  - name: context
+    dtype: string
+  - name: answers
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 29410194
+    num_examples: 120000
+  - name: train
+    num_bytes: 2054954011
+    num_examples: 8400000
+  - name: validation
+    num_bytes: 1481430
+    num_examples: 6000
+  download_size: 516061636
+  dataset_size: 2085845635
 ---
 
 # Dataset Card for QaZre

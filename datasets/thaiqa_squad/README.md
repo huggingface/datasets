@@ -20,6 +20,34 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: null
 pretty_name: thaiqa-squad
+dataset_info:
+  features:
+  - name: question_id
+    dtype: int32
+  - name: article_id
+    dtype: int32
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: answer
+      dtype: string
+    - name: answer_begin_position
+      dtype: int32
+    - name: answer_end_position
+      dtype: int32
+  config_name: thaiqa_squad
+  splits:
+  - name: train
+    num_bytes: 47905050
+    num_examples: 4000
+  - name: validation
+    num_bytes: 744813
+    num_examples: 74
+  download_size: 10003354
+  dataset_size: 48649863
 ---
 
 # Dataset Card for `thaiqa-squad`

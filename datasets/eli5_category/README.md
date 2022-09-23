@@ -20,6 +20,48 @@ task_categories:
 task_ids:
 - abstractive-qa
 - open-domain-abstractive-qa
+dataset_info:
+  features:
+  - name: q_id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: selftext
+    dtype: string
+  - name: category
+    dtype: string
+  - name: subreddit
+    dtype: string
+  - name: answers
+    struct:
+    - name: a_id
+      sequence: string
+    - name: text
+      sequence: string
+    - name: score
+      sequence: int32
+    - name: text_urls
+      sequence:
+        sequence: string
+  - name: title_urls
+    sequence: string
+  - name: selftext_urls
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 10419098
+    num_examples: 5411
+  - name: train
+    num_bytes: 166409797
+    num_examples: 91772
+  - name: validation1
+    num_bytes: 13150585
+    num_examples: 5446
+  - name: validation2
+    num_bytes: 4737744
+    num_examples: 2375
+  download_size: 72921829
+  dataset_size: 194717224
 ---
 
 # Dataset Card for ELI5-Category

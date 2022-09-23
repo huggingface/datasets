@@ -19,6 +19,54 @@ task_categories:
 task_ids:
 - multi-class-classification
 - text-classification-other-binary classification
+dataset_info:
+- config_name: Coarse_Grained
+  features:
+  - name: tweet
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Abusive/Offensive
+          1: Normal
+  splits:
+  - name: test
+    num_bytes: 218087
+    num_examples: 2002
+  - name: train
+    num_bytes: 725719
+    num_examples: 7208
+  - name: validation
+    num_bytes: 79759
+    num_examples: 800
+  download_size: 927937
+  dataset_size: 1023565
+- config_name: Fine_Grained
+  features:
+  - name: tweet
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Abusive/Offensive
+          1: Normal
+          2: Religious Hate
+          3: Sexism
+          4: Profane/Untargeted
+  splits:
+  - name: test
+    num_bytes: 219359
+    num_examples: 2002
+  - name: train
+    num_bytes: 723670
+    num_examples: 7208
+  - name: validation
+    num_bytes: 723670
+    num_examples: 7208
+  download_size: 1519423
+  dataset_size: 1666699
 ---
 
 # Dataset Card for roman_urdu_hate_speech

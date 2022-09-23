@@ -19,6 +19,28 @@ task_ids:
 - intent-classification
 paperswithcode_id: null
 pretty_name: Structured Argument Extraction for Korean
+dataset_info:
+  features:
+  - name: intent_pair1
+    dtype: string
+  - name: intent_pair2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: yes/no
+          1: alternative
+          2: wh- questions
+          3: prohibitions
+          4: requirements
+          5: strong requirements
+  splits:
+  - name: train
+    num_bytes: 2885167
+    num_examples: 30837
+  download_size: 2545926
+  dataset_size: 2885167
 ---
 
 # Dataset Card for Structured Argument Extraction for Korean

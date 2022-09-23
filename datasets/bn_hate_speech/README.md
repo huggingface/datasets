@@ -20,6 +20,25 @@ task_ids:
 - text-classification-other-hate-speech-topic-classification
 paperswithcode_id: bengali-hate-speech
 pretty_name: Bengali Hate Speech Dataset
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Personal
+          1: Political
+          2: Religious
+          3: Geopolitical
+          4: Gender abusive
+  splits:
+  - name: train
+    num_bytes: 972635
+    num_examples: 3418
+  download_size: 974312
+  dataset_size: 972635
 ---
 
 # Dataset Card for Bengali Hate Speech Dataset

@@ -1,6 +1,37 @@
 ---
 paperswithcode_id: null
 pretty_name: hansards
+dataset_info:
+- config_name: senate
+  features:
+  - name: fr
+    dtype: string
+  - name: en
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5711686
+    num_examples: 25553
+  - name: train
+    num_bytes: 40324278
+    num_examples: 182135
+  download_size: 15247360
+  dataset_size: 46035964
+- config_name: house
+  features:
+  - name: fr
+    dtype: string
+  - name: en
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 22906629
+    num_examples: 122290
+  - name: train
+    num_bytes: 191459584
+    num_examples: 947969
+  download_size: 67584000
+  dataset_size: 214366213
 ---
 
 # Dataset Card for "hansards"

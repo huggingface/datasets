@@ -3,6 +3,115 @@ language:
 - en
 paperswithcode_id: doqa
 pretty_name: DoQA
+dataset_info:
+- config_name: cooking
+  features:
+  - name: title
+    dtype: string
+  - name: background
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: id
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  - name: followup
+    dtype: string
+  - name: yesno
+    dtype: string
+  - name: orig_answer
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 2969064
+    num_examples: 1797
+  - name: train
+    num_bytes: 6881681
+    num_examples: 4612
+  - name: validation
+    num_bytes: 1461613
+    num_examples: 911
+  download_size: 4197671
+  dataset_size: 11312358
+- config_name: movies
+  features:
+  - name: title
+    dtype: string
+  - name: background
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: id
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  - name: followup
+    dtype: string
+  - name: yesno
+    dtype: string
+  - name: orig_answer
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 3166075
+    num_examples: 1884
+  download_size: 4197671
+  dataset_size: 3166075
+- config_name: travel
+  features:
+  - name: title
+    dtype: string
+  - name: background
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: id
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  - name: followup
+    dtype: string
+  - name: yesno
+    dtype: string
+  - name: orig_answer
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 3216374
+    num_examples: 1713
+  download_size: 4197671
+  dataset_size: 3216374
 ---
 
 # Dataset Card for "doqa"

@@ -19,6 +19,60 @@ task_ids:
 - abstractive-qa
 paperswithcode_id: narrativeqa
 pretty_name: NarrativeQA
+dataset_info:
+  features:
+  - name: document
+    struct:
+    - name: id
+      dtype: string
+    - name: kind
+      dtype: string
+    - name: url
+      dtype: string
+    - name: file_size
+      dtype: int32
+    - name: word_count
+      dtype: int32
+    - name: start
+      dtype: string
+    - name: end
+      dtype: string
+    - name: summary
+      struct:
+      - name: text
+        dtype: string
+      - name: tokens
+        sequence: string
+      - name: url
+        dtype: string
+      - name: title
+        dtype: string
+    - name: text
+      dtype: string
+  - name: question
+    struct:
+    - name: text
+      dtype: string
+    - name: tokens
+      sequence: string
+  - name: answers
+    list:
+    - name: text
+      dtype: string
+    - name: tokens
+      sequence: string
+  splits:
+  - name: test
+    num_bytes: 3549964281
+    num_examples: 10557
+  - name: train
+    num_bytes: 11565035136
+    num_examples: 32747
+  - name: validation
+    num_bytes: 1211859490
+    num_examples: 3461
+  download_size: 192528922
+  dataset_size: 16326858907
 ---
 
 # Dataset Card for Narrative QA

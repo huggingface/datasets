@@ -19,6 +19,32 @@ task_ids:
 - extractive-qa
 paperswithcode_id: squad-es
 pretty_name: SQuAD-es
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  config_name: v1.1.0
+  splits:
+  - name: train
+    num_bytes: 83680438
+    num_examples: 87595
+  - name: validation
+    num_bytes: 10955800
+    num_examples: 10570
+  download_size: 39291362
+  dataset_size: 94636238
 ---
 
 # Dataset Card for "squad_es"

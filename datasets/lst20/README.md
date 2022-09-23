@@ -23,6 +23,90 @@ task_ids:
 - token-classification-other-word-segmentation
 paperswithcode_id: null
 pretty_name: LST20
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: fname
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: NN
+          1: VV
+          2: PU
+          3: CC
+          4: PS
+          5: AX
+          6: AV
+          7: FX
+          8: NU
+          9: AJ
+          10: CL
+          11: PR
+          12: NG
+          13: PA
+          14: XX
+          15: IJ
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B_BRN
+          2: B_DES
+          3: B_DTM
+          4: B_LOC
+          5: B_MEA
+          6: B_NUM
+          7: B_ORG
+          8: B_PER
+          9: B_TRM
+          10: B_TTL
+          11: I_BRN
+          12: I_DES
+          13: I_DTM
+          14: I_LOC
+          15: I_MEA
+          16: I_NUM
+          17: I_ORG
+          18: I_PER
+          19: I_TRM
+          20: I_TTL
+          21: E_BRN
+          22: E_DES
+          23: E_DTM
+          24: E_LOC
+          25: E_MEA
+          26: E_NUM
+          27: E_ORG
+          28: E_PER
+          29: E_TRM
+          30: E_TTL
+  - name: clause_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B_CLS
+          2: I_CLS
+          3: E_CLS
+  config_name: lst20
+  splits:
+  - name: test
+    num_bytes: 8217425
+    num_examples: 5250
+  - name: train
+    num_bytes: 107725145
+    num_examples: 63310
+  - name: validation
+    num_bytes: 9646167
+    num_examples: 5620
+  download_size: 0
+  dataset_size: 125588737
 ---
 
 # Dataset Card for LST20

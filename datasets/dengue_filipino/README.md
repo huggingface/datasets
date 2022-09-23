@@ -20,6 +20,52 @@ task_ids:
 - multi-class-classification
 paperswithcode_id: dengue
 pretty_name: Dengue Dataset in Filipino
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: absent
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  - name: dengue
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  - name: health
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  - name: mosquito
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  - name: sick
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 428553
+    num_examples: 4015
+  - name: train
+    num_bytes: 428553
+    num_examples: 4015
+  - name: validation
+    num_bytes: 54384
+    num_examples: 500
+  download_size: 156014
+  dataset_size: 911490
 ---
 
 # Dataset Card for Dengue Dataset in Filipino

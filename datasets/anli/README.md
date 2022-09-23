@@ -22,6 +22,54 @@ task_ids:
 - natural-language-inference
 - multi-input-text-classification
 paperswithcode_id: anli
+dataset_info:
+  features:
+  - name: uid
+    dtype: string
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: reason
+    dtype: string
+  config_name: plain_text
+  splits:
+  - name: dev_r1
+    num_bytes: 573444
+    num_examples: 1000
+  - name: dev_r2
+    num_bytes: 556082
+    num_examples: 1000
+  - name: dev_r3
+    num_bytes: 663164
+    num_examples: 1200
+  - name: test_r1
+    num_bytes: 574933
+    num_examples: 1000
+  - name: test_r2
+    num_bytes: 572655
+    num_examples: 1000
+  - name: test_r3
+    num_bytes: 657602
+    num_examples: 1200
+  - name: train_r1
+    num_bytes: 8006920
+    num_examples: 16946
+  - name: train_r2
+    num_bytes: 20801661
+    num_examples: 45460
+  - name: train_r3
+    num_bytes: 44720895
+    num_examples: 100459
+  download_size: 18621352
+  dataset_size: 77127356
 ---
 
 # Dataset Card for "anli"

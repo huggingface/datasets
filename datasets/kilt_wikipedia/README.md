@@ -1,6 +1,73 @@
 ---
 paperswithcode_id: null
 pretty_name: KiltWikipedia
+dataset_info:
+  features:
+  - name: kilt_id
+    dtype: string
+  - name: wikipedia_id
+    dtype: string
+  - name: wikipedia_title
+    dtype: string
+  - name: text
+    sequence:
+    - name: paragraph
+      dtype: string
+  - name: anchors
+    sequence:
+    - name: paragraph_id
+      dtype: int32
+    - name: start
+      dtype: int32
+    - name: end
+      dtype: int32
+    - name: text
+      dtype: string
+    - name: href
+      dtype: string
+    - name: wikipedia_title
+      dtype: string
+    - name: wikipedia_id
+      dtype: string
+  - name: categories
+    dtype: string
+  - name: wikidata_info
+    struct:
+    - name: description
+      dtype: string
+    - name: enwikiquote_title
+      dtype: string
+    - name: wikidata_id
+      dtype: string
+    - name: wikidata_label
+      dtype: string
+    - name: wikipedia_title
+      dtype: string
+    - name: aliases
+      sequence:
+      - name: alias
+        dtype: string
+  - name: history
+    struct:
+    - name: pageid
+      dtype: int32
+    - name: parentid
+      dtype: int32
+    - name: revid
+      dtype: int32
+    - name: pre_dump
+      dtype: bool
+    - name: timestamp
+      dtype: string
+    - name: url
+      dtype: string
+  config_name: '2019-08-01'
+  splits:
+  - name: full
+    num_bytes: 29372535718
+    num_examples: 5903530
+  download_size: 37318876722
+  dataset_size: 29372535718
 ---
 
 # Dataset Card for "kilt_wikipedia"

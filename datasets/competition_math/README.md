@@ -18,6 +18,25 @@ task_categories:
 - text2text-generation
 task_ids:
 - text2text-generation-other-explanation-generation
+dataset_info:
+  features:
+  - name: problem
+    dtype: string
+  - name: level
+    dtype: string
+  - name: type
+    dtype: string
+  - name: solution
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 3732575
+    num_examples: 5000
+  - name: train
+    num_bytes: 5984788
+    num_examples: 7500
+  download_size: 20327424
+  dataset_size: 9717363
 ---
 
 # Dataset Card for Mathematics Aptitude Test of Heuristics (MATH) dataset

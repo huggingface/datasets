@@ -28,10 +28,31 @@ train-eval-index:
     file: path
     text: text
   metrics:
-    - type: wer
-      name: WER
-    - type: cer
-      name: CER
+  - type: wer
+    name: WER
+  - type: cer
+    name: CER
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 22050
+  - name: file
+    dtype: string
+  - name: text
+    dtype: string
+  - name: normalized_text
+    dtype: string
+  config_name: main
+  splits:
+  - name: train
+    num_bytes: 4667022
+    num_examples: 13100
+  download_size: 2748572632
+  dataset_size: 4667022
 ---
 
 # Dataset Card for lj_speech

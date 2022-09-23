@@ -23,6 +23,83 @@ pretty_name: Cambridge English Write & Improve + LOCNESS
 configs:
 - locness
 - wi
+dataset_info:
+- config_name: default
+  features:
+  - name: id
+    dtype: string
+  - name: userid
+    dtype: string
+  - name: cefr
+    dtype: string
+  - name: text
+    dtype: string
+  - name: edits
+    sequence:
+    - name: start
+      dtype: int32
+    - name: end
+      dtype: int32
+    - name: text
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 4375795
+    num_examples: 3000
+  - name: validation
+    num_bytes: 447055
+    num_examples: 300
+  download_size: 6120469
+  dataset_size: 4822850
+- config_name: wi
+  features:
+  - name: id
+    dtype: string
+  - name: userid
+    dtype: string
+  - name: cefr
+    dtype: string
+  - name: text
+    dtype: string
+  - name: edits
+    sequence:
+    - name: start
+      dtype: int32
+    - name: end
+      dtype: int32
+    - name: text
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 4375795
+    num_examples: 3000
+  - name: validation
+    num_bytes: 447055
+    num_examples: 300
+  download_size: 6120469
+  dataset_size: 4822850
+- config_name: locness
+  features:
+  - name: id
+    dtype: string
+  - name: cefr
+    dtype: string
+  - name: text
+    dtype: string
+  - name: edits
+    sequence:
+    - name: start
+      dtype: int32
+    - name: end
+      dtype: int32
+    - name: text
+      dtype: string
+  splits:
+  - name: validation
+    num_bytes: 138176
+    num_examples: 50
+  download_size: 6120469
+  dataset_size: 138176
 ---
 
 # Dataset Card for Cambridge English Write & Improve + LOCNESS Dataset

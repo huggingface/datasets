@@ -23,6 +23,57 @@ paperswithcode_id: neural-code-search-evaluation-dataset
 configs:
 - evaluation_dataset
 - search_corpus
+dataset_info:
+- config_name: evaluation_dataset
+  features:
+  - name: stackoverflow_id
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: question_url
+    dtype: string
+  - name: question_author
+    dtype: string
+  - name: question_author_url
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: answer_url
+    dtype: string
+  - name: answer_author
+    dtype: string
+  - name: answer_author_url
+    dtype: string
+  - name: examples
+    sequence: int32
+  - name: examples_url
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 296848
+    num_examples: 287
+  download_size: 383625
+  dataset_size: 296848
+- config_name: search_corpus
+  features:
+  - name: id
+    dtype: int32
+  - name: filepath
+    dtype: string
+  - name: method_name
+    dtype: string
+  - name: start_line
+    dtype: int32
+  - name: end_line
+    dtype: int32
+  - name: url
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1452630278
+    num_examples: 4716814
+  download_size: 121112543
+  dataset_size: 1452630278
 ---
 
 # Dataset Card for Neural Code Search

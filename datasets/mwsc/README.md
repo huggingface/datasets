@@ -19,6 +19,28 @@ task_categories:
 task_ids:
 - multiple-choice-coreference-resolution
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  - name: question
+    dtype: string
+  - name: options
+    sequence: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 15220
+    num_examples: 100
+  - name: train
+    num_bytes: 11022
+    num_examples: 80
+  - name: validation
+    num_bytes: 13109
+    num_examples: 82
+  download_size: 19197
+  dataset_size: 39351
 ---
 
 # Dataset Card for The modified Winograd Schema Challenge (MWSC)

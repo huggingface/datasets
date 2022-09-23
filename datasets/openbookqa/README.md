@@ -20,6 +20,67 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: openbookqa
+dataset_info:
+- config_name: main
+  features:
+  - name: id
+    dtype: string
+  - name: question_stem
+    dtype: string
+  - name: choices
+    sequence:
+    - name: text
+      dtype: string
+    - name: label
+      dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 91850
+    num_examples: 500
+  - name: train
+    num_bytes: 896034
+    num_examples: 4957
+  - name: validation
+    num_bytes: 95519
+    num_examples: 500
+  download_size: 1446098
+  dataset_size: 1083403
+- config_name: additional
+  features:
+  - name: id
+    dtype: string
+  - name: question_stem
+    dtype: string
+  - name: choices
+    sequence:
+    - name: text
+      dtype: string
+    - name: label
+      dtype: string
+  - name: answerKey
+    dtype: string
+  - name: fact1
+    dtype: string
+  - name: humanScore
+    dtype: float32
+  - name: clarity
+    dtype: float32
+  - name: turkIdAnonymized
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 130926
+    num_examples: 500
+  - name: train
+    num_bytes: 1290473
+    num_examples: 4957
+  - name: validation
+    num_bytes: 136141
+    num_examples: 500
+  download_size: 1446098
+  dataset_size: 1557540
 ---
 
 # Dataset Card for OpenBookQA

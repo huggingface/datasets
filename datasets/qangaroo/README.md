@@ -3,6 +3,91 @@ language:
 - en
 paperswithcode_id: null
 pretty_name: qangaroo
+dataset_info:
+- config_name: medhop
+  features:
+  - name: query
+    dtype: string
+  - name: supports
+    sequence: string
+  - name: candidates
+    sequence: string
+  - name: answer
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 93947725
+    num_examples: 1620
+  - name: validation
+    num_bytes: 16463555
+    num_examples: 342
+  download_size: 339843061
+  dataset_size: 110411280
+- config_name: masked_medhop
+  features:
+  - name: query
+    dtype: string
+  - name: supports
+    sequence: string
+  - name: candidates
+    sequence: string
+  - name: answer
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 95823986
+    num_examples: 1620
+  - name: validation
+    num_bytes: 16802484
+    num_examples: 342
+  download_size: 339843061
+  dataset_size: 112626470
+- config_name: wikihop
+  features:
+  - name: query
+    dtype: string
+  - name: supports
+    sequence: string
+  - name: candidates
+    sequence: string
+  - name: answer
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 325994029
+    num_examples: 43738
+  - name: validation
+    num_bytes: 40869634
+    num_examples: 5129
+  download_size: 339843061
+  dataset_size: 366863663
+- config_name: masked_wikihop
+  features:
+  - name: query
+    dtype: string
+  - name: supports
+    sequence: string
+  - name: candidates
+    sequence: string
+  - name: answer
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 348290479
+    num_examples: 43738
+  - name: validation
+    num_bytes: 43689810
+    num_examples: 5129
+  download_size: 339843061
+  dataset_size: 391980289
 ---
 
 # Dataset Card for "qangaroo"

@@ -19,6 +19,29 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: null
 pretty_name: dyk
+dataset_info:
+  features:
+  - name: q_id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: target
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 353643
+    num_examples: 1029
+  - name: train
+    num_bytes: 1388690
+    num_examples: 4154
+  download_size: 685462
+  dataset_size: 1742333
 ---
 
 # Dataset Card for [Dataset Name]

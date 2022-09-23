@@ -22,6 +22,59 @@ task_ids:
 - multiple-choice-qa
 paperswithcode_id: null
 pretty_name: Ai2Arc
+dataset_info:
+- config_name: ARC-Challenge
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: choices
+    sequence:
+    - name: text
+      dtype: string
+    - name: label
+      dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 377740
+    num_examples: 1172
+  - name: train
+    num_bytes: 351888
+    num_examples: 1119
+  - name: validation
+    num_bytes: 97254
+    num_examples: 299
+  download_size: 680841265
+  dataset_size: 826882
+- config_name: ARC-Easy
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: choices
+    sequence:
+    - name: text
+      dtype: string
+    - name: label
+      dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 661997
+    num_examples: 2376
+  - name: train
+    num_bytes: 623254
+    num_examples: 2251
+  - name: validation
+    num_bytes: 158498
+    num_examples: 570
+  download_size: 680841265
+  dataset_size: 1443749
 ---
 
 # Dataset Card for "ai2_arc"

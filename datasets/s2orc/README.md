@@ -26,6 +26,60 @@ task_ids:
 - other-other-citation-recommendation
 paperswithcode_id: s2orc
 pretty_name: S2ORC
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: paperAbstract
+    dtype: string
+  - name: entities
+    sequence: string
+  - name: s2Url
+    dtype: string
+  - name: pdfUrls
+    sequence: string
+  - name: s2PdfUrl
+    dtype: string
+  - name: authors
+    list:
+    - name: name
+      dtype: string
+    - name: ids
+      sequence: string
+  - name: inCitations
+    sequence: string
+  - name: outCitations
+    sequence: string
+  - name: fieldsOfStudy
+    sequence: string
+  - name: year
+    dtype: int32
+  - name: venue
+    dtype: string
+  - name: journalName
+    dtype: string
+  - name: journalVolume
+    dtype: string
+  - name: journalPages
+    dtype: string
+  - name: sources
+    sequence: string
+  - name: doi
+    dtype: string
+  - name: doiUrl
+    dtype: string
+  - name: pmid
+    dtype: string
+  - name: magId
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 369018909144
+    num_examples: 189674763
+  download_size: 185502364057
+  dataset_size: 369018909144
 ---
 
 # Dataset Card for S2ORC: The Semantic Scholar Open Research Corpus

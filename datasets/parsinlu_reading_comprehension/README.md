@@ -19,6 +19,33 @@ task_ids:
 - extractive-qa
 paperswithcode_id: null
 pretty_name: PersiNLU (Reading Comprehension)
+dataset_info:
+  features:
+  - name: question
+    dtype: string
+  - name: url
+    dtype: string
+  - name: context
+    dtype: string
+  - name: answers
+    sequence:
+    - name: answer_start
+      dtype: int32
+    - name: answer_text
+      dtype: string
+  config_name: parsinlu-repo
+  splits:
+  - name: test
+    num_bytes: 681945
+    num_examples: 575
+  - name: train
+    num_bytes: 747679
+    num_examples: 600
+  - name: validation
+    num_bytes: 163185
+    num_examples: 125
+  download_size: 4117863
+  dataset_size: 1592809
 ---
 
 # Dataset Card for PersiNLU (Reading Comprehension)

@@ -21,6 +21,23 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: swahili
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  config_name: swahili
+  splits:
+  - name: test
+    num_bytes: 695092
+    num_examples: 3371
+  - name: train
+    num_bytes: 7700136
+    num_examples: 42069
+  - name: validation
+    num_bytes: 663520
+    num_examples: 3372
+  download_size: 2783330
+  dataset_size: 9058748
 ---
 
 # Dataset Card for [Dataset Name]

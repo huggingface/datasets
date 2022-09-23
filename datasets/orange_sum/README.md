@@ -20,6 +20,43 @@ task_ids:
 - news-articles-headline-generation
 - news-articles-summarization
 paperswithcode_id: orangesum
+dataset_info:
+- config_name: abstract
+  features:
+  - name: text
+    dtype: string
+  - name: summary
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 3785207
+    num_examples: 1500
+  - name: train
+    num_bytes: 53531651
+    num_examples: 21401
+  - name: validation
+    num_bytes: 3698650
+    num_examples: 1500
+  download_size: 23058350
+  dataset_size: 61015508
+- config_name: title
+  features:
+  - name: text
+    dtype: string
+  - name: summary
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 3176690
+    num_examples: 1500
+  - name: train
+    num_bytes: 65225136
+    num_examples: 30659
+  - name: validation
+    num_bytes: 3276713
+    num_examples: 1500
+  download_size: 27321627
+  dataset_size: 71678539
 ---
 
 # Dataset Card for OrangeSum

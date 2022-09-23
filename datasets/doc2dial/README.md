@@ -19,6 +19,111 @@ task_ids:
 - closed-domain-qa
 paperswithcode_id: doc2dial
 pretty_name: doc2dial
+dataset_info:
+- config_name: dialogue_domain
+  features:
+  - name: dial_id
+    dtype: string
+  - name: doc_id
+    dtype: string
+  - name: domain
+    dtype: string
+  - name: turns
+    list:
+    - name: turn_id
+      dtype: int32
+    - name: role
+      dtype: string
+    - name: da
+      dtype: string
+    - name: references
+      list:
+      - name: sp_id
+        dtype: string
+      - name: label
+        dtype: string
+    - name: utterance
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 6924209
+    num_examples: 3474
+  - name: validation
+    num_bytes: 1315815
+    num_examples: 661
+  download_size: 5879543
+  dataset_size: 8240024
+- config_name: document_domain
+  features:
+  - name: domain
+    dtype: string
+  - name: doc_id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: doc_text
+    dtype: string
+  - name: spans
+    list:
+    - name: id_sp
+      dtype: string
+    - name: tag
+      dtype: string
+    - name: start_sp
+      dtype: int32
+    - name: end_sp
+      dtype: int32
+    - name: text_sp
+      dtype: string
+    - name: title
+      dtype: string
+    - name: parent_titles
+      dtype: string
+    - name: id_sec
+      dtype: string
+    - name: start_sec
+      dtype: int32
+    - name: text_sec
+      dtype: string
+    - name: end_sec
+      dtype: int32
+  - name: doc_html_ts
+    dtype: string
+  - name: doc_html_raw
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 204874908
+    num_examples: 3416
+  download_size: 5879543
+  dataset_size: 204874908
+- config_name: doc2dial_rc
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  - name: domain
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 114778994
+    num_examples: 20431
+  - name: validation
+    num_bytes: 22705288
+    num_examples: 3972
+  download_size: 5879543
+  dataset_size: 137484282
 ---
 
 # Dataset Card for doc2dial

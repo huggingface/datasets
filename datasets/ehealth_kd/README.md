@@ -20,6 +20,66 @@ task_ids:
 - token-classification-other-relation-prediction
 paperswithcode_id: null
 pretty_name: eHealth-KD
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  - name: entities
+    list:
+    - name: ent_id
+      dtype: string
+    - name: ent_text
+      dtype: string
+    - name: ent_label
+      dtype:
+        class_label:
+          names:
+            0: Concept
+            1: Action
+            2: Predicate
+            3: Reference
+    - name: start_character
+      dtype: int32
+    - name: end_character
+      dtype: int32
+  - name: relations
+    list:
+    - name: rel_id
+      dtype: string
+    - name: rel_label
+      dtype:
+        class_label:
+          names:
+            0: is-a
+            1: same-as
+            2: has-property
+            3: part-of
+            4: causes
+            5: entails
+            6: in-time
+            7: in-place
+            8: in-context
+            9: subject
+            10: target
+            11: domain
+            12: arg
+    - name: arg1
+      dtype: string
+    - name: arg2
+      dtype: string
+  config_name: ehealth_kd
+  splits:
+  - name: test
+    num_bytes: 47314
+    num_examples: 100
+  - name: train
+    num_bytes: 425713
+    num_examples: 800
+  - name: validation
+    num_bytes: 108154
+    num_examples: 199
+  download_size: 565900
+  dataset_size: 581181
 ---
 
 # Dataset Card for eHealth-KD

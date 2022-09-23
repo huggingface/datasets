@@ -47,6 +47,87 @@ task_categories:
 task_ids: []
 paperswithcode_id: tilde-model-corpus
 pretty_name: Tilde Multilingual Open Data for European Languages
+dataset_info:
+- config_name: bg-el
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - bg
+        - el
+  splits:
+  - name: train
+    num_bytes: 258081
+    num_examples: 455
+  download_size: 64430
+  dataset_size: 258081
+- config_name: cs-en
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - cs
+        - en
+  splits:
+  - name: train
+    num_bytes: 709168
+    num_examples: 3100
+  download_size: 201503
+  dataset_size: 709168
+- config_name: de-hr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - hr
+  splits:
+  - name: train
+    num_bytes: 180148538
+    num_examples: 683194
+  download_size: 49585877
+  dataset_size: 180148538
+- config_name: en-no
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - 'no'
+  splits:
+  - name: train
+    num_bytes: 73797124
+    num_examples: 348141
+  download_size: 17852861
+  dataset_size: 73797124
+- config_name: es-pt
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - pt
+  splits:
+  - name: train
+    num_bytes: 3808423
+    num_examples: 13464
+  download_size: 1160892
+  dataset_size: 3808423
 ---
 
 # Dataset Card for Tilde Multilingual Open Data for European Languages

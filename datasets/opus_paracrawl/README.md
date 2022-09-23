@@ -71,6 +71,167 @@ configs:
 - en-tl
 - es-gl
 - fr-nl
+dataset_info:
+- config_name: el-en
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - el
+        - en
+  splits:
+  - name: train
+    num_bytes: 6760375061
+    num_examples: 21402471
+  download_size: 2317102846
+  dataset_size: 6760375061
+- config_name: en-ha
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ha
+  splits:
+  - name: train
+    num_bytes: 4618460
+    num_examples: 19694
+  download_size: 1757433
+  dataset_size: 4618460
+- config_name: en-ig
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ig
+  splits:
+  - name: train
+    num_bytes: 6709030
+    num_examples: 28829
+  download_size: 2691716
+  dataset_size: 6709030
+- config_name: en-km
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - km
+  splits:
+  - name: train
+    num_bytes: 31964493
+    num_examples: 65115
+  download_size: 9907279
+  dataset_size: 31964493
+- config_name: en-so
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - so
+  splits:
+  - name: train
+    num_bytes: 5791003
+    num_examples: 14880
+  download_size: 2227727
+  dataset_size: 5791003
+- config_name: de-pl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - pl
+  splits:
+  - name: train
+    num_bytes: 298637031
+    num_examples: 916643
+  download_size: 106891602
+  dataset_size: 298637031
+- config_name: fr-nl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr
+        - nl
+  splits:
+  - name: train
+    num_bytes: 862303220
+    num_examples: 2687673
+  download_size: 319804705
+  dataset_size: 862303220
+- config_name: en-sw
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - sw
+  splits:
+  - name: train
+    num_bytes: 44264442
+    num_examples: 132520
+  download_size: 18611087
+  dataset_size: 44264442
+- config_name: en-tl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - tl
+  splits:
+  - name: train
+    num_bytes: 82502798
+    num_examples: 248689
+  download_size: 32933118
+  dataset_size: 82502798
+- config_name: es-gl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - gl
+  splits:
+  - name: train
+    num_bytes: 582660901
+    num_examples: 1879689
+  download_size: 236696353
+  dataset_size: 582660901
 ---
 
 # Dataset Card for OpusParaCrawl

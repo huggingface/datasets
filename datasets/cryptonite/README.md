@@ -23,6 +23,79 @@ pretty_name: Cryptonite
 configs:
 - cryptonite
 - default
+dataset_info:
+- config_name: default
+  features:
+  - name: agent_info
+    sequence:
+    - name: Bottomline
+      dtype: string
+    - name: Role
+      dtype: string
+    - name: Target
+      dtype: float32
+  - name: agent_turn
+    sequence: int32
+  - name: dialogue_acts
+    sequence:
+    - name: intent
+      dtype: string
+    - name: price
+      dtype: float32
+  - name: utterance
+    sequence: string
+  - name: items
+    sequence:
+    - name: Category
+      dtype: string
+    - name: Images
+      dtype: string
+    - name: Price
+      dtype: float32
+    - name: Description
+      dtype: string
+    - name: Title
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 1353933
+    num_examples: 838
+  - name: train
+    num_bytes: 8538836
+    num_examples: 5247
+  - name: validation
+    num_bytes: 966032
+    num_examples: 597
+  download_size: 25373618
+  dataset_size: 10858801
+- config_name: cryptonite
+  features:
+  - name: clue
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: enumeration
+    dtype: string
+  - name: publisher
+    dtype: string
+  - name: date
+    dtype: int64
+  - name: quick
+    dtype: bool
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2908275
+    num_examples: 26157
+  - name: train
+    num_bytes: 52228597
+    num_examples: 470804
+  - name: validation
+    num_bytes: 2901768
+    num_examples: 26156
+  download_size: 21615952
+  dataset_size: 58038640
 ---
 
 # Dataset Card for Cryptonite

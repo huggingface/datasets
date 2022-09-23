@@ -23,6 +23,37 @@ task_ids:
 - part-of-speech
 paperswithcode_id: null
 pretty_name: SentiWS
+dataset_info:
+- config_name: pos-tagging
+  features:
+  - name: word
+    dtype: string
+  - name: pos-tag
+    dtype:
+      class_label:
+        names:
+          0: NN
+          1: VVINF
+          2: ADJX
+          3: ADV
+  splits:
+  - name: train
+    num_bytes: 75530
+    num_examples: 3471
+  download_size: 97748
+  dataset_size: 75530
+- config_name: sentiment-scoring
+  features:
+  - name: word
+    dtype: string
+  - name: sentiment-score
+    dtype: float32
+  splits:
+  - name: train
+    num_bytes: 61646
+    num_examples: 3471
+  download_size: 97748
+  dataset_size: 61646
 ---
 
 # Dataset Card for SentiWS

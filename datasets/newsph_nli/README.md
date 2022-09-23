@@ -19,6 +19,30 @@ task_ids:
 - natural-language-inference
 paperswithcode_id: newsph-nli
 pretty_name: NewsPH NLI
+dataset_info:
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 3283665
+    num_examples: 9000
+  - name: train
+    num_bytes: 154510599
+    num_examples: 420000
+  - name: validation
+    num_bytes: 33015530
+    num_examples: 90000
+  download_size: 76565287
+  dataset_size: 190809794
 ---
 
 # Dataset Card for NewsPH NLI

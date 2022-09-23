@@ -21,6 +21,26 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: makhzan
+dataset_info:
+  features:
+  - name: file_id
+    dtype: string
+  - name: metadata
+    dtype: string
+  - name: title
+    dtype: string
+  - name: num-words
+    dtype: int64
+  - name: contains-non-urdu-languages
+    dtype: string
+  - name: document_body
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 35637310
+    num_examples: 5522
+  download_size: 15187763
+  dataset_size: 35637310
 ---
 
 # Dataset Card for makhzan

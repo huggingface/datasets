@@ -19,6 +19,21 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: OpusElhuyar
+dataset_info:
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - eu
+  config_name: es-eu
+  splits:
+  - name: train
+    num_bytes: 127833939
+    num_examples: 642348
+  download_size: 44468751
+  dataset_size: 127833939
 ---
 
 # Dataset Card for [opus_elhuyar]

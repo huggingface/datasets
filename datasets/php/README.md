@@ -42,6 +42,87 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: php
+dataset_info:
+- config_name: fi-nl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fi
+        - nl
+  splits:
+  - name: train
+    num_bytes: 1197502
+    num_examples: 27870
+  download_size: 43228
+  dataset_size: 1197502
+- config_name: it-ro
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - it
+        - ro
+  splits:
+  - name: train
+    num_bytes: 1422966
+    num_examples: 28507
+  download_size: 108885
+  dataset_size: 1422966
+- config_name: nl-sv
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - nl
+        - sv
+  splits:
+  - name: train
+    num_bytes: 1298041
+    num_examples: 28079
+  download_size: 58495
+  dataset_size: 1298041
+- config_name: en-it
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - it
+  splits:
+  - name: train
+    num_bytes: 2758463
+    num_examples: 35538
+  download_size: 478646
+  dataset_size: 2758463
+- config_name: en-fr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - fr
+  splits:
+  - name: train
+    num_bytes: 4288513
+    num_examples: 42222
+  download_size: 905396
+  dataset_size: 4288513
 ---
 
 # Dataset Card for php

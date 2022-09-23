@@ -27,6 +27,127 @@ task_categories:
 task_ids: []
 pretty_name: WMT16
 paperswithcode_id: wmt-2016
+dataset_info:
+- config_name: cs-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - cs
+        - en
+  splits:
+  - name: test
+    num_bytes: 707870
+    num_examples: 2999
+  - name: train
+    num_bytes: 296006386
+    num_examples: 997240
+  - name: validation
+    num_bytes: 572203
+    num_examples: 2656
+  download_size: 1690726387
+  dataset_size: 297286459
+- config_name: de-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - en
+  splits:
+  - name: test
+    num_bytes: 735516
+    num_examples: 2999
+  - name: train
+    num_bytes: 1373123263
+    num_examples: 4548885
+  - name: validation
+    num_bytes: 522989
+    num_examples: 2169
+  download_size: 1690726387
+  dataset_size: 1374381768
+- config_name: fi-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fi
+        - en
+  splits:
+  - name: test
+    num_bytes: 1410515
+    num_examples: 6000
+  - name: train
+    num_bytes: 605146827
+    num_examples: 2073394
+  - name: validation
+    num_bytes: 306335
+    num_examples: 1370
+  download_size: 273390220
+  dataset_size: 606863677
+- config_name: ro-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ro
+        - en
+  splits:
+  - name: test
+    num_bytes: 539216
+    num_examples: 1999
+  - name: train
+    num_bytes: 188288211
+    num_examples: 610320
+  - name: validation
+    num_bytes: 561799
+    num_examples: 1999
+  download_size: 287363574
+  dataset_size: 189389226
+- config_name: ru-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - en
+  splits:
+  - name: test
+    num_bytes: 1050677
+    num_examples: 2998
+  - name: train
+    num_bytes: 448338585
+    num_examples: 1516162
+  - name: validation
+    num_bytes: 955972
+    num_examples: 2818
+  download_size: 1042119564
+  dataset_size: 450345234
+- config_name: tr-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - tr
+        - en
+  splits:
+  - name: test
+    num_bytes: 732436
+    num_examples: 3000
+  - name: train
+    num_bytes: 60416617
+    num_examples: 205756
+  - name: validation
+    num_bytes: 240650
+    num_examples: 1001
+  download_size: 62263061
+  dataset_size: 61389703
 ---
 
 # Dataset Card for "wmt16"

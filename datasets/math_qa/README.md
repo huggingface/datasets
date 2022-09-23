@@ -20,6 +20,34 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: mathqa
+dataset_info:
+  features:
+  - name: Problem
+    dtype: string
+  - name: Rationale
+    dtype: string
+  - name: options
+    dtype: string
+  - name: correct
+    dtype: string
+  - name: annotated_formula
+    dtype: string
+  - name: linear_formula
+    dtype: string
+  - name: category
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1844184
+    num_examples: 2985
+  - name: train
+    num_bytes: 18368826
+    num_examples: 29837
+  - name: validation
+    num_bytes: 2752969
+    num_examples: 4475
+  download_size: 7302821
+  dataset_size: 22965979
 ---
 
 # Dataset Card for MathQA

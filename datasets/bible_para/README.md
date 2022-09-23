@@ -119,6 +119,103 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: BiblePara
+dataset_info:
+- config_name: de-en
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - en
+  splits:
+  - name: train
+    num_bytes: 17262178
+    num_examples: 62195
+  download_size: 5440713
+  dataset_size: 17262178
+- config_name: en-fr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - fr
+  splits:
+  - name: train
+    num_bytes: 17536445
+    num_examples: 62195
+  download_size: 5470044
+  dataset_size: 17536445
+- config_name: en-es
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - es
+  splits:
+  - name: train
+    num_bytes: 17105724
+    num_examples: 62191
+  download_size: 5418998
+  dataset_size: 17105724
+- config_name: en-fi
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - fi
+  splits:
+  - name: train
+    num_bytes: 17486055
+    num_examples: 62026
+  download_size: 5506407
+  dataset_size: 17486055
+- config_name: en-no
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - 'no'
+  splits:
+  - name: train
+    num_bytes: 16681323
+    num_examples: 62107
+  download_size: 5293164
+  dataset_size: 16681323
+- config_name: en-hi
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - hi
+  splits:
+  - name: train
+    num_bytes: 27849361
+    num_examples: 62073
+  download_size: 6224765
+  dataset_size: 27849361
 ---
 
 # Dataset Card for BiblePara

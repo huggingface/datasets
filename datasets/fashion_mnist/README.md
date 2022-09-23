@@ -19,6 +19,34 @@ task_ids:
 - multi-class-image-classification
 paperswithcode_id: fashion-mnist
 pretty_name: FashionMNIST
+dataset_info:
+  features:
+  - name: image
+    dtype: image
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: T - shirt / top
+          1: Trouser
+          2: Pullover
+          3: Dress
+          4: Coat
+          5: Sandal
+          6: Shirt
+          7: Sneaker
+          8: Bag
+          9: Ankle boot
+  config_name: fashion_mnist
+  splits:
+  - name: test
+    num_bytes: 5233818
+    num_examples: 10000
+  - name: train
+    num_bytes: 31296655
+    num_examples: 60000
+  download_size: 30878645
+  dataset_size: 36530473
 ---
 
 # Dataset Card for FashionMNIST

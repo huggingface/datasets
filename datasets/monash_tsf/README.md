@@ -19,6 +19,809 @@ task_categories:
 task_ids:
 - univariate-time-series-forecasting
 - multivariate-time-series-forecasting
+dataset_info:
+- config_name: weather
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 177638713
+    num_examples: 3010
+  - name: train
+    num_bytes: 176893738
+    num_examples: 3010
+  - name: validation
+    num_bytes: 177266226
+    num_examples: 3010
+  download_size: 38820451
+  dataset_size: 531798677
+- config_name: tourism_yearly
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 71358
+    num_examples: 518
+  - name: train
+    num_bytes: 54264
+    num_examples: 518
+  - name: validation
+    num_bytes: 62811
+    num_examples: 518
+  download_size: 36749
+  dataset_size: 188433
+- config_name: tourism_quarterly
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 190920
+    num_examples: 427
+  - name: train
+    num_bytes: 162738
+    num_examples: 427
+  - name: validation
+    num_bytes: 176829
+    num_examples: 427
+  download_size: 93833
+  dataset_size: 530487
+- config_name: tourism_monthly
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 463986
+    num_examples: 366
+  - name: train
+    num_bytes: 391518
+    num_examples: 366
+  - name: validation
+    num_bytes: 427752
+    num_examples: 366
+  download_size: 199791
+  dataset_size: 1283256
+- config_name: cif_2016
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 31859
+    num_examples: 72
+  - name: train
+    num_bytes: 24731
+    num_examples: 72
+  - name: validation
+    num_bytes: 28295
+    num_examples: 72
+  download_size: 53344
+  dataset_size: 84885
+- config_name: london_smart_meters
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 687138394
+    num_examples: 5560
+  - name: train
+    num_bytes: 684386194
+    num_examples: 5560
+  - name: validation
+    num_bytes: 685762294
+    num_examples: 5560
+  download_size: 219673439
+  dataset_size: 2057286882
+- config_name: australian_electricity_demand
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 4765637
+    num_examples: 5
+  - name: train
+    num_bytes: 4763162
+    num_examples: 5
+  - name: validation
+    num_bytes: 4764400
+    num_examples: 5
+  download_size: 5770526
+  dataset_size: 14293199
+- config_name: wind_farms_minutely
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 710246723
+    num_examples: 339
+  - name: train
+    num_bytes: 710078918
+    num_examples: 339
+  - name: validation
+    num_bytes: 710162820
+    num_examples: 339
+  download_size: 71383130
+  dataset_size: 2130488461
+- config_name: bitcoin
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 340966
+    num_examples: 18
+  - name: train
+    num_bytes: 336511
+    num_examples: 18
+  - name: validation
+    num_bytes: 338738
+    num_examples: 18
+  download_size: 220403
+  dataset_size: 1016215
+- config_name: pedestrian_counts
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 12923256
+    num_examples: 66
+  - name: train
+    num_bytes: 12897120
+    num_examples: 66
+  - name: validation
+    num_bytes: 12910188
+    num_examples: 66
+  download_size: 4587054
+  dataset_size: 38730564
+- config_name: vehicle_trips
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 186688
+    num_examples: 329
+  - name: train
+    num_bytes: 105261
+    num_examples: 329
+  - name: validation
+    num_bytes: 145974
+    num_examples: 329
+  download_size: 44914
+  dataset_size: 437923
+- config_name: kdd_cup_2018
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 12146966
+    num_examples: 270
+  - name: train
+    num_bytes: 12040046
+    num_examples: 270
+  - name: validation
+    num_bytes: 12093506
+    num_examples: 270
+  download_size: 2456948
+  dataset_size: 36280518
+- config_name: nn5_daily
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 366110
+    num_examples: 111
+  - name: train
+    num_bytes: 314828
+    num_examples: 111
+  - name: validation
+    num_bytes: 340469
+    num_examples: 111
+  download_size: 287708
+  dataset_size: 1021407
+- config_name: nn5_weekly
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 55670
+    num_examples: 111
+  - name: train
+    num_bytes: 48344
+    num_examples: 111
+  - name: validation
+    num_bytes: 52007
+    num_examples: 111
+  download_size: 62043
+  dataset_size: 156021
+- config_name: kaggle_web_traffic
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 486103806
+    num_examples: 145063
+  - name: train
+    num_bytes: 415494391
+    num_examples: 145063
+  - name: validation
+    num_bytes: 450799098
+    num_examples: 145063
+  download_size: 145485324
+  dataset_size: 1352397295
+- config_name: kaggle_web_traffic_weekly
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 73816627
+    num_examples: 145063
+  - name: train
+    num_bytes: 64242469
+    num_examples: 145063
+  - name: validation
+    num_bytes: 69029548
+    num_examples: 145063
+  download_size: 28930900
+  dataset_size: 207088644
+- config_name: solar_10_minutes
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 29707848
+    num_examples: 137
+  - name: train
+    num_bytes: 29640033
+    num_examples: 137
+  - name: validation
+    num_bytes: 29673941
+    num_examples: 137
+  download_size: 4559353
+  dataset_size: 89021822
+- config_name: solar_weekly
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 34265
+    num_examples: 137
+  - name: train
+    num_bytes: 28614
+    num_examples: 137
+  - name: validation
+    num_bytes: 31439
+    num_examples: 137
+  download_size: 24375
+  dataset_size: 94318
+- config_name: car_parts
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 661379
+    num_examples: 2674
+  - name: train
+    num_bytes: 396653
+    num_examples: 2674
+  - name: validation
+    num_bytes: 529016
+    num_examples: 2674
+  download_size: 39656
+  dataset_size: 1587048
+- config_name: fred_md
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 325107
+    num_examples: 107
+  - name: train
+    num_bytes: 314514
+    num_examples: 107
+  - name: validation
+    num_bytes: 319811
+    num_examples: 107
+  download_size: 169107
+  dataset_size: 959432
+- config_name: traffic_hourly
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 62413326
+    num_examples: 862
+  - name: train
+    num_bytes: 62071974
+    num_examples: 862
+  - name: validation
+    num_bytes: 62242650
+    num_examples: 862
+  download_size: 22868806
+  dataset_size: 186727950
+- config_name: traffic_weekly
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 401046
+    num_examples: 862
+  - name: train
+    num_bytes: 344154
+    num_examples: 862
+  - name: validation
+    num_bytes: 372600
+    num_examples: 862
+  download_size: 245126
+  dataset_size: 1117800
+- config_name: hospital
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 293558
+    num_examples: 767
+  - name: train
+    num_bytes: 217625
+    num_examples: 767
+  - name: validation
+    num_bytes: 255591
+    num_examples: 767
+  download_size: 78110
+  dataset_size: 766774
+- config_name: covid_deaths
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 242187
+    num_examples: 266
+  - name: train
+    num_bytes: 176352
+    num_examples: 266
+  - name: validation
+    num_bytes: 209270
+    num_examples: 266
+  download_size: 27335
+  dataset_size: 627809
+- config_name: sunspot
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 304974
+    num_examples: 1
+  - name: train
+    num_bytes: 304726
+    num_examples: 1
+  - name: validation
+    num_bytes: 304850
+    num_examples: 1
+  download_size: 68865
+  dataset_size: 914550
+- config_name: saugeenday
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 97969
+    num_examples: 1
+  - name: train
+    num_bytes: 97722
+    num_examples: 1
+  - name: validation
+    num_bytes: 97845
+    num_examples: 1
+  download_size: 28721
+  dataset_size: 293536
+- config_name: us_births
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 30171
+    num_examples: 1
+  - name: train
+    num_bytes: 29923
+    num_examples: 1
+  - name: validation
+    num_bytes: 30047
+    num_examples: 1
+  download_size: 16332
+  dataset_size: 90141
+- config_name: solar_4_seconds
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 30513578
+    num_examples: 1
+  - name: train
+    num_bytes: 30513083
+    num_examples: 1
+  - name: validation
+    num_bytes: 30513331
+    num_examples: 1
+  download_size: 794502
+  dataset_size: 91539992
+- config_name: wind_4_seconds
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 30513269
+    num_examples: 1
+  - name: train
+    num_bytes: 30512774
+    num_examples: 1
+  - name: validation
+    num_bytes: 30513021
+    num_examples: 1
+  download_size: 2226184
+  dataset_size: 91539064
+- config_name: rideshare
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence:
+      sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5161435
+    num_examples: 156
+  - name: train
+    num_bytes: 4249051
+    num_examples: 156
+  - name: validation
+    num_bytes: 4705243
+    num_examples: 156
+  download_size: 1031826
+  dataset_size: 14115729
+- config_name: oikolab_weather
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 3302310
+    num_examples: 8
+  - name: train
+    num_bytes: 3299142
+    num_examples: 8
+  - name: validation
+    num_bytes: 3300726
+    num_examples: 8
+  download_size: 1326101
+  dataset_size: 9902178
+- config_name: temperature_rain
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence:
+      sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 96059286
+    num_examples: 422
+  - name: train
+    num_bytes: 88121466
+    num_examples: 422
+  - name: validation
+    num_bytes: 92090376
+    num_examples: 422
+  download_size: 25747139
+  dataset_size: 276271128
 ---
 
 # Dataset Card for Monash Time Series Forecasting Repository

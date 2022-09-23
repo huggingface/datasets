@@ -20,6 +20,21 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: MENYO-20k
+dataset_info:
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - yo
+  config_name: menyo20k_mt
+  splits:
+  - name: train
+    num_bytes: 2551273
+    num_examples: 10070
+  download_size: 2490852
+  dataset_size: 2551273
 ---
 
 # Dataset Card for MENYO-20k

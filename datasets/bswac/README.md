@@ -21,6 +21,17 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: BsWac
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  config_name: bswac
+  splits:
+  - name: train
+    num_bytes: 9156258478
+    num_examples: 354581267
+  download_size: 1988514951
+  dataset_size: 9156258478
 ---
 
 # Dataset Card for BsWac

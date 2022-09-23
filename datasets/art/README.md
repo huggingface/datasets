@@ -21,6 +21,33 @@ task_ids:
 - natural-language-inference
 - text-classification-other-abductive-natural-language-inference
 paperswithcode_id: art-dataset
+dataset_info:
+  features:
+  - name: observation_1
+    dtype: string
+  - name: observation_2
+    dtype: string
+  - name: hypothesis_1
+    dtype: string
+  - name: hypothesis_2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+          2: '2'
+  config_name: anli
+  splits:
+  - name: train
+    num_bytes: 34046304
+    num_examples: 169654
+  - name: validation
+    num_bytes: 312314
+    num_examples: 1532
+  download_size: 5118294
+  dataset_size: 34358618
 ---
 
 # Dataset Card for "art"

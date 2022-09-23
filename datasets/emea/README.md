@@ -45,6 +45,87 @@ configs:
 - de-mt
 - es-lt
 - fr-sk
+dataset_info:
+- config_name: bg-el
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - bg
+        - el
+  splits:
+  - name: train
+    num_bytes: 296160562
+    num_examples: 1044065
+  download_size: 54531690
+  dataset_size: 296160562
+- config_name: cs-et
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - cs
+        - et
+  splits:
+  - name: train
+    num_bytes: 180261167
+    num_examples: 1053164
+  download_size: 36065651
+  dataset_size: 180261167
+- config_name: de-mt
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - mt
+  splits:
+  - name: train
+    num_bytes: 182976918
+    num_examples: 1000532
+  download_size: 36665427
+  dataset_size: 182976918
+- config_name: fr-sk
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr
+        - sk
+  splits:
+  - name: train
+    num_bytes: 193605247
+    num_examples: 1062753
+  download_size: 38916074
+  dataset_size: 193605247
+- config_name: es-lt
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - lt
+  splits:
+  - name: train
+    num_bytes: 182623676
+    num_examples: 1051370
+  download_size: 35329033
+  dataset_size: 182623676
 ---
 
 # Dataset Card for EMEA

@@ -19,6 +19,46 @@ task_ids:
 - intent-classification
 paperswithcode_id: null
 pretty_name: Poleval 2019 cyberbullying
+dataset_info:
+- config_name: task01
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 109681
+    num_examples: 1000
+  - name: train
+    num_bytes: 1104322
+    num_examples: 10041
+  download_size: 410001
+  dataset_size: 1214003
+- config_name: task02
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+          2: '2'
+  splits:
+  - name: test
+    num_bytes: 109681
+    num_examples: 1000
+  - name: train
+    num_bytes: 1104322
+    num_examples: 10041
+  download_size: 410147
+  dataset_size: 1214003
 ---
 
 # Dataset Card for Poleval 2019 cyberbullying

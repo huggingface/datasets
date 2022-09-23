@@ -19,6 +19,21 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: OPUS DOGC
+dataset_info:
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ca
+        - es
+  config_name: tmx
+  splits:
+  - name: train
+    num_bytes: 1258924464
+    num_examples: 4763575
+  download_size: 331724078
+  dataset_size: 1258924464
 ---
 
 # Dataset Card for OPUS DOGC

@@ -24,6 +24,149 @@ pretty_name: CoNLL-2002
 configs:
 - es
 - nl
+dataset_info:
+- config_name: es
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: AO
+          1: AQ
+          2: CC
+          3: CS
+          4: DA
+          5: DE
+          6: DD
+          7: DI
+          8: DN
+          9: DP
+          10: DT
+          11: Faa
+          12: Fat
+          13: Fc
+          14: Fd
+          15: Fe
+          16: Fg
+          17: Fh
+          18: Fia
+          19: Fit
+          20: Fp
+          21: Fpa
+          22: Fpt
+          23: Fs
+          24: Ft
+          25: Fx
+          26: Fz
+          27: I
+          28: NC
+          29: NP
+          30: P0
+          31: PD
+          32: PI
+          33: PN
+          34: PP
+          35: PR
+          36: PT
+          37: PX
+          38: RG
+          39: RN
+          40: SP
+          41: VAI
+          42: VAM
+          43: VAN
+          44: VAP
+          45: VAS
+          46: VMG
+          47: VMI
+          48: VMM
+          49: VMN
+          50: VMP
+          51: VMS
+          52: VSG
+          53: VSI
+          54: VSM
+          55: VSN
+          56: VSP
+          57: VSS
+          58: Y
+          59: Z
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  splits:
+  - name: test
+    num_bytes: 1294156
+    num_examples: 1518
+  - name: train
+    num_bytes: 6672173
+    num_examples: 8324
+  - name: validation
+    num_bytes: 1333784
+    num_examples: 1916
+  download_size: 4140690
+  dataset_size: 9300113
+- config_name: nl
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: Adj
+          1: Adv
+          2: Art
+          3: Conj
+          4: Int
+          5: Misc
+          6: N
+          7: Num
+          8: Prep
+          9: Pron
+          10: Punc
+          11: V
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  splits:
+  - name: test
+    num_bytes: 1808862
+    num_examples: 5196
+  - name: train
+    num_bytes: 5308959
+    num_examples: 15807
+  - name: validation
+    num_bytes: 994298
+    num_examples: 2896
+  download_size: 3642241
+  dataset_size: 8112119
 ---
 
 # Dataset Card for CoNLL-2002

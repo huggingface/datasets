@@ -21,6 +21,72 @@ task_ids:
 - multi-label-classification
 paperswithcode_id: null
 pretty_name: Dutch Social Media Collection
+dataset_info:
+  features:
+  - name: full_text
+    dtype: string
+  - name: text_translation
+    dtype: string
+  - name: screen_name
+    dtype: string
+  - name: description
+    dtype: string
+  - name: desc_translation
+    dtype: string
+  - name: location
+    dtype: string
+  - name: weekofyear
+    dtype: int64
+  - name: weekday
+    dtype: int64
+  - name: month
+    dtype: int64
+  - name: year
+    dtype: int64
+  - name: day
+    dtype: int64
+  - name: point_info
+    dtype: string
+  - name: point
+    dtype: string
+  - name: latitude
+    dtype: float64
+  - name: longitude
+    dtype: float64
+  - name: altitude
+    dtype: float64
+  - name: province
+    dtype: string
+  - name: hisco_standard
+    dtype: string
+  - name: hisco_code
+    dtype: string
+  - name: industry
+    dtype: bool_
+  - name: sentiment_pattern
+    dtype: float64
+  - name: subjective_pattern
+    dtype: float64
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: neu
+          2: pos
+  config_name: dutch_social
+  splits:
+  - name: test
+    num_bytes: 35185351
+    num_examples: 54268
+  - name: train
+    num_bytes: 105569586
+    num_examples: 162805
+  - name: validation
+    num_bytes: 34334756
+    num_examples: 54269
+  download_size: 68740666
+  dataset_size: 175089693
 ---
 
 # Dataset Card for Dutch Social Media Collection

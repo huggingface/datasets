@@ -24,6 +24,89 @@ pretty_name: MedDialog
 configs:
 - en
 - zh
+dataset_info:
+- config_name: en
+  features:
+  - name: file_name
+    dtype: string
+  - name: dialogue_id
+    dtype: int32
+  - name: dialogue_url
+    dtype: string
+  - name: dialogue_turns
+    sequence:
+    - name: speaker
+      dtype:
+        class_label:
+          names:
+            0: Patient
+            1: Doctor
+    - name: utterance
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 290274759
+    num_examples: 229674
+  download_size: 0
+  dataset_size: 290274759
+- config_name: zh
+  features:
+  - name: file_name
+    dtype: string
+  - name: dialogue_id
+    dtype: int32
+  - name: dialogue_url
+    dtype: string
+  - name: dialogue_turns
+    sequence:
+    - name: speaker
+      dtype:
+        class_label:
+          names:
+            0: 病人
+            1: 医生
+    - name: utterance
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 1092063621
+    num_examples: 1921127
+  download_size: 0
+  dataset_size: 1092063621
+- config_name: processed.en
+  features:
+  - name: description
+    dtype: string
+  - name: utterances
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 46514
+    num_examples: 61
+  - name: train
+    num_bytes: 370745
+    num_examples: 482
+  - name: validation
+    num_bytes: 52145
+    num_examples: 60
+  download_size: 524214
+  dataset_size: 469404
+- config_name: processed.zh
+  features:
+  - name: utterances
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 196526738
+    num_examples: 340754
+  - name: train
+    num_bytes: 1571262099
+    num_examples: 2725989
+  - name: validation
+    num_bytes: 197117565
+    num_examples: 340748
+  download_size: 2082354155
+  dataset_size: 1964906402
 ---
 
 # Dataset Card for MedDialog

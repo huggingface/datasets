@@ -19,6 +19,31 @@ task_ids:
 - topic-classification
 paperswithcode_id: null
 pretty_name: Hausa Voa News Topic Classification Dataset (HausaVoaTopics)
+dataset_info:
+  features:
+  - name: news_title
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Africa
+          1: Health
+          2: Nigeria
+          3: Politics
+          4: World
+  splits:
+  - name: test
+    num_bytes: 41195
+    num_examples: 582
+  - name: train
+    num_bytes: 144932
+    num_examples: 2045
+  - name: validation
+    num_bytes: 20565
+    num_examples: 290
+  download_size: 195824
+  dataset_size: 206692
 ---
 
 # Dataset Card for Hausa VOA News Topic Classification dataset (hausa_voa_topics)

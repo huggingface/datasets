@@ -19,6 +19,128 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: nergrit-corpus
+dataset_info:
+- config_name: ner
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-CRD
+          1: B-DAT
+          2: B-EVT
+          3: B-FAC
+          4: B-GPE
+          5: B-LAN
+          6: B-LAW
+          7: B-LOC
+          8: B-MON
+          9: B-NOR
+          10: B-ORD
+          11: B-ORG
+          12: B-PER
+          13: B-PRC
+          14: B-PRD
+          15: B-QTY
+          16: B-REG
+          17: B-TIM
+          18: B-WOA
+          19: I-CRD
+          20: I-DAT
+          21: I-EVT
+          22: I-FAC
+          23: I-GPE
+          24: I-LAN
+          25: I-LAW
+          26: I-LOC
+          27: I-MON
+          28: I-NOR
+          29: I-ORD
+          30: I-ORG
+          31: I-PER
+          32: I-PRC
+          33: I-PRD
+          34: I-QTY
+          35: I-REG
+          36: I-TIM
+          37: I-WOA
+          38: O
+  splits:
+  - name: test
+    num_bytes: 1135577
+    num_examples: 2399
+  - name: train
+    num_bytes: 5428411
+    num_examples: 12532
+  - name: validation
+    num_bytes: 1086437
+    num_examples: 2521
+  download_size: 14988232
+  dataset_size: 7650425
+- config_name: sentiment
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-NEG
+          1: B-NET
+          2: B-POS
+          3: I-NEG
+          4: I-NET
+          5: I-POS
+          6: O
+  splits:
+  - name: test
+    num_bytes: 1097517
+    num_examples: 2317
+  - name: train
+    num_bytes: 3167972
+    num_examples: 7485
+  - name: validation
+    num_bytes: 337679
+    num_examples: 782
+  download_size: 14988232
+  dataset_size: 4603168
+- config_name: statement
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-BREL
+          1: B-FREL
+          2: B-STAT
+          3: B-WHO
+          4: I-BREL
+          5: I-FREL
+          6: I-STAT
+          7: I-WHO
+          8: O
+  splits:
+  - name: test
+    num_bytes: 182553
+    num_examples: 335
+  - name: train
+    num_bytes: 1469081
+    num_examples: 2405
+  - name: validation
+    num_bytes: 105119
+    num_examples: 176
+  download_size: 14988232
+  dataset_size: 1756753
 ---
 
 # Dataset Card for [Dataset Name]

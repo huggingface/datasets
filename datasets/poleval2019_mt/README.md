@@ -21,6 +21,87 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: Poleval2019Mt
+dataset_info:
+- config_name: ru-pl
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - pl
+  splits:
+  - name: test
+    num_bytes: 266462
+    num_examples: 2969
+  - name: train
+    num_bytes: 2818015
+    num_examples: 20001
+  - name: validation
+    num_bytes: 415735
+    num_examples: 3001
+  download_size: 3355801
+  dataset_size: 3500212
+- config_name: en-pl
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - pl
+  splits:
+  - name: test
+    num_bytes: 562482
+    num_examples: 9845
+  - name: train
+    num_bytes: 13217798
+    num_examples: 129255
+  - name: validation
+    num_bytes: 1209168
+    num_examples: 10001
+  download_size: 13851405
+  dataset_size: 14989448
+- config_name: pl-ru
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - pl
+        - ru
+  splits:
+  - name: test
+    num_bytes: 149423
+    num_examples: 2967
+  - name: train
+    num_bytes: 2818015
+    num_examples: 20001
+  - name: validation
+    num_bytes: 415735
+    num_examples: 3001
+  download_size: 3355801
+  dataset_size: 3383173
+- config_name: pl-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - pl
+        - en
+  splits:
+  - name: test
+    num_bytes: 16
+    num_examples: 1
+  - name: train
+    num_bytes: 13217798
+    num_examples: 129255
+  - name: validation
+    num_bytes: 1209168
+    num_examples: 10001
+  download_size: 13591306
+  dataset_size: 14426982
 ---
 
 # Dataset Card for poleval2019_mt

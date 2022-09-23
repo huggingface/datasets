@@ -20,6 +20,64 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: quartz
 pretty_name: QuaRTz
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: choices
+    sequence:
+    - name: text
+      dtype: string
+    - name: label
+      dtype: string
+  - name: answerKey
+    dtype: string
+  - name: para
+    dtype: string
+  - name: para_id
+    dtype: string
+  - name: para_anno
+    struct:
+    - name: effect_prop
+      dtype: string
+    - name: cause_dir_str
+      dtype: string
+    - name: effect_dir_str
+      dtype: string
+    - name: cause_dir_sign
+      dtype: string
+    - name: effect_dir_sign
+      dtype: string
+    - name: cause_prop
+      dtype: string
+  - name: question_anno
+    struct:
+    - name: more_effect_dir
+      dtype: string
+    - name: less_effect_dir
+      dtype: string
+    - name: less_cause_prop
+      dtype: string
+    - name: more_effect_prop
+      dtype: string
+    - name: less_effect_prop
+      dtype: string
+    - name: less_cause_dir
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 351374
+    num_examples: 784
+  - name: train
+    num_bytes: 1197525
+    num_examples: 2696
+  - name: validation
+    num_bytes: 175871
+    num_examples: 384
+  download_size: 497354
+  dataset_size: 1724770
 ---
 
 # Dataset Card for "quartz"

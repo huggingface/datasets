@@ -19,6 +19,542 @@ task_ids:
 - natural-language-inference
 paperswithcode_id: imppres
 pretty_name: IMPPRES
+dataset_info:
+- config_name: presupposition_all_n_presupposition
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: trigger1
+    dtype: string
+  - name: trigger2
+    dtype: string
+  - name: presupposition
+    dtype: string
+  - name: gold_label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: UID
+    dtype: string
+  - name: pairID
+    dtype: string
+  - name: paradigmID
+    dtype: int16
+  splits:
+  - name: all_n_presupposition
+    num_bytes: 458492
+    num_examples: 1900
+  download_size: 335088
+  dataset_size: 458492
+- config_name: presupposition_both_presupposition
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: trigger1
+    dtype: string
+  - name: trigger2
+    dtype: string
+  - name: presupposition
+    dtype: string
+  - name: gold_label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: UID
+    dtype: string
+  - name: pairID
+    dtype: string
+  - name: paradigmID
+    dtype: int16
+  splits:
+  - name: both_presupposition
+    num_bytes: 432792
+    num_examples: 1900
+  download_size: 335088
+  dataset_size: 432792
+- config_name: presupposition_change_of_state
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: trigger1
+    dtype: string
+  - name: trigger2
+    dtype: string
+  - name: presupposition
+    dtype: string
+  - name: gold_label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: UID
+    dtype: string
+  - name: pairID
+    dtype: string
+  - name: paradigmID
+    dtype: int16
+  splits:
+  - name: change_of_state
+    num_bytes: 308627
+    num_examples: 1900
+  download_size: 335088
+  dataset_size: 308627
+- config_name: presupposition_cleft_existence
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: trigger1
+    dtype: string
+  - name: trigger2
+    dtype: string
+  - name: presupposition
+    dtype: string
+  - name: gold_label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: UID
+    dtype: string
+  - name: pairID
+    dtype: string
+  - name: paradigmID
+    dtype: int16
+  splits:
+  - name: cleft_existence
+    num_bytes: 363238
+    num_examples: 1900
+  download_size: 335088
+  dataset_size: 363238
+- config_name: presupposition_cleft_uniqueness
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: trigger1
+    dtype: string
+  - name: trigger2
+    dtype: string
+  - name: presupposition
+    dtype: string
+  - name: gold_label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: UID
+    dtype: string
+  - name: pairID
+    dtype: string
+  - name: paradigmID
+    dtype: int16
+  splits:
+  - name: cleft_uniqueness
+    num_bytes: 388779
+    num_examples: 1900
+  download_size: 335088
+  dataset_size: 388779
+- config_name: presupposition_only_presupposition
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: trigger1
+    dtype: string
+  - name: trigger2
+    dtype: string
+  - name: presupposition
+    dtype: string
+  - name: gold_label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: UID
+    dtype: string
+  - name: pairID
+    dtype: string
+  - name: paradigmID
+    dtype: int16
+  splits:
+  - name: only_presupposition
+    num_bytes: 349018
+    num_examples: 1900
+  download_size: 335088
+  dataset_size: 349018
+- config_name: presupposition_possessed_definites_existence
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: trigger1
+    dtype: string
+  - name: trigger2
+    dtype: string
+  - name: presupposition
+    dtype: string
+  - name: gold_label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: UID
+    dtype: string
+  - name: pairID
+    dtype: string
+  - name: paradigmID
+    dtype: int16
+  splits:
+  - name: possessed_definites_existence
+    num_bytes: 362334
+    num_examples: 1900
+  download_size: 335088
+  dataset_size: 362334
+- config_name: presupposition_possessed_definites_uniqueness
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: trigger1
+    dtype: string
+  - name: trigger2
+    dtype: string
+  - name: presupposition
+    dtype: string
+  - name: gold_label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: UID
+    dtype: string
+  - name: pairID
+    dtype: string
+  - name: paradigmID
+    dtype: int16
+  splits:
+  - name: possessed_definites_uniqueness
+    num_bytes: 459403
+    num_examples: 1900
+  download_size: 335088
+  dataset_size: 459403
+- config_name: presupposition_question_presupposition
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: trigger1
+    dtype: string
+  - name: trigger2
+    dtype: string
+  - name: presupposition
+    dtype: string
+  - name: gold_label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: UID
+    dtype: string
+  - name: pairID
+    dtype: string
+  - name: paradigmID
+    dtype: int16
+  splits:
+  - name: question_presupposition
+    num_bytes: 397227
+    num_examples: 1900
+  download_size: 335088
+  dataset_size: 397227
+- config_name: implicature_connectives
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: gold_label_log
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: gold_label_prag
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: spec_relation
+    dtype: string
+  - name: item_type
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: lexemes
+    dtype: string
+  splits:
+  - name: connectives
+    num_bytes: 221868
+    num_examples: 1200
+  download_size: 335088
+  dataset_size: 221868
+- config_name: implicature_gradable_adjective
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: gold_label_log
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: gold_label_prag
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: spec_relation
+    dtype: string
+  - name: item_type
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: lexemes
+    dtype: string
+  splits:
+  - name: gradable_adjective
+    num_bytes: 153672
+    num_examples: 1200
+  download_size: 335088
+  dataset_size: 153672
+- config_name: implicature_gradable_verb
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: gold_label_log
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: gold_label_prag
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: spec_relation
+    dtype: string
+  - name: item_type
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: lexemes
+    dtype: string
+  splits:
+  - name: gradable_verb
+    num_bytes: 180702
+    num_examples: 1200
+  download_size: 335088
+  dataset_size: 180702
+- config_name: implicature_modals
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: gold_label_log
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: gold_label_prag
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: spec_relation
+    dtype: string
+  - name: item_type
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: lexemes
+    dtype: string
+  splits:
+  - name: modals
+    num_bytes: 178560
+    num_examples: 1200
+  download_size: 335088
+  dataset_size: 178560
+- config_name: implicature_numerals_10_100
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: gold_label_log
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: gold_label_prag
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: spec_relation
+    dtype: string
+  - name: item_type
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: lexemes
+    dtype: string
+  splits:
+  - name: numerals_10_100
+    num_bytes: 208620
+    num_examples: 1200
+  download_size: 335088
+  dataset_size: 208620
+- config_name: implicature_numerals_2_3
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: gold_label_log
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: gold_label_prag
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: spec_relation
+    dtype: string
+  - name: item_type
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: lexemes
+    dtype: string
+  splits:
+  - name: numerals_2_3
+    num_bytes: 188784
+    num_examples: 1200
+  download_size: 335088
+  dataset_size: 188784
+- config_name: implicature_quantifiers
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: gold_label_log
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: gold_label_prag
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: spec_relation
+    dtype: string
+  - name: item_type
+    dtype: string
+  - name: trigger
+    dtype: string
+  - name: lexemes
+    dtype: string
+  splits:
+  - name: quantifiers
+    num_bytes: 176814
+    num_examples: 1200
+  download_size: 335088
+  dataset_size: 176814
 ---
 
 # Dataset Card for IMPPRES

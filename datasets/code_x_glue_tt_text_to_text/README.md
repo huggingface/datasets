@@ -22,6 +22,87 @@ task_categories:
 task_ids:
 - translation-other-code-documentation-translation
 pretty_name: CodeXGlueTtTextToText
+dataset_info:
+- config_name: da_en
+  features:
+  - name: id
+    dtype: int32
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 190780
+    num_examples: 1000
+  - name: train
+    num_bytes: 8163215
+    num_examples: 42701
+  - name: validation
+    num_bytes: 190340
+    num_examples: 1000
+  download_size: 8007867
+  dataset_size: 8544335
+- config_name: lv_en
+  features:
+  - name: id
+    dtype: int32
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 190875
+    num_examples: 1000
+  - name: train
+    num_bytes: 3644127
+    num_examples: 18749
+  - name: validation
+    num_bytes: 192519
+    num_examples: 1000
+  download_size: 3778501
+  dataset_size: 4027521
+- config_name: no_en
+  features:
+  - name: id
+    dtype: int32
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 197135
+    num_examples: 1000
+  - name: train
+    num_bytes: 8761795
+    num_examples: 44322
+  - name: validation
+    num_bytes: 203823
+    num_examples: 1000
+  download_size: 8606833
+  dataset_size: 9162753
+- config_name: zh_en
+  features:
+  - name: id
+    dtype: int32
+  - name: source
+    dtype: string
+  - name: target
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 195245
+    num_examples: 1000
+  - name: train
+    num_bytes: 9592196
+    num_examples: 50154
+  - name: validation
+    num_bytes: 192155
+    num_examples: 1000
+  download_size: 9353684
+  dataset_size: 9979596
 ---
 # Dataset Card for "code_x_glue_tt_text_to_text"
 

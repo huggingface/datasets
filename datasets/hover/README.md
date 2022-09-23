@@ -20,6 +20,42 @@ task_ids:
 - fact-checking-retrieval
 paperswithcode_id: hover
 pretty_name: HoVer
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: uid
+    dtype: string
+  - name: claim
+    dtype: string
+  - name: supporting_facts
+    list:
+    - name: key
+      dtype: string
+    - name: value
+      dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: NOT_SUPPORTED
+          1: SUPPORTED
+  - name: num_hops
+    dtype: int32
+  - name: hpqa_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 927513
+    num_examples: 4000
+  - name: train
+    num_bytes: 5532178
+    num_examples: 18171
+  - name: validation
+    num_bytes: 1299252
+    num_examples: 4000
+  download_size: 12257835
+  dataset_size: 7758943
 ---
 
 # Dataset Card for HoVer

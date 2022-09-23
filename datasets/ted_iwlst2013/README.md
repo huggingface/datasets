@@ -47,6 +47,231 @@ configs:
 - en-sl
 - en-tr
 - en-zh
+dataset_info:
+- config_name: ar-en
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ar
+        - en
+  splits:
+  - name: train
+    num_bytes: 37413446
+    num_examples: 152838
+  download_size: 12065234
+  dataset_size: 37413446
+- config_name: de-en
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - en
+  splits:
+  - name: train
+    num_bytes: 30295518
+    num_examples: 143836
+  download_size: 10931406
+  dataset_size: 30295518
+- config_name: en-es
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - es
+  splits:
+  - name: train
+    num_bytes: 32522545
+    num_examples: 157895
+  download_size: 11642092
+  dataset_size: 32522545
+- config_name: en-fa
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - fa
+  splits:
+  - name: train
+    num_bytes: 22228781
+    num_examples: 80510
+  download_size: 6579696
+  dataset_size: 22228781
+- config_name: en-fr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - fr
+  splits:
+  - name: train
+    num_bytes: 34355481
+    num_examples: 160420
+  download_size: 12061420
+  dataset_size: 34355481
+- config_name: en-it
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - it
+  splits:
+  - name: train
+    num_bytes: 32916537
+    num_examples: 159391
+  download_size: 11774644
+  dataset_size: 32916537
+- config_name: en-nl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - nl
+  splits:
+  - name: train
+    num_bytes: 29679822
+    num_examples: 145951
+  download_size: 10712032
+  dataset_size: 29679822
+- config_name: en-pl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - pl
+  splits:
+  - name: train
+    num_bytes: 29776339
+    num_examples: 149120
+  download_size: 10999482
+  dataset_size: 29776339
+- config_name: en-pt
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - pt
+  splits:
+  - name: train
+    num_bytes: 32179607
+    num_examples: 155995
+  download_size: 11493053
+  dataset_size: 32179607
+- config_name: en-ro
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ro
+  splits:
+  - name: train
+    num_bytes: 32958421
+    num_examples: 158483
+  download_size: 11936172
+  dataset_size: 32958421
+- config_name: en-ru
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ru
+  splits:
+  - name: train
+    num_bytes: 36529465
+    num_examples: 133660
+  download_size: 11167700
+  dataset_size: 36529465
+- config_name: en-sl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - sl
+  splits:
+  - name: train
+    num_bytes: 2831344
+    num_examples: 14960
+  download_size: 1060712
+  dataset_size: 2831344
+- config_name: en-tr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - tr
+  splits:
+  - name: train
+    num_bytes: 28016103
+    num_examples: 137028
+  download_size: 10038531
+  dataset_size: 28016103
+- config_name: en-zh
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - zh
+  splits:
+  - name: train
+    num_bytes: 30205477
+    num_examples: 154579
+  download_size: 11714497
+  dataset_size: 30205477
 ---
 
 # Dataset Card for TedIwlst2013

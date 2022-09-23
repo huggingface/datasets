@@ -21,6 +21,48 @@ task_ids:
 - question-answering-other-conversational-qa
 paperswithcode_id: sharc
 pretty_name: Shaping Answers with Rules through Conversation
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: utterance_id
+    dtype: string
+  - name: source_url
+    dtype: string
+  - name: snippet
+    dtype: string
+  - name: question
+    dtype: string
+  - name: scenario
+    dtype: string
+  - name: history
+    list:
+    - name: follow_up_question
+      dtype: string
+    - name: follow_up_answer
+      dtype: string
+  - name: evidence
+    list:
+    - name: follow_up_question
+      dtype: string
+    - name: follow_up_answer
+      dtype: string
+  - name: answer
+    dtype: string
+  - name: negative_question
+    dtype: bool_
+  - name: negative_scenario
+    dtype: bool_
+  config_name: sharc
+  splits:
+  - name: train
+    num_bytes: 15088577
+    num_examples: 21890
+  - name: validation
+    num_bytes: 1469172
+    num_examples: 2270
+  download_size: 5230207
+  dataset_size: 16557749
 ---
 
 # Dataset Card for Shaping Answers with Rules through Conversation

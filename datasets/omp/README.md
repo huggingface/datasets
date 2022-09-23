@@ -19,6 +19,98 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: one-million-posts-corpus
+dataset_info:
+- config_name: posts_labeled
+  features:
+  - name: ID_Post
+    dtype: string
+  - name: ID_Parent_Post
+    dtype: string
+  - name: ID_Article
+    dtype: string
+  - name: ID_User
+    dtype: string
+  - name: CreatedAt
+    dtype: string
+  - name: Status
+    dtype: string
+  - name: Headline
+    dtype: string
+  - name: Body
+    dtype: string
+  - name: PositiveVotes
+    dtype: int32
+  - name: NegativeVotes
+    dtype: int32
+  - name: Category
+    dtype:
+      class_label:
+        names:
+          0: ArgumentsUsed
+          1: Discriminating
+          2: Inappropriate
+          3: OffTopic
+          4: PersonalStories
+          5: PossiblyFeedback
+          6: SentimentNegative
+          7: SentimentNeutral
+          8: SentimentPositive
+  - name: Value
+    dtype: int32
+  - name: Fold
+    dtype: int32
+  splits:
+  - name: train
+    num_bytes: 13955964
+    num_examples: 40567
+  download_size: 1329892
+  dataset_size: 13955964
+- config_name: posts_unlabeled
+  features:
+  - name: ID_Post
+    dtype: string
+  - name: ID_Parent_Post
+    dtype: string
+  - name: ID_Article
+    dtype: string
+  - name: ID_User
+    dtype: string
+  - name: CreatedAt
+    dtype: string
+  - name: Status
+    dtype: string
+  - name: Headline
+    dtype: string
+  - name: Body
+    dtype: string
+  - name: PositiveVotes
+    dtype: int32
+  - name: NegativeVotes
+    dtype: int32
+  splits:
+  - name: train
+    num_bytes: 305770324
+    num_examples: 1000000
+  download_size: 79296188
+  dataset_size: 305770324
+- config_name: articles
+  features:
+  - name: ID_Article
+    dtype: string
+  - name: Path
+    dtype: string
+  - name: publishingDate
+    dtype: string
+  - name: Title
+    dtype: string
+  - name: Body
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 43529400
+    num_examples: 12087
+  download_size: 10681288
+  dataset_size: 43529400
 ---
 
 # Dataset Card for One Million Posts Corpus

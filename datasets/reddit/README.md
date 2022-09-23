@@ -29,8 +29,32 @@ train-eval-index:
     content: text
     summary: target
   metrics:
-    - type: rouge
-      name: Rouge
+  - type: rouge
+    name: Rouge
+dataset_info:
+  features:
+  - name: author
+    dtype: string
+  - name: body
+    dtype: string
+  - name: normalizedBody
+    dtype: string
+  - name: subreddit
+    dtype: string
+  - name: subreddit_id
+    dtype: string
+  - name: id
+    dtype: string
+  - name: content
+    dtype: string
+  - name: summary
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 18940542951
+    num_examples: 3848330
+  download_size: 3141854161
+  dataset_size: 18940542951
 ---
 
 # Dataset Card for Reddit Webis-TLDR-17

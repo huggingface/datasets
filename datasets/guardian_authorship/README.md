@@ -20,6 +20,679 @@ task_ids:
 - multi-class-classification
 - topic-classification
 paperswithcode_id: null
+dataset_info:
+- config_name: cross_topic_1
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1283126
+    num_examples: 207
+  - name: train
+    num_bytes: 677054
+    num_examples: 112
+  - name: validation
+    num_bytes: 374390
+    num_examples: 62
+  download_size: 3100749
+  dataset_size: 2334570
+- config_name: cross_genre_1
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1657512
+    num_examples: 269
+  - name: train
+    num_bytes: 406144
+    num_examples: 63
+  - name: validation
+    num_bytes: 677054
+    num_examples: 112
+  download_size: 3100749
+  dataset_size: 2740710
+- config_name: cross_topic_2
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1104764
+    num_examples: 179
+  - name: train
+    num_bytes: 677054
+    num_examples: 112
+  - name: validation
+    num_bytes: 552752
+    num_examples: 90
+  download_size: 3100749
+  dataset_size: 2334570
+- config_name: cross_topic_3
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 927138
+    num_examples: 152
+  - name: train
+    num_bytes: 677054
+    num_examples: 112
+  - name: validation
+    num_bytes: 730378
+    num_examples: 117
+  download_size: 3100749
+  dataset_size: 2334570
+- config_name: cross_topic_4
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1283126
+    num_examples: 207
+  - name: train
+    num_bytes: 374390
+    num_examples: 62
+  - name: validation
+    num_bytes: 677054
+    num_examples: 112
+  download_size: 3100749
+  dataset_size: 2334570
+- config_name: cross_topic_5
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1407428
+    num_examples: 229
+  - name: train
+    num_bytes: 374390
+    num_examples: 62
+  - name: validation
+    num_bytes: 552752
+    num_examples: 90
+  download_size: 3100749
+  dataset_size: 2334570
+- config_name: cross_topic_6
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1229802
+    num_examples: 202
+  - name: train
+    num_bytes: 374390
+    num_examples: 62
+  - name: validation
+    num_bytes: 730378
+    num_examples: 117
+  download_size: 3100749
+  dataset_size: 2334570
+- config_name: cross_topic_7
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1104764
+    num_examples: 179
+  - name: train
+    num_bytes: 552752
+    num_examples: 90
+  - name: validation
+    num_bytes: 677054
+    num_examples: 112
+  download_size: 3100749
+  dataset_size: 2334570
+- config_name: cross_topic_8
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1407428
+    num_examples: 229
+  - name: train
+    num_bytes: 552752
+    num_examples: 90
+  - name: validation
+    num_bytes: 374390
+    num_examples: 62
+  download_size: 3100749
+  dataset_size: 2334570
+- config_name: cross_topic_9
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1051440
+    num_examples: 174
+  - name: train
+    num_bytes: 552752
+    num_examples: 90
+  - name: validation
+    num_bytes: 730378
+    num_examples: 117
+  download_size: 3100749
+  dataset_size: 2334570
+- config_name: cross_topic_10
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 927138
+    num_examples: 152
+  - name: train
+    num_bytes: 730378
+    num_examples: 117
+  - name: validation
+    num_bytes: 677054
+    num_examples: 112
+  download_size: 3100749
+  dataset_size: 2334570
+- config_name: cross_topic_11
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1229802
+    num_examples: 202
+  - name: train
+    num_bytes: 730378
+    num_examples: 117
+  - name: validation
+    num_bytes: 374390
+    num_examples: 62
+  download_size: 3100749
+  dataset_size: 2334570
+- config_name: cross_topic_12
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1051440
+    num_examples: 174
+  - name: train
+    num_bytes: 730378
+    num_examples: 117
+  - name: validation
+    num_bytes: 552752
+    num_examples: 90
+  download_size: 3100749
+  dataset_size: 2334570
+- config_name: cross_genre_2
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1960176
+    num_examples: 319
+  - name: train
+    num_bytes: 406144
+    num_examples: 63
+  - name: validation
+    num_bytes: 374390
+    num_examples: 62
+  download_size: 3100749
+  dataset_size: 2740710
+- config_name: cross_genre_3
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1781814
+    num_examples: 291
+  - name: train
+    num_bytes: 406144
+    num_examples: 63
+  - name: validation
+    num_bytes: 552752
+    num_examples: 90
+  download_size: 3100749
+  dataset_size: 2740710
+- config_name: cross_genre_4
+  features:
+  - name: author
+    dtype:
+      class_label:
+        names:
+          0: catherinebennett
+          1: georgemonbiot
+          2: hugoyoung
+          3: jonathanfreedland
+          4: martinkettle
+          5: maryriddell
+          6: nickcohen
+          7: peterpreston
+          8: pollytoynbee
+          9: royhattersley
+          10: simonhoggart
+          11: willhutton
+          12: zoewilliams
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Politics
+          1: Society
+          2: UK
+          3: World
+          4: Books
+  - name: article
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1604188
+    num_examples: 264
+  - name: train
+    num_bytes: 406144
+    num_examples: 63
+  - name: validation
+    num_bytes: 730378
+    num_examples: 117
+  download_size: 3100749
+  dataset_size: 2740710
 ---
 
 # Dataset Card for "guardian_authorship"

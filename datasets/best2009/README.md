@@ -19,6 +19,44 @@ task_ids:
 - token-classification-other-word-tokenization
 paperswithcode_id: null
 pretty_name: best2009
+dataset_info:
+  features:
+  - name: fname
+    dtype: string
+  - name: char
+    sequence: string
+  - name: char_type
+    sequence:
+      class_label:
+        names:
+          0: b_e
+          1: c
+          2: d
+          3: n
+          4: o
+          5: p
+          6: q
+          7: s
+          8: s_e
+          9: t
+          10: v
+          11: w
+  - name: is_beginning
+    sequence:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  config_name: best2009
+  splits:
+  - name: test
+    num_bytes: 10498726
+    num_examples: 2252
+  - name: train
+    num_bytes: 483129998
+    num_examples: 148995
+  download_size: 13891260
+  dataset_size: 493628724
 ---
 
 # Dataset Card for `best2009`

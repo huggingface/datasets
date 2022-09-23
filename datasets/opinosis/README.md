@@ -19,6 +19,18 @@ task_categories:
 task_ids:
 - summarization-other-abstractive-summarization
 paperswithcode_id: opinosis
+dataset_info:
+  features:
+  - name: review_sents
+    dtype: string
+  - name: summaries
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 741270
+    num_examples: 51
+  download_size: 757398
+  dataset_size: 741270
 ---
 
 # Dataset Card for "opinosis"

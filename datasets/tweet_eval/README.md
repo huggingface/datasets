@@ -35,44 +35,44 @@ train-eval-index:
     text: text
     label: target
   metrics:
-    - type: accuracy
-      name: Accuracy
-    - type: f1
-      name: F1 macro
-      args:
-        average: macro
-    - type: f1
-      name: F1 micro
-      args:
-        average: micro
-    - type: f1
-      name: F1 weighted
-      args:
-        average: weighted
-    - type: precision
-      name: Precision macro
-      args:
-        average: macro
-    - type: precision
-      name: Precision micro
-      args:
-        average: micro
-    - type: precision
-      name: Precision weighted
-      args:
-        average: weighted
-    - type: recall
-      name: Recall macro
-      args:
-        average: macro
-    - type: recall
-      name: Recall micro
-      args:
-        average: micro
-    - type: recall
-      name: Recall weighted
-      args:
-        average: weighted
+  - type: accuracy
+    name: Accuracy
+  - type: f1
+    name: F1 macro
+    args:
+      average: macro
+  - type: f1
+    name: F1 micro
+    args:
+      average: micro
+  - type: f1
+    name: F1 weighted
+    args:
+      average: weighted
+  - type: precision
+    name: Precision macro
+    args:
+      average: macro
+  - type: precision
+    name: Precision micro
+    args:
+      average: micro
+  - type: precision
+    name: Precision weighted
+    args:
+      average: weighted
+  - type: recall
+    name: Recall macro
+    args:
+      average: macro
+  - type: recall
+    name: Recall micro
+    args:
+      average: micro
+  - type: recall
+    name: Recall weighted
+    args:
+      average: weighted
 - config: hate
   task: text-classification
   task_id: binary_classification
@@ -83,36 +83,36 @@ train-eval-index:
     text: text
     label: target
   metrics:
-    - type: accuracy
-      name: Accuracy
-    - type: f1
-      name: F1 binary
-      args:
-        average: binary
-    - type: precision
-      name: Precision macro
-      args:
-        average: macro
-    - type: precision
-      name: Precision micro
-      args:
-        average: micro
-    - type: precision
-      name: Precision weighted
-      args:
-        average: weighted
-    - type: recall
-      name: Recall macro
-      args:
-        average: macro
-    - type: recall
-      name: Recall micro
-      args:
-        average: micro
-    - type: recall
-      name: Recall weighted
-      args:
-        average: weighted
+  - type: accuracy
+    name: Accuracy
+  - type: f1
+    name: F1 binary
+    args:
+      average: binary
+  - type: precision
+    name: Precision macro
+    args:
+      average: macro
+  - type: precision
+    name: Precision micro
+    args:
+      average: micro
+  - type: precision
+    name: Precision weighted
+    args:
+      average: weighted
+  - type: recall
+    name: Recall macro
+    args:
+      average: macro
+  - type: recall
+    name: Recall micro
+    args:
+      average: micro
+  - type: recall
+    name: Recall weighted
+    args:
+      average: weighted
 - config: irony
   task: text-classification
   task_id: binary_classification
@@ -123,36 +123,36 @@ train-eval-index:
     text: text
     label: target
   metrics:
-    - type: accuracy
-      name: Accuracy
-    - type: f1
-      name: F1 binary
-      args:
-        average: binary
-    - type: precision
-      name: Precision macro
-      args:
-        average: macro
-    - type: precision
-      name: Precision micro
-      args:
-        average: micro
-    - type: precision
-      name: Precision weighted
-      args:
-        average: weighted
-    - type: recall
-      name: Recall macro
-      args:
-        average: macro
-    - type: recall
-      name: Recall micro
-      args:
-        average: micro
-    - type: recall
-      name: Recall weighted
-      args:
-        average: weighted
+  - type: accuracy
+    name: Accuracy
+  - type: f1
+    name: F1 binary
+    args:
+      average: binary
+  - type: precision
+    name: Precision macro
+    args:
+      average: macro
+  - type: precision
+    name: Precision micro
+    args:
+      average: micro
+  - type: precision
+    name: Precision weighted
+    args:
+      average: weighted
+  - type: recall
+    name: Recall macro
+    args:
+      average: macro
+  - type: recall
+    name: Recall micro
+    args:
+      average: micro
+  - type: recall
+    name: Recall weighted
+    args:
+      average: weighted
 - config: offensive
   task: text-classification
   task_id: binary_classification
@@ -163,36 +163,36 @@ train-eval-index:
     text: text
     label: target
   metrics:
-    - type: accuracy
-      name: Accuracy
-    - type: f1
-      name: F1 binary
-      args:
-        average: binary
-    - type: precision
-      name: Precision macro
-      args:
-        average: macro
-    - type: precision
-      name: Precision micro
-      args:
-        average: micro
-    - type: precision
-      name: Precision weighted
-      args:
-        average: weighted
-    - type: recall
-      name: Recall macro
-      args:
-        average: macro
-    - type: recall
-      name: Recall micro
-      args:
-        average: micro
-    - type: recall
-      name: Recall weighted
-      args:
-        average: weighted
+  - type: accuracy
+    name: Accuracy
+  - type: f1
+    name: F1 binary
+    args:
+      average: binary
+  - type: precision
+    name: Precision macro
+    args:
+      average: macro
+  - type: precision
+    name: Precision micro
+    args:
+      average: micro
+  - type: precision
+    name: Precision weighted
+    args:
+      average: weighted
+  - type: recall
+    name: Recall macro
+    args:
+      average: macro
+  - type: recall
+    name: Recall micro
+    args:
+      average: micro
+  - type: recall
+    name: Recall weighted
+    args:
+      average: weighted
 - config: sentiment
   task: text-classification
   task_id: multi_class_classification
@@ -203,44 +203,44 @@ train-eval-index:
     text: text
     label: target
   metrics:
-    - type: accuracy
-      name: Accuracy
-    - type: f1
-      name: F1 macro
-      args:
-        average: macro
-    - type: f1
-      name: F1 micro
-      args:
-        average: micro
-    - type: f1
-      name: F1 weighted
-      args:
-        average: weighted
-    - type: precision
-      name: Precision macro
-      args:
-        average: macro
-    - type: precision
-      name: Precision micro
-      args:
-        average: micro
-    - type: precision
-      name: Precision weighted
-      args:
-        average: weighted
-    - type: recall
-      name: Recall macro
-      args:
-        average: macro
-    - type: recall
-      name: Recall micro
-      args:
-        average: micro
-    - type: recall
-      name: Recall weighted
-      args:
-        average: weighted
+  - type: accuracy
+    name: Accuracy
+  - type: f1
+    name: F1 macro
+    args:
+      average: macro
+  - type: f1
+    name: F1 micro
+    args:
+      average: micro
+  - type: f1
+    name: F1 weighted
+    args:
+      average: weighted
+  - type: precision
+    name: Precision macro
+    args:
+      average: macro
+  - type: precision
+    name: Precision micro
+    args:
+      average: micro
+  - type: precision
+    name: Precision weighted
+    args:
+      average: weighted
+  - type: recall
+    name: Recall macro
+    args:
+      average: macro
+  - type: recall
+    name: Recall micro
+    args:
+      average: micro
+  - type: recall
+    name: Recall weighted
+    args:
+      average: weighted
 configs:
 - emoji
 - emotion
@@ -253,6 +253,275 @@ configs:
 - stance_climate
 - stance_feminist
 - stance_hillary
+dataset_info:
+- config_name: emoji
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: ❤
+          1: 😍
+          2: 😂
+          3: 💕
+          4: 🔥
+          5: 😊
+          6: 😎
+          7: ✨
+          8: 💙
+          9: 😘
+          10: 📷
+          11: 🇺🇸
+          12: ☀
+          13: 💜
+          14: 😉
+          15: 💯
+          16: 😁
+          17: 🎄
+          18: 📸
+          19: 😜
+  splits:
+  - name: test
+    num_bytes: 4255921
+    num_examples: 50000
+  - name: train
+    num_bytes: 3803187
+    num_examples: 45000
+  - name: validation
+    num_bytes: 396083
+    num_examples: 5000
+  download_size: 7628721
+  dataset_size: 8455191
+- config_name: emotion
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: anger
+          1: joy
+          2: optimism
+          3: sadness
+  splits:
+  - name: test
+    num_bytes: 146649
+    num_examples: 1421
+  - name: train
+    num_bytes: 338875
+    num_examples: 3257
+  - name: validation
+    num_bytes: 38277
+    num_examples: 374
+  download_size: 483813
+  dataset_size: 523801
+- config_name: hate
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: non-hate
+          1: hate
+  splits:
+  - name: test
+    num_bytes: 428938
+    num_examples: 2970
+  - name: train
+    num_bytes: 1223654
+    num_examples: 9000
+  - name: validation
+    num_bytes: 154148
+    num_examples: 1000
+  download_size: 1703208
+  dataset_size: 1806740
+- config_name: irony
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: non_irony
+          1: irony
+  splits:
+  - name: test
+    num_bytes: 75901
+    num_examples: 784
+  - name: train
+    num_bytes: 259191
+    num_examples: 2862
+  - name: validation
+    num_bytes: 86021
+    num_examples: 955
+  download_size: 385613
+  dataset_size: 421113
+- config_name: offensive
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: non-offensive
+          1: offensive
+  splits:
+  - name: test
+    num_bytes: 135477
+    num_examples: 860
+  - name: train
+    num_bytes: 1648069
+    num_examples: 11916
+  - name: validation
+    num_bytes: 192421
+    num_examples: 1324
+  download_size: 1863383
+  dataset_size: 1975967
+- config_name: sentiment
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: neutral
+          2: positive
+  splits:
+  - name: test
+    num_bytes: 1279548
+    num_examples: 12284
+  - name: train
+    num_bytes: 5425142
+    num_examples: 45615
+  - name: validation
+    num_bytes: 239088
+    num_examples: 2000
+  download_size: 6465841
+  dataset_size: 6943778
+- config_name: stance_abortion
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: none
+          1: against
+          2: favor
+  splits:
+  - name: test
+    num_bytes: 33175
+    num_examples: 280
+  - name: train
+    num_bytes: 68698
+    num_examples: 587
+  - name: validation
+    num_bytes: 7661
+    num_examples: 66
+  download_size: 102062
+  dataset_size: 109534
+- config_name: stance_atheism
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: none
+          1: against
+          2: favor
+  splits:
+  - name: test
+    num_bytes: 25720
+    num_examples: 220
+  - name: train
+    num_bytes: 54779
+    num_examples: 461
+  - name: validation
+    num_bytes: 6324
+    num_examples: 52
+  download_size: 80947
+  dataset_size: 86823
+- config_name: stance_climate
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: none
+          1: against
+          2: favor
+  splits:
+  - name: test
+    num_bytes: 19929
+    num_examples: 169
+  - name: train
+    num_bytes: 40253
+    num_examples: 355
+  - name: validation
+    num_bytes: 4805
+    num_examples: 40
+  download_size: 60463
+  dataset_size: 64987
+- config_name: stance_feminist
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: none
+          1: against
+          2: favor
+  splits:
+  - name: test
+    num_bytes: 33309
+    num_examples: 285
+  - name: train
+    num_bytes: 70513
+    num_examples: 597
+  - name: validation
+    num_bytes: 8039
+    num_examples: 67
+  download_size: 104257
+  dataset_size: 111861
+- config_name: stance_hillary
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: none
+          1: against
+          2: favor
+  splits:
+  - name: test
+    num_bytes: 34491
+    num_examples: 295
+  - name: train
+    num_bytes: 69600
+    num_examples: 620
+  - name: validation
+    num_bytes: 7536
+    num_examples: 69
+  download_size: 103745
+  dataset_size: 111627
 ---
 
 # Dataset Card for tweet_eval

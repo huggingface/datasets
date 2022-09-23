@@ -18,6 +18,51 @@ task_categories:
 - time-series-forecasting
 task_ids:
 - univariate-time-series-forecasting
+dataset_info:
+- config_name: uci
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 302059069
+    num_examples: 2590
+  - name: train
+    num_bytes: 42968147
+    num_examples: 370
+  - name: validation
+    num_bytes: 43004777
+    num_examples: 370
+  download_size: 261335609
+  dataset_size: 388031993
+- config_name: lstnet
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 195401080
+    num_examples: 2240
+  - name: train
+    num_bytes: 20843200
+    num_examples: 320
+  - name: validation
+    num_bytes: 27787720
+    num_examples: 320
+  download_size: 261335609
+  dataset_size: 244032000
 ---
 
 # Dataset Card for Electricity Load Diagrams

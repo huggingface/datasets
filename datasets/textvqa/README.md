@@ -18,6 +18,159 @@ task_categories:
 - visual-question-answering
 task_ids:
 - visual-question-answering
+dataset_info:
+- config_name: train
+  features:
+  - name: image_id
+    dtype: string
+  - name: question_id
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: question_tokens
+    sequence: string
+  - name: image
+    dtype: image
+  - name: image_width
+    dtype: int32
+  - name: image_height
+    dtype: int32
+  - name: flickr_original_url
+    dtype: string
+  - name: flickr_300k_url
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: image_classes
+    sequence: string
+  - name: set_name
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 3025046
+    num_examples: 5734
+  - name: train
+    num_bytes: 21381310
+    num_examples: 34602
+  - name: validation
+    num_bytes: 3077854
+    num_examples: 5000
+  download_size: 8070116310
+  dataset_size: 27484210
+- config_name: val
+  features:
+  - name: image_id
+    dtype: string
+  - name: question_id
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: question_tokens
+    sequence: string
+  - name: image
+    dtype: image
+  - name: image_width
+    dtype: int32
+  - name: image_height
+    dtype: int32
+  - name: flickr_original_url
+    dtype: string
+  - name: flickr_300k_url
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: image_classes
+    sequence: string
+  - name: set_name
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 3025046
+    num_examples: 5734
+  - name: train
+    num_bytes: 21381310
+    num_examples: 34602
+  - name: validation
+    num_bytes: 3077854
+    num_examples: 5000
+  download_size: 8070116310
+  dataset_size: 27484210
+- config_name: test
+  features:
+  - name: image_id
+    dtype: string
+  - name: question_id
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: question_tokens
+    sequence: string
+  - name: image
+    dtype: image
+  - name: image_width
+    dtype: int32
+  - name: image_height
+    dtype: int32
+  - name: flickr_original_url
+    dtype: string
+  - name: flickr_300k_url
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: image_classes
+    sequence: string
+  - name: set_name
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 3025046
+    num_examples: 5734
+  - name: train
+    num_bytes: 21381310
+    num_examples: 34602
+  - name: validation
+    num_bytes: 3077854
+    num_examples: 5000
+  download_size: 8070116310
+  dataset_size: 27484210
+- config_name: textvqa
+  features:
+  - name: image_id
+    dtype: string
+  - name: question_id
+    dtype: int32
+  - name: question
+    dtype: string
+  - name: question_tokens
+    sequence: string
+  - name: image
+    dtype: image
+  - name: image_width
+    dtype: int32
+  - name: image_height
+    dtype: int32
+  - name: flickr_original_url
+    dtype: string
+  - name: flickr_300k_url
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: image_classes
+    sequence: string
+  - name: set_name
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 3139726
+    num_examples: 5734
+  - name: train
+    num_bytes: 22073350
+    num_examples: 34602
+  - name: validation
+    num_bytes: 3177854
+    num_examples: 5000
+  download_size: 8070116310
+  dataset_size: 28390930
 ---
 
 # Dataset Card for TextVQA

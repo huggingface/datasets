@@ -19,6 +19,67 @@ task_categories:
 task_ids:
 - text2text-generation-other-sentence-fusion
 paperswithcode_id: discofuse
+dataset_info:
+- config_name: discofuse-sport
+  features:
+  - name: connective_string
+    dtype: string
+  - name: discourse_type
+    dtype: string
+  - name: coherent_second_sentence
+    dtype: string
+  - name: has_coref_type_pronoun
+    dtype: float32
+  - name: incoherent_first_sentence
+    dtype: string
+  - name: incoherent_second_sentence
+    dtype: string
+  - name: has_coref_type_nominal
+    dtype: float32
+  - name: coherent_first_sentence
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 151656323
+    num_examples: 445521
+  - name: train
+    num_bytes: 14736279993
+    num_examples: 43291020
+  - name: validation
+    num_bytes: 150207737
+    num_examples: 440902
+  download_size: 4326637746
+  dataset_size: 15038144053
+- config_name: discofuse-wikipedia
+  features:
+  - name: connective_string
+    dtype: string
+  - name: discourse_type
+    dtype: string
+  - name: coherent_second_sentence
+    dtype: string
+  - name: has_coref_type_pronoun
+    dtype: float32
+  - name: incoherent_first_sentence
+    dtype: string
+  - name: incoherent_second_sentence
+    dtype: string
+  - name: has_coref_type_nominal
+    dtype: float32
+  - name: coherent_first_sentence
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 64008158
+    num_examples: 163657
+  - name: train
+    num_bytes: 6377924196
+    num_examples: 16310585
+  - name: validation
+    num_bytes: 65682035
+    num_examples: 168081
+  download_size: 1717422334
+  dataset_size: 6507614389
 ---
 
 # Dataset Card for "discofuse"

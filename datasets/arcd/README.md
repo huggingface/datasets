@@ -21,6 +21,32 @@ task_ids:
 - extractive-qa
 paperswithcode_id: arcd
 pretty_name: ARCD
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 811064
+    num_examples: 693
+  - name: validation
+    num_bytes: 885648
+    num_examples: 702
+  download_size: 1942399
+  dataset_size: 1696712
 ---
 
 # Dataset Card for "arcd"

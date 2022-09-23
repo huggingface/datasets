@@ -20,6 +20,24 @@ task_ids:
 - text-scoring
 paperswithcode_id: allegro-reviews
 pretty_name: Allegro Reviews
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: rating
+    dtype: float32
+  splits:
+  - name: test
+    num_bytes: 514527
+    num_examples: 1006
+  - name: train
+    num_bytes: 4899539
+    num_examples: 9577
+  - name: validation
+    num_bytes: 515785
+    num_examples: 1002
+  download_size: 2314847
+  dataset_size: 5929851
 ---
 
 # Dataset Card for [Dataset Name]

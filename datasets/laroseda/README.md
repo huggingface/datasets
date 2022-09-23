@@ -19,6 +19,26 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: null
 pretty_name: LaRoSeDa
+dataset_info:
+  features:
+  - name: index
+    dtype: string
+  - name: title
+    dtype: string
+  - name: content
+    dtype: string
+  - name: starRating
+    dtype: int64
+  config_name: laroseda
+  splits:
+  - name: test
+    num_bytes: 700834
+    num_examples: 3000
+  - name: train
+    num_bytes: 2932819
+    num_examples: 12000
+  download_size: 5257183
+  dataset_size: 3633653
 ---
 
 # Dataset Card for LaRoSeDa
@@ -173,4 +193,3 @@ CC BY-SA 4.0 License
 ### Contributions
 
 Thanks to [@MihaelaGaman](https://github.com/MihaelaGaman) for adding this dataset.
-

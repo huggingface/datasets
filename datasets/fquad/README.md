@@ -21,7 +21,28 @@ task_ids:
 - extractive-qa
 - closed-domain-qa
 paperswithcode_id: fquad
-pretty_name: "FQuAD: French Question Answering Dataset"
+pretty_name: 'FQuAD: French Question Answering Dataset'
+dataset_info:
+  features:
+  - name: context
+    dtype: string
+  - name: questions
+    sequence: string
+  - name: answers
+    sequence:
+    - name: texts
+      dtype: string
+    - name: answers_starts
+      dtype: int32
+  splits:
+  - name: train
+    num_bytes: 5910248
+    num_examples: 4921
+  - name: validation
+    num_bytes: 1033253
+    num_examples: 768
+  download_size: 3292236
+  dataset_size: 6943501
 ---
 
 # Dataset Card for FQuAD

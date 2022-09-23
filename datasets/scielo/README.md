@@ -24,6 +24,50 @@ configs:
 - en-es
 - en-pt
 - en-pt-es
+dataset_info:
+- config_name: en-es
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - es
+  splits:
+  - name: train
+    num_bytes: 71777213
+    num_examples: 177782
+  download_size: 22965217
+  dataset_size: 71777213
+- config_name: en-pt
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - pt
+  splits:
+  - name: train
+    num_bytes: 1032669686
+    num_examples: 2828917
+  download_size: 322726075
+  dataset_size: 1032669686
+- config_name: en-pt-es
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - pt
+        - es
+  splits:
+  - name: train
+    num_bytes: 147472132
+    num_examples: 255915
+  download_size: 45556562
+  dataset_size: 147472132
 ---
 
 # Dataset Card for SciELO

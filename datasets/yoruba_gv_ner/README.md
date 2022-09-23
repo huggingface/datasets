@@ -19,6 +19,38 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: Yoruba GV NER Corpus
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-DATE
+          8: I-DATE
+  config_name: yoruba_gv_ner
+  splits:
+  - name: test
+    num_bytes: 96518
+    num_examples: 237
+  - name: train
+    num_bytes: 358885
+    num_examples: 817
+  - name: validation
+    num_bytes: 50161
+    num_examples: 117
+  download_size: 254347
+  dataset_size: 505564
 ---
 
 # Dataset Card for Yoruba GV NER Corpus

@@ -32,6 +32,167 @@ configs:
 - jw-teta
 - jw-ulo_nche
 - jw-ulo_nche_naamu
+dataset_info:
+- config_name: eze_goes_to_school
+  features:
+  - name: format
+    dtype: string
+  - name: title
+    dtype: string
+  - name: chapters
+    sequence:
+    - name: title
+      dtype: string
+    - name: content
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 128309
+    num_examples: 1
+  download_size: 8260947
+  dataset_size: 128309
+- config_name: bbc-igbo
+  features:
+  - name: source
+    dtype: string
+  - name: title
+    dtype: string
+  - name: description
+    dtype: string
+  - name: date
+    dtype: string
+  - name: headline
+    dtype: string
+  - name: content
+    dtype: string
+  - name: tags
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 3488908
+    num_examples: 1297
+  download_size: 8260947
+  dataset_size: 3488908
+- config_name: igbo-radio
+  features:
+  - name: source
+    dtype: string
+  - name: headline
+    dtype: string
+  - name: author
+    dtype: string
+  - name: date
+    dtype: string
+  - name: description
+    dtype: string
+  - name: content
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1129644
+    num_examples: 440
+  download_size: 8260947
+  dataset_size: 1129644
+- config_name: jw-ot-igbo
+  features:
+  - name: format
+    dtype: string
+  - name: title
+    dtype: string
+  - name: chapters
+    sequence:
+    - name: title
+      dtype: string
+    - name: content
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 3489314
+    num_examples: 39
+  download_size: 8260947
+  dataset_size: 3489314
+- config_name: jw-nt-igbo
+  features:
+  - name: format
+    dtype: string
+  - name: title
+    dtype: string
+  - name: chapters
+    sequence:
+    - name: title
+      dtype: string
+    - name: content
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 1228779
+    num_examples: 27
+  download_size: 8260947
+  dataset_size: 1228779
+- config_name: jw-books
+  features:
+  - name: title
+    dtype: string
+  - name: content
+    dtype: string
+  - name: format
+    dtype: string
+  - name: date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 9456342
+    num_examples: 48
+  download_size: 8260947
+  dataset_size: 9456342
+- config_name: jw-teta
+  features:
+  - name: title
+    dtype: string
+  - name: content
+    dtype: string
+  - name: format
+    dtype: string
+  - name: date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 991111
+    num_examples: 37
+  download_size: 8260947
+  dataset_size: 991111
+- config_name: jw-ulo_nche
+  features:
+  - name: title
+    dtype: string
+  - name: content
+    dtype: string
+  - name: format
+    dtype: string
+  - name: date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1952360
+    num_examples: 55
+  download_size: 8260947
+  dataset_size: 1952360
+- config_name: jw-ulo_nche_naamu
+  features:
+  - name: title
+    dtype: string
+  - name: content
+    dtype: string
+  - name: format
+    dtype: string
+  - name: date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 7248017
+    num_examples: 88
+  download_size: 8260947
+  dataset_size: 7248017
 ---
 
 # Dataset Card for Igbo Monolingual Dataset

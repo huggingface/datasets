@@ -19,6 +19,29 @@ task_ids:
 - multi-class-classification
 paperswithcode_id: gutenberg-time-dataset
 pretty_name: the Gutenberg Time dataset
+dataset_info:
+  features:
+  - name: guten_id
+    dtype: string
+  - name: hour_reference
+    dtype: string
+  - name: time_phrase
+    dtype: string
+  - name: is_ambiguous
+    dtype: bool_
+  - name: time_pos_start
+    dtype: int64
+  - name: time_pos_end
+    dtype: int64
+  - name: tok_context
+    dtype: string
+  config_name: gutenberg
+  splits:
+  - name: train
+    num_bytes: 108550391
+    num_examples: 120694
+  download_size: 35853781
+  dataset_size: 108550391
 ---
 
 # Dataset Card for the Gutenberg Time dataset

@@ -30,8 +30,26 @@ train-eval-index:
     document: text
     summary: target
   metrics:
-    - type: rouge
-      name: Rouge
+  - type: rouge
+    name: Rouge
+dataset_info:
+  features:
+  - name: document
+    dtype: string
+  - name: summary
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 70032124
+    num_examples: 5622
+  - name: train
+    num_bytes: 558392265
+    num_examples: 44972
+  - name: validation
+    num_bytes: 68272432
+    num_examples: 5622
+  download_size: 756785627
+  dataset_size: 696696821
 ---
 
 # Dataset Card for Multi-News

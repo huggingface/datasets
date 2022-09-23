@@ -21,6 +21,127 @@ task_categories:
 task_ids:
 - multi-label-classification
 - text-classification-other-emotion-classification
+dataset_info:
+- config_name: subtask5.english
+  features:
+  - name: ID
+    dtype: string
+  - name: Tweet
+    dtype: string
+  - name: anger
+    dtype: bool
+  - name: anticipation
+    dtype: bool
+  - name: disgust
+    dtype: bool
+  - name: fear
+    dtype: bool
+  - name: joy
+    dtype: bool
+  - name: love
+    dtype: bool
+  - name: optimism
+    dtype: bool
+  - name: pessimism
+    dtype: bool
+  - name: sadness
+    dtype: bool
+  - name: surprise
+    dtype: bool
+  - name: trust
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 384519
+    num_examples: 3259
+  - name: train
+    num_bytes: 809768
+    num_examples: 6838
+  - name: validation
+    num_bytes: 104660
+    num_examples: 886
+  download_size: 5975590
+  dataset_size: 1298947
+- config_name: subtask5.spanish
+  features:
+  - name: ID
+    dtype: string
+  - name: Tweet
+    dtype: string
+  - name: anger
+    dtype: bool
+  - name: anticipation
+    dtype: bool
+  - name: disgust
+    dtype: bool
+  - name: fear
+    dtype: bool
+  - name: joy
+    dtype: bool
+  - name: love
+    dtype: bool
+  - name: optimism
+    dtype: bool
+  - name: pessimism
+    dtype: bool
+  - name: sadness
+    dtype: bool
+  - name: surprise
+    dtype: bool
+  - name: trust
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 288692
+    num_examples: 2854
+  - name: train
+    num_bytes: 362549
+    num_examples: 3561
+  - name: validation
+    num_bytes: 67259
+    num_examples: 679
+  download_size: 5975590
+  dataset_size: 718500
+- config_name: subtask5.arabic
+  features:
+  - name: ID
+    dtype: string
+  - name: Tweet
+    dtype: string
+  - name: anger
+    dtype: bool
+  - name: anticipation
+    dtype: bool
+  - name: disgust
+    dtype: bool
+  - name: fear
+    dtype: bool
+  - name: joy
+    dtype: bool
+  - name: love
+    dtype: bool
+  - name: optimism
+    dtype: bool
+  - name: pessimism
+    dtype: bool
+  - name: sadness
+    dtype: bool
+  - name: surprise
+    dtype: bool
+  - name: trust
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 278715
+    num_examples: 1518
+  - name: train
+    num_bytes: 414458
+    num_examples: 2278
+  - name: validation
+    num_bytes: 105452
+    num_examples: 585
+  download_size: 5975590
+  dataset_size: 798625
 ---
 
 # Dataset Card for SemEval-2018 Task 1: Affect in Tweets

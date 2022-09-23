@@ -3,6 +3,55 @@ language:
 - en
 paperswithcode_id: web-of-science-dataset
 pretty_name: Web of Science Dataset
+dataset_info:
+- config_name: WOS5736
+  features:
+  - name: input_data
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: label_level_1
+    dtype: int32
+  - name: label_level_2
+    dtype: int32
+  splits:
+  - name: train
+    num_bytes: 8051533
+    num_examples: 5736
+  download_size: 60222421
+  dataset_size: 8051533
+- config_name: WOS11967
+  features:
+  - name: input_data
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: label_level_1
+    dtype: int32
+  - name: label_level_2
+    dtype: int32
+  splits:
+  - name: train
+    num_bytes: 16248391
+    num_examples: 11967
+  download_size: 60222421
+  dataset_size: 16248391
+- config_name: WOS46985
+  features:
+  - name: input_data
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: label_level_1
+    dtype: int32
+  - name: label_level_2
+    dtype: int32
+  splits:
+  - name: train
+    num_bytes: 65471726
+    num_examples: 46985
+  download_size: 60222421
+  dataset_size: 65471726
 ---
 
 # Dataset Card for "web_of_science"

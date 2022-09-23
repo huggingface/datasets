@@ -19,6 +19,27 @@ task_ids:
 - summarization-other-conversations-summarization
 paperswithcode_id: samsum-corpus
 pretty_name: SAMSum Corpus
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: dialogue
+    dtype: string
+  - name: summary
+    dtype: string
+  config_name: samsum
+  splits:
+  - name: test
+    num_bytes: 534492
+    num_examples: 819
+  - name: train
+    num_bytes: 9479141
+    num_examples: 14732
+  - name: validation
+    num_bytes: 516431
+    num_examples: 818
+  download_size: 2944100
+  dataset_size: 10530064
 ---
 
 # Dataset Card for SAMSum Corpus

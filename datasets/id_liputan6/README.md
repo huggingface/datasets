@@ -20,6 +20,52 @@ task_ids:
 - news-articles-summarization
 paperswithcode_id: null
 pretty_name: Large-scale Indonesian Summarization
+dataset_info:
+- config_name: canonical
+  features:
+  - name: id
+    dtype: string
+  - name: url
+    dtype: string
+  - name: clean_article
+    dtype: string
+  - name: clean_summary
+    dtype: string
+  - name: extractive_summary
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 20526768
+    num_examples: 10972
+  - name: train
+    num_bytes: 382245586
+    num_examples: 193883
+  - name: validation
+    num_bytes: 20944658
+    num_examples: 10972
+  download_size: 0
+  dataset_size: 423717012
+- config_name: xtreme
+  features:
+  - name: id
+    dtype: string
+  - name: url
+    dtype: string
+  - name: clean_article
+    dtype: string
+  - name: clean_summary
+    dtype: string
+  - name: extractive_summary
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 7574550
+    num_examples: 3862
+  - name: validation
+    num_bytes: 9652946
+    num_examples: 4948
+  download_size: 0
+  dataset_size: 17227496
 ---
 
 # Dataset Card for Large-scale Indonesian Summarization

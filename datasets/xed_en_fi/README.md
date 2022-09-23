@@ -29,6 +29,99 @@ configs:
 - en_neutral
 - fi_annotated
 - fi_neutral
+dataset_info:
+- config_name: en_annotated
+  features:
+  - name: sentence
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: neutral
+          1: anger
+          2: anticipation
+          3: disgust
+          4: fear
+          5: joy
+          6: sadness
+          7: surprise
+          8: trust
+  splits:
+  - name: train
+    num_bytes: 1018485
+    num_examples: 17528
+  download_size: 2421235
+  dataset_size: 1018485
+- config_name: en_neutral
+  features:
+  - name: sentence
+    dtype: string
+  - name: labels
+    dtype:
+      class_label:
+        names:
+          0: neutral
+          1: anger
+          2: anticipation
+          3: disgust
+          4: fear
+          5: joy
+          6: sadness
+          7: surprise
+          8: trust
+  splits:
+  - name: train
+    num_bytes: 401129
+    num_examples: 9675
+  download_size: 2421235
+  dataset_size: 401129
+- config_name: fi_annotated
+  features:
+  - name: sentence
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: neutral
+          1: anger
+          2: anticipation
+          3: disgust
+          4: fear
+          5: joy
+          6: sadness
+          7: surprise
+          8: trust
+  splits:
+  - name: train
+    num_bytes: 756224
+    num_examples: 14449
+  download_size: 2421235
+  dataset_size: 756224
+- config_name: fi_neutral
+  features:
+  - name: sentence
+    dtype: string
+  - name: labels
+    dtype:
+      class_label:
+        names:
+          0: neutral
+          1: anger
+          2: anticipation
+          3: disgust
+          4: fear
+          5: joy
+          6: sadness
+          7: surprise
+          8: trust
+  splits:
+  - name: train
+    num_bytes: 427499
+    num_examples: 10794
+  download_size: 2421235
+  dataset_size: 427499
 ---
 
 # Dataset Card for xed_english_finnish

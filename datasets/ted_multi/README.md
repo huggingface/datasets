@@ -1,6 +1,88 @@
 ---
 pretty_name: TEDMulti
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: translations
+    dtype:
+      translation_variable_languages:
+        languages:
+        - ar
+        - az
+        - be
+        - bg
+        - bn
+        - bs
+        - calv
+        - cs
+        - da
+        - de
+        - el
+        - en
+        - eo
+        - es
+        - et
+        - eu
+        - fa
+        - fi
+        - fr
+        - fr-ca
+        - gl
+        - he
+        - hi
+        - hr
+        - hu
+        - hy
+        - id
+        - it
+        - ja
+        - ka
+        - kk
+        - ko
+        - ku
+        - lt
+        - mk
+        - mn
+        - mr
+        - ms
+        - my
+        - nb
+        - nl
+        - pl
+        - pt
+        - pt-br
+        - ro
+        - ru
+        - sk
+        - sl
+        - sq
+        - sr
+        - sv
+        - ta
+        - th
+        - tr
+        - uk
+        - ur
+        - vi
+        - zh
+        - zh-cn
+        - zh-tw
+        num_languages: 60
+  - name: talk_name
+    dtype: string
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 23364983
+    num_examples: 7213
+  - name: train
+    num_bytes: 748209995
+    num_examples: 258098
+  - name: validation
+    num_bytes: 19435383
+    num_examples: 6049
+  download_size: 352222045
+  dataset_size: 791010361
 ---
 
 # Dataset Card for "ted_multi"

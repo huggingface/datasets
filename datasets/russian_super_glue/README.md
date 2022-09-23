@@ -26,6 +26,282 @@ task_categories:
 task_ids:
 - natural-language-inference
 - multi-class-classification
+dataset_info:
+- config_name: lidirus
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: knowledge
+    dtype: string
+  - name: lexical-semantics
+    dtype: string
+  - name: logic
+    dtype: string
+  - name: predicate-argument-structure
+    dtype: string
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: not_entailment
+  splits:
+  - name: test
+    num_bytes: 470306
+    num_examples: 1104
+  download_size: 47118
+  dataset_size: 470306
+- config_name: rcb
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: verb
+    dtype: string
+  - name: negation
+    dtype: string
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: contradiction
+          2: neutral
+  splits:
+  - name: test
+    num_bytes: 207031
+    num_examples: 438
+  - name: train
+    num_bytes: 199712
+    num_examples: 438
+  - name: validation
+    num_bytes: 97993
+    num_examples: 220
+  download_size: 136700
+  dataset_size: 504736
+- config_name: parus
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: choice1
+          1: choice2
+  splits:
+  - name: test
+    num_bytes: 93192
+    num_examples: 500
+  - name: train
+    num_bytes: 74467
+    num_examples: 400
+  - name: validation
+    num_bytes: 19397
+    num_examples: 100
+  download_size: 57585
+  dataset_size: 187056
+- config_name: muserc
+  features:
+  - name: paragraph
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: idx
+    struct:
+    - name: paragraph
+      dtype: int32
+    - name: question
+      dtype: int32
+    - name: answer
+      dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'False'
+          1: 'True'
+  splits:
+  - name: test
+    num_bytes: 19850930
+    num_examples: 7614
+  - name: train
+    num_bytes: 31651155
+    num_examples: 11950
+  - name: validation
+    num_bytes: 5964157
+    num_examples: 2235
+  download_size: 1196720
+  dataset_size: 57466242
+- config_name: terra
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: not_entailment
+  splits:
+  - name: test
+    num_bytes: 1713499
+    num_examples: 3198
+  - name: train
+    num_bytes: 1409243
+    num_examples: 2616
+  - name: validation
+    num_bytes: 161485
+    num_examples: 307
+  download_size: 907346
+  dataset_size: 3284227
+- config_name: russe
+  features:
+  - name: word
+    dtype: string
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: start1
+    dtype: int32
+  - name: start2
+    dtype: int32
+  - name: end1
+    dtype: int32
+  - name: end2
+    dtype: int32
+  - name: gold_sense1
+    dtype: int32
+  - name: gold_sense2
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'False'
+          1: 'True'
+  splits:
+  - name: test
+    num_bytes: 10046000
+    num_examples: 18892
+  - name: train
+    num_bytes: 6913280
+    num_examples: 19845
+  - name: validation
+    num_bytes: 2957491
+    num_examples: 8505
+  download_size: 3806009
+  dataset_size: 19916771
+- config_name: rwsd
+  features:
+  - name: text
+    dtype: string
+  - name: span1_index
+    dtype: int32
+  - name: span2_index
+    dtype: int32
+  - name: span1_text
+    dtype: string
+  - name: span2_text
+    dtype: string
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'False'
+          1: 'True'
+  splits:
+  - name: test
+    num_bytes: 59051
+    num_examples: 154
+  - name: train
+    num_bytes: 132274
+    num_examples: 606
+  - name: validation
+    num_bytes: 87959
+    num_examples: 204
+  download_size: 40508
+  dataset_size: 279284
+- config_name: danetqa
+  features:
+  - name: question
+    dtype: string
+  - name: passage
+    dtype: string
+  - name: idx
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'False'
+          1: 'True'
+  splits:
+  - name: test
+    num_bytes: 1023062
+    num_examples: 805
+  - name: train
+    num_bytes: 2474006
+    num_examples: 1749
+  - name: validation
+    num_bytes: 1076455
+    num_examples: 821
+  download_size: 1293761
+  dataset_size: 4573523
+- config_name: rucos
+  features:
+  - name: passage
+    dtype: string
+  - name: query
+    dtype: string
+  - name: entities
+    sequence: string
+  - name: answers
+    sequence: string
+  - name: idx
+    struct:
+    - name: passage
+      dtype: int32
+    - name: query
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 15535209
+    num_examples: 7257
+  - name: train
+    num_bytes: 160095378
+    num_examples: 72193
+  - name: validation
+    num_bytes: 16980563
+    num_examples: 7577
+  download_size: 56208297
+  dataset_size: 192611150
 ---
 
 # Dataset Card for [Russian SuperGLUE]

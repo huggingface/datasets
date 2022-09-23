@@ -19,6 +19,41 @@ task_ids:
 - text-classification-other-hate-speech-detection
 paperswithcode_id: hatexplain
 pretty_name: hatexplain
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: annotators
+    sequence:
+    - name: label
+      dtype:
+        class_label:
+          names:
+            0: hatespeech
+            1: normal
+            2: offensive
+    - name: annotator_id
+      dtype: int32
+    - name: target
+      sequence: string
+  - name: rationales
+    sequence:
+      sequence: int32
+  - name: post_tokens
+    sequence: string
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 884784
+    num_examples: 1924
+  - name: train
+    num_bytes: 7114730
+    num_examples: 15383
+  - name: validation
+    num_bytes: 884940
+    num_examples: 1922
+  download_size: 12848091
+  dataset_size: 8884454
 ---
 
 # Dataset Card for hatexplain

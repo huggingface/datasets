@@ -19,6 +19,79 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: race
+dataset_info:
+- config_name: high
+  features:
+  - name: example_id
+    dtype: string
+  - name: article
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: question
+    dtype: string
+  - name: options
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 6989121
+    num_examples: 3498
+  - name: train
+    num_bytes: 126243396
+    num_examples: 62445
+  - name: validation
+    num_bytes: 6885287
+    num_examples: 3451
+  download_size: 25443609
+  dataset_size: 140117804
+- config_name: middle
+  features:
+  - name: example_id
+    dtype: string
+  - name: article
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: question
+    dtype: string
+  - name: options
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 1786297
+    num_examples: 1436
+  - name: train
+    num_bytes: 31065322
+    num_examples: 25421
+  - name: validation
+    num_bytes: 1761937
+    num_examples: 1436
+  download_size: 25443609
+  dataset_size: 34613556
+- config_name: all
+  features:
+  - name: example_id
+    dtype: string
+  - name: article
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: question
+    dtype: string
+  - name: options
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 8775394
+    num_examples: 4934
+  - name: train
+    num_bytes: 157308694
+    num_examples: 87866
+  - name: validation
+    num_bytes: 8647200
+    num_examples: 4887
+  download_size: 25443609
+  dataset_size: 174731288
 ---
 
 # Dataset Card for "race"

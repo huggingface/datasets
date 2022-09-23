@@ -19,6 +19,79 @@ task_ids:
 - other-other-open-information-extraction
 paperswithcode_id: tupleinf-open-ie-dataset
 pretty_name: TupleInf Open IE
+dataset_info:
+- config_name: all
+  features:
+  - name: sentence
+    dtype: string
+  - name: tuples
+    sequence:
+    - name: score
+      dtype: float32
+    - name: tuple_text
+      dtype: string
+    - name: context
+      dtype: string
+    - name: arg1
+      dtype: string
+    - name: rel
+      dtype: string
+    - name: arg2s
+      sequence: string
+  splits:
+  - name: train
+    num_bytes: 115621096
+    num_examples: 267719
+  download_size: 18026102
+  dataset_size: 115621096
+- config_name: 4th_grade
+  features:
+  - name: sentence
+    dtype: string
+  - name: tuples
+    sequence:
+    - name: score
+      dtype: float32
+    - name: tuple_text
+      dtype: string
+    - name: context
+      dtype: string
+    - name: arg1
+      dtype: string
+    - name: rel
+      dtype: string
+    - name: arg2s
+      sequence: string
+  splits:
+  - name: train
+    num_bytes: 65363445
+    num_examples: 158910
+  download_size: 18026102
+  dataset_size: 65363445
+- config_name: 8th_grade
+  features:
+  - name: sentence
+    dtype: string
+  - name: tuples
+    sequence:
+    - name: score
+      dtype: float32
+    - name: tuple_text
+      dtype: string
+    - name: context
+      dtype: string
+    - name: arg1
+      dtype: string
+    - name: rel
+      dtype: string
+    - name: arg2s
+      sequence: string
+  splits:
+  - name: train
+    num_bytes: 50257651
+    num_examples: 108809
+  download_size: 18026102
+  dataset_size: 50257651
 ---
 
 # Dataset Card for TupleInf Open IE

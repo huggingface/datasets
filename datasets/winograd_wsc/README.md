@@ -19,6 +19,63 @@ task_ids:
 - multiple-choice-coreference-resolution
 paperswithcode_id: wsc
 pretty_name: Winograd Schema Challenge
+dataset_info:
+- config_name: wsc285
+  features:
+  - name: text
+    dtype: string
+  - name: pronoun
+    dtype: string
+  - name: pronoun_loc
+    dtype: int32
+  - name: quote
+    dtype: string
+  - name: quote_loc
+    dtype: int32
+  - name: options
+    sequence: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  - name: source
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 52281
+    num_examples: 285
+  download_size: 113235
+  dataset_size: 52281
+- config_name: wsc273
+  features:
+  - name: text
+    dtype: string
+  - name: pronoun
+    dtype: string
+  - name: pronoun_loc
+    dtype: int32
+  - name: quote
+    dtype: string
+  - name: quote_loc
+    dtype: int32
+  - name: options
+    sequence: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  - name: source
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 49674
+    num_examples: 273
+  download_size: 113235
+  dataset_size: 49674
 ---
 
 # Dataset Card for The Winograd Schema Challenge

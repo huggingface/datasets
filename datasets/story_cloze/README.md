@@ -19,6 +19,58 @@ task_ids:
 - other-other-story-completion
 paperswithcode_id: null
 pretty_name: Story Cloze Test
+dataset_info:
+- config_name: '2016'
+  features:
+  - name: story_id
+    dtype: string
+  - name: input_sentence_1
+    dtype: string
+  - name: input_sentence_2
+    dtype: string
+  - name: input_sentence_3
+    dtype: string
+  - name: input_sentence_4
+    dtype: string
+  - name: sentence_quiz1
+    dtype: string
+  - name: sentence_quiz2
+    dtype: string
+  - name: answer_right_ending
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 613184
+    num_examples: 1871
+  - name: validation
+    num_bytes: 614084
+    num_examples: 1871
+  download_size: 0
+  dataset_size: 1227268
+- config_name: '2018'
+  features:
+  - name: story_id
+    dtype: string
+  - name: input_sentence_1
+    dtype: string
+  - name: input_sentence_2
+    dtype: string
+  - name: input_sentence_3
+    dtype: string
+  - name: input_sentence_4
+    dtype: string
+  - name: sentence_quiz1
+    dtype: string
+  - name: sentence_quiz2
+    dtype: string
+  - name: answer_right_ending
+    dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 515439
+    num_examples: 1571
+  download_size: 0
+  dataset_size: 515439
 ---
 
 # Dataset Card for "story_cloze"

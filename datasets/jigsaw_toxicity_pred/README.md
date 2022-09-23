@@ -30,44 +30,93 @@ train-eval-index:
     comment_text: text
     toxic: target
   metrics:
-    - type: accuracy
-      name: Accuracy
-    - type: f1
-      name: F1 macro
-      args:
-        average: macro
-    - type: f1
-      name: F1 micro
-      args:
-        average: micro
-    - type: f1
-      name: F1 weighted
-      args:
-        average: weighted
-    - type: precision
-      name: Precision macro
-      args:
-        average: macro
-    - type: precision
-      name: Precision micro
-      args:
-        average: micro
-    - type: precision
-      name: Precision weighted
-      args:
-        average: weighted
-    - type: recall
-      name: Recall macro
-      args:
-        average: macro
-    - type: recall
-      name: Recall micro
-      args:
-        average: micro
-    - type: recall
-      name: Recall weighted
-      args:
-        average: weighted
+  - type: accuracy
+    name: Accuracy
+  - type: f1
+    name: F1 macro
+    args:
+      average: macro
+  - type: f1
+    name: F1 micro
+    args:
+      average: micro
+  - type: f1
+    name: F1 weighted
+    args:
+      average: weighted
+  - type: precision
+    name: Precision macro
+    args:
+      average: macro
+  - type: precision
+    name: Precision micro
+    args:
+      average: micro
+  - type: precision
+    name: Precision weighted
+    args:
+      average: weighted
+  - type: recall
+    name: Recall macro
+    args:
+      average: macro
+  - type: recall
+    name: Recall micro
+    args:
+      average: micro
+  - type: recall
+    name: Recall weighted
+    args:
+      average: weighted
+dataset_info:
+  features:
+  - name: comment_text
+    dtype: string
+  - name: toxic
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: severe_toxic
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: obscene
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: threat
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: insult
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: identity_hate
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  splits:
+  - name: test
+    num_bytes: 28241991
+    num_examples: 63978
+  - name: train
+    num_bytes: 71282358
+    num_examples: 159571
+  download_size: 0
+  dataset_size: 99524349
 ---
 
 # Dataset Card for [Dataset Name]

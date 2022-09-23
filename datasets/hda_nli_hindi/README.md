@@ -19,6 +19,73 @@ task_ids:
 - natural-language-inference
 paperswithcode_id: null
 pretty_name: Hindi Discourse Analysis Dataset
+dataset_info:
+- config_name: HDA hindi nli
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: not-entailment
+          1: entailment
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Argumentative
+          1: Descriptive
+          2: Dialogic
+          3: Informative
+          4: Narrative
+  splits:
+  - name: test
+    num_bytes: 2646453
+    num_examples: 9970
+  - name: train
+    num_bytes: 8721972
+    num_examples: 31892
+  - name: validation
+    num_bytes: 2556118
+    num_examples: 9460
+  download_size: 13519261
+  dataset_size: 13924543
+- config_name: hda nli hindi
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: not-entailment
+          1: entailment
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Argumentative
+          1: Descriptive
+          2: Dialogic
+          3: Informative
+          4: Narrative
+  splits:
+  - name: test
+    num_bytes: 2646453
+    num_examples: 9970
+  - name: train
+    num_bytes: 8721972
+    num_examples: 31892
+  - name: validation
+    num_bytes: 2556118
+    num_examples: 9460
+  download_size: 13519261
+  dataset_size: 13924543
 ---
 
 # Dataset Card for Hindi Discourse Analysis Dataset

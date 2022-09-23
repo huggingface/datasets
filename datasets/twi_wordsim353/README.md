@@ -21,6 +21,20 @@ task_ids:
 - semantic-similarity-scoring
 paperswithcode_id: null
 pretty_name: Yorùbá Wordsim-353
+dataset_info:
+  features:
+  - name: twi1
+    dtype: string
+  - name: twi2
+    dtype: string
+  - name: similarity
+    dtype: float32
+  splits:
+  - name: test
+    num_bytes: 7285
+    num_examples: 274
+  download_size: 6141
+  dataset_size: 7285
 ---
 
 # Dataset Card for Yorùbá Wordsim-353

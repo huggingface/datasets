@@ -19,6 +19,30 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: sst
 pretty_name: Stanford Sentiment Treebank v2
+dataset_info:
+  features:
+  - name: idx
+    dtype: int32
+  - name: sentence
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: positive
+  splits:
+  - name: test
+    num_bytes: 216868
+    num_examples: 1821
+  - name: train
+    num_bytes: 4690022
+    num_examples: 67349
+  - name: validation
+    num_bytes: 106361
+    num_examples: 872
+  download_size: 7439277
+  dataset_size: 5013251
 ---
 
 # Dataset Card for [Dataset Name]

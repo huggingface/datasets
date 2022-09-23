@@ -19,6 +19,27 @@ task_ids:
 - intent-classification
 paperswithcode_id: null
 pretty_name: BingCoronavirusQuerySet
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: Date
+    dtype: string
+  - name: Query
+    dtype: string
+  - name: IsImplicitIntent
+    dtype: string
+  - name: Country
+    dtype: string
+  - name: PopularityScore
+    dtype: int32
+  config_name: country_2020-09-01_2020-09-30
+  splits:
+  - name: train
+    num_bytes: 22052706
+    num_examples: 317856
+  download_size: 16351450
+  dataset_size: 22052706
 ---
 
 # Dataset Card for BingCoronavirusQuerySet

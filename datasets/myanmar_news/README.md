@@ -19,6 +19,24 @@ task_ids:
 - topic-classification
 paperswithcode_id: null
 pretty_name: MyanmarNews
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: category
+    dtype:
+      class_label:
+        names:
+          0: Sport
+          1: Politic
+          2: Business
+          3: Entertainment
+  splits:
+  - name: train
+    num_bytes: 3797368
+    num_examples: 8116
+  download_size: 610592
+  dataset_size: 3797368
 ---
 
 # Dataset Card for Myanmar_News

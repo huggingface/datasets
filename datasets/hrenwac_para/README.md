@@ -19,6 +19,21 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: HrenwacPara
+dataset_info:
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - hr
+  config_name: hrenWaC
+  splits:
+  - name: train
+    num_bytes: 29602110
+    num_examples: 99001
+  download_size: 11640281
+  dataset_size: 29602110
 ---
 
 # Dataset Card for hrenwac_para

@@ -19,6 +19,67 @@ task_ids:
 - news-articles-summarization
 paperswithcode_id: cnn-daily-mail-1
 pretty_name: CNN / Daily Mail
+dataset_info:
+- config_name: 3.0.0
+  features:
+  - name: article
+    dtype: string
+  - name: highlights
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 49925756
+    num_examples: 11490
+  - name: train
+    num_bytes: 1261704133
+    num_examples: 287113
+  - name: validation
+    num_bytes: 57732436
+    num_examples: 13368
+  download_size: 585439472
+  dataset_size: 1369362325
+- config_name: 1.0.0
+  features:
+  - name: article
+    dtype: string
+  - name: highlights
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 49925756
+    num_examples: 11490
+  - name: train
+    num_bytes: 1261704133
+    num_examples: 287113
+  - name: validation
+    num_bytes: 57732436
+    num_examples: 13368
+  download_size: 585439472
+  dataset_size: 1369362325
+- config_name: 2.0.0
+  features:
+  - name: article
+    dtype: string
+  - name: highlights
+    dtype: string
+  - name: id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 49925756
+    num_examples: 11490
+  - name: train
+    num_bytes: 1261704133
+    num_examples: 287113
+  - name: validation
+    num_bytes: 57732436
+    num_examples: 13368
+  download_size: 585439472
+  dataset_size: 1369362325
 ---
 # Dataset Card for CNN Dailymail Dataset
 
@@ -208,4 +269,3 @@ The CNN / Daily Mail dataset version 1.0.0 is released under the [Apache-2.0 Lic
 ### Contributions
 
 Thanks to [@thomwolf](https://github.com/thomwolf), [@lewtun](https://github.com/lewtun), [@jplu](https://github.com/jplu), [@jbragg](https://github.com/jbragg), [@patrickvonplaten](https://github.com/patrickvonplaten) and [@mcmillanmajora](https://github.com/mcmillanmajora) for adding this dataset.
-

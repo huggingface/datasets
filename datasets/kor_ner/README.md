@@ -19,6 +19,83 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: KorNER
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: annot_text
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: SO
+          1: SS
+          2: VV
+          3: XR
+          4: VCP
+          5: JC
+          6: VCN
+          7: JKB
+          8: MM
+          9: SP
+          10: XSN
+          11: SL
+          12: NNP
+          13: NP
+          14: EP
+          15: JKQ
+          16: IC
+          17: XSA
+          18: EC
+          19: EF
+          20: SE
+          21: XPN
+          22: ETN
+          23: SH
+          24: XSV
+          25: MAG
+          26: SW
+          27: ETM
+          28: JKO
+          29: NNB
+          30: MAJ
+          31: NNG
+          32: JKV
+          33: JKC
+          34: VA
+          35: NR
+          36: JKG
+          37: VX
+          38: SF
+          39: JX
+          40: JKS
+          41: SN
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: I
+          1: O
+          2: B_OG
+          3: B_TI
+          4: B_LC
+          5: B_DT
+          6: B_PS
+  splits:
+  - name: test
+    num_bytes: 476850
+    num_examples: 366
+  - name: train
+    num_bytes: 3948938
+    num_examples: 2928
+  - name: validation
+    num_bytes: 486178
+    num_examples: 366
+  download_size: 3493175
+  dataset_size: 4911966
 ---
 
 # Dataset Card for KorNER

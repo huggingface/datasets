@@ -20,6 +20,57 @@ task_ids:
 - text-retrieval-other-document-to-document-retrieval
 paperswithcode_id: null
 pretty_name: the RegIR datasets
+dataset_info:
+- config_name: eu2uk
+  features:
+  - name: document_id
+    dtype: string
+  - name: publication_year
+    dtype: string
+  - name: text
+    dtype: string
+  - name: relevant_documents
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 8844145
+    num_examples: 300
+  - name: train
+    num_bytes: 20665038
+    num_examples: 1400
+  - name: uk_corpus
+    num_bytes: 502468359
+    num_examples: 52515
+  - name: validation
+    num_bytes: 5852814
+    num_examples: 300
+  download_size: 119685577
+  dataset_size: 537830356
+- config_name: uk2eu
+  features:
+  - name: document_id
+    dtype: string
+  - name: publication_year
+    dtype: string
+  - name: text
+    dtype: string
+  - name: relevant_documents
+    sequence: string
+  splits:
+  - name: eu_corpus
+    num_bytes: 57212422
+    num_examples: 3930
+  - name: test
+    num_bytes: 14810460
+    num_examples: 300
+  - name: train
+    num_bytes: 55144655
+    num_examples: 1500
+  - name: validation
+    num_bytes: 15175644
+    num_examples: 300
+  download_size: 31835104
+  dataset_size: 142343181
 ---
 
 # Dataset Card for the RegIR datasets

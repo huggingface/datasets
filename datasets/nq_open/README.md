@@ -19,6 +19,22 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: question
+    dtype: string
+  - name: answer
+    sequence: string
+  config_name: nq_open
+  splits:
+  - name: train
+    num_bytes: 6651344
+    num_examples: 87925
+  - name: validation
+    num_bytes: 313841
+    num_examples: 3610
+  download_size: 8913614
+  dataset_size: 6965185
 ---
 
 # Dataset Card for nq_open

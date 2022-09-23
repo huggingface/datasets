@@ -20,6 +20,49 @@ task_ids:
 - question-answering-other-multi-hop
 paperswithcode_id: medhop
 pretty_name: MedHop
+dataset_info:
+- config_name: original
+  features:
+  - name: id
+    dtype: string
+  - name: query
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: candidates
+    sequence: string
+  - name: supports
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 93937322
+    num_examples: 1620
+  - name: validation
+    num_bytes: 16461640
+    num_examples: 342
+  download_size: 339843061
+  dataset_size: 110398962
+- config_name: masked
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: candidates
+    sequence: string
+  - name: supports
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 95813584
+    num_examples: 1620
+  - name: validation
+    num_bytes: 16800570
+    num_examples: 342
+  download_size: 339843061
+  dataset_size: 112614154
 ---
 
 # Dataset Card for MedHop

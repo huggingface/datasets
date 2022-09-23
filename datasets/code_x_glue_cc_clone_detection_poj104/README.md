@@ -18,6 +18,26 @@ task_categories:
 - text-retrieval
 task_ids:
 - document-retrieval
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: code
+    dtype: string
+  - name: label
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 6852864
+    num_examples: 12000
+  - name: train
+    num_bytes: 18878686
+    num_examples: 32000
+  - name: validation
+    num_bytes: 5765303
+    num_examples: 8000
+  download_size: 8658581
+  dataset_size: 31496853
 ---
 # Dataset Card for "code_x_glue_cc_clone_detection_poj_104"
 

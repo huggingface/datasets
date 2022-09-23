@@ -20,6 +20,29 @@ task_ids:
 - text-classification-other-legal-topic-classification
 paperswithcode_id: eurlex57k
 pretty_name: the EUR-Lex dataset
+dataset_info:
+  features:
+  - name: celex_id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: text
+    dtype: string
+  - name: eurovoc_concepts
+    sequence: string
+  config_name: eurlex57k
+  splits:
+  - name: test
+    num_bytes: 22046706
+    num_examples: 6000
+  - name: train
+    num_bytes: 167603718
+    num_examples: 45000
+  - name: validation
+    num_bytes: 21942574
+    num_examples: 6000
+  download_size: 50289403
+  dataset_size: 211592998
 ---
 
 # Dataset Card for the EUR-Lex dataset

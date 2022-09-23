@@ -19,6 +19,39 @@ task_categories:
 task_ids:
 - text2text-generation-other-question-generation
 paperswithcode_id: inquisitive
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: article_id
+    dtype: int32
+  - name: article
+    dtype: string
+  - name: sentence_id
+    dtype: int32
+  - name: sentence
+    dtype: string
+  - name: span
+    dtype: string
+  - name: question
+    dtype: string
+  - name: span_start_position
+    dtype: int32
+  - name: span_end_position
+    dtype: int32
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 7167203
+    num_examples: 1894
+  - name: train
+    num_bytes: 66099232
+    num_examples: 15931
+  - name: validation
+    num_bytes: 8904329
+    num_examples: 1991
+  download_size: 7085941
+  dataset_size: 82170764
 ---
 
 # Dataset Card for InquisitiveQg

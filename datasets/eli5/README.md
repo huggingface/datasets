@@ -20,6 +20,69 @@ task_ids:
 - open-domain-abstractive-qa
 paperswithcode_id: eli5
 pretty_name: ELI5
+dataset_info:
+  features:
+  - name: q_id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: selftext
+    dtype: string
+  - name: document
+    dtype: string
+  - name: subreddit
+    dtype: string
+  - name: answers
+    sequence:
+    - name: a_id
+      dtype: string
+    - name: text
+      dtype: string
+    - name: score
+      dtype: int32
+  - name: title_urls
+    sequence:
+    - name: url
+      dtype: string
+  - name: selftext_urls
+    sequence:
+    - name: url
+      dtype: string
+  - name: answers_urls
+    sequence:
+    - name: url
+      dtype: string
+  config_name: LFQA_reddit
+  splits:
+  - name: test_askh
+    num_bytes: 36246784
+    num_examples: 9764
+  - name: test_asks
+    num_bytes: 17713920
+    num_examples: 4462
+  - name: test_eli5
+    num_bytes: 53099796
+    num_examples: 24512
+  - name: train_askh
+    num_bytes: 330483260
+    num_examples: 98525
+  - name: train_asks
+    num_bytes: 286464210
+    num_examples: 131778
+  - name: train_eli5
+    num_bytes: 577188173
+    num_examples: 272634
+  - name: validation_askh
+    num_bytes: 18690845
+    num_examples: 4901
+  - name: validation_asks
+    num_bytes: 9662481
+    num_examples: 2281
+  - name: validation_eli5
+    num_bytes: 21117891
+    num_examples: 9812
+  download_size: 6326543
+  dataset_size: 1350667360
 ---
 
 # Dataset Card for ELI5

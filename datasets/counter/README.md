@@ -21,6 +21,82 @@ task_ids:
 - topic-classification
 paperswithcode_id: counter
 pretty_name: COUNTER
+dataset_info:
+  features:
+  - name: source
+    struct:
+    - name: filename
+      dtype: string
+    - name: headline
+      dtype: string
+    - name: body
+      dtype: string
+    - name: total_number_of_words
+      dtype: int64
+    - name: total_number_of_sentences
+      dtype: int64
+    - name: number_of_words_with_swr
+      dtype: int64
+    - name: newspaper
+      dtype: string
+    - name: newsdate
+      dtype: string
+    - name: domain
+      dtype:
+        class_label:
+          names:
+            0: business
+            1: sports
+            2: national
+            3: foreign
+            4: showbiz
+    - name: classification
+      dtype:
+        class_label:
+          names:
+            0: wholly_derived
+            1: partially_derived
+            2: not_derived
+  - name: derived
+    struct:
+    - name: filename
+      dtype: string
+    - name: headline
+      dtype: string
+    - name: body
+      dtype: string
+    - name: total_number_of_words
+      dtype: int64
+    - name: total_number_of_sentences
+      dtype: int64
+    - name: number_of_words_with_swr
+      dtype: int64
+    - name: newspaper
+      dtype: string
+    - name: newsdate
+      dtype: string
+    - name: domain
+      dtype:
+        class_label:
+          names:
+            0: business
+            1: sports
+            2: national
+            3: foreign
+            4: showbiz
+    - name: classification
+      dtype:
+        class_label:
+          names:
+            0: wholly_derived
+            1: partially_derived
+            2: not_derived
+  splits:
+  - name: train
+    num_bytes: 2598872
+    num_examples: 600
+  download_size: 1356306
+  dataset_size: 2598872
 ---
 
 # Dataset Card for COUNTER

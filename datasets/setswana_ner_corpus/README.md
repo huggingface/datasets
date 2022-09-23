@@ -7,7 +7,7 @@ language:
 - tn
 license:
 - other
-license_details: "Creative Commons Attribution 2.5 South Africa License"
+license_details: Creative Commons Attribution 2.5 South Africa License
 multilinguality:
 - monolingual
 size_categories:
@@ -20,6 +20,32 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: Setswana NER Corpus
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: OUT
+          1: B-PERS
+          2: I-PERS
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  config_name: setswana_ner_corpus
+  splits:
+  - name: train
+    num_bytes: 3874793
+    num_examples: 7944
+  download_size: 25905236
+  dataset_size: 3874793
 ---
 
 # Dataset Card for Setswana NER Corpus

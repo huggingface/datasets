@@ -19,6 +19,199 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: Norwegian NER
+dataset_info:
+- config_name: bokmaal
+  features:
+  - name: idx
+    dtype: string
+  - name: text
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: NOUN
+          1: PUNCT
+          2: ADP
+          3: NUM
+          4: SYM
+          5: SCONJ
+          6: ADJ
+          7: PART
+          8: DET
+          9: CCONJ
+          10: PROPN
+          11: PRON
+          12: X
+          13: ADV
+          14: INTJ
+          15: VERB
+          16: AUX
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-OTH
+          2: I-OTH
+          3: E-OTH
+          4: S-OTH
+          5: B-ORG
+          6: I-ORG
+          7: E-ORG
+          8: S-ORG
+          9: B-PRS
+          10: I-PRS
+          11: E-PRS
+          12: S-PRS
+          13: B-GEO
+          14: I-GEO
+          15: E-GEO
+          16: S-GEO
+  splits:
+  - name: test
+    num_bytes: 1212939
+    num_examples: 1939
+  - name: train
+    num_bytes: 9859760
+    num_examples: 15696
+  - name: validation
+    num_bytes: 1475216
+    num_examples: 2410
+  download_size: 8747760
+  dataset_size: 12547915
+- config_name: nynorsk
+  features:
+  - name: idx
+    dtype: string
+  - name: text
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: NOUN
+          1: PUNCT
+          2: ADP
+          3: NUM
+          4: SYM
+          5: SCONJ
+          6: ADJ
+          7: PART
+          8: DET
+          9: CCONJ
+          10: PROPN
+          11: PRON
+          12: X
+          13: ADV
+          14: INTJ
+          15: VERB
+          16: AUX
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-OTH
+          2: I-OTH
+          3: E-OTH
+          4: S-OTH
+          5: B-ORG
+          6: I-ORG
+          7: E-ORG
+          8: S-ORG
+          9: B-PRS
+          10: I-PRS
+          11: E-PRS
+          12: S-PRS
+          13: B-GEO
+          14: I-GEO
+          15: E-GEO
+          16: S-GEO
+  splits:
+  - name: test
+    num_bytes: 1006733
+    num_examples: 1511
+  - name: train
+    num_bytes: 9916338
+    num_examples: 14174
+  - name: validation
+    num_bytes: 1257235
+    num_examples: 1890
+  download_size: 8484545
+  dataset_size: 12180306
+- config_name: samnorsk
+  features:
+  - name: idx
+    dtype: string
+  - name: text
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: NOUN
+          1: PUNCT
+          2: ADP
+          3: NUM
+          4: SYM
+          5: SCONJ
+          6: ADJ
+          7: PART
+          8: DET
+          9: CCONJ
+          10: PROPN
+          11: PRON
+          12: X
+          13: ADV
+          14: INTJ
+          15: VERB
+          16: AUX
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-OTH
+          2: I-OTH
+          3: E-OTH
+          4: S-OTH
+          5: B-ORG
+          6: I-ORG
+          7: E-ORG
+          8: S-ORG
+          9: B-PRS
+          10: I-PRS
+          11: E-PRS
+          12: S-PRS
+          13: B-GEO
+          14: I-GEO
+          15: E-GEO
+          16: S-GEO
+  splits:
+  - name: test
+    num_bytes: 2219640
+    num_examples: 3450
+  - name: train
+    num_bytes: 22508485
+    num_examples: 34170
+  - name: validation
+    num_bytes: 2732419
+    num_examples: 4300
+  download_size: 19133049
+  dataset_size: 27460544
 ---
 
 # Dataset Card for Norwegian NER

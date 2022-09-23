@@ -21,6 +21,16 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: TeluguBooks
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 315076011
+    num_examples: 25794
+  download_size: 0
+  dataset_size: 315076011
 ---
 
  # Dataset Card for [telugu_books]

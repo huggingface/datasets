@@ -23,6 +23,67 @@ task_ids:
 - multi-input-text-classification
 paperswithcode_id: kornli
 pretty_name: KorNLI
+dataset_info:
+- config_name: multi_nli
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: train
+    num_bytes: 84729207
+    num_examples: 392702
+  download_size: 42113232
+  dataset_size: 84729207
+- config_name: snli
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: train
+    num_bytes: 80137097
+    num_examples: 550152
+  download_size: 42113232
+  dataset_size: 80137097
+- config_name: xnli
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 1047437
+    num_examples: 5010
+  - name: validation
+    num_bytes: 518830
+    num_examples: 2490
+  download_size: 42113232
+  dataset_size: 1566267
 ---
 
 # Dataset Card for "kor_nli"

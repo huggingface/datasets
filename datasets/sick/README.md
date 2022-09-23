@@ -20,6 +20,47 @@ task_ids:
 - natural-language-inference
 paperswithcode_id: sick
 pretty_name: Sentences Involving Compositional Knowledge
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: sentence_A
+    dtype: string
+  - name: sentence_B
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  - name: relatedness_score
+    dtype: float32
+  - name: entailment_AB
+    dtype: string
+  - name: entailment_BA
+    dtype: string
+  - name: sentence_A_original
+    dtype: string
+  - name: sentence_B_original
+    dtype: string
+  - name: sentence_A_dataset
+    dtype: string
+  - name: sentence_B_dataset
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1305846
+    num_examples: 4906
+  - name: train
+    num_bytes: 1180530
+    num_examples: 4439
+  - name: validation
+    num_bytes: 132913
+    num_examples: 495
+  download_size: 217584
+  dataset_size: 2619289
 ---
 
 # Dataset Card for sick

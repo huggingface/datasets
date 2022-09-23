@@ -20,6 +20,92 @@ task_ids:
 - natural-language-inference
 paperswithcode_id: swag
 pretty_name: Situations With Adversarial Generations
+dataset_info:
+- config_name: regular
+  features:
+  - name: video-id
+    dtype: string
+  - name: fold-ind
+    dtype: string
+  - name: startphrase
+    dtype: string
+  - name: sent1
+    dtype: string
+  - name: sent2
+    dtype: string
+  - name: gold-source
+    dtype: string
+  - name: ending0
+    dtype: string
+  - name: ending1
+    dtype: string
+  - name: ending2
+    dtype: string
+  - name: ending3
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+          2: '2'
+          3: '3'
+  splits:
+  - name: test
+    num_bytes: 8417644
+    num_examples: 20005
+  - name: train
+    num_bytes: 30274672
+    num_examples: 73546
+  - name: validation
+    num_bytes: 8451771
+    num_examples: 20006
+  download_size: 43954806
+  dataset_size: 47144087
+- config_name: full
+  features:
+  - name: video-id
+    dtype: string
+  - name: fold-ind
+    dtype: string
+  - name: startphrase
+    dtype: string
+  - name: gold-ending
+    dtype: string
+  - name: distractor-0
+    dtype: string
+  - name: distractor-1
+    dtype: string
+  - name: distractor-2
+    dtype: string
+  - name: distractor-3
+    dtype: string
+  - name: gold-source
+    dtype: string
+  - name: gold-type
+    dtype: string
+  - name: distractor-0-type
+    dtype: string
+  - name: distractor-1-type
+    dtype: string
+  - name: distractor-2-type
+    dtype: string
+  - name: distractor-3-type
+    dtype: string
+  - name: sent1
+    dtype: string
+  - name: sent2
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 34941649
+    num_examples: 73546
+  - name: validation
+    num_bytes: 9832603
+    num_examples: 20006
+  download_size: 40537624
+  dataset_size: 44774252
 ---
 
 # Dataset Card for Situations With Adversarial Generations

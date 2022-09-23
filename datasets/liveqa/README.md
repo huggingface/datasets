@@ -19,6 +19,28 @@ task_ids:
 - extractive-qa
 paperswithcode_id: liveqa
 pretty_name: LiveQA
+dataset_info:
+  features:
+  - name: id
+    dtype: int64
+  - name: passages
+    sequence:
+    - name: is_question
+      dtype: bool
+    - name: text
+      dtype: string
+    - name: candidate1
+      dtype: string
+    - name: candidate2
+      dtype: string
+    - name: answer
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 112187507
+    num_examples: 1670
+  download_size: 114704569
+  dataset_size: 112187507
 ---
 
 # Dataset Card for LiveQA

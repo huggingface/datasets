@@ -20,6 +20,20 @@ task_ids:
 - semantic-similarity-scoring
 paperswithcode_id: biosses
 pretty_name: BIOSSES
+dataset_info:
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: score
+    dtype: float32
+  splits:
+  - name: train
+    num_bytes: 32783
+    num_examples: 100
+  download_size: 36324
+  dataset_size: 32783
 ---
 
 # Dataset Card for BIOSSES

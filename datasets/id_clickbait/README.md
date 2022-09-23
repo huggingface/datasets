@@ -19,6 +19,49 @@ task_ids:
 - fact-checking
 paperswithcode_id: null
 pretty_name: Indonesian Clickbait Headlines
+dataset_info:
+- config_name: annotated
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: non-clickbait
+          1: clickbait
+  splits:
+  - name: train
+    num_bytes: 1268698
+    num_examples: 15000
+  download_size: 150769127
+  dataset_size: 1268698
+- config_name: raw
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: source
+    dtype: string
+  - name: date
+    dtype: string
+  - name: category
+    dtype: string
+  - name: sub-category
+    dtype: string
+  - name: content
+    dtype: string
+  - name: url
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 81669386
+    num_examples: 38655
+  download_size: 150769127
+  dataset_size: 81669386
 ---
 
 # Dataset Card for Indonesian Clickbait Headlines

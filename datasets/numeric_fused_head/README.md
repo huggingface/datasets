@@ -25,6 +25,57 @@ pretty_name: Numeric Fused Heads
 configs:
 - identification
 - resolution
+dataset_info:
+- config_name: identification
+  features:
+  - name: tokens
+    sequence: string
+  - name: start_index
+    dtype: int32
+  - name: end_index
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: pos
+  splits:
+  - name: test
+    num_bytes: 68282
+    num_examples: 500
+  - name: train
+    num_bytes: 22290345
+    num_examples: 165606
+  - name: validation
+    num_bytes: 2474528
+    num_examples: 18401
+  download_size: 24407520
+  dataset_size: 24833155
+- config_name: resolution
+  features:
+  - name: tokens
+    sequence: string
+  - name: line_indices
+    sequence: int32
+  - name: head
+    sequence: string
+  - name: speakers
+    sequence: string
+  - name: anchors_indices
+    sequence: int32
+  splits:
+  - name: test
+    num_bytes: 2743071
+    num_examples: 1000
+  - name: train
+    num_bytes: 19766437
+    num_examples: 7412
+  - name: validation
+    num_bytes: 2633549
+    num_examples: 1000
+  download_size: 24923403
+  dataset_size: 25143057
 ---
 
 # Dataset Card for Numeric Fused Heads

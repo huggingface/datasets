@@ -25,6 +25,51 @@ pretty_name: CovidQaUcsd
 configs:
 - en
 - zh
+dataset_info:
+- config_name: en
+  features:
+  - name: dialogue_id
+    dtype: int32
+  - name: dialogue_url
+    dtype: string
+  - name: dialogue_turns
+    sequence:
+    - name: speaker
+      dtype:
+        class_label:
+          names:
+            0: Patient
+            1: Doctor
+    - name: utterance
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 484944
+    num_examples: 572
+  download_size: 0
+  dataset_size: 484944
+- config_name: zh
+  features:
+  - name: dialogue_id
+    dtype: int32
+  - name: dialogue_url
+    dtype: string
+  - name: dialogue_turns
+    sequence:
+    - name: speaker
+      dtype:
+        class_label:
+          names:
+            0: 病人
+            1: 医生
+    - name: utterance
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 1352377
+    num_examples: 1088
+  download_size: 0
+  dataset_size: 1352377
 ---
 
 # Dataset Card for [Dataset Name]

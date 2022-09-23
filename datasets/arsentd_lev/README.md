@@ -21,6 +21,44 @@ task_ids:
 - topic-classification
 paperswithcode_id: arsentd-lev
 pretty_name: ArSenTD-LEV
+dataset_info:
+  features:
+  - name: Tweet
+    dtype: string
+  - name: Country
+    dtype:
+      class_label:
+        names:
+          0: jordan
+          1: lebanon
+          2: syria
+          3: palestine
+  - name: Topic
+    dtype: string
+  - name: Sentiment
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: neutral
+          2: positive
+          3: very_negative
+          4: very_positive
+  - name: Sentiment_Expression
+    dtype:
+      class_label:
+        names:
+          0: explicit
+          1: implicit
+          2: none
+  - name: Sentiment_Target
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1233980
+    num_examples: 4000
+  download_size: 392666
+  dataset_size: 1233980
 ---
 
 # Dataset Card for ArSenTD-LEV

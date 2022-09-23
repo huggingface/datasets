@@ -21,6 +21,31 @@ task_ids:
 - extractive-qa
 - abstractive-qa
 paperswithcode_id: drop
+dataset_info:
+  features:
+  - name: section_id
+    dtype: string
+  - name: query_id
+    dtype: string
+  - name: passage
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers_spans
+    sequence:
+    - name: spans
+      dtype: string
+    - name: types
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 105572762
+    num_examples: 77400
+  - name: validation
+    num_bytes: 11737787
+    num_examples: 9535
+  download_size: 8308692
+  dataset_size: 117310549
 ---
 
 # Dataset Card for "drop"

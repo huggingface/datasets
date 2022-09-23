@@ -21,6 +21,33 @@ task_ids:
 - multi-label-image-classification
 - other-other-domain-generalization
 paperswithcode_id: metashift
+dataset_info:
+  features:
+  - name: image_id
+    dtype: string
+  - name: image
+    dtype: image
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: cat
+          1: dog
+          2: bus
+          3: truck
+          4: elephant
+          5: horse
+          6: bowl
+          7: cup
+  - name: context
+    dtype: string
+  config_name: metashift
+  splits:
+  - name: train
+    num_bytes: 16333509
+    num_examples: 86808
+  download_size: 21878013674
+  dataset_size: 16333509
 ---
 
 # Dataset Card for MetaShift

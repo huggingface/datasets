@@ -3,6 +3,36 @@ language:
 - en
 paperswithcode_id: quarel
 pretty_name: QuaRel
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: answer_index
+    dtype: int32
+  - name: logical_forms
+    sequence: string
+  - name: logical_form_pretty
+    dtype: string
+  - name: world_literals
+    sequence:
+    - name: world1
+      dtype: string
+    - name: world2
+      dtype: string
+  - name: question
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 307588
+    num_examples: 552
+  - name: train
+    num_bytes: 1072874
+    num_examples: 1941
+  - name: validation
+    num_bytes: 154308
+    num_examples: 278
+  download_size: 631370
+  dataset_size: 1534770
 ---
 
 # Dataset Card for "quarel"

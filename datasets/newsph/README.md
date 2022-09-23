@@ -22,6 +22,17 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: newsph-nli
 pretty_name: NewsPH-NLI
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  config_name: newsph
+  splits:
+  - name: train
+    num_bytes: 298833914
+    num_examples: 2190465
+  download_size: 104086466
+  dataset_size: 298833914
 ---
 
 # Dataset Card for NewsPH

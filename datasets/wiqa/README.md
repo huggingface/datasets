@@ -3,6 +3,44 @@ language:
 - en
 paperswithcode_id: wiqa
 pretty_name: What-If Question Answering
+dataset_info:
+  features:
+  - name: question_stem
+    dtype: string
+  - name: question_para_step
+    sequence: string
+  - name: answer_label
+    dtype: string
+  - name: answer_label_as_choice
+    dtype: string
+  - name: choices
+    sequence:
+    - name: text
+      dtype: string
+    - name: label
+      dtype: string
+  - name: metadata_question_id
+    dtype: string
+  - name: metadata_graph_id
+    dtype: string
+  - name: metadata_para_id
+    dtype: string
+  - name: metadata_question_type
+    dtype: string
+  - name: metadata_path_len
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 1532223
+    num_examples: 3003
+  - name: train
+    num_bytes: 17089298
+    num_examples: 29808
+  - name: validation
+    num_bytes: 3779584
+    num_examples: 6894
+  download_size: 5247733
+  dataset_size: 22401105
 ---
 
 # Dataset Card for "wiqa"

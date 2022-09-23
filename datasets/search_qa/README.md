@@ -19,6 +19,77 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: searchqa
+dataset_info:
+- config_name: raw_jeopardy
+  features:
+  - name: category
+    dtype: string
+  - name: air_date
+    dtype: string
+  - name: question
+    dtype: string
+  - name: value
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: round
+    dtype: string
+  - name: show_number
+    dtype: int32
+  - name: search_results
+    sequence:
+    - name: urls
+      dtype: string
+    - name: snippets
+      dtype: string
+    - name: titles
+      dtype: string
+    - name: related_links
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 7770972348
+    num_examples: 216757
+  download_size: 3314386157
+  dataset_size: 7770972348
+- config_name: train_test_val
+  features:
+  - name: category
+    dtype: string
+  - name: air_date
+    dtype: string
+  - name: question
+    dtype: string
+  - name: value
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: round
+    dtype: string
+  - name: show_number
+    dtype: int32
+  - name: search_results
+    sequence:
+    - name: urls
+      dtype: string
+    - name: snippets
+      dtype: string
+    - name: titles
+      dtype: string
+    - name: related_links
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 1466749978
+    num_examples: 43228
+  - name: train
+    num_bytes: 5303005740
+    num_examples: 151295
+  - name: validation
+    num_bytes: 740962715
+    num_examples: 21613
+  download_size: 3148550732
+  dataset_size: 7510718433
 ---
 
 # Dataset Card for "search_qa"

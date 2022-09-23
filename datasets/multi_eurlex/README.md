@@ -5,29 +5,29 @@ annotations_creators:
 language_creators:
 - found
 language:
-- bg 
-- cs 
-- da 
-- de 
-- el 
+- bg
+- cs
+- da
+- de
+- el
 - en
-- es 
-- et 
-- fi 
-- fr 
-- hr 
-- hu 
-- it 
-- lt 
-- lv 
+- es
+- et
+- fi
+- fr
+- hr
+- hu
+- it
+- lt
+- lv
 - mt
-- nl 
-- pl 
-- pt 
-- ro 
-- sk 
-- sl 
-- sv 
+- nl
+- pl
+- pt
+- ro
+- sk
+- sl
+- sv
 license:
 - cc-by-sa-4.0
 multilinguality:
@@ -41,6 +41,1064 @@ task_categories:
 task_ids:
 - multi-label-classification
 - topic-classification
+dataset_info:
+- config_name: en
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 58966963
+    num_examples: 5000
+  - name: train
+    num_bytes: 389250183
+    num_examples: 55000
+  - name: validation
+    num_bytes: 41516165
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 489733311
+- config_name: da
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 60343696
+    num_examples: 5000
+  - name: train
+    num_bytes: 395774777
+    num_examples: 55000
+  - name: validation
+    num_bytes: 42366390
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 498484863
+- config_name: de
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 65739074
+    num_examples: 5000
+  - name: train
+    num_bytes: 425489905
+    num_examples: 55000
+  - name: validation
+    num_bytes: 46079574
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 537308553
+- config_name: nl
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 64728034
+    num_examples: 5000
+  - name: train
+    num_bytes: 430232783
+    num_examples: 55000
+  - name: validation
+    num_bytes: 45452550
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 540413367
+- config_name: sv
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 60602026
+    num_examples: 5000
+  - name: train
+    num_bytes: 329071297
+    num_examples: 42490
+  - name: validation
+    num_bytes: 42766067
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 432439390
+- config_name: bg
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 109874769
+    num_examples: 5000
+  - name: train
+    num_bytes: 273160256
+    num_examples: 15986
+  - name: validation
+    num_bytes: 76892281
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 459927306
+- config_name: cs
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 60702814
+    num_examples: 5000
+  - name: train
+    num_bytes: 189826410
+    num_examples: 23187
+  - name: validation
+    num_bytes: 42764243
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 293293467
+- config_name: hr
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 56790830
+    num_examples: 5000
+  - name: train
+    num_bytes: 80808173
+    num_examples: 7944
+  - name: validation
+    num_bytes: 23881832
+    num_examples: 2500
+  download_size: 2770050147
+  dataset_size: 161480835
+- config_name: pl
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 64654979
+    num_examples: 5000
+  - name: train
+    num_bytes: 202211478
+    num_examples: 23197
+  - name: validation
+    num_bytes: 45545517
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 312411974
+- config_name: sk
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 60922686
+    num_examples: 5000
+  - name: train
+    num_bytes: 188126769
+    num_examples: 22971
+  - name: validation
+    num_bytes: 42786793
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 291836248
+- config_name: sl
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 54552441
+    num_examples: 5000
+  - name: train
+    num_bytes: 170800933
+    num_examples: 23184
+  - name: validation
+    num_bytes: 38286422
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 263639796
+- config_name: es
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 66885004
+    num_examples: 5000
+  - name: train
+    num_bytes: 433955383
+    num_examples: 52785
+  - name: validation
+    num_bytes: 47178821
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 548019208
+- config_name: fr
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 68520127
+    num_examples: 5000
+  - name: train
+    num_bytes: 442358905
+    num_examples: 55000
+  - name: validation
+    num_bytes: 48408938
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 559287970
+- config_name: it
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 64731770
+    num_examples: 5000
+  - name: train
+    num_bytes: 429495813
+    num_examples: 55000
+  - name: validation
+    num_bytes: 45886537
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 540114120
+- config_name: pt
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 64771247
+    num_examples: 5000
+  - name: train
+    num_bytes: 419281927
+    num_examples: 52370
+  - name: validation
+    num_bytes: 45897231
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 529950405
+- config_name: ro
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 67248472
+    num_examples: 5000
+  - name: train
+    num_bytes: 164966676
+    num_examples: 15921
+  - name: validation
+    num_bytes: 46968070
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 279183218
+- config_name: et
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 56535287
+    num_examples: 5000
+  - name: train
+    num_bytes: 173878703
+    num_examples: 23126
+  - name: validation
+    num_bytes: 39580866
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 269994856
+- config_name: fi
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 63280920
+    num_examples: 5000
+  - name: train
+    num_bytes: 336145949
+    num_examples: 42497
+  - name: validation
+    num_bytes: 44500040
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 443926909
+- config_name: hu
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 68990666
+    num_examples: 5000
+  - name: train
+    num_bytes: 208805862
+    num_examples: 22664
+  - name: validation
+    num_bytes: 48101023
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 325897551
+- config_name: lt
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 59484711
+    num_examples: 5000
+  - name: train
+    num_bytes: 185211691
+    num_examples: 23188
+  - name: validation
+    num_bytes: 41841024
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 286537426
+- config_name: lv
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 59814093
+    num_examples: 5000
+  - name: train
+    num_bytes: 186396252
+    num_examples: 23208
+  - name: validation
+    num_bytes: 42002727
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 288213072
+- config_name: el
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 117209312
+    num_examples: 5000
+  - name: train
+    num_bytes: 768224743
+    num_examples: 55000
+  - name: validation
+    num_bytes: 81923366
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 967357421
+- config_name: mt
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 65831230
+    num_examples: 5000
+  - name: train
+    num_bytes: 179866781
+    num_examples: 17521
+  - name: validation
+    num_bytes: 46737914
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 292435925
+- config_name: all_languages
+  features:
+  - name: celex_id
+    dtype: string
+  - name: text
+    dtype:
+      translation:
+        languages:
+        - en
+        - da
+        - de
+        - nl
+        - sv
+        - bg
+        - cs
+        - hr
+        - pl
+        - sk
+        - sl
+        - es
+        - fr
+        - it
+        - pt
+        - ro
+        - et
+        - fi
+        - hu
+        - lt
+        - lv
+        - el
+        - mt
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100149'
+          1: '100160'
+          2: '100148'
+          3: '100147'
+          4: '100152'
+          5: '100143'
+          6: '100156'
+          7: '100158'
+          8: '100154'
+          9: '100153'
+          10: '100142'
+          11: '100145'
+          12: '100150'
+          13: '100162'
+          14: '100159'
+          15: '100144'
+          16: '100151'
+          17: '100157'
+          18: '100161'
+          19: '100146'
+          20: '100155'
+  splits:
+  - name: test
+    num_bytes: 1536038431
+    num_examples: 5000
+  - name: train
+    num_bytes: 6971500859
+    num_examples: 55000
+  - name: validation
+    num_bytes: 1062290624
+    num_examples: 5000
+  download_size: 2770050147
+  dataset_size: 9569829914
 ---
 
 # Dataset Card for "MultiEURLEX"

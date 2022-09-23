@@ -19,6 +19,25 @@ task_ids:
 - text-classification-other-sarcasm-detection
 paperswithcode_id: null
 pretty_name: Korean Sarcasm Detection
+dataset_info:
+  features:
+  - name: tokens
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: no_sarcasm
+          1: sarcasm
+  splits:
+  - name: test
+    num_bytes: 32480
+    num_examples: 301
+  - name: train
+    num_bytes: 1012030
+    num_examples: 9000
+  download_size: 1008955
+  dataset_size: 1044510
 ---
 
 # Dataset Card for Korean Sarcasm Detection

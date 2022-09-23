@@ -11,7 +11,7 @@ license:
 - cc-by-sa-3.0
 - mit
 - other
-license_details: "Open Portion of the American National Corpus"
+license_details: Open Portion of the American National Corpus
 multilinguality:
 - monolingual
 size_categories:
@@ -30,6 +30,61 @@ pretty_name: Natural Language Inference in Turkish
 configs:
 - multinli_tr
 - snli_tr
+dataset_info:
+- config_name: snli_tr
+  features:
+  - name: idx
+    dtype: int32
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 1355409
+    num_examples: 10000
+  - name: train
+    num_bytes: 71175743
+    num_examples: 550152
+  - name: validation
+    num_bytes: 1359639
+    num_examples: 10000
+  download_size: 40328942
+  dataset_size: 73890791
+- config_name: multinli_tr
+  features:
+  - name: idx
+    dtype: int32
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: train
+    num_bytes: 75524150
+    num_examples: 392702
+  - name: validation_matched
+    num_bytes: 1908283
+    num_examples: 10000
+  - name: validation_mismatched
+    num_bytes: 2039392
+    num_examples: 10000
+  download_size: 75518512
+  dataset_size: 79471825
 ---
 
 # Dataset Card for "nli_tr"

@@ -23,6 +23,58 @@ task_ids:
 - extractive-qa
 paperswithcode_id: quac
 pretty_name: Question Answering in Context
+dataset_info:
+  features:
+  - name: dialogue_id
+    dtype: string
+  - name: wikipedia_page_title
+    dtype: string
+  - name: background
+    dtype: string
+  - name: section_title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: turn_ids
+    sequence: string
+  - name: questions
+    sequence: string
+  - name: followups
+    sequence:
+      class_label:
+        names:
+          0: y
+          1: n
+          2: m
+  - name: yesnos
+    sequence:
+      class_label:
+        names:
+          0: y
+          1: n
+          2: x
+  - name: answers
+    sequence:
+    - name: texts
+      sequence: string
+    - name: answer_starts
+      sequence: int32
+  - name: orig_answers
+    struct:
+    - name: texts
+      sequence: string
+    - name: answer_starts
+      sequence: int32
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 58174754
+    num_examples: 11567
+  - name: validation
+    num_bytes: 7375938
+    num_examples: 1000
+  download_size: 77043986
+  dataset_size: 65550692
 ---
 
 # Dataset Card for Question Answering in Context

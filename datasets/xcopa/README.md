@@ -29,6 +29,532 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: xcopa
+dataset_info:
+- config_name: et
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 56613
+    num_examples: 500
+  - name: validation
+    num_bytes: 11711
+    num_examples: 100
+  download_size: 116432
+  dataset_size: 68324
+- config_name: ht
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 58579
+    num_examples: 500
+  - name: validation
+    num_bytes: 11999
+    num_examples: 100
+  download_size: 118677
+  dataset_size: 70578
+- config_name: it
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 65051
+    num_examples: 500
+  - name: validation
+    num_bytes: 13366
+    num_examples: 100
+  download_size: 126520
+  dataset_size: 78417
+- config_name: id
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 63331
+    num_examples: 500
+  - name: validation
+    num_bytes: 13897
+    num_examples: 100
+  download_size: 125347
+  dataset_size: 77228
+- config_name: qu
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 68711
+    num_examples: 500
+  - name: validation
+    num_bytes: 13983
+    num_examples: 100
+  download_size: 130786
+  dataset_size: 82694
+- config_name: sw
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 60675
+    num_examples: 500
+  - name: validation
+    num_bytes: 12708
+    num_examples: 100
+  download_size: 121497
+  dataset_size: 73383
+- config_name: zh
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 55276
+    num_examples: 500
+  - name: validation
+    num_bytes: 11646
+    num_examples: 100
+  download_size: 115021
+  dataset_size: 66922
+- config_name: ta
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 176254
+    num_examples: 500
+  - name: validation
+    num_bytes: 37037
+    num_examples: 100
+  download_size: 261404
+  dataset_size: 213291
+- config_name: th
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 104165
+    num_examples: 500
+  - name: validation
+    num_bytes: 21859
+    num_examples: 100
+  download_size: 174134
+  dataset_size: 126024
+- config_name: tr
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 57741
+    num_examples: 500
+  - name: validation
+    num_bytes: 11941
+    num_examples: 100
+  download_size: 117781
+  dataset_size: 69682
+- config_name: vi
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 70311
+    num_examples: 500
+  - name: validation
+    num_bytes: 15135
+    num_examples: 100
+  download_size: 133555
+  dataset_size: 85446
+- config_name: translation-et
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 57469
+    num_examples: 500
+  - name: validation
+    num_bytes: 11923
+    num_examples: 100
+  download_size: 116900
+  dataset_size: 69392
+- config_name: translation-ht
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 58161
+    num_examples: 500
+  - name: validation
+    num_bytes: 12172
+    num_examples: 100
+  download_size: 117847
+  dataset_size: 70333
+- config_name: translation-it
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 59078
+    num_examples: 500
+  - name: validation
+    num_bytes: 12424
+    num_examples: 100
+  download_size: 119605
+  dataset_size: 71502
+- config_name: translation-id
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 58548
+    num_examples: 500
+  - name: validation
+    num_bytes: 12499
+    num_examples: 100
+  download_size: 118566
+  dataset_size: 71047
+- config_name: translation-sw
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 58749
+    num_examples: 500
+  - name: validation
+    num_bytes: 12222
+    num_examples: 100
+  download_size: 118485
+  dataset_size: 70971
+- config_name: translation-zh
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 58037
+    num_examples: 500
+  - name: validation
+    num_bytes: 12043
+    num_examples: 100
+  download_size: 117582
+  dataset_size: 70080
+- config_name: translation-ta
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 59584
+    num_examples: 500
+  - name: validation
+    num_bytes: 12414
+    num_examples: 100
+  download_size: 119511
+  dataset_size: 71998
+- config_name: translation-th
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 54900
+    num_examples: 500
+  - name: validation
+    num_bytes: 11389
+    num_examples: 100
+  download_size: 113799
+  dataset_size: 66289
+- config_name: translation-tr
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 57741
+    num_examples: 500
+  - name: validation
+    num_bytes: 11921
+    num_examples: 100
+  download_size: 117161
+  dataset_size: 69662
+- config_name: translation-vi
+  features:
+  - name: premise
+    dtype: string
+  - name: choice1
+    dtype: string
+  - name: choice2
+    dtype: string
+  - name: question
+    dtype: string
+  - name: label
+    dtype: int32
+  - name: idx
+    dtype: int32
+  - name: changed
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 55939
+    num_examples: 500
+  - name: validation
+    num_bytes: 11646
+    num_examples: 100
+  download_size: 115094
+  dataset_size: 67585
 ---
 
 # Dataset Card for "xcopa"

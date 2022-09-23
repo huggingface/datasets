@@ -20,6 +20,169 @@ task_categories:
 - translation
 task_ids: []
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: document_id
+    dtype: string
+  - name: source_segments
+    sequence: string
+  - name: source_tokenized
+    sequence: string
+  - name: mt_segments
+    sequence: string
+  - name: mt_tokenized
+    sequence: string
+  - name: annotations
+    sequence:
+    - name: segment_id
+      sequence: int32
+    - name: annotation_start
+      sequence: int32
+    - name: annotation_length
+      sequence: int32
+    - name: severity
+      dtype:
+        class_label:
+          names:
+            0: minor
+            1: major
+            2: critical
+    - name: severity_weight
+      dtype: float32
+    - name: category
+      dtype:
+        class_label:
+          names:
+            0: Addition
+            1: Agreement
+            2: Ambiguous Translation
+            3: Capitalization
+            4: Character Encoding
+            5: Company Terminology
+            6: Date/Time
+            7: Diacritics
+            8: Duplication
+            9: False Friend
+            10: Grammatical Register
+            11: Hyphenation
+            12: Inconsistency
+            13: Lexical Register
+            14: Lexical Selection
+            15: Named Entity
+            16: Number
+            17: Omitted Auxiliary Verb
+            18: Omitted Conjunction
+            19: Omitted Determiner
+            20: Omitted Preposition
+            21: Omitted Pronoun
+            22: Orthography
+            23: Other POS Omitted
+            24: Over-translation
+            25: Overly Literal
+            26: POS
+            27: Punctuation
+            28: Shouldn't Have Been Translated
+            29: Shouldn't have been translated
+            30: Spelling
+            31: Tense/Mood/Aspect
+            32: Under-translation
+            33: Unidiomatic
+            34: Unintelligible
+            35: Unit Conversion
+            36: Untranslated
+            37: Whitespace
+            38: Word Order
+            39: Wrong Auxiliary Verb
+            40: Wrong Conjunction
+            41: Wrong Determiner
+            42: Wrong Language Variety
+            43: Wrong Preposition
+            44: Wrong Pronoun
+  - name: token_annotations
+    sequence:
+    - name: segment_id
+      sequence: int32
+    - name: first_token
+      sequence: int32
+    - name: last_token
+      sequence: int32
+    - name: token_after_gap
+      sequence: int32
+    - name: severity
+      dtype:
+        class_label:
+          names:
+            0: minor
+            1: major
+            2: critical
+    - name: category
+      dtype:
+        class_label:
+          names:
+            0: Addition
+            1: Agreement
+            2: Ambiguous Translation
+            3: Capitalization
+            4: Character Encoding
+            5: Company Terminology
+            6: Date/Time
+            7: Diacritics
+            8: Duplication
+            9: False Friend
+            10: Grammatical Register
+            11: Hyphenation
+            12: Inconsistency
+            13: Lexical Register
+            14: Lexical Selection
+            15: Named Entity
+            16: Number
+            17: Omitted Auxiliary Verb
+            18: Omitted Conjunction
+            19: Omitted Determiner
+            20: Omitted Preposition
+            21: Omitted Pronoun
+            22: Orthography
+            23: Other POS Omitted
+            24: Over-translation
+            25: Overly Literal
+            26: POS
+            27: Punctuation
+            28: Shouldn't Have Been Translated
+            29: Shouldn't have been translated
+            30: Spelling
+            31: Tense/Mood/Aspect
+            32: Under-translation
+            33: Unidiomatic
+            34: Unintelligible
+            35: Unit Conversion
+            36: Untranslated
+            37: Whitespace
+            38: Word Order
+            39: Wrong Auxiliary Verb
+            40: Wrong Conjunction
+            41: Wrong Determiner
+            42: Wrong Language Variety
+            43: Wrong Preposition
+            44: Wrong Pronoun
+  - name: token_index
+    sequence:
+      sequence:
+        sequence: int32
+  - name: total_words
+    dtype: int32
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 745260
+    num_examples: 180
+  - name: train
+    num_bytes: 10762355
+    num_examples: 1448
+  - name: validation
+    num_bytes: 1646596
+    num_examples: 200
+  download_size: 3534634
+  dataset_size: 13154211
 ---
 
 # Dataset Card for WMT20 - MultiLingual Quality Estimation (MLQE) Task3

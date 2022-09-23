@@ -19,6 +19,163 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: selqa
 pretty_name: SelQA
+dataset_info:
+- config_name: answer_selection_analysis
+  features:
+  - name: section
+    dtype: string
+  - name: question
+    dtype: string
+  - name: article
+    dtype: string
+  - name: is_paraphrase
+    dtype: bool
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: MUSIC
+          1: TV
+          2: TRAVEL
+          3: ART
+          4: SPORT
+          5: COUNTRY
+          6: MOVIES
+          7: HISTORICAL EVENTS
+          8: SCIENCE
+          9: FOOD
+  - name: answers
+    sequence: int32
+  - name: candidates
+    sequence: string
+  - name: q_types
+    sequence:
+      class_label:
+        names:
+          0: what
+          1: why
+          2: when
+          3: who
+          4: where
+          5: how
+          6: ''
+  splits:
+  - name: test
+    num_bytes: 2798537
+    num_examples: 1590
+  - name: train
+    num_bytes: 9676758
+    num_examples: 5529
+  - name: validation
+    num_bytes: 1378407
+    num_examples: 785
+  download_size: 14773444
+  dataset_size: 13853702
+- config_name: answer_selection_experiments
+  features:
+  - name: question
+    dtype: string
+  - name: candidate
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 4008077
+    num_examples: 19435
+  - name: train
+    num_bytes: 13782826
+    num_examples: 66438
+  - name: validation
+    num_bytes: 1954877
+    num_examples: 9377
+  download_size: 18602700
+  dataset_size: 19745780
+- config_name: answer_triggering_analysis
+  features:
+  - name: section
+    dtype: string
+  - name: question
+    dtype: string
+  - name: article
+    dtype: string
+  - name: is_paraphrase
+    dtype: bool
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: MUSIC
+          1: TV
+          2: TRAVEL
+          3: ART
+          4: SPORT
+          5: COUNTRY
+          6: MOVIES
+          7: HISTORICAL EVENTS
+          8: SCIENCE
+          9: FOOD
+  - name: q_types
+    sequence:
+      class_label:
+        names:
+          0: what
+          1: why
+          2: when
+          3: who
+          4: where
+          5: how
+          6: ''
+  - name: candidate_list
+    sequence:
+    - name: article
+      dtype: string
+    - name: section
+      dtype: string
+    - name: candidates
+      sequence: string
+    - name: answers
+      sequence: int32
+  splits:
+  - name: test
+    num_bytes: 8766787
+    num_examples: 1590
+  - name: train
+    num_bytes: 30176650
+    num_examples: 5529
+  - name: validation
+    num_bytes: 4270904
+    num_examples: 785
+  download_size: 46149676
+  dataset_size: 43214341
+- config_name: answer_triggering_experiments
+  features:
+  - name: question
+    dtype: string
+  - name: candidate
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 12504961
+    num_examples: 59845
+  - name: train
+    num_bytes: 42956518
+    num_examples: 205075
+  - name: validation
+    num_bytes: 6055616
+    num_examples: 28798
+  download_size: 57992239
+  dataset_size: 61517095
 ---
 
 # Dataset Card for SelQA

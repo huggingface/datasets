@@ -20,6 +20,19 @@ task_categories:
 task_ids:
 - language-modeling
 - masked-language-modeling
+dataset_info:
+  features:
+  - name: domain
+    dtype: string
+  - name: text
+    dtype: string
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 11075434609
+    num_examples: 5096117
+  download_size: 36802959360
+  dataset_size: 11075434609
 ---
 
 # Dataset Card for Stack Exchange

@@ -29,6 +29,247 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: xquad
+dataset_info:
+- config_name: xquad.ar
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 1722799
+    num_examples: 1190
+  download_size: 13962158
+  dataset_size: 1722799
+- config_name: xquad.de
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 1283301
+    num_examples: 1190
+  download_size: 13962158
+  dataset_size: 1283301
+- config_name: xquad.zh
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 984241
+    num_examples: 1190
+  download_size: 13962158
+  dataset_size: 984241
+- config_name: xquad.vi
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 1477239
+    num_examples: 1190
+  download_size: 13962158
+  dataset_size: 1477239
+- config_name: xquad.en
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 1116123
+    num_examples: 1190
+  download_size: 13962158
+  dataset_size: 1116123
+- config_name: xquad.es
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 1273499
+    num_examples: 1190
+  download_size: 13962158
+  dataset_size: 1273499
+- config_name: xquad.hi
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 2682975
+    num_examples: 1190
+  download_size: 13962158
+  dataset_size: 2682975
+- config_name: xquad.el
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 2206690
+    num_examples: 1190
+  download_size: 13962158
+  dataset_size: 2206690
+- config_name: xquad.th
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 2854959
+    num_examples: 1190
+  download_size: 13962158
+  dataset_size: 2854959
+- config_name: xquad.tr
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 1210763
+    num_examples: 1190
+  download_size: 13962158
+  dataset_size: 1210763
+- config_name: xquad.ru
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 2136990
+    num_examples: 1190
+  download_size: 13962158
+  dataset_size: 2136990
+- config_name: xquad.ro
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: validation
+    num_bytes: 1299450
+    num_examples: 1190
+  download_size: 13962158
+  dataset_size: 1299450
 ---
 
 # Dataset Card for "xquad"

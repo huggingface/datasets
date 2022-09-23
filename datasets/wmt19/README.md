@@ -30,6 +30,160 @@ task_categories:
 task_ids: []
 pretty_name: WMT19
 paperswithcode_id: null
+dataset_info:
+- config_name: cs-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - cs
+        - en
+  splits:
+  - name: train
+    num_bytes: 1314871994
+    num_examples: 7270695
+  - name: validation
+    num_bytes: 696229
+    num_examples: 2983
+  download_size: 2018537046
+  dataset_size: 1315568223
+- config_name: de-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - en
+  splits:
+  - name: train
+    num_bytes: 8420967590
+    num_examples: 38690334
+  - name: validation
+    num_bytes: 757649
+    num_examples: 2998
+  download_size: 10422475109
+  dataset_size: 8421725239
+- config_name: fi-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fi
+        - en
+  splits:
+  - name: train
+    num_bytes: 1422922267
+    num_examples: 6587448
+  - name: validation
+    num_bytes: 691841
+    num_examples: 3000
+  download_size: 1006124909
+  dataset_size: 1423614108
+- config_name: gu-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - gu
+        - en
+  splits:
+  - name: train
+    num_bytes: 590763
+    num_examples: 11670
+  - name: validation
+    num_bytes: 774621
+    num_examples: 1998
+  download_size: 38891457
+  dataset_size: 1365384
+- config_name: kk-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - kk
+        - en
+  splits:
+  - name: train
+    num_bytes: 9157438
+    num_examples: 126583
+  - name: validation
+    num_bytes: 846857
+    num_examples: 2066
+  download_size: 41558315
+  dataset_size: 10004295
+- config_name: lt-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - lt
+        - en
+  splits:
+  - name: train
+    num_bytes: 513084361
+    num_examples: 2344893
+  - name: validation
+    num_bytes: 541953
+    num_examples: 2000
+  download_size: 411309952
+  dataset_size: 513626314
+- config_name: ru-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - en
+  splits:
+  - name: train
+    num_bytes: 13721377178
+    num_examples: 37492126
+  - name: validation
+    num_bytes: 1085596
+    num_examples: 3000
+  download_size: 4134147853
+  dataset_size: 13722462774
+- config_name: zh-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - zh
+        - en
+  splits:
+  - name: train
+    num_bytes: 5584359748
+    num_examples: 25984574
+  - name: validation
+    num_bytes: 1107522
+    num_examples: 3981
+  download_size: 2195879129
+  dataset_size: 5585467270
+- config_name: fr-de
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr
+        - de
+  splits:
+  - name: train
+    num_bytes: 2358413485
+    num_examples: 9824476
+  - name: validation
+    num_bytes: 441426
+    num_examples: 1512
+  download_size: 757345846
+  dataset_size: 2358854911
 ---
 
 # Dataset Card for "wmt19"

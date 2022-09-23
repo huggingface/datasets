@@ -30,8 +30,47 @@ train-eval-index:
     tokens: tokens
     ner_tags: tags
   metrics:
-    - type: seqeval
-      name: seqeval
+  - type: seqeval
+    name: seqeval
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-GPE.NAM
+          1: B-GPE.NOM
+          2: B-LOC.NAM
+          3: B-LOC.NOM
+          4: B-ORG.NAM
+          5: B-ORG.NOM
+          6: B-PER.NAM
+          7: B-PER.NOM
+          8: I-GPE.NAM
+          9: I-GPE.NOM
+          10: I-LOC.NAM
+          11: I-LOC.NOM
+          12: I-ORG.NAM
+          13: I-ORG.NOM
+          14: I-PER.NAM
+          15: I-PER.NOM
+          16: O
+  splits:
+  - name: test
+    num_bytes: 237407
+    num_examples: 270
+  - name: train
+    num_bytes: 1179589
+    num_examples: 1350
+  - name: validation
+    num_bytes: 232380
+    num_examples: 270
+  download_size: 750687
+  dataset_size: 1649376
 ---
 
 # Dataset Card for "Weibo NER"

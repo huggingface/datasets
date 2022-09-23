@@ -19,6 +19,23 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: roman-urdu-data-set
 pretty_name: Roman Urdu Dataset
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  - name: sentiment
+    dtype:
+      class_label:
+        names:
+          0: Positive
+          1: Negative
+          2: Neutral
+  splits:
+  - name: train
+    num_bytes: 1633423
+    num_examples: 20229
+  download_size: 1628349
+  dataset_size: 1633423
 ---
 
 # Dataset Card for Roman Urdu Dataset

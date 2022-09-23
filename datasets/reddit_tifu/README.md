@@ -19,6 +19,51 @@ task_categories:
 task_ids:
 - summarization-other-reddit-posts-summarization
 paperswithcode_id: reddit-tifu
+dataset_info:
+- config_name: short
+  features:
+  - name: ups
+    dtype: float32
+  - name: num_comments
+    dtype: float32
+  - name: upvote_ratio
+    dtype: float32
+  - name: score
+    dtype: float32
+  - name: documents
+    dtype: string
+  - name: tldr
+    dtype: string
+  - name: title
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 137715925
+    num_examples: 79740
+  download_size: 670607856
+  dataset_size: 137715925
+- config_name: long
+  features:
+  - name: ups
+    dtype: float32
+  - name: num_comments
+    dtype: float32
+  - name: upvote_ratio
+    dtype: float32
+  - name: score
+    dtype: float32
+  - name: documents
+    dtype: string
+  - name: tldr
+    dtype: string
+  - name: title
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 91984758
+    num_examples: 42139
+  download_size: 670607856
+  dataset_size: 91984758
 ---
 
 # Dataset Card for "reddit_tifu"

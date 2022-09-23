@@ -12,7 +12,7 @@ language:
 - it
 - pt
 - ru
-- "tr"
+- tr
 language_creators:
 - expert-generated
 license:
@@ -28,6 +28,287 @@ task_categories:
 - translation
 task_ids: []
 paperswithcode_id: null
+dataset_info:
+- config_name: az_to_en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - az
+        - en
+  splits:
+  - name: test
+    num_bytes: 186540
+    num_examples: 904
+  - name: train
+    num_bytes: 1226853
+    num_examples: 5947
+  - name: validation
+    num_bytes: 122709
+    num_examples: 672
+  download_size: 131005909
+  dataset_size: 1536102
+- config_name: aztr_to_en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - az_tr
+        - en
+  splits:
+  - name: test
+    num_bytes: 186540
+    num_examples: 904
+  - name: train
+    num_bytes: 39834469
+    num_examples: 188397
+  - name: validation
+    num_bytes: 122709
+    num_examples: 672
+  download_size: 131005909
+  dataset_size: 40143718
+- config_name: be_to_en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - be
+        - en
+  splits:
+  - name: test
+    num_bytes: 186606
+    num_examples: 665
+  - name: train
+    num_bytes: 1176899
+    num_examples: 4510
+  - name: validation
+    num_bytes: 59328
+    num_examples: 249
+  download_size: 131005909
+  dataset_size: 1422833
+- config_name: beru_to_en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - be_ru
+        - en
+  splits:
+  - name: test
+    num_bytes: 186606
+    num_examples: 665
+  - name: train
+    num_bytes: 59953616
+    num_examples: 212615
+  - name: validation
+    num_bytes: 59328
+    num_examples: 249
+  download_size: 131005909
+  dataset_size: 60199550
+- config_name: es_to_pt
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - pt
+  splits:
+  - name: test
+    num_bytes: 343640
+    num_examples: 1764
+  - name: train
+    num_bytes: 8611393
+    num_examples: 44939
+  - name: validation
+    num_bytes: 181535
+    num_examples: 1017
+  download_size: 131005909
+  dataset_size: 9136568
+- config_name: fr_to_pt
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr
+        - pt
+  splits:
+  - name: test
+    num_bytes: 311650
+    num_examples: 1495
+  - name: train
+    num_bytes: 8755387
+    num_examples: 43874
+  - name: validation
+    num_bytes: 212317
+    num_examples: 1132
+  download_size: 131005909
+  dataset_size: 9279354
+- config_name: gl_to_en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - gl
+        - en
+  splits:
+  - name: test
+    num_bytes: 193213
+    num_examples: 1008
+  - name: train
+    num_bytes: 1961363
+    num_examples: 10018
+  - name: validation
+    num_bytes: 137929
+    num_examples: 683
+  download_size: 131005909
+  dataset_size: 2292505
+- config_name: glpt_to_en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - gl_pt
+        - en
+  splits:
+  - name: test
+    num_bytes: 193213
+    num_examples: 1008
+  - name: train
+    num_bytes: 11734254
+    num_examples: 61803
+  - name: validation
+    num_bytes: 137929
+    num_examples: 683
+  download_size: 131005909
+  dataset_size: 12065396
+- config_name: he_to_pt
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - he
+        - pt
+  splits:
+  - name: test
+    num_bytes: 361378
+    num_examples: 1624
+  - name: train
+    num_bytes: 10627615
+    num_examples: 48512
+  - name: validation
+    num_bytes: 230725
+    num_examples: 1146
+  download_size: 131005909
+  dataset_size: 11219718
+- config_name: it_to_pt
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - it
+        - pt
+  splits:
+  - name: test
+    num_bytes: 324726
+    num_examples: 1670
+  - name: train
+    num_bytes: 8905825
+    num_examples: 46260
+  - name: validation
+    num_bytes: 210375
+    num_examples: 1163
+  download_size: 131005909
+  dataset_size: 9440926
+- config_name: pt_to_en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - pt
+        - en
+  splits:
+  - name: test
+    num_bytes: 347803
+    num_examples: 1804
+  - name: train
+    num_bytes: 9772911
+    num_examples: 51786
+  - name: validation
+    num_bytes: 207960
+    num_examples: 1194
+  download_size: 131005909
+  dataset_size: 10328674
+- config_name: ru_to_en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - en
+  splits:
+  - name: test
+    num_bytes: 1459576
+    num_examples: 5477
+  - name: train
+    num_bytes: 58778442
+    num_examples: 208107
+  - name: validation
+    num_bytes: 1318357
+    num_examples: 4806
+  download_size: 131005909
+  dataset_size: 61556375
+- config_name: ru_to_pt
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - pt
+  splits:
+  - name: test
+    num_bytes: 409062
+    num_examples: 1589
+  - name: train
+    num_bytes: 11882860
+    num_examples: 47279
+  - name: validation
+    num_bytes: 276866
+    num_examples: 1185
+  download_size: 131005909
+  dataset_size: 12568788
+- config_name: tr_to_en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - tr
+        - en
+  splits:
+  - name: test
+    num_bytes: 1026406
+    num_examples: 5030
+  - name: train
+    num_bytes: 38607636
+    num_examples: 182451
+  - name: validation
+    num_bytes: 832358
+    num_examples: 4046
+  download_size: 131005909
+  dataset_size: 40466400
 ---
 
 # Dataset Card for "ted_hrlr"

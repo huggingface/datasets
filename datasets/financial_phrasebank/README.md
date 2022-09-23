@@ -20,6 +20,75 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: null
 pretty_name: FinancialPhrasebank
+dataset_info:
+- config_name: sentences_allagree
+  features:
+  - name: sentence
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: neutral
+          2: positive
+  splits:
+  - name: train
+    num_bytes: 303371
+    num_examples: 2264
+  download_size: 681890
+  dataset_size: 303371
+- config_name: sentences_75agree
+  features:
+  - name: sentence
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: neutral
+          2: positive
+  splits:
+  - name: train
+    num_bytes: 472703
+    num_examples: 3453
+  download_size: 681890
+  dataset_size: 472703
+- config_name: sentences_66agree
+  features:
+  - name: sentence
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: neutral
+          2: positive
+  splits:
+  - name: train
+    num_bytes: 587152
+    num_examples: 4217
+  download_size: 681890
+  dataset_size: 587152
+- config_name: sentences_50agree
+  features:
+  - name: sentence
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: neutral
+          2: positive
+  splits:
+  - name: train
+    num_bytes: 679240
+    num_examples: 4846
+  download_size: 681890
+  dataset_size: 679240
 ---
 
 # Dataset Card for financial_phrasebank

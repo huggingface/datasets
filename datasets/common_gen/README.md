@@ -20,6 +20,26 @@ task_categories:
 task_ids:
 - text2text-generation-other-concepts-to-text
 paperswithcode_id: commongen
+dataset_info:
+  features:
+  - name: concept_set_idx
+    dtype: int32
+  - name: concepts
+    sequence: string
+  - name: target
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 77530
+    num_examples: 1497
+  - name: train
+    num_bytes: 6724250
+    num_examples: 67389
+  - name: validation
+    num_bytes: 408752
+    num_examples: 4018
+  download_size: 1845699
+  dataset_size: 7210532
 ---
 
 # Dataset Card for "common_gen"

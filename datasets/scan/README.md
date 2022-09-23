@@ -32,6 +32,187 @@ configs:
 - template_jump_around_right
 - template_opposite_right
 - template_right
+dataset_info:
+- config_name: simple
+  features:
+  - name: commands
+    dtype: string
+  - name: actions
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 799912
+    num_examples: 4182
+  - name: train
+    num_bytes: 3217770
+    num_examples: 16728
+  download_size: 4080388
+  dataset_size: 4017682
+- config_name: addprim_jump
+  features:
+  - name: commands
+    dtype: string
+  - name: actions
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1508445
+    num_examples: 7706
+  - name: train
+    num_bytes: 2535625
+    num_examples: 14670
+  download_size: 4111174
+  dataset_size: 4044070
+- config_name: addprim_turn_left
+  features:
+  - name: commands
+    dtype: string
+  - name: actions
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 170063
+    num_examples: 1208
+  - name: train
+    num_bytes: 3908891
+    num_examples: 21890
+  download_size: 4148216
+  dataset_size: 4078954
+- config_name: filler_num0
+  features:
+  - name: commands
+    dtype: string
+  - name: actions
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 330087
+    num_examples: 1173
+  - name: train
+    num_bytes: 2513034
+    num_examples: 15225
+  download_size: 2892291
+  dataset_size: 2843121
+- config_name: filler_num1
+  features:
+  - name: commands
+    dtype: string
+  - name: actions
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 330087
+    num_examples: 1173
+  - name: train
+    num_bytes: 2802865
+    num_examples: 16290
+  download_size: 3185317
+  dataset_size: 3132952
+- config_name: filler_num2
+  features:
+  - name: commands
+    dtype: string
+  - name: actions
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 330087
+    num_examples: 1173
+  - name: train
+    num_bytes: 3106220
+    num_examples: 17391
+  download_size: 3491975
+  dataset_size: 3436307
+- config_name: filler_num3
+  features:
+  - name: commands
+    dtype: string
+  - name: actions
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 330087
+    num_examples: 1173
+  - name: train
+    num_bytes: 3412704
+    num_examples: 18528
+  download_size: 3801870
+  dataset_size: 3742791
+- config_name: length
+  features:
+  - name: commands
+    dtype: string
+  - name: actions
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1345218
+    num_examples: 3920
+  - name: train
+    num_bytes: 2672464
+    num_examples: 16990
+  download_size: 4080388
+  dataset_size: 4017682
+- config_name: template_around_right
+  features:
+  - name: commands
+    dtype: string
+  - name: actions
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1229757
+    num_examples: 4476
+  - name: train
+    num_bytes: 2513034
+    num_examples: 15225
+  download_size: 3801870
+  dataset_size: 3742791
+- config_name: template_jump_around_right
+  features:
+  - name: commands
+    dtype: string
+  - name: actions
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 330087
+    num_examples: 1173
+  - name: train
+    num_bytes: 3412704
+    num_examples: 18528
+  download_size: 3801870
+  dataset_size: 3742791
+- config_name: template_opposite_right
+  features:
+  - name: commands
+    dtype: string
+  - name: actions
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 857943
+    num_examples: 4476
+  - name: train
+    num_bytes: 2944398
+    num_examples: 15225
+  download_size: 3861420
+  dataset_size: 3802341
+- config_name: template_right
+  features:
+  - name: commands
+    dtype: string
+  - name: actions
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 716403
+    num_examples: 4476
+  - name: train
+    num_bytes: 3127623
+    num_examples: 15225
+  download_size: 3903105
+  dataset_size: 3844026
 ---
 
 # Dataset Card for "scan"

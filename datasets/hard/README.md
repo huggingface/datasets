@@ -19,6 +19,26 @@ task_ids:
 - multi-class-classification
 paperswithcode_id: hard
 pretty_name: Hotel Arabic-Reviews Dataset
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '1'
+          1: '2'
+          2: '3'
+          3: '4'
+          4: '5'
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 27507085
+    num_examples: 105698
+  download_size: 8508677
+  dataset_size: 27507085
 ---
 
 # Dataset Card for Hard

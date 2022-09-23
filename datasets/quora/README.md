@@ -19,6 +19,22 @@ task_categories:
 task_ids:
 - semantic-similarity-classification
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: questions
+    sequence:
+    - name: id
+      dtype: int32
+    - name: text
+      dtype: string
+  - name: is_duplicate
+    dtype: bool
+  splits:
+  - name: train
+    num_bytes: 58155622
+    num_examples: 404290
+  download_size: 58176133
+  dataset_size: 58155622
 ---
 
 # Dataset Card for "quora"

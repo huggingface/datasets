@@ -19,6 +19,32 @@ task_ids:
 - text2text-generation-other-grammatical-error-correction
 paperswithcode_id: null
 pretty_name: TMU-GFM-Dataset
+dataset_info:
+  features:
+  - name: source
+    dtype: string
+  - name: output
+    dtype: string
+  - name: grammer
+    sequence: int32
+  - name: fluency
+    sequence: int32
+  - name: meaning
+    sequence: int32
+  - name: system
+    dtype: string
+  - name: ave_g
+    dtype: float32
+  - name: ave_f
+    dtype: float32
+  - name: ave_m
+    dtype: float32
+  splits:
+  - name: train
+    num_bytes: 1446144
+    num_examples: 4221
+  download_size: 1270197
+  dataset_size: 1446144
 ---
 
 # Dataset Card for TMU-GFM-Dataset

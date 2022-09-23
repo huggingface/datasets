@@ -20,6 +20,60 @@ source_datasets:
 task_categories:
 - translation
 task_ids: []
+dataset_info:
+  features:
+  - name: date
+    dtype: string
+  - name: docIdx
+    dtype: int64
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - hi_en
+  - name: uid
+    dtype: string
+  - name: utcTimestamp
+    dtype: string
+  - name: rating
+    dtype: int64
+  - name: status
+    dtype: int64
+  - name: uid1LogInTime
+    dtype: string
+  - name: uid1LogOutTime
+    dtype: string
+  - name: uid1response
+    struct:
+    - name: response
+      sequence: int64
+    - name: type
+      dtype: string
+  - name: uid2response
+    struct:
+    - name: response
+      sequence: int64
+    - name: type
+      dtype: string
+  - name: user2_id
+    dtype: string
+  - name: whoSawDoc
+    sequence: string
+  - name: wikiDocumentIdx
+    dtype: int64
+  splits:
+  - name: test
+    num_bytes: 379521
+    num_examples: 960
+  - name: train
+    num_bytes: 3142398
+    num_examples: 8060
+  - name: validation
+    num_bytes: 368726
+    num_examples: 942
+  download_size: 8749685
+  dataset_size: 3890645
 ---
 
 # Dataset Card for CMU Document Grounded Conversations

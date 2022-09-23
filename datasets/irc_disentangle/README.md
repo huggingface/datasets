@@ -19,6 +19,63 @@ task_ids:
 - token-classification-other-conversation-disentanglement
 paperswithcode_id: irc-disentanglement
 pretty_name: IRC Disentanglement
+dataset_info:
+- config_name: ubuntu
+  features:
+  - name: id
+    dtype: int32
+  - name: raw
+    dtype: string
+  - name: ascii
+    dtype: string
+  - name: tokenized
+    dtype: string
+  - name: date
+    dtype: string
+  - name: connections
+    sequence: int32
+  splits:
+  - name: test
+    num_bytes: 3919900
+    num_examples: 15010
+  - name: train
+    num_bytes: 56012854
+    num_examples: 220616
+  - name: validation
+    num_bytes: 3081479
+    num_examples: 12510
+  download_size: 118470210
+  dataset_size: 63014233
+- config_name: channel_two
+  features:
+  - name: id
+    dtype: int32
+  - name: raw
+    dtype: string
+  - name: ascii
+    dtype: string
+  - name: tokenized
+    dtype: string
+  - name: connections
+    sequence: int32
+  splits:
+  - name: all_
+    num_bytes: 496524
+    num_examples: 2602
+  - name: dev
+    num_bytes: 197505
+    num_examples: 1001
+  - name: pilot
+    num_bytes: 92663
+    num_examples: 501
+  - name: pilot_dev
+    num_bytes: 290175
+    num_examples: 1501
+  - name: test
+    num_bytes: 186823
+    num_examples: 1001
+  download_size: 118470210
+  dataset_size: 1263690
 ---
 
 

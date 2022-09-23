@@ -21,6 +21,50 @@ task_ids:
 - text-classification-other-sarcasm-detection
 paperswithcode_id: null
 pretty_name: ArSarcasm
+dataset_info:
+  features:
+  - name: dialect
+    dtype:
+      class_label:
+        names:
+          0: egypt
+          1: gulf
+          2: levant
+          3: magreb
+          4: msa
+  - name: sarcasm
+    dtype:
+      class_label:
+        names:
+          0: non-sarcastic
+          1: sarcastic
+  - name: sentiment
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: neutral
+          2: positive
+  - name: original_sentiment
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: neutral
+          2: positive
+  - name: tweet
+    dtype: string
+  - name: source
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 458218
+    num_examples: 2110
+  - name: train
+    num_bytes: 1829167
+    num_examples: 8437
+  download_size: 750717
+  dataset_size: 2287385
 ---
 
 # Dataset Card for ArSarcasm

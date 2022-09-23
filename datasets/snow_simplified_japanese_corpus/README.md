@@ -20,6 +20,41 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: SNOW T15 and T23 (simplified Japanese corpus)
+dataset_info:
+- config_name: snow_t15
+  features:
+  - name: ID
+    dtype: string
+  - name: original_ja
+    dtype: string
+  - name: simplified_ja
+    dtype: string
+  - name: original_en
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 7218115
+    num_examples: 50000
+  download_size: 3634132
+  dataset_size: 7218115
+- config_name: snow_t23
+  features:
+  - name: ID
+    dtype: string
+  - name: original_ja
+    dtype: string
+  - name: simplified_ja
+    dtype: string
+  - name: original_en
+    dtype: string
+  - name: proper_noun
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 6704695
+    num_examples: 34300
+  download_size: 3641507
+  dataset_size: 6704695
 ---
 
 # Dataset Card for SNOW T15 and T23 (simplified Japanese corpus)

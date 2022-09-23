@@ -19,6 +19,40 @@ task_ids:
 - topic-classification
 paperswithcode_id: dbpedia
 pretty_name: DBpedia
+dataset_info:
+  features:
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Company
+          1: EducationalInstitution
+          2: Artist
+          3: Athlete
+          4: OfficeHolder
+          5: MeanOfTransportation
+          6: Building
+          7: NaturalPlace
+          8: Village
+          9: Animal
+          10: Plant
+          11: Album
+          12: Film
+          13: WrittenWork
+  - name: title
+    dtype: string
+  - name: content
+    dtype: string
+  config_name: dbpedia_14
+  splits:
+  - name: test
+    num_bytes: 22310285
+    num_examples: 70000
+  - name: train
+    num_bytes: 178428970
+    num_examples: 560000
+  download_size: 68341743
+  dataset_size: 200739255
 ---
 
 # Dataset Card for DBpedia14

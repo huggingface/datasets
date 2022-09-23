@@ -24,6 +24,31 @@ task_ids:
 - rdf-to-text
 paperswithcode_id: dart
 pretty_name: DART
+dataset_info:
+  features:
+  - name: tripleset
+    sequence:
+      sequence: string
+  - name: subtree_was_extended
+    dtype: bool
+  - name: annotations
+    sequence:
+    - name: source
+      dtype: string
+    - name: text
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 2989087
+    num_examples: 6959
+  - name: train
+    num_bytes: 12960061
+    num_examples: 30526
+  - name: validation
+    num_bytes: 1457414
+    num_examples: 2768
+  download_size: 29372788
+  dataset_size: 17406562
 ---
 
 # Dataset Card for DART

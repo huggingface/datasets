@@ -20,6 +20,24 @@ task_ids:
 - text-classification-other-Meronym-Prediction
 paperswithcode_id: haspart-kb
 pretty_name: hasPart KB
+dataset_info:
+  features:
+  - name: arg1
+    dtype: string
+  - name: arg2
+    dtype: string
+  - name: score
+    dtype: float64
+  - name: wikipedia_primary_page
+    sequence: string
+  - name: synset
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 4363417
+    num_examples: 49848
+  download_size: 7437382
+  dataset_size: 4363417
 ---
 
 # Dataset Card for [HasPart]

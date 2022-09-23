@@ -19,6 +19,32 @@ task_ids:
 - closed-domain-qa
 paperswithcode_id: sciq
 pretty_name: SciQ
+dataset_info:
+  features:
+  - name: question
+    dtype: string
+  - name: distractor3
+    dtype: string
+  - name: distractor1
+    dtype: string
+  - name: distractor2
+    dtype: string
+  - name: correct_answer
+    dtype: string
+  - name: support
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 564826
+    num_examples: 1000
+  - name: train
+    num_bytes: 6556427
+    num_examples: 11679
+  - name: validation
+    num_bytes: 555019
+    num_examples: 1000
+  download_size: 2821345
+  dataset_size: 7676272
 ---
 
 # Dataset Card for "sciq"

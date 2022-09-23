@@ -21,6 +21,66 @@ task_categories:
 task_ids:
 - closed-domain-qa
 paperswithcode_id: qasper
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: abstract
+    dtype: string
+  - name: full_text
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: paragraphs
+      list: string
+  - name: qas
+    sequence:
+    - name: question
+      dtype: string
+    - name: question_id
+      dtype: string
+    - name: nlp_background
+      dtype: string
+    - name: topic_background
+      dtype: string
+    - name: paper_read
+      dtype: string
+    - name: search_query
+      dtype: string
+    - name: question_writer
+      dtype: string
+    - name: answers
+      sequence:
+      - name: answer
+        struct:
+        - name: unanswerable
+          dtype: bool
+        - name: extractive_spans
+          sequence: string
+        - name: yes_no
+          dtype: bool
+        - name: free_form_answer
+          dtype: string
+        - name: evidence
+          sequence: string
+        - name: highlighted_evidence
+          sequence: string
+      - name: annotation_id
+        dtype: string
+      - name: worker_id
+        dtype: string
+  config_name: qasper
+  splits:
+  - name: train
+    num_bytes: 27277970
+    num_examples: 888
+  - name: validation
+    num_bytes: 9535330
+    num_examples: 281
+  download_size: 10359737
+  dataset_size: 36813300
 ---
 
 # Dataset Card for Qasper

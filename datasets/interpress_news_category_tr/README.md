@@ -19,6 +19,68 @@ task_ids:
 - text-classification-other-news-category-classification
 paperswithcode_id: null
 pretty_name: Interpress Turkish News Category Dataset (270K)
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: title
+    dtype: string
+  - name: content
+    dtype: string
+  - name: category
+    dtype:
+      class_label:
+        names:
+          0: aktuel
+          1: bilisim
+          2: egitim
+          3: ekonomi
+          4: gida
+          5: iletisim
+          6: kultursanat
+          7: magazin
+          8: saglik
+          9: savunma
+          10: seyahat
+          11: siyasi
+          12: spor
+          13: teknoloji
+          14: ticaret
+          15: turizm
+          16: yasam
+  - name: categorycode
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+          2: '2'
+          3: '3'
+          4: '4'
+          5: '5'
+          6: '6'
+          7: '7'
+          8: '8'
+          9: '9'
+          10: '10'
+          11: '11'
+          12: '12'
+          13: '13'
+          14: '14'
+          15: '15'
+          16: '16'
+  - name: publishdatetime
+    dtype: string
+  config_name: 270k
+  splits:
+  - name: test
+    num_bytes: 184683629
+    num_examples: 54721
+  - name: train
+    num_bytes: 736098052
+    num_examples: 218880
+  download_size: 354802486
+  dataset_size: 920781681
 ---
 
 # Dataset Card for Interpress Turkish News Category Dataset (270K)

@@ -19,6 +19,34 @@ task_ids:
 - multi-class-image-classification
 paperswithcode_id: mnist
 pretty_name: MNIST
+dataset_info:
+  features:
+  - name: image
+    dtype: image
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+          2: '2'
+          3: '3'
+          4: '4'
+          5: '5'
+          6: '6'
+          7: '7'
+          8: '8'
+          9: '9'
+  config_name: mnist
+  splits:
+  - name: test
+    num_bytes: 2916440
+    num_examples: 10000
+  - name: train
+    num_bytes: 17470848
+    num_examples: 60000
+  download_size: 11594722
+  dataset_size: 20387288
 ---
 
 # Dataset Card for MNIST

@@ -20,6 +20,21 @@ task_ids:
 - text2text-generation-other-grammatical-error-correction
 paperswithcode_id: jfleg
 pretty_name: JHU FLuency-Extended GUG corpus
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  - name: corrections
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 379711
+    num_examples: 748
+  - name: validation
+    num_bytes: 379991
+    num_examples: 755
+  download_size: 731111
+  dataset_size: 759702
 ---
 
 # Dataset Card for JFLEG

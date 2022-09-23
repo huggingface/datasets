@@ -19,6 +19,45 @@ task_ids:
 - other-other-judgement-prediction
 paperswithcode_id: chinese-ai-and-law-cail-2018
 pretty_name: CAIL 2018
+dataset_info:
+  features:
+  - name: fact
+    dtype: string
+  - name: relevant_articles
+    sequence: int32
+  - name: accusation
+    sequence: string
+  - name: punish_of_money
+    dtype: float32
+  - name: criminals
+    sequence: string
+  - name: death_penalty
+    dtype: bool
+  - name: imprisonment
+    dtype: float32
+  - name: life_imprisonment
+    dtype: bool
+  splits:
+  - name: exercise_contest_test
+    num_bytes: 41057634
+    num_examples: 32508
+  - name: exercise_contest_train
+    num_bytes: 220112732
+    num_examples: 154592
+  - name: exercise_contest_valid
+    num_bytes: 21702157
+    num_examples: 17131
+  - name: final_test
+    num_bytes: 44194707
+    num_examples: 35922
+  - name: first_stage_test
+    num_bytes: 244335194
+    num_examples: 217016
+  - name: first_stage_train
+    num_bytes: 1779657510
+    num_examples: 1710856
+  download_size: 984551626
+  dataset_size: 2351059934
 ---
 ---
 # Dataset Card for CAIL 2018

@@ -20,6 +20,36 @@ task_categories:
 task_ids:
 - extractive-qa
 - open-domain-qa
+dataset_info:
+  features:
+  - name: squad_v2_id
+    dtype: string
+  - name: original question
+    dtype: string
+  - name: disfluent question
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 3865097
+    num_examples: 3643
+  - name: train
+    num_bytes: 7712523
+    num_examples: 7182
+  - name: validation
+    num_bytes: 1072731
+    num_examples: 1000
+  download_size: 48935038
+  dataset_size: 12650351
 ---
 
 # Dataset Card for DISFL-QA: A Benchmark Dataset for Understanding Disfluencies in Question Answering

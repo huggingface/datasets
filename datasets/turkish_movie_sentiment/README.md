@@ -20,6 +20,21 @@ task_ids:
 - sentiment-scoring
 paperswithcode_id: null
 pretty_name: 'TurkishMovieSentiment: This dataset contains turkish movie reviews.'
+dataset_info:
+  features:
+  - name: point
+    dtype: float32
+  - name: comment
+    dtype: string
+  - name: film_name
+    dtype: string
+  config_name: turkishmoviesentiment
+  splits:
+  - name: train
+    num_bytes: 33954560
+    num_examples: 83227
+  download_size: 0
+  dataset_size: 33954560
 ---
 
 # Dataset Card for TurkishMovieSentiment: This dataset contains turkish movie reviews.

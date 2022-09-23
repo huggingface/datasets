@@ -19,6 +19,193 @@ task_ids:
 - multiple-choice-qa
 paperswithcode_id: codah
 pretty_name: COmmonsense Dataset Adversarially-authored by Humans
+dataset_info:
+- config_name: codah
+  features:
+  - name: id
+    dtype: int32
+  - name: question_category
+    dtype:
+      class_label:
+        names:
+          0: Idioms
+          1: Reference
+          2: Polysemy
+          3: Negation
+          4: Quantitative
+          5: Others
+  - name: question_propmt
+    dtype: string
+  - name: candidate_answers
+    sequence: string
+  - name: correct_answer_idx
+    dtype: int32
+  splits:
+  - name: train
+    num_bytes: 571208
+    num_examples: 2776
+  download_size: 485130
+  dataset_size: 571208
+- config_name: fold_0
+  features:
+  - name: id
+    dtype: int32
+  - name: question_category
+    dtype:
+      class_label:
+        names:
+          0: Idioms
+          1: Reference
+          2: Polysemy
+          3: Negation
+          4: Quantitative
+          5: Others
+  - name: question_propmt
+    dtype: string
+  - name: candidate_answers
+    sequence: string
+  - name: correct_answer_idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 112109
+    num_examples: 555
+  - name: train
+    num_bytes: 344912
+    num_examples: 1665
+  - name: validation
+    num_bytes: 114211
+    num_examples: 556
+  download_size: 485130
+  dataset_size: 571232
+- config_name: fold_1
+  features:
+  - name: id
+    dtype: int32
+  - name: question_category
+    dtype:
+      class_label:
+        names:
+          0: Idioms
+          1: Reference
+          2: Polysemy
+          3: Negation
+          4: Quantitative
+          5: Others
+  - name: question_propmt
+    dtype: string
+  - name: candidate_answers
+    sequence: string
+  - name: correct_answer_idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 116031
+    num_examples: 555
+  - name: train
+    num_bytes: 340990
+    num_examples: 1665
+  - name: validation
+    num_bytes: 114211
+    num_examples: 556
+  download_size: 485130
+  dataset_size: 571232
+- config_name: fold_2
+  features:
+  - name: id
+    dtype: int32
+  - name: question_category
+    dtype:
+      class_label:
+        names:
+          0: Idioms
+          1: Reference
+          2: Polysemy
+          3: Negation
+          4: Quantitative
+          5: Others
+  - name: question_propmt
+    dtype: string
+  - name: candidate_answers
+    sequence: string
+  - name: correct_answer_idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 114728
+    num_examples: 555
+  - name: train
+    num_bytes: 342293
+    num_examples: 1665
+  - name: validation
+    num_bytes: 114211
+    num_examples: 556
+  download_size: 485130
+  dataset_size: 571232
+- config_name: fold_3
+  features:
+  - name: id
+    dtype: int32
+  - name: question_category
+    dtype:
+      class_label:
+        names:
+          0: Idioms
+          1: Reference
+          2: Polysemy
+          3: Negation
+          4: Quantitative
+          5: Others
+  - name: question_propmt
+    dtype: string
+  - name: candidate_answers
+    sequence: string
+  - name: correct_answer_idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 114177
+    num_examples: 555
+  - name: train
+    num_bytes: 342844
+    num_examples: 1665
+  - name: validation
+    num_bytes: 114211
+    num_examples: 556
+  download_size: 485130
+  dataset_size: 571232
+- config_name: fold_4
+  features:
+  - name: id
+    dtype: int32
+  - name: question_category
+    dtype:
+      class_label:
+        names:
+          0: Idioms
+          1: Reference
+          2: Polysemy
+          3: Negation
+          4: Quantitative
+          5: Others
+  - name: question_propmt
+    dtype: string
+  - name: candidate_answers
+    sequence: string
+  - name: correct_answer_idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 114211
+    num_examples: 556
+  - name: train
+    num_bytes: 342844
+    num_examples: 1665
+  - name: validation
+    num_bytes: 114177
+    num_examples: 555
+  download_size: 485130
+  dataset_size: 571232
 ---
 
 # Dataset Card for COmmonsense Dataset Adversarially-authored by Humans

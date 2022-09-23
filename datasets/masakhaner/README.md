@@ -14,7 +14,6 @@ language:
 - sw
 - wo
 - yo
-
 license:
 - unknown
 multilinguality:
@@ -40,6 +39,317 @@ configs:
 - sw
 - wo
 - yo
+dataset_info:
+- config_name: amh
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-DATE
+          8: I-DATE
+  splits:
+  - name: test
+    num_bytes: 184271
+    num_examples: 500
+  - name: train
+    num_bytes: 639911
+    num_examples: 1750
+  - name: validation
+    num_bytes: 92753
+    num_examples: 250
+  download_size: 571951
+  dataset_size: 916935
+- config_name: hau
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-DATE
+          8: I-DATE
+  splits:
+  - name: test
+    num_bytes: 282971
+    num_examples: 552
+  - name: train
+    num_bytes: 929848
+    num_examples: 1912
+  - name: validation
+    num_bytes: 139503
+    num_examples: 276
+  download_size: 633372
+  dataset_size: 1352322
+- config_name: ibo
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-DATE
+          8: I-DATE
+  splits:
+  - name: test
+    num_bytes: 222192
+    num_examples: 638
+  - name: train
+    num_bytes: 749196
+    num_examples: 2235
+  - name: validation
+    num_bytes: 110572
+    num_examples: 320
+  download_size: 515415
+  dataset_size: 1081960
+- config_name: kin
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-DATE
+          8: I-DATE
+  splits:
+  - name: test
+    num_bytes: 258638
+    num_examples: 605
+  - name: train
+    num_bytes: 878746
+    num_examples: 2116
+  - name: validation
+    num_bytes: 120998
+    num_examples: 302
+  download_size: 633024
+  dataset_size: 1258382
+- config_name: lug
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-DATE
+          8: I-DATE
+  splits:
+  - name: test
+    num_bytes: 183063
+    num_examples: 407
+  - name: train
+    num_bytes: 611917
+    num_examples: 1428
+  - name: validation
+    num_bytes: 70058
+    num_examples: 200
+  download_size: 445755
+  dataset_size: 865038
+- config_name: luo
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-DATE
+          8: I-DATE
+  splits:
+  - name: test
+    num_bytes: 87716
+    num_examples: 186
+  - name: train
+    num_bytes: 314995
+    num_examples: 644
+  - name: validation
+    num_bytes: 43506
+    num_examples: 92
+  download_size: 213281
+  dataset_size: 446217
+- config_name: pcm
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-DATE
+          8: I-DATE
+  splits:
+  - name: test
+    num_bytes: 262185
+    num_examples: 600
+  - name: train
+    num_bytes: 868229
+    num_examples: 2124
+  - name: validation
+    num_bytes: 126829
+    num_examples: 306
+  download_size: 572054
+  dataset_size: 1257243
+- config_name: swa
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-DATE
+          8: I-DATE
+  splits:
+  - name: test
+    num_bytes: 272108
+    num_examples: 604
+  - name: train
+    num_bytes: 1001120
+    num_examples: 2109
+  - name: validation
+    num_bytes: 128563
+    num_examples: 300
+  download_size: 686313
+  dataset_size: 1401791
+- config_name: wol
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-DATE
+          8: I-DATE
+  splits:
+  - name: test
+    num_bytes: 191484
+    num_examples: 539
+  - name: train
+    num_bytes: 602076
+    num_examples: 1871
+  - name: validation
+    num_bytes: 71535
+    num_examples: 267
+  download_size: 364463
+  dataset_size: 865095
+- config_name: yor
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-DATE
+          8: I-DATE
+  splits:
+  - name: test
+    num_bytes: 359519
+    num_examples: 645
+  - name: train
+    num_bytes: 1016741
+    num_examples: 2171
+  - name: validation
+    num_bytes: 127415
+    num_examples: 305
+  download_size: 751510
+  dataset_size: 1503675
 ---
 
 # Dataset Card for MasakhaNER

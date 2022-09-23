@@ -22,6 +22,33 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: ThaiSum
+dataset_info:
+  features:
+  - name: title
+    dtype: string
+  - name: body
+    dtype: string
+  - name: summary
+    dtype: string
+  - name: type
+    dtype: string
+  - name: tags
+    dtype: string
+  - name: url
+    dtype: string
+  config_name: thaisum
+  splits:
+  - name: test
+    num_bytes: 119496704
+    num_examples: 11000
+  - name: train
+    num_bytes: 2945472406
+    num_examples: 358868
+  - name: validation
+    num_bytes: 118437310
+    num_examples: 11000
+  download_size: 647582078
+  dataset_size: 3183406420
 ---
 
 # Dataset Card for ThaiSum

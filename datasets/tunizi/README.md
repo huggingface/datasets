@@ -19,6 +19,24 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: tunizi
 pretty_name: TUNIZI
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: target
+    dtype:
+      class_label:
+        names:
+          0: '1'
+          1: '-1'
+  splits:
+  - name: train
+    num_bytes: 211166
+    num_examples: 3000
+  download_size: 162781
+  dataset_size: 211166
 ---
 
 # Dataset Card for TUNIZI

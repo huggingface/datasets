@@ -21,6 +21,21 @@ task_ids:
 - translaiton-other-dissertation-abstracts-translation
 paperswithcode_id: capes
 pretty_name: CAPES
+dataset_info:
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - pt
+  config_name: en-pt
+  splits:
+  - name: train
+    num_bytes: 472484364
+    num_examples: 1157610
+  download_size: 162229298
+  dataset_size: 472484364
 ---
 
 # Dataset Card for CAPES

@@ -31,8 +31,118 @@ train-eval-index:
     tokens: tokens
     ner_tags: tags
   metrics:
-    - type: seqeval
-      name: seqeval
+  - type: seqeval
+    name: seqeval
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: '"'
+          1: ''''''
+          2: '#'
+          3: $
+          4: (
+          5: )
+          6: ','
+          7: .
+          8: ':'
+          9: '``'
+          10: CC
+          11: CD
+          12: DT
+          13: EX
+          14: FW
+          15: IN
+          16: JJ
+          17: JJR
+          18: JJS
+          19: LS
+          20: MD
+          21: NN
+          22: NNP
+          23: NNPS
+          24: NNS
+          25: NN|SYM
+          26: PDT
+          27: POS
+          28: PRP
+          29: PRP$
+          30: RB
+          31: RBR
+          32: RBS
+          33: RP
+          34: SYM
+          35: TO
+          36: UH
+          37: VB
+          38: VBD
+          39: VBG
+          40: VBN
+          41: VBP
+          42: VBZ
+          43: WDT
+          44: WP
+          45: WP$
+          46: WRB
+  - name: chunk_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-ADJP
+          2: I-ADJP
+          3: B-ADVP
+          4: I-ADVP
+          5: B-CONJP
+          6: I-CONJP
+          7: B-INTJ
+          8: I-INTJ
+          9: B-LST
+          10: I-LST
+          11: B-NP
+          12: I-NP
+          13: B-PP
+          14: I-PP
+          15: B-PRT
+          16: I-PRT
+          17: B-SBAR
+          18: I-SBAR
+          19: B-UCP
+          20: I-UCP
+          21: B-VP
+          22: I-VP
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  config_name: conll2003
+  splits:
+  - name: test
+    num_bytes: 1582054
+    num_examples: 3453
+  - name: train
+    num_bytes: 6931345
+    num_examples: 14041
+  - name: validation
+    num_bytes: 1739223
+    num_examples: 3250
+  download_size: 982975
+  dataset_size: 10252622
 ---
 
 # Dataset Card for "conll2003"

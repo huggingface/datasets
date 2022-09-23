@@ -19,6 +19,27 @@ task_ids:
 - multi-class-classification
 paperswithcode_id: null
 pretty_name: DanishPoliticalComments
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: target
+    dtype:
+      class_label:
+        names:
+          0: '2'
+          1: '1'
+          2: '0'
+          3: '-1'
+          4: '-2'
+  splits:
+  - name: train
+    num_bytes: 829569
+    num_examples: 9008
+  download_size: 690873
+  dataset_size: 829569
 ---
 
 # Dataset Card for DanishPoliticalComments

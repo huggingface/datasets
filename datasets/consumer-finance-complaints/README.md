@@ -18,6 +18,156 @@ task_categories:
 - text-classification
 task_ids:
 - topic-classification
+dataset_info:
+  features:
+  - name: Date Received
+    dtype: timestamp[s]
+  - name: Product
+    dtype:
+      class_label:
+        names:
+          0: Credit reporting, credit repair services, or other personal consumer
+            reports
+          1: Debt collection
+          2: Mortgage
+          3: Credit card or prepaid card
+          4: Checking or savings account
+          5: Credit reporting
+          6: Student loan
+          7: Money transfer, virtual currency, or money service
+          8: Credit card
+          9: Vehicle loan or lease
+          10: Bank account or service
+          11: Payday loan, title loan, or personal loan
+          12: Consumer Loan
+          13: Payday loan
+          14: Money transfers
+          15: Prepaid card
+          16: Other financial service
+          17: Virtual currency
+  - name: Sub Product
+    dtype:
+      class_label:
+        names:
+          0: Credit reporting
+          1: General-purpose credit card or charge card
+          2: Checking account
+          3: Other debt
+          4: Second mortgage
+          5: Conventional home mortgage
+          6: I do not know
+          7: Credit card debt
+          8: Medical debt
+          9: Federal student loan servicing
+          10: FHA mortgage
+          11: Conventional fixed mortgage
+          12: Loan
+          13: Other (i.e. phone, health club, etc.)
+          14: Store credit card
+          15: Installment loan
+          16: Credit card
+          17: Medical
+          18: Mobile or digital wallet
+          19: Private student loan
+          20: Non-federal student loan
+          21: Domestic (US) money transfer
+          22: VA mortgage
+          23: Vehicle loan
+          24: Auto debt
+          25: Payday loan
+          26: Conventional adjustable mortgage (ARM)
+          27: Other personal consumer report
+          28: Payday loan debt
+          29: Savings account
+          30: Virtual currency
+          31: Other bank product/service
+          32: Other type of mortgage
+          33: Other banking product or service
+          34: Other mortgage
+          35: International money transfer
+          36: Lease
+          37: General-purpose prepaid card
+          38: Home equity loan or line of credit (HELOC)
+          39: Government benefit card
+          40: Mortgage debt
+          41: Personal line of credit
+          42: Home equity loan or line of credit
+          43: Federal student loan debt
+          44: Private student loan debt
+          45: Credit repair services
+          46: Title loan
+          47: Auto
+          48: Vehicle lease
+          49: Mortgage
+          50: Reverse mortgage
+          51: General purpose card
+          52: CD (Certificate of Deposit)
+          53: Federal student loan
+          54: Payroll card
+          55: Debt settlement
+          56: Check cashing service
+          57: Traveler's check or cashier's check
+          58: Gift card
+          59: (CD) Certificate of deposit
+          60: Money order
+          61: Foreign currency exchange
+          62: Refund anticipation check
+          63: Gift or merchant card
+          64: Cashing a check without an account
+          65: ID prepaid card
+          66: Mobile wallet
+          67: Government benefit payment card
+          68: Pawn loan
+          69: Other special purpose card
+          70: Check cashing
+          71: Credit repair
+          72: Traveler’s/Cashier’s checks
+          73: Transit card
+          74: Student prepaid card
+          75: Electronic Benefit Transfer / EBT card
+          76: ''
+  - name: Issue
+    dtype: string
+  - name: Sub Issue
+    dtype: string
+  - name: Complaint Text
+    dtype: string
+  - name: Company Public Response
+    dtype: string
+  - name: Company
+    dtype: string
+  - name: State
+    dtype: string
+  - name: Zip Code
+    dtype: string
+  - name: Tags
+    dtype:
+      class_label:
+        names:
+          0: Servicemember
+          1: Older American
+          2: Older American, Servicemember
+          3: ''
+  - name: Consumer Consent Provided
+    dtype: string
+  - name: Submitted via
+    dtype: string
+  - name: Date Sent To Company
+    dtype: string
+  - name: Company Response To Consumer
+    dtype: string
+  - name: Timely Response
+    dtype: string
+  - name: Consumer Disputed
+    dtype: string
+  - name: Complaint ID
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1605177353
+    num_examples: 2455765
+  download_size: 404187716
+  dataset_size: 1605177353
 ---
 
 # Dataset Card for Consumer Finance Complaints

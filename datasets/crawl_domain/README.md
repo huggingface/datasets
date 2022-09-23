@@ -23,6 +23,22 @@ task_ids:
 - other-other-web-search
 paperswithcode_id: common-crawl-domain-names
 pretty_name: Common Crawl Domain Names
+dataset_info:
+  features:
+  - name: example
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 39712
+    num_examples: 2170
+  - name: train
+    num_bytes: 321134
+    num_examples: 17572
+  - name: validation
+    num_bytes: 36018
+    num_examples: 1953
+  download_size: 331763
+  dataset_size: 396864
 ---
 
 # Dataset Card for Common Crawl Domain Names

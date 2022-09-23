@@ -20,6 +20,77 @@ task_ids:
 - dialogue-modeling
 paperswithcode_id: taskmaster-1
 pretty_name: Taskmaster-1
+dataset_info:
+- config_name: one_person_dialogs
+  features:
+  - name: conversation_id
+    dtype: string
+  - name: instruction_id
+    dtype: string
+  - name: utterances
+    list:
+    - name: index
+      dtype: int32
+    - name: speaker
+      dtype: string
+    - name: text
+      dtype: string
+    - name: segments
+      list:
+      - name: start_index
+        dtype: int32
+      - name: end_index
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: annotations
+        list:
+        - name: name
+          dtype: string
+  splits:
+  - name: test
+    num_bytes: 2224163
+    num_examples: 770
+  - name: train
+    num_bytes: 18037058
+    num_examples: 6168
+  - name: validation
+    num_bytes: 2239656
+    num_examples: 770
+  download_size: 103276427
+  dataset_size: 22500877
+- config_name: woz_dialogs
+  features:
+  - name: conversation_id
+    dtype: string
+  - name: instruction_id
+    dtype: string
+  - name: utterances
+    list:
+    - name: index
+      dtype: int32
+    - name: speaker
+      dtype: string
+    - name: text
+      dtype: string
+    - name: segments
+      list:
+      - name: start_index
+        dtype: int32
+      - name: end_index
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: annotations
+        list:
+        - name: name
+          dtype: string
+  splits:
+  - name: train
+    num_bytes: 13028593
+    num_examples: 5507
+  download_size: 103276427
+  dataset_size: 13028593
 ---
 
 # Dataset Card for Taskmaster-1

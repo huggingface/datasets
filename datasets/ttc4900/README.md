@@ -19,6 +19,28 @@ task_ids:
 - text-classification-other-news-category-classification
 paperswithcode_id: null
 pretty_name: TTC4900 - A Benchmark Data for Turkish Text Categorization
+dataset_info:
+  features:
+  - name: category
+    dtype:
+      class_label:
+        names:
+          0: siyaset
+          1: dunya
+          2: ekonomi
+          3: kultur
+          4: saglik
+          5: spor
+          6: teknoloji
+  - name: text
+    dtype: string
+  config_name: ttc4900
+  splits:
+  - name: train
+    num_bytes: 10640831
+    num_examples: 4900
+  download_size: 10627541
+  dataset_size: 10640831
 ---
 
 # Dataset Card for TTC4900: A Benchmark Data for Turkish Text Categorization

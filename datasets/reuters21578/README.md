@@ -3,6 +3,124 @@ pretty_name: Reuters-21578 Text Categorization Collection
 language:
 - en
 paperswithcode_id: reuters-21578
+dataset_info:
+- config_name: ModHayes
+  features:
+  - name: text
+    dtype: string
+  - name: text_type
+    dtype: string
+  - name: topics
+    sequence: string
+  - name: lewis_split
+    dtype: string
+  - name: cgis_split
+    dtype: string
+  - name: old_id
+    dtype: string
+  - name: new_id
+    dtype: string
+  - name: places
+    sequence: string
+  - name: people
+    sequence: string
+  - name: orgs
+    sequence: string
+  - name: exchanges
+    sequence: string
+  - name: date
+    dtype: string
+  - name: title
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 948316
+    num_examples: 722
+  - name: train
+    num_bytes: 19071322
+    num_examples: 20856
+  download_size: 8150596
+  dataset_size: 20019638
+- config_name: ModLewis
+  features:
+  - name: text
+    dtype: string
+  - name: text_type
+    dtype: string
+  - name: topics
+    sequence: string
+  - name: lewis_split
+    dtype: string
+  - name: cgis_split
+    dtype: string
+  - name: old_id
+    dtype: string
+  - name: new_id
+    dtype: string
+  - name: places
+    sequence: string
+  - name: people
+    sequence: string
+  - name: orgs
+    sequence: string
+  - name: exchanges
+    sequence: string
+  - name: date
+    dtype: string
+  - name: title
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5400578
+    num_examples: 6188
+  - name: train
+    num_bytes: 12994735
+    num_examples: 13625
+  - name: unused
+    num_bytes: 948316
+    num_examples: 722
+  download_size: 8150596
+  dataset_size: 19343629
+- config_name: ModApte
+  features:
+  - name: text
+    dtype: string
+  - name: text_type
+    dtype: string
+  - name: topics
+    sequence: string
+  - name: lewis_split
+    dtype: string
+  - name: cgis_split
+    dtype: string
+  - name: old_id
+    dtype: string
+  - name: new_id
+    dtype: string
+  - name: places
+    sequence: string
+  - name: people
+    sequence: string
+  - name: orgs
+    sequence: string
+  - name: exchanges
+    sequence: string
+  - name: date
+    dtype: string
+  - name: title
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2971725
+    num_examples: 3299
+  - name: train
+    num_bytes: 9161251
+    num_examples: 9603
+  - name: unused
+    num_bytes: 948316
+    num_examples: 722
+  download_size: 8150596
+  dataset_size: 13081292
 ---
 
 # Dataset Card for "reuters21578"

@@ -20,6 +20,18 @@ task_categories:
 - translation
 task_ids: []
 paperswithcode_id: aslg-pc12
+dataset_info:
+  features:
+  - name: gloss
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 13497111
+    num_examples: 87710
+  download_size: 12773431
+  dataset_size: 13497111
 ---
 
 # Dataset Card for "aslg_pc12"

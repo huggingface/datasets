@@ -3,6 +3,36 @@ language:
 - en
 paperswithcode_id: null
 pretty_name: CivilComments
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: toxicity
+    dtype: float32
+  - name: severe_toxicity
+    dtype: float32
+  - name: obscene
+    dtype: float32
+  - name: threat
+    dtype: float32
+  - name: insult
+    dtype: float32
+  - name: identity_attack
+    dtype: float32
+  - name: sexual_explicit
+    dtype: float32
+  splits:
+  - name: test
+    num_bytes: 32073013
+    num_examples: 97320
+  - name: train
+    num_bytes: 596835730
+    num_examples: 1804874
+  - name: validation
+    num_bytes: 32326369
+    num_examples: 97320
+  download_size: 414947977
+  dataset_size: 661235112
 ---
 
 # Dataset Card for "civil_comments"

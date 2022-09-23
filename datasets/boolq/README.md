@@ -19,6 +19,23 @@ task_ids:
 - natural-language-inference
 paperswithcode_id: boolq
 pretty_name: BoolQ
+dataset_info:
+  features:
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: bool
+  - name: passage
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 5829592
+    num_examples: 9427
+  - name: validation
+    num_bytes: 1998190
+    num_examples: 3270
+  download_size: 8764539
+  dataset_size: 7827782
 ---
 
 # Dataset Card for Boolq

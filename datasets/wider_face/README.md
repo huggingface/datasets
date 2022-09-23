@@ -19,6 +19,61 @@ task_ids:
 - face-detection
 paperswithcode_id: wider-face-1
 pretty_name: WIDER FACE
+dataset_info:
+  features:
+  - name: image
+    dtype: image
+  - name: faces
+    sequence:
+    - name: bbox
+      sequence: float32
+      length: 4
+    - name: blur
+      dtype:
+        class_label:
+          names:
+            0: clear
+            1: normal
+            2: heavy
+    - name: expression
+      dtype:
+        class_label:
+          names:
+            0: typical
+            1: exaggerate
+    - name: illumination
+      dtype:
+        class_label:
+          names:
+            0: normal
+            1: 'exaggerate '
+    - name: occlusion
+      dtype:
+        class_label:
+          names:
+            0: 'no'
+            1: partial
+            2: heavy
+    - name: pose
+      dtype:
+        class_label:
+          names:
+            0: typical
+            1: atypical
+    - name: invalid
+      dtype: bool
+  splits:
+  - name: test
+    num_bytes: 3761103
+    num_examples: 16097
+  - name: train
+    num_bytes: 12049881
+    num_examples: 12880
+  - name: validation
+    num_bytes: 2998735
+    num_examples: 3226
+  download_size: 3676086479
+  dataset_size: 18809719
 ---
 
 # Dataset Card for WIDER FACE

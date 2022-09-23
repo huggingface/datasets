@@ -1,6 +1,57 @@
 ---
 paperswithcode_id: null
 pretty_name: StyleChangeDetection
+dataset_info:
+- config_name: narrow
+  features:
+  - name: id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: authors
+    dtype: int32
+  - name: structure
+    sequence: string
+  - name: site
+    dtype: string
+  - name: multi-author
+    dtype: bool
+  - name: changes
+    sequence: bool
+  splits:
+  - name: train
+    num_bytes: 40499150
+    num_examples: 3418
+  - name: validation
+    num_bytes: 20447137
+    num_examples: 1713
+  download_size: 0
+  dataset_size: 60946287
+- config_name: wide
+  features:
+  - name: id
+    dtype: string
+  - name: text
+    dtype: string
+  - name: authors
+    dtype: int32
+  - name: structure
+    sequence: string
+  - name: site
+    dtype: string
+  - name: multi-author
+    dtype: bool
+  - name: changes
+    sequence: bool
+  splits:
+  - name: train
+    num_bytes: 97403392
+    num_examples: 8030
+  - name: validation
+    num_bytes: 48850089
+    num_examples: 4019
+  download_size: 0
+  dataset_size: 146253481
 ---
 
 # Dataset Card for "style_change_detection"

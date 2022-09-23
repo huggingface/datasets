@@ -78,6 +78,455 @@ configs:
 - SLR80
 - SLR83
 - SLR86
+dataset_info:
+- config_name: SLR41
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2423902
+    num_examples: 5822
+  download_size: 1890792360
+  dataset_size: 2423902
+- config_name: SLR42
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1427984
+    num_examples: 2906
+  download_size: 866086951
+  dataset_size: 1427984
+- config_name: SLR43
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1074005
+    num_examples: 2064
+  download_size: 800375645
+  dataset_size: 1074005
+- config_name: SLR44
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1776827
+    num_examples: 4213
+  download_size: 1472252752
+  dataset_size: 1776827
+- config_name: SLR63
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2016587
+    num_examples: 4126
+  download_size: 1345876299
+  dataset_size: 2016587
+- config_name: SLR64
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 810375
+    num_examples: 1569
+  download_size: 712155683
+  dataset_size: 810375
+- config_name: SLR65
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2136447
+    num_examples: 4284
+  download_size: 1373304655
+  dataset_size: 2136447
+- config_name: SLR66
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1898335
+    num_examples: 4448
+  download_size: 1035127870
+  dataset_size: 1898335
+- config_name: SLR69
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1647263
+    num_examples: 4240
+  download_size: 1848659543
+  dataset_size: 1647263
+- config_name: SLR35
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 73565374
+    num_examples: 185076
+  download_size: 18900105726
+  dataset_size: 73565374
+- config_name: SLR36
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 88942337
+    num_examples: 219156
+  download_size: 22996553929
+  dataset_size: 88942337
+- config_name: SLR70
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1339608
+    num_examples: 3359
+  download_size: 1213955196
+  dataset_size: 1339608
+- config_name: SLR71
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1676273
+    num_examples: 4374
+  download_size: 1445365903
+  dataset_size: 1676273
+- config_name: SLR72
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1876301
+    num_examples: 4903
+  download_size: 1612030532
+  dataset_size: 1876301
+- config_name: SLR73
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2084052
+    num_examples: 5447
+  download_size: 1940306814
+  dataset_size: 2084052
+- config_name: SLR74
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 237395
+    num_examples: 617
+  download_size: 214181314
+  dataset_size: 237395
+- config_name: SLR75
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1286937
+    num_examples: 3357
+  download_size: 1043317004
+  dataset_size: 1286937
+- config_name: SLR76
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2756507
+    num_examples: 7136
+  download_size: 3041125513
+  dataset_size: 2756507
+- config_name: SLR77
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2217652
+    num_examples: 5587
+  download_size: 2207991775
+  dataset_size: 2217652
+- config_name: SLR78
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2121986
+    num_examples: 4272
+  download_size: 1743222102
+  dataset_size: 2121986
+- config_name: SLR79
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2176539
+    num_examples: 4400
+  download_size: 1820919115
+  dataset_size: 2176539
+- config_name: SLR80
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1308651
+    num_examples: 2530
+  download_size: 948181015
+  dataset_size: 1308651
+- config_name: SLR86
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1378801
+    num_examples: 3583
+  download_size: 907065562
+  dataset_size: 1378801
+- config_name: SLR32
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4544052380
+    num_examples: 9821
+  download_size: 3312884763
+  dataset_size: 4544052380
+- config_name: SLR52
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 77369899
+    num_examples: 185293
+  download_size: 14676484074
+  dataset_size: 77369899
+- config_name: SLR53
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 88073248
+    num_examples: 218703
+  download_size: 14630810921
+  dataset_size: 88073248
+- config_name: SLR54
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 62735822
+    num_examples: 157905
+  download_size: 9328247362
+  dataset_size: 62735822
+- config_name: SLR83
+  features:
+  - name: path
+    dtype: string
+  - name: audio
+    dtype:
+      audio:
+        sampling_rate: 48000
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 7098985
+    num_examples: 17877
+  download_size: 7229890819
+  dataset_size: 7098985
 ---
 
 # Dataset Card for openslr

@@ -7,7 +7,7 @@ language:
 - xh
 license:
 - other
-license_details: "Creative Commons Attribution 2.5 South Africa License"
+license_details: Creative Commons Attribution 2.5 South Africa License
 multilinguality:
 - monolingual
 size_categories:
@@ -20,6 +20,32 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: IsixhosaNerCorpus
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: OUT
+          1: B-PERS
+          2: I-PERS
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  config_name: isixhosa_ner_corpus
+  splits:
+  - name: train
+    num_bytes: 2414995
+    num_examples: 6284
+  download_size: 14513302
+  dataset_size: 2414995
 ---
 
 # Dataset Card for [Dataset Name]

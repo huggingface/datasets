@@ -27,6 +27,2123 @@ task_ids:
 - sentiment-scoring
 - topic-classification
 paperswithcode_id: null
+dataset_info:
+- config_name: Books_v1_01
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 6997552259
+    num_examples: 6106719
+  download_size: 2692708591
+  dataset_size: 6997552259
+- config_name: Watches_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 458976082
+    num_examples: 960872
+  download_size: 162973819
+  dataset_size: 458976082
+- config_name: Personal_Care_Appliances_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 49036547
+    num_examples: 85981
+  download_size: 17634794
+  dataset_size: 49036547
+- config_name: Mobile_Electronics_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 63293377
+    num_examples: 104975
+  download_size: 22870508
+  dataset_size: 63293377
+- config_name: Digital_Video_Games_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 80176851
+    num_examples: 145431
+  download_size: 27442648
+  dataset_size: 80176851
+- config_name: Digital_Software_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 58782931
+    num_examples: 102084
+  download_size: 18997559
+  dataset_size: 58782931
+- config_name: Major_Appliances_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 67642424
+    num_examples: 96901
+  download_size: 24359816
+  dataset_size: 67642424
+- config_name: Gift_Card_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 47188062
+    num_examples: 149086
+  download_size: 12134676
+  dataset_size: 47188062
+- config_name: Video_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 356264426
+    num_examples: 380604
+  download_size: 138929896
+  dataset_size: 356264426
+- config_name: Luggage_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 167354173
+    num_examples: 348657
+  download_size: 60320191
+  dataset_size: 167354173
+- config_name: Software_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 266020595
+    num_examples: 341931
+  download_size: 94010685
+  dataset_size: 266020595
+- config_name: Video_Games_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1291054668
+    num_examples: 1785997
+  download_size: 475199894
+  dataset_size: 1291054668
+- config_name: Furniture_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 405212374
+    num_examples: 792113
+  download_size: 148982796
+  dataset_size: 405212374
+- config_name: Musical_Instruments_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 518908568
+    num_examples: 904765
+  download_size: 193389086
+  dataset_size: 518908568
+- config_name: Digital_Music_Purchase_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 710546079
+    num_examples: 1688884
+  download_size: 253570168
+  dataset_size: 710546079
+- config_name: Books_v1_02
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3387034903
+    num_examples: 3105520
+  download_size: 1329539135
+  dataset_size: 3387034903
+- config_name: Home_Entertainment_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 534333848
+    num_examples: 705889
+  download_size: 193168458
+  dataset_size: 534333848
+- config_name: Grocery_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1072289473
+    num_examples: 2402458
+  download_size: 401337166
+  dataset_size: 1072289473
+- config_name: Outdoors_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1172986088
+    num_examples: 2302401
+  download_size: 448963100
+  dataset_size: 1172986088
+- config_name: Pet_Products_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1355659812
+    num_examples: 2643619
+  download_size: 515815253
+  dataset_size: 1355659812
+- config_name: Video_DVD_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3953234561
+    num_examples: 5069140
+  download_size: 1512355451
+  dataset_size: 3953234561
+- config_name: Apparel_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2256558450
+    num_examples: 5906333
+  download_size: 648641286
+  dataset_size: 2256558450
+- config_name: PC_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3982684438
+    num_examples: 6908554
+  download_size: 1512903923
+  dataset_size: 3982684438
+- config_name: Tools_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 872273119
+    num_examples: 1741100
+  download_size: 333782939
+  dataset_size: 872273119
+- config_name: Jewelry_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 703275869
+    num_examples: 1767753
+  download_size: 247022254
+  dataset_size: 703275869
+- config_name: Baby_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 956952590
+    num_examples: 1752932
+  download_size: 357392893
+  dataset_size: 956952590
+- config_name: Home_Improvement_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1329688315
+    num_examples: 2634781
+  download_size: 503339178
+  dataset_size: 1329688315
+- config_name: Camera_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1187101912
+    num_examples: 1801974
+  download_size: 442653086
+  dataset_size: 1187101912
+- config_name: Lawn_and_Garden_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1272255987
+    num_examples: 2557288
+  download_size: 486772662
+  dataset_size: 1272255987
+- config_name: Office_Products_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1370685534
+    num_examples: 2642434
+  download_size: 512323500
+  dataset_size: 1370685534
+- config_name: Electronics_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1875406721
+    num_examples: 3093869
+  download_size: 698828243
+  dataset_size: 1875406721
+- config_name: Automotive_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1520191087
+    num_examples: 3514942
+  download_size: 582145299
+  dataset_size: 1520191087
+- config_name: Digital_Video_Download_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1484214187
+    num_examples: 4057147
+  download_size: 506979922
+  dataset_size: 1484214187
+- config_name: Mobile_Apps_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1627857158
+    num_examples: 5033376
+  download_size: 557959415
+  dataset_size: 1627857158
+- config_name: Shoes_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1781283508
+    num_examples: 4366916
+  download_size: 642255314
+  dataset_size: 1781283508
+- config_name: Toys_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2197820069
+    num_examples: 4864249
+  download_size: 838451398
+  dataset_size: 2197820069
+- config_name: Sports_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2241349145
+    num_examples: 4850360
+  download_size: 872478735
+  dataset_size: 2241349145
+- config_name: Kitchen_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2453735305
+    num_examples: 4880466
+  download_size: 930744854
+  dataset_size: 2453735305
+- config_name: Beauty_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2399292506
+    num_examples: 5115666
+  download_size: 914070021
+  dataset_size: 2399292506
+- config_name: Music_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3900138839
+    num_examples: 4751577
+  download_size: 1521994296
+  dataset_size: 3900138839
+- config_name: Health_Personal_Care_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2679427491
+    num_examples: 5331449
+  download_size: 1011180212
+  dataset_size: 2679427491
+- config_name: Digital_Ebook_Purchase_v1_01
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3470453859
+    num_examples: 5101693
+  download_size: 1294879074
+  dataset_size: 3470453859
+- config_name: Home_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2796680249
+    num_examples: 6221559
+  download_size: 1081002012
+  dataset_size: 2796680249
+- config_name: Wireless_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4633213433
+    num_examples: 9002021
+  download_size: 1704713674
+  dataset_size: 4633213433
+- config_name: Books_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 7197687124
+    num_examples: 10319090
+  download_size: 2740337188
+  dataset_size: 7197687124
+- config_name: Digital_Ebook_Purchase_v1_00
+  features:
+  - name: marketplace
+    dtype: string
+  - name: customer_id
+    dtype: string
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: product_parent
+    dtype: string
+  - name: product_title
+    dtype: string
+  - name: product_category
+    dtype: string
+  - name: star_rating
+    dtype: int32
+  - name: helpful_votes
+    dtype: int32
+  - name: total_votes
+    dtype: int32
+  - name: vine
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: verified_purchase
+    dtype:
+      class_label:
+        names:
+          0: N
+          1: Y
+  - name: review_headline
+    dtype: string
+  - name: review_body
+    dtype: string
+  - name: review_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 7302303804
+    num_examples: 12520722
+  download_size: 2689739299
+  dataset_size: 7302303804
 ---
 
 # Dataset Card for "amazon_us_reviews"

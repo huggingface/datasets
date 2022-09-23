@@ -21,6 +21,153 @@ task_ids:
 - question-answering-other-conversational-qa
 paperswithcode_id: null
 pretty_name: SharcModified
+dataset_info:
+- config_name: mod
+  features:
+  - name: id
+    dtype: string
+  - name: utterance_id
+    dtype: string
+  - name: source_url
+    dtype: string
+  - name: snippet
+    dtype: string
+  - name: question
+    dtype: string
+  - name: scenario
+    dtype: string
+  - name: history
+    list:
+    - name: follow_up_question
+      dtype: string
+    - name: follow_up_answer
+      dtype: string
+  - name: evidence
+    list:
+    - name: follow_up_question
+      dtype: string
+    - name: follow_up_answer
+      dtype: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 15138034
+    num_examples: 21890
+  - name: validation
+    num_bytes: 1474239
+    num_examples: 2270
+  download_size: 21197271
+  dataset_size: 16612273
+- config_name: mod_dev_multi
+  features:
+  - name: id
+    dtype: string
+  - name: utterance_id
+    dtype: string
+  - name: source_url
+    dtype: string
+  - name: snippet
+    dtype: string
+  - name: question
+    dtype: string
+  - name: scenario
+    dtype: string
+  - name: history
+    list:
+    - name: follow_up_question
+      dtype: string
+    - name: follow_up_answer
+      dtype: string
+  - name: evidence
+    list:
+    - name: follow_up_question
+      dtype: string
+    - name: follow_up_answer
+      dtype: string
+  - name: answer
+    dtype: string
+  - name: all_answers
+    sequence: string
+  splits:
+  - name: validation
+    num_bytes: 1553940
+    num_examples: 2270
+  download_size: 2006124
+  dataset_size: 1553940
+- config_name: history
+  features:
+  - name: id
+    dtype: string
+  - name: utterance_id
+    dtype: string
+  - name: source_url
+    dtype: string
+  - name: snippet
+    dtype: string
+  - name: question
+    dtype: string
+  - name: scenario
+    dtype: string
+  - name: history
+    list:
+    - name: follow_up_question
+      dtype: string
+    - name: follow_up_answer
+      dtype: string
+  - name: evidence
+    list:
+    - name: follow_up_question
+      dtype: string
+    - name: follow_up_answer
+      dtype: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 15083103
+    num_examples: 21890
+  - name: validation
+    num_bytes: 1468604
+    num_examples: 2270
+  download_size: 21136658
+  dataset_size: 16551707
+- config_name: history_dev_multi
+  features:
+  - name: id
+    dtype: string
+  - name: utterance_id
+    dtype: string
+  - name: source_url
+    dtype: string
+  - name: snippet
+    dtype: string
+  - name: question
+    dtype: string
+  - name: scenario
+    dtype: string
+  - name: history
+    list:
+    - name: follow_up_question
+      dtype: string
+    - name: follow_up_answer
+      dtype: string
+  - name: evidence
+    list:
+    - name: follow_up_question
+      dtype: string
+    - name: follow_up_answer
+      dtype: string
+  - name: answer
+    dtype: string
+  - name: all_answers
+    sequence: string
+  splits:
+  - name: validation
+    num_bytes: 1548305
+    num_examples: 2270
+  download_size: 2000489
+  dataset_size: 1548305
 ---
 
 # Dataset Card for SharcModified

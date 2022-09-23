@@ -23,6 +23,33 @@ task_ids:
 - open-domain-qa
 - dialogue-modeling
 pretty_name: ConvQuestions
+dataset_info:
+  features:
+  - name: domain
+    dtype: string
+  - name: seed_entity
+    dtype: string
+  - name: seed_entity_text
+    dtype: string
+  - name: questions
+    sequence: string
+  - name: answers
+    sequence:
+      sequence: string
+  - name: answer_texts
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 1175656
+    num_examples: 2240
+  - name: train
+    num_bytes: 3589880
+    num_examples: 6720
+  - name: validation
+    num_bytes: 1241778
+    num_examples: 2240
+  download_size: 3276017
+  dataset_size: 6007314
 ---
 
 # Dataset Card for ConvQuestions

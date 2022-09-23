@@ -20,6 +20,38 @@ task_ids:
 - translation-other-business-conversations-translation
 paperswithcode_id: business-scene-dialogue
 pretty_name: Business Scene Dialogue
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tag
+    dtype: string
+  - name: title
+    dtype: string
+  - name: original_language
+    dtype: string
+  - name: 'no'
+    dtype: int32
+  - name: en_speaker
+    dtype: string
+  - name: ja_speaker
+    dtype: string
+  - name: en_sentence
+    dtype: string
+  - name: ja_sentence
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 493038
+    num_examples: 2120
+  - name: train
+    num_bytes: 4778409
+    num_examples: 20000
+  - name: validation
+    num_bytes: 477964
+    num_examples: 2051
+  download_size: 8135045
+  dataset_size: 5749411
 ---
 
 # Dataset Card for Business Scene Dialogue 

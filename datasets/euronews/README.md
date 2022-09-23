@@ -21,6 +21,122 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: europeana-newspapers
 pretty_name: Europeana Newspapers
+dataset_info:
+- config_name: fr-bnf
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+  splits:
+  - name: train
+    num_bytes: 3340299
+    num_examples: 1
+  download_size: 1542418
+  dataset_size: 3340299
+- config_name: nl-kb
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+  splits:
+  - name: train
+    num_bytes: 3104213
+    num_examples: 1
+  download_size: 1502162
+  dataset_size: 3104213
+- config_name: de-sbb
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+  splits:
+  - name: train
+    num_bytes: 817295
+    num_examples: 1
+  download_size: 407756
+  dataset_size: 817295
+- config_name: de-onb
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+  splits:
+  - name: train
+    num_bytes: 502369
+    num_examples: 1
+  download_size: 271252
+  dataset_size: 502369
+- config_name: de-lft
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+  splits:
+  - name: train
+    num_bytes: 1263429
+    num_examples: 1
+  download_size: 677779
+  dataset_size: 1263429
 ---
 
 # Dataset Card for Europeana Newspapers

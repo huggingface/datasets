@@ -21,6 +21,94 @@ task_ids:
 - natural-language-inference
 - semantic-similarity-scoring
 paperswithcode_id: assin
+dataset_info:
+- config_name: full
+  features:
+  - name: sentence_pair_id
+    dtype: int64
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: relatedness_score
+    dtype: float32
+  - name: entailment_judgment
+    dtype:
+      class_label:
+        names:
+          0: NONE
+          1: ENTAILMENT
+          2: PARAPHRASE
+  splits:
+  - name: test
+    num_bytes: 767312
+    num_examples: 4000
+  - name: train
+    num_bytes: 986507
+    num_examples: 5000
+  - name: validation
+    num_bytes: 196829
+    num_examples: 1000
+  download_size: 749735
+  dataset_size: 1950648
+- config_name: ptpt
+  features:
+  - name: sentence_pair_id
+    dtype: int64
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: relatedness_score
+    dtype: float32
+  - name: entailment_judgment
+    dtype:
+      class_label:
+        names:
+          0: NONE
+          1: ENTAILMENT
+          2: PARAPHRASE
+  splits:
+  - name: test
+    num_bytes: 392888
+    num_examples: 2000
+  - name: train
+    num_bytes: 523002
+    num_examples: 2500
+  - name: validation
+    num_bytes: 105626
+    num_examples: 500
+  download_size: 749735
+  dataset_size: 1021516
+- config_name: ptbr
+  features:
+  - name: sentence_pair_id
+    dtype: int64
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: relatedness_score
+    dtype: float32
+  - name: entailment_judgment
+    dtype:
+      class_label:
+        names:
+          0: NONE
+          1: ENTAILMENT
+          2: PARAPHRASE
+  splits:
+  - name: test
+    num_bytes: 374432
+    num_examples: 2000
+  - name: train
+    num_bytes: 463513
+    num_examples: 2500
+  - name: validation
+    num_bytes: 91211
+    num_examples: 500
+  download_size: 749735
+  dataset_size: 929156
 ---
 
 # Dataset Card for ASSIN

@@ -25,6 +25,47 @@ pretty_name: ASSET
 configs:
 - ratings
 - simplification
+dataset_info:
+- config_name: simplification
+  features:
+  - name: original
+    dtype: string
+  - name: simplifications
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 411031
+    num_examples: 359
+  - name: validation
+    num_bytes: 2303496
+    num_examples: 2000
+  download_size: 3639353
+  dataset_size: 2714527
+- config_name: ratings
+  features:
+  - name: original
+    dtype: string
+  - name: simplification
+    dtype: string
+  - name: original_sentence_id
+    dtype: int32
+  - name: aspect
+    dtype:
+      class_label:
+        names:
+          0: meaning
+          1: fluency
+          2: simplicity
+  - name: worker_id
+    dtype: int32
+  - name: rating
+    dtype: int32
+  splits:
+  - name: full
+    num_bytes: 1036853
+    num_examples: 4500
+  download_size: 3639353
+  dataset_size: 1036853
 ---
 
 # Dataset Card for ASSET

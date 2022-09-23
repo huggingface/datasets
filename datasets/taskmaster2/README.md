@@ -20,6 +20,231 @@ task_ids:
 - dialogue-modeling
 paperswithcode_id: taskmaster-2
 pretty_name: Taskmaster-2
+dataset_info:
+- config_name: flights
+  features:
+  - name: conversation_id
+    dtype: string
+  - name: instruction_id
+    dtype: string
+  - name: utterances
+    list:
+    - name: index
+      dtype: int32
+    - name: speaker
+      dtype: string
+    - name: text
+      dtype: string
+    - name: segments
+      list:
+      - name: start_index
+        dtype: int32
+      - name: end_index
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: annotations
+        list:
+        - name: name
+          dtype: string
+  splits:
+  - name: train
+    num_bytes: 7073487
+    num_examples: 2481
+  download_size: 23029880
+  dataset_size: 7073487
+- config_name: food-ordering
+  features:
+  - name: conversation_id
+    dtype: string
+  - name: instruction_id
+    dtype: string
+  - name: utterances
+    list:
+    - name: index
+      dtype: int32
+    - name: speaker
+      dtype: string
+    - name: text
+      dtype: string
+    - name: segments
+      list:
+      - name: start_index
+        dtype: int32
+      - name: end_index
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: annotations
+        list:
+        - name: name
+          dtype: string
+  splits:
+  - name: train
+    num_bytes: 1734825
+    num_examples: 1050
+  download_size: 5376675
+  dataset_size: 1734825
+- config_name: hotels
+  features:
+  - name: conversation_id
+    dtype: string
+  - name: instruction_id
+    dtype: string
+  - name: utterances
+    list:
+    - name: index
+      dtype: int32
+    - name: speaker
+      dtype: string
+    - name: text
+      dtype: string
+    - name: segments
+      list:
+      - name: start_index
+        dtype: int32
+      - name: end_index
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: annotations
+        list:
+        - name: name
+          dtype: string
+  splits:
+  - name: train
+    num_bytes: 7436667
+    num_examples: 2357
+  download_size: 22507266
+  dataset_size: 7436667
+- config_name: movies
+  features:
+  - name: conversation_id
+    dtype: string
+  - name: instruction_id
+    dtype: string
+  - name: utterances
+    list:
+    - name: index
+      dtype: int32
+    - name: speaker
+      dtype: string
+    - name: text
+      dtype: string
+    - name: segments
+      list:
+      - name: start_index
+        dtype: int32
+      - name: end_index
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: annotations
+        list:
+        - name: name
+          dtype: string
+  splits:
+  - name: train
+    num_bytes: 7112301
+    num_examples: 3056
+  download_size: 21189893
+  dataset_size: 7112301
+- config_name: music
+  features:
+  - name: conversation_id
+    dtype: string
+  - name: instruction_id
+    dtype: string
+  - name: utterances
+    list:
+    - name: index
+      dtype: int32
+    - name: speaker
+      dtype: string
+    - name: text
+      dtype: string
+    - name: segments
+      list:
+      - name: start_index
+        dtype: int32
+      - name: end_index
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: annotations
+        list:
+        - name: name
+          dtype: string
+  splits:
+  - name: train
+    num_bytes: 2814030
+    num_examples: 1603
+  download_size: 8981720
+  dataset_size: 2814030
+- config_name: restaurant-search
+  features:
+  - name: conversation_id
+    dtype: string
+  - name: instruction_id
+    dtype: string
+  - name: utterances
+    list:
+    - name: index
+      dtype: int32
+    - name: speaker
+      dtype: string
+    - name: text
+      dtype: string
+    - name: segments
+      list:
+      - name: start_index
+        dtype: int32
+      - name: end_index
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: annotations
+        list:
+        - name: name
+          dtype: string
+  splits:
+  - name: train
+    num_bytes: 7341998
+    num_examples: 3276
+  download_size: 21472680
+  dataset_size: 7341998
+- config_name: sports
+  features:
+  - name: conversation_id
+    dtype: string
+  - name: instruction_id
+    dtype: string
+  - name: utterances
+    list:
+    - name: index
+      dtype: int32
+    - name: speaker
+      dtype: string
+    - name: text
+      dtype: string
+    - name: segments
+      list:
+      - name: start_index
+        dtype: int32
+      - name: end_index
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: annotations
+        list:
+        - name: name
+          dtype: string
+  splits:
+  - name: train
+    num_bytes: 5738818
+    num_examples: 3481
+  download_size: 19549440
+  dataset_size: 5738818
 ---
 
 # Dataset Card for Taskmaster-2

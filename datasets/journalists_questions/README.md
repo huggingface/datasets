@@ -19,6 +19,25 @@ task_ids:
 - text-classification-other-question-identification
 paperswithcode_id: null
 pretty_name: JournalistsQuestions
+dataset_info:
+  features:
+  - name: tweet_id
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'no'
+          1: 'yes'
+  - name: label_confidence
+    dtype: float32
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 342296
+    num_examples: 10077
+  download_size: 271039
+  dataset_size: 342296
 ---
 
 # Dataset Card for journalists_questions

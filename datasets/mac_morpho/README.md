@@ -19,6 +19,54 @@ task_categories:
 task_ids:
 - part-of-speech
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: PREP+PROADJ
+          1: IN
+          2: PREP+PRO-KS
+          3: NPROP
+          4: PREP+PROSUB
+          5: KC
+          6: PROPESS
+          7: NUM
+          8: PROADJ
+          9: PREP+ART
+          10: KS
+          11: PRO-KS
+          12: ADJ
+          13: ADV-KS
+          14: N
+          15: PREP
+          16: PROSUB
+          17: PREP+PROPESS
+          18: PDEN
+          19: V
+          20: PREP+ADV
+          21: PCP
+          22: CUR
+          23: ADV
+          24: PU
+          25: ART
+  splits:
+  - name: test
+    num_bytes: 3095292
+    num_examples: 9987
+  - name: train
+    num_bytes: 12635011
+    num_examples: 37948
+  - name: validation
+    num_bytes: 671356
+    num_examples: 1997
+  download_size: 2463485
+  dataset_size: 16401659
 ---
 
 # Dataset Card for Mac-Morpho

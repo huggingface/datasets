@@ -26,6 +26,81 @@ pretty_name: onlinE haTe speecH detectiOn dataSet
 configs:
 - binary
 - multilabel
+dataset_info:
+- config_name: binary
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: no_hate_speech
+          1: hate_speech
+  splits:
+  - name: train
+    num_bytes: 124823
+    num_examples: 998
+  download_size: 123919
+  dataset_size: 124823
+- config_name: multilabel
+  features:
+  - name: text
+    dtype: string
+  - name: violence
+    dtype:
+      class_label:
+        names:
+          0: not_violent
+          1: violent
+  - name: directed_vs_generalized
+    dtype:
+      class_label:
+        names:
+          0: generalied
+          1: directed
+  - name: gender
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: race
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: national_origin
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: disability
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: religion
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  - name: sexual_orientation
+    dtype:
+      class_label:
+        names:
+          0: 'false'
+          1: 'true'
+  splits:
+  - name: train
+    num_bytes: 79112
+    num_examples: 433
+  download_size: 62836
+  dataset_size: 79112
 ---
 
 # Dataset Card for Ethos

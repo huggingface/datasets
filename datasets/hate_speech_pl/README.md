@@ -24,6 +24,36 @@ task_ids:
 - topic-classification
 paperswithcode_id: null
 pretty_name: HateSpeechPl
+dataset_info:
+  features:
+  - name: id
+    dtype: uint16
+  - name: text_id
+    dtype: uint32
+  - name: annotator_id
+    dtype: uint8
+  - name: minority_id
+    dtype: uint8
+  - name: negative_emotions
+    dtype: bool
+  - name: call_to_action
+    dtype: bool
+  - name: source_of_knowledge
+    dtype: uint8
+  - name: irony_sarcasm
+    dtype: bool
+  - name: topic
+    dtype: uint8
+  - name: text
+    dtype: string
+  - name: rating
+    dtype: uint8
+  splits:
+  - name: train
+    num_bytes: 3436190
+    num_examples: 13887
+  download_size: 3877954
+  dataset_size: 3436190
 ---
 
 

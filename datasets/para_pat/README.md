@@ -35,6 +35,331 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: parapat
 pretty_name: Parallel Corpus of Patents Abstracts
+dataset_info:
+- config_name: el-en
+  features:
+  - name: index
+    dtype: int32
+  - name: family_id
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - el
+        - en
+  splits:
+  - name: train
+    num_bytes: 24818840
+    num_examples: 10855
+  download_size: 24894705
+  dataset_size: 24818840
+- config_name: cs-en
+  features:
+  - name: index
+    dtype: int32
+  - name: family_id
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - cs
+        - en
+  splits:
+  - name: train
+    num_bytes: 117555722
+    num_examples: 78977
+  download_size: 118010340
+  dataset_size: 117555722
+- config_name: en-hu
+  features:
+  - name: index
+    dtype: int32
+  - name: family_id
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - hu
+  splits:
+  - name: train
+    num_bytes: 80637157
+    num_examples: 42629
+  download_size: 80893995
+  dataset_size: 80637157
+- config_name: en-ro
+  features:
+  - name: index
+    dtype: int32
+  - name: family_id
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ro
+  splits:
+  - name: train
+    num_bytes: 80290819
+    num_examples: 48789
+  download_size: 80562562
+  dataset_size: 80290819
+- config_name: en-sk
+  features:
+  - name: index
+    dtype: int32
+  - name: family_id
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - sk
+  splits:
+  - name: train
+    num_bytes: 31510348
+    num_examples: 23410
+  download_size: 31707728
+  dataset_size: 31510348
+- config_name: en-uk
+  features:
+  - name: index
+    dtype: int32
+  - name: family_id
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - uk
+  splits:
+  - name: train
+    num_bytes: 136808871
+    num_examples: 89226
+  download_size: 137391928
+  dataset_size: 136808871
+- config_name: es-fr
+  features:
+  - name: index
+    dtype: int32
+  - name: family_id
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - fr
+  splits:
+  - name: train
+    num_bytes: 53767035
+    num_examples: 32553
+  download_size: 53989438
+  dataset_size: 53767035
+- config_name: fr-ru
+  features:
+  - name: index
+    dtype: int32
+  - name: family_id
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr
+        - ru
+  splits:
+  - name: train
+    num_bytes: 33915203
+    num_examples: 10889
+  download_size: 33994490
+  dataset_size: 33915203
+- config_name: de-fr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - fr
+  splits:
+  - name: train
+    num_bytes: 655742822
+    num_examples: 1167988
+  download_size: 204094654
+  dataset_size: 655742822
+- config_name: en-ja
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ja
+  splits:
+  - name: train
+    num_bytes: 3100002828
+    num_examples: 6170339
+  download_size: 1093334863
+  dataset_size: 3100002828
+- config_name: en-es
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - es
+  splits:
+  - name: train
+    num_bytes: 337690858
+    num_examples: 649396
+  download_size: 105202237
+  dataset_size: 337690858
+- config_name: en-fr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - fr
+  splits:
+  - name: train
+    num_bytes: 6103179552
+    num_examples: 12223525
+  download_size: 1846098331
+  dataset_size: 6103179552
+- config_name: de-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - en
+  splits:
+  - name: train
+    num_bytes: 1059631418
+    num_examples: 2165054
+  download_size: 339299130
+  dataset_size: 1059631418
+- config_name: en-ko
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ko
+  splits:
+  - name: train
+    num_bytes: 1466703472
+    num_examples: 2324357
+  download_size: 475152089
+  dataset_size: 1466703472
+- config_name: fr-ja
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr
+        - ja
+  splits:
+  - name: train
+    num_bytes: 211127021
+    num_examples: 313422
+  download_size: 69038401
+  dataset_size: 211127021
+- config_name: en-zh
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - zh
+  splits:
+  - name: train
+    num_bytes: 2297993338
+    num_examples: 4897841
+  download_size: 899568201
+  dataset_size: 2297993338
+- config_name: en-ru
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ru
+  splits:
+  - name: train
+    num_bytes: 1974874480
+    num_examples: 4296399
+  download_size: 567240359
+  dataset_size: 1974874480
+- config_name: fr-ko
+  features:
+  - name: index
+    dtype: int32
+  - name: family_id
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr
+        - ko
+  splits:
+  - name: train
+    num_bytes: 222006786
+    num_examples: 120607
+  download_size: 64621605
+  dataset_size: 222006786
+- config_name: ru-uk
+  features:
+  - name: index
+    dtype: int32
+  - name: family_id
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - uk
+  splits:
+  - name: train
+    num_bytes: 163442529
+    num_examples: 85963
+  download_size: 38709524
+  dataset_size: 163442529
+- config_name: en-pt
+  features:
+  - name: index
+    dtype: int32
+  - name: family_id
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - pt
+  splits:
+  - name: train
+    num_bytes: 37372555
+    num_examples: 23121
+  download_size: 12781082
+  dataset_size: 37372555
 ---
 
 # Dataset Card for ParaPat: The Multi-Million Sentences Parallel Corpus of Patents Abstracts

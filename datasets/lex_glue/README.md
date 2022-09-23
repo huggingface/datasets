@@ -30,6 +30,422 @@ configs:
 - ledgar
 - scotus
 - unfair_tos
+dataset_info:
+- config_name: ecthr_a
+  features:
+  - name: text
+    sequence: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '2'
+          1: '3'
+          2: '5'
+          3: '6'
+          4: '8'
+          5: '9'
+          6: '10'
+          7: '11'
+          8: '14'
+          9: P1-1
+  splits:
+  - name: test
+    num_bytes: 11884180
+    num_examples: 1000
+  - name: train
+    num_bytes: 89637461
+    num_examples: 9000
+  - name: validation
+    num_bytes: 10985180
+    num_examples: 1000
+  download_size: 32852475
+  dataset_size: 112506821
+- config_name: ecthr_b
+  features:
+  - name: text
+    sequence: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '2'
+          1: '3'
+          2: '5'
+          3: '6'
+          4: '8'
+          5: '9'
+          6: '10'
+          7: '11'
+          8: '14'
+          9: P1-1
+  splits:
+  - name: test
+    num_bytes: 11886940
+    num_examples: 1000
+  - name: train
+    num_bytes: 89657661
+    num_examples: 9000
+  - name: validation
+    num_bytes: 10987828
+    num_examples: 1000
+  download_size: 32852475
+  dataset_size: 112532429
+- config_name: eurlex
+  features:
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: '100163'
+          1: '100164'
+          2: '100165'
+          3: '100166'
+          4: '100167'
+          5: '100168'
+          6: '100169'
+          7: '100170'
+          8: '100171'
+          9: '100172'
+          10: '100173'
+          11: '100174'
+          12: '100175'
+          13: '100176'
+          14: '100177'
+          15: '100178'
+          16: '100179'
+          17: '100180'
+          18: '100181'
+          19: '100182'
+          20: '100183'
+          21: '100184'
+          22: '100185'
+          23: '100186'
+          24: '100187'
+          25: '100188'
+          26: '100189'
+          27: '100190'
+          28: '100191'
+          29: '100192'
+          30: '100193'
+          31: '100194'
+          32: '100195'
+          33: '100196'
+          34: '100197'
+          35: '100198'
+          36: '100199'
+          37: '100200'
+          38: '100201'
+          39: '100202'
+          40: '100203'
+          41: '100204'
+          42: '100205'
+          43: '100206'
+          44: '100207'
+          45: '100208'
+          46: '100209'
+          47: '100210'
+          48: '100211'
+          49: '100212'
+          50: '100213'
+          51: '100214'
+          52: '100215'
+          53: '100216'
+          54: '100217'
+          55: '100218'
+          56: '100219'
+          57: '100220'
+          58: '100221'
+          59: '100222'
+          60: '100223'
+          61: '100224'
+          62: '100225'
+          63: '100226'
+          64: '100227'
+          65: '100228'
+          66: '100229'
+          67: '100230'
+          68: '100231'
+          69: '100232'
+          70: '100233'
+          71: '100234'
+          72: '100235'
+          73: '100236'
+          74: '100237'
+          75: '100238'
+          76: '100239'
+          77: '100240'
+          78: '100241'
+          79: '100242'
+          80: '100243'
+          81: '100244'
+          82: '100245'
+          83: '100246'
+          84: '100247'
+          85: '100248'
+          86: '100249'
+          87: '100250'
+          88: '100251'
+          89: '100252'
+          90: '100253'
+          91: '100254'
+          92: '100255'
+          93: '100256'
+          94: '100257'
+          95: '100258'
+          96: '100259'
+          97: '100260'
+          98: '100261'
+          99: '100262'
+          100: '100263'
+          101: '100264'
+          102: '100265'
+          103: '100266'
+          104: '100267'
+          105: '100268'
+          106: '100269'
+          107: '100270'
+          108: '100271'
+          109: '100272'
+          110: '100273'
+          111: '100274'
+          112: '100275'
+          113: '100276'
+          114: '100277'
+          115: '100278'
+          116: '100279'
+          117: '100280'
+          118: '100281'
+          119: '100282'
+          120: '100283'
+          121: '100284'
+          122: '100285'
+          123: '100286'
+          124: '100287'
+          125: '100288'
+          126: '100289'
+  splits:
+  - name: test
+    num_bytes: 59742502
+    num_examples: 5000
+  - name: train
+    num_bytes: 390789505
+    num_examples: 55000
+  - name: validation
+    num_bytes: 41546764
+    num_examples: 5000
+  download_size: 125413277
+  dataset_size: 492078771
+- config_name: scotus
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '1'
+          1: '2'
+          2: '3'
+          3: '4'
+          4: '5'
+          5: '6'
+          6: '7'
+          7: '8'
+          8: '9'
+          9: '10'
+          10: '11'
+          11: '12'
+          12: '13'
+  splits:
+  - name: test
+    num_bytes: 76213283
+    num_examples: 1400
+  - name: train
+    num_bytes: 178959320
+    num_examples: 5000
+  - name: validation
+    num_bytes: 75600247
+    num_examples: 1400
+  download_size: 104763335
+  dataset_size: 330772850
+- config_name: ledgar
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Adjustments
+          1: Agreements
+          2: Amendments
+          3: Anti-Corruption Laws
+          4: Applicable Laws
+          5: Approvals
+          6: Arbitration
+          7: Assignments
+          8: Assigns
+          9: Authority
+          10: Authorizations
+          11: Base Salary
+          12: Benefits
+          13: Binding Effects
+          14: Books
+          15: Brokers
+          16: Capitalization
+          17: Change In Control
+          18: Closings
+          19: Compliance With Laws
+          20: Confidentiality
+          21: Consent To Jurisdiction
+          22: Consents
+          23: Construction
+          24: Cooperation
+          25: Costs
+          26: Counterparts
+          27: Death
+          28: Defined Terms
+          29: Definitions
+          30: Disability
+          31: Disclosures
+          32: Duties
+          33: Effective Dates
+          34: Effectiveness
+          35: Employment
+          36: Enforceability
+          37: Enforcements
+          38: Entire Agreements
+          39: Erisa
+          40: Existence
+          41: Expenses
+          42: Fees
+          43: Financial Statements
+          44: Forfeitures
+          45: Further Assurances
+          46: General
+          47: Governing Laws
+          48: Headings
+          49: Indemnifications
+          50: Indemnity
+          51: Insurances
+          52: Integration
+          53: Intellectual Property
+          54: Interests
+          55: Interpretations
+          56: Jurisdictions
+          57: Liens
+          58: Litigations
+          59: Miscellaneous
+          60: Modifications
+          61: No Conflicts
+          62: No Defaults
+          63: No Waivers
+          64: Non-Disparagement
+          65: Notices
+          66: Organizations
+          67: Participations
+          68: Payments
+          69: Positions
+          70: Powers
+          71: Publicity
+          72: Qualifications
+          73: Records
+          74: Releases
+          75: Remedies
+          76: Representations
+          77: Sales
+          78: Sanctions
+          79: Severability
+          80: Solvency
+          81: Specific Performance
+          82: Submission To Jurisdiction
+          83: Subsidiaries
+          84: Successors
+          85: Survival
+          86: Tax Withholdings
+          87: Taxes
+          88: Terminations
+          89: Terms
+          90: Titles
+          91: Transactions With Affiliates
+          92: Use Of Proceeds
+          93: Vacations
+          94: Venues
+          95: Vesting
+          96: Waiver Of Jury Trials
+          97: Waivers
+          98: Warranties
+          99: Withholdings
+  splits:
+  - name: test
+    num_bytes: 6845585
+    num_examples: 10000
+  - name: train
+    num_bytes: 43358315
+    num_examples: 60000
+  - name: validation
+    num_bytes: 7143592
+    num_examples: 10000
+  download_size: 16255623
+  dataset_size: 57347492
+- config_name: unfair_tos
+  features:
+  - name: text
+    dtype: string
+  - name: labels
+    sequence:
+      class_label:
+        names:
+          0: Limitation of liability
+          1: Unilateral termination
+          2: Unilateral change
+          3: Content removal
+          4: Contract by using
+          5: Choice of law
+          6: Jurisdiction
+          7: Arbitration
+  splits:
+  - name: test
+    num_bytes: 303107
+    num_examples: 1607
+  - name: train
+    num_bytes: 1041790
+    num_examples: 5532
+  - name: validation
+    num_bytes: 452119
+    num_examples: 2275
+  download_size: 511342
+  dataset_size: 1797016
+- config_name: case_hold
+  features:
+  - name: context
+    dtype: string
+  - name: endings
+    sequence: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+          2: '2'
+          3: '3'
+          4: '4'
+  splits:
+  - name: test
+    num_bytes: 5989964
+    num_examples: 3600
+  - name: train
+    num_bytes: 74781766
+    num_examples: 45000
+  - name: validation
+    num_bytes: 6474615
+    num_examples: 3900
+  download_size: 30422703
+  dataset_size: 87246345
 ---
 
 # Dataset Card for "LexGLUE"

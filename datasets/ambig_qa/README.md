@@ -20,6 +20,77 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: ambigqa
 pretty_name: 'AmbigQA: Answering Ambiguous Open-domain Questions'
+dataset_info:
+- config_name: light
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: annotations
+    sequence:
+    - name: type
+      dtype: string
+    - name: answer
+      sequence: string
+    - name: qaPairs
+      sequence:
+      - name: question
+        dtype: string
+      - name: answer
+        sequence: string
+  splits:
+  - name: train
+    num_bytes: 2739732
+    num_examples: 10036
+  - name: validation
+    num_bytes: 805808
+    num_examples: 2002
+  download_size: 19700900
+  dataset_size: 3545540
+- config_name: full
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: annotations
+    sequence:
+    - name: type
+      dtype: string
+    - name: answer
+      sequence: string
+    - name: qaPairs
+      sequence:
+      - name: question
+        dtype: string
+      - name: answer
+        sequence: string
+  - name: viewed_doc_titles
+    sequence: string
+  - name: used_queries
+    sequence:
+    - name: query
+      dtype: string
+    - name: results
+      sequence:
+      - name: title
+        dtype: string
+      - name: snippet
+        dtype: string
+  - name: nq_answer
+    sequence: string
+  - name: nq_doc_title
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 43538733
+    num_examples: 10036
+  - name: validation
+    num_bytes: 15383368
+    num_examples: 2002
+  download_size: 19700900
+  dataset_size: 58922101
 ---
 
 # Dataset Card for AmbigQA: Answering Ambiguous Open-domain Questions

@@ -89,6 +89,177 @@ configs:
 - da-ru
 - en-hi
 - fr-hy
+dataset_info:
+- config_name: bs-eo
+  features:
+  - name: id
+    dtype: string
+  - name: meta
+    struct:
+    - name: year
+      dtype: uint32
+    - name: imdbId
+      dtype: uint32
+    - name: subtitleId
+      struct:
+      - name: bs
+        dtype: uint32
+      - name: eo
+        dtype: uint32
+    - name: sentenceIds
+      struct:
+      - name: bs
+        sequence: uint32
+      - name: eo
+        sequence: uint32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - bs
+        - eo
+  splits:
+  - name: train
+    num_bytes: 1204266
+    num_examples: 10989
+  download_size: 333050
+  dataset_size: 1204266
+- config_name: fr-hy
+  features:
+  - name: id
+    dtype: string
+  - name: meta
+    struct:
+    - name: year
+      dtype: uint32
+    - name: imdbId
+      dtype: uint32
+    - name: subtitleId
+      struct:
+      - name: fr
+        dtype: uint32
+      - name: hy
+        dtype: uint32
+    - name: sentenceIds
+      struct:
+      - name: fr
+        sequence: uint32
+      - name: hy
+        sequence: uint32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr
+        - hy
+  splits:
+  - name: train
+    num_bytes: 132450
+    num_examples: 668
+  download_size: 41861
+  dataset_size: 132450
+- config_name: da-ru
+  features:
+  - name: id
+    dtype: string
+  - name: meta
+    struct:
+    - name: year
+      dtype: uint32
+    - name: imdbId
+      dtype: uint32
+    - name: subtitleId
+      struct:
+      - name: da
+        dtype: uint32
+      - name: ru
+        dtype: uint32
+    - name: sentenceIds
+      struct:
+      - name: da
+        sequence: uint32
+      - name: ru
+        sequence: uint32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - da
+        - ru
+  splits:
+  - name: train
+    num_bytes: 1082649105
+    num_examples: 7543012
+  download_size: 267995167
+  dataset_size: 1082649105
+- config_name: en-hi
+  features:
+  - name: id
+    dtype: string
+  - name: meta
+    struct:
+    - name: year
+      dtype: uint32
+    - name: imdbId
+      dtype: uint32
+    - name: subtitleId
+      struct:
+      - name: en
+        dtype: uint32
+      - name: hi
+        dtype: uint32
+    - name: sentenceIds
+      struct:
+      - name: en
+        sequence: uint32
+      - name: hi
+        sequence: uint32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - hi
+  splits:
+  - name: train
+    num_bytes: 13845544
+    num_examples: 93016
+  download_size: 2967295
+  dataset_size: 13845544
+- config_name: bn-is
+  features:
+  - name: id
+    dtype: string
+  - name: meta
+    struct:
+    - name: year
+      dtype: uint32
+    - name: imdbId
+      dtype: uint32
+    - name: subtitleId
+      struct:
+      - name: bn
+        dtype: uint32
+      - name: is
+        dtype: uint32
+    - name: sentenceIds
+      struct:
+      - name: bn
+        sequence: uint32
+      - name: is
+        sequence: uint32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - bn
+        - is
+  splits:
+  - name: train
+    num_bytes: 6371251
+    num_examples: 38272
+  download_size: 1411625
+  dataset_size: 6371251
 ---
 
 # Dataset Card for OpenSubtitles

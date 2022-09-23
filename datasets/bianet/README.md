@@ -28,6 +28,55 @@ configs:
 - en_to_tr
 - ku-to-tr
 - ku_to_tr
+dataset_info:
+- config_name: en_to_ku
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ku
+  splits:
+  - name: train
+    num_bytes: 1800806
+    num_examples: 6402
+  download_size: 622420
+  dataset_size: 1800806
+- config_name: en_to_tr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - tr
+  splits:
+  - name: train
+    num_bytes: 10231043
+    num_examples: 34770
+  download_size: 3544116
+  dataset_size: 10231043
+- config_name: ku_to_tr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ku
+        - tr
+  splits:
+  - name: train
+    num_bytes: 2086550
+    num_examples: 7325
+  download_size: 725227
+  dataset_size: 2086550
 ---
 
 # Dataset Card for [Dataset Name]

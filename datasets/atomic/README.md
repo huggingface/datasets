@@ -19,6 +19,45 @@ task_categories:
 task_ids:
 - text2text-generation-other-common-sense-if-then-reasoning
 paperswithcode_id: atomic
+dataset_info:
+  features:
+  - name: event
+    dtype: string
+  - name: oEffect
+    sequence: string
+  - name: oReact
+    sequence: string
+  - name: oWant
+    sequence: string
+  - name: xAttr
+    sequence: string
+  - name: xEffect
+    sequence: string
+  - name: xIntent
+    sequence: string
+  - name: xNeed
+    sequence: string
+  - name: xReact
+    sequence: string
+  - name: xWant
+    sequence: string
+  - name: prefix
+    sequence: string
+  - name: split
+    dtype: string
+  config_name: atomic
+  splits:
+  - name: test
+    num_bytes: 3995624
+    num_examples: 24856
+  - name: train
+    num_bytes: 32441878
+    num_examples: 202271
+  - name: validation
+    num_bytes: 3629768
+    num_examples: 22620
+  download_size: 19083782
+  dataset_size: 40067270
 ---
 
 # Dataset Card for An Atlas of Machine Commonsense for If-Then Reasoning - Atomic Common Sense Dataset

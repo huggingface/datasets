@@ -21,6 +21,33 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: ropes
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: background
+    dtype: string
+  - name: situation
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 1928532
+    num_examples: 1710
+  - name: train
+    num_bytes: 12231940
+    num_examples: 10924
+  - name: validation
+    num_bytes: 1643498
+    num_examples: 1688
+  download_size: 3516917
+  dataset_size: 15803970
 ---
 
 # Dataset Card for ROPES

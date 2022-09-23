@@ -19,6 +19,77 @@ task_categories:
 task_ids:
 - question-answering-other-quizbowl
 paperswithcode_id: quizbowl
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: qanta_id
+    dtype: int32
+  - name: proto_id
+    dtype: string
+  - name: qdb_id
+    dtype: int32
+  - name: dataset
+    dtype: string
+  - name: text
+    dtype: string
+  - name: full_question
+    dtype: string
+  - name: first_sentence
+    dtype: string
+  - name: char_idx
+    dtype: int32
+  - name: sentence_idx
+    dtype: int32
+  - name: tokenizations
+    sequence:
+      sequence: int32
+      length: 2
+  - name: answer
+    dtype: string
+  - name: page
+    dtype: string
+  - name: raw_answer
+    dtype: string
+  - name: fold
+    dtype: string
+  - name: gameplay
+    dtype: bool
+  - name: category
+    dtype: string
+  - name: subcategory
+    dtype: string
+  - name: tournament
+    dtype: string
+  - name: difficulty
+    dtype: string
+  - name: year
+    dtype: int32
+  config_name: mode=first,char_skip=25
+  splits:
+  - name: adversarial
+    num_bytes: 1258844
+    num_examples: 1145
+  - name: buzzdev
+    num_bytes: 1553636
+    num_examples: 1161
+  - name: buzztest
+    num_bytes: 2653425
+    num_examples: 1953
+  - name: buzztrain
+    num_bytes: 19699736
+    num_examples: 16706
+  - name: guessdev
+    num_bytes: 1414882
+    num_examples: 1055
+  - name: guesstest
+    num_bytes: 2997123
+    num_examples: 2151
+  - name: guesstrain
+    num_bytes: 117599750
+    num_examples: 96221
+  download_size: 170754918
+  dataset_size: 147177396
 ---
 
 # Dataset Card for "qanta"

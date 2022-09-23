@@ -19,6 +19,83 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: natural-questions
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: document
+    struct:
+    - name: title
+      dtype: string
+    - name: url
+      dtype: string
+    - name: html
+      dtype: string
+    - name: tokens
+      sequence:
+      - name: token
+        dtype: string
+      - name: is_html
+        dtype: bool
+  - name: question
+    struct:
+    - name: text
+      dtype: string
+    - name: tokens
+      sequence: string
+  - name: annotations
+    sequence:
+    - name: id
+      dtype: string
+    - name: long_answer
+      struct:
+      - name: start_token
+        dtype: int64
+      - name: end_token
+        dtype: int64
+      - name: start_byte
+        dtype: int64
+      - name: end_byte
+        dtype: int64
+    - name: short_answers
+      sequence:
+      - name: start_token
+        dtype: int64
+      - name: end_token
+        dtype: int64
+      - name: start_byte
+        dtype: int64
+      - name: end_byte
+        dtype: int64
+      - name: text
+        dtype: string
+    - name: yes_no_answer
+      dtype:
+        class_label:
+          names:
+            0: 'NO'
+            1: 'YES'
+    - name: long_answer_candidates
+      sequence:
+      - name: start_token
+        dtype: int64
+      - name: end_token
+        dtype: int64
+      - name: start_byte
+        dtype: int64
+      - name: end_byte
+        dtype: int64
+      - name: top_label
+        dtype: bool
+  splits:
+  - name: train
+    num_bytes: 97445142568
+    num_examples: 307373
+  - name: validation
+    num_bytes: 2353975312
+    num_examples: 7830
+  download_size: 45069199013
+  dataset_size: 99799117880
 ---
 
 # Dataset Card for Natural Questions

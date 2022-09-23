@@ -19,6 +19,32 @@ task_ids:
 - extractive-qa
 paperswithcode_id: korquad
 pretty_name: The Korean Question Answering Dataset
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  config_name: squad_kor_v1
+  splits:
+  - name: train
+    num_bytes: 83380337
+    num_examples: 60407
+  - name: validation
+    num_bytes: 8261729
+    num_examples: 5774
+  download_size: 42408533
+  dataset_size: 91642066
 ---
 
 # Dataset Card for KorQuAD v1.0

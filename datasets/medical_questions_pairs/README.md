@@ -19,6 +19,26 @@ task_ids:
 - semantic-similarity-classification
 paperswithcode_id: null
 pretty_name: MedicalQuestionsPairs
+dataset_info:
+  features:
+  - name: dr_id
+    dtype: int32
+  - name: question_1
+    dtype: string
+  - name: question_2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 0
+          1: 1
+  splits:
+  - name: train
+    num_bytes: 701650
+    num_examples: 3048
+  download_size: 665688
+  dataset_size: 701650
 ---
 
 # Dataset Card for [medical_questions_pairs]

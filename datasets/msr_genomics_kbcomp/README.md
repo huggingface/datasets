@@ -19,6 +19,31 @@ task_ids:
 - other-other-NCI-PID-PubMed Genomics Knowledge Base Completion Dataset
 paperswithcode_id: null
 pretty_name: MsrGenomicsKbcomp
+dataset_info:
+  features:
+  - name: GENE1
+    dtype: string
+  - name: relation
+    dtype:
+      class_label:
+        names:
+          0: Positive_regulation
+          1: Negative_regulation
+          2: Family
+  - name: GENE2
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 58116
+    num_examples: 2784
+  - name: train
+    num_bytes: 256789
+    num_examples: 12160
+  - name: validation
+    num_bytes: 27457
+    num_examples: 1315
+  download_size: 0
+  dataset_size: 342362
 ---
 
 # Dataset Card for [Dataset Name]

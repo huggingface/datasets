@@ -36,6 +36,137 @@ configs:
 - fr
 - ru
 - tu
+dataset_info:
+- config_name: de
+  features:
+  - name: text
+    dtype: string
+  - name: summary
+    dtype: string
+  - name: topic
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: date
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 46847612
+    num_examples: 10701
+  - name: train
+    num_bytes: 846959840
+    num_examples: 220887
+  - name: validation
+    num_bytes: 47119541
+    num_examples: 11394
+  download_size: 1005814154
+  dataset_size: 940926993
+- config_name: es
+  features:
+  - name: text
+    dtype: string
+  - name: summary
+    dtype: string
+  - name: topic
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: date
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 71263665
+    num_examples: 13920
+  - name: train
+    num_bytes: 1214558302
+    num_examples: 266367
+  - name: validation
+    num_bytes: 50643400
+    num_examples: 10358
+  download_size: 1456211154
+  dataset_size: 1336465367
+- config_name: fr
+  features:
+  - name: text
+    dtype: string
+  - name: summary
+    dtype: string
+  - name: topic
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: date
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 69660288
+    num_examples: 15828
+  - name: train
+    num_bytes: 1471965014
+    num_examples: 392902
+  - name: validation
+    num_bytes: 70413212
+    num_examples: 16059
+  download_size: 1849565564
+  dataset_size: 1612038514
+- config_name: ru
+  features:
+  - name: text
+    dtype: string
+  - name: summary
+    dtype: string
+  - name: topic
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: date
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 9656398
+    num_examples: 757
+  - name: train
+    num_bytes: 257389497
+    num_examples: 25556
+  - name: validation
+    num_bytes: 9128497
+    num_examples: 750
+  download_size: 766226107
+  dataset_size: 276174392
+- config_name: tu
+  features:
+  - name: text
+    dtype: string
+  - name: summary
+    dtype: string
+  - name: topic
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: date
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 27830212
+    num_examples: 12775
+  - name: train
+    num_bytes: 641622783
+    num_examples: 249277
+  - name: validation
+    num_bytes: 25530661
+    num_examples: 11565
+  download_size: 942308960
+  dataset_size: 694983656
 ---
 
 # Dataset Card for MLSUM

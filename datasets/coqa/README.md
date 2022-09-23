@@ -9,7 +9,7 @@ license:
 - other
 multilinguality:
 - monolingual
-pretty_name: "CoQA: Conversational Question Answering Challenge"
+pretty_name: 'CoQA: Conversational Question Answering Challenge'
 size_categories:
 - 1K<n<10K
 source_datasets:
@@ -23,6 +23,31 @@ task_ids:
 - extractive-qa
 - question-answering-other-conversational-qa
 paperswithcode_id: coqa
+dataset_info:
+  features:
+  - name: source
+    dtype: string
+  - name: story
+    dtype: string
+  - name: questions
+    sequence: string
+  - name: answers
+    sequence:
+    - name: input_text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+    - name: answer_end
+      dtype: int32
+  splits:
+  - name: train
+    num_bytes: 17981459
+    num_examples: 7199
+  - name: validation
+    num_bytes: 1225518
+    num_examples: 500
+  download_size: 58092681
+  dataset_size: 19206977
 ---
 
 # Dataset Card for "coqa"

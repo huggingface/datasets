@@ -20,6 +20,24 @@ task_ids:
 - slot-filling
 paperswithcode_id: numersense
 pretty_name: NumerSense
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  - name: target
+    dtype: string
+  splits:
+  - name: test_all
+    num_bytes: 184180
+    num_examples: 3146
+  - name: test_core
+    num_bytes: 62652
+    num_examples: 1132
+  - name: train
+    num_bytes: 825865
+    num_examples: 10444
+  download_size: 985463
+  dataset_size: 1072697
 ---
 
 # Dataset Card for [Dataset Name]

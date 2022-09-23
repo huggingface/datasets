@@ -21,6 +21,20 @@ task_ids:
 - sentiment-scoring
 paperswithcode_id: null
 pretty_name: OCLAR
+dataset_info:
+  features:
+  - name: pagename
+    dtype: string
+  - name: review
+    dtype: string
+  - name: rating
+    dtype: int8
+  splits:
+  - name: train
+    num_bytes: 398204
+    num_examples: 3916
+  download_size: 382976
+  dataset_size: 398204
 ---
 
 # Dataset Card for OCLAR

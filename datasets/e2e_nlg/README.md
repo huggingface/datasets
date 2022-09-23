@@ -19,6 +19,24 @@ task_ids:
 - text2text-generation-other-meaning-representation-to-text
 paperswithcode_id: e2e
 pretty_name: End-to-End NLG Challenge
+dataset_info:
+  features:
+  - name: meaning_representation
+    dtype: string
+  - name: human_reference
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1320205
+    num_examples: 4693
+  - name: train
+    num_bytes: 9435824
+    num_examples: 42061
+  - name: validation
+    num_bytes: 1171723
+    num_examples: 4672
+  download_size: 11812316
+  dataset_size: 11927752
 ---
 
 # Dataset Card for End-to-End NLG Challenge

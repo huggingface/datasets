@@ -19,6 +19,22 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: null
 pretty_name: ImDB Urdu Reviews
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  - name: sentiment
+    dtype:
+      class_label:
+        names:
+          0: positive
+          1: negative
+  splits:
+  - name: train
+    num_bytes: 114670811
+    num_examples: 50000
+  download_size: 31510992
+  dataset_size: 114670811
 ---
 
 # Dataset Card for ImDB Urdu Reviews

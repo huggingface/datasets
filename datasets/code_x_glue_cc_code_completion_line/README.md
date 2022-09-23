@@ -27,6 +27,35 @@ configs:
 - php
 - python
 - ruby
+dataset_info:
+- config_name: java
+  features:
+  - name: id
+    dtype: int32
+  - name: input
+    dtype: string
+  - name: gt
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 5454783
+    num_examples: 3000
+  download_size: 5523586
+  dataset_size: 5454783
+- config_name: python
+  features:
+  - name: id
+    dtype: int32
+  - name: input
+    dtype: string
+  - name: gt
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 24021562
+    num_examples: 10000
+  download_size: 24266715
+  dataset_size: 24021562
 ---
 # Dataset Card for "code_x_glue_cc_code_completion_line"
 

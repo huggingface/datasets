@@ -41,6 +41,690 @@ configs:
 - opensubtitles_inferred
 - wizard
 - yelp_inferred
+dataset_info:
+- config_name: gendered_words
+  features:
+  - name: word_masculine
+    dtype: string
+  - name: word_feminine
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4988
+    num_examples: 222
+  download_size: 232629010
+  dataset_size: 4988
+- config_name: name_genders
+  features:
+  - name: name
+    dtype: string
+  - name: assigned_gender
+    dtype:
+      class_label:
+        names:
+          0: M
+          1: F
+  - name: count
+    dtype: int32
+  splits:
+  - name: yob1880
+    num_bytes: 43404
+    num_examples: 2000
+  - name: yob1881
+    num_bytes: 41944
+    num_examples: 1935
+  - name: yob1882
+    num_bytes: 46211
+    num_examples: 2127
+  - name: yob1883
+    num_bytes: 45221
+    num_examples: 2084
+  - name: yob1884
+    num_bytes: 49886
+    num_examples: 2297
+  - name: yob1885
+    num_bytes: 49810
+    num_examples: 2294
+  - name: yob1886
+    num_bytes: 51935
+    num_examples: 2392
+  - name: yob1887
+    num_bytes: 51458
+    num_examples: 2373
+  - name: yob1888
+    num_bytes: 57531
+    num_examples: 2651
+  - name: yob1889
+    num_bytes: 56177
+    num_examples: 2590
+  - name: yob1890
+    num_bytes: 58509
+    num_examples: 2695
+  - name: yob1891
+    num_bytes: 57767
+    num_examples: 2660
+  - name: yob1892
+    num_bytes: 63493
+    num_examples: 2921
+  - name: yob1893
+    num_bytes: 61525
+    num_examples: 2831
+  - name: yob1894
+    num_bytes: 63927
+    num_examples: 2941
+  - name: yob1895
+    num_bytes: 66346
+    num_examples: 3049
+  - name: yob1896
+    num_bytes: 67224
+    num_examples: 3091
+  - name: yob1897
+    num_bytes: 65886
+    num_examples: 3028
+  - name: yob1898
+    num_bytes: 71088
+    num_examples: 3264
+  - name: yob1899
+    num_bytes: 66225
+    num_examples: 3042
+  - name: yob1900
+    num_bytes: 81305
+    num_examples: 3730
+  - name: yob1901
+    num_bytes: 68723
+    num_examples: 3153
+  - name: yob1902
+    num_bytes: 73321
+    num_examples: 3362
+  - name: yob1903
+    num_bytes: 74019
+    num_examples: 3389
+  - name: yob1904
+    num_bytes: 77751
+    num_examples: 3560
+  - name: yob1905
+    num_bytes: 79802
+    num_examples: 3655
+  - name: yob1906
+    num_bytes: 79392
+    num_examples: 3633
+  - name: yob1907
+    num_bytes: 86342
+    num_examples: 3948
+  - name: yob1908
+    num_bytes: 87965
+    num_examples: 4018
+  - name: yob1909
+    num_bytes: 92591
+    num_examples: 4227
+  - name: yob1910
+    num_bytes: 101491
+    num_examples: 4629
+  - name: yob1911
+    num_bytes: 106787
+    num_examples: 4867
+  - name: yob1912
+    num_bytes: 139448
+    num_examples: 6351
+  - name: yob1913
+    num_bytes: 153110
+    num_examples: 6968
+  - name: yob1914
+    num_bytes: 175167
+    num_examples: 7965
+  - name: yob1915
+    num_bytes: 205921
+    num_examples: 9357
+  - name: yob1916
+    num_bytes: 213468
+    num_examples: 9696
+  - name: yob1917
+    num_bytes: 218446
+    num_examples: 9913
+  - name: yob1918
+    num_bytes: 229209
+    num_examples: 10398
+  - name: yob1919
+    num_bytes: 228656
+    num_examples: 10369
+  - name: yob1920
+    num_bytes: 237286
+    num_examples: 10756
+  - name: yob1921
+    num_bytes: 239616
+    num_examples: 10857
+  - name: yob1922
+    num_bytes: 237569
+    num_examples: 10756
+  - name: yob1923
+    num_bytes: 235046
+    num_examples: 10643
+  - name: yob1924
+    num_bytes: 240113
+    num_examples: 10869
+  - name: yob1925
+    num_bytes: 235098
+    num_examples: 10638
+  - name: yob1926
+    num_bytes: 230970
+    num_examples: 10458
+  - name: yob1927
+    num_bytes: 230004
+    num_examples: 10406
+  - name: yob1928
+    num_bytes: 224583
+    num_examples: 10159
+  - name: yob1929
+    num_bytes: 217057
+    num_examples: 9820
+  - name: yob1930
+    num_bytes: 216352
+    num_examples: 9791
+  - name: yob1931
+    num_bytes: 205361
+    num_examples: 9298
+  - name: yob1932
+    num_bytes: 207268
+    num_examples: 9381
+  - name: yob1933
+    num_bytes: 199031
+    num_examples: 9013
+  - name: yob1934
+    num_bytes: 202758
+    num_examples: 9180
+  - name: yob1935
+    num_bytes: 199614
+    num_examples: 9037
+  - name: yob1936
+    num_bytes: 196379
+    num_examples: 8894
+  - name: yob1937
+    num_bytes: 197757
+    num_examples: 8946
+  - name: yob1938
+    num_bytes: 199603
+    num_examples: 9032
+  - name: yob1939
+    num_bytes: 196979
+    num_examples: 8918
+  - name: yob1940
+    num_bytes: 198141
+    num_examples: 8961
+  - name: yob1941
+    num_bytes: 200858
+    num_examples: 9085
+  - name: yob1942
+    num_bytes: 208363
+    num_examples: 9425
+  - name: yob1943
+    num_bytes: 207940
+    num_examples: 9408
+  - name: yob1944
+    num_bytes: 202227
+    num_examples: 9152
+  - name: yob1945
+    num_bytes: 199478
+    num_examples: 9025
+  - name: yob1946
+    num_bytes: 214614
+    num_examples: 9705
+  - name: yob1947
+    num_bytes: 229327
+    num_examples: 10371
+  - name: yob1948
+    num_bytes: 226615
+    num_examples: 10241
+  - name: yob1949
+    num_bytes: 227278
+    num_examples: 10269
+  - name: yob1950
+    num_bytes: 227946
+    num_examples: 10303
+  - name: yob1951
+    num_bytes: 231613
+    num_examples: 10462
+  - name: yob1952
+    num_bytes: 235483
+    num_examples: 10646
+  - name: yob1953
+    num_bytes: 239654
+    num_examples: 10837
+  - name: yob1954
+    num_bytes: 242389
+    num_examples: 10968
+  - name: yob1955
+    num_bytes: 245652
+    num_examples: 11115
+  - name: yob1956
+    num_bytes: 250674
+    num_examples: 11340
+  - name: yob1957
+    num_bytes: 255370
+    num_examples: 11564
+  - name: yob1958
+    num_bytes: 254520
+    num_examples: 11522
+  - name: yob1959
+    num_bytes: 260051
+    num_examples: 11767
+  - name: yob1960
+    num_bytes: 263474
+    num_examples: 11921
+  - name: yob1961
+    num_bytes: 269493
+    num_examples: 12182
+  - name: yob1962
+    num_bytes: 270244
+    num_examples: 12209
+  - name: yob1963
+    num_bytes: 271872
+    num_examples: 12282
+  - name: yob1964
+    num_bytes: 274590
+    num_examples: 12397
+  - name: yob1965
+    num_bytes: 264889
+    num_examples: 11952
+  - name: yob1966
+    num_bytes: 269321
+    num_examples: 12151
+  - name: yob1967
+    num_bytes: 274867
+    num_examples: 12397
+  - name: yob1968
+    num_bytes: 286774
+    num_examples: 12936
+  - name: yob1969
+    num_bytes: 304909
+    num_examples: 13749
+  - name: yob1970
+    num_bytes: 328047
+    num_examples: 14779
+  - name: yob1971
+    num_bytes: 339657
+    num_examples: 15295
+  - name: yob1972
+    num_bytes: 342321
+    num_examples: 15412
+  - name: yob1973
+    num_bytes: 348414
+    num_examples: 15682
+  - name: yob1974
+    num_bytes: 361188
+    num_examples: 16249
+  - name: yob1975
+    num_bytes: 376491
+    num_examples: 16944
+  - name: yob1976
+    num_bytes: 386565
+    num_examples: 17391
+  - name: yob1977
+    num_bytes: 403994
+    num_examples: 18175
+  - name: yob1978
+    num_bytes: 405430
+    num_examples: 18231
+  - name: yob1979
+    num_bytes: 423423
+    num_examples: 19039
+  - name: yob1980
+    num_bytes: 432317
+    num_examples: 19452
+  - name: yob1981
+    num_bytes: 432980
+    num_examples: 19475
+  - name: yob1982
+    num_bytes: 437986
+    num_examples: 19694
+  - name: yob1983
+    num_bytes: 431531
+    num_examples: 19407
+  - name: yob1984
+    num_bytes: 434085
+    num_examples: 19506
+  - name: yob1985
+    num_bytes: 447113
+    num_examples: 20085
+  - name: yob1986
+    num_bytes: 460315
+    num_examples: 20657
+  - name: yob1987
+    num_bytes: 477677
+    num_examples: 21406
+  - name: yob1988
+    num_bytes: 499347
+    num_examples: 22367
+  - name: yob1989
+    num_bytes: 531020
+    num_examples: 23775
+  - name: yob1990
+    num_bytes: 552114
+    num_examples: 24716
+  - name: yob1991
+    num_bytes: 560932
+    num_examples: 25109
+  - name: yob1992
+    num_bytes: 568151
+    num_examples: 25427
+  - name: yob1993
+    num_bytes: 579778
+    num_examples: 25966
+  - name: yob1994
+    num_bytes: 580223
+    num_examples: 25997
+  - name: yob1995
+    num_bytes: 581949
+    num_examples: 26080
+  - name: yob1996
+    num_bytes: 589131
+    num_examples: 26423
+  - name: yob1997
+    num_bytes: 601284
+    num_examples: 26970
+  - name: yob1998
+    num_bytes: 621587
+    num_examples: 27902
+  - name: yob1999
+    num_bytes: 635355
+    num_examples: 28552
+  - name: yob2000
+    num_bytes: 662398
+    num_examples: 29772
+  - name: yob2001
+    num_bytes: 673111
+    num_examples: 30274
+  - name: yob2002
+    num_bytes: 679392
+    num_examples: 30564
+  - name: yob2003
+    num_bytes: 692931
+    num_examples: 31185
+  - name: yob2004
+    num_bytes: 711776
+    num_examples: 32048
+  - name: yob2005
+    num_bytes: 723065
+    num_examples: 32549
+  - name: yob2006
+    num_bytes: 757620
+    num_examples: 34088
+  - name: yob2007
+    num_bytes: 776893
+    num_examples: 34961
+  - name: yob2008
+    num_bytes: 779403
+    num_examples: 35079
+  - name: yob2009
+    num_bytes: 771032
+    num_examples: 34709
+  - name: yob2010
+    num_bytes: 756717
+    num_examples: 34073
+  - name: yob2011
+    num_bytes: 752804
+    num_examples: 33908
+  - name: yob2012
+    num_bytes: 748915
+    num_examples: 33747
+  - name: yob2013
+    num_bytes: 738288
+    num_examples: 33282
+  - name: yob2014
+    num_bytes: 737219
+    num_examples: 33243
+  - name: yob2015
+    num_bytes: 734183
+    num_examples: 33121
+  - name: yob2016
+    num_bytes: 731291
+    num_examples: 33010
+  - name: yob2017
+    num_bytes: 721444
+    num_examples: 32590
+  - name: yob2018
+    num_bytes: 708657
+    num_examples: 32033
+  download_size: 232629010
+  dataset_size: 43393095
+- config_name: new_data
+  features:
+  - name: text
+    dtype: string
+  - name: original
+    dtype: string
+  - name: labels
+    list:
+      class_label:
+        names:
+          0: ABOUT:female
+          1: ABOUT:male
+          2: PARTNER:female
+          3: PARTNER:male
+          4: SELF:female
+          5: SELF:male
+  - name: class_type
+    dtype:
+      class_label:
+        names:
+          0: about
+          1: partner
+          2: self
+  - name: turker_gender
+    dtype:
+      class_label:
+        names:
+          0: man
+          1: woman
+          2: nonbinary
+          3: prefer not to say
+          4: no answer
+  - name: episode_done
+    dtype: bool_
+  - name: confidence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 369753
+    num_examples: 2345
+  download_size: 232629010
+  dataset_size: 369753
+- config_name: funpedia
+  features:
+  - name: text
+    dtype: string
+  - name: title
+    dtype: string
+  - name: persona
+    dtype: string
+  - name: gender
+    dtype:
+      class_label:
+        names:
+          0: gender-neutral
+          1: female
+          2: male
+  splits:
+  - name: test
+    num_bytes: 396417
+    num_examples: 2938
+  - name: train
+    num_bytes: 3225542
+    num_examples: 23897
+  - name: validation
+    num_bytes: 402205
+    num_examples: 2984
+  download_size: 232629010
+  dataset_size: 4024164
+- config_name: image_chat
+  features:
+  - name: caption
+    dtype: string
+  - name: id
+    dtype: string
+  - name: male
+    dtype: bool_
+  - name: female
+    dtype: bool_
+  splits:
+  - name: test
+    num_bytes: 530126
+    num_examples: 5000
+  - name: train
+    num_bytes: 1061285
+    num_examples: 9997
+  - name: validation
+    num_bytes: 35868670
+    num_examples: 338180
+  download_size: 232629010
+  dataset_size: 37460081
+- config_name: wizard
+  features:
+  - name: text
+    dtype: string
+  - name: chosen_topic
+    dtype: string
+  - name: gender
+    dtype:
+      class_label:
+        names:
+          0: gender-neutral
+          1: female
+          2: male
+  splits:
+  - name: test
+    num_bytes: 53126
+    num_examples: 470
+  - name: train
+    num_bytes: 1158785
+    num_examples: 10449
+  - name: validation
+    num_bytes: 57824
+    num_examples: 537
+  download_size: 232629010
+  dataset_size: 1269735
+- config_name: convai2_inferred
+  features:
+  - name: text
+    dtype: string
+  - name: binary_label
+    dtype:
+      class_label:
+        names:
+          0: ABOUT:female
+          1: ABOUT:male
+  - name: binary_score
+    dtype: float32
+  - name: ternary_label
+    dtype:
+      class_label:
+        names:
+          0: ABOUT:female
+          1: ABOUT:male
+          2: ABOUT:gender-neutral
+  - name: ternary_score
+    dtype: float32
+  splits:
+  - name: test
+    num_bytes: 608046
+    num_examples: 7801
+  - name: train
+    num_bytes: 9853669
+    num_examples: 131438
+  - name: validation
+    num_bytes: 608046
+    num_examples: 7801
+  download_size: 232629010
+  dataset_size: 11069761
+- config_name: light_inferred
+  features:
+  - name: text
+    dtype: string
+  - name: binary_label
+    dtype:
+      class_label:
+        names:
+          0: ABOUT:female
+          1: ABOUT:male
+  - name: binary_score
+    dtype: float32
+  - name: ternary_label
+    dtype:
+      class_label:
+        names:
+          0: ABOUT:female
+          1: ABOUT:male
+          2: ABOUT:gender-neutral
+  - name: ternary_score
+    dtype: float32
+  splits:
+  - name: test
+    num_bytes: 1375745
+    num_examples: 12765
+  - name: train
+    num_bytes: 10931355
+    num_examples: 106122
+  - name: validation
+    num_bytes: 679692
+    num_examples: 6362
+  download_size: 232629010
+  dataset_size: 12986792
+- config_name: opensubtitles_inferred
+  features:
+  - name: text
+    dtype: string
+  - name: binary_label
+    dtype:
+      class_label:
+        names:
+          0: ABOUT:female
+          1: ABOUT:male
+  - name: binary_score
+    dtype: float32
+  - name: ternary_label
+    dtype:
+      class_label:
+        names:
+          0: ABOUT:female
+          1: ABOUT:male
+          2: ABOUT:gender-neutral
+  - name: ternary_score
+    dtype: float32
+  splits:
+  - name: test
+    num_bytes: 3830528
+    num_examples: 49108
+  - name: train
+    num_bytes: 27966476
+    num_examples: 351036
+  - name: validation
+    num_bytes: 3363802
+    num_examples: 41957
+  download_size: 232629010
+  dataset_size: 35160806
+- config_name: yelp_inferred
+  features:
+  - name: text
+    dtype: string
+  - name: binary_label
+    dtype:
+      class_label:
+        names:
+          0: ABOUT:female
+          1: ABOUT:male
+  - name: binary_score
+    dtype: float32
+  splits:
+  - name: test
+    num_bytes: 53887700
+    num_examples: 534460
+  - name: train
+    num_bytes: 260582945
+    num_examples: 2577862
+  - name: validation
+    num_bytes: 324349
+    num_examples: 4492
+  download_size: 232629010
+  dataset_size: 314794994
 ---
 
 # Dataset Card for Multi-Dimensional Gender Bias Classification

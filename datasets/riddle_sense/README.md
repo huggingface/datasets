@@ -18,6 +18,30 @@ task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
+dataset_info:
+  features:
+  - name: answerKey
+    dtype: string
+  - name: question
+    dtype: string
+  - name: choices
+    sequence:
+    - name: label
+      dtype: string
+    - name: text
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 212790
+    num_examples: 1184
+  - name: train
+    num_bytes: 720715
+    num_examples: 3510
+  - name: validation
+    num_bytes: 208276
+    num_examples: 1021
+  download_size: 2083122
+  dataset_size: 1141781
 ---
 
 # Dataset Card for RiddleSense

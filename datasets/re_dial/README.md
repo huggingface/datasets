@@ -21,6 +21,59 @@ task_ids:
 - text-classification-other-dialogue-sentiment-classification
 paperswithcode_id: redial
 pretty_name: ReDial (Recommendation Dialogues)
+dataset_info:
+  features:
+  - name: movieMentions
+    list:
+    - name: movieId
+      dtype: string
+    - name: movieName
+      dtype: string
+  - name: respondentQuestions
+    list:
+    - name: movieId
+      dtype: string
+    - name: suggested
+      dtype: int32
+    - name: seen
+      dtype: int32
+    - name: liked
+      dtype: int32
+  - name: messages
+    list:
+    - name: timeOffset
+      dtype: int32
+    - name: text
+      dtype: string
+    - name: senderWorkerId
+      dtype: int32
+    - name: messageId
+      dtype: int32
+  - name: conversationId
+    dtype: int32
+  - name: respondentWorkerId
+    dtype: int32
+  - name: initiatorWorkerId
+    dtype: int32
+  - name: initiatorQuestions
+    list:
+    - name: movieId
+      dtype: string
+    - name: suggested
+      dtype: int32
+    - name: seen
+      dtype: int32
+    - name: liked
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 1731449
+    num_examples: 1342
+  - name: train
+    num_bytes: 13496125
+    num_examples: 10006
+  download_size: 5765261
+  dataset_size: 15227574
 ---
 
 # Dataset Card for ReDial (Recommendation Dialogues)

@@ -22,6 +22,29 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: limit
 pretty_name: LiMiT
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: sentence
+    dtype: string
+  - name: motion
+    dtype: string
+  - name: motion_entities
+    list:
+    - name: entity
+      dtype: string
+    - name: start_index
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 139742
+    num_examples: 1000
+  - name: train
+    num_bytes: 3064208
+    num_examples: 23559
+  download_size: 4214925
+  dataset_size: 3203950
 ---
 
 # Dataset Card for LiMiT

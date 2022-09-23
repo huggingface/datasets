@@ -14,44 +14,80 @@ train-eval-index:
     sentence: text
     relation: target
   metrics:
-    - type: accuracy
-      name: Accuracy
-    - type: f1
-      name: F1 macro
-      args:
-        average: macro
-    - type: f1
-      name: F1 micro
-      args:
-        average: micro
-    - type: f1
-      name: F1 weighted
-      args:
-        average: weighted
-    - type: precision
-      name: Precision macro
-      args:
-        average: macro
-    - type: precision
-      name: Precision micro
-      args:
-        average: micro
-    - type: precision
-      name: Precision weighted
-      args:
-        average: weighted
-    - type: recall
-      name: Recall macro
-      args:
-        average: macro
-    - type: recall
-      name: Recall micro
-      args:
-        average: micro
-    - type: recall
-      name: Recall weighted
-      args:
-        average: weighted
+  - type: accuracy
+    name: Accuracy
+  - type: f1
+    name: F1 macro
+    args:
+      average: macro
+  - type: f1
+    name: F1 micro
+    args:
+      average: micro
+  - type: f1
+    name: F1 weighted
+    args:
+      average: weighted
+  - type: precision
+    name: Precision macro
+    args:
+      average: macro
+  - type: precision
+    name: Precision micro
+    args:
+      average: micro
+  - type: precision
+    name: Precision weighted
+    args:
+      average: weighted
+  - type: recall
+    name: Recall macro
+    args:
+      average: macro
+  - type: recall
+    name: Recall micro
+    args:
+      average: micro
+  - type: recall
+    name: Recall weighted
+    args:
+      average: weighted
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  - name: relation
+    dtype:
+      class_label:
+        names:
+          0: Cause-Effect(e1,e2)
+          1: Cause-Effect(e2,e1)
+          2: Component-Whole(e1,e2)
+          3: Component-Whole(e2,e1)
+          4: Content-Container(e1,e2)
+          5: Content-Container(e2,e1)
+          6: Entity-Destination(e1,e2)
+          7: Entity-Destination(e2,e1)
+          8: Entity-Origin(e1,e2)
+          9: Entity-Origin(e2,e1)
+          10: Instrument-Agency(e1,e2)
+          11: Instrument-Agency(e2,e1)
+          12: Member-Collection(e1,e2)
+          13: Member-Collection(e2,e1)
+          14: Message-Topic(e1,e2)
+          15: Message-Topic(e2,e1)
+          16: Product-Producer(e1,e2)
+          17: Product-Producer(e2,e1)
+          18: Other
+  splits:
+  - name: test
+    num_bytes: 357075
+    num_examples: 2717
+  - name: train
+    num_bytes: 1054352
+    num_examples: 8000
+  download_size: 1964087
+  dataset_size: 1411427
 ---
 
 # Dataset Card for "sem_eval_2010_task_8"

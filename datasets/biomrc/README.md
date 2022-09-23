@@ -3,6 +3,149 @@ language:
 - en
 paperswithcode_id: biomrc
 pretty_name: BIOMRC
+dataset_info:
+- config_name: plain_text
+  features:
+  - name: abstract
+    dtype: string
+  - name: title
+    dtype: string
+  - name: entities_list
+    sequence: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 147832373
+    num_examples: 62707
+  - name: train
+    num_bytes: 1653301820
+    num_examples: 700000
+  - name: validation
+    num_bytes: 119697683
+    num_examples: 50000
+  download_size: 408080356
+  dataset_size: 1920831876
+- config_name: biomrc_large_A
+  features:
+  - name: abstract
+    dtype: string
+  - name: title
+    dtype: string
+  - name: entities_list
+    sequence: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 147832373
+    num_examples: 62707
+  - name: train
+    num_bytes: 1653301820
+    num_examples: 700000
+  - name: validation
+    num_bytes: 119697683
+    num_examples: 50000
+  download_size: 408080356
+  dataset_size: 1920831876
+- config_name: biomrc_large_B
+  features:
+  - name: abstract
+    dtype: string
+  - name: title
+    dtype: string
+  - name: entities_list
+    sequence: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 118708586
+    num_examples: 62707
+  - name: train
+    num_bytes: 1325877001
+    num_examples: 700000
+  - name: validation
+    num_bytes: 96414040
+    num_examples: 50000
+  download_size: 343061539
+  dataset_size: 1540999627
+- config_name: biomrc_small_A
+  features:
+  - name: abstract
+    dtype: string
+  - name: title
+    dtype: string
+  - name: entities_list
+    sequence: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 14807799
+    num_examples: 6250
+  - name: train
+    num_bytes: 206553549
+    num_examples: 87500
+  - name: validation
+    num_bytes: 14957163
+    num_examples: 6250
+  download_size: 68879274
+  dataset_size: 236318511
+- config_name: biomrc_small_B
+  features:
+  - name: abstract
+    dtype: string
+  - name: title
+    dtype: string
+  - name: entities_list
+    sequence: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 11911172
+    num_examples: 6250
+  - name: train
+    num_bytes: 165662937
+    num_examples: 87500
+  - name: validation
+    num_bytes: 12047304
+    num_examples: 6250
+  download_size: 57706889
+  dataset_size: 189621413
+- config_name: biomrc_tiny_A
+  features:
+  - name: abstract
+    dtype: string
+  - name: title
+    dtype: string
+  - name: entities_list
+    sequence: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 70914
+    num_examples: 30
+  download_size: 22519
+  dataset_size: 70914
+- config_name: biomrc_tiny_B
+  features:
+  - name: abstract
+    dtype: string
+  - name: title
+    dtype: string
+  - name: entities_list
+    sequence: string
+  - name: answer
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 59925
+    num_examples: 30
+  download_size: 19685
+  dataset_size: 59925
 ---
 
 # Dataset Card for "biomrc"

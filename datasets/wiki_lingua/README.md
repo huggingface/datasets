@@ -55,6 +55,399 @@ configs:
 - thai
 - turkish
 - vietnamese
+dataset_info:
+- config_name: arabic
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 119116119
+    num_examples: 9995
+  download_size: 119358890
+  dataset_size: 119116119
+- config_name: chinese
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 41170689
+    num_examples: 6541
+  download_size: 41345464
+  dataset_size: 41170689
+- config_name: czech
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 20816390
+    num_examples: 2520
+  download_size: 20894511
+  dataset_size: 20816390
+- config_name: dutch
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 87258040
+    num_examples: 10862
+  download_size: 87533442
+  dataset_size: 87258040
+- config_name: english
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 333700114
+    num_examples: 57945
+  download_size: 338036185
+  dataset_size: 333700114
+- config_name: french
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 197550376
+    num_examples: 21690
+  download_size: 198114157
+  dataset_size: 197550376
+- config_name: german
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 168674340
+    num_examples: 20103
+  download_size: 169195050
+  dataset_size: 168674340
+- config_name: hindi
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 63785051
+    num_examples: 3402
+  download_size: 63874759
+  dataset_size: 63785051
+- config_name: indonesian
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 136408861
+    num_examples: 16308
+  download_size: 136833587
+  dataset_size: 136408861
+- config_name: italian
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 138119527
+    num_examples: 17673
+  download_size: 138578956
+  dataset_size: 138119527
+- config_name: japanese
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 40145031
+    num_examples: 4372
+  download_size: 40259570
+  dataset_size: 40145031
+- config_name: korean
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 38647614
+    num_examples: 4111
+  download_size: 38748961
+  dataset_size: 38647614
+- config_name: portuguese
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 204270845
+    num_examples: 28143
+  download_size: 204997686
+  dataset_size: 204270845
+- config_name: russian
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 241924032
+    num_examples: 18143
+  download_size: 242377242
+  dataset_size: 241924032
+- config_name: spanish
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 314618618
+    num_examples: 38795
+  download_size: 315609530
+  dataset_size: 314618618
+- config_name: thai
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 86982851
+    num_examples: 5093
+  download_size: 87104200
+  dataset_size: 86982851
+- config_name: turkish
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 11371821
+    num_examples: 1512
+  download_size: 11405793
+  dataset_size: 11371821
+- config_name: vietnamese
+  features:
+  - name: url
+    dtype: string
+  - name: article
+    sequence:
+    - name: section_name
+      dtype: string
+    - name: document
+      dtype: string
+    - name: summary
+      dtype: string
+    - name: english_url
+      dtype: string
+    - name: english_section_name
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 69868788
+    num_examples: 6616
+  download_size: 70024093
+  dataset_size: 69868788
 ---
 # Dataset Card for "wiki_lingua"
 

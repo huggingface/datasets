@@ -19,6 +19,23 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: GigaFren
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - fr
+  config_name: en-fr
+  splits:
+  - name: train
+    num_bytes: 8690296821
+    num_examples: 22519904
+  download_size: 2701536198
+  dataset_size: 8690296821
 ---
 
 # Dataset Card for GigaFren

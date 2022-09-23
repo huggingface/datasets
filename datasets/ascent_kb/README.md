@@ -19,6 +19,67 @@ task_ids:
 - other-other-knowledge-base
 paperswithcode_id: ascentkb
 pretty_name: Ascent KB
+dataset_info:
+- config_name: canonical
+  features:
+  - name: arg1
+    dtype: string
+  - name: rel
+    dtype: string
+  - name: arg2
+    dtype: string
+  - name: support
+    dtype: int64
+  - name: facets
+    list:
+    - name: value
+      dtype: string
+    - name: type
+      dtype: string
+    - name: support
+      dtype: int64
+  - name: source_sentences
+    list:
+    - name: text
+      dtype: string
+    - name: source
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 2976697816
+    num_examples: 8904060
+  download_size: 710727536
+  dataset_size: 2976697816
+- config_name: open
+  features:
+  - name: subject
+    dtype: string
+  - name: predicate
+    dtype: string
+  - name: object
+    dtype: string
+  - name: support
+    dtype: int64
+  - name: facets
+    list:
+    - name: value
+      dtype: string
+    - name: type
+      dtype: string
+    - name: support
+      dtype: int64
+  - name: source_sentences
+    list:
+    - name: text
+      dtype: string
+    - name: source
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 2882678298
+    num_examples: 8904060
+  download_size: 710727536
+  dataset_size: 2882678298
 ---
 
 # Dataset Card for Ascent KB

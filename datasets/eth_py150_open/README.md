@@ -19,6 +19,25 @@ task_ids:
 - other-other-contextual-embeddings
 paperswithcode_id: eth-py150-open
 pretty_name: ethpy150open
+dataset_info:
+  features:
+  - name: filepath
+    dtype: string
+  - name: license
+    dtype: string
+  config_name: eth_py150_open
+  splits:
+  - name: test
+    num_bytes: 3006199
+    num_examples: 41457
+  - name: train
+    num_bytes: 5414978
+    num_examples: 74749
+  - name: validation
+    num_bytes: 598524
+    num_examples: 8302
+  download_size: 13875671
+  dataset_size: 9019701
 ---
 
 # Dataset Card for ethpy150open

@@ -19,6 +19,31 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: IdPanlBppt
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - id
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Economy
+          1: International
+          2: Science
+          3: Sport
+  config_name: id_panl_bppt
+  splits:
+  - name: train
+    num_bytes: 7455924
+    num_examples: 24021
+  download_size: 2366973
+  dataset_size: 7455924
 ---
 
 # Dataset Card for [Dataset Name]

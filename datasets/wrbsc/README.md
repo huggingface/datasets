@@ -19,6 +19,38 @@ task_ids:
 - semantic-similarity-classification
 paperswithcode_id: null
 pretty_name: wrbsc
+dataset_info:
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: relationship
+    dtype:
+      class_label:
+        names:
+          0: Krzyżowanie_się
+          1: Tło_historyczne
+          2: Źródło
+          3: Dalsze_informacje
+          4: Zawieranie
+          5: Opis
+          6: Uszczegółowienie
+          7: Parafraza
+          8: Spełnienie
+          9: Mowa_zależna
+          10: Zmiana_poglądu
+          11: Streszczenie
+          12: Tożsamość
+          13: Sprzeczność
+          14: Modalność
+          15: Cytowanie
+  splits:
+  - name: train
+    num_bytes: 779881
+    num_examples: 2827
+  download_size: 1273815
+  dataset_size: 779881
 ---
 
 # Dataset Card for wrbsc

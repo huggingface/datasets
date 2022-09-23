@@ -19,6 +19,32 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: linnaeus
 pretty_name: LINNAEUS
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B
+          2: I
+  config_name: linnaeus
+  splits:
+  - name: test
+    num_bytes: 2802877
+    num_examples: 7143
+  - name: train
+    num_bytes: 4772417
+    num_examples: 11936
+  - name: validation
+    num_bytes: 1592823
+    num_examples: 4079
+  download_size: 18204624
+  dataset_size: 9168117
 ---
 
 # Dataset Card for [Dataset Name]

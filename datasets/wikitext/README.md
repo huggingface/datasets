@@ -22,6 +22,71 @@ task_categories:
 task_ids:
 - language-modeling
 - masked-language-modeling
+dataset_info:
+- config_name: wikitext-103-v1
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1295579
+    num_examples: 4358
+  - name: train
+    num_bytes: 545142639
+    num_examples: 1801350
+  - name: validation
+    num_bytes: 1154755
+    num_examples: 3760
+  download_size: 190229076
+  dataset_size: 547592973
+- config_name: wikitext-2-v1
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1270951
+    num_examples: 4358
+  - name: train
+    num_bytes: 10918134
+    num_examples: 36718
+  - name: validation
+    num_bytes: 1134127
+    num_examples: 3760
+  download_size: 4475746
+  dataset_size: 13323212
+- config_name: wikitext-103-raw-v1
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1305092
+    num_examples: 4358
+  - name: train
+    num_bytes: 546501673
+    num_examples: 1801350
+  - name: validation
+    num_bytes: 1159292
+    num_examples: 3760
+  download_size: 191984949
+  dataset_size: 548966057
+- config_name: wikitext-2-raw-v1
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1305092
+    num_examples: 4358
+  - name: train
+    num_bytes: 11061733
+    num_examples: 36718
+  - name: validation
+    num_bytes: 1159292
+    num_examples: 3760
+  download_size: 4721645
+  dataset_size: 13526117
 ---
 
 # Dataset Card for "wikitext"

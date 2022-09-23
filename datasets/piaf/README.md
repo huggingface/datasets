@@ -22,6 +22,29 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: null
 pretty_name: Piaf
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 3332905
+    num_examples: 3835
+  download_size: 1370384
+  dataset_size: 3332905
 ---
 
 # Dataset Card for Piaf

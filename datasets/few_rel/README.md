@@ -24,6 +24,66 @@ pretty_name: Few-Shot Relation Classification Dataset
 configs:
 - default
 - pid2name
+dataset_info:
+- config_name: default
+  features:
+  - name: relation
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: head
+    struct:
+    - name: text
+      dtype: string
+    - name: type
+      dtype: string
+    - name: indices
+      sequence:
+        sequence: int64
+  - name: tail
+    struct:
+    - name: text
+      dtype: string
+    - name: type
+      dtype: string
+    - name: indices
+      sequence:
+        sequence: int64
+  - name: names
+    sequence: string
+  splits:
+  - name: pubmed_unsupervised
+    num_bytes: 1117703
+    num_examples: 2500
+  - name: train_wiki
+    num_bytes: 19923155
+    num_examples: 44800
+  - name: val_nyt
+    num_bytes: 1385642
+    num_examples: 2500
+  - name: val_pubmed
+    num_bytes: 488502
+    num_examples: 1000
+  - name: val_semeval
+    num_bytes: 2646249
+    num_examples: 8851
+  - name: val_wiki
+    num_bytes: 5147348
+    num_examples: 11200
+  download_size: 22674323
+  dataset_size: 30708599
+- config_name: pid2name
+  features:
+  - name: relation
+    dtype: string
+  - name: names
+    sequence: string
+  splits:
+  - name: pid2name
+    num_bytes: 81607
+    num_examples: 744
+  download_size: 22674323
+  dataset_size: 81607
 ---
 
 # Dataset Card for few_rel

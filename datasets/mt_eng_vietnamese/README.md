@@ -19,6 +19,47 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: MtEngVietnamese
+dataset_info:
+- config_name: iwslt2015-vi-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - vi
+        - en
+  splits:
+  - name: test
+    num_bytes: 323743
+    num_examples: 1269
+  - name: train
+    num_bytes: 32478282
+    num_examples: 133318
+  - name: validation
+    num_bytes: 323743
+    num_examples: 1269
+  download_size: 32323025
+  dataset_size: 33125768
+- config_name: iwslt2015-en-vi
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - vi
+  splits:
+  - name: test
+    num_bytes: 323743
+    num_examples: 1269
+  - name: train
+    num_bytes: 32478282
+    num_examples: 133318
+  - name: validation
+    num_bytes: 323743
+    num_examples: 1269
+  download_size: 32323025
+  dataset_size: 33125768
 ---
 
 # Dataset Card for mt_eng_vietnamese

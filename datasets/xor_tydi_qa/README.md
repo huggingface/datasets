@@ -27,6 +27,65 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: xor-tydi-qa
 pretty_name: XOR QA
+dataset_info:
+- config_name: xor-retrieve
+  features:
+  - name: question
+    dtype: string
+  - name: lang
+    dtype:
+      class_label:
+        names:
+          0: ar
+          1: bn
+          2: fi
+          3: ja
+          4: ko
+          5: ru
+          6: te
+  - name: answers
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 219046
+    num_examples: 2499
+  - name: train
+    num_bytes: 1698662
+    num_examples: 15250
+  - name: validation
+    num_bytes: 259533
+    num_examples: 2110
+  download_size: 3702288
+  dataset_size: 2177241
+- config_name: xor-full
+  features:
+  - name: question
+    dtype: string
+  - name: lang
+    dtype:
+      class_label:
+        names:
+          0: ar
+          1: bn
+          2: fi
+          3: ja
+          4: ko
+          5: ru
+          6: te
+  - name: answers
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 706664
+    num_examples: 8176
+  - name: train
+    num_bytes: 7250913
+    num_examples: 61360
+  - name: validation
+    num_bytes: 444672
+    num_examples: 3473
+  download_size: 14018298
+  dataset_size: 8402249
 ---
 
 # Dataset Card for XOR QA

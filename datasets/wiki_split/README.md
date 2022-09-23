@@ -19,6 +19,26 @@ task_categories:
 task_ids:
 - text2text-generation-other-split-and-rephrase
 paperswithcode_id: wikisplit
+dataset_info:
+  features:
+  - name: complex_sentence
+    dtype: string
+  - name: simple_sentence_1
+    dtype: string
+  - name: simple_sentence_2
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1949294
+    num_examples: 5000
+  - name: train
+    num_bytes: 384513073
+    num_examples: 989944
+  - name: validation
+    num_bytes: 1935459
+    num_examples: 5000
+  download_size: 100279164
+  dataset_size: 388397826
 ---
 
 # Dataset Card for "wiki_split"

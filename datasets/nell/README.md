@@ -30,6 +30,123 @@ configs:
 - nell_belief_sentences
 - nell_candidate
 - nell_candidate_sentences
+dataset_info:
+- config_name: nell_belief
+  features:
+  - name: entity
+    dtype: string
+  - name: relation
+    dtype: string
+  - name: value
+    dtype: string
+  - name: iteration_of_promotion
+    dtype: string
+  - name: score
+    dtype: string
+  - name: source
+    dtype: string
+  - name: entity_literal_strings
+    dtype: string
+  - name: value_literal_strings
+    dtype: string
+  - name: best_entity_literal_string
+    dtype: string
+  - name: best_value_literal_string
+    dtype: string
+  - name: categories_for_entity
+    dtype: string
+  - name: categories_for_value
+    dtype: string
+  - name: candidate_source
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4592559704
+    num_examples: 2766079
+  download_size: 929107246
+  dataset_size: 4592559704
+- config_name: nell_candidate
+  features:
+  - name: entity
+    dtype: string
+  - name: relation
+    dtype: string
+  - name: value
+    dtype: string
+  - name: iteration_of_promotion
+    dtype: string
+  - name: score
+    dtype: string
+  - name: source
+    dtype: string
+  - name: entity_literal_strings
+    dtype: string
+  - name: value_literal_strings
+    dtype: string
+  - name: best_entity_literal_string
+    dtype: string
+  - name: best_value_literal_string
+    dtype: string
+  - name: categories_for_entity
+    dtype: string
+  - name: categories_for_value
+    dtype: string
+  - name: candidate_source
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 23497433060
+    num_examples: 32687353
+  download_size: 2687057812
+  dataset_size: 23497433060
+- config_name: nell_belief_sentences
+  features:
+  - name: entity
+    dtype: string
+  - name: relation
+    dtype: string
+  - name: value
+    dtype: string
+  - name: score
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: count
+    dtype: int32
+  - name: url
+    dtype: string
+  - name: sentence_type
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4459368426
+    num_examples: 21031531
+  download_size: 929107246
+  dataset_size: 4459368426
+- config_name: nell_candidate_sentences
+  features:
+  - name: entity
+    dtype: string
+  - name: relation
+    dtype: string
+  - name: value
+    dtype: string
+  - name: score
+    dtype: string
+  - name: sentence
+    dtype: string
+  - name: count
+    dtype: int32
+  - name: url
+    dtype: string
+  - name: sentence_type
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 20058197787
+    num_examples: 100866414
+  download_size: 2687057812
+  dataset_size: 20058197787
 ---
 
 # Dataset Card for Never Ending Language Learning (NELL)

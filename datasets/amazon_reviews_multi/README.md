@@ -42,6 +42,217 @@ configs:
 - fr
 - ja
 - zh
+dataset_info:
+- config_name: all_languages
+  features:
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: reviewer_id
+    dtype: string
+  - name: stars
+    dtype: int32
+  - name: review_body
+    dtype: string
+  - name: review_title
+    dtype: string
+  - name: language
+    dtype: string
+  - name: product_category
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 9099141
+    num_examples: 30000
+  - name: train
+    num_bytes: 364405048
+    num_examples: 1200000
+  - name: validation
+    num_bytes: 9047533
+    num_examples: 30000
+  download_size: 640320386
+  dataset_size: 382551722
+- config_name: de
+  features:
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: reviewer_id
+    dtype: string
+  - name: stars
+    dtype: int32
+  - name: review_body
+    dtype: string
+  - name: review_title
+    dtype: string
+  - name: language
+    dtype: string
+  - name: product_category
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1611044
+    num_examples: 5000
+  - name: train
+    num_bytes: 64485678
+    num_examples: 200000
+  - name: validation
+    num_bytes: 1605727
+    num_examples: 5000
+  download_size: 94802490
+  dataset_size: 67702449
+- config_name: en
+  features:
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: reviewer_id
+    dtype: string
+  - name: stars
+    dtype: int32
+  - name: review_body
+    dtype: string
+  - name: review_title
+    dtype: string
+  - name: language
+    dtype: string
+  - name: product_category
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1460565
+    num_examples: 5000
+  - name: train
+    num_bytes: 58601089
+    num_examples: 200000
+  - name: validation
+    num_bytes: 1474672
+    num_examples: 5000
+  download_size: 86094112
+  dataset_size: 61536326
+- config_name: es
+  features:
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: reviewer_id
+    dtype: string
+  - name: stars
+    dtype: int32
+  - name: review_body
+    dtype: string
+  - name: review_title
+    dtype: string
+  - name: language
+    dtype: string
+  - name: product_category
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1312347
+    num_examples: 5000
+  - name: train
+    num_bytes: 52375658
+    num_examples: 200000
+  - name: validation
+    num_bytes: 1303958
+    num_examples: 5000
+  download_size: 81345461
+  dataset_size: 54991963
+- config_name: fr
+  features:
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: reviewer_id
+    dtype: string
+  - name: stars
+    dtype: int32
+  - name: review_body
+    dtype: string
+  - name: review_title
+    dtype: string
+  - name: language
+    dtype: string
+  - name: product_category
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1364510
+    num_examples: 5000
+  - name: train
+    num_bytes: 54593565
+    num_examples: 200000
+  - name: validation
+    num_bytes: 1340763
+    num_examples: 5000
+  download_size: 85917293
+  dataset_size: 57298838
+- config_name: ja
+  features:
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: reviewer_id
+    dtype: string
+  - name: stars
+    dtype: int32
+  - name: review_body
+    dtype: string
+  - name: review_title
+    dtype: string
+  - name: language
+    dtype: string
+  - name: product_category
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2048048
+    num_examples: 5000
+  - name: train
+    num_bytes: 82401390
+    num_examples: 200000
+  - name: validation
+    num_bytes: 2035391
+    num_examples: 5000
+  download_size: 177773783
+  dataset_size: 86484829
+- config_name: zh
+  features:
+  - name: review_id
+    dtype: string
+  - name: product_id
+    dtype: string
+  - name: reviewer_id
+    dtype: string
+  - name: stars
+    dtype: int32
+  - name: review_body
+    dtype: string
+  - name: review_title
+    dtype: string
+  - name: language
+    dtype: string
+  - name: product_category
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1302711
+    num_examples: 5000
+  - name: train
+    num_bytes: 51947668
+    num_examples: 200000
+  - name: validation
+    num_bytes: 1287106
+    num_examples: 5000
+  download_size: 114387247
+  dataset_size: 54537485
 ---
 
 # Dataset Card for The Multilingual Amazon Reviews Corpus

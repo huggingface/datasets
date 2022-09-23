@@ -19,6 +19,34 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: commonsenseqa
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: question_concept
+    dtype: string
+  - name: choices
+    sequence:
+    - name: label
+      dtype: string
+    - name: text
+      dtype: string
+  - name: answerKey
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 258017
+    num_examples: 1140
+  - name: train
+    num_bytes: 2209044
+    num_examples: 9741
+  - name: validation
+    num_bytes: 274033
+    num_examples: 1221
+  download_size: 4680691
+  dataset_size: 2741094
 ---
 
 # Dataset Card for "commonsense_qa"

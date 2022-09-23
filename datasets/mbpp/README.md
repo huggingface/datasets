@@ -20,6 +20,65 @@ task_categories:
 - text2text-generation
 task_ids:
 - text2text-generation-other-code-generation
+dataset_info:
+- config_name: full
+  features:
+  - name: task_id
+    dtype: int32
+  - name: text
+    dtype: string
+  - name: code
+    dtype: string
+  - name: test_list
+    sequence: string
+  - name: test_setup_code
+    dtype: string
+  - name: challenge_test_list
+    sequence: string
+  splits:
+  - name: prompt
+    num_bytes: 4550
+    num_examples: 10
+  - name: test
+    num_bytes: 244104
+    num_examples: 500
+  - name: train
+    num_bytes: 176879
+    num_examples: 374
+  - name: validation
+    num_bytes: 42405
+    num_examples: 90
+  download_size: 563743
+  dataset_size: 467938
+- config_name: sanitized
+  features:
+  - name: source_file
+    dtype: string
+  - name: task_id
+    dtype: int32
+  - name: prompt
+    dtype: string
+  - name: code
+    dtype: string
+  - name: test_imports
+    sequence: string
+  - name: test_list
+    sequence: string
+  splits:
+  - name: prompt
+    num_bytes: 3407
+    num_examples: 7
+  - name: test
+    num_bytes: 132720
+    num_examples: 257
+  - name: train
+    num_bytes: 63453
+    num_examples: 120
+  - name: validation
+    num_bytes: 20050
+    num_examples: 43
+  download_size: 255053
+  dataset_size: 219630
 ---
 
 # Dataset Card for Mostly Basic Python Problems (mbpp)
@@ -192,4 +251,3 @@ CC-BY-4.0
 ```
 ### Contributions
 Thanks to [@lvwerra](https://github.com/lvwerra) for adding this dataset.
-

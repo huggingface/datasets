@@ -19,6 +19,25 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: null
 pretty_name: cdt
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  - name: target
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 109681
+    num_examples: 1000
+  - name: train
+    num_bytes: 1104322
+    num_examples: 10041
+  download_size: 375476
+  dataset_size: 1214003
 ---
 
 # Dataset Card for [Dataset Name]

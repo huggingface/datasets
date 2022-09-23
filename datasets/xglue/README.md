@@ -33,7 +33,7 @@ license:
 - cc-by-nc-4.0
 - cc-by-sa-4.0
 - other
-license_details: "Licence Universal Dependencies v2.5"
+license_details: Licence Universal Dependencies v2.5
 multilinguality:
 - multilingual
 - translation
@@ -76,6 +76,683 @@ configs:
 - qg
 - wpr
 - xnli
+dataset_info:
+- config_name: ner
+  features:
+  - name: words
+    sequence: string
+  - name: ner
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  splits:
+  - name: test.de
+    num_bytes: 922741
+    num_examples: 3007
+  - name: test.en
+    num_bytes: 784976
+    num_examples: 3454
+  - name: test.es
+    num_bytes: 864804
+    num_examples: 1523
+  - name: test.nl
+    num_bytes: 1196660
+    num_examples: 5202
+  - name: train
+    num_bytes: 3445854
+    num_examples: 14042
+  - name: validation.de
+    num_bytes: 917967
+    num_examples: 2874
+  - name: validation.en
+    num_bytes: 866569
+    num_examples: 3252
+  - name: validation.es
+    num_bytes: 888551
+    num_examples: 1923
+  - name: validation.nl
+    num_bytes: 659144
+    num_examples: 2895
+  download_size: 875905871
+  dataset_size: 10547266
+- config_name: pos
+  features:
+  - name: words
+    sequence: string
+  - name: pos
+    sequence:
+      class_label:
+        names:
+          0: ADJ
+          1: ADP
+          2: ADV
+          3: AUX
+          4: CCONJ
+          5: DET
+          6: INTJ
+          7: NOUN
+          8: NUM
+          9: PART
+          10: PRON
+          11: PROPN
+          12: PUNCT
+          13: SCONJ
+          14: SYM
+          15: VERB
+          16: X
+  splits:
+  - name: test.ar
+    num_bytes: 561709
+    num_examples: 679
+  - name: test.bg
+    num_bytes: 339460
+    num_examples: 1115
+  - name: test.de
+    num_bytes: 291759
+    num_examples: 976
+  - name: test.el
+    num_bytes: 235137
+    num_examples: 455
+  - name: test.en
+    num_bytes: 420613
+    num_examples: 2076
+  - name: test.es
+    num_bytes: 200003
+    num_examples: 425
+  - name: test.fr
+    num_bytes: 166865
+    num_examples: 415
+  - name: test.hi
+    num_bytes: 839659
+    num_examples: 1683
+  - name: test.it
+    num_bytes: 173861
+    num_examples: 481
+  - name: test.nl
+    num_bytes: 193337
+    num_examples: 595
+  - name: test.pl
+    num_bytes: 600534
+    num_examples: 2214
+  - name: test.ru
+    num_bytes: 255393
+    num_examples: 600
+  - name: test.th
+    num_bytes: 272834
+    num_examples: 497
+  - name: test.tr
+    num_bytes: 186519
+    num_examples: 982
+  - name: test.ur
+    num_bytes: 288189
+    num_examples: 534
+  - name: test.vi
+    num_bytes: 211408
+    num_examples: 799
+  - name: test.zh
+    num_bytes: 202055
+    num_examples: 499
+  - name: train
+    num_bytes: 7279459
+    num_examples: 25376
+  - name: validation.ar
+    num_bytes: 592943
+    num_examples: 908
+  - name: validation.bg
+    num_bytes: 346802
+    num_examples: 1114
+  - name: validation.de
+    num_bytes: 219328
+    num_examples: 798
+  - name: validation.el
+    num_bytes: 229447
+    num_examples: 402
+  - name: validation.en
+    num_bytes: 421410
+    num_examples: 2001
+  - name: validation.es
+    num_bytes: 620491
+    num_examples: 1399
+  - name: validation.fr
+    num_bytes: 600964
+    num_examples: 1475
+  - name: validation.hi
+    num_bytes: 838700
+    num_examples: 1658
+  - name: validation.it
+    num_bytes: 198608
+    num_examples: 563
+  - name: validation.nl
+    num_bytes: 198003
+    num_examples: 717
+  - name: validation.pl
+    num_bytes: 620694
+    num_examples: 2214
+  - name: validation.ru
+    num_bytes: 261563
+    num_examples: 578
+  - name: validation.th
+    num_bytes: 272834
+    num_examples: 497
+  - name: validation.tr
+    num_bytes: 186196
+    num_examples: 987
+  - name: validation.ur
+    num_bytes: 284016
+    num_examples: 551
+  - name: validation.vi
+    num_bytes: 203669
+    num_examples: 799
+  - name: validation.zh
+    num_bytes: 212579
+    num_examples: 499
+  download_size: 875905871
+  dataset_size: 19027041
+- config_name: mlqa
+  features:
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: answer_start
+      dtype: int32
+    - name: text
+      dtype: string
+  splits:
+  - name: test.ar
+    num_bytes: 7976090
+    num_examples: 5335
+  - name: test.de
+    num_bytes: 4070659
+    num_examples: 4517
+  - name: test.en
+    num_bytes: 13264513
+    num_examples: 11590
+  - name: test.es
+    num_bytes: 4044224
+    num_examples: 5253
+  - name: test.hi
+    num_bytes: 11385051
+    num_examples: 4918
+  - name: test.vi
+    num_bytes: 7559078
+    num_examples: 5495
+  - name: test.zh
+    num_bytes: 4092921
+    num_examples: 5137
+  - name: train
+    num_bytes: 75307933
+    num_examples: 87599
+  - name: validation.ar
+    num_bytes: 785493
+    num_examples: 517
+  - name: validation.de
+    num_bytes: 454258
+    num_examples: 512
+  - name: validation.en
+    num_bytes: 1255587
+    num_examples: 1148
+  - name: validation.es
+    num_bytes: 388625
+    num_examples: 500
+  - name: validation.hi
+    num_bytes: 1092167
+    num_examples: 507
+  - name: validation.vi
+    num_bytes: 692227
+    num_examples: 511
+  - name: validation.zh
+    num_bytes: 411213
+    num_examples: 504
+  download_size: 875905871
+  dataset_size: 132780039
+- config_name: nc
+  features:
+  - name: news_title
+    dtype: string
+  - name: news_body
+    dtype: string
+  - name: news_category
+    dtype:
+      class_label:
+        names:
+          0: foodanddrink
+          1: sports
+          2: travel
+          3: finance
+          4: lifestyle
+          5: news
+          6: entertainment
+          7: health
+          8: video
+          9: autos
+  splits:
+  - name: test.de
+    num_bytes: 26632007
+    num_examples: 10000
+  - name: test.en
+    num_bytes: 34437987
+    num_examples: 10000
+  - name: test.es
+    num_bytes: 31350078
+    num_examples: 10000
+  - name: test.fr
+    num_bytes: 27589545
+    num_examples: 10000
+  - name: test.ru
+    num_bytes: 46183830
+    num_examples: 10000
+  - name: train
+    num_bytes: 280615806
+    num_examples: 100000
+  - name: validation.de
+    num_bytes: 26757254
+    num_examples: 10000
+  - name: validation.en
+    num_bytes: 33389140
+    num_examples: 10000
+  - name: validation.es
+    num_bytes: 31781308
+    num_examples: 10000
+  - name: validation.fr
+    num_bytes: 27154099
+    num_examples: 10000
+  - name: validation.ru
+    num_bytes: 46053007
+    num_examples: 10000
+  download_size: 875905871
+  dataset_size: 611944061
+- config_name: xnli
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test.ar
+    num_bytes: 1294561
+    num_examples: 5010
+  - name: test.bg
+    num_bytes: 1573042
+    num_examples: 5010
+  - name: test.de
+    num_bytes: 996487
+    num_examples: 5010
+  - name: test.el
+    num_bytes: 1704793
+    num_examples: 5010
+  - name: test.en
+    num_bytes: 875142
+    num_examples: 5010
+  - name: test.es
+    num_bytes: 969821
+    num_examples: 5010
+  - name: test.fr
+    num_bytes: 1029247
+    num_examples: 5010
+  - name: test.hi
+    num_bytes: 2073081
+    num_examples: 5010
+  - name: test.ru
+    num_bytes: 1603474
+    num_examples: 5010
+  - name: test.sw
+    num_bytes: 871659
+    num_examples: 5010
+  - name: test.th
+    num_bytes: 2147023
+    num_examples: 5010
+  - name: test.tr
+    num_bytes: 934942
+    num_examples: 5010
+  - name: test.ur
+    num_bytes: 1416246
+    num_examples: 5010
+  - name: test.vi
+    num_bytes: 1190225
+    num_examples: 5010
+  - name: test.zh
+    num_bytes: 777937
+    num_examples: 5010
+  - name: train
+    num_bytes: 74444346
+    num_examples: 392702
+  - name: validation.ar
+    num_bytes: 633009
+    num_examples: 2490
+  - name: validation.bg
+    num_bytes: 774069
+    num_examples: 2490
+  - name: validation.de
+    num_bytes: 494612
+    num_examples: 2490
+  - name: validation.el
+    num_bytes: 841234
+    num_examples: 2490
+  - name: validation.en
+    num_bytes: 433471
+    num_examples: 2490
+  - name: validation.es
+    num_bytes: 478430
+    num_examples: 2490
+  - name: validation.fr
+    num_bytes: 510112
+    num_examples: 2490
+  - name: validation.hi
+    num_bytes: 1023923
+    num_examples: 2490
+  - name: validation.ru
+    num_bytes: 786450
+    num_examples: 2490
+  - name: validation.sw
+    num_bytes: 429858
+    num_examples: 2490
+  - name: validation.th
+    num_bytes: 1061168
+    num_examples: 2490
+  - name: validation.tr
+    num_bytes: 459316
+    num_examples: 2490
+  - name: validation.ur
+    num_bytes: 699960
+    num_examples: 2490
+  - name: validation.vi
+    num_bytes: 590688
+    num_examples: 2490
+  - name: validation.zh
+    num_bytes: 384859
+    num_examples: 2490
+  download_size: 875905871
+  dataset_size: 103503185
+- config_name: paws-x
+  features:
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: different
+          1: same
+  splits:
+  - name: test.de
+    num_bytes: 516214
+    num_examples: 2000
+  - name: test.en
+    num_bytes: 486734
+    num_examples: 2000
+  - name: test.es
+    num_bytes: 511111
+    num_examples: 2000
+  - name: test.fr
+    num_bytes: 527101
+    num_examples: 2000
+  - name: train
+    num_bytes: 12018349
+    num_examples: 49401
+  - name: validation.de
+    num_bytes: 506009
+    num_examples: 2000
+  - name: validation.en
+    num_bytes: 484287
+    num_examples: 2000
+  - name: validation.es
+    num_bytes: 505888
+    num_examples: 2000
+  - name: validation.fr
+    num_bytes: 525031
+    num_examples: 2000
+  download_size: 875905871
+  dataset_size: 16080724
+- config_name: qadsm
+  features:
+  - name: query
+    dtype: string
+  - name: ad_title
+    dtype: string
+  - name: ad_description
+    dtype: string
+  - name: relevance_label
+    dtype:
+      class_label:
+        names:
+          0: Bad
+          1: Good
+  splits:
+  - name: test.de
+    num_bytes: 1563985
+    num_examples: 10000
+  - name: test.en
+    num_bytes: 1236997
+    num_examples: 10000
+  - name: test.fr
+    num_bytes: 1594118
+    num_examples: 10000
+  - name: train
+    num_bytes: 12528141
+    num_examples: 100000
+  - name: validation.de
+    num_bytes: 1566011
+    num_examples: 10000
+  - name: validation.en
+    num_bytes: 1248839
+    num_examples: 10000
+  - name: validation.fr
+    num_bytes: 1651804
+    num_examples: 10000
+  download_size: 875905871
+  dataset_size: 21389895
+- config_name: wpr
+  features:
+  - name: query
+    dtype: string
+  - name: web_page_title
+    dtype: string
+  - name: web_page_snippet
+    dtype: string
+  - name: relavance_label
+    dtype:
+      class_label:
+        names:
+          0: Bad
+          1: Fair
+          2: Good
+          3: Excellent
+          4: Perfect
+  splits:
+  - name: test.de
+    num_bytes: 2923577
+    num_examples: 9997
+  - name: test.en
+    num_bytes: 3402487
+    num_examples: 10004
+  - name: test.es
+    num_bytes: 2422895
+    num_examples: 10006
+  - name: test.fr
+    num_bytes: 3059392
+    num_examples: 10020
+  - name: test.it
+    num_bytes: 2403736
+    num_examples: 10001
+  - name: test.pt
+    num_bytes: 2462350
+    num_examples: 10015
+  - name: test.zh
+    num_bytes: 3141598
+    num_examples: 9999
+  - name: train
+    num_bytes: 33885931
+    num_examples: 99997
+  - name: validation.de
+    num_bytes: 2929029
+    num_examples: 10004
+  - name: validation.en
+    num_bytes: 3417760
+    num_examples: 10008
+  - name: validation.es
+    num_bytes: 2451026
+    num_examples: 10004
+  - name: validation.fr
+    num_bytes: 3055899
+    num_examples: 10005
+  - name: validation.it
+    num_bytes: 2416388
+    num_examples: 10003
+  - name: validation.pt
+    num_bytes: 2449797
+    num_examples: 10001
+  - name: validation.zh
+    num_bytes: 3118577
+    num_examples: 10002
+  download_size: 875905871
+  dataset_size: 73540442
+- config_name: qam
+  features:
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'False'
+          1: 'True'
+  splits:
+  - name: test.de
+    num_bytes: 3309496
+    num_examples: 10000
+  - name: test.en
+    num_bytes: 3082297
+    num_examples: 10000
+  - name: test.fr
+    num_bytes: 3140213
+    num_examples: 10000
+  - name: train
+    num_bytes: 28357964
+    num_examples: 100000
+  - name: validation.de
+    num_bytes: 3304031
+    num_examples: 10000
+  - name: validation.en
+    num_bytes: 3085501
+    num_examples: 10000
+  - name: validation.fr
+    num_bytes: 3142833
+    num_examples: 10000
+  download_size: 875905871
+  dataset_size: 47422335
+- config_name: qg
+  features:
+  - name: answer_passage
+    dtype: string
+  - name: question
+    dtype: string
+  splits:
+  - name: test.de
+    num_bytes: 3270190
+    num_examples: 10000
+  - name: test.en
+    num_bytes: 3043813
+    num_examples: 10000
+  - name: test.es
+    num_bytes: 3353522
+    num_examples: 10000
+  - name: test.fr
+    num_bytes: 3178352
+    num_examples: 10000
+  - name: test.it
+    num_bytes: 3195684
+    num_examples: 10000
+  - name: test.pt
+    num_bytes: 3340296
+    num_examples: 10000
+  - name: train
+    num_bytes: 27464034
+    num_examples: 100000
+  - name: validation.de
+    num_bytes: 3270877
+    num_examples: 10000
+  - name: validation.en
+    num_bytes: 3047040
+    num_examples: 10000
+  - name: validation.es
+    num_bytes: 3341775
+    num_examples: 10000
+  - name: validation.fr
+    num_bytes: 3175615
+    num_examples: 10000
+  - name: validation.it
+    num_bytes: 3191193
+    num_examples: 10000
+  - name: validation.pt
+    num_bytes: 3328434
+    num_examples: 10000
+  download_size: 875905871
+  dataset_size: 66200825
+- config_name: ntg
+  features:
+  - name: news_body
+    dtype: string
+  - name: news_title
+    dtype: string
+  splits:
+  - name: test.de
+    num_bytes: 26738202
+    num_examples: 10000
+  - name: test.en
+    num_bytes: 33697284
+    num_examples: 10000
+  - name: test.es
+    num_bytes: 31111489
+    num_examples: 10000
+  - name: test.fr
+    num_bytes: 26997447
+    num_examples: 10000
+  - name: test.ru
+    num_bytes: 44050350
+    num_examples: 10000
+  - name: train
+    num_bytes: 890709581
+    num_examples: 300000
+  - name: validation.de
+    num_bytes: 27404379
+    num_examples: 10000
+  - name: validation.en
+    num_bytes: 34317076
+    num_examples: 10000
+  - name: validation.es
+    num_bytes: 30896109
+    num_examples: 10000
+  - name: validation.fr
+    num_bytes: 27261523
+    num_examples: 10000
+  - name: validation.ru
+    num_bytes: 43247386
+    num_examples: 10000
+  download_size: 875905871
+  dataset_size: 1216430826
 ---
 
 # Dataset Card for XGLUE

@@ -27,6 +27,237 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: NCHLT
+dataset_info:
+- config_name: af
+  features:
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: OUT
+          1: B-PERS
+          2: I-PERS
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  splits:
+  - name: train
+    num_bytes: 3955069
+    num_examples: 8961
+  download_size: 25748344
+  dataset_size: 3955069
+- config_name: nr
+  features:
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: OUT
+          1: B-PERS
+          2: I-PERS
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  splits:
+  - name: train
+    num_bytes: 3188781
+    num_examples: 9334
+  download_size: 20040327
+  dataset_size: 3188781
+- config_name: xh
+  features:
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: OUT
+          1: B-PERS
+          2: I-PERS
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  splits:
+  - name: train
+    num_bytes: 2365821
+    num_examples: 6283
+  download_size: 14513302
+  dataset_size: 2365821
+- config_name: zu
+  features:
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: OUT
+          1: B-PERS
+          2: I-PERS
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  splits:
+  - name: train
+    num_bytes: 3951366
+    num_examples: 10955
+  download_size: 25097584
+  dataset_size: 3951366
+- config_name: nso-sepedi
+  features:
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: OUT
+          1: B-PERS
+          2: I-PERS
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  splits:
+  - name: train
+    num_bytes: 3322296
+    num_examples: 7116
+  download_size: 22077376
+  dataset_size: 3322296
+- config_name: nso-sesotho
+  features:
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: OUT
+          1: B-PERS
+          2: I-PERS
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  splits:
+  - name: train
+    num_bytes: 4427898
+    num_examples: 9471
+  download_size: 30421109
+  dataset_size: 4427898
+- config_name: tn
+  features:
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: OUT
+          1: B-PERS
+          2: I-PERS
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  splits:
+  - name: train
+    num_bytes: 3812339
+    num_examples: 7943
+  download_size: 25905236
+  dataset_size: 3812339
+- config_name: ss
+  features:
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: OUT
+          1: B-PERS
+          2: I-PERS
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  splits:
+  - name: train
+    num_bytes: 3431063
+    num_examples: 10797
+  download_size: 21882224
+  dataset_size: 3431063
+- config_name: ve
+  features:
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: OUT
+          1: B-PERS
+          2: I-PERS
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  splits:
+  - name: train
+    num_bytes: 3941041
+    num_examples: 8477
+  download_size: 26382457
+  dataset_size: 3941041
+- config_name: ts
+  features:
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: OUT
+          1: B-PERS
+          2: I-PERS
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+          7: B-MISC
+          8: I-MISC
+  splits:
+  - name: train
+    num_bytes: 3941041
+    num_examples: 8477
+  download_size: 26382457
+  dataset_size: 3941041
 ---
 # Dataset Card for NCHLT
 

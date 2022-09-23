@@ -19,6 +19,44 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: freebaseqa
 pretty_name: FreebaseQA
+dataset_info:
+  features:
+  - name: Question-ID
+    dtype: string
+  - name: RawQuestion
+    dtype: string
+  - name: ProcessedQuestion
+    dtype: string
+  - name: Parses
+    sequence:
+    - name: Parse-Id
+      dtype: string
+    - name: PotentialTopicEntityMention
+      dtype: string
+    - name: TopicEntityName
+      dtype: string
+    - name: TopicEntityMid
+      dtype: string
+    - name: InferentialChain
+      dtype: string
+    - name: Answers
+      sequence:
+      - name: AnswersMid
+        dtype: string
+      - name: AnswersName
+        sequence: string
+  splits:
+  - name: test
+    num_bytes: 1987874
+    num_examples: 3996
+  - name: train
+    num_bytes: 10235375
+    num_examples: 20358
+  - name: validation
+    num_bytes: 1974114
+    num_examples: 3994
+  download_size: 33204999
+  dataset_size: 14197363
 ---
  
 # Dataset Card for FreebaseQA

@@ -19,6 +19,32 @@ task_ids:
 - extractive-qa
 paperswithcode_id: cmrc-2018
 pretty_name: Chinese Machine Reading Comprehension 2018
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 1606931
+    num_examples: 1002
+  - name: train
+    num_bytes: 15508110
+    num_examples: 10142
+  - name: validation
+    num_bytes: 5183809
+    num_examples: 3219
+  download_size: 11508117
+  dataset_size: 22298850
 ---
 
 # Dataset Card for "cmrc2018"

@@ -20,6 +20,28 @@ task_ids:
 - text-classification-other-discourse-analysis
 paperswithcode_id: null
 pretty_name: Discourse Analysis dataset
+dataset_info:
+  features:
+  - name: Story_no
+    dtype: int32
+  - name: Sentence
+    dtype: string
+  - name: Discourse Mode
+    dtype:
+      class_label:
+        names:
+          0: Argumentative
+          1: Descriptive
+          2: Dialogue
+          3: Informative
+          4: Narrative
+          5: Other
+  splits:
+  - name: train
+    num_bytes: 1998930
+    num_examples: 9968
+  download_size: 4176677
+  dataset_size: 1998930
 ---
 
 # Dataset Card for Discourse Analysis dataset

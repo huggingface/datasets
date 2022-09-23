@@ -525,6 +525,3991 @@ configs:
 - unshuffled_original_yo
 - unshuffled_original_yue
 - unshuffled_original_zh
+dataset_info:
+- config_name: unshuffled_deduplicated_af
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 171320914
+    num_examples: 130640
+  download_size: 65989254
+  dataset_size: 171320914
+- config_name: unshuffled_deduplicated_als
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2915912
+    num_examples: 4518
+  download_size: 1263294
+  dataset_size: 2915912
+- config_name: unshuffled_deduplicated_arz
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 34893248
+    num_examples: 79928
+  download_size: 10027493
+  dataset_size: 34893248
+- config_name: unshuffled_deduplicated_an
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 842246
+    num_examples: 2025
+  download_size: 133373
+  dataset_size: 842246
+- config_name: unshuffled_deduplicated_ast
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2150022
+    num_examples: 5343
+  download_size: 856177
+  dataset_size: 2150022
+- config_name: unshuffled_deduplicated_ba
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 93623739
+    num_examples: 27050
+  download_size: 25983491
+  dataset_size: 93623739
+- config_name: unshuffled_deduplicated_am
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 215618603
+    num_examples: 43102
+  download_size: 61347279
+  dataset_size: 215618603
+- config_name: unshuffled_deduplicated_as
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 73989818
+    num_examples: 9212
+  download_size: 15513004
+  dataset_size: 73989818
+- config_name: unshuffled_deduplicated_azb
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 20001183
+    num_examples: 9985
+  download_size: 5191704
+  dataset_size: 20001183
+- config_name: unshuffled_deduplicated_be
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1077152244
+    num_examples: 307405
+  download_size: 306700943
+  dataset_size: 1077152244
+- config_name: unshuffled_deduplicated_bo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 144506264
+    num_examples: 15762
+  download_size: 22365048
+  dataset_size: 144506264
+- config_name: unshuffled_deduplicated_bxr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 11325
+    num_examples: 36
+  download_size: 3666
+  dataset_size: 11325
+- config_name: unshuffled_deduplicated_ceb
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 24439249
+    num_examples: 26145
+  download_size: 7124786
+  dataset_size: 24439249
+- config_name: unshuffled_deduplicated_az
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1526935070
+    num_examples: 626796
+  download_size: 521744076
+  dataset_size: 1526935070
+- config_name: unshuffled_deduplicated_bcl
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 900
+    num_examples: 1
+  download_size: 594
+  dataset_size: 900
+- config_name: unshuffled_deduplicated_cy
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 140412555
+    num_examples: 98225
+  download_size: 53629697
+  dataset_size: 140412555
+- config_name: unshuffled_deduplicated_dsb
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 7589
+    num_examples: 37
+  download_size: 3640
+  dataset_size: 7589
+- config_name: unshuffled_deduplicated_bn
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 6233041155
+    num_examples: 1114481
+  download_size: 1257218381
+  dataset_size: 6233041155
+- config_name: unshuffled_deduplicated_bs
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 125977
+    num_examples: 702
+  download_size: 38669
+  dataset_size: 125977
+- config_name: unshuffled_deduplicated_ce
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 7021674
+    num_examples: 2984
+  download_size: 1862792
+  dataset_size: 7021674
+- config_name: unshuffled_deduplicated_cv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 27359554
+    num_examples: 10130
+  download_size: 7461982
+  dataset_size: 27359554
+- config_name: unshuffled_deduplicated_diq
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 161
+    num_examples: 1
+  download_size: 331
+  dataset_size: 161
+- config_name: unshuffled_deduplicated_eml
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 24657
+    num_examples: 80
+  download_size: 10055
+  dataset_size: 24657
+- config_name: unshuffled_deduplicated_et
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2434152666
+    num_examples: 1172041
+  download_size: 966785545
+  dataset_size: 2434152666
+- config_name: unshuffled_deduplicated_bg
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 14420684170
+    num_examples: 3398679
+  download_size: 3848659853
+  dataset_size: 14420684170
+- config_name: unshuffled_deduplicated_bpy
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1725535
+    num_examples: 1770
+  download_size: 191472
+  dataset_size: 1725535
+- config_name: unshuffled_deduplicated_ca
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4544123629
+    num_examples: 2458067
+  download_size: 1734548117
+  dataset_size: 4544123629
+- config_name: unshuffled_deduplicated_ckb
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 237229156
+    num_examples: 68210
+  download_size: 60319928
+  dataset_size: 237229156
+- config_name: unshuffled_deduplicated_ar
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 33468271639
+    num_examples: 9006977
+  download_size: 9667185012
+  dataset_size: 33468271639
+- config_name: unshuffled_deduplicated_av
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 334755
+    num_examples: 360
+  download_size: 75341
+  dataset_size: 334755
+- config_name: unshuffled_deduplicated_bar
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 551
+    num_examples: 4
+  download_size: 354
+  dataset_size: 551
+- config_name: unshuffled_deduplicated_bh
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 35216
+    num_examples: 82
+  download_size: 6003
+  dataset_size: 35216
+- config_name: unshuffled_deduplicated_br
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 16712284
+    num_examples: 14724
+  download_size: 6468062
+  dataset_size: 16712284
+- config_name: unshuffled_deduplicated_cbk
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 535
+    num_examples: 1
+  download_size: 247
+  dataset_size: 535
+- config_name: unshuffled_deduplicated_da
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 10204168604
+    num_examples: 4771098
+  download_size: 3816376656
+  dataset_size: 10204168604
+- config_name: unshuffled_deduplicated_dv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 82122241
+    num_examples: 17024
+  download_size: 16836170
+  dataset_size: 82122241
+- config_name: unshuffled_deduplicated_eo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 239597935
+    num_examples: 84752
+  download_size: 92858714
+  dataset_size: 239597935
+- config_name: unshuffled_deduplicated_fa
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 39986583410
+    num_examples: 8203495
+  download_size: 10459318520
+  dataset_size: 39986583410
+- config_name: unshuffled_deduplicated_fy
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 26562554
+    num_examples: 20661
+  download_size: 10270434
+  dataset_size: 26562554
+- config_name: unshuffled_deduplicated_gn
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 24545
+    num_examples: 68
+  download_size: 9566
+  dataset_size: 24545
+- config_name: unshuffled_deduplicated_cs
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 25590158564
+    num_examples: 12308039
+  download_size: 10494256383
+  dataset_size: 25590158564
+- config_name: unshuffled_deduplicated_hi
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 9550345517
+    num_examples: 1909387
+  download_size: 2007441283
+  dataset_size: 9550345517
+- config_name: unshuffled_deduplicated_hu
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 19027456462
+    num_examples: 6582908
+  download_size: 7368098962
+  dataset_size: 19027456462
+- config_name: unshuffled_deduplicated_ie
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1688
+    num_examples: 11
+  download_size: 649
+  dataset_size: 1688
+- config_name: unshuffled_deduplicated_fr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 147774253219
+    num_examples: 59448891
+  download_size: 55462770729
+  dataset_size: 147774253219
+- config_name: unshuffled_deduplicated_gd
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1339050
+    num_examples: 3883
+  download_size: 420601
+  dataset_size: 1339050
+- config_name: unshuffled_deduplicated_gu
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 758319353
+    num_examples: 169834
+  download_size: 162974870
+  dataset_size: 758319353
+- config_name: unshuffled_deduplicated_hsb
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1821734
+    num_examples: 3084
+  download_size: 728158
+  dataset_size: 1821734
+- config_name: unshuffled_deduplicated_ia
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 373710
+    num_examples: 529
+  download_size: 52722
+  dataset_size: 373710
+- config_name: unshuffled_deduplicated_io
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 139493
+    num_examples: 617
+  download_size: 42813
+  dataset_size: 139493
+- config_name: unshuffled_deduplicated_jbo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 700428
+    num_examples: 617
+  download_size: 203506
+  dataset_size: 700428
+- config_name: unshuffled_deduplicated_km
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 609886370
+    num_examples: 108346
+  download_size: 114480044
+  dataset_size: 609886370
+- config_name: unshuffled_deduplicated_ku
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 62855449
+    num_examples: 29054
+  download_size: 23343869
+  dataset_size: 62855449
+- config_name: unshuffled_deduplicated_la
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 8867995
+    num_examples: 18808
+  download_size: 3421499
+  dataset_size: 8867995
+- config_name: unshuffled_deduplicated_lmo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 458386
+    num_examples: 1374
+  download_size: 106048
+  dataset_size: 458386
+- config_name: unshuffled_deduplicated_lv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1895693807
+    num_examples: 843195
+  download_size: 710448932
+  dataset_size: 1895693807
+- config_name: unshuffled_deduplicated_min
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 318749
+    num_examples: 166
+  download_size: 10233
+  dataset_size: 318749
+- config_name: unshuffled_deduplicated_mr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1487944837
+    num_examples: 212556
+  download_size: 299680349
+  dataset_size: 1487944837
+- config_name: unshuffled_deduplicated_mwl
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1121
+    num_examples: 7
+  download_size: 797
+  dataset_size: 1121
+- config_name: unshuffled_deduplicated_nah
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 11540
+    num_examples: 58
+  download_size: 2868
+  dataset_size: 11540
+- config_name: unshuffled_deduplicated_new
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4226557
+    num_examples: 2126
+  download_size: 830767
+  dataset_size: 4226557
+- config_name: unshuffled_deduplicated_oc
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3938772
+    num_examples: 6485
+  download_size: 1338194
+  dataset_size: 3938772
+- config_name: unshuffled_deduplicated_pam
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 319
+    num_examples: 1
+  download_size: 366
+  dataset_size: 319
+- config_name: unshuffled_deduplicated_ps
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 254360032
+    num_examples: 67921
+  download_size: 71823163
+  dataset_size: 254360032
+- config_name: unshuffled_deduplicated_it
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 73843292670
+    num_examples: 28522082
+  download_size: 27931571784
+  dataset_size: 73843292670
+- config_name: unshuffled_deduplicated_ka
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1982841952
+    num_examples: 372158
+  download_size: 377220437
+  dataset_size: 1982841952
+- config_name: unshuffled_deduplicated_ro
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 11601264185
+    num_examples: 5044757
+  download_size: 4478423935
+  dataset_size: 11601264185
+- config_name: unshuffled_deduplicated_scn
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2990
+    num_examples: 17
+  download_size: 1620
+  dataset_size: 2990
+- config_name: unshuffled_deduplicated_ko
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 11956006533
+    num_examples: 3675420
+  download_size: 4462788278
+  dataset_size: 11956006533
+- config_name: unshuffled_deduplicated_kw
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 14971
+    num_examples: 68
+  download_size: 6195
+  dataset_size: 14971
+- config_name: unshuffled_deduplicated_lez
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3075326
+    num_examples: 1381
+  download_size: 763936
+  dataset_size: 3075326
+- config_name: unshuffled_deduplicated_lrc
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 65291
+    num_examples: 72
+  download_size: 16272
+  dataset_size: 65291
+- config_name: unshuffled_deduplicated_mg
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 13516085
+    num_examples: 13343
+  download_size: 4303472
+  dataset_size: 13516085
+- config_name: unshuffled_deduplicated_ml
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2685637627
+    num_examples: 453904
+  download_size: 496801596
+  dataset_size: 2685637627
+- config_name: unshuffled_deduplicated_ms
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 45064684
+    num_examples: 183443
+  download_size: 16391407
+  dataset_size: 45064684
+- config_name: unshuffled_deduplicated_myv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1224
+    num_examples: 5
+  download_size: 705
+  dataset_size: 1224
+- config_name: unshuffled_deduplicated_nds
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 13360483
+    num_examples: 8714
+  download_size: 5271194
+  dataset_size: 13360483
+- config_name: unshuffled_deduplicated_nn
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 57286159
+    num_examples: 109118
+  download_size: 23583774
+  dataset_size: 57286159
+- config_name: unshuffled_deduplicated_os
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 10962689
+    num_examples: 2559
+  download_size: 2829131
+  dataset_size: 10962689
+- config_name: unshuffled_deduplicated_pms
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1996853
+    num_examples: 2859
+  download_size: 716837
+  dataset_size: 1996853
+- config_name: unshuffled_deduplicated_qu
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 72587
+    num_examples: 411
+  download_size: 17501
+  dataset_size: 72587
+- config_name: unshuffled_deduplicated_sa
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 38236039
+    num_examples: 7121
+  download_size: 7268337
+  dataset_size: 38236039
+- config_name: unshuffled_deduplicated_sk
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4768416160
+    num_examples: 2820821
+  download_size: 1960409934
+  dataset_size: 4768416160
+- config_name: unshuffled_deduplicated_sh
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 6184582
+    num_examples: 17610
+  download_size: 1445894
+  dataset_size: 6184582
+- config_name: unshuffled_deduplicated_so
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 16269
+    num_examples: 42
+  download_size: 2109
+  dataset_size: 16269
+- config_name: unshuffled_deduplicated_sr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2358255234
+    num_examples: 645747
+  download_size: 665025000
+  dataset_size: 2358255234
+- config_name: unshuffled_deduplicated_ta
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 5477003981
+    num_examples: 833101
+  download_size: 971118176
+  dataset_size: 5477003981
+- config_name: unshuffled_deduplicated_tk
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 7092199
+    num_examples: 4694
+  download_size: 2219582
+  dataset_size: 7092199
+- config_name: unshuffled_deduplicated_tyv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 8319
+    num_examples: 24
+  download_size: 2976
+  dataset_size: 8319
+- config_name: unshuffled_deduplicated_uz
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 11834927
+    num_examples: 15074
+  download_size: 4300299
+  dataset_size: 11834927
+- config_name: unshuffled_deduplicated_wa
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 214337
+    num_examples: 677
+  download_size: 79130
+  dataset_size: 214337
+- config_name: unshuffled_deduplicated_xmf
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4617445
+    num_examples: 2418
+  download_size: 943151
+  dataset_size: 4617445
+- config_name: unshuffled_deduplicated_sv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 26239415574
+    num_examples: 11014487
+  download_size: 10185393483
+  dataset_size: 26239415574
+- config_name: unshuffled_deduplicated_tg
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 261233997
+    num_examples: 56259
+  download_size: 62908723
+  dataset_size: 261233997
+- config_name: unshuffled_deduplicated_de
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 155723559907
+    num_examples: 62398034
+  download_size: 60797849113
+  dataset_size: 155723559907
+- config_name: unshuffled_deduplicated_tr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 28375018927
+    num_examples: 11596446
+  download_size: 10390754678
+  dataset_size: 28375018927
+- config_name: unshuffled_deduplicated_el
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 28689398676
+    num_examples: 6521169
+  download_size: 7907952068
+  dataset_size: 28689398676
+- config_name: unshuffled_deduplicated_uk
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 29791312367
+    num_examples: 7782375
+  download_size: 8037737457
+  dataset_size: 29791312367
+- config_name: unshuffled_deduplicated_vi
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 33528331774
+    num_examples: 9897709
+  download_size: 10711506712
+  dataset_size: 33528331774
+- config_name: unshuffled_deduplicated_wuu
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 33253
+    num_examples: 64
+  download_size: 7273
+  dataset_size: 33253
+- config_name: unshuffled_deduplicated_yo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 27169
+    num_examples: 49
+  download_size: 8925
+  dataset_size: 27169
+- config_name: unshuffled_original_als
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 5297910
+    num_examples: 7324
+  download_size: 1489734
+  dataset_size: 5297910
+- config_name: unshuffled_original_arz
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 70132423
+    num_examples: 158113
+  download_size: 15891255
+  dataset_size: 70132423
+- config_name: unshuffled_original_az
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2964781192
+    num_examples: 912330
+  download_size: 927763846
+  dataset_size: 2964781192
+- config_name: unshuffled_original_bcl
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 901
+    num_examples: 1
+  download_size: 581
+  dataset_size: 901
+- config_name: unshuffled_original_bn
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 10771945233
+    num_examples: 1675515
+  download_size: 2139944099
+  dataset_size: 10771945233
+- config_name: unshuffled_original_bs
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 482740
+    num_examples: 2143
+  download_size: 56419
+  dataset_size: 482740
+- config_name: unshuffled_original_ce
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 8735740
+    num_examples: 4042
+  download_size: 2089184
+  dataset_size: 8735740
+- config_name: unshuffled_original_cv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 41047029
+    num_examples: 20281
+  download_size: 9400068
+  dataset_size: 41047029
+- config_name: unshuffled_original_diq
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 162
+    num_examples: 1
+  download_size: 318
+  dataset_size: 162
+- config_name: unshuffled_original_eml
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 26099
+    num_examples: 84
+  download_size: 10071
+  dataset_size: 26099
+- config_name: unshuffled_original_et
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 5174800705
+    num_examples: 2093621
+  download_size: 1881328631
+  dataset_size: 5174800705
+- config_name: unshuffled_deduplicated_zh
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 267614324325
+    num_examples: 41708901
+  download_size: 99982781539
+  dataset_size: 267614324325
+- config_name: unshuffled_original_an
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1329433
+    num_examples: 2449
+  download_size: 148184
+  dataset_size: 1329433
+- config_name: unshuffled_original_ast
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2539238
+    num_examples: 6999
+  download_size: 920730
+  dataset_size: 2539238
+- config_name: unshuffled_original_ba
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 133704014
+    num_examples: 42551
+  download_size: 33215002
+  dataset_size: 133704014
+- config_name: unshuffled_original_bg
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 33753811450
+    num_examples: 5869686
+  download_size: 8336964541
+  dataset_size: 33753811450
+- config_name: unshuffled_original_bpy
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4347467
+    num_examples: 6046
+  download_size: 336974
+  dataset_size: 4347467
+- config_name: unshuffled_original_ca
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 8623251470
+    num_examples: 4390754
+  download_size: 3101954304
+  dataset_size: 8623251470
+- config_name: unshuffled_original_ckb
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 510965919
+    num_examples: 103639
+  download_size: 111884006
+  dataset_size: 510965919
+- config_name: unshuffled_deduplicated_es
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 160418075023
+    num_examples: 56326016
+  download_size: 60464970319
+  dataset_size: 160418075023
+- config_name: unshuffled_original_da
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 16756455589
+    num_examples: 7664010
+  download_size: 6000579388
+  dataset_size: 16756455589
+- config_name: unshuffled_original_dv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 131628992
+    num_examples: 21018
+  download_size: 24914404
+  dataset_size: 131628992
+- config_name: unshuffled_original_eo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 314188336
+    num_examples: 121168
+  download_size: 117076019
+  dataset_size: 314188336
+- config_name: unshuffled_deduplicated_fi
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 13945067515
+    num_examples: 5326443
+  download_size: 5380047103
+  dataset_size: 13945067515
+- config_name: unshuffled_deduplicated_ga
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 63370688
+    num_examples: 46493
+  download_size: 22218633
+  dataset_size: 63370688
+- config_name: unshuffled_deduplicated_gom
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1863089
+    num_examples: 484
+  download_size: 377051
+  dataset_size: 1863089
+- config_name: unshuffled_deduplicated_hr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 118047678
+    num_examples: 321484
+  download_size: 46731365
+  dataset_size: 118047678
+- config_name: unshuffled_deduplicated_hy
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1559114836
+    num_examples: 396093
+  download_size: 393620208
+  dataset_size: 1559114836
+- config_name: unshuffled_deduplicated_ilo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 667896
+    num_examples: 1578
+  download_size: 230065
+  dataset_size: 667896
+- config_name: unshuffled_original_fa
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 84209448803
+    num_examples: 13704702
+  download_size: 20956409096
+  dataset_size: 84209448803
+- config_name: unshuffled_original_fy
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 36238452
+    num_examples: 33053
+  download_size: 12409774
+  dataset_size: 36238452
+- config_name: unshuffled_original_gn
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 37427
+    num_examples: 106
+  download_size: 9761
+  dataset_size: 37427
+- config_name: unshuffled_original_hi
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 17929286362
+    num_examples: 3264660
+  download_size: 3656636848
+  dataset_size: 17929286362
+- config_name: unshuffled_original_hu
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 43074893842
+    num_examples: 11197780
+  download_size: 15693847091
+  dataset_size: 43074893842
+- config_name: unshuffled_original_ie
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 25355
+    num_examples: 101
+  download_size: 783
+  dataset_size: 25355
+- config_name: unshuffled_deduplicated_ja
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 113315056833
+    num_examples: 39496439
+  download_size: 40801218295
+  dataset_size: 113315056833
+- config_name: unshuffled_deduplicated_kk
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1583064520
+    num_examples: 338073
+  download_size: 389111715
+  dataset_size: 1583064520
+- config_name: unshuffled_deduplicated_krc
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2412731
+    num_examples: 1377
+  download_size: 615982
+  dataset_size: 2412731
+- config_name: unshuffled_deduplicated_ky
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 407576051
+    num_examples: 86561
+  download_size: 106219565
+  dataset_size: 407576051
+- config_name: unshuffled_deduplicated_li
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 28176
+    num_examples: 118
+  download_size: 11724
+  dataset_size: 28176
+- config_name: unshuffled_deduplicated_lt
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4185372402
+    num_examples: 1737411
+  download_size: 1653025558
+  dataset_size: 4185372402
+- config_name: unshuffled_deduplicated_mhr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 6247177
+    num_examples: 2515
+  download_size: 1622076
+  dataset_size: 6247177
+- config_name: unshuffled_deduplicated_mn
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 880883961
+    num_examples: 197878
+  download_size: 219516471
+  dataset_size: 880883961
+- config_name: unshuffled_deduplicated_mt
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 17539926
+    num_examples: 16383
+  download_size: 5898934
+  dataset_size: 17539926
+- config_name: unshuffled_deduplicated_mzn
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 626534
+    num_examples: 917
+  download_size: 157541
+  dataset_size: 626534
+- config_name: unshuffled_deduplicated_ne
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1239170286
+    num_examples: 219334
+  download_size: 240627361
+  dataset_size: 1239170286
+- config_name: unshuffled_deduplicated_no
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 5077919278
+    num_examples: 3229940
+  download_size: 1960828800
+  dataset_size: 5077919278
+- config_name: unshuffled_deduplicated_pa
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 482461302
+    num_examples: 87235
+  download_size: 102390579
+  dataset_size: 482461302
+- config_name: unshuffled_deduplicated_pnb
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 9416915
+    num_examples: 3463
+  download_size: 2579976
+  dataset_size: 9416915
+- config_name: unshuffled_deduplicated_rm
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 6932
+    num_examples: 34
+  download_size: 2679
+  dataset_size: 6932
+- config_name: unshuffled_deduplicated_sah
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 27293316
+    num_examples: 8555
+  download_size: 7020207
+  dataset_size: 27293316
+- config_name: unshuffled_deduplicated_si
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 841460012
+    num_examples: 120684
+  download_size: 175610997
+  dataset_size: 841460012
+- config_name: unshuffled_deduplicated_sq
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1208425681
+    num_examples: 461598
+  download_size: 445358539
+  dataset_size: 1208425681
+- config_name: unshuffled_deduplicated_sw
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 8747758
+    num_examples: 24803
+  download_size: 2946034
+  dataset_size: 8747758
+- config_name: unshuffled_deduplicated_th
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 17082022564
+    num_examples: 3749826
+  download_size: 3536468931
+  dataset_size: 17082022564
+- config_name: unshuffled_deduplicated_tt
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 320641922
+    num_examples: 82738
+  download_size: 85893621
+  dataset_size: 320641922
+- config_name: unshuffled_deduplicated_ur
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1819253063
+    num_examples: 428674
+  download_size: 483593818
+  dataset_size: 1819253063
+- config_name: unshuffled_deduplicated_vo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2098461
+    num_examples: 3317
+  download_size: 301687
+  dataset_size: 2098461
+- config_name: unshuffled_deduplicated_xal
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 114574
+    num_examples: 36
+  download_size: 31863
+  dataset_size: 114574
+- config_name: unshuffled_deduplicated_yue
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2267
+    num_examples: 7
+  download_size: 646
+  dataset_size: 2267
+- config_name: unshuffled_original_am
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 378060369
+    num_examples: 83663
+  download_size: 102789518
+  dataset_size: 378060369
+- config_name: unshuffled_original_as
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 117733678
+    num_examples: 14985
+  download_size: 21437245
+  dataset_size: 117733678
+- config_name: unshuffled_original_azb
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 28469069
+    num_examples: 15446
+  download_size: 6641415
+  dataset_size: 28469069
+- config_name: unshuffled_original_be
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1877972506
+    num_examples: 586031
+  download_size: 498295673
+  dataset_size: 1877972506
+- config_name: unshuffled_original_bo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 195400209
+    num_examples: 26795
+  download_size: 28940995
+  dataset_size: 195400209
+- config_name: unshuffled_original_bxr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 13376
+    num_examples: 42
+  download_size: 3688
+  dataset_size: 13376
+- config_name: unshuffled_original_ceb
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 40964537
+    num_examples: 56248
+  download_size: 11070392
+  dataset_size: 40964537
+- config_name: unshuffled_original_cy
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 224933804
+    num_examples: 157698
+  download_size: 81736037
+  dataset_size: 224933804
+- config_name: unshuffled_original_dsb
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 13761
+    num_examples: 65
+  download_size: 3753
+  dataset_size: 13761
+- config_name: unshuffled_original_fr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 303190338653
+    num_examples: 96742378
+  download_size: 105324330228
+  dataset_size: 303190338653
+- config_name: unshuffled_original_gd
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2022000
+    num_examples: 5799
+  download_size: 525253
+  dataset_size: 2022000
+- config_name: unshuffled_original_gu
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1094814909
+    num_examples: 240691
+  download_size: 232021129
+  dataset_size: 1094814909
+- config_name: unshuffled_original_hsb
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4482886
+    num_examples: 7959
+  download_size: 1389826
+  dataset_size: 4482886
+- config_name: unshuffled_original_ia
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 689455
+    num_examples: 1040
+  download_size: 83325
+  dataset_size: 689455
+- config_name: unshuffled_original_io
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 158808
+    num_examples: 694
+  download_size: 44548
+  dataset_size: 158808
+- config_name: unshuffled_original_jbo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 763027
+    num_examples: 832
+  download_size: 212962
+  dataset_size: 763027
+- config_name: unshuffled_original_km
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1102616385
+    num_examples: 159363
+  download_size: 193286621
+  dataset_size: 1102616385
+- config_name: unshuffled_original_ku
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 99062676
+    num_examples: 46535
+  download_size: 33376537
+  dataset_size: 99062676
+- config_name: unshuffled_original_la
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 27801400
+    num_examples: 94588
+  download_size: 5458131
+  dataset_size: 27801400
+- config_name: unshuffled_original_lmo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 470001
+    num_examples: 1401
+  download_size: 109759
+  dataset_size: 470001
+- config_name: unshuffled_original_lv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4266812625
+    num_examples: 1593820
+  download_size: 1486675302
+  dataset_size: 4266812625
+- config_name: unshuffled_original_min
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 624991
+    num_examples: 220
+  download_size: 12379
+  dataset_size: 624991
+- config_name: unshuffled_original_mr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2816455519
+    num_examples: 326804
+  download_size: 525303459
+  dataset_size: 2816455519
+- config_name: unshuffled_original_mwl
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1273
+    num_examples: 8
+  download_size: 789
+  dataset_size: 1273
+- config_name: unshuffled_original_nah
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 12070
+    num_examples: 61
+  download_size: 2857
+  dataset_size: 12070
+- config_name: unshuffled_original_new
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 5766053
+    num_examples: 4696
+  download_size: 1031042
+  dataset_size: 5766053
+- config_name: unshuffled_original_oc
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 6127539
+    num_examples: 10709
+  download_size: 1574956
+  dataset_size: 6127539
+- config_name: unshuffled_original_pam
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 800
+    num_examples: 3
+  download_size: 364
+  dataset_size: 800
+- config_name: unshuffled_original_ps
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 379515973
+    num_examples: 98216
+  download_size: 103659691
+  dataset_size: 379515973
+- config_name: unshuffled_original_ro
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 26869251055
+    num_examples: 9387265
+  download_size: 9534521905
+  dataset_size: 26869251055
+- config_name: unshuffled_original_scn
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3573
+    num_examples: 21
+  download_size: 1614
+  dataset_size: 3573
+- config_name: unshuffled_original_sk
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 9808179461
+    num_examples: 5492194
+  download_size: 3708313186
+  dataset_size: 9808179461
+- config_name: unshuffled_original_sr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4131922671
+    num_examples: 1013619
+  download_size: 1081129678
+  dataset_size: 4131922671
+- config_name: unshuffled_original_ta
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 9934879441
+    num_examples: 1263280
+  download_size: 1737252172
+  dataset_size: 9934879441
+- config_name: unshuffled_original_tk
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 10662991
+    num_examples: 6456
+  download_size: 2956150
+  dataset_size: 10662991
+- config_name: unshuffled_original_tyv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 12219
+    num_examples: 34
+  download_size: 3034
+  dataset_size: 12219
+- config_name: unshuffled_original_uz
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 21464779
+    num_examples: 27537
+  download_size: 5775644
+  dataset_size: 21464779
+- config_name: unshuffled_original_wa
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 291400
+    num_examples: 1001
+  download_size: 89942
+  dataset_size: 291400
+- config_name: unshuffled_original_xmf
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 6120123
+    num_examples: 3783
+  download_size: 1048265
+  dataset_size: 6120123
+- config_name: unshuffled_original_it
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 147378116499
+    num_examples: 46981781
+  download_size: 52157691650
+  dataset_size: 147378116499
+- config_name: unshuffled_original_ka
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3768832240
+    num_examples: 563916
+  download_size: 680732710
+  dataset_size: 3768832240
+- config_name: unshuffled_original_ko
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 25292102197
+    num_examples: 7345075
+  download_size: 8807937093
+  dataset_size: 25292102197
+- config_name: unshuffled_original_kw
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 47016
+    num_examples: 203
+  download_size: 6715
+  dataset_size: 47016
+- config_name: unshuffled_original_lez
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3378104
+    num_examples: 1485
+  download_size: 825648
+  dataset_size: 3378104
+- config_name: unshuffled_original_lrc
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 78347
+    num_examples: 88
+  download_size: 16573
+  dataset_size: 78347
+- config_name: unshuffled_original_mg
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 21789998
+    num_examples: 17957
+  download_size: 6213316
+  dataset_size: 21789998
+- config_name: unshuffled_original_ml
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 5244279375
+    num_examples: 603937
+  download_size: 938681749
+  dataset_size: 5244279375
+- config_name: unshuffled_original_ms
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 122326270
+    num_examples: 534016
+  download_size: 28458804
+  dataset_size: 122326270
+- config_name: unshuffled_original_myv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1436
+    num_examples: 6
+  download_size: 691
+  dataset_size: 1436
+- config_name: unshuffled_original_nds
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 18238189
+    num_examples: 18174
+  download_size: 6744705
+  dataset_size: 18238189
+- config_name: unshuffled_original_nn
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 90838777
+    num_examples: 185884
+  download_size: 32863375
+  dataset_size: 90838777
+- config_name: unshuffled_original_os
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 12893477
+    num_examples: 5213
+  download_size: 3096133
+  dataset_size: 12893477
+- config_name: unshuffled_original_pms
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2154710
+    num_examples: 3225
+  download_size: 756400
+  dataset_size: 2154710
+- config_name: unshuffled_original_qu
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 85032
+    num_examples: 452
+  download_size: 17931
+  dataset_size: 85032
+- config_name: unshuffled_original_sa
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 97055224
+    num_examples: 14291
+  download_size: 17517475
+  dataset_size: 97055224
+- config_name: unshuffled_original_sh
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 25841505
+    num_examples: 36700
+  download_size: 3457359
+  dataset_size: 25841505
+- config_name: unshuffled_original_so
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 63785
+    num_examples: 156
+  download_size: 2478
+  dataset_size: 63785
+- config_name: unshuffled_original_sv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 47000933560
+    num_examples: 17395625
+  download_size: 17182697021
+  dataset_size: 47000933560
+- config_name: unshuffled_original_tg
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 397436494
+    num_examples: 89002
+  download_size: 90972727
+  dataset_size: 397436494
+- config_name: unshuffled_original_tr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 63581153419
+    num_examples: 18535253
+  download_size: 21961561999
+  dataset_size: 63581153419
+- config_name: unshuffled_original_uk
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 56439494556
+    num_examples: 12973467
+  download_size: 14419203733
+  dataset_size: 56439494556
+- config_name: unshuffled_original_vi
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 72226388484
+    num_examples: 14898250
+  download_size: 21503594095
+  dataset_size: 72226388484
+- config_name: unshuffled_original_wuu
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 114041
+    num_examples: 214
+  download_size: 8780
+  dataset_size: 114041
+- config_name: unshuffled_original_yo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 58546
+    num_examples: 214
+  download_size: 9550
+  dataset_size: 58546
+- config_name: unshuffled_original_zh
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 545607539477
+    num_examples: 60137667
+  download_size: 206003993405
+  dataset_size: 545607539477
+- config_name: unshuffled_deduplicated_en
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1297616499791
+    num_examples: 304230423
+  download_size: 496496144465
+  dataset_size: 1297616499791
+- config_name: unshuffled_deduplicated_eu
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 360674267
+    num_examples: 256513
+  download_size: 134683484
+  dataset_size: 360674267
+- config_name: unshuffled_deduplicated_frr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4500
+    num_examples: 7
+  download_size: 540
+  dataset_size: 4500
+- config_name: unshuffled_deduplicated_gl
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 404922022
+    num_examples: 284320
+  download_size: 155851883
+  dataset_size: 404922022
+- config_name: unshuffled_deduplicated_he
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 10451408409
+    num_examples: 2375030
+  download_size: 3043383695
+  dataset_size: 10451408409
+- config_name: unshuffled_deduplicated_ht
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3439
+    num_examples: 9
+  download_size: 594
+  dataset_size: 3439
+- config_name: unshuffled_deduplicated_id
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 16964948727
+    num_examples: 9948521
+  download_size: 5995510660
+  dataset_size: 16964948727
+- config_name: unshuffled_deduplicated_is
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 891047926
+    num_examples: 389515
+  download_size: 332871764
+  dataset_size: 891047926
+- config_name: unshuffled_deduplicated_jv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 609713
+    num_examples: 1163
+  download_size: 208165
+  dataset_size: 609713
+- config_name: unshuffled_deduplicated_kn
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1080985653
+    num_examples: 251064
+  download_size: 215526836
+  dataset_size: 1080985653
+- config_name: unshuffled_deduplicated_kv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1200609
+    num_examples: 924
+  download_size: 327479
+  dataset_size: 1200609
+- config_name: unshuffled_deduplicated_lb
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 21242773
+    num_examples: 21735
+  download_size: 8300328
+  dataset_size: 21242773
+- config_name: unshuffled_deduplicated_lo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 119015146
+    num_examples: 32652
+  download_size: 23634237
+  dataset_size: 119015146
+- config_name: unshuffled_deduplicated_mai
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 10721
+    num_examples: 25
+  download_size: 2267
+  dataset_size: 10721
+- config_name: unshuffled_deduplicated_mk
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1186605123
+    num_examples: 299457
+  download_size: 303118518
+  dataset_size: 1186605123
+- config_name: unshuffled_deduplicated_mrj
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1096428
+    num_examples: 669
+  download_size: 289048
+  dataset_size: 1096428
+- config_name: unshuffled_deduplicated_my
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1112006614
+    num_examples: 136639
+  download_size: 207136614
+  dataset_size: 1112006614
+- config_name: unshuffled_deduplicated_nap
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 13782
+    num_examples: 55
+  download_size: 4965
+  dataset_size: 13782
+- config_name: unshuffled_deduplicated_nl
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 41726089054
+    num_examples: 20812149
+  download_size: 15734167112
+  dataset_size: 41726089054
+- config_name: unshuffled_deduplicated_or
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 197401878
+    num_examples: 44230
+  download_size: 38726721
+  dataset_size: 197401878
+- config_name: unshuffled_deduplicated_pl
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 50387595763
+    num_examples: 20682611
+  download_size: 20189161328
+  dataset_size: 50387595763
+- config_name: unshuffled_deduplicated_pt
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 68162434231
+    num_examples: 26920397
+  download_size: 25997795946
+  dataset_size: 68162434231
+- config_name: unshuffled_deduplicated_ru
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 611031071327
+    num_examples: 115954598
+  download_size: 166677136024
+  dataset_size: 611031071327
+- config_name: unshuffled_deduplicated_sd
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 275327037
+    num_examples: 33925
+  download_size: 74169753
+  dataset_size: 275327037
+- config_name: unshuffled_deduplicated_sl
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1311219223
+    num_examples: 886223
+  download_size: 523218283
+  dataset_size: 1311219223
+- config_name: unshuffled_deduplicated_su
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 149921
+    num_examples: 511
+  download_size: 53164
+  dataset_size: 149921
+- config_name: unshuffled_deduplicated_te
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1694004428
+    num_examples: 312644
+  download_size: 342429224
+  dataset_size: 1694004428
+- config_name: unshuffled_deduplicated_tl
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 429427446
+    num_examples: 294132
+  download_size: 151342433
+  dataset_size: 429427446
+- config_name: unshuffled_deduplicated_ug
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 86344782
+    num_examples: 15503
+  download_size: 20527752
+  dataset_size: 86344782
+- config_name: unshuffled_deduplicated_vec
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 17303
+    num_examples: 64
+  download_size: 7647
+  dataset_size: 17303
+- config_name: unshuffled_deduplicated_war
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2338532
+    num_examples: 9161
+  download_size: 546586
+  dataset_size: 2338532
+- config_name: unshuffled_deduplicated_yi
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 87935052
+    num_examples: 32919
+  download_size: 22197718
+  dataset_size: 87935052
+- config_name: unshuffled_original_af
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 254076274
+    num_examples: 201117
+  download_size: 85795254
+  dataset_size: 254076274
+- config_name: unshuffled_original_ar
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 87935768938
+    num_examples: 16365602
+  download_size: 22232546836
+  dataset_size: 87935768938
+- config_name: unshuffled_original_av
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 423603
+    num_examples: 456
+  download_size: 84767
+  dataset_size: 423603
+- config_name: unshuffled_original_bar
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 555
+    num_examples: 4
+  download_size: 341
+  dataset_size: 555
+- config_name: unshuffled_original_bh
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 116514
+    num_examples: 336
+  download_size: 7615
+  dataset_size: 116514
+- config_name: unshuffled_original_br
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 30203875
+    num_examples: 37085
+  download_size: 9178158
+  dataset_size: 30203875
+- config_name: unshuffled_original_cbk
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 536
+    num_examples: 1
+  download_size: 234
+  dataset_size: 536
+- config_name: unshuffled_original_cs
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 57080142860
+    num_examples: 21001388
+  download_size: 21716697253
+  dataset_size: 57080142860
+- config_name: unshuffled_original_de
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 331224484023
+    num_examples: 104913504
+  download_size: 119506267566
+  dataset_size: 331224484023
+- config_name: unshuffled_original_el
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 66273231642
+    num_examples: 10425596
+  download_size: 17309601342
+  dataset_size: 66273231642
+- config_name: unshuffled_original_es
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 298492270636
+    num_examples: 88199221
+  download_size: 106039137656
+  dataset_size: 298492270636
+- config_name: unshuffled_original_fi
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 28571419204
+    num_examples: 8557453
+  download_size: 9970837279
+  dataset_size: 28571419204
+- config_name: unshuffled_original_ga
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 92369035
+    num_examples: 83223
+  download_size: 29262282
+  dataset_size: 92369035
+- config_name: unshuffled_original_gom
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2257169
+    num_examples: 640
+  download_size: 442950
+  dataset_size: 2257169
+- config_name: unshuffled_original_hr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 243829069
+    num_examples: 582219
+  download_size: 79417804
+  dataset_size: 243829069
+- config_name: unshuffled_original_hy
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3939672772
+    num_examples: 659430
+  download_size: 897364024
+  dataset_size: 3939672772
+- config_name: unshuffled_original_ilo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 925809
+    num_examples: 2638
+  download_size: 267451
+  dataset_size: 925809
+- config_name: unshuffled_original_ja
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 232216718556
+    num_examples: 62721527
+  download_size: 79564645083
+  dataset_size: 232216718556
+- config_name: unshuffled_original_kk
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2833778199
+    num_examples: 524591
+  download_size: 615067761
+  dataset_size: 2833778199
+- config_name: unshuffled_original_krc
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2688672
+    num_examples: 1581
+  download_size: 656496
+  dataset_size: 2688672
+- config_name: unshuffled_original_ky
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 630794622
+    num_examples: 146993
+  download_size: 152636608
+  dataset_size: 630794622
+- config_name: unshuffled_original_li
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 31312
+    num_examples: 137
+  download_size: 11793
+  dataset_size: 31312
+- config_name: unshuffled_original_lt
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 9445278312
+    num_examples: 2977757
+  download_size: 3439789726
+  dataset_size: 9445278312
+- config_name: unshuffled_original_mhr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 7553453
+    num_examples: 3212
+  download_size: 1834912
+  dataset_size: 7553453
+- config_name: unshuffled_original_mn
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2332897881
+    num_examples: 395605
+  download_size: 472357548
+  dataset_size: 2332897881
+- config_name: unshuffled_original_mt
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 24470330
+    num_examples: 26598
+  download_size: 7533204
+  dataset_size: 24470330
+- config_name: unshuffled_original_mzn
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 720229
+    num_examples: 1055
+  download_size: 177817
+  dataset_size: 720229
+- config_name: unshuffled_original_ne
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1866852959
+    num_examples: 299938
+  download_size: 355291639
+  dataset_size: 1866852959
+- config_name: unshuffled_original_no
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 8652054976
+    num_examples: 5546211
+  download_size: 3106155643
+  dataset_size: 8652054976
+- config_name: unshuffled_original_pa
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 801167879
+    num_examples: 127467
+  download_size: 164207256
+  dataset_size: 801167879
+- config_name: unshuffled_original_pnb
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 12039418
+    num_examples: 4599
+  download_size: 3215579
+  dataset_size: 12039418
+- config_name: unshuffled_original_rm
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 8027
+    num_examples: 41
+  download_size: 2691
+  dataset_size: 8027
+- config_name: unshuffled_original_sah
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 43817239
+    num_examples: 22301
+  download_size: 9079982
+  dataset_size: 43817239
+- config_name: unshuffled_original_si
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1469374795
+    num_examples: 203082
+  download_size: 310935021
+  dataset_size: 1469374795
+- config_name: unshuffled_original_sq
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2440834375
+    num_examples: 672077
+  download_size: 861831806
+  dataset_size: 2440834375
+- config_name: unshuffled_original_sw
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 14073775
+    num_examples: 41986
+  download_size: 3712739
+  dataset_size: 14073775
+- config_name: unshuffled_original_th
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 38289228753
+    num_examples: 6064129
+  download_size: 7377469078
+  dataset_size: 38289228753
+- config_name: unshuffled_original_tt
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 703412782
+    num_examples: 135923
+  download_size: 151056507
+  dataset_size: 703412782
+- config_name: unshuffled_original_ur
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2802270961
+    num_examples: 638596
+  download_size: 712607161
+  dataset_size: 2802270961
+- config_name: unshuffled_original_vo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2118909
+    num_examples: 3366
+  download_size: 307184
+  dataset_size: 2118909
+- config_name: unshuffled_original_xal
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 116043
+    num_examples: 39
+  download_size: 32117
+  dataset_size: 116043
+- config_name: unshuffled_original_yue
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3899
+    num_examples: 11
+  download_size: 647
+  dataset_size: 3899
+- config_name: unshuffled_original_en
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2525437912097
+    num_examples: 455994980
+  download_size: 903830686146
+  dataset_size: 2525437912097
+- config_name: unshuffled_original_eu
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 894836188
+    num_examples: 506883
+  download_size: 248190119
+  dataset_size: 894836188
+- config_name: unshuffled_original_frr
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4507
+    num_examples: 7
+  download_size: 527
+  dataset_size: 4507
+- config_name: unshuffled_original_gl
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 656477422
+    num_examples: 544388
+  download_size: 235384299
+  dataset_size: 656477422
+- config_name: unshuffled_original_he
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 21113706929
+    num_examples: 3808397
+  download_size: 5660026441
+  dataset_size: 21113706929
+- config_name: unshuffled_original_ht
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4083
+    num_examples: 13
+  download_size: 590
+  dataset_size: 4083
+- config_name: unshuffled_original_id
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 32317679452
+    num_examples: 16236463
+  download_size: 10596988488
+  dataset_size: 32317679452
+- config_name: unshuffled_original_is
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1524936467
+    num_examples: 625673
+  download_size: 533034495
+  dataset_size: 1524936467
+- config_name: unshuffled_original_jv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 691812
+    num_examples: 1445
+  download_size: 219246
+  dataset_size: 691812
+- config_name: unshuffled_original_kn
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1763625096
+    num_examples: 350363
+  download_size: 342155433
+  dataset_size: 1763625096
+- config_name: unshuffled_original_kv
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2379758
+    num_examples: 1549
+  download_size: 400725
+  dataset_size: 2379758
+- config_name: unshuffled_original_lb
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 30595156
+    num_examples: 34807
+  download_size: 10725552
+  dataset_size: 30595156
+- config_name: unshuffled_original_lo
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 182361509
+    num_examples: 52910
+  download_size: 33916738
+  dataset_size: 182361509
+- config_name: unshuffled_original_mai
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 325990
+    num_examples: 123
+  download_size: 5563
+  dataset_size: 325990
+- config_name: unshuffled_original_mk
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2202480390
+    num_examples: 437871
+  download_size: 508239918
+  dataset_size: 2202480390
+- config_name: unshuffled_original_mrj
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1165977
+    num_examples: 757
+  download_size: 303447
+  dataset_size: 1165977
+- config_name: unshuffled_original_my
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2021872493
+    num_examples: 232329
+  download_size: 369850157
+  dataset_size: 2021872493
+- config_name: unshuffled_original_nap
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 17839
+    num_examples: 73
+  download_size: 5023
+  dataset_size: 17839
+- config_name: unshuffled_original_nl
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 83230965323
+    num_examples: 34682142
+  download_size: 29352811750
+  dataset_size: 83230965323
+- config_name: unshuffled_original_or
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 260151226
+    num_examples: 59463
+  download_size: 49834443
+  dataset_size: 260151226
+- config_name: unshuffled_original_pl
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 117121370605
+    num_examples: 35440972
+  download_size: 42884898947
+  dataset_size: 117121370605
+- config_name: unshuffled_original_pt
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 132635490139
+    num_examples: 42114520
+  download_size: 47257949300
+  dataset_size: 132635490139
+- config_name: unshuffled_original_ru
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1241627166551
+    num_examples: 161836003
+  download_size: 319755378587
+  dataset_size: 1241627166551
+- config_name: unshuffled_original_sd
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 364256869
+    num_examples: 44280
+  download_size: 90621520
+  dataset_size: 364256869
+- config_name: unshuffled_original_sl
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2675665926
+    num_examples: 1746604
+  download_size: 956197026
+  dataset_size: 2675665926
+- config_name: unshuffled_original_su
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 225627
+    num_examples: 805
+  download_size: 59643
+  dataset_size: 225627
+- config_name: unshuffled_original_te
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2611548765
+    num_examples: 475703
+  download_size: 522470115
+  dataset_size: 2611548765
+- config_name: unshuffled_original_tl
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 606295665
+    num_examples: 458206
+  download_size: 204895159
+  dataset_size: 606295665
+- config_name: unshuffled_original_ug
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 127419368
+    num_examples: 22255
+  download_size: 27923925
+  dataset_size: 127419368
+- config_name: unshuffled_original_vec
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 19182
+    num_examples: 73
+  download_size: 7672
+  dataset_size: 19182
+- config_name: unshuffled_original_war
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2682430
+    num_examples: 9760
+  download_size: 644576
+  dataset_size: 2682430
+- config_name: unshuffled_original_yi
+  features:
+  - name: id
+    dtype: int64
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 147601654
+    num_examples: 59364
+  download_size: 33337157
+  dataset_size: 147601654
 ---
 
 # Dataset Card for "oscar"

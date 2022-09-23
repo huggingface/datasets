@@ -22,6 +22,47 @@ task_ids:
 - language-modeling
 - masked-language-modeling
 paperswithcode_id: null
+dataset_info:
+- config_name: tlcv1.0
+  features:
+  - name: ch_num
+    dtype: string
+  - name: title
+    dtype: string
+  - name: text
+    sequence:
+      sequence: string
+  splits:
+  - name: train
+    num_bytes: 32498
+    num_examples: 1
+  download_size: 2904472
+  dataset_size: 32498
+- config_name: tlcv2.0
+  features:
+  - name: ch_num
+    dtype: string
+  - name: title
+    dtype: string
+  - name: text
+    sequence:
+      sequence: string
+  splits:
+  - name: train
+    num_bytes: 32498
+    num_examples: 1
+  download_size: 5551710
+  dataset_size: 32498
+- config_name: tnhcv1.0
+  features:
+  - name: text
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 25198
+    num_examples: 152
+  download_size: 1465403
+  dataset_size: 25198
 ---
 
 # Dataset Card for Thai Literature Corpora (TLC)

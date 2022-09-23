@@ -28,6 +28,251 @@ task_categories:
 - text-classification
 task_ids:
 - natural-language-inference
+dataset_info:
+- config_name: aym
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 115259
+    num_examples: 750
+  - name: validation
+    num_bytes: 117538
+    num_examples: 743
+  download_size: 2256093
+  dataset_size: 232797
+- config_name: bzd
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 127684
+    num_examples: 750
+  - name: validation
+    num_bytes: 143362
+    num_examples: 743
+  download_size: 2256093
+  dataset_size: 271046
+- config_name: cni
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 116292
+    num_examples: 750
+  - name: validation
+    num_bytes: 113264
+    num_examples: 658
+  download_size: 2256093
+  dataset_size: 229556
+- config_name: gn
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 101956
+    num_examples: 750
+  - name: validation
+    num_bytes: 115143
+    num_examples: 743
+  download_size: 2256093
+  dataset_size: 217099
+- config_name: hch
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 120865
+    num_examples: 750
+  - name: validation
+    num_bytes: 127974
+    num_examples: 743
+  download_size: 2256093
+  dataset_size: 248839
+- config_name: nah
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 102961
+    num_examples: 738
+  - name: validation
+    num_bytes: 50749
+    num_examples: 376
+  download_size: 2256093
+  dataset_size: 153710
+- config_name: oto
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 119658
+    num_examples: 748
+  - name: validation
+    num_bytes: 27018
+    num_examples: 222
+  download_size: 2256093
+  dataset_size: 146676
+- config_name: quy
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 112758
+    num_examples: 750
+  - name: validation
+    num_bytes: 125644
+    num_examples: 743
+  download_size: 2256093
+  dataset_size: 238402
+- config_name: shp
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 118942
+    num_examples: 750
+  - name: validation
+    num_bytes: 124508
+    num_examples: 743
+  download_size: 2256093
+  dataset_size: 243450
+- config_name: tar
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 122632
+    num_examples: 750
+  - name: validation
+    num_bytes: 139504
+    num_examples: 743
+  download_size: 2256093
+  dataset_size: 262136
+- config_name: all_languages
+  features:
+  - name: language
+    dtype: string
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 1210591
+    num_examples: 7486
+  - name: validation
+    num_bytes: 1129092
+    num_examples: 6457
+  download_size: 2256093
+  dataset_size: 2339683
 ---
 
 # Dataset Card for AmericasNLI

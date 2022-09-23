@@ -25,6 +25,76 @@ pretty_name: Humicroedit
 configs:
 - subtask-1
 - subtask-2
+dataset_info:
+- config_name: subtask-1
+  features:
+  - name: id
+    dtype: string
+  - name: original
+    dtype: string
+  - name: edit
+    dtype: string
+  - name: grades
+    dtype: string
+  - name: meanGrade
+    dtype: float32
+  splits:
+  - name: funlines
+    num_bytes: 942376
+    num_examples: 8248
+  - name: test
+    num_bytes: 332113
+    num_examples: 3024
+  - name: train
+    num_bytes: 1058589
+    num_examples: 9652
+  - name: validation
+    num_bytes: 269083
+    num_examples: 2419
+  download_size: 1621456
+  dataset_size: 2602161
+- config_name: subtask-2
+  features:
+  - name: id
+    dtype: string
+  - name: original1
+    dtype: string
+  - name: edit1
+    dtype: string
+  - name: grades1
+    dtype: string
+  - name: meanGrade1
+    dtype: float32
+  - name: original2
+    dtype: string
+  - name: edit2
+    dtype: string
+  - name: grades2
+    dtype: string
+  - name: meanGrade2
+    dtype: float32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: equal
+          1: sentence1
+          2: sentence2
+  splits:
+  - name: funlines
+    num_bytes: 451416
+    num_examples: 1958
+  - name: test
+    num_bytes: 665087
+    num_examples: 2960
+  - name: train
+    num_bytes: 2102667
+    num_examples: 9381
+  - name: validation
+    num_bytes: 535044
+    num_examples: 2355
+  download_size: 1621456
+  dataset_size: 3754214
 ---
 
 # Dataset Card for [Dataset Name]

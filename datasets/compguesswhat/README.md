@@ -19,6 +19,159 @@ task_categories:
 task_ids:
 - visual-question-answering
 paperswithcode_id: compguesswhat
+dataset_info:
+- config_name: compguesswhat-original
+  features:
+  - name: id
+    dtype: int32
+  - name: target_id
+    dtype: int32
+  - name: timestamp
+    dtype: string
+  - name: status
+    dtype: string
+  - name: image
+    struct:
+    - name: id
+      dtype: int32
+    - name: file_name
+      dtype: string
+    - name: flickr_url
+      dtype: string
+    - name: coco_url
+      dtype: string
+    - name: height
+      dtype: int32
+    - name: width
+      dtype: int32
+    - name: visual_genome
+      struct:
+      - name: width
+        dtype: int32
+      - name: height
+        dtype: int32
+      - name: url
+        dtype: string
+      - name: coco_id
+        dtype: int32
+      - name: flickr_id
+        dtype: string
+      - name: image_id
+        dtype: string
+  - name: qas
+    sequence:
+    - name: question
+      dtype: string
+    - name: answer
+      dtype: string
+    - name: id
+      dtype: int32
+  - name: objects
+    sequence:
+    - name: id
+      dtype: int32
+    - name: bbox
+      sequence: float32
+      length: 4
+    - name: category
+      dtype: string
+    - name: area
+      dtype: float32
+    - name: category_id
+      dtype: int32
+    - name: segment
+      sequence:
+        sequence: float32
+  splits:
+  - name: test
+    num_bytes: 25981593
+    num_examples: 9621
+  - name: train
+    num_bytes: 126548689
+    num_examples: 46341
+  - name: validation
+    num_bytes: 26055261
+    num_examples: 9738
+  download_size: 107201655
+  dataset_size: 178585543
+- config_name: compguesswhat-zero_shot
+  features:
+  - name: id
+    dtype: int32
+  - name: target_id
+    dtype: string
+  - name: status
+    dtype: string
+  - name: image
+    struct:
+    - name: id
+      dtype: int32
+    - name: file_name
+      dtype: string
+    - name: coco_url
+      dtype: string
+    - name: height
+      dtype: int32
+    - name: width
+      dtype: int32
+    - name: license
+      dtype: int32
+    - name: open_images_id
+      dtype: string
+    - name: date_captured
+      dtype: string
+  - name: objects
+    sequence:
+    - name: id
+      dtype: string
+    - name: bbox
+      sequence: float32
+      length: 4
+    - name: category
+      dtype: string
+    - name: area
+      dtype: float32
+    - name: category_id
+      dtype: int32
+    - name: IsOccluded
+      dtype: int32
+    - name: IsTruncated
+      dtype: int32
+    - name: segment
+      sequence:
+      - name: MaskPath
+        dtype: string
+      - name: LabelName
+        dtype: string
+      - name: BoxID
+        dtype: string
+      - name: BoxXMin
+        dtype: string
+      - name: BoxXMax
+        dtype: string
+      - name: BoxYMin
+        dtype: string
+      - name: BoxYMax
+        dtype: string
+      - name: PredictedIoU
+        dtype: string
+      - name: Clicks
+        dtype: string
+  splits:
+  - name: nd_test
+    num_bytes: 36352201
+    num_examples: 13836
+  - name: nd_valid
+    num_bytes: 13557059
+    num_examples: 5343
+  - name: od_test
+    num_bytes: 33049755
+    num_examples: 13300
+  - name: od_valid
+    num_bytes: 14093233
+    num_examples: 5372
+  download_size: 4845966
+  dataset_size: 97052248
 ---
 
 # Dataset Card for "compguesswhat"

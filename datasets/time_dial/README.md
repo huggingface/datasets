@@ -20,6 +20,30 @@ task_ids:
 - multi-label-classification
 - text-classification-other-dialog-act-classification
 paperswithcode_id: timedial
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: conversation
+    sequence: string
+  - name: correct1
+    dtype: string
+  - name: correct2
+    dtype: string
+  - name: incorrect1
+    dtype: string
+  - name: incorrect1_rule
+    dtype: string
+  - name: incorrect2
+    dtype: string
+  - name: incorrect2_rule
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1449879
+    num_examples: 1446
+  download_size: 1613806
+  dataset_size: 1449879
 ---
 
 # Dataset Card for TimeDial: Temporal Commonsense Reasoning in Dialog

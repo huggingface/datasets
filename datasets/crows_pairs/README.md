@@ -20,6 +20,58 @@ task_ids:
 - text-classification-other-bias-evaluation
 paperswithcode_id: crows-pairs
 pretty_name: CrowS-Pairs
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: sent_more
+    dtype: string
+  - name: sent_less
+    dtype: string
+  - name: stereo_antistereo
+    dtype:
+      class_label:
+        names:
+          0: stereo
+          1: antistereo
+  - name: bias_type
+    dtype:
+      class_label:
+        names:
+          0: race-color
+          1: socioeconomic
+          2: gender
+          3: disability
+          4: nationality
+          5: sexual-orientation
+          6: physical-appearance
+          7: religion
+          8: age
+  - name: annotations
+    sequence:
+      sequence:
+        class_label:
+          names:
+            0: race-color
+            1: socioeconomic
+            2: gender
+            3: disability
+            4: nationality
+            5: sexual-orientation
+            6: physical-appearance
+            7: religion
+            8: age
+  - name: anon_writer
+    dtype: string
+  - name: anon_annotators
+    sequence: string
+  config_name: crows_pairs
+  splits:
+  - name: test
+    num_bytes: 419976
+    num_examples: 1508
+  download_size: 437764
+  dataset_size: 419976
 ---
 
 # Dataset Card for CrowS-Pairs

@@ -19,6 +19,21 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: OpusFinlex
+dataset_info:
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fi
+        - sv
+  config_name: fi-sv
+  splits:
+  - name: train
+    num_bytes: 610550215
+    num_examples: 3114141
+  download_size: 153886554
+  dataset_size: 610550215
 ---
 
 # Dataset Card for [opus_finlex]

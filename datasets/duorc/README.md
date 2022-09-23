@@ -25,6 +25,63 @@ pretty_name: DuoRC
 configs:
 - ParaphraseRC
 - SelfRC
+dataset_info:
+- config_name: SelfRC
+  features:
+  - name: plot_id
+    dtype: string
+  - name: plot
+    dtype: string
+  - name: title
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: no_answer
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 49142766
+    num_examples: 12559
+  - name: train
+    num_bytes: 239852925
+    num_examples: 60721
+  - name: validation
+    num_bytes: 51662575
+    num_examples: 12961
+  download_size: 34462660
+  dataset_size: 340658266
+- config_name: ParaphraseRC
+  features:
+  - name: plot_id
+    dtype: string
+  - name: plot
+    dtype: string
+  - name: title
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: no_answer
+    dtype: bool
+  splits:
+  - name: test
+    num_bytes: 115215816
+    num_examples: 15857
+  - name: train
+    num_bytes: 496683105
+    num_examples: 69524
+  - name: validation
+    num_bytes: 106510545
+    num_examples: 15591
+  download_size: 62921050
+  dataset_size: 718409466
 ---
 
 # Dataset Card for duorc

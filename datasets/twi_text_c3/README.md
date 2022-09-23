@@ -21,6 +21,17 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: Twi Text C3
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 71198430
+    num_examples: 675772
+  download_size: 69170842
+  dataset_size: 71198430
 ---
 
 # Dataset Card for Twi Text C3

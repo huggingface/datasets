@@ -19,6 +19,55 @@ task_ids:
 - summarization-other-hallucinations
 paperswithcode_id: null
 pretty_name: XSum Hallucination Annotations
+dataset_info:
+- config_name: xsum_factuality
+  features:
+  - name: bbcid
+    dtype: int32
+  - name: system
+    dtype: string
+  - name: summary
+    dtype: string
+  - name: is_factual
+    dtype:
+      class_label:
+        names:
+          0: 'no'
+          1: 'yes'
+  - name: worker_id
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 800027
+    num_examples: 5597
+  download_size: 2864759
+  dataset_size: 800027
+- config_name: xsum_faithfulness
+  features:
+  - name: bbcid
+    dtype: int32
+  - name: system
+    dtype: string
+  - name: summary
+    dtype: string
+  - name: hallucination_type
+    dtype:
+      class_label:
+        names:
+          0: intrinsic
+          1: extrinsic
+  - name: hallucinated_span_start
+    dtype: int32
+  - name: hallucinated_span_end
+    dtype: int32
+  - name: worker_id
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1750325
+    num_examples: 11185
+  download_size: 2864759
+  dataset_size: 1750325
 ---
 
 # Dataset Card for XSum Hallucination Annotations

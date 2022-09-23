@@ -19,6 +19,21 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: TepEnFaPara
+dataset_info:
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - fa
+  config_name: en-fa
+  splits:
+  - name: train
+    num_bytes: 58735557
+    num_examples: 612087
+  download_size: 16353318
+  dataset_size: 58735557
 ---
 
 # Dataset Card for [tep_en_fa_para]

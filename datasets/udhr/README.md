@@ -473,6 +473,26 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: The Universal Declaration of Human Rights (UDHR)
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: lang_key
+    dtype: string
+  - name: lang_name
+    dtype: string
+  - name: iso639-3
+    dtype: string
+  - name: iso15924
+    dtype: string
+  - name: bcp47
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 6753383
+    num_examples: 488
+  download_size: 2389690
+  dataset_size: 6753383
 ---
 
 # Dataset Card for The Universal Declaration of Human Rights (UDHR)

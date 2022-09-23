@@ -3,6 +3,40 @@ language:
 - en
 paperswithcode_id: hellaswag
 pretty_name: HellaSwag
+dataset_info:
+  features:
+  - name: ind
+    dtype: int32
+  - name: activity_label
+    dtype: string
+  - name: ctx_a
+    dtype: string
+  - name: ctx_b
+    dtype: string
+  - name: ctx
+    dtype: string
+  - name: endings
+    sequence: string
+  - name: source_id
+    dtype: string
+  - name: split
+    dtype: string
+  - name: split_type
+    dtype: string
+  - name: label
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 10810696
+    num_examples: 10003
+  - name: train
+    num_bytes: 43307616
+    num_examples: 39905
+  - name: validation
+    num_bytes: 11194634
+    num_examples: 10042
+  download_size: 71494896
+  dataset_size: 65312946
 ---
 
 # Dataset Card for "hellaswag"

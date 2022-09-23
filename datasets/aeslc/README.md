@@ -9,7 +9,7 @@ license:
 - unknown
 multilinguality:
 - monolingual
-pretty_name: "AESLC: Annotated Enron Subject Line Corpus"
+pretty_name: 'AESLC: Annotated Enron Subject Line Corpus'
 size_categories:
 - 10K<n<100K
 source_datasets:
@@ -22,6 +22,24 @@ task_ids:
 - summarization-other-multi-document-summarization
 - summarization-other-aspect-based-summarization
 paperswithcode_id: aeslc
+dataset_info:
+  features:
+  - name: email_body
+    dtype: string
+  - name: subject_line
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1384177
+    num_examples: 1906
+  - name: train
+    num_bytes: 11902668
+    num_examples: 14436
+  - name: validation
+    num_bytes: 1660730
+    num_examples: 1960
+  download_size: 11643743
+  dataset_size: 14947575
 ---
 
 # Dataset Card for "aeslc"

@@ -19,6 +19,21 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: OpusXhosanavy
+dataset_info:
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - xh
+  config_name: en-xh
+  splits:
+  - name: train
+    num_bytes: 9654422
+    num_examples: 49982
+  download_size: 3263865
+  dataset_size: 9654422
 ---
 
 # Dataset Card for [Dataset Name]

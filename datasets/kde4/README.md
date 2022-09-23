@@ -111,6 +111,87 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: KDE4
+dataset_info:
+- config_name: fi-nl
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fi
+        - nl
+  splits:
+  - name: train
+    num_bytes: 8845933
+    num_examples: 101593
+  download_size: 2471355
+  dataset_size: 8845933
+- config_name: it-ro
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - it
+        - ro
+  splits:
+  - name: train
+    num_bytes: 8827049
+    num_examples: 109003
+  download_size: 2389051
+  dataset_size: 8827049
+- config_name: nl-sv
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - nl
+        - sv
+  splits:
+  - name: train
+    num_bytes: 22294586
+    num_examples: 188454
+  download_size: 6203460
+  dataset_size: 22294586
+- config_name: en-it
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - it
+  splits:
+  - name: train
+    num_bytes: 27132585
+    num_examples: 220566
+  download_size: 7622662
+  dataset_size: 27132585
+- config_name: en-fr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - fr
+  splits:
+  - name: train
+    num_bytes: 25650409
+    num_examples: 210173
+  download_size: 7049364
+  dataset_size: 25650409
 ---
 # Dataset Card for KDE4
 

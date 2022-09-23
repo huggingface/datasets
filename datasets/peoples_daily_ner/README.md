@@ -19,6 +19,36 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: People's Daily NER
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PER
+          2: I-PER
+          3: B-ORG
+          4: I-ORG
+          5: B-LOC
+          6: I-LOC
+  config_name: peoples_daily_ner
+  splits:
+  - name: test
+    num_bytes: 3346975
+    num_examples: 4637
+  - name: train
+    num_bytes: 14972456
+    num_examples: 20865
+  - name: validation
+    num_bytes: 1676741
+    num_examples: 2319
+  download_size: 8385672
+  dataset_size: 19996172
 ---
 
 # Dataset Card for People's Daily NER

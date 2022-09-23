@@ -142,6 +142,43 @@ pretty_name: CC100
 configs:
 - am
 - sr
+dataset_info:
+- config_name: am
+  features:
+  - name: id
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 935440775
+    num_examples: 3124561
+  download_size: 138821056
+  dataset_size: 935440775
+- config_name: sr
+  features:
+  - name: id
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 10299427460
+    num_examples: 35747957
+  download_size: 1578989320
+  dataset_size: 10299427460
+- config_name: ka
+  features:
+  - name: id
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 10228918845
+    num_examples: 31708119
+  download_size: 1100446372
+  dataset_size: 10228918845
 ---
 
 # Dataset Card for CC100

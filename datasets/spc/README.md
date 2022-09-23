@@ -25,6 +25,55 @@ configs:
 - af-en
 - el-en
 - en-zh
+dataset_info:
+- config_name: af-en
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - af
+        - en
+  splits:
+  - name: train
+    num_bytes: 4605446
+    num_examples: 57351
+  download_size: 1105038
+  dataset_size: 4605446
+- config_name: el-en
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - el
+        - en
+  splits:
+  - name: train
+    num_bytes: 3797941
+    num_examples: 8181
+  download_size: 841228
+  dataset_size: 3797941
+- config_name: en-zh
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - zh
+  splits:
+  - name: train
+    num_bytes: 849200
+    num_examples: 2228
+  download_size: 189995
+  dataset_size: 849200
 ---
 
 # Dataset Card for spc

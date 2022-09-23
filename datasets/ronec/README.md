@@ -20,6 +20,64 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: ronec
 pretty_name: RONEC
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: tokens
+    sequence: string
+  - name: ner_ids
+    sequence: int32
+  - name: space_after
+    sequence: bool
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PERSON
+          2: I-PERSON
+          3: B-ORG
+          4: I-ORG
+          5: B-GPE
+          6: I-GPE
+          7: B-LOC
+          8: I-LOC
+          9: B-NAT_REL_POL
+          10: I-NAT_REL_POL
+          11: B-EVENT
+          12: I-EVENT
+          13: B-LANGUAGE
+          14: I-LANGUAGE
+          15: B-WORK_OF_ART
+          16: I-WORK_OF_ART
+          17: B-DATETIME
+          18: I-DATETIME
+          19: B-PERIOD
+          20: I-PERIOD
+          21: B-MONEY
+          22: I-MONEY
+          23: B-QUANTITY
+          24: I-QUANTITY
+          25: B-NUMERIC
+          26: I-NUMERIC
+          27: B-ORDINAL
+          28: I-ORDINAL
+          29: B-FACILITY
+          30: I-FACILITY
+  config_name: ronec
+  splits:
+  - name: test
+    num_bytes: 1902224
+    num_examples: 2000
+  - name: train
+    num_bytes: 8701577
+    num_examples: 9000
+  - name: validation
+    num_bytes: 1266490
+    num_examples: 1330
+  download_size: 14675943
+  dataset_size: 11870291
 ---
 
 # Dataset Card for RONEC

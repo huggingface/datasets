@@ -19,6 +19,23 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: null
 pretty_name: Arabic Jordanian General Tweets
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Negative
+          1: Positive
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 175424
+    num_examples: 1800
+  download_size: 107395
+  dataset_size: 175424
 ---
 
 # Dataset Card for Arabic Jordanian General Tweets

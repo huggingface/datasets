@@ -22,6 +22,69 @@ task_ids:
 - part-of-speech
 paperswithcode_id: null
 pretty_name: thainer
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: tokens
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: ADJ
+          1: ADP
+          2: ADV
+          3: AUX
+          4: CCONJ
+          5: DET
+          6: NOUN
+          7: NUM
+          8: PART
+          9: PRON
+          10: PROPN
+          11: PUNCT
+          12: SCONJ
+          13: VERB
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-DATE
+          1: B-EMAIL
+          2: B-LAW
+          3: B-LEN
+          4: B-LOCATION
+          5: B-MONEY
+          6: B-ORGANIZATION
+          7: B-PERCENT
+          8: B-PERSON
+          9: B-PHONE
+          10: B-TIME
+          11: B-URL
+          12: B-ZIP
+          13: B-ไม่ยืนยัน
+          14: I-DATE
+          15: I-EMAIL
+          16: I-LAW
+          17: I-LEN
+          18: I-LOCATION
+          19: I-MONEY
+          20: I-ORGANIZATION
+          21: I-PERCENT
+          22: I-PERSON
+          23: I-PHONE
+          24: I-TIME
+          25: I-URL
+          26: I-ไม่ยืนยัน
+          27: O
+  config_name: thainer
+  splits:
+  - name: train
+    num_bytes: 8117902
+    num_examples: 6348
+  download_size: 5456461
+  dataset_size: 8117902
 ---
 
 # Dataset Card for `thainer`

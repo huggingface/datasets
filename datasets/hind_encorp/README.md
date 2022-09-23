@@ -20,6 +20,28 @@ task_categories:
 task_ids: []
 paperswithcode_id: hindencorp
 pretty_name: HindEnCorp
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: source
+    dtype: string
+  - name: alignment_type
+    dtype: string
+  - name: alignment_quality
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - hi
+  splits:
+  - name: train
+    num_bytes: 78945714
+    num_examples: 273885
+  download_size: 23899723
+  dataset_size: 78945714
 ---
 
 # Dataset Card for HindEnCorp

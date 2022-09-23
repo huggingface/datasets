@@ -20,6 +20,26 @@ task_ids:
 - other-image-self-supervised pretraining
 paperswithcode_id: pass
 pretty_name: Pictures without humAns for Self-Supervision
+dataset_info:
+  features:
+  - name: image
+    dtype: image
+  - name: creator_username
+    dtype: string
+  - name: hash
+    dtype: string
+  - name: gps_latitude
+    dtype: float32
+  - name: gps_longitude
+    dtype: float32
+  - name: date_taken
+    dtype: timestamp[us]
+  splits:
+  - name: train
+    num_bytes: 178563446100
+    num_examples: 1439588
+  download_size: 179640190811
+  dataset_size: 178563446100
 ---
 
 # Dataset Card for PASS

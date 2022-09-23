@@ -18,6 +18,52 @@ task_ids:
 size_categories:
 - 10K<n<100K
 pretty_name: Headline Grouping (HLGD)
+dataset_info:
+  features:
+  - name: timeline_id
+    dtype:
+      class_label:
+        names:
+          0: 0
+          1: 1
+          2: 2
+          3: 3
+          4: 4
+          5: 5
+          6: 6
+          7: 7
+          8: 8
+          9: 9
+  - name: headline_a
+    dtype: string
+  - name: headline_b
+    dtype: string
+  - name: date_a
+    dtype: string
+  - name: date_b
+    dtype: string
+  - name: url_a
+    dtype: string
+  - name: url_b
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: same_event
+          1: different_event
+  splits:
+  - name: test
+    num_bytes: 941145
+    num_examples: 2495
+  - name: train
+    num_bytes: 6447212
+    num_examples: 15492
+  - name: validation
+    num_bytes: 798302
+    num_examples: 2069
+  download_size: 1858948
+  dataset_size: 8186659
 ---
 
 # Dataset Card for Headline Grouping (HLGD)

@@ -19,6 +19,26 @@ task_ids:
 - sentiment-classification
 paperswithcode_id: null
 pretty_name: ArRestReviews
+dataset_info:
+  features:
+  - name: polarity
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: positive
+  - name: text
+    dtype: string
+  - name: restaurant_id
+    dtype: string
+  - name: user_id
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3617097
+    num_examples: 8364
+  download_size: 3503230
+  dataset_size: 3617097
 ---
 
 # Dataset Card for ArRestReviews

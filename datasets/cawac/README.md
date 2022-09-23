@@ -21,6 +21,16 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: cawac
 pretty_name: caWaC
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3987238444
+    num_examples: 24745986
+  download_size: 1620361999
+  dataset_size: 3987238444
 ---
 
 # Dataset Card for caWaC

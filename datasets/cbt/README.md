@@ -28,6 +28,113 @@ configs:
 - P
 - V
 - raw
+dataset_info:
+- config_name: raw
+  features:
+  - name: title
+    dtype: string
+  - name: content
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1528712
+    num_examples: 5
+  - name: train
+    num_bytes: 25741588
+    num_examples: 98
+  - name: validation
+    num_bytes: 1182665
+    num_examples: 5
+  download_size: 120547669
+  dataset_size: 28452965
+- config_name: V
+  features:
+  - name: sentences
+    sequence: string
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: options
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 5806649
+    num_examples: 2500
+  - name: train
+    num_bytes: 252177913
+    num_examples: 105825
+  - name: validation
+    num_bytes: 4556449
+    num_examples: 2000
+  download_size: 120547669
+  dataset_size: 262541011
+- config_name: P
+  features:
+  - name: sentences
+    sequence: string
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: options
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 6078072
+    num_examples: 2500
+  - name: train
+    num_bytes: 852853417
+    num_examples: 334030
+  - name: validation
+    num_bytes: 4777005
+    num_examples: 2000
+  download_size: 120547669
+  dataset_size: 863708494
+- config_name: NE
+  features:
+  - name: sentences
+    sequence: string
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: options
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 5707758
+    num_examples: 2500
+  - name: train
+    num_bytes: 253552195
+    num_examples: 108719
+  - name: validation
+    num_bytes: 4424340
+    num_examples: 2000
+  download_size: 120547669
+  dataset_size: 263684293
+- config_name: CN
+  features:
+  - name: sentences
+    sequence: string
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: options
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 6138400
+    num_examples: 2500
+  - name: train
+    num_bytes: 301730463
+    num_examples: 120769
+  - name: validation
+    num_bytes: 4737281
+    num_examples: 2000
+  download_size: 120547669
+  dataset_size: 312606144
 ---
 
 # Dataset Card for CBT

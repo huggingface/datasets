@@ -33,6 +33,167 @@ configs:
 - es-fr
 - es-sv
 - fr-sv
+dataset_info:
+- config_name: de-en
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - en
+  splits:
+  - name: train
+    num_bytes: 38683
+    num_examples: 177
+  download_size: 16029
+  dataset_size: 38683
+- config_name: de-es
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - es
+  splits:
+  - name: train
+    num_bytes: 2316
+    num_examples: 24
+  download_size: 2403
+  dataset_size: 2316
+- config_name: de-fr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - fr
+  splits:
+  - name: train
+    num_bytes: 41300
+    num_examples: 173
+  download_size: 16720
+  dataset_size: 41300
+- config_name: de-sv
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - sv
+  splits:
+  - name: train
+    num_bytes: 37414
+    num_examples: 178
+  download_size: 15749
+  dataset_size: 37414
+- config_name: en-es
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - es
+  splits:
+  - name: train
+    num_bytes: 2600
+    num_examples: 25
+  download_size: 2485
+  dataset_size: 2600
+- config_name: en-fr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - fr
+  splits:
+  - name: train
+    num_bytes: 39503
+    num_examples: 175
+  download_size: 16038
+  dataset_size: 39503
+- config_name: en-sv
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - sv
+  splits:
+  - name: train
+    num_bytes: 35778
+    num_examples: 180
+  download_size: 15147
+  dataset_size: 35778
+- config_name: es-fr
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - fr
+  splits:
+  - name: train
+    num_bytes: 2519
+    num_examples: 21
+  download_size: 2469
+  dataset_size: 2519
+- config_name: es-sv
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - es
+        - sv
+  splits:
+  - name: train
+    num_bytes: 3110
+    num_examples: 28
+  download_size: 2726
+  dataset_size: 3110
+- config_name: fr-sv
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr
+        - sv
+  splits:
+  - name: train
+    num_bytes: 38627
+    num_examples: 175
+  download_size: 15937
+  dataset_size: 38627
 ---
 
 # Dataset Card for [Dataset Name]

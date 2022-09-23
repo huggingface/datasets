@@ -19,6 +19,16 @@ task_categories:
 task_ids:
 - language-modeling
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 4418577129
+    num_examples: 40418260
+  download_size: 1507274412
+  dataset_size: 4418577129
 ---
 
 # Dataset Card for "librispeech_lm"

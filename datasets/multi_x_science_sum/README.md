@@ -19,6 +19,36 @@ task_ids:
 - summarization-other-paper-abstract-generation
 paperswithcode_id: multi-xscience
 pretty_name: Multi-XScience
+dataset_info:
+  features:
+  - name: aid
+    dtype: string
+  - name: mid
+    dtype: string
+  - name: abstract
+    dtype: string
+  - name: related_work
+    dtype: string
+  - name: ref_abstract
+    sequence:
+    - name: cite_N
+      dtype: string
+    - name: mid
+      dtype: string
+    - name: abstract
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 27965523
+    num_examples: 5093
+  - name: train
+    num_bytes: 169364465
+    num_examples: 30369
+  - name: validation
+    num_bytes: 28168498
+    num_examples: 5066
+  download_size: 61329304
+  dataset_size: 225498486
 ---
 
 # Dataset Card for Multi-XScience

@@ -42,6 +42,169 @@ configs:
 - alt-my-transliteration
 - alt-my-west-transliteration
 - alt-parallel
+dataset_info:
+- config_name: alt-parallel
+  features:
+  - name: SNT.URLID
+    dtype: string
+  - name: SNT.URLID.SNTID
+    dtype: string
+  - name: url
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - bg
+        - en
+        - en_tok
+        - fil
+        - hi
+        - id
+        - ja
+        - khm
+        - lo
+        - ms
+        - my
+        - th
+        - vi
+        - zh
+  splits:
+  - name: test
+    num_bytes: 3815633
+    num_examples: 1019
+  - name: train
+    num_bytes: 68462384
+    num_examples: 18094
+  - name: validation
+    num_bytes: 3712980
+    num_examples: 1004
+  download_size: 21285784
+  dataset_size: 75990997
+- config_name: alt-en
+  features:
+  - name: SNT.URLID
+    dtype: string
+  - name: SNT.URLID.SNTID
+    dtype: string
+  - name: url
+    dtype: string
+  - name: status
+    dtype: string
+  - name: value
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 567292
+    num_examples: 1017
+  - name: train
+    num_bytes: 10075609
+    num_examples: 17889
+  - name: validation
+    num_bytes: 544739
+    num_examples: 988
+  download_size: 2739055
+  dataset_size: 11187640
+- config_name: alt-jp
+  features:
+  - name: SNT.URLID
+    dtype: string
+  - name: SNT.URLID.SNTID
+    dtype: string
+  - name: url
+    dtype: string
+  - name: status
+    dtype: string
+  - name: value
+    dtype: string
+  - name: word_alignment
+    dtype: string
+  - name: jp_tokenized
+    dtype: string
+  - name: en_tokenized
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1175624
+    num_examples: 931
+  - name: train
+    num_bytes: 21891867
+    num_examples: 17202
+  - name: validation
+    num_bytes: 1181587
+    num_examples: 953
+  download_size: 12007999
+  dataset_size: 24249078
+- config_name: alt-my
+  features:
+  - name: SNT.URLID
+    dtype: string
+  - name: SNT.URLID.SNTID
+    dtype: string
+  - name: url
+    dtype: string
+  - name: value
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1135209
+    num_examples: 1018
+  - name: train
+    num_bytes: 20433275
+    num_examples: 18088
+  - name: validation
+    num_bytes: 1111410
+    num_examples: 1000
+  download_size: 3028302
+  dataset_size: 22679894
+- config_name: alt-km
+  features:
+  - name: SNT.URLID
+    dtype: string
+  - name: SNT.URLID.SNTID
+    dtype: string
+  - name: url
+    dtype: string
+  - name: km_pos_tag
+    dtype: string
+  - name: km_tokenized
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 673753
+    num_examples: 1018
+  - name: train
+    num_bytes: 12015411
+    num_examples: 18088
+  - name: validation
+    num_bytes: 655232
+    num_examples: 1000
+  download_size: 2410832
+  dataset_size: 13344396
+- config_name: alt-my-transliteration
+  features:
+  - name: en
+    dtype: string
+  - name: my
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 4249424
+    num_examples: 84022
+  download_size: 1232127
+  dataset_size: 4249424
+- config_name: alt-my-west-transliteration
+  features:
+  - name: en
+    dtype: string
+  - name: my
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 7412043
+    num_examples: 107121
+  download_size: 2830071
+  dataset_size: 7412043
 ---
 
 # Dataset Card for Asian Language Treebank (ALT)

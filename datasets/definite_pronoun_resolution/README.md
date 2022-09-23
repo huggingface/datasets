@@ -19,6 +19,31 @@ task_ids:
 - word-sense-disambiguation
 paperswithcode_id: definite-pronoun-resolution-dataset
 pretty_name: Definite Pronoun Resolution Dataset
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  - name: pronoun
+    dtype: string
+  - name: candidates
+    sequence: string
+    length: 2
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 71691
+    num_examples: 564
+  - name: train
+    num_bytes: 171511
+    num_examples: 1322
+  download_size: 227452
+  dataset_size: 243202
 ---
 
 # Dataset Card for "definite_pronoun_resolution"

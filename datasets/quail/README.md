@@ -19,6 +19,47 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: quail
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: context_id
+    dtype: string
+  - name: question_id
+    dtype: string
+  - name: domain
+    dtype: string
+  - name: metadata
+    struct:
+    - name: author
+      dtype: string
+    - name: title
+      dtype: string
+    - name: url
+      dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: question_type
+    dtype: string
+  - name: answers
+    sequence: string
+  - name: correct_answer_id
+    dtype: int32
+  config_name: quail
+  splits:
+  - name: challenge
+    num_bytes: 1199840
+    num_examples: 556
+  - name: train
+    num_bytes: 23432697
+    num_examples: 10246
+  - name: validation
+    num_bytes: 4989579
+    num_examples: 2164
+  download_size: 6402933
+  dataset_size: 29622116
 ---
 
 # Dataset Card for "quail"

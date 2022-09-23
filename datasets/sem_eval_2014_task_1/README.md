@@ -21,6 +21,35 @@ task_ids:
 - semantic-similarity-scoring
 paperswithcode_id: null
 pretty_name: SemEval 2014 - Task 1
+dataset_info:
+  features:
+  - name: sentence_pair_id
+    dtype: int64
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: relatedness_score
+    dtype: float32
+  - name: entailment_judgment
+    dtype:
+      class_label:
+        names:
+          0: NEUTRAL
+          1: ENTAILMENT
+          2: CONTRADICTION
+  splits:
+  - name: test
+    num_bytes: 592320
+    num_examples: 4927
+  - name: train
+    num_bytes: 540296
+    num_examples: 4500
+  - name: validation
+    num_bytes: 60981
+    num_examples: 500
+  download_size: 197230
+  dataset_size: 1193597
 ---
 
 # Dataset Card for SemEval 2014 - Task 1

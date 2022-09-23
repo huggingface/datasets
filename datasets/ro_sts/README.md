@@ -1,5 +1,5 @@
 ---
-annotations_creators: 
+annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
@@ -20,6 +20,27 @@ task_ids:
 - semantic-similarity-scoring
 paperswithcode_id: null
 pretty_name: RO-STS
+dataset_info:
+  features:
+  - name: score
+    dtype: float32
+  - name: sentence1
+    dtype: string
+  - name: sentence2
+    dtype: string
+  config_name: ro_sts
+  splits:
+  - name: test
+    num_bytes: 194330
+    num_examples: 1379
+  - name: train
+    num_bytes: 879073
+    num_examples: 5749
+  - name: validation
+    num_bytes: 245926
+    num_examples: 1500
+  download_size: 1267607
+  dataset_size: 1319329
 ---
 
 # Dataset Card for RO-STS

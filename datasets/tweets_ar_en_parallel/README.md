@@ -21,6 +21,71 @@ task_ids:
 - translation-other-tweets-translation
 paperswithcode_id: bilingual-corpus-of-arabic-english-parallel
 pretty_name: Bilingual Corpus of Arabic-English Parallel Tweets
+dataset_info:
+- config_name: parallelTweets
+  features:
+  - name: ArabicTweetID
+    dtype: int64
+  - name: EnglishTweetID
+    dtype: int64
+  splits:
+  - name: test
+    num_bytes: 2667296
+    num_examples: 166706
+  download_size: 2937626
+  dataset_size: 2667296
+- config_name: accountList
+  features:
+  - name: account
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 20108
+    num_examples: 1389
+  download_size: 2937626
+  dataset_size: 20108
+- config_name: countryTopicAnnotation
+  features:
+  - name: account
+    dtype: string
+  - name: country
+    dtype:
+      class_label:
+        names:
+          0: QA
+          1: BH
+          2: AE
+          3: OM
+          4: SA
+          5: PL
+          6: JO
+          7: IQ
+          8: Other
+          9: EG
+          10: KW
+          11: SY
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: Gov
+          1: Culture
+          2: Education
+          3: Sports
+          4: Travel
+          5: Events
+          6: Business
+          7: Science
+          8: Politics
+          9: Health
+          10: Governoment
+          11: Media
+  splits:
+  - name: test
+    num_bytes: 6036
+    num_examples: 200
+  download_size: 2937626
+  dataset_size: 6036
 ---
 
 # Dataset Card for Bilingual Corpus of Arabic-English Parallel Tweets

@@ -38,6 +38,109 @@ configs:
 - tagged_ca
 - tagged_en
 - tagged_es
+dataset_info:
+- config_name: raw_ca
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 263170192
+    num_examples: 143883
+  download_size: 96437841
+  dataset_size: 263170192
+- config_name: raw_es
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 671295359
+    num_examples: 259409
+  download_size: 252926918
+  dataset_size: 671295359
+- config_name: raw_en
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3388801074
+    num_examples: 1359146
+  download_size: 1346378932
+  dataset_size: 3388801074
+- config_name: tagged_ca
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: sentence
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence: string
+  - name: wordnet_senses
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 1666129919
+    num_examples: 2016221
+  download_size: 226390380
+  dataset_size: 1666129919
+- config_name: tagged_es
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: sentence
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence: string
+  - name: wordnet_senses
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 4100040390
+    num_examples: 5039367
+  download_size: 604910899
+  dataset_size: 4100040390
+- config_name: tagged_en
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: sentence
+    sequence: string
+  - name: lemmas
+    sequence: string
+  - name: pos_tags
+    sequence: string
+  - name: wordnet_senses
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 18077275300
+    num_examples: 26350272
+  download_size: 2477450893
+  dataset_size: 18077275300
 ---
 
 # Dataset Card for Wikicorpus

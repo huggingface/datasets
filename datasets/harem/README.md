@@ -19,6 +19,83 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: HAREM
+dataset_info:
+- config_name: default
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PESSOA
+          2: I-PESSOA
+          3: B-ORGANIZACAO
+          4: I-ORGANIZACAO
+          5: B-LOCAL
+          6: I-LOCAL
+          7: B-TEMPO
+          8: I-TEMPO
+          9: B-VALOR
+          10: I-VALOR
+          11: B-ABSTRACCAO
+          12: I-ABSTRACCAO
+          13: B-ACONTECIMENTO
+          14: I-ACONTECIMENTO
+          15: B-COISA
+          16: I-COISA
+          17: B-OBRA
+          18: I-OBRA
+          19: B-OUTRO
+          20: I-OUTRO
+  splits:
+  - name: test
+    num_bytes: 1062714
+    num_examples: 128
+  - name: train
+    num_bytes: 1506373
+    num_examples: 121
+  - name: validation
+    num_bytes: 51318
+    num_examples: 8
+  download_size: 1887281
+  dataset_size: 2620405
+- config_name: selective
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-PESSOA
+          2: I-PESSOA
+          3: B-ORGANIZACAO
+          4: I-ORGANIZACAO
+          5: B-LOCAL
+          6: I-LOCAL
+          7: B-TEMPO
+          8: I-TEMPO
+          9: B-VALOR
+          10: I-VALOR
+  splits:
+  - name: test
+    num_bytes: 1062714
+    num_examples: 128
+  - name: train
+    num_bytes: 1506373
+    num_examples: 121
+  - name: validation
+    num_bytes: 51318
+    num_examples: 8
+  download_size: 1715873
+  dataset_size: 2620405
 ---
 
 # Dataset Card for HAREM

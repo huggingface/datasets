@@ -23,6 +23,26 @@ task_ids:
 - text2text-generation-other-code-generation
 - text-generation-other-code-modeling
 paperswithcode_id: null
+dataset_info:
+  features:
+  - name: ast
+    sequence:
+    - name: type
+      dtype: string
+    - name: value
+      dtype: string
+    - name: children
+      sequence: int32
+  config_name: ast
+  splits:
+  - name: test
+    num_bytes: 907514993
+    num_examples: 50000
+  - name: train
+    num_bytes: 1870790180
+    num_examples: 100000
+  download_size: 526642289
+  dataset_size: 2778305173
 ---
 # Dataset Card for [py_ast]
 

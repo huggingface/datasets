@@ -43,6 +43,487 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: Europa Education and Culture Translation Memory (EAC-TM)
+dataset_info:
+- config_name: en2bg
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - bg
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 664252
+    num_examples: 4061
+  download_size: 3521416
+  dataset_size: 664252
+- config_name: en2cs
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - cs
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 365983
+    num_examples: 3351
+  download_size: 3521416
+  dataset_size: 365983
+- config_name: en2da
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - da
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 422079
+    num_examples: 3757
+  download_size: 3521416
+  dataset_size: 422079
+- config_name: en2de
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - de
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 579566
+    num_examples: 4473
+  download_size: 3521416
+  dataset_size: 579566
+- config_name: en2el
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - el
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 491346
+    num_examples: 2818
+  download_size: 3521416
+  dataset_size: 491346
+- config_name: en2es
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - es
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 555218
+    num_examples: 4303
+  download_size: 3521416
+  dataset_size: 555218
+- config_name: en2et
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - et
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 247284
+    num_examples: 2270
+  download_size: 3521416
+  dataset_size: 247284
+- config_name: en2fi
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - fi
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 150560
+    num_examples: 1458
+  download_size: 3521416
+  dataset_size: 150560
+- config_name: en2fr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - fr
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 575579
+    num_examples: 4476
+  download_size: 3521416
+  dataset_size: 575579
+- config_name: en2hu
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - hu
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 454802
+    num_examples: 3455
+  download_size: 3521416
+  dataset_size: 454802
+- config_name: en2is
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - is
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 268194
+    num_examples: 2206
+  download_size: 3521416
+  dataset_size: 268194
+- config_name: en2it
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - it
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 270634
+    num_examples: 2170
+  download_size: 3521416
+  dataset_size: 270634
+- config_name: en2lt
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - lt
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 358844
+    num_examples: 3386
+  download_size: 3521416
+  dataset_size: 358844
+- config_name: en2lv
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - lv
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 437487
+    num_examples: 3880
+  download_size: 3521416
+  dataset_size: 437487
+- config_name: en2mt
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - mt
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 178675
+    num_examples: 1722
+  download_size: 3521416
+  dataset_size: 178675
+- config_name: en2nb
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - nb
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 85833
+    num_examples: 642
+  download_size: 3521416
+  dataset_size: 85833
+- config_name: en2nl
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - nl
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 188531
+    num_examples: 1805
+  download_size: 3521416
+  dataset_size: 188531
+- config_name: en2pl
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - pl
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 515976
+    num_examples: 4027
+  download_size: 3521416
+  dataset_size: 515976
+- config_name: en2pt
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - pt
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 422125
+    num_examples: 3501
+  download_size: 3521416
+  dataset_size: 422125
+- config_name: en2ro
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ro
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 345468
+    num_examples: 3159
+  download_size: 3521416
+  dataset_size: 345468
+- config_name: en2sk
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - sk
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 306049
+    num_examples: 2972
+  download_size: 3521416
+  dataset_size: 306049
+- config_name: en2sl
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - sl
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 577524
+    num_examples: 4644
+  download_size: 3521416
+  dataset_size: 577524
+- config_name: en2sv
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - sv
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 304954
+    num_examples: 2909
+  download_size: 3521416
+  dataset_size: 304954
+- config_name: en2tr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - tr
+  - name: sentence_type
+    dtype:
+      class_label:
+        names:
+          0: form_data
+          1: sentence_data
+  splits:
+  - name: train
+    num_bytes: 328267
+    num_examples: 3198
+  download_size: 3521416
+  dataset_size: 328267
 ---
 
 # Dataset Card for Europa Education and Culture Translation Memory (EAC-TM)

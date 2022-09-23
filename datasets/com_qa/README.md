@@ -3,6 +3,26 @@ language:
 - en
 paperswithcode_id: comqa
 pretty_name: ComQA
+dataset_info:
+  features:
+  - name: cluster_id
+    dtype: string
+  - name: questions
+    sequence: string
+  - name: answers
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 273384
+    num_examples: 2243
+  - name: train
+    num_bytes: 696645
+    num_examples: 3966
+  - name: validation
+    num_bytes: 131945
+    num_examples: 966
+  download_size: 1671684
+  dataset_size: 1101974
 ---
 
 # Dataset Card for "com_qa"

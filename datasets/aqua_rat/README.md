@@ -20,6 +20,51 @@ task_ids:
 - multiple-choice-qa
 paperswithcode_id: aqua-rat
 pretty_name: Algebra Question Answering with Rationales
+dataset_info:
+- config_name: raw
+  features:
+  - name: question
+    dtype: string
+  - name: options
+    sequence: string
+  - name: rationale
+    dtype: string
+  - name: correct
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 116779
+    num_examples: 254
+  - name: train
+    num_bytes: 42333259
+    num_examples: 97467
+  - name: validation
+    num_bytes: 118636
+    num_examples: 254
+  download_size: 47833135
+  dataset_size: 42568674
+- config_name: tokenized
+  features:
+  - name: question
+    dtype: string
+  - name: options
+    sequence: string
+  - name: rationale
+    dtype: string
+  - name: correct
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 126283
+    num_examples: 254
+  - name: train
+    num_bytes: 46493843
+    num_examples: 97467
+  - name: validation
+    num_bytes: 128873
+    num_examples: 254
+  download_size: 52003894
+  dataset_size: 46748999
 ---
 
 # Dataset Card for AQUA-RAT

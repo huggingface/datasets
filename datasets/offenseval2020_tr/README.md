@@ -19,6 +19,28 @@ task_ids:
 - text-classification-other-offensive-language-classification
 paperswithcode_id: null
 pretty_name: OffensEval-TR 2020
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: tweet
+    dtype: string
+  - name: subtask_a
+    dtype:
+      class_label:
+        names:
+          0: NOT
+          1: 'OFF'
+  config_name: offenseval2020-turkish
+  splits:
+  - name: test
+    num_bytes: 481300
+    num_examples: 3528
+  - name: train
+    num_bytes: 4260505
+    num_examples: 31756
+  download_size: 2048258
+  dataset_size: 4741805
 ---
 
 # Dataset Card for OffensEval-TR 2020

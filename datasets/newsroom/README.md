@@ -19,6 +19,42 @@ task_categories:
 task_ids:
 - news-articles-summarization
 paperswithcode_id: newsroom
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: summary
+    dtype: string
+  - name: title
+    dtype: string
+  - name: url
+    dtype: string
+  - name: date
+    dtype: string
+  - name: density_bin
+    dtype: string
+  - name: coverage_bin
+    dtype: string
+  - name: compression_bin
+    dtype: string
+  - name: density
+    dtype: float32
+  - name: coverage
+    dtype: float32
+  - name: compression
+    dtype: float32
+  splits:
+  - name: test
+    num_bytes: 472446866
+    num_examples: 108862
+  - name: train
+    num_bytes: 4357506078
+    num_examples: 995041
+  - name: validation
+    num_bytes: 473206951
+    num_examples: 108837
+  download_size: 0
+  dataset_size: 5303159895
 ---
 
 # Dataset Card for "newsroom"

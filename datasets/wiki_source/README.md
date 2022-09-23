@@ -19,6 +19,23 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: WikiSource
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - sv
+  config_name: en-sv
+  splits:
+  - name: train
+    num_bytes: 8153542
+    num_examples: 33283
+  download_size: 2375052
+  dataset_size: 8153542
 ---
 
 # Dataset Card for WikiSource

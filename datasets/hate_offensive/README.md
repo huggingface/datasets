@@ -20,6 +20,31 @@ task_ids:
 - text-classification-other-hate-speech-detection
 paperswithcode_id: hate-speech-and-offensive-language
 pretty_name: HateOffensive
+dataset_info:
+  features:
+  - name: total_annotation_count
+    dtype: int32
+  - name: hate_speech_annotations
+    dtype: int32
+  - name: offensive_language_annotations
+    dtype: int32
+  - name: neither_annotations
+    dtype: int32
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: hate-speech
+          1: offensive-language
+          2: neither
+  - name: tweet
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2811298
+    num_examples: 24783
+  download_size: 2546446
+  dataset_size: 2811298
 ---
 
 # Dataset Card for HateOffensive

@@ -44,6 +44,473 @@ configs:
 - smsa
 - terma
 - wrete
+dataset_info:
+- config_name: emot
+  features:
+  - name: tweet
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: sadness
+          1: anger
+          2: love
+          3: fear
+          4: happy
+  splits:
+  - name: test
+    num_bytes: 84856
+    num_examples: 440
+  - name: train
+    num_bytes: 686418
+    num_examples: 3521
+  - name: validation
+    num_bytes: 84082
+    num_examples: 440
+  download_size: 840917
+  dataset_size: 855356
+- config_name: smsa
+  features:
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: positive
+          1: neutral
+          2: negative
+  splits:
+  - name: test
+    num_bytes: 77041
+    num_examples: 500
+  - name: train
+    num_bytes: 2209874
+    num_examples: 11000
+  - name: validation
+    num_bytes: 249629
+    num_examples: 1260
+  download_size: 2509229
+  dataset_size: 2536544
+- config_name: casa
+  features:
+  - name: sentence
+    dtype: string
+  - name: fuel
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: neutral
+          2: positive
+  - name: machine
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: neutral
+          2: positive
+  - name: others
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: neutral
+          2: positive
+  - name: part
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: neutral
+          2: positive
+  - name: price
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: neutral
+          2: positive
+  - name: service
+    dtype:
+      class_label:
+        names:
+          0: negative
+          1: neutral
+          2: positive
+  splits:
+  - name: test
+    num_bytes: 23553
+    num_examples: 180
+  - name: train
+    num_bytes: 110415
+    num_examples: 810
+  - name: validation
+    num_bytes: 11993
+    num_examples: 90
+  download_size: 144903
+  dataset_size: 145961
+- config_name: hoasa
+  features:
+  - name: sentence
+    dtype: string
+  - name: ac
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: neut
+          2: pos
+          3: neg_pos
+  - name: air_panas
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: neut
+          2: pos
+          3: neg_pos
+  - name: bau
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: neut
+          2: pos
+          3: neg_pos
+  - name: general
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: neut
+          2: pos
+          3: neg_pos
+  - name: kebersihan
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: neut
+          2: pos
+          3: neg_pos
+  - name: linen
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: neut
+          2: pos
+          3: neg_pos
+  - name: service
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: neut
+          2: pos
+          3: neg_pos
+  - name: sunrise_meal
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: neut
+          2: pos
+          3: neg_pos
+  - name: tv
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: neut
+          2: pos
+          3: neg_pos
+  - name: wifi
+    dtype:
+      class_label:
+        names:
+          0: neg
+          1: neut
+          2: pos
+          3: neg_pos
+  splits:
+  - name: test
+    num_bytes: 56399
+    num_examples: 286
+  - name: train
+    num_bytes: 458177
+    num_examples: 2283
+  - name: validation
+    num_bytes: 58248
+    num_examples: 285
+  download_size: 477314
+  dataset_size: 572824
+- config_name: wrete
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: category
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: NotEntail
+          1: Entail_or_Paraphrase
+  splits:
+  - name: test
+    num_bytes: 32617
+    num_examples: 100
+  - name: train
+    num_bytes: 99999
+    num_examples: 300
+  - name: validation
+    num_bytes: 18049
+    num_examples: 50
+  download_size: 151018
+  dataset_size: 150665
+- config_name: posp
+  features:
+  - name: tokens
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: B-PPO
+          1: B-KUA
+          2: B-ADV
+          3: B-PRN
+          4: B-VBI
+          5: B-PAR
+          6: B-VBP
+          7: B-NNP
+          8: B-UNS
+          9: B-VBT
+          10: B-VBL
+          11: B-NNO
+          12: B-ADJ
+          13: B-PRR
+          14: B-PRK
+          15: B-CCN
+          16: B-$$$
+          17: B-ADK
+          18: B-ART
+          19: B-CSN
+          20: B-NUM
+          21: B-SYM
+          22: B-INT
+          23: B-NEG
+          24: B-PRI
+          25: B-VBE
+  splits:
+  - name: test
+    num_bytes: 350720
+    num_examples: 840
+  - name: train
+    num_bytes: 2751348
+    num_examples: 6720
+  - name: validation
+    num_bytes: 343924
+    num_examples: 840
+  download_size: 2407206
+  dataset_size: 3445992
+- config_name: bapos
+  features:
+  - name: tokens
+    sequence: string
+  - name: pos_tags
+    sequence:
+      class_label:
+        names:
+          0: B-PR
+          1: B-CD
+          2: I-PR
+          3: B-SYM
+          4: B-JJ
+          5: B-DT
+          6: I-UH
+          7: I-NND
+          8: B-SC
+          9: I-WH
+          10: I-IN
+          11: I-NNP
+          12: I-VB
+          13: B-IN
+          14: B-NND
+          15: I-CD
+          16: I-JJ
+          17: I-X
+          18: B-OD
+          19: B-RP
+          20: B-RB
+          21: B-NNP
+          22: I-RB
+          23: I-Z
+          24: B-CC
+          25: B-NEG
+          26: B-VB
+          27: B-NN
+          28: B-MD
+          29: B-UH
+          30: I-NN
+          31: B-PRP
+          32: I-SC
+          33: B-Z
+          34: I-PRP
+          35: I-OD
+          36: I-SYM
+          37: B-WH
+          38: B-FW
+          39: I-CC
+          40: B-X
+  splits:
+  - name: test
+    num_bytes: 474368
+    num_examples: 1029
+  - name: train
+    num_bytes: 3772459
+    num_examples: 8000
+  - name: validation
+    num_bytes: 460058
+    num_examples: 1000
+  download_size: 3084021
+  dataset_size: 4706885
+- config_name: terma
+  features:
+  - name: tokens
+    sequence: string
+  - name: seq_label
+    sequence:
+      class_label:
+        names:
+          0: I-SENTIMENT
+          1: O
+          2: I-ASPECT
+          3: B-SENTIMENT
+          4: B-ASPECT
+  splits:
+  - name: test
+    num_bytes: 265922
+    num_examples: 1000
+  - name: train
+    num_bytes: 817983
+    num_examples: 3000
+  - name: validation
+    num_bytes: 276335
+    num_examples: 1000
+  download_size: 816822
+  dataset_size: 1360240
+- config_name: keps
+  features:
+  - name: tokens
+    sequence: string
+  - name: seq_label
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B
+          2: I
+  splits:
+  - name: test
+    num_bytes: 66762
+    num_examples: 247
+  - name: train
+    num_bytes: 173961
+    num_examples: 800
+  - name: validation
+    num_bytes: 42961
+    num_examples: 200
+  download_size: 134042
+  dataset_size: 283684
+- config_name: nergrit
+  features:
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: I-PERSON
+          1: B-ORGANISATION
+          2: I-ORGANISATION
+          3: B-PLACE
+          4: I-PLACE
+          5: O
+          6: B-PERSON
+  splits:
+  - name: test
+    num_bytes: 117274
+    num_examples: 209
+  - name: train
+    num_bytes: 960710
+    num_examples: 1672
+  - name: validation
+    num_bytes: 119567
+    num_examples: 209
+  download_size: 641265
+  dataset_size: 1197551
+- config_name: nerp
+  features:
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: I-PPL
+          1: B-EVT
+          2: B-PLC
+          3: I-IND
+          4: B-IND
+          5: B-FNB
+          6: I-EVT
+          7: B-PPL
+          8: I-PLC
+          9: O
+          10: I-FNB
+  splits:
+  - name: test
+    num_bytes: 350720
+    num_examples: 840
+  - name: train
+    num_bytes: 2751348
+    num_examples: 6720
+  - name: validation
+    num_bytes: 343924
+    num_examples: 840
+  download_size: 1725986
+  dataset_size: 3445992
+- config_name: facqa
+  features:
+  - name: question
+    sequence: string
+  - name: passage
+    sequence: string
+  - name: seq_label
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B
+          2: I
+  splits:
+  - name: test
+    num_bytes: 306831
+    num_examples: 311
+  - name: train
+    num_bytes: 2454368
+    num_examples: 2495
+  - name: validation
+    num_bytes: 306249
+    num_examples: 311
+  download_size: 2591968
+  dataset_size: 3067448
 ---
 
 

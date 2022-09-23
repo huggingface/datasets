@@ -20,6 +20,30 @@ task_ids:
 - text2text-generation-other-text-to-sql
 paperswithcode_id: spider-1
 pretty_name: Spider
+dataset_info:
+  features:
+  - name: db_id
+    dtype: string
+  - name: query
+    dtype: string
+  - name: question
+    dtype: string
+  - name: query_toks
+    sequence: string
+  - name: query_toks_no_value
+    sequence: string
+  - name: question_toks
+    sequence: string
+  config_name: spider
+  splits:
+  - name: train
+    num_bytes: 4743786
+    num_examples: 7000
+  - name: validation
+    num_bytes: 682090
+    num_examples: 1034
+  download_size: 99736136
+  dataset_size: 5425876
 ---
 
 

@@ -19,6 +19,431 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: legal-documents-entity-recognition
 pretty_name: Legal Documents Entity Recognition
+dataset_info:
+- config_name: bag
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-AN
+          1: B-EUN
+          2: B-GRT
+          3: B-GS
+          4: B-INN
+          5: B-LD
+          6: B-LDS
+          7: B-LIT
+          8: B-MRK
+          9: B-ORG
+          10: B-PER
+          11: B-RR
+          12: B-RS
+          13: B-ST
+          14: B-STR
+          15: B-UN
+          16: B-VO
+          17: B-VS
+          18: B-VT
+          19: I-AN
+          20: I-EUN
+          21: I-GRT
+          22: I-GS
+          23: I-INN
+          24: I-LD
+          25: I-LDS
+          26: I-LIT
+          27: I-MRK
+          28: I-ORG
+          29: I-PER
+          30: I-RR
+          31: I-RS
+          32: I-ST
+          33: I-STR
+          34: I-UN
+          35: I-VO
+          36: I-VS
+          37: I-VT
+          38: O
+  splits:
+  - name: train
+  download_size: 4392913
+  dataset_size: 0
+- config_name: bfh
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-AN
+          1: B-EUN
+          2: B-GRT
+          3: B-GS
+          4: B-INN
+          5: B-LD
+          6: B-LDS
+          7: B-LIT
+          8: B-MRK
+          9: B-ORG
+          10: B-PER
+          11: B-RR
+          12: B-RS
+          13: B-ST
+          14: B-STR
+          15: B-UN
+          16: B-VO
+          17: B-VS
+          18: B-VT
+          19: I-AN
+          20: I-EUN
+          21: I-GRT
+          22: I-GS
+          23: I-INN
+          24: I-LD
+          25: I-LDS
+          26: I-LIT
+          27: I-MRK
+          28: I-ORG
+          29: I-PER
+          30: I-RR
+          31: I-RS
+          32: I-ST
+          33: I-STR
+          34: I-UN
+          35: I-VO
+          36: I-VS
+          37: I-VT
+          38: O
+  splits:
+  - name: train
+  download_size: 4392913
+  dataset_size: 0
+- config_name: bgh
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-AN
+          1: B-EUN
+          2: B-GRT
+          3: B-GS
+          4: B-INN
+          5: B-LD
+          6: B-LDS
+          7: B-LIT
+          8: B-MRK
+          9: B-ORG
+          10: B-PER
+          11: B-RR
+          12: B-RS
+          13: B-ST
+          14: B-STR
+          15: B-UN
+          16: B-VO
+          17: B-VS
+          18: B-VT
+          19: I-AN
+          20: I-EUN
+          21: I-GRT
+          22: I-GS
+          23: I-INN
+          24: I-LD
+          25: I-LDS
+          26: I-LIT
+          27: I-MRK
+          28: I-ORG
+          29: I-PER
+          30: I-RR
+          31: I-RS
+          32: I-ST
+          33: I-STR
+          34: I-UN
+          35: I-VO
+          36: I-VS
+          37: I-VT
+          38: O
+  splits:
+  - name: train
+  download_size: 4392913
+  dataset_size: 0
+- config_name: bpatg
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-AN
+          1: B-EUN
+          2: B-GRT
+          3: B-GS
+          4: B-INN
+          5: B-LD
+          6: B-LDS
+          7: B-LIT
+          8: B-MRK
+          9: B-ORG
+          10: B-PER
+          11: B-RR
+          12: B-RS
+          13: B-ST
+          14: B-STR
+          15: B-UN
+          16: B-VO
+          17: B-VS
+          18: B-VT
+          19: I-AN
+          20: I-EUN
+          21: I-GRT
+          22: I-GS
+          23: I-INN
+          24: I-LD
+          25: I-LDS
+          26: I-LIT
+          27: I-MRK
+          28: I-ORG
+          29: I-PER
+          30: I-RR
+          31: I-RS
+          32: I-ST
+          33: I-STR
+          34: I-UN
+          35: I-VO
+          36: I-VS
+          37: I-VT
+          38: O
+  splits:
+  - name: train
+  download_size: 4392913
+  dataset_size: 0
+- config_name: bsg
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-AN
+          1: B-EUN
+          2: B-GRT
+          3: B-GS
+          4: B-INN
+          5: B-LD
+          6: B-LDS
+          7: B-LIT
+          8: B-MRK
+          9: B-ORG
+          10: B-PER
+          11: B-RR
+          12: B-RS
+          13: B-ST
+          14: B-STR
+          15: B-UN
+          16: B-VO
+          17: B-VS
+          18: B-VT
+          19: I-AN
+          20: I-EUN
+          21: I-GRT
+          22: I-GS
+          23: I-INN
+          24: I-LD
+          25: I-LDS
+          26: I-LIT
+          27: I-MRK
+          28: I-ORG
+          29: I-PER
+          30: I-RR
+          31: I-RS
+          32: I-ST
+          33: I-STR
+          34: I-UN
+          35: I-VO
+          36: I-VS
+          37: I-VT
+          38: O
+  splits:
+  - name: train
+  download_size: 4392913
+  dataset_size: 0
+- config_name: bverfg
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-AN
+          1: B-EUN
+          2: B-GRT
+          3: B-GS
+          4: B-INN
+          5: B-LD
+          6: B-LDS
+          7: B-LIT
+          8: B-MRK
+          9: B-ORG
+          10: B-PER
+          11: B-RR
+          12: B-RS
+          13: B-ST
+          14: B-STR
+          15: B-UN
+          16: B-VO
+          17: B-VS
+          18: B-VT
+          19: I-AN
+          20: I-EUN
+          21: I-GRT
+          22: I-GS
+          23: I-INN
+          24: I-LD
+          25: I-LDS
+          26: I-LIT
+          27: I-MRK
+          28: I-ORG
+          29: I-PER
+          30: I-RR
+          31: I-RS
+          32: I-ST
+          33: I-STR
+          34: I-UN
+          35: I-VO
+          36: I-VS
+          37: I-VT
+          38: O
+  splits:
+  - name: train
+  download_size: 4392913
+  dataset_size: 0
+- config_name: bverwg
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-AN
+          1: B-EUN
+          2: B-GRT
+          3: B-GS
+          4: B-INN
+          5: B-LD
+          6: B-LDS
+          7: B-LIT
+          8: B-MRK
+          9: B-ORG
+          10: B-PER
+          11: B-RR
+          12: B-RS
+          13: B-ST
+          14: B-STR
+          15: B-UN
+          16: B-VO
+          17: B-VS
+          18: B-VT
+          19: I-AN
+          20: I-EUN
+          21: I-GRT
+          22: I-GS
+          23: I-INN
+          24: I-LD
+          25: I-LDS
+          26: I-LIT
+          27: I-MRK
+          28: I-ORG
+          29: I-PER
+          30: I-RR
+          31: I-RS
+          32: I-ST
+          33: I-STR
+          34: I-UN
+          35: I-VO
+          36: I-VS
+          37: I-VT
+          38: O
+  splits:
+  - name: train
+  download_size: 4392913
+  dataset_size: 0
+- config_name: all
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: B-AN
+          1: B-EUN
+          2: B-GRT
+          3: B-GS
+          4: B-INN
+          5: B-LD
+          6: B-LDS
+          7: B-LIT
+          8: B-MRK
+          9: B-ORG
+          10: B-PER
+          11: B-RR
+          12: B-RS
+          13: B-ST
+          14: B-STR
+          15: B-UN
+          16: B-VO
+          17: B-VS
+          18: B-VT
+          19: I-AN
+          20: I-EUN
+          21: I-GRT
+          22: I-GS
+          23: I-INN
+          24: I-LD
+          25: I-LDS
+          26: I-LIT
+          27: I-MRK
+          28: I-ORG
+          29: I-PER
+          30: I-RR
+          31: I-RS
+          32: I-ST
+          33: I-STR
+          34: I-UN
+          35: I-VO
+          36: I-VS
+          37: I-VT
+          38: O
+  splits:
+  - name: train
+  download_size: 4392913
+  dataset_size: 0
 ---
 
 # Dataset Card for Legal Documents Entity Recognition

@@ -34,6 +34,253 @@ configs:
 - loria
 - maptask
 - vm2
+dataset_info:
+- config_name: dihana
+  features:
+  - name: Speaker
+    dtype: string
+  - name: Utterance
+    dtype: string
+  - name: Dialogue_Act
+    dtype: string
+  - name: Dialogue_ID
+    dtype: string
+  - name: File_ID
+    dtype: string
+  - name: Label
+    dtype:
+      class_label:
+        names:
+          0: Afirmacion
+          1: Apertura
+          2: Cierre
+          3: Confirmacion
+          4: Espera
+          5: Indefinida
+          6: Negacion
+          7: No_entendido
+          8: Nueva_consulta
+          9: Pregunta
+          10: Respuesta
+  - name: Idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 238446
+    num_examples: 2361
+  - name: train
+    num_bytes: 1946735
+    num_examples: 19063
+  - name: validation
+    num_bytes: 216498
+    num_examples: 2123
+  download_size: 1777267
+  dataset_size: 2401679
+- config_name: ilisten
+  features:
+  - name: Speaker
+    dtype: string
+  - name: Utterance
+    dtype: string
+  - name: Dialogue_Act
+    dtype: string
+  - name: Dialogue_ID
+    dtype: string
+  - name: Label
+    dtype:
+      class_label:
+        names:
+          0: AGREE
+          1: ANSWER
+          2: CLOSING
+          3: ENCOURAGE-SORRY
+          4: GENERIC-ANSWER
+          5: INFO-REQUEST
+          6: KIND-ATTITUDE_SMALL-TALK
+          7: OFFER-GIVE-INFO
+          8: OPENING
+          9: PERSUASION-SUGGEST
+          10: QUESTION
+          11: REJECT
+          12: SOLICITATION-REQ_CLARIFICATION
+          13: STATEMENT
+          14: TALK-ABOUT-SELF
+  - name: Idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 145376
+    num_examples: 971
+  - name: train
+    num_bytes: 244336
+    num_examples: 1986
+  - name: validation
+    num_bytes: 33988
+    num_examples: 230
+  download_size: 349993
+  dataset_size: 423700
+- config_name: loria
+  features:
+  - name: Speaker
+    dtype: string
+  - name: Utterance
+    dtype: string
+  - name: Dialogue_Act
+    dtype: string
+  - name: Dialogue_ID
+    dtype: string
+  - name: File_ID
+    dtype: string
+  - name: Label
+    dtype:
+      class_label:
+        names:
+          0: ack
+          1: ask
+          2: find_mold
+          3: find_plans
+          4: first_step
+          5: greet
+          6: help
+          7: inform
+          8: inform_engine
+          9: inform_job
+          10: inform_material_space
+          11: informer_conditioner
+          12: informer_decoration
+          13: informer_elcomps
+          14: informer_end_manufacturing
+          15: kindAtt
+          16: manufacturing_reqs
+          17: next_step
+          18: 'no'
+          19: other
+          20: quality_control
+          21: quit
+          22: reqRep
+          23: security_policies
+          24: staff_enterprise
+          25: staff_job
+          26: studies_enterprise
+          27: studies_job
+          28: todo_failure
+          29: todo_irreparable
+          30: 'yes'
+  - name: Idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 149855
+    num_examples: 1047
+  - name: train
+    num_bytes: 1208730
+    num_examples: 8465
+  - name: validation
+    num_bytes: 133829
+    num_examples: 942
+  download_size: 1221132
+  dataset_size: 1492414
+- config_name: maptask
+  features:
+  - name: Speaker
+    dtype: string
+  - name: Utterance
+    dtype: string
+  - name: Dialogue_Act
+    dtype: string
+  - name: Dialogue_ID
+    dtype: string
+  - name: File_ID
+    dtype: string
+  - name: Label
+    dtype:
+      class_label:
+        names:
+          0: acknowledge
+          1: align
+          2: check
+          3: clarify
+          4: explain
+          5: instruct
+          6: query_w
+          7: query_yn
+          8: ready
+          9: reply_n
+          10: reply_w
+          11: reply_y
+  - name: Idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 396947
+    num_examples: 5335
+  - name: train
+    num_bytes: 1910120
+    num_examples: 25382
+  - name: validation
+    num_bytes: 389879
+    num_examples: 5221
+  download_size: 1729021
+  dataset_size: 2696946
+- config_name: vm2
+  features:
+  - name: Utterance
+    dtype: string
+  - name: Dialogue_Act
+    dtype: string
+  - name: Speaker
+    dtype: string
+  - name: Dialogue_ID
+    dtype: string
+  - name: Label
+    dtype:
+      class_label:
+        names:
+          0: ACCEPT
+          1: BACKCHANNEL
+          2: BYE
+          3: CLARIFY
+          4: CLOSE
+          5: COMMIT
+          6: CONFIRM
+          7: DEFER
+          8: DELIBERATE
+          9: DEVIATE_SCENARIO
+          10: EXCLUDE
+          11: EXPLAINED_REJECT
+          12: FEEDBACK
+          13: FEEDBACK_NEGATIVE
+          14: FEEDBACK_POSITIVE
+          15: GIVE_REASON
+          16: GREET
+          17: INFORM
+          18: INIT
+          19: INTRODUCE
+          20: NOT_CLASSIFIABLE
+          21: OFFER
+          22: POLITENESS_FORMULA
+          23: REJECT
+          24: REQUEST
+          25: REQUEST_CLARIFY
+          26: REQUEST_COMMENT
+          27: REQUEST_COMMIT
+          28: REQUEST_SUGGEST
+          29: SUGGEST
+          30: THANK
+  - name: Idx
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 209032
+    num_examples: 2855
+  - name: train
+    num_bytes: 1869254
+    num_examples: 25060
+  - name: validation
+    num_bytes: 209390
+    num_examples: 2860
+  download_size: 1641453
+  dataset_size: 2287676
 ---
 
 # Dataset Card for MIAM

@@ -19,6 +19,26 @@ task_ids:
 - topic-classification
 paperswithcode_id: null
 pretty_name: KannadaNews Dataset
+dataset_info:
+  features:
+  - name: headline
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: sports
+          1: tech
+          2: entertainment
+  splits:
+  - name: train
+    num_bytes: 969216
+    num_examples: 5167
+  - name: validation
+    num_bytes: 236817
+    num_examples: 1293
+  download_size: 0
+  dataset_size: 1206033
 ---
 
 # Dataset Card for kannada_news dataset 

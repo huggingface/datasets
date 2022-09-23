@@ -20,6 +20,75 @@ task_ids:
 - extractive-qa
 paperswithcode_id: covidqa
 pretty_name: CovidQaCastorini
+dataset_info:
+- config_name: covid_qa_deepset
+  features:
+  - name: document_id
+    dtype: int32
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: is_impossible
+    dtype: bool
+  - name: id
+    dtype: int32
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: train
+    num_bytes: 65151262
+    num_examples: 2019
+  download_size: 4418117
+  dataset_size: 65151262
+- config_name: covidqa
+  features:
+  - name: category_name
+    dtype: string
+  - name: question_query
+    dtype: string
+  - name: keyword_query
+    dtype: string
+  - name: answers
+    sequence:
+    - name: id
+      dtype: string
+    - name: title
+      dtype: string
+    - name: exact_answer
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 33757
+    num_examples: 27
+  download_size: 51438
+  dataset_size: 33757
+- config_name: covid_qa_castorini
+  features:
+  - name: category_name
+    dtype: string
+  - name: question_query
+    dtype: string
+  - name: keyword_query
+    dtype: string
+  - name: answers
+    sequence:
+    - name: id
+      dtype: string
+    - name: title
+      dtype: string
+    - name: exact_answer
+      dtype: string
+  splits:
+  - name: train
+    num_bytes: 33757
+    num_examples: 27
+  download_size: 51438
+  dataset_size: 33757
 ---
 
 

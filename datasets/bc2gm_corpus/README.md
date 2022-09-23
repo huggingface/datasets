@@ -19,6 +19,32 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: Bc2GmCorpus
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: B-GENE
+          2: I-GENE
+  config_name: bc2gm_corpus
+  splits:
+  - name: test
+    num_bytes: 2454621
+    num_examples: 5001
+  - name: train
+    num_bytes: 6095172
+    num_examples: 12501
+  - name: validation
+    num_bytes: 1215951
+    num_examples: 2501
+  download_size: 4636753
+  dataset_size: 9765744
 ---
 
 # Dataset Card for bc2gm_corpus

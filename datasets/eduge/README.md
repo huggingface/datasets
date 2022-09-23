@@ -18,6 +18,32 @@ task_categories:
 - text-classification
 task_ids:
 - multi-class-classification
+dataset_info:
+  features:
+  - name: news
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: урлаг соёл
+          1: эдийн засаг
+          2: эрүүл мэнд
+          3: хууль
+          4: улс төр
+          5: спорт
+          6: технологи
+          7: боловсрол
+          8: байгал орчин
+  splits:
+  - name: test
+    num_bytes: 64451731
+    num_examples: 15133
+  - name: train
+    num_bytes: 255275842
+    num_examples: 60528
+  download_size: 320395067
+  dataset_size: 319727573
 ---
 
 

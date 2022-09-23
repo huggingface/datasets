@@ -23,6 +23,94 @@ pretty_name: Enriched WebNLG
 configs:
 - de
 - en
+dataset_info:
+- config_name: en
+  features:
+  - name: category
+    dtype: string
+  - name: size
+    dtype: int32
+  - name: eid
+    dtype: string
+  - name: original_triple_sets
+    sequence:
+    - name: otriple_set
+      sequence: string
+  - name: modified_triple_sets
+    sequence:
+    - name: mtriple_set
+      sequence: string
+  - name: shape
+    dtype: string
+  - name: shape_type
+    dtype: string
+  - name: lex
+    sequence:
+    - name: comment
+      dtype: string
+    - name: lid
+      dtype: string
+    - name: text
+      dtype: string
+    - name: template
+      dtype: string
+    - name: sorted_triple_sets
+      sequence: string
+    - name: lexicalization
+      dtype: string
+  splits:
+  - name: dev
+    num_bytes: 1843787
+    num_examples: 872
+  - name: test
+    num_bytes: 3931381
+    num_examples: 1862
+  - name: train
+    num_bytes: 14665155
+    num_examples: 6940
+  download_size: 44284508
+  dataset_size: 20440323
+- config_name: de
+  features:
+  - name: category
+    dtype: string
+  - name: size
+    dtype: int32
+  - name: eid
+    dtype: string
+  - name: original_triple_sets
+    sequence:
+    - name: otriple_set
+      sequence: string
+  - name: modified_triple_sets
+    sequence:
+    - name: mtriple_set
+      sequence: string
+  - name: shape
+    dtype: string
+  - name: shape_type
+    dtype: string
+  - name: lex
+    sequence:
+    - name: comment
+      dtype: string
+    - name: lid
+      dtype: string
+    - name: text
+      dtype: string
+    - name: template
+      dtype: string
+    - name: sorted_triple_sets
+      sequence: string
+  splits:
+  - name: dev
+    num_bytes: 1238609
+    num_examples: 872
+  - name: train
+    num_bytes: 9748193
+    num_examples: 6940
+  download_size: 44284508
+  dataset_size: 10986802
 ---
 
 # Dataset Card for WebNLG

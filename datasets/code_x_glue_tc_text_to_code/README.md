@@ -19,6 +19,26 @@ task_categories:
 task_ids:
 - translation-other-text-to-code
 pretty_name: CodeXGlueTcTextToCode
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: nl
+    dtype: string
+  - name: code
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1609306
+    num_examples: 2000
+  - name: train
+    num_bytes: 96225611
+    num_examples: 100000
+  - name: validation
+    num_bytes: 1749751
+    num_examples: 2000
+  download_size: 100769638
+  dataset_size: 99584668
 ---
 # Dataset Card for "code_x_glue_tc_text_to_code"
 

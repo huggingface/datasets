@@ -23,6 +23,17 @@ task_ids:
 - other-other-pretraining-language-models
 paperswithcode_id: sbwce
 pretty_name: Spanish Billion Word Corpus and Embeddings
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  config_name: corpus
+  splits:
+  - name: train
+    num_bytes: 8950895954
+    num_examples: 46925295
+  download_size: 2024166993
+  dataset_size: 8950895954
 ---
 
 # Dataset Card for Spanish Billion Words

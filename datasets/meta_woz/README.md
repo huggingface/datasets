@@ -7,7 +7,7 @@ language:
 - en
 license:
 - other
-license_details: "Microsoft Research Data License Agreement"
+license_details: Microsoft Research Data License Agreement
 multilinguality:
 - monolingual
 size_categories:
@@ -21,6 +21,53 @@ task_ids:
 - dialogue-modeling
 paperswithcode_id: metalwoz
 pretty_name: Meta-Learning Wizard-of-Oz
+dataset_info:
+- config_name: dialogues
+  features:
+  - name: id
+    dtype: string
+  - name: user_id
+    dtype: string
+  - name: bot_id
+    dtype: string
+  - name: domain
+    dtype: string
+  - name: task_id
+    dtype: string
+  - name: turns
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 1284287
+    num_examples: 2319
+  - name: train
+    num_bytes: 19999218
+    num_examples: 37884
+  download_size: 8629863
+  dataset_size: 21283505
+- config_name: tasks
+  features:
+  - name: task_id
+    dtype: string
+  - name: domain
+    dtype: string
+  - name: bot_prompt
+    dtype: string
+  - name: bot_role
+    dtype: string
+  - name: user_prompt
+    dtype: string
+  - name: user_role
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 4351
+    num_examples: 14
+  - name: train
+    num_bytes: 73768
+    num_examples: 227
+  download_size: 8629863
+  dataset_size: 78119
 ---
 
 # Dataset Card for MetaLWOz

@@ -19,6 +19,39 @@ task_ids:
 - text-classification-other-hate-speech-detection
 paperswithcode_id: offcombr
 pretty_name: Offensive Comments in the Brazilian Web
+dataset_info:
+- config_name: offcombr-2
+  features:
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'no'
+          1: 'yes'
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 105703
+    num_examples: 1250
+  download_size: 99956
+  dataset_size: 105703
+- config_name: offcombr-3
+  features:
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 'no'
+          1: 'yes'
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 90094
+    num_examples: 1033
+  download_size: 85215
+  dataset_size: 90094
 ---
 
 # Dataset Card for [Dataset Name]

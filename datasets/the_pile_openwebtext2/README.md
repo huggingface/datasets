@@ -22,6 +22,19 @@ task_ids:
 - language-modeling
 - masked-language-modeling
 - text-scoring
+dataset_info:
+  features:
+  - name: title
+    dtype: string
+  - name: text
+    dtype: string
+  config_name: plain_text
+  splits:
+  - name: train
+    num_bytes: 68571017395
+    num_examples: 17103059
+  download_size: 29344276480
+  dataset_size: 68571017395
 ---
 
 # Dataset Card for the_pile_openwebtext2

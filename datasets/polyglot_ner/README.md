@@ -58,6 +58,663 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: polyglot-ner
+dataset_info:
+- config_name: ca
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 143746026
+    num_examples: 372665
+  download_size: 1107018606
+  dataset_size: 143746026
+- config_name: de
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 156744752
+    num_examples: 547578
+  download_size: 1107018606
+  dataset_size: 156744752
+- config_name: es
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 145387551
+    num_examples: 386699
+  download_size: 1107018606
+  dataset_size: 145387551
+- config_name: fi
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 95175890
+    num_examples: 387465
+  download_size: 1107018606
+  dataset_size: 95175890
+- config_name: hi
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 177698330
+    num_examples: 401648
+  download_size: 1107018606
+  dataset_size: 177698330
+- config_name: id
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 152560050
+    num_examples: 463862
+  download_size: 1107018606
+  dataset_size: 152560050
+- config_name: ko
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 174523416
+    num_examples: 560105
+  download_size: 1107018606
+  dataset_size: 174523416
+- config_name: ms
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 155268778
+    num_examples: 528181
+  download_size: 1107018606
+  dataset_size: 155268778
+- config_name: pl
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 159684112
+    num_examples: 623267
+  download_size: 1107018606
+  dataset_size: 159684112
+- config_name: ru
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 200717423
+    num_examples: 551770
+  download_size: 1107018606
+  dataset_size: 200717423
+- config_name: sr
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 183437513
+    num_examples: 559423
+  download_size: 1107018606
+  dataset_size: 183437513
+- config_name: tl
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 47104871
+    num_examples: 160750
+  download_size: 1107018606
+  dataset_size: 47104871
+- config_name: vi
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 141062258
+    num_examples: 351643
+  download_size: 1107018606
+  dataset_size: 141062258
+- config_name: ar
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 183551222
+    num_examples: 339109
+  download_size: 1107018606
+  dataset_size: 183551222
+- config_name: cs
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 156792129
+    num_examples: 564462
+  download_size: 1107018606
+  dataset_size: 156792129
+- config_name: el
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 195456401
+    num_examples: 446052
+  download_size: 1107018606
+  dataset_size: 195456401
+- config_name: et
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 21961619
+    num_examples: 87023
+  download_size: 1107018606
+  dataset_size: 21961619
+- config_name: fr
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 147560734
+    num_examples: 418411
+  download_size: 1107018606
+  dataset_size: 147560734
+- config_name: hr
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 154151689
+    num_examples: 629667
+  download_size: 1107018606
+  dataset_size: 154151689
+- config_name: it
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 147520094
+    num_examples: 378325
+  download_size: 1107018606
+  dataset_size: 147520094
+- config_name: lt
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 165319919
+    num_examples: 848018
+  download_size: 1107018606
+  dataset_size: 165319919
+- config_name: nl
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 150737871
+    num_examples: 520664
+  download_size: 1107018606
+  dataset_size: 150737871
+- config_name: pt
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 145627857
+    num_examples: 396773
+  download_size: 1107018606
+  dataset_size: 145627857
+- config_name: sk
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 134174889
+    num_examples: 500135
+  download_size: 1107018606
+  dataset_size: 134174889
+- config_name: sv
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 157058369
+    num_examples: 634881
+  download_size: 1107018606
+  dataset_size: 157058369
+- config_name: tr
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 164456506
+    num_examples: 607324
+  download_size: 1107018606
+  dataset_size: 164456506
+- config_name: zh
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 165056969
+    num_examples: 1570853
+  download_size: 1107018606
+  dataset_size: 165056969
+- config_name: bg
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 190509195
+    num_examples: 559694
+  download_size: 1107018606
+  dataset_size: 190509195
+- config_name: da
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 150551293
+    num_examples: 546440
+  download_size: 1107018606
+  dataset_size: 150551293
+- config_name: en
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 145491677
+    num_examples: 423982
+  download_size: 1107018606
+  dataset_size: 145491677
+- config_name: fa
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 180093656
+    num_examples: 492903
+  download_size: 1107018606
+  dataset_size: 180093656
+- config_name: he
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 177231613
+    num_examples: 459933
+  download_size: 1107018606
+  dataset_size: 177231613
+- config_name: hu
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 160702240
+    num_examples: 590218
+  download_size: 1107018606
+  dataset_size: 160702240
+- config_name: ja
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 193679570
+    num_examples: 1691018
+  download_size: 1107018606
+  dataset_size: 193679570
+- config_name: lv
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 76256241
+    num_examples: 331568
+  download_size: 1107018606
+  dataset_size: 76256241
+- config_name: 'no'
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 152431612
+    num_examples: 552176
+  download_size: 1107018606
+  dataset_size: 152431612
+- config_name: ro
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 96369897
+    num_examples: 285985
+  download_size: 1107018606
+  dataset_size: 96369897
+- config_name: sl
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 148140079
+    num_examples: 521251
+  download_size: 1107018606
+  dataset_size: 148140079
+- config_name: th
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 360409343
+    num_examples: 217631
+  download_size: 1107018606
+  dataset_size: 360409343
+- config_name: uk
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 198251631
+    num_examples: 561373
+  download_size: 1107018606
+  dataset_size: 198251631
+- config_name: combined
+  features:
+  - name: id
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: words
+    sequence: string
+  - name: ner
+    sequence: string
+  splits:
+  - name: train
+    num_bytes: 6286855097
+    num_examples: 21070925
+  download_size: 1107018606
+  dataset_size: 6286855097
 ---
 
 # Dataset Card for Polyglot-NER

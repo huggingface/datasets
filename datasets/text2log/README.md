@@ -9,7 +9,7 @@ license:
 - unknown
 multilinguality:
 - monolingual
-pretty_name: 'text2log'
+pretty_name: text2log
 size_categories:
 - 100K<n<1M
 source_datasets:
@@ -17,6 +17,18 @@ source_datasets:
 task_categories:
 - translation
 task_ids: []
+dataset_info:
+  features:
+  - name: sentence
+    dtype: string
+  - name: fol_translation
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 10358134
+    num_examples: 101931
+  download_size: 9746473
+  dataset_size: 10358134
 ---
 
 # Dataset Card for text2log

@@ -19,6 +19,30 @@ task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: Swedish NER Corpus
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: '0'
+          1: LOC
+          2: MISC
+          3: ORG
+          4: PER
+  splits:
+  - name: test
+    num_bytes: 755234
+    num_examples: 2453
+  - name: train
+    num_bytes: 2032630
+    num_examples: 6886
+  download_size: 1384558
+  dataset_size: 2787864
 ---
 
 # Dataset Card for Swedish NER Corpus

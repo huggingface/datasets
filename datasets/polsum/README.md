@@ -19,6 +19,44 @@ task_ids:
 - news-articles-summarization
 paperswithcode_id: null
 pretty_name: Polish Summaries Corpus
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: date
+    dtype: string
+  - name: title
+    dtype: string
+  - name: section
+    dtype: string
+  - name: authors
+    dtype: string
+  - name: body
+    dtype: string
+  - name: summaries
+    sequence:
+    - name: ratio
+      dtype: int32
+    - name: type
+      dtype: string
+    - name: author
+      dtype: string
+    - name: body
+      dtype: string
+    - name: spans
+      sequence:
+      - name: start
+        dtype: int32
+      - name: end
+        dtype: int32
+      - name: span_text
+        dtype: string
+  splits:
+  - name: train
+    num_bytes: 34787575
+    num_examples: 569
+  download_size: 6082812
+  dataset_size: 34787575
 ---
 
 # Dataset Card for Polish Summaries Corpus

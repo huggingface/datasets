@@ -18,6 +18,97 @@ task_categories:
 task_ids:
 - named-entity-recognition
 pretty_name: Persian NER
+dataset_info:
+- config_name: fold1
+  features:
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: I-event
+          2: I-fac
+          3: I-loc
+          4: I-org
+          5: I-pers
+          6: I-pro
+          7: B-event
+          8: B-fac
+          9: B-loc
+          10: B-org
+          11: B-pers
+          12: B-pro
+  splits:
+  - name: test
+    num_bytes: 1646481
+    num_examples: 2560
+  - name: train
+    num_bytes: 3362102
+    num_examples: 5121
+  download_size: 1931170
+  dataset_size: 5008583
+- config_name: fold2
+  features:
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: I-event
+          2: I-fac
+          3: I-loc
+          4: I-org
+          5: I-pers
+          6: I-pro
+          7: B-event
+          8: B-fac
+          9: B-loc
+          10: B-org
+          11: B-pers
+          12: B-pro
+  splits:
+  - name: test
+    num_bytes: 1664022
+    num_examples: 2561
+  - name: train
+    num_bytes: 3344561
+    num_examples: 5120
+  download_size: 1931170
+  dataset_size: 5008583
+- config_name: fold3
+  features:
+  - name: tokens
+    sequence: string
+  - name: ner_tags
+    sequence:
+      class_label:
+        names:
+          0: O
+          1: I-event
+          2: I-fac
+          3: I-loc
+          4: I-org
+          5: I-pers
+          6: I-pro
+          7: B-event
+          8: B-fac
+          9: B-loc
+          10: B-org
+          11: B-pers
+          12: B-pro
+  splits:
+  - name: test
+    num_bytes: 1698092
+    num_examples: 2560
+  - name: train
+    num_bytes: 3310491
+    num_examples: 5121
+  download_size: 1931170
+  dataset_size: 5008583
 ---
 
 # Dataset Card for [Persian NER]

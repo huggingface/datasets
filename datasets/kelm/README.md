@@ -19,6 +19,24 @@ task_ids:
 - other-other-data-to-text-generation
 paperswithcode_id: kelm
 pretty_name: Corpus for Knowledge-Enhanced Language Model Pre-training (KELM)
+dataset_info:
+  features:
+  - name: triple
+    dtype: string
+  - name: sentence
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 167921750
+    num_examples: 796493
+  - name: train
+    num_bytes: 1343187306
+    num_examples: 6371131
+  - name: validation
+    num_bytes: 167790917
+    num_examples: 796471
+  download_size: 1631259869
+  dataset_size: 1678899973
 ---
 
 # Dataset Card for Corpus for Knowledge-Enhanced Language Model Pre-training (KELM)

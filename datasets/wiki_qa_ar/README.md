@@ -19,6 +19,37 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: wikiqaar
 pretty_name: English-Arabic Wikipedia Question-Answering
+dataset_info:
+  features:
+  - name: question_id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: document_id
+    dtype: string
+  - name: answer_id
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 7563127
+    num_examples: 20632
+  - name: train
+    num_bytes: 26009979
+    num_examples: 70264
+  - name: validation
+    num_bytes: 3740721
+    num_examples: 10387
+  download_size: 35226436
+  dataset_size: 37313827
 ---
 
 # Dataset Card for WikiQAar

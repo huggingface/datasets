@@ -21,6 +21,27 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: Yorùbá Text C3
+dataset_info:
+- config_name: plain_text
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 77094396
+    num_examples: 562238
+  download_size: 75407454
+  dataset_size: 77094396
+- config_name: yoruba_text_c3
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 77094396
+    num_examples: 562238
+  download_size: 75407454
+  dataset_size: 77094396
 ---
 
 # Dataset Card for Yorùbá Text C3

@@ -27,6 +27,57 @@ task_categories:
 task_ids:
 - language-modeling
 - masked-language-modeling
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: source
+    dtype: string
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: ispartof
+    dtype: string
+  - name: text
+    dtype: string
+  - name: pub_date
+    dtype: timestamp[s]
+  - name: publisher
+    dtype: string
+  - name: language
+    dtype: string
+  - name: article_type
+    dtype:
+      class_label:
+        names:
+          0: ADVERTISEMENT_SECTION
+          1: BIBLIOGRAPHY
+          2: CHAPTER
+          3: INDEX
+          4: CONTRIBUTION
+          5: TABLE_OF_CONTENTS
+          6: WEATHER
+          7: SHIPPING
+          8: SECTION
+          9: ARTICLE
+          10: TITLE_SECTION
+          11: DEATH_NOTICE
+          12: SUPPLEMENT
+          13: TABLE
+          14: ADVERTISEMENT
+          15: CHART_DIAGRAM
+          16: ILLUSTRATION
+          17: ISSUE
+  - name: extent
+    dtype: int32
+  config_name: processed
+  splits:
+  - name: train
+    num_bytes: 1611620156
+    num_examples: 537558
+  download_size: 1224029060
+  dataset_size: 1611620156
 ---
 
 # Dataset Card for BnL Historical Newspapers

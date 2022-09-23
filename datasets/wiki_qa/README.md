@@ -19,6 +19,34 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: wikiqa
+dataset_info:
+  features:
+  - name: question_id
+    dtype: string
+  - name: question
+    dtype: string
+  - name: document_title
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  splits:
+  - name: test
+    num_bytes: 1337903
+    num_examples: 6165
+  - name: train
+    num_bytes: 4469148
+    num_examples: 20360
+  - name: validation
+    num_bytes: 591833
+    num_examples: 2733
+  download_size: 7094233
+  dataset_size: 6398884
 ---
 
 # Dataset Card for "wiki_qa"

@@ -19,6 +19,41 @@ task_ids:
 - natural-language-inference
 paperswithcode_id: null
 pretty_name: BBC Hindi NLI Dataset
+dataset_info:
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: not-entailment
+          1: entailment
+  - name: topic
+    dtype:
+      class_label:
+        names:
+          0: india
+          1: news
+          2: international
+          3: entertainment
+          4: sport
+          5: science
+  config_name: bbc hindi nli
+  splits:
+  - name: test
+    num_bytes: 494432
+    num_examples: 2592
+  - name: train
+    num_bytes: 2990080
+    num_examples: 15552
+  - name: validation
+    num_bytes: 496808
+    num_examples: 2580
+  download_size: 3815652
+  dataset_size: 3981320
 ---
 
 # Dataset Card for BBC Hindi NLI Dataset

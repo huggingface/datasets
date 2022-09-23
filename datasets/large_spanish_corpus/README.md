@@ -40,6 +40,167 @@ configs:
 - all_wikis
 - combined
 - multiUN
+dataset_info:
+- config_name: JRC
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 380895504
+    num_examples: 3410620
+  download_size: 4099166669
+  dataset_size: 380895504
+- config_name: EMEA
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 100259598
+    num_examples: 1221233
+  download_size: 4099166669
+  dataset_size: 100259598
+- config_name: GlobalVoices
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 114435784
+    num_examples: 897075
+  download_size: 4099166669
+  dataset_size: 114435784
+- config_name: ECB
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 336285757
+    num_examples: 1875738
+  download_size: 4099166669
+  dataset_size: 336285757
+- config_name: DOGC
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 898279656
+    num_examples: 10917053
+  download_size: 4099166669
+  dataset_size: 898279656
+- config_name: all_wikis
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3782280549
+    num_examples: 28109484
+  download_size: 4099166669
+  dataset_size: 3782280549
+- config_name: TED
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 15858148
+    num_examples: 157910
+  download_size: 4099166669
+  dataset_size: 15858148
+- config_name: multiUN
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2327269369
+    num_examples: 13127490
+  download_size: 4099166669
+  dataset_size: 2327269369
+- config_name: Europarl
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 359897865
+    num_examples: 2174141
+  download_size: 4099166669
+  dataset_size: 359897865
+- config_name: NewsCommentary11
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 48350573
+    num_examples: 288771
+  download_size: 4099166669
+  dataset_size: 48350573
+- config_name: UN
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 23654590
+    num_examples: 74067
+  download_size: 4099166669
+  dataset_size: 23654590
+- config_name: EUBookShop
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1326861077
+    num_examples: 8214959
+  download_size: 4099166669
+  dataset_size: 1326861077
+- config_name: ParaCrawl
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 1840430234
+    num_examples: 15510649
+  download_size: 4099166669
+  dataset_size: 1840430234
+- config_name: OpenSubtitles2018
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 7477281776
+    num_examples: 213508602
+  download_size: 4099166669
+  dataset_size: 7477281776
+- config_name: DGT
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 396217351
+    num_examples: 3168368
+  download_size: 4099166669
+  dataset_size: 396217351
+- config_name: combined
+  features:
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 19428257807
+    num_examples: 302656160
+  download_size: 4099166669
+  dataset_size: 19428257807
 ---
 
 # Dataset Card for The Large Spanish Corpus

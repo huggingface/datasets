@@ -19,6 +19,22 @@ task_ids:
 - fact-checking
 paperswithcode_id: fake-news-filipino-dataset
 pretty_name: Fake News Filipino
+dataset_info:
+  features:
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: '0'
+          1: '1'
+  - name: article
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 3623685
+    num_examples: 3206
+  download_size: 1313458
+  dataset_size: 3623685
 ---
 
 # Dataset Card for Fake News Filipino

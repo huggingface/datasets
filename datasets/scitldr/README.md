@@ -19,6 +19,93 @@ task_ids:
 - summarization-other-scientific-documents-summarization
 paperswithcode_id: scitldr
 pretty_name: SciTLDR
+dataset_info:
+- config_name: Abstract
+  features:
+  - name: source
+    sequence: string
+  - name: source_labels
+    sequence:
+      class_label:
+        names:
+          0: non-oracle
+          1: oracle
+  - name: rouge_scores
+    sequence: float32
+  - name: paper_id
+    dtype: string
+  - name: target
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 1073656
+    num_examples: 618
+  - name: train
+    num_bytes: 2738065
+    num_examples: 1992
+  - name: validation
+    num_bytes: 994876
+    num_examples: 619
+  download_size: 5483987
+  dataset_size: 4806597
+- config_name: AIC
+  features:
+  - name: source
+    sequence: string
+  - name: source_labels
+    sequence:
+      class_label:
+        names:
+          0: 0
+          1: 1
+  - name: rouge_scores
+    sequence: float32
+  - name: paper_id
+    dtype: string
+  - name: ic
+    dtype: bool_
+  - name: target
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 4822026
+    num_examples: 618
+  - name: train
+    num_bytes: 14473822
+    num_examples: 1992
+  - name: validation
+    num_bytes: 4476237
+    num_examples: 619
+  download_size: 25545108
+  dataset_size: 23772085
+- config_name: FullText
+  features:
+  - name: source
+    sequence: string
+  - name: source_labels
+    sequence:
+      class_label:
+        names:
+          0: non-oracle
+          1: oracle
+  - name: rouge_scores
+    sequence: float32
+  - name: paper_id
+    dtype: string
+  - name: target
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 20182554
+    num_examples: 618
+  - name: train
+    num_bytes: 66917363
+    num_examples: 1992
+  - name: validation
+    num_bytes: 18790651
+    num_examples: 619
+  download_size: 110904552
+  dataset_size: 105890568
 ---
 
 # Dataset Card for SciTLDR

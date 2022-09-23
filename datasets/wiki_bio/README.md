@@ -18,6 +18,34 @@ task_categories:
 task_ids: []
 paperswithcode_id: wikibio
 pretty_name: WikiBio
+dataset_info:
+  features:
+  - name: input_text
+    struct:
+    - name: table
+      sequence:
+      - name: column_header
+        dtype: string
+      - name: row_number
+        dtype: int16
+      - name: content
+        dtype: string
+    - name: context
+      dtype: string
+  - name: target_text
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 77264695
+    num_examples: 72831
+  - name: train
+    num_bytes: 619269257
+    num_examples: 582659
+  - name: val
+    num_bytes: 77335069
+    num_examples: 72831
+  download_size: 333998704
+  dataset_size: 773869021
 ---
 
 # Dataset Card for [Dataset Name]

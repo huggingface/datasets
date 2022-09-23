@@ -35,6 +35,59 @@ configs:
 - conceptnet5
 - omcs_sentences_free
 - omcs_sentences_more
+dataset_info:
+- config_name: conceptnet5
+  features:
+  - name: sentence
+    dtype: string
+  - name: full_rel
+    dtype: string
+  - name: rel
+    dtype: string
+  - name: arg1
+    dtype: string
+  - name: arg2
+    dtype: string
+  - name: lang
+    dtype: string
+  - name: extra_info
+    dtype: string
+  - name: weight
+    dtype: float32
+  splits:
+  - name: train
+    num_bytes: 11493868180
+    num_examples: 34074917
+  download_size: 497963447
+  dataset_size: 11493868180
+- config_name: omcs_sentences_free
+  features:
+  - name: sentence
+    dtype: string
+  - name: raw_data
+    dtype: string
+  - name: lang
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 174811310
+    num_examples: 898160
+  download_size: 104247648
+  dataset_size: 174811310
+- config_name: omcs_sentences_more
+  features:
+  - name: sentence
+    dtype: string
+  - name: raw_data
+    dtype: string
+  - name: lang
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 341424279
+    num_examples: 2001735
+  download_size: 209776958
+  dataset_size: 341424279
 ---
 
 # Dataset Card for Conceptnet5

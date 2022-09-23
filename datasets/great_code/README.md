@@ -18,6 +18,59 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: GREAT
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: source_tokens
+    sequence: string
+  - name: has_bug
+    dtype: bool
+  - name: error_location
+    dtype: int32
+  - name: repair_candidates
+    sequence: string
+  - name: bug_kind
+    dtype: int32
+  - name: bug_kind_name
+    dtype: string
+  - name: repair_targets
+    sequence: int32
+  - name: edges
+    list:
+      list:
+      - name: before_index
+        dtype: int32
+      - name: after_index
+        dtype: int32
+      - name: edge_type
+        dtype: int32
+      - name: edge_type_name
+        dtype: string
+  - name: provenances
+    list:
+    - name: datasetProvenance
+      struct:
+      - name: datasetName
+        dtype: string
+      - name: filepath
+        dtype: string
+      - name: license
+        dtype: string
+      - name: note
+        dtype: string
+  splits:
+  - name: test
+    num_bytes: 7880762248
+    num_examples: 968592
+  - name: train
+    num_bytes: 14705534822
+    num_examples: 1798742
+  - name: validation
+    num_bytes: 1502956919
+    num_examples: 185656
+  download_size: 23310374002
+  dataset_size: 24089253989
 ---
 
 # Dataset Card for GREAT

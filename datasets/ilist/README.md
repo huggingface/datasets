@@ -23,6 +23,31 @@ license:
 - cc-by-4.0
 paperswithcode_id: null
 pretty_name: ilist
+dataset_info:
+  features:
+  - name: language_id
+    dtype:
+      class_label:
+        names:
+          0: AWA
+          1: BRA
+          2: MAG
+          3: BHO
+          4: HIN
+  - name: text
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 2146857
+    num_examples: 9692
+  - name: train
+    num_bytes: 14362998
+    num_examples: 70351
+  - name: validation
+    num_bytes: 2407643
+    num_examples: 10329
+  download_size: 18284850
+  dataset_size: 18917498
 ---
 
 # Dataset Card for ilist

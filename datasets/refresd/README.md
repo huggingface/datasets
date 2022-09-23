@@ -24,6 +24,35 @@ task_ids:
 - text-scoring
 paperswithcode_id: refresd
 pretty_name: Rationalized English-French Semantic Divergences
+dataset_info:
+  features:
+  - name: sentence_en
+    dtype: string
+  - name: sentence_fr
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: divergent
+          1: equivalent
+  - name: all_labels
+    dtype:
+      class_label:
+        names:
+          0: unrelated
+          1: some_meaning_difference
+          2: no_meaning_difference
+  - name: rationale_en
+    dtype: string
+  - name: rationale_fr
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 501562
+    num_examples: 1039
+  download_size: 503977
+  dataset_size: 501562
 ---
 
 # Dataset Card for REFreSD Dataset

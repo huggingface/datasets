@@ -132,6 +132,24 @@ task_categories:
 task_ids: []
 paperswithcode_id: null
 pretty_name: MsTerms
+dataset_info:
+  features:
+  - name: entry_id
+    dtype: string
+  - name: term_source
+    dtype: string
+  - name: pos
+    dtype: string
+  - name: definition
+    dtype: string
+  - name: term_target
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 6995497
+    num_examples: 33738
+  download_size: 0
+  dataset_size: 6995497
 ---
 
 # Dataset Card for [ms_terms]

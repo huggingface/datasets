@@ -26,6 +26,30 @@ task_ids:
 - open-domain-abstractive-qa
 - text-simplification
 pretty_name: WikiSummary
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: link
+    dtype: string
+  - name: title
+    dtype: string
+  - name: article
+    dtype: string
+  - name: highlights
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 25693509
+    num_examples: 5638
+  - name: train
+    num_bytes: 207186608
+    num_examples: 45654
+  - name: validation
+    num_bytes: 23130954
+    num_examples: 5074
+  download_size: 255168504
+  dataset_size: 256011071
 ---
 
 # Dataset Card for [Needs More Information]

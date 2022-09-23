@@ -17,8 +17,26 @@ license:
 - cc-by-sa-4.0
 paperswithcode_id: null
 pretty_name: GoogleWellformedQuery
-language_creators: 
+language_creators:
 - found
+dataset_info:
+  features:
+  - name: rating
+    dtype: float32
+  - name: content
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 189503
+    num_examples: 3850
+  - name: train
+    num_bytes: 857391
+    num_examples: 17500
+  - name: validation
+    num_bytes: 184110
+    num_examples: 3750
+  download_size: 1157019
+  dataset_size: 1231004
 ---
 
 # Dataset Card for Google Query-wellformedness Dataset

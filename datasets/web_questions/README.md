@@ -19,6 +19,23 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: webquestions
+dataset_info:
+  features:
+  - name: url
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence: string
+  splits:
+  - name: test
+    num_bytes: 289824
+    num_examples: 2032
+  - name: train
+    num_bytes: 533736
+    num_examples: 3778
+  download_size: 1272965
+  dataset_size: 823560
 ---
 
 # Dataset Card for "web_questions"

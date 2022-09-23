@@ -23,6 +23,65 @@ task_ids:
 - topic-classification
 paperswithcode_id: pn-summary
 pretty_name: Persian News Summary (PnSummary)
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: article
+    dtype: string
+  - name: summary
+    dtype: string
+  - name: category
+    dtype:
+      class_label:
+        names:
+          0: Economy
+          1: Roads-Urban
+          2: Banking-Insurance
+          3: Agriculture
+          4: International
+          5: Oil-Energy
+          6: Industry
+          7: Transportation
+          8: Science-Technology
+          9: Local
+          10: Sports
+          11: Politics
+          12: Art-Culture
+          13: Society
+          14: Health
+          15: Research
+          16: Education-University
+          17: Tourism
+  - name: categories
+    dtype: string
+  - name: network
+    dtype:
+      class_label:
+        names:
+          0: Tahlilbazaar
+          1: Imna
+          2: Shana
+          3: Mehr
+          4: Irna
+          5: Khabaronline
+  - name: link
+    dtype: string
+  config_name: 1.0.0
+  splits:
+  - name: test
+    num_bytes: 20936820
+    num_examples: 5593
+  - name: train
+    num_bytes: 309436493
+    num_examples: 82022
+  - name: validation
+    num_bytes: 21311817
+    num_examples: 5592
+  download_size: 89591141
+  dataset_size: 351685130
 ---
 
 # Dataset Card for Persian News Summary (pn_summary)

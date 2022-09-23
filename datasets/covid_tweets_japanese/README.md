@@ -19,6 +19,26 @@ task_ids:
 - fact-checking
 paperswithcode_id: null
 pretty_name: COVID-19 日本語Twitterデータセット (COVID-19 Japanese Twitter Dataset)
+dataset_info:
+  features:
+  - name: tweet_id
+    dtype: string
+  - name: assessment_option_id
+    dtype:
+      class_label:
+        names:
+          0: '63'
+          1: '64'
+          2: '65'
+          3: '66'
+          4: '67'
+          5: '68'
+  splits:
+  - name: train
+    num_bytes: 1662833
+    num_examples: 53639
+  download_size: 406005
+  dataset_size: 1662833
 ---
 
 # Dataset Card for COVID-19 日本語Twitterデータセット (COVID-19 Japanese Twitter Dataset)

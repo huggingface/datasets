@@ -21,6 +21,32 @@ task_ids:
 - masked-language-modeling
 paperswithcode_id: null
 pretty_name: Hebrew Projectbenyehuda
+dataset_info:
+  features:
+  - name: id
+    dtype: int32
+  - name: url
+    dtype: string
+  - name: title
+    dtype: string
+  - name: authors
+    dtype: string
+  - name: translators
+    dtype: string
+  - name: original_language
+    dtype: string
+  - name: genre
+    dtype: string
+  - name: source_edition
+    dtype: string
+  - name: text
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 318732537
+    num_examples: 10078
+  download_size: 317749152
+  dataset_size: 318732537
 ---
 
 # Dataset Card for Hebrew Projectbenyehuda

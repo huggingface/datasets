@@ -1,6 +1,116 @@
 ---
 paperswithcode_id: matinf
 pretty_name: Maternal and Infant Dataset
+dataset_info:
+- config_name: age_classification
+  features:
+  - name: question
+    dtype: string
+  - name: description
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 0-1岁
+          1: 1-2岁
+          2: 2-3岁
+  - name: id
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 9616194
+    num_examples: 38318
+  - name: train
+    num_bytes: 33901977
+    num_examples: 134852
+  - name: validation
+    num_bytes: 4869685
+    num_examples: 19323
+  download_size: 0
+  dataset_size: 48387856
+- config_name: topic_classification
+  features:
+  - name: question
+    dtype: string
+  - name: description
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: 产褥期保健
+          1: 儿童过敏
+          2: 动作发育
+          3: 婴幼保健
+          4: 婴幼心理
+          5: 婴幼早教
+          6: 婴幼期喂养
+          7: 婴幼营养
+          8: 孕期保健
+          9: 家庭教育
+          10: 幼儿园
+          11: 未准父母
+          12: 流产和不孕
+          13: 疫苗接种
+          14: 皮肤护理
+          15: 宝宝上火
+          16: 腹泻
+          17: 婴幼常见病
+  - name: id
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 43877443
+    num_examples: 175363
+  - name: train
+    num_bytes: 153326538
+    num_examples: 613036
+  - name: validation
+    num_bytes: 21834951
+    num_examples: 87519
+  download_size: 0
+  dataset_size: 219038932
+- config_name: summarization
+  features:
+  - name: description
+    dtype: string
+  - name: question
+    dtype: string
+  - name: id
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 51784189
+    num_examples: 213681
+  - name: train
+    num_bytes: 181245403
+    num_examples: 747888
+  - name: validation
+    num_bytes: 25849900
+    num_examples: 106842
+  download_size: 0
+  dataset_size: 258879492
+- config_name: qa
+  features:
+  - name: question
+    dtype: string
+  - name: answer
+    dtype: string
+  - name: id
+    dtype: int32
+  splits:
+  - name: test
+    num_bytes: 53708532
+    num_examples: 213681
+  - name: train
+    num_bytes: 188047511
+    num_examples: 747888
+  - name: validation
+    num_bytes: 26931809
+    num_examples: 106842
+  download_size: 0
+  dataset_size: 268687852
 ---
 
 # Dataset Card for "matinf"

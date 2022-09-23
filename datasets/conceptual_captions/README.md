@@ -19,6 +19,57 @@ task_ids:
 - image-captioning
 paperswithcode_id: conceptual-captions
 pretty_name: Conceptual Captions
+dataset_info:
+- config_name: default
+  features:
+  - name: id
+    dtype: string
+  - name: caption
+    dtype: string
+  - name: url
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 623230370
+    num_examples: 3318333
+  - name: validation
+    num_bytes: 2846024
+    num_examples: 15840
+  download_size: 0
+  dataset_size: 626076394
+- config_name: unlabeled
+  features:
+  - name: image_url
+    dtype: string
+  - name: caption
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 584520156
+    num_examples: 3318333
+  - name: validation
+    num_bytes: 2698726
+    num_examples: 15840
+  download_size: 567211172
+  dataset_size: 587218882
+- config_name: labeled
+  features:
+  - name: image_url
+    dtype: string
+  - name: caption
+    dtype: string
+  - name: labels
+    sequence: string
+  - name: MIDs
+    sequence: string
+  - name: confidence_scores
+    sequence: float64
+  splits:
+  - name: train
+    num_bytes: 1199330856
+    num_examples: 2007090
+  download_size: 1282463277
+  dataset_size: 1199330856
 ---
 
 # Dataset Card for Conceptual Captions

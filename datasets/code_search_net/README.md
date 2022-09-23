@@ -31,6 +31,259 @@ configs:
 - php
 - python
 - ruby
+dataset_info:
+- config_name: all
+  features:
+  - name: repository_name
+    dtype: string
+  - name: func_path_in_repository
+    dtype: string
+  - name: func_name
+    dtype: string
+  - name: whole_func_string
+    dtype: string
+  - name: language
+    dtype: string
+  - name: func_code_string
+    dtype: string
+  - name: func_code_tokens
+    sequence: string
+  - name: func_documentation_string
+    dtype: string
+  - name: func_documentation_tokens
+    sequence: string
+  - name: split_name
+    dtype: string
+  - name: func_code_url
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 308626333
+    num_examples: 100529
+  - name: train
+    num_bytes: 5850604083
+    num_examples: 1880853
+  - name: validation
+    num_bytes: 274564382
+    num_examples: 89154
+  download_size: 5117370511
+  dataset_size: 6433794798
+- config_name: java
+  features:
+  - name: repository_name
+    dtype: string
+  - name: func_path_in_repository
+    dtype: string
+  - name: func_name
+    dtype: string
+  - name: whole_func_string
+    dtype: string
+  - name: language
+    dtype: string
+  - name: func_code_string
+    dtype: string
+  - name: func_code_tokens
+    sequence: string
+  - name: func_documentation_string
+    dtype: string
+  - name: func_documentation_tokens
+    sequence: string
+  - name: split_name
+    dtype: string
+  - name: func_code_url
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 82377246
+    num_examples: 26909
+  - name: train
+    num_bytes: 1429272535
+    num_examples: 454451
+  - name: validation
+    num_bytes: 42358315
+    num_examples: 15328
+  download_size: 1060569153
+  dataset_size: 1554008096
+- config_name: go
+  features:
+  - name: repository_name
+    dtype: string
+  - name: func_path_in_repository
+    dtype: string
+  - name: func_name
+    dtype: string
+  - name: whole_func_string
+    dtype: string
+  - name: language
+    dtype: string
+  - name: func_code_string
+    dtype: string
+  - name: func_code_tokens
+    sequence: string
+  - name: func_documentation_string
+    dtype: string
+  - name: func_documentation_tokens
+    sequence: string
+  - name: split_name
+    dtype: string
+  - name: func_code_url
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 32286998
+    num_examples: 14291
+  - name: train
+    num_bytes: 738153234
+    num_examples: 317832
+  - name: validation
+    num_bytes: 26888527
+    num_examples: 14242
+  download_size: 487525935
+  dataset_size: 797328759
+- config_name: python
+  features:
+  - name: repository_name
+    dtype: string
+  - name: func_path_in_repository
+    dtype: string
+  - name: func_name
+    dtype: string
+  - name: whole_func_string
+    dtype: string
+  - name: language
+    dtype: string
+  - name: func_code_string
+    dtype: string
+  - name: func_code_tokens
+    sequence: string
+  - name: func_documentation_string
+    dtype: string
+  - name: func_documentation_tokens
+    sequence: string
+  - name: split_name
+    dtype: string
+  - name: func_code_url
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 84342064
+    num_examples: 22176
+  - name: train
+    num_bytes: 1559645310
+    num_examples: 412178
+  - name: validation
+    num_bytes: 92154786
+    num_examples: 23107
+  download_size: 940909997
+  dataset_size: 1736142160
+- config_name: javascript
+  features:
+  - name: repository_name
+    dtype: string
+  - name: func_path_in_repository
+    dtype: string
+  - name: func_name
+    dtype: string
+  - name: whole_func_string
+    dtype: string
+  - name: language
+    dtype: string
+  - name: func_code_string
+    dtype: string
+  - name: func_code_tokens
+    sequence: string
+  - name: func_documentation_string
+    dtype: string
+  - name: func_documentation_tokens
+    sequence: string
+  - name: split_name
+    dtype: string
+  - name: func_code_url
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 24056972
+    num_examples: 6483
+  - name: train
+    num_bytes: 480286523
+    num_examples: 123889
+  - name: validation
+    num_bytes: 30168242
+    num_examples: 8253
+  download_size: 1664713350
+  dataset_size: 534511737
+- config_name: ruby
+  features:
+  - name: repository_name
+    dtype: string
+  - name: func_path_in_repository
+    dtype: string
+  - name: func_name
+    dtype: string
+  - name: whole_func_string
+    dtype: string
+  - name: language
+    dtype: string
+  - name: func_code_string
+    dtype: string
+  - name: func_code_tokens
+    sequence: string
+  - name: func_documentation_string
+    dtype: string
+  - name: func_documentation_tokens
+    sequence: string
+  - name: split_name
+    dtype: string
+  - name: func_code_url
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 5359280
+    num_examples: 2279
+  - name: train
+    num_bytes: 110681715
+    num_examples: 48791
+  - name: validation
+    num_bytes: 4830744
+    num_examples: 2209
+  download_size: 111758028
+  dataset_size: 120871739
+- config_name: php
+  features:
+  - name: repository_name
+    dtype: string
+  - name: func_path_in_repository
+    dtype: string
+  - name: func_name
+    dtype: string
+  - name: whole_func_string
+    dtype: string
+  - name: language
+    dtype: string
+  - name: func_code_string
+    dtype: string
+  - name: func_code_tokens
+    sequence: string
+  - name: func_documentation_string
+    dtype: string
+  - name: func_documentation_tokens
+    sequence: string
+  - name: split_name
+    dtype: string
+  - name: func_code_url
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 80203877
+    num_examples: 28391
+  - name: train
+    num_bytes: 1532564870
+    num_examples: 523712
+  - name: validation
+    num_bytes: 78163924
+    num_examples: 26015
+  download_size: 851894048
+  dataset_size: 1690932671
 ---
 
 # Dataset Card for CodeSearchNet corpus

@@ -25,6 +25,29 @@ task_ids:
 - text2text-generation-other-intent-to-text
 paperswithcode_id: czech-restaurant-information
 pretty_name: Czech Restaurant
+dataset_info:
+  features:
+  - name: dialogue_act
+    dtype: string
+  - name: delexicalized_dialogue_act
+    dtype: string
+  - name: text
+    dtype: string
+  - name: delexicalized_text
+    dtype: string
+  config_name: CSRestaurants
+  splits:
+  - name: test
+    num_bytes: 191334
+    num_examples: 842
+  - name: train
+    num_bytes: 654071
+    num_examples: 3569
+  - name: validation
+    num_bytes: 181528
+    num_examples: 781
+  download_size: 1463019
+  dataset_size: 1026933
 ---
 
 # Dataset Card for Czech Restaurant

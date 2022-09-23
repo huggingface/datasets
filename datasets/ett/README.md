@@ -19,6 +19,107 @@ task_categories:
 task_ids:
 - univariate-time-series-forecasting
 - multivariate-time-series-forecasting
+dataset_info:
+- config_name: h1
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 77508960
+    num_examples: 240
+  - name: train
+    num_bytes: 241978
+    num_examples: 1
+  - name: validation
+    num_bytes: 33916080
+    num_examples: 120
+  download_size: 2589657
+  dataset_size: 111667018
+- config_name: h2
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 77508960
+    num_examples: 240
+  - name: train
+    num_bytes: 241978
+    num_examples: 1
+  - name: validation
+    num_bytes: 33916080
+    num_examples: 120
+  download_size: 2417960
+  dataset_size: 111667018
+- config_name: m1
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1239008640
+    num_examples: 960
+  - name: train
+    num_bytes: 967738
+    num_examples: 1
+  - name: validation
+    num_bytes: 542089920
+    num_examples: 480
+  download_size: 10360719
+  dataset_size: 1782066298
+- config_name: m2
+  features:
+  - name: start
+    dtype: timestamp[s]
+  - name: target
+    sequence: float32
+  - name: feat_static_cat
+    sequence: uint64
+  - name: feat_dynamic_real
+    sequence:
+      sequence: float32
+  - name: item_id
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 1239008640
+    num_examples: 960
+  - name: train
+    num_bytes: 967738
+    num_examples: 1
+  - name: validation
+    num_bytes: 542089920
+    num_examples: 480
+  download_size: 9677236
+  dataset_size: 1782066298
 ---
 
 # Dataset Card for [Electricity Transformer Temperature](https://github.com/zhouhaoyi/ETDataset)

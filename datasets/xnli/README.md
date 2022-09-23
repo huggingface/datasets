@@ -3,6 +3,442 @@ language:
 - en
 paperswithcode_id: xnli
 pretty_name: Cross-lingual Natural Language Inference
+dataset_info:
+- config_name: ar
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 1294561
+    num_examples: 5010
+  - name: train
+    num_bytes: 107399934
+    num_examples: 392702
+  - name: validation
+    num_bytes: 633009
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 109327504
+- config_name: bg
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 1573042
+    num_examples: 5010
+  - name: train
+    num_bytes: 125973545
+    num_examples: 392702
+  - name: validation
+    num_bytes: 774069
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 128320656
+- config_name: de
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 996496
+    num_examples: 5010
+  - name: train
+    num_bytes: 84684460
+    num_examples: 392702
+  - name: validation
+    num_bytes: 494612
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 86175568
+- config_name: el
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 1704793
+    num_examples: 5010
+  - name: train
+    num_bytes: 139753678
+    num_examples: 392702
+  - name: validation
+    num_bytes: 841234
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 142299705
+- config_name: en
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 875142
+    num_examples: 5010
+  - name: train
+    num_bytes: 74444346
+    num_examples: 392702
+  - name: validation
+    num_bytes: 433471
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 75752959
+- config_name: es
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 969821
+    num_examples: 5010
+  - name: train
+    num_bytes: 81383604
+    num_examples: 392702
+  - name: validation
+    num_bytes: 478430
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 82831855
+- config_name: fr
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 1029247
+    num_examples: 5010
+  - name: train
+    num_bytes: 85809099
+    num_examples: 392702
+  - name: validation
+    num_bytes: 510112
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 87348458
+- config_name: hi
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 2073081
+    num_examples: 5010
+  - name: train
+    num_bytes: 170594284
+    num_examples: 392702
+  - name: validation
+    num_bytes: 1023923
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 173691288
+- config_name: ru
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 1603474
+    num_examples: 5010
+  - name: train
+    num_bytes: 129859935
+    num_examples: 392702
+  - name: validation
+    num_bytes: 786450
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 132249859
+- config_name: sw
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 871659
+    num_examples: 5010
+  - name: train
+    num_bytes: 69286045
+    num_examples: 392702
+  - name: validation
+    num_bytes: 429858
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 70587562
+- config_name: th
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 2147023
+    num_examples: 5010
+  - name: train
+    num_bytes: 176063212
+    num_examples: 392702
+  - name: validation
+    num_bytes: 1061168
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 179271403
+- config_name: tr
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 934942
+    num_examples: 5010
+  - name: train
+    num_bytes: 71637460
+    num_examples: 392702
+  - name: validation
+    num_bytes: 459316
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 73031718
+- config_name: ur
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 1416249
+    num_examples: 5010
+  - name: train
+    num_bytes: 96441806
+    num_examples: 392702
+  - name: validation
+    num_bytes: 699960
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 98558015
+- config_name: vi
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 1190225
+    num_examples: 5010
+  - name: train
+    num_bytes: 101417750
+    num_examples: 392702
+  - name: validation
+    num_bytes: 590688
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 103198663
+- config_name: zh
+  features:
+  - name: premise
+    dtype: string
+  - name: hypothesis
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 777937
+    num_examples: 5010
+  - name: train
+    num_bytes: 72225161
+    num_examples: 392702
+  - name: validation
+    num_bytes: 384859
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 73387957
+- config_name: all_languages
+  features:
+  - name: premise
+    dtype:
+      translation:
+        languages:
+        - ar
+        - bg
+        - de
+        - el
+        - en
+        - es
+        - fr
+        - hi
+        - ru
+        - sw
+        - th
+        - tr
+        - ur
+        - vi
+        - zh
+  - name: hypothesis
+    dtype:
+      translation_variable_languages:
+        languages:
+        - ar
+        - bg
+        - de
+        - el
+        - en
+        - es
+        - fr
+        - hi
+        - ru
+        - sw
+        - th
+        - tr
+        - ur
+        - vi
+        - zh
+        num_languages: 15
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: entailment
+          1: neutral
+          2: contradiction
+  splits:
+  - name: test
+    num_bytes: 19387508
+    num_examples: 5010
+  - name: train
+    num_bytes: 1581474731
+    num_examples: 392702
+  - name: validation
+    num_bytes: 9566255
+    num_examples: 2490
+  download_size: 483963712
+  dataset_size: 1610428494
 ---
 
 # Dataset Card for "xnli"

@@ -19,6 +19,33 @@ task_categories:
 - token-classification
 task_ids:
 - parsing
+dataset_info:
+  features:
+  - name: QuerySetId
+    dtype: uint32
+  - name: Title
+    dtype: string
+  - name: Description
+    dtype: string
+  - name: QueryBody
+    dtype: string
+  - name: CreationDate
+    dtype: string
+  - name: validated
+    dtype: bool
+  config_name: sede
+  splits:
+  - name: test
+    num_bytes: 386599
+    num_examples: 857
+  - name: train
+    num_bytes: 4410584
+    num_examples: 10309
+  - name: validation
+    num_bytes: 380942
+    num_examples: 857
+  download_size: 6318959
+  dataset_size: 5178125
 ---
 
 # Dataset Card for SEDE

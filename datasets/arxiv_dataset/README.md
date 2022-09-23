@@ -25,6 +25,38 @@ task_ids:
 - text-simplification
 paperswithcode_id: null
 pretty_name: arXiv Dataset
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: submitter
+    dtype: string
+  - name: authors
+    dtype: string
+  - name: title
+    dtype: string
+  - name: comments
+    dtype: string
+  - name: journal-ref
+    dtype: string
+  - name: doi
+    dtype: string
+  - name: report-no
+    dtype: string
+  - name: categories
+    dtype: string
+  - name: license
+    dtype: string
+  - name: abstract
+    dtype: string
+  - name: update_date
+    dtype: string
+  splits:
+  - name: train
+    num_bytes: 2246545603
+    num_examples: 1796911
+  download_size: 0
+  dataset_size: 2246545603
 ---
 
 # Dataset Card for arXiv Dataset

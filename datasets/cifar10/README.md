@@ -18,6 +18,34 @@ task_categories:
 - image-classification
 task_ids: []
 paperswithcode_id: cifar-10
+dataset_info:
+  features:
+  - name: img
+    dtype: image
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: airplane
+          1: automobile
+          2: bird
+          3: cat
+          4: deer
+          5: dog
+          6: frog
+          7: horse
+          8: ship
+          9: truck
+  config_name: plain_text
+  splits:
+  - name: test
+    num_bytes: 22772838
+    num_examples: 10000
+  - name: train
+    num_bytes: 113854600
+    num_examples: 50000
+  download_size: 170498071
+  dataset_size: 136627438
 ---
 
 # Dataset Card for CIFAR-10

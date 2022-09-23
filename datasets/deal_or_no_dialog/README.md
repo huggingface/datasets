@@ -18,6 +18,51 @@ task_categories:
 task_ids: []
 paperswithcode_id: negotiation-dialogues-dataset
 pretty_name: Deal or No Deal Negotiator
+dataset_info:
+- config_name: dialogues
+  features:
+  - name: input
+    sequence:
+    - name: count
+      dtype: int32
+    - name: value
+      dtype: int32
+  - name: dialogue
+    dtype: string
+  - name: output
+    dtype: string
+  - name: partner_input
+    sequence:
+    - name: count
+      dtype: int32
+    - name: value
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 396258
+    num_examples: 1052
+  - name: train
+    num_bytes: 3860624
+    num_examples: 10095
+  - name: validation
+    num_bytes: 418491
+    num_examples: 1087
+  download_size: 5239072
+  dataset_size: 4675373
+- config_name: self_play
+  features:
+  - name: input
+    sequence:
+    - name: count
+      dtype: int32
+    - name: value
+      dtype: int32
+  splits:
+  - name: train
+    num_bytes: 261512
+    num_examples: 8172
+  download_size: 98304
+  dataset_size: 261512
 ---
 
 

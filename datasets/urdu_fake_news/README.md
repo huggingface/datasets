@@ -20,6 +20,34 @@ task_ids:
 - intent-classification
 paperswithcode_id: null
 pretty_name: Bend the Truth (Urdu Fake News)
+dataset_info:
+  features:
+  - name: news
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: Fake
+          1: Real
+  - name: category
+    dtype:
+      class_label:
+        names:
+          0: bus
+          1: hlth
+          2: sp
+          3: tch
+          4: sbz
+  splits:
+  - name: test
+    num_bytes: 799587
+    num_examples: 262
+  - name: train
+    num_bytes: 1762905
+    num_examples: 638
+  download_size: 1042653
+  dataset_size: 2562492
 ---
 
 # Dataset Card for Bend the Truth (Urdu Fake News)

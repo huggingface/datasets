@@ -19,6 +19,374 @@ task_ids:
 - entity-linking-retrieval
 paperswithcode_id: null
 pretty_name: bprec
+dataset_info:
+- config_name: default
+  features:
+  - name: id
+    dtype: int32
+  - name: text
+    dtype: string
+  - name: ner
+    sequence:
+    - name: source
+      struct:
+      - name: from
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: to
+        dtype: int32
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: PRODUCT_NAME
+              1: PRODUCT_NAME_IMP
+              2: PRODUCT_NO_BRAND
+              3: BRAND_NAME
+              4: BRAND_NAME_IMP
+              5: VERSION
+              6: PRODUCT_ADJ
+              7: BRAND_ADJ
+              8: LOCATION
+              9: LOCATION_IMP
+    - name: target
+      struct:
+      - name: from
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: to
+        dtype: int32
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: PRODUCT_NAME
+              1: PRODUCT_NAME_IMP
+              2: PRODUCT_NO_BRAND
+              3: BRAND_NAME
+              4: BRAND_NAME_IMP
+              5: VERSION
+              6: PRODUCT_ADJ
+              7: BRAND_ADJ
+              8: LOCATION
+              9: LOCATION_IMP
+  splits:
+  - name: banking
+    num_bytes: 446944
+    num_examples: 561
+  - name: cosmetics
+    num_bytes: 1565263
+    num_examples: 2384
+  - name: electro
+    num_bytes: 125999
+    num_examples: 382
+  - name: tele
+    num_bytes: 2739015
+    num_examples: 2391
+  download_size: 8006167
+  dataset_size: 4877221
+- config_name: all
+  features:
+  - name: id
+    dtype: int32
+  - name: category
+    dtype: string
+  - name: text
+    dtype: string
+  - name: ner
+    sequence:
+    - name: source
+      struct:
+      - name: from
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: to
+        dtype: int32
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: PRODUCT_NAME
+              1: PRODUCT_NAME_IMP
+              2: PRODUCT_NO_BRAND
+              3: BRAND_NAME
+              4: BRAND_NAME_IMP
+              5: VERSION
+              6: PRODUCT_ADJ
+              7: BRAND_ADJ
+              8: LOCATION
+              9: LOCATION_IMP
+    - name: target
+      struct:
+      - name: from
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: to
+        dtype: int32
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: PRODUCT_NAME
+              1: PRODUCT_NAME_IMP
+              2: PRODUCT_NO_BRAND
+              3: BRAND_NAME
+              4: BRAND_NAME_IMP
+              5: VERSION
+              6: PRODUCT_ADJ
+              7: BRAND_ADJ
+              8: LOCATION
+              9: LOCATION_IMP
+  splits:
+  - name: train
+    num_bytes: 4937658
+    num_examples: 5718
+  download_size: 8006167
+  dataset_size: 4937658
+- config_name: tele
+  features:
+  - name: id
+    dtype: int32
+  - name: category
+    dtype: string
+  - name: text
+    dtype: string
+  - name: ner
+    sequence:
+    - name: source
+      struct:
+      - name: from
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: to
+        dtype: int32
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: PRODUCT_NAME
+              1: PRODUCT_NAME_IMP
+              2: PRODUCT_NO_BRAND
+              3: BRAND_NAME
+              4: BRAND_NAME_IMP
+              5: VERSION
+              6: PRODUCT_ADJ
+              7: BRAND_ADJ
+              8: LOCATION
+              9: LOCATION_IMP
+    - name: target
+      struct:
+      - name: from
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: to
+        dtype: int32
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: PRODUCT_NAME
+              1: PRODUCT_NAME_IMP
+              2: PRODUCT_NO_BRAND
+              3: BRAND_NAME
+              4: BRAND_NAME_IMP
+              5: VERSION
+              6: PRODUCT_ADJ
+              7: BRAND_ADJ
+              8: LOCATION
+              9: LOCATION_IMP
+  splits:
+  - name: train
+    num_bytes: 2758147
+    num_examples: 2391
+  download_size: 4569708
+  dataset_size: 2758147
+- config_name: electro
+  features:
+  - name: id
+    dtype: int32
+  - name: category
+    dtype: string
+  - name: text
+    dtype: string
+  - name: ner
+    sequence:
+    - name: source
+      struct:
+      - name: from
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: to
+        dtype: int32
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: PRODUCT_NAME
+              1: PRODUCT_NAME_IMP
+              2: PRODUCT_NO_BRAND
+              3: BRAND_NAME
+              4: BRAND_NAME_IMP
+              5: VERSION
+              6: PRODUCT_ADJ
+              7: BRAND_ADJ
+              8: LOCATION
+              9: LOCATION_IMP
+    - name: target
+      struct:
+      - name: from
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: to
+        dtype: int32
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: PRODUCT_NAME
+              1: PRODUCT_NAME_IMP
+              2: PRODUCT_NO_BRAND
+              3: BRAND_NAME
+              4: BRAND_NAME_IMP
+              5: VERSION
+              6: PRODUCT_ADJ
+              7: BRAND_ADJ
+              8: LOCATION
+              9: LOCATION_IMP
+  splits:
+  - name: train
+    num_bytes: 130205
+    num_examples: 382
+  download_size: 269917
+  dataset_size: 130205
+- config_name: cosmetics
+  features:
+  - name: id
+    dtype: int32
+  - name: category
+    dtype: string
+  - name: text
+    dtype: string
+  - name: ner
+    sequence:
+    - name: source
+      struct:
+      - name: from
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: to
+        dtype: int32
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: PRODUCT_NAME
+              1: PRODUCT_NAME_IMP
+              2: PRODUCT_NO_BRAND
+              3: BRAND_NAME
+              4: BRAND_NAME_IMP
+              5: VERSION
+              6: PRODUCT_ADJ
+              7: BRAND_ADJ
+              8: LOCATION
+              9: LOCATION_IMP
+    - name: target
+      struct:
+      - name: from
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: to
+        dtype: int32
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: PRODUCT_NAME
+              1: PRODUCT_NAME_IMP
+              2: PRODUCT_NO_BRAND
+              3: BRAND_NAME
+              4: BRAND_NAME_IMP
+              5: VERSION
+              6: PRODUCT_ADJ
+              7: BRAND_ADJ
+              8: LOCATION
+              9: LOCATION_IMP
+  splits:
+  - name: train
+    num_bytes: 1596259
+    num_examples: 2384
+  download_size: 2417388
+  dataset_size: 1596259
+- config_name: banking
+  features:
+  - name: id
+    dtype: int32
+  - name: category
+    dtype: string
+  - name: text
+    dtype: string
+  - name: ner
+    sequence:
+    - name: source
+      struct:
+      - name: from
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: to
+        dtype: int32
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: PRODUCT_NAME
+              1: PRODUCT_NAME_IMP
+              2: PRODUCT_NO_BRAND
+              3: BRAND_NAME
+              4: BRAND_NAME_IMP
+              5: VERSION
+              6: PRODUCT_ADJ
+              7: BRAND_ADJ
+              8: LOCATION
+              9: LOCATION_IMP
+    - name: target
+      struct:
+      - name: from
+        dtype: int32
+      - name: text
+        dtype: string
+      - name: to
+        dtype: int32
+      - name: type
+        dtype:
+          class_label:
+            names:
+              0: PRODUCT_NAME
+              1: PRODUCT_NAME_IMP
+              2: PRODUCT_NO_BRAND
+              3: BRAND_NAME
+              4: BRAND_NAME_IMP
+              5: VERSION
+              6: PRODUCT_ADJ
+              7: BRAND_ADJ
+              8: LOCATION
+              9: LOCATION_IMP
+  splits:
+  - name: train
+    num_bytes: 453119
+    num_examples: 561
+  download_size: 749154
+  dataset_size: 453119
 ---
 
 # Dataset Card for [Dataset Name]

@@ -27,6 +27,47 @@ task_ids:
 - other-other-query-based-multi-document-summarization
 paperswithcode_id: aquamuse
 pretty_name: AQuaMuSe
+dataset_info:
+- config_name: abstractive
+  features:
+  - name: query
+    dtype: string
+  - name: input_urls
+    sequence: string
+  - name: target
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 843181
+    num_examples: 811
+  - name: train
+    num_bytes: 6434909
+    num_examples: 6253
+  - name: validation
+    num_bytes: 689109
+    num_examples: 661
+  download_size: 7755161
+  dataset_size: 7967199
+- config_name: extractive
+  features:
+  - name: query
+    dtype: string
+  - name: input_urls
+    sequence: string
+  - name: target
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 843181
+    num_examples: 811
+  - name: train
+    num_bytes: 6434909
+    num_examples: 6253
+  - name: validation
+    num_bytes: 689109
+    num_examples: 661
+  download_size: 7755161
+  dataset_size: 7967199
 ---
 
 # Dataset Card for AQuaMuSe

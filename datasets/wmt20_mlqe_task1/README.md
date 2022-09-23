@@ -35,6 +35,273 @@ configs:
 - ro-en
 - ru-en
 - si-en
+dataset_info:
+- config_name: en-de
+  features:
+  - name: segid
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - de
+  - name: scores
+    sequence: float32
+  - name: mean
+    dtype: float32
+  - name: z_scores
+    sequence: float32
+  - name: z_mean
+    dtype: float32
+  - name: model_score
+    dtype: float32
+  - name: doc_id
+    dtype: string
+  - name: nmt_output
+    dtype: string
+  - name: word_probas
+    sequence: float32
+  splits:
+  - name: test
+    num_bytes: 524159
+    num_examples: 1000
+  - name: train
+    num_bytes: 3492361
+    num_examples: 7000
+  - name: validation
+    num_bytes: 522576
+    num_examples: 1000
+  download_size: 2343124
+  dataset_size: 4539096
+- config_name: en-zh
+  features:
+  - name: segid
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - zh
+  - name: scores
+    sequence: float32
+  - name: mean
+    dtype: float32
+  - name: z_scores
+    sequence: float32
+  - name: z_mean
+    dtype: float32
+  - name: model_score
+    dtype: float32
+  - name: doc_id
+    dtype: string
+  - name: nmt_output
+    dtype: string
+  - name: word_probas
+    sequence: float32
+  splits:
+  - name: test
+    num_bytes: 494994
+    num_examples: 1000
+  - name: train
+    num_bytes: 3286433
+    num_examples: 7000
+  - name: validation
+    num_bytes: 488477
+    num_examples: 1000
+  download_size: 2557445
+  dataset_size: 4269904
+- config_name: et-en
+  features:
+  - name: segid
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - et
+        - en
+  - name: scores
+    sequence: float32
+  - name: mean
+    dtype: float32
+  - name: z_scores
+    sequence: float32
+  - name: z_mean
+    dtype: float32
+  - name: model_score
+    dtype: float32
+  - name: doc_id
+    dtype: string
+  - name: nmt_output
+    dtype: string
+  - name: word_probas
+    sequence: float32
+  splits:
+  - name: test
+    num_bytes: 527372
+    num_examples: 1000
+  - name: train
+    num_bytes: 3483669
+    num_examples: 7000
+  - name: validation
+    num_bytes: 531499
+    num_examples: 1000
+  download_size: 2320067
+  dataset_size: 4542540
+- config_name: ne-en
+  features:
+  - name: segid
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ne
+        - en
+  - name: scores
+    sequence: float32
+  - name: mean
+    dtype: float32
+  - name: z_scores
+    sequence: float32
+  - name: z_mean
+    dtype: float32
+  - name: model_score
+    dtype: float32
+  - name: doc_id
+    dtype: string
+  - name: nmt_output
+    dtype: string
+  - name: word_probas
+    sequence: float32
+  splits:
+  - name: test
+    num_bytes: 767637
+    num_examples: 1000
+  - name: train
+    num_bytes: 5313197
+    num_examples: 7000
+  - name: validation
+    num_bytes: 784784
+    num_examples: 1000
+  download_size: 2913901
+  dataset_size: 6865618
+- config_name: ro-en
+  features:
+  - name: segid
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ro
+        - en
+  - name: scores
+    sequence: float32
+  - name: mean
+    dtype: float32
+  - name: z_scores
+    sequence: float32
+  - name: z_mean
+    dtype: float32
+  - name: model_score
+    dtype: float32
+  - name: doc_id
+    dtype: string
+  - name: nmt_output
+    dtype: string
+  - name: word_probas
+    sequence: float32
+  splits:
+  - name: test
+    num_bytes: 500700
+    num_examples: 1000
+  - name: train
+    num_bytes: 3360498
+    num_examples: 7000
+  - name: validation
+    num_bytes: 507646
+    num_examples: 1000
+  download_size: 2222103
+  dataset_size: 4368844
+- config_name: si-en
+  features:
+  - name: segid
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - si
+        - en
+  - name: scores
+    sequence: float32
+  - name: mean
+    dtype: float32
+  - name: z_scores
+    sequence: float32
+  - name: z_mean
+    dtype: float32
+  - name: model_score
+    dtype: float32
+  - name: doc_id
+    dtype: string
+  - name: nmt_output
+    dtype: string
+  - name: word_probas
+    sequence: float32
+  splits:
+  - name: test
+    num_bytes: 763730
+    num_examples: 1000
+  - name: train
+    num_bytes: 5135077
+    num_examples: 7000
+  - name: validation
+    num_bytes: 758271
+    num_examples: 1000
+  download_size: 2841894
+  dataset_size: 6657078
+- config_name: ru-en
+  features:
+  - name: segid
+    dtype: int32
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ru
+        - en
+  - name: scores
+    sequence: float32
+  - name: mean
+    dtype: float32
+  - name: z_scores
+    sequence: float32
+  - name: z_mean
+    dtype: float32
+  - name: model_score
+    dtype: float32
+  - name: doc_id
+    dtype: string
+  - name: nmt_output
+    dtype: string
+  - name: word_probas
+    sequence: float32
+  splits:
+  - name: test
+    num_bytes: 478531
+    num_examples: 1000
+  - name: train
+    num_bytes: 3520776
+    num_examples: 7000
+  - name: validation
+    num_bytes: 499601
+    num_examples: 1000
+  download_size: 2123684
+  dataset_size: 4498908
 ---
 
 # Dataset Card for WMT20 - MultiLingual Quality Estimation (MLQE) Task1

@@ -34,8 +34,33 @@ train-eval-index:
       text: text
       answer_start: answer_start
   metrics:
-    - type: cuad
-      name: CUAD
+  - type: cuad
+    name: CUAD
+dataset_info:
+  features:
+  - name: id
+    dtype: string
+  - name: title
+    dtype: string
+  - name: context
+    dtype: string
+  - name: question
+    dtype: string
+  - name: answers
+    sequence:
+    - name: text
+      dtype: string
+    - name: answer_start
+      dtype: int32
+  splits:
+  - name: test
+    num_bytes: 198543467
+    num_examples: 4182
+  - name: train
+    num_bytes: 1466037640
+    num_examples: 22450
+  download_size: 18309308
+  dataset_size: 1664581107
 ---
 
 # Dataset Card for CUAD

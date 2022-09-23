@@ -27,6 +27,487 @@ task_categories:
 - translation
 task_ids: []
 paperswithcode_id: iwslt-2017
+dataset_info:
+- config_name: iwslt2017-en-it
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - it
+  splits:
+  - name: test
+    num_bytes: 305254
+    num_examples: 1566
+  - name: train
+    num_bytes: 46648117
+    num_examples: 231619
+  - name: validation
+    num_bytes: 200031
+    num_examples: 929
+  download_size: 329331279
+  dataset_size: 47153402
+- config_name: iwslt2017-en-nl
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - nl
+  splits:
+  - name: test
+    num_bytes: 311654
+    num_examples: 1777
+  - name: train
+    num_bytes: 42844125
+    num_examples: 237240
+  - name: validation
+    num_bytes: 197822
+    num_examples: 1003
+  download_size: 329331279
+  dataset_size: 43353601
+- config_name: iwslt2017-en-ro
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ro
+  splits:
+  - name: test
+    num_bytes: 316798
+    num_examples: 1678
+  - name: train
+    num_bytes: 44130134
+    num_examples: 220538
+  - name: validation
+    num_bytes: 205036
+    num_examples: 914
+  download_size: 329331279
+  dataset_size: 44651968
+- config_name: iwslt2017-it-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - it
+        - en
+  splits:
+  - name: test
+    num_bytes: 305254
+    num_examples: 1566
+  - name: train
+    num_bytes: 46648117
+    num_examples: 231619
+  - name: validation
+    num_bytes: 200031
+    num_examples: 929
+  download_size: 329331279
+  dataset_size: 47153402
+- config_name: iwslt2017-it-nl
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - it
+        - nl
+  splits:
+  - name: test
+    num_bytes: 309733
+    num_examples: 1669
+  - name: train
+    num_bytes: 43033360
+    num_examples: 233415
+  - name: validation
+    num_bytes: 197782
+    num_examples: 1001
+  download_size: 329331279
+  dataset_size: 43540875
+- config_name: iwslt2017-it-ro
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - it
+        - ro
+  splits:
+  - name: test
+    num_bytes: 314982
+    num_examples: 1643
+  - name: train
+    num_bytes: 44485345
+    num_examples: 217551
+  - name: validation
+    num_bytes: 204997
+    num_examples: 914
+  download_size: 329331279
+  dataset_size: 45005324
+- config_name: iwslt2017-nl-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - nl
+        - en
+  splits:
+  - name: test
+    num_bytes: 311654
+    num_examples: 1777
+  - name: train
+    num_bytes: 42844125
+    num_examples: 237240
+  - name: validation
+    num_bytes: 197822
+    num_examples: 1003
+  download_size: 329331279
+  dataset_size: 43353601
+- config_name: iwslt2017-nl-it
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - nl
+        - it
+  splits:
+  - name: test
+    num_bytes: 309733
+    num_examples: 1669
+  - name: train
+    num_bytes: 43033360
+    num_examples: 233415
+  - name: validation
+    num_bytes: 197782
+    num_examples: 1001
+  download_size: 329331279
+  dataset_size: 43540875
+- config_name: iwslt2017-nl-ro
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - nl
+        - ro
+  splits:
+  - name: test
+    num_bytes: 320960
+    num_examples: 1680
+  - name: train
+    num_bytes: 41338906
+    num_examples: 206920
+  - name: validation
+    num_bytes: 202388
+    num_examples: 913
+  download_size: 329331279
+  dataset_size: 41862254
+- config_name: iwslt2017-ro-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ro
+        - en
+  splits:
+  - name: test
+    num_bytes: 316798
+    num_examples: 1678
+  - name: train
+    num_bytes: 44130134
+    num_examples: 220538
+  - name: validation
+    num_bytes: 205036
+    num_examples: 914
+  download_size: 329331279
+  dataset_size: 44651968
+- config_name: iwslt2017-ro-it
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ro
+        - it
+  splits:
+  - name: test
+    num_bytes: 314982
+    num_examples: 1643
+  - name: train
+    num_bytes: 44485345
+    num_examples: 217551
+  - name: validation
+    num_bytes: 204997
+    num_examples: 914
+  download_size: 329331279
+  dataset_size: 45005324
+- config_name: iwslt2017-ro-nl
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ro
+        - nl
+  splits:
+  - name: test
+    num_bytes: 320960
+    num_examples: 1680
+  - name: train
+    num_bytes: 41338906
+    num_examples: 206920
+  - name: validation
+    num_bytes: 202388
+    num_examples: 913
+  download_size: 329331279
+  dataset_size: 41862254
+- config_name: iwslt2017-ar-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ar
+        - en
+  splits:
+  - name: test
+    num_bytes: 2014304
+    num_examples: 8583
+  - name: train
+    num_bytes: 56481251
+    num_examples: 231713
+  - name: validation
+    num_bytes: 241214
+    num_examples: 888
+  download_size: 27747532
+  dataset_size: 58736769
+- config_name: iwslt2017-de-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - de
+        - en
+  splits:
+  - name: test
+    num_bytes: 1608482
+    num_examples: 8079
+  - name: train
+    num_bytes: 42608548
+    num_examples: 206112
+  - name: validation
+    num_bytes: 210983
+    num_examples: 888
+  download_size: 16751373
+  dataset_size: 44428013
+- config_name: iwslt2017-en-ar
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ar
+  splits:
+  - name: test
+    num_bytes: 2014304
+    num_examples: 8583
+  - name: train
+    num_bytes: 56481251
+    num_examples: 231713
+  - name: validation
+    num_bytes: 241214
+    num_examples: 888
+  download_size: 29332212
+  dataset_size: 58736769
+- config_name: iwslt2017-en-de
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - de
+  splits:
+  - name: test
+    num_bytes: 1608482
+    num_examples: 8079
+  - name: train
+    num_bytes: 42608548
+    num_examples: 206112
+  - name: validation
+    num_bytes: 210983
+    num_examples: 888
+  download_size: 16751364
+  dataset_size: 44428013
+- config_name: iwslt2017-en-fr
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - fr
+  splits:
+  - name: test
+    num_bytes: 1767473
+    num_examples: 8597
+  - name: train
+    num_bytes: 49273478
+    num_examples: 232825
+  - name: validation
+    num_bytes: 207587
+    num_examples: 890
+  download_size: 27691674
+  dataset_size: 51248538
+- config_name: iwslt2017-en-ja
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ja
+  splits:
+  - name: test
+    num_bytes: 1809015
+    num_examples: 8469
+  - name: train
+    num_bytes: 48205171
+    num_examples: 223108
+  - name: validation
+    num_bytes: 208132
+    num_examples: 871
+  download_size: 26983540
+  dataset_size: 50222318
+- config_name: iwslt2017-en-ko
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - ko
+  splits:
+  - name: test
+    num_bytes: 1869801
+    num_examples: 8514
+  - name: train
+    num_bytes: 51678235
+    num_examples: 230240
+  - name: validation
+    num_bytes: 219303
+    num_examples: 879
+  download_size: 19363699
+  dataset_size: 53767339
+- config_name: iwslt2017-en-zh
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - en
+        - zh
+  splits:
+  - name: test
+    num_bytes: 1605535
+    num_examples: 8549
+  - name: train
+    num_bytes: 44271196
+    num_examples: 231266
+  - name: validation
+    num_bytes: 202545
+    num_examples: 879
+  download_size: 27596371
+  dataset_size: 46079276
+- config_name: iwslt2017-fr-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - fr
+        - en
+  splits:
+  - name: test
+    num_bytes: 1767473
+    num_examples: 8597
+  - name: train
+    num_bytes: 49273478
+    num_examples: 232825
+  - name: validation
+    num_bytes: 207587
+    num_examples: 890
+  download_size: 26872507
+  dataset_size: 51248538
+- config_name: iwslt2017-ja-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ja
+        - en
+  splits:
+  - name: test
+    num_bytes: 1809015
+    num_examples: 8469
+  - name: train
+    num_bytes: 48205171
+    num_examples: 223108
+  - name: validation
+    num_bytes: 208132
+    num_examples: 871
+  download_size: 26190272
+  dataset_size: 50222318
+- config_name: iwslt2017-ko-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - ko
+        - en
+  splits:
+  - name: test
+    num_bytes: 1869801
+    num_examples: 8514
+  - name: train
+    num_bytes: 51678235
+    num_examples: 230240
+  - name: validation
+    num_bytes: 219303
+    num_examples: 879
+  download_size: 19363701
+  dataset_size: 53767339
+- config_name: iwslt2017-zh-en
+  features:
+  - name: translation
+    dtype:
+      translation:
+        languages:
+        - zh
+        - en
+  splits:
+  - name: test
+    num_bytes: 1605535
+    num_examples: 8549
+  - name: train
+    num_bytes: 44271196
+    num_examples: 231266
+  - name: validation
+    num_bytes: 202545
+    num_examples: 879
+  download_size: 26848340
+  dataset_size: 46079276
 ---
 
 # Dataset Card for IWSLT 2017

@@ -20,6 +20,90 @@ task_ids:
 - multi-class-classification
 paperswithcode_id: null
 pretty_name: NLU Evaluation Data
+dataset_info:
+  features:
+  - name: text
+    dtype: string
+  - name: scenario
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: alarm_query
+          1: alarm_remove
+          2: alarm_set
+          3: audio_volume_down
+          4: audio_volume_mute
+          5: audio_volume_other
+          6: audio_volume_up
+          7: calendar_query
+          8: calendar_remove
+          9: calendar_set
+          10: cooking_query
+          11: cooking_recipe
+          12: datetime_convert
+          13: datetime_query
+          14: email_addcontact
+          15: email_query
+          16: email_querycontact
+          17: email_sendemail
+          18: general_affirm
+          19: general_commandstop
+          20: general_confirm
+          21: general_dontcare
+          22: general_explain
+          23: general_greet
+          24: general_joke
+          25: general_negate
+          26: general_praise
+          27: general_quirky
+          28: general_repeat
+          29: iot_cleaning
+          30: iot_coffee
+          31: iot_hue_lightchange
+          32: iot_hue_lightdim
+          33: iot_hue_lightoff
+          34: iot_hue_lighton
+          35: iot_hue_lightup
+          36: iot_wemo_off
+          37: iot_wemo_on
+          38: lists_createoradd
+          39: lists_query
+          40: lists_remove
+          41: music_dislikeness
+          42: music_likeness
+          43: music_query
+          44: music_settings
+          45: news_query
+          46: play_audiobook
+          47: play_game
+          48: play_music
+          49: play_podcasts
+          50: play_radio
+          51: qa_currency
+          52: qa_definition
+          53: qa_factoid
+          54: qa_maths
+          55: qa_stock
+          56: recommendation_events
+          57: recommendation_locations
+          58: recommendation_movies
+          59: social_post
+          60: social_query
+          61: takeaway_order
+          62: takeaway_query
+          63: transport_query
+          64: transport_taxi
+          65: transport_ticket
+          66: transport_traffic
+          67: weather_query
+  splits:
+  - name: train
+    num_bytes: 1447941
+    num_examples: 25715
+  download_size: 5867439
+  dataset_size: 1447941
 ---
 
 # Dataset Card for NLU Evaluation Data

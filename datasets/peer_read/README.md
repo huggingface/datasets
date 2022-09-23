@@ -19,6 +19,142 @@ task_ids:
 - text-classification-other-acceptability-classification
 paperswithcode_id: peerread
 pretty_name: PeerRead
+dataset_info:
+- config_name: parsed_pdfs
+  features:
+  - name: name
+    dtype: string
+  - name: metadata
+    struct:
+    - name: source
+      dtype: string
+    - name: title
+      dtype: string
+    - name: authors
+      sequence: string
+    - name: emails
+      sequence: string
+    - name: sections
+      sequence:
+      - name: heading
+        dtype: string
+      - name: text
+        dtype: string
+    - name: references
+      sequence:
+      - name: title
+        dtype: string
+      - name: author
+        sequence: string
+      - name: venue
+        dtype: string
+      - name: citeRegEx
+        dtype: string
+      - name: shortCiteRegEx
+        dtype: string
+      - name: year
+        dtype: int32
+    - name: referenceMentions
+      sequence:
+      - name: referenceID
+        dtype: int32
+      - name: context
+        dtype: string
+      - name: startOffset
+        dtype: int32
+      - name: endOffset
+        dtype: int32
+    - name: year
+      dtype: int32
+    - name: abstractText
+      dtype: string
+    - name: creator
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 34284777
+    num_examples: 637
+  - name: train
+    num_bytes: 571263679
+    num_examples: 11090
+  - name: validation
+    num_bytes: 32488519
+    num_examples: 637
+  download_size: 1246688292
+  dataset_size: 638036975
+- config_name: reviews
+  features:
+  - name: id
+    dtype: string
+  - name: conference
+    dtype: string
+  - name: comments
+    dtype: string
+  - name: subjects
+    dtype: string
+  - name: version
+    dtype: string
+  - name: date_of_submission
+    dtype: string
+  - name: title
+    dtype: string
+  - name: authors
+    sequence: string
+  - name: accepted
+    dtype: bool
+  - name: abstract
+    dtype: string
+  - name: histories
+    sequence:
+      sequence: string
+  - name: reviews
+    sequence:
+    - name: date
+      dtype: string
+    - name: title
+      dtype: string
+    - name: other_keys
+      dtype: string
+    - name: originality
+      dtype: string
+    - name: comments
+      dtype: string
+    - name: is_meta_review
+      dtype: bool
+    - name: is_annotated
+      dtype: bool
+    - name: recommendation
+      dtype: string
+    - name: replicability
+      dtype: string
+    - name: presentation_format
+      dtype: string
+    - name: clarity
+      dtype: string
+    - name: meaningful_comparison
+      dtype: string
+    - name: substance
+      dtype: string
+    - name: reviewer_confidence
+      dtype: string
+    - name: soundness_correctness
+      dtype: string
+    - name: appropriateness
+      dtype: string
+    - name: impact
+      dtype: string
+  splits:
+  - name: test
+    num_bytes: 878906
+    num_examples: 637
+  - name: train
+    num_bytes: 15234922
+    num_examples: 11090
+  - name: validation
+    num_bytes: 864799
+    num_examples: 637
+  download_size: 1246688292
+  dataset_size: 16978627
 ---
 
 # Dataset Card for peer_read
