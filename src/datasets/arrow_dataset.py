@@ -1121,7 +1121,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> # Fetch a database table
         >>> ds = Dataset.from_sql("test_data", "postgres:///db_name")
+        >>> # Execute a SQL query on the table
+        >>> ds = Dataset.from_sql("SELECT sentence FROM test_data", "postgres:///db_name")
+        >>> # Use a Selectable object to specify the query
+        >>> from sqlalchemy import select, text
+        >>> stmt = select([text("sentence")]).select_from(text("test_data"))
+        >>> ds = Dataset.from_sql(stmt, "postgres:///db_name")
         ```
         """
         from .io.sql import SqlDatasetReader
@@ -4164,7 +4171,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
+        >>> # con provided as a connection URI string
         >>> ds.to_sql("data", "sqlite:///my_own_db.sql")
+        >>> # con provided as a sqlite3 connection object
+        >>> import sqlite3
+        >>> with sqlite3.connect("my_own_db.sql") as con:
+        ...     ds.to_sql("data", con)
         ```
         """
         # Dynamic import to avoid circular dependency

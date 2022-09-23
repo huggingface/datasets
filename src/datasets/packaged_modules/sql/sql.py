@@ -1,3 +1,4 @@
+import sys
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
@@ -46,18 +47,22 @@ class SqlConfig(datasets.BuilderConfig):
         # The process of stringifying is explained here: http://docs.sqlalchemy.org/en/latest/faq/sqlexpressions.html
         sql = config_kwargs["sql"]
         if not isinstance(sql, str):
-            if datasets.config.SQLALCHEMY_AVAILABLE and "sqlalchemy" in sys.modules::
+            if datasets.config.SQLALCHEMY_AVAILABLE and "sqlalchemy" in sys.modules:
                 import sqlalchemy
-                
+
                 if isinstance(sql, sqlalchemy.sql.Selectable):
                     config_kwargs = config_kwargs.copy()
                     engine = sqlalchemy.create_engine(config_kwargs["con"].split("://")[0] + "://")
                     sql_str = str(sql.compile(dialect=engine.dialect))
                     config_kwargs["sql"] = sql_str
                 else:
-                    raise TypeError(f"Supported types for 'sql' are string and sqlalchemy.sql.Selectable but got {type(sql)}: {sql}")
+                    raise TypeError(
+                        f"Supported types for 'sql' are string and sqlalchemy.sql.Selectable but got {type(sql)}: {sql}"
+                    )
             else:
-                raise TypeError(f"Supported types for 'sql' are string and sqlalchemy.sql.Selectable but got {type(sql)}: {sql}")
+                raise TypeError(
+                    f"Supported types for 'sql' are string and sqlalchemy.sql.Selectable but got {type(sql)}: {sql}"
+                )
         return super().create_config_id(config_kwargs, custom_features=custom_features)
 
     @property
@@ -94,7 +99,9 @@ class Sql(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self):
         chunksize = self.config.chunksize
-        sql_reader = pd.read_sql(self.config.sql, self.config.con, chunksize=chunksize, **self.config.pd_read_sql_kwargs)
+        sql_reader = pd.read_sql(
+            self.config.sql, self.config.con, chunksize=chunksize, **self.config.pd_read_sql_kwargs
+        )
         sql_reader = [sql_reader] if chunksize is None else sql_reader
         for chunk_idx, df in enumerate(sql_reader):
             pa_table = pa.Table.from_pandas(df)
