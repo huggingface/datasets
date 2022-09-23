@@ -46,15 +46,18 @@ class SqlConfig(datasets.BuilderConfig):
         # The process of stringifying is explained here: http://docs.sqlalchemy.org/en/latest/faq/sqlexpressions.html
         sql = config_kwargs["sql"]
         if not isinstance(sql, str):
-            if not datasets.config.SQLALCHEMY_AVAILABLE:
-                raise ImportError("Please pip install sqlalchemy.")
-
-            import sqlalchemy
-
-            config_kwargs = config_kwargs.copy()
-            engine = sqlalchemy.create_engine(config_kwargs["con"].split("://")[0] + "://")
-            sql_str = str(sql.compile(dialect=engine.dialect))
-            config_kwargs["sql"] = sql_str
+            if datasets.config.SQLALCHEMY_AVAILABLE and "sqlalchemy" in sys.modules::
+                import sqlalchemy
+                
+                if isinstance(sql, sqlalchemy.sql.Selectable):
+                    config_kwargs = config_kwargs.copy()
+                    engine = sqlalchemy.create_engine(config_kwargs["con"].split("://")[0] + "://")
+                    sql_str = str(sql.compile(dialect=engine.dialect))
+                    config_kwargs["sql"] = sql_str
+                else:
+                    raise TypeError(f"Supported types for 'sql' are string and sqlalchemy.sql.Selectable but got {type(sql)}: {sql}")
+            else:
+                raise TypeError(f"Supported types for 'sql' are string and sqlalchemy.sql.Selectable but got {type(sql)}: {sql}")
         return super().create_config_id(config_kwargs, custom_features=custom_features)
 
     @property
