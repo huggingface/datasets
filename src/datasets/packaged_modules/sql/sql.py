@@ -29,9 +29,10 @@ class SqlConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
 
     def __post_init__(self):
-        assert self.sql is not None, "sql must be specified"
-        assert self.con is not None, "con must be specified"
-
+        if self.sql is None:
+            raise ValueError("sql must be specified")
+        if self.con is None:
+            raise ValueError("con must be specified")
         if not isinstance(self.con, str):
             raise ValueError(f"con must be a database URI string, but got {self.con} with type {type(self.con)}.")
 
@@ -57,15 +58,15 @@ class SqlConfig(datasets.BuilderConfig):
         return super().create_config_id(config_kwargs, custom_features=custom_features)
 
     @property
-    def read_sql_kwargs(self):
-        read_sql_kwargs = dict(
+    def pd_read_sql_kwargs(self):
+        pd_read_sql_kwargs = dict(
             index_col=self.index_col,
             columns=self.columns,
             params=self.params,
             coerce_float=self.coerce_float,
             parse_dates=self.parse_dates,
         )
-        return read_sql_kwargs
+        return pd_read_sql_kwargs
 
 
 class Sql(datasets.ArrowBasedBuilder):
@@ -90,7 +91,7 @@ class Sql(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self):
         chunksize = self.config.chunksize
-        sql_reader = pd.read_sql(self.config.sql, self.config.con, chunksize=chunksize, **self.config.read_sql_kwargs)
+        sql_reader = pd.read_sql(self.config.sql, self.config.con, chunksize=chunksize, **self.config.pd_read_sql_kwargs)
         sql_reader = [sql_reader] if chunksize is None else sql_reader
         for chunk_idx, df in enumerate(sql_reader):
             pa_table = pa.Table.from_pandas(df)

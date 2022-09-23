@@ -70,8 +70,8 @@ class CsvConfig(datasets.BuilderConfig):
             self.names = self.column_names
 
     @property
-    def read_csv_kwargs(self):
-        read_csv_kwargs = dict(
+    def pd_read_csv_kwargs(self):
+        pd_read_csv_kwargs = dict(
             sep=self.sep,
             header=self.header,
             names=self.names,
@@ -112,16 +112,16 @@ class CsvConfig(datasets.BuilderConfig):
 
         # some kwargs must not be passed if they don't have a default value
         # some others are deprecated and we can also not pass them if they are the default value
-        for read_csv_parameter in _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS + _PANDAS_READ_CSV_DEPRECATED_PARAMETERS:
-            if read_csv_kwargs[read_csv_parameter] == getattr(CsvConfig(), read_csv_parameter):
-                del read_csv_kwargs[read_csv_parameter]
+        for pd_read_csv_parameter in _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS + _PANDAS_READ_CSV_DEPRECATED_PARAMETERS:
+            if pd_read_csv_kwargs[pd_read_csv_parameter] == getattr(CsvConfig(), pd_read_csv_parameter):
+                del pd_read_csv_kwargs[pd_read_csv_parameter]
 
         # Remove 1.3 new arguments
         if not (datasets.config.PANDAS_VERSION.major >= 1 and datasets.config.PANDAS_VERSION.minor >= 3):
-            for read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
-                del read_csv_kwargs[read_csv_parameter]
+            for pd_read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
+                del pd_read_csv_kwargs[pd_read_csv_parameter]
 
-        return read_csv_kwargs
+        return pd_read_csv_kwargs
 
 
 class Csv(datasets.ArrowBasedBuilder):
@@ -172,7 +172,7 @@ class Csv(datasets.ArrowBasedBuilder):
             else None
         )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.read_csv_kwargs)
+            csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs)
             try:
                 for batch_idx, df in enumerate(csv_file_reader):
                     pa_table = pa.Table.from_pandas(df)
