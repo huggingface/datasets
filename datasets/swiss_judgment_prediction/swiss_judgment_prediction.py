@@ -40,13 +40,15 @@ _LANGUAGES = [
     "de",
     "fr",
     "it",
+    "en",
 ]
 
-_URL = "https://zenodo.org/record/5529712/files/"
+_URL = "https://zenodo.org/record/7109926/files/"
 _URLS = {
     "train": _URL + "train.jsonl",
-    "test": _URL + "test.jsonl",
+    "train_mt": _URL + "train_mt.jsonl",
     "val": _URL + "val.jsonl",
+    "test": _URL + "test.jsonl",
 }
 
 
@@ -71,13 +73,13 @@ class SwissJudgmentPredictionConfig(datasets.BuilderConfig):
 class SwissJudgmentPrediction(datasets.GeneratorBasedBuilder):
     """SwissJudgmentPrediction: A Multilingual Legal Judgment PredictionBenchmark"""
 
-    VERSION = datasets.Version("1.0.0", "")
+    VERSION = datasets.Version("2.0.0", "")
     BUILDER_CONFIG_CLASS = SwissJudgmentPredictionConfig
     BUILDER_CONFIGS = [
         SwissJudgmentPredictionConfig(
             name=lang,
             language=lang,
-            version=datasets.Version("1.0.0", ""),
+            version=datasets.Version("2.0.0", ""),
             description=f"Plain text import of SwissJudgmentPrediction for the {lang} language",
         )
         for lang in _LANGUAGES
@@ -85,7 +87,7 @@ class SwissJudgmentPrediction(datasets.GeneratorBasedBuilder):
         SwissJudgmentPredictionConfig(
             name="all_languages",
             language="all_languages",
-            version=datasets.Version("1.0.0", ""),
+            version=datasets.Version("2.0.0", ""),
             description="Plain text import of SwissJudgmentPrediction for all languages",
         )
     ]
@@ -129,14 +131,19 @@ class SwissJudgmentPrediction(datasets.GeneratorBasedBuilder):
                 gen_kwargs={"filepath": dl_dir["train"], "split": "train"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
+                name="train_mt",
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": dl_dir["test"], "split": "test"},
+                gen_kwargs={"filepath": dl_dir["train_mt"], "split": "train_mt"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dl_dir["val"], "split": "dev"},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"filepath": dl_dir["test"], "split": "test"},
             ),
         ]
 
