@@ -109,6 +109,10 @@ Define sampling probabilities from each of the original datasets for more contro
 
 Around 80% of the final dataset is made of the `en_dataset`, and 20% of the `fr_dataset`.
 
+You can also specify the `stopping_strategy`. The default strategy, `first_exhausted`, is a subsampling strategy, i.e the dataset construction is stopped as soon one of the dataset runs out of samples.
+You can specify `stopping_strategy=all_exhausted` to execute an oversampling strategy. In this case, the dataset construction is stopped as soon as every samples in every dataset has been added at least once. In practice, it means that if a dataset is exhausted, it will return to the beginning of this dataset until the stop criterion has been reached.
+Note that if no sampling probabilities are specified, the new dataset will have `max_length_datasets*nb_dataset samples`.
+
 ## Rename, remove, and cast
 
 The following methods allow you to modify the columns of a dataset. These methods are useful for renaming or removing columns and changing columns to a new set of features.
