@@ -43,8 +43,7 @@ def interleave_datasets(
         split ([`NamedSplit`], *optional*): Name of the dataset split.
             <Added version="2.4.0"/>
         stopping_strategy (Optional :obj:`str`, defaults to `first_exhausted`):
-            Two strategies are proposed right now for :class:`Dataset` objects.
-            For :class:`IterableDataset` objects, only `first_exhausted` is proposed right now.
+            Two strategies are proposed right now, `first_exhausted` and `all_exhausted`.
             By default, `first_exhausted` is an undersampling strategy, i.e the dataset construction is stopped as soon as one dataset has ran out of samples.
             If the strategy is `all_exhausted`,  we use an oversampling strategy, i.e the dataset construction is stopped as soon as every samples of every dataset has been added at least once.
             Note that if the strategy is `all_exhausted`, the interleaved dataset size can get enormous:
@@ -126,7 +125,9 @@ def interleave_datasets(
             datasets, probabilities, seed, info=info, split=split, stopping_strategy=stopping_strategy
         )
     else:
-        return _interleave_iterable_datasets(datasets, probabilities, seed, info=info, split=split, stopping_strategy=stopping_strategy)
+        return _interleave_iterable_datasets(
+            datasets, probabilities, seed, info=info, split=split, stopping_strategy=stopping_strategy
+        )
 
 
 def concatenate_datasets(
