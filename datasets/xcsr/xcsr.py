@@ -21,8 +21,6 @@ import os
 import datasets
 
 
-# TODO: Add BibTeX citation
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 # X-CSR
 @inproceedings{lin-etal-2021-xcsr,
@@ -60,19 +58,15 @@ _CITATION = """\
 }
 """
 
-# TODO: Add description of the dataset here
-# You can copy an official description
 _DESCRIPTION = """\
 To evaluate multi-lingual language models (ML-LMs) for commonsense reasoning in a cross-lingual zero-shot transfer setting (X-CSR), i.e., training in English and test in other languages, we create two benchmark datasets, namely X-CSQA and X-CODAH. Specifically, we automatically translate the original CSQA and CODAH datasets, which only have English versions, to 15 other languages, forming development and test sets for studying X-CSR. As our goal is to evaluate different ML-LMs in a unified evaluation protocol for X-CSR, we argue that such translated examples, although might contain noise, can serve as a starting benchmark for us to obtain meaningful analysis, before more human-translated datasets will be available in the future.
 """
 
-# TODO: Add a link to an official homepage for the dataset here
 _HOMEPAGE = "https://inklab.usc.edu//XCSR/"
 
 # TODO: Add the licence for the dataset here if you can find it
 # _LICENSE = ""
 
-# TODO: Add link to the official dataset URLs here
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 
@@ -95,9 +89,9 @@ class XcsrConfig(datasets.BuilderConfig):
         self.language = language
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class Xcsr(datasets.GeneratorBasedBuilder):
-    """XCSR: A dataset for evaluating multi-lingual language models (ML-LMs) for commonsense reasoning in a cross-lingual zero-shot transfer setting"""
+    """XCSR: A dataset for evaluating multi-lingual language models (ML-LMs) for commonsense reasoning in a
+    cross-lingual zero-shot transfer setting"""
 
     BUILDER_CONFIG_CLASS = XcsrConfig
     BUILDER_CONFIGS = [
@@ -156,19 +150,9 @@ class Xcsr(datasets.GeneratorBasedBuilder):
             )
 
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
-            supervised_keys=None,
-            # Homepage of the dataset for documentation
+            features=features,
             homepage=_HOMEPAGE,
-            # License for the dataset if available
-            # license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
