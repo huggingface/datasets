@@ -23,12 +23,20 @@ import datasets
 
 _CITATION = """\
 # X-CSR
-@inproceedings{lin-etal-2021-xcsr,
-    title = "Common Sense Beyond English: Evaluating and Improving Multilingual Language Models for Commonsense Reasoning",
-    author = "Lin, Bill Yuchen and Lee, Seyeon and Qiao, Xiaoyang and Ren, Xiang",
-    booktitle = "Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics (ACL-IJCNLP 2021)",
+@inproceedings{lin-etal-2021-common,
+    title = "Common Sense Beyond {E}nglish: Evaluating and Improving Multilingual Language Models for Commonsense Reasoning",
+    author = "Lin, Bill Yuchen  and
+      Lee, Seyeon  and
+      Qiao, Xiaoyang  and
+      Ren, Xiang",
+    booktitle = "Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 1: Long Papers)",
+    month = aug,
     year = "2021",
-    note={to appear}
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2021.acl-long.102",
+    doi = "10.18653/v1/2021.acl-long.102",
+    pages = "1274--1287",
 }
 
 # CSQA
