@@ -196,79 +196,20 @@ class Xcsr(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TEST,
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, sub_test_path),
-                    "split": "test",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, sub_dev_path),
-                    "split": "dev",
                 },
             ),
         ]
 
-    def _generate_examples(
-        self, filepath, split  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
-    ):
+    def _generate_examples(self, filepath):
         """Yields examples as (key, example) tuples."""
-        # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
-        # The `key` is here for legacy reason (tfds) and is not important in itself.
-        key = 0
-        if self.config.name.startswith("X-CSQA"):
-            with open(filepath, encoding="utf-8") as f:
-                for _id, row in enumerate(f):
-                    data = json.loads(row)
-
-                    ID = data["id"]
-                    lang = data["lang"]
-                    question = data["question"]
-                    stem = question["stem"]
-                    choices = question["choices"]
-                    labels = [label["label"] for label in choices]
-                    texts = [text["text"] for text in choices]
-
-                    if split == "test":
-                        answerkey = ""
-                    else:
-                        answerkey = data["answerKey"]
-
-                    yield key, {
-                        "id": ID,
-                        "lang": lang,
-                        "question": {
-                            "stem": stem,
-                            "choices": [{"label": label, "text": text} for label, text in zip(labels, texts)],
-                        },
-                        "answerKey": answerkey,
-                    }
-                    key += 1
-        elif self.config.name.startswith("X-CODAH"):
-            with open(filepath, encoding="utf-8") as f:
-                for _id, row in enumerate(f):
-                    data = json.loads(row)
-                    ID = data["id"]
-                    lang = data["lang"]
-                    question_tag = data["question_tag"]
-                    question = data["question"]
-                    stem = question["stem"]
-                    choices = question["choices"]
-                    labels = [label["label"] for label in choices]
-                    texts = [text["text"] for text in choices]
-
-                    if split == "test":
-                        answerkey = ""
-                    else:
-                        answerkey = data["answerKey"]
-
-                    yield key, {
-                        "id": ID,
-                        "lang": lang,
-                        "question_tag": question_tag,
-                        "question": {
-                            "stem": stem,
-                            "choices": [{"label": label, "text": text} for label, text in zip(labels, texts)],
-                        },
-                        "answerKey": answerkey,
-                    }
-                    key += 1
+        with open(filepath, encoding="utf-8") as f:
+            for key, row in enumerate(f):
+                data = json.loads(row)
+                _ = data.setdefault("answerKey", "")
+                yield key, data
