@@ -126,17 +126,15 @@ class Xcsr(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "lang": datasets.Value("string"),
-                    "question": datasets.features.Sequence(
-                        {
-                            "stem": datasets.Value("string"),
-                            "choices": datasets.features.Sequence(
-                                {
-                                    "label": datasets.Value("string"),
-                                    "text": datasets.Value("string"),
-                                }
-                            ),
-                        }
-                    ),
+                    "question": {
+                        "stem": datasets.Value("string"),
+                        "choices": datasets.features.Sequence(
+                            {
+                                "label": datasets.Value("string"),
+                                "text": datasets.Value("string"),
+                            }
+                        ),
+                    },
                     "answerKey": datasets.Value("string"),
                 }
             )
@@ -146,17 +144,15 @@ class Xcsr(datasets.GeneratorBasedBuilder):
                     "id": datasets.Value("string"),
                     "lang": datasets.Value("string"),
                     "question_tag": datasets.Value("string"),
-                    "question": datasets.features.Sequence(
-                        {
-                            "stem": datasets.Value("string"),
-                            "choices": datasets.features.Sequence(
-                                {
-                                    "label": datasets.Value("string"),
-                                    "text": datasets.Value("string"),
-                                }
-                            ),
-                        }
-                    ),
+                    "question": {
+                        "stem": datasets.Value("string"),
+                        "choices": datasets.features.Sequence(
+                            {
+                                "label": datasets.Value("string"),
+                                "text": datasets.Value("string"),
+                            }
+                        ),
+                    },
                     "answerKey": datasets.Value("string"),
                 }
             )
