@@ -104,7 +104,7 @@ class Xcsr(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         XcsrConfig(
             name="X-CSQA-" + lang,
-            language="en",
+            language=lang,
             version=datasets.Version("1.1.0", ""),
             description=f"Plain text import of X-CSQA for the {lang} language",
         )
