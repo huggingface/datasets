@@ -5,9 +5,9 @@ language_creators:
 - crowdsourced
 - expert-generated
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual

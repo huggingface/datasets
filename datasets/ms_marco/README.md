@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: ms-marco
 pretty_name: Microsoft Machine Reading Comprehension Dataset

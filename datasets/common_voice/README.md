@@ -4,7 +4,7 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - ab
 - ar
 - as
@@ -25,8 +25,8 @@ languages:
 - fa
 - fi
 - fr
-- fy-NL
-- ga-IE
+- fy
+- ga
 - hi
 - hsb
 - hu
@@ -44,17 +44,16 @@ languages:
 - mt
 - nl
 - or
-- pa-IN
+- pa
 - pl
 - pt
-- rm-sursilv
-- rm-vallader
+- rm
 - ro
 - ru
 - rw
 - sah
 - sl
-- sv-SE
+- sv
 - ta
 - th
 - tr
@@ -62,10 +61,18 @@ languages:
 - uk
 - vi
 - vot
+- zh
+language_bcp47:
+- fy-NL
+- ga-IE
+- pa-IN
+- rm-sursilv
+- rm-vallader
+- sv-SE
 - zh-CN
 - zh-HK
 - zh-TW
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - multilingual

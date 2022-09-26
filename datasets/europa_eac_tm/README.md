@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - bg
 - cs
 - da
@@ -30,7 +30,7 @@ languages:
 - sl
 - sv
 - tr
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - translation

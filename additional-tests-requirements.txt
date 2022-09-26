@@ -1,4 +1,4 @@
-unbabel-comet>=1.0.0;python_version>'3.6'
+unbabel-comet>=1.0.0
 git+https://github.com/google-research/bleurt.git
 git+https://github.com/ns-moosavi/coval.git
 git+https://github.com/hendrycks/math.git

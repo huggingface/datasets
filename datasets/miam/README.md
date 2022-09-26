@@ -3,13 +3,13 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - de
 - en
 - es
 - fr
 - it
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - multilingual
@@ -240,9 +240,9 @@ For the `vm2` configuration, the different fields are:
 
 ## Additional Information
 
-### Benchmark Curators
+### Dataset Curators
 
-Anonymous
+Anonymous.
 
 ### Licensing Information
 
@@ -251,13 +251,24 @@ This work is licensed under a [Creative Commons Attribution-NonCommercial-ShareA
 ### Citation Information
 
 ```
-@unpublished{
-anonymous2021cross-lingual,
-title={Cross-Lingual Pretraining Methods for Spoken Dialog},
-author={Anonymous},
-journal={OpenReview Preprint},
-year={2021},
-url{https://openreview.net/forum?id=c1oDhu_hagR},
-note={anonymous preprint under review}
+@inproceedings{colombo-etal-2021-code,
+    title = "Code-switched inspired losses for spoken dialog representations",
+    author = "Colombo, Pierre  and
+      Chapuis, Emile  and
+      Labeau, Matthieu  and
+      Clavel, Chlo{\'e}",
+    booktitle = "Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing",
+    month = nov,
+    year = "2021",
+    address = "Online and Punta Cana, Dominican Republic",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2021.emnlp-main.656",
+    doi = "10.18653/v1/2021.emnlp-main.656",
+    pages = "8320--8337",
+    abstract = "Spoken dialogue systems need to be able to handle both multiple languages and multilinguality inside a conversation (\textit{e.g} in case of code-switching). In this work, we introduce new pretraining losses tailored to learn generic multilingual spoken dialogue representations. The goal of these losses is to expose the model to code-switched language. In order to scale up training, we automatically build a pretraining corpus composed of multilingual conversations in five different languages (French, Italian, English, German and Spanish) from OpenSubtitles, a huge multilingual corpus composed of 24.3G tokens. We test the generic representations on MIAM, a new benchmark composed of five dialogue act corpora on the same aforementioned languages as well as on two novel multilingual tasks (\textit{i.e} multilingual mask utterance retrieval and multilingual inconsistency identification). Our experiments show that our new losses achieve a better performance in both monolingual and multilingual settings.",
 }
 ```
+
+### Contributions
+
+Thanks to [@eusip](https://github.com/eusip) and [@PierreColombo](https://github.com/PierreColombo) for adding this dataset.

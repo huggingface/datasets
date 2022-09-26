@@ -3,11 +3,12 @@ annotations_creators:
 - crowdsourced
 - expert-generated
 language_creators:
-- found, other
-languages:
+- found
+- other
+language:
 - en
-licenses:
-- agpl-3.0-or-later
+license:
+- agpl-3.0
 multilinguality:
 - monolingual
 size_categories:
@@ -196,9 +197,6 @@ The licensing status of the datasets is [GNU GPLv3](https://choosealicense.com/l
       primaryClass={cs.CL}
 }
 ```
-
-## License
-[GNU GPLv3](https://choosealicense.com/licenses/gpl-3.0/)
 
 ### Contributions
 

@@ -7,18 +7,18 @@ multilinguality:
 task_ids:
 - language-modeling
 - masked-language-modeling
-languages:
-- hi
-- te
-- ta
-- ml
-- gu
-- ur
+language:
 - bn
-- or
-- mr
-- pa
 - en
+- gu
+- hi
+- ml
+- mr
+- or
+- pa
+- ta
+- te
+- ur
 annotations_creators:
 - no-annotation
 source_datasets:
@@ -26,7 +26,7 @@ source_datasets:
 size_categories:
 - 1K<n<10K
 - n<1K
-licenses:
+license:
 - cc-by-4.0
 paperswithcode_id: null
 pretty_name: CVIT MKB

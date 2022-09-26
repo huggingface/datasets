@@ -1,7 +1,23 @@
 ---
-pretty_name: BlendedSkillTalk
-languages:
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+language:
 - en
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: BlendedSkillTalk
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- conversational
+task_ids:
+- dialogue-generation
 paperswithcode_id: blended-skill-talk
 ---
 
@@ -35,7 +51,7 @@ paperswithcode_id: blended-skill-talk
 
 - **Homepage:** [https://parl.ai/projects/bst/](https://parl.ai/projects/bst/)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [Can You Put it All Together: Evaluating Conversational Agents' Ability to Blend Skills](https://arxiv.org/abs/2004.08449v1)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 36.34 MB
 - **Size of the generated dataset:** 14.38 MB
@@ -65,17 +81,16 @@ A dataset of 7k conversations explicitly designed to exhibit multiple conversati
 
 An example of 'train' looks as follows.
 ```
-This example was too long and was cropped:
-
 {
-    "additional_context": "Electrician",
-    "context": "wizard_of_wikipedia",
-    "free_messages": "[\"Which level are you at?\", \"Thats great! How long have you been doing this work? \", \"Sounds like it could be a dangerous job at...",
-    "guided_messages": ["I received on-the-job training when i first started", "For a good number of years now.", "That it is,especially if you dont take the proper measures", "Thats true,especially in this economy", "Do you enjoy it?", "I feel you. Stretch along the halls"],
-    "personas": ["i work as an electrician.", "i always sleep 8 hours a day."],
-    "previous_utterance": ["That sounds dangerous. Is it worth doing such a dangerous job?", "Wekk it is okay is you are well trained.  There are three levels: Apprentice, journeyman and Master."],
-    "suggestions": "{\"convai2\": [\"i'm a grandmaster . i think they rank bridge players like chess .\", \"since i can remember . i enjoy it a lot .\", \"..."
-}
+  'personas': ['my parents don t really speak english , but i speak italian and english.', 'i have three children.'],
+  'additional_context': 'Backstreet Boys',
+  'previous_utterance': ['Oh, I am a BIG fan of the Backstreet Boys!  Have you ever seen them performing live?', "No,I listen to their music a lot,  mainly the unbreakable which  is the Backstreet Boys' sixth studio album. "],
+  'context': 'wizard_of_wikipedia',
+  'free_messages': ['you are very knowledgeable, do you prefer nsync or bsb?', "haha kids of this days don't know them, i'm 46 and i still enjoying them, my kids only listen k-pop", "italian?haha that's strange, i only talk english and a little spanish "],
+  'guided_messages': ["i don't have a preference, they are both great. All 3 of my kids get annoyed when I listen to them though.", 'Sometimes I sing their songs in Italian, that really annoys them lol.', 'My parents barely speak English, so I was taught both.  By the way, what is k-pop?'],
+  'suggestions': {'convai2': ["i don't have a preference , both are pretty . do you have any hobbies ?", "do they the backstreet boys ? that's my favorite group .", 'are your kids interested in music ?'], 'empathetic_dialogues': ['I actually just discovered Imagine Dragons. I love them!', "Hahaha that just goes to show ya, age is just a umber!'", 'That would be hard! Do you now Spanish well?'], 'wizard_of_wikipedia': ['NSYNC Also had Lance Bass and Joey Fatone, sometimes called the Fat One.', 'Yes, there are a few K-Pop songs that I have heard good big in the USA. It is the most popular in South Korea and has Western elements of pop.', 'English, beleive it or not.']},
+  'guided_chosen_suggestions': ['convai2', '', ''],
+  'label_candidates': []}
 ```
 
 ### Data Fields
@@ -93,6 +108,8 @@ The data fields are the same among all splits.
   - `convai2`: a `string` feature.
   - `empathetic_dialogues`: a `string` feature.
   - `wizard_of_wikipedia`: a `string` feature.
+- `guided_chosen_suggestions`: a `list` of `string` features.
+- `label_candidates`: a `list` of `lists` of `string` features.
 
 ### Data Splits
 

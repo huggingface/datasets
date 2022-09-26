@@ -1,2 +1,2 @@
-default_branch_name = "master"
+default_branch_name = "main"
 version_prefix = ""

@@ -16,6 +16,10 @@ To create the package for pypi.
    - Create an account in (and join the 'datasets' project):
      - PyPI: https://pypi.org/
      - Test PyPI: https://test.pypi.org/
+   - Don't break `transformers`
+     - Run the `transformers` CI using the `main` branch and make sure it's green.
+       In `transformers`, use "datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets"
+       in both setup.py and src/transformers/dependency_versions_table.py and then run the CI
 
 1. Change the version in:
    - __init__.py
@@ -24,7 +28,7 @@ To create the package for pypi.
 2. Commit these changes: "git commit -m 'Release: VERSION'"
 
 3. Add a tag in git to mark the release: "git tag VERSION -m 'Add tag VERSION for pypi'"
-   Push the tag to remote: git push --tags origin master
+   Push the tag to remote: git push --tags origin main
 
 4. Build both the sources and the wheel. Do not change anything in setup.py between
    creating the wheel and the source distribution (obviously).
@@ -55,7 +59,6 @@ To create the package for pypi.
    Then push the change with a message 'set dev version'
 """
 
-import os
 
 from setuptools import find_packages, setup
 
@@ -74,8 +77,6 @@ REQUIRED_PKGS = [
     "requests>=2.19.0",
     # progress bars in download and scripts
     "tqdm>=4.62.1",
-    # dataclasses for Python versions that don't have it
-    "dataclasses;python_version<'3.7'",
     # for fast hashing
     "xxhash",
     # for better multiprocessing
@@ -83,8 +84,8 @@ REQUIRED_PKGS = [
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
     "importlib_metadata;python_version<'3.8'",
     # to save datasets locally or on any filesystem
-    # minimum 2021.05.0 to have the AbstractArchiveFileSystem
-    "fsspec[http]>=2021.05.0",
+    # minimum 2021.11.1 so that BlockSizeError is fixed: see https://github.com/fsspec/filesystem_spec/pull/830
+    "fsspec[http]>=2021.11.1",  # aligned s3fs with this
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
@@ -105,7 +106,7 @@ VISION_REQURE = [
 BENCHMARKS_REQUIRE = [
     "numpy==1.18.5",
     "tensorflow==2.3.0",
-    "torch==1.6.0",
+    "torch==1.7.1",
     "transformers==3.0.2",
 ]
 
@@ -118,43 +119,47 @@ TESTS_REQUIRE = [
     # optional dependencies
     "apache-beam>=2.26.0",
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElastictSearch()
-    "aiobotocore",
-    "boto3",
-    "botocore",
+    "aiobotocore>=2.0.1",  # required by s3fs>=2021.11.1
+    "boto3>=1.19.8",  # to be compatible with aiobotocore>=2.0.1 - both have strong dependencies on botocore
+    "botocore>=1.22.8",  # to be compatible with aiobotocore and boto3
     "faiss-cpu>=1.6.4",
     "fsspec[s3]",
+    "lz4",
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
-    "s3fs==2021.08.1",
+    "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1
     "tensorflow>=2.3,!=2.6.0,!=2.6.1",
     "torch",
-    "torchaudio",
+    "torchaudio<0.12.0",
     "soundfile",
     "transformers",
     # datasets dependencies
     "bs4",
     "conllu",
     "h5py",
-    "langdetect",
     "lxml",
-    "lz4",
     "mwparserfromhell",
-    "nltk",
     "openpyxl",
     "py7zr",
-    "tldextract",
     "zstandard",
+    "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz",
+    "sentencepiece",  # bigbench requires t5 which requires seqio which requires sentencepiece
+    "rouge_score",  # required by bigbench: bigbench.api.util.bb_utils > t5.evaluation.metrics > rouge_score
+    "sacremoses",
     # metrics dependencies
     "bert_score>=0.3.6",
     "jiwer",
+    "langdetect",
     "mauve-text",
-    "rouge_score",
+    "nltk",
+    # "rouge_score",  # also required by bigbench
     "sacrebleu",
     "sacremoses",
     "scikit-learn",
     "scipy",
     "sentencepiece",  # for bleurt
     "seqeval",
+    "tldextract",
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
@@ -162,8 +167,6 @@ TESTS_REQUIRE = [
     "texttable>=1.6.3",
     "Werkzeug>=1.0.1",
     "six~=1.15.0",
-    # metadata validation
-    "importlib_resources;python_version<'3.7'",
 ]
 
 TESTS_REQUIRE.extend(VISION_REQURE)
@@ -198,7 +201,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.2.3.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.5.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
@@ -209,8 +212,9 @@ setup(
     license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),
-    package_data={"datasets": ["py.typed", "scripts/templates/*"], "datasets.utils.resources": ["*.json", "*.yaml"]},
+    package_data={"datasets": ["py.typed", "scripts/templates/*"], "datasets.utils.resources": ["*.json", "*.yaml", "*.tsv"]},
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
+    python_requires=">=3.7.0",
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
     classifiers=[
@@ -221,7 +225,6 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",

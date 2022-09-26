@@ -1,4 +1,3 @@
-import base64
 import distutils.dir_util
 import logging
 import os
@@ -195,13 +194,8 @@ if __name__ == "__main__":
     commit_args += (f"-m Commit from {DATASETS_LIB_COMMIT_URL.format(hexsha=current_commit.hexsha)}",)
     commit_args += (f"--author={author_name} <{author_email}>",)
 
-    for _tag in datasets_lib_repo.tags:
-        # Add a new tag if this is a `datasets` release
-        if _tag.commit == current_commit and re.match(r"^[0-9]+\.[0-9]+\.[0-9]+$", _tag.name):
-            new_tag = _tag
-            break
-    else:
-        new_tag = None
+    # we don't add a new tag as we used to when there's a release
+    new_tag = None
 
     changed_files_since_last_commit = [
         path

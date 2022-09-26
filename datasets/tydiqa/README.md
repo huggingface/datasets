@@ -4,19 +4,19 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
-- en
+language:
 - ar
 - bn
+- en
 - fi
 - id
 - ja
-- sw
 - ko
 - ru
+- sw
 - te
 - th
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - multilingual

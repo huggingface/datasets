@@ -3,9 +3,11 @@ annotations_creators:
 - no-annotation
 language_creators:
 - expert-generated
-languages:
+language:
+- en
+language_bcp47:
 - en-US
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual

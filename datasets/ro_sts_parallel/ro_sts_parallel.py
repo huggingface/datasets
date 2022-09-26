@@ -18,12 +18,15 @@
 import datasets
 
 
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
-Article under review
+@inproceedings{dumitrescu2021liro,
+  title={Liro: Benchmark and leaderboard for romanian language tasks},
+  author={Dumitrescu, Stefan Daniel and Rebeja, Petru and Lorincz, Beata and Gaman, Mihaela and Avram, Andrei and Ilie, Mihai and Pruteanu, Andrei and Stan, Adriana and Rosia, Lorena and Iacobescu, Cristina and others},
+  booktitle={Thirty-fifth Conference on Neural Information Processing Systems Datasets and Benchmarks Track (Round 1)},
+  year={2021}
+}
 """
 
-# You can copy an official description
 _DESCRIPTION = """\
 The RO-STS-Parallel (a Parallel Romanian English dataset - translation of the Semantic Textual Similarity) contains 17256 sentences in Romanian and English. It is a high-quality translation of the English STS benchmark dataset into Romanian.
 """

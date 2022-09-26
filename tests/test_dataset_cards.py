@@ -32,7 +32,7 @@ logger = get_logger(__name__)
 
 
 def get_changed_datasets(repo_path: Path) -> List[Path]:
-    diff_output = check_output(["git", "diff", "--name-only", "origin/master...HEAD"], cwd=repo_path)
+    diff_output = check_output(["git", "diff", "--name-only", "origin/main...HEAD"], cwd=repo_path)
     changed_files = [Path(repo_path, f) for f in diff_output.decode().splitlines()]
 
     datasets_dir_path = repo_path / "datasets"

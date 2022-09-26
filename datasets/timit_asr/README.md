@@ -4,10 +4,11 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
-- other-LDC-User-Agreement-for-Non-Members
+license:
+- other
+license_details: "LDC-User-Agreement-for-Non-Members"
 multilinguality:
 - monolingual
 size_categories:
@@ -170,7 +171,7 @@ A typical data point comprises the path to the audio file, usually called `file`
 
 - speaker_id: Unique id of the speaker. The same speaker id can be found for multiple data samples.
 
-- id: Unique id of the data sample. Contains the <SENTENCE_TYPE><SENTENCE_NUMBER>.  
+- id: ID of the data sample. Contains the <SENTENCE_TYPE><SENTENCE_NUMBER>.
 
 
 ### Data Splits

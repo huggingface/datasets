@@ -20,6 +20,7 @@ import re
 import urllib.parse
 from pathlib import Path
 from typing import Callable, List, Optional, Union
+from zipfile import ZipFile
 
 from ..utils.file_utils import cached_path, hf_github_url
 from ..utils.logging import get_logger
@@ -161,8 +162,9 @@ class MockDownloadManager:
             dummy_data_dict[key] = value
 
         # make sure that values are unique
-        first_value = next(iter(dummy_data_dict.values()))
-        if isinstance(first_value, str) and len(set(dummy_data_dict.values())) < len(dummy_data_dict.values()):
+        if all([isinstance(i, str) for i in dummy_data_dict.values()]) and len(set(dummy_data_dict.values())) < len(
+            dummy_data_dict.values()
+        ):
             # append key to value to make its name unique
             dummy_data_dict = {key: value + key for key, value in dummy_data_dict.items()}
 
@@ -209,9 +211,20 @@ class MockDownloadManager:
         pass
 
     def iter_archive(self, path):
+        def _iter_archive_members(path):
+            # this preserves the order of the members inside the ZIP archive
+            dummy_parent_path = Path(self.dummy_file).parent
+            relative_path = path.relative_to(dummy_parent_path)
+            with ZipFile(self.local_path_to_dummy_data) as zip_file:
+                members = zip_file.namelist()
+            for member in members:
+                if member.startswith(relative_path.as_posix()):
+                    yield dummy_parent_path.joinpath(member)
+
         path = Path(path)
-        for file_path in path.rglob("*"):
-            if file_path.is_file() and not file_path.name.startswith(".") and not file_path.name.startswith("__"):
+        file_paths = _iter_archive_members(path) if self.use_local_dummy_data else path.rglob("*")
+        for file_path in file_paths:
+            if file_path.is_file() and not file_path.name.startswith((".", "__")):
                 yield file_path.relative_to(path).as_posix(), file_path.open("rb")
 
     def iter_files(self, paths):
@@ -219,8 +232,14 @@ class MockDownloadManager:
             paths = [paths]
         for path in paths:
             if os.path.isfile(path):
+                if os.path.basename(path).startswith((".", "__")):
+                    return
                 yield path
             else:
                 for dirpath, _, filenames in os.walk(path):
+                    if os.path.basename(dirpath).startswith((".", "__")):
+                        continue
                     for filename in filenames:
+                        if filename.startswith((".", "__")):
+                            continue
                         yield os.path.join(dirpath, filename)

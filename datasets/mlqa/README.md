@@ -1,7 +1,29 @@
 ---
 pretty_name: MLQA (MultiLingual Question Answering)
-languages:
+language:
 - en
+- de
+- es
+- ar
+- zh
+- vi
+- hi
+license:
+- cc-by-sa-3.0
+source_datasets:
+- original
+size_categories:
+- 10K<n<100K
+language_creators:
+- crowdsourced
+annotations_creators:
+- crowdsourced
+multilinguality:
+- multilingual
+task_categories:
+- question-answering 
+task_ids:
+- extractive-qa
 paperswithcode_id: mlqa
 ---
 
@@ -54,7 +76,7 @@ paperswithcode_id: mlqa
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+MLQA contains QA instances in 7 languages, English, Arabic, German, Spanish, Hindi, Vietnamese and Simplified Chinese.
 
 ## Dataset Structure
 
@@ -227,10 +249,11 @@ The data fields are the same among all splits.
 
 ```
 @article{lewis2019mlqa,
-  title={MLQA: Evaluating Cross-lingual Extractive Question Answering},
-  author={Lewis, Patrick and Oguz, Barlas and Rinott, Ruty and Riedel, Sebastian and Schwenk, Holger},
-  journal={arXiv preprint arXiv:1910.07475},
-  year={2019}
+  title = {MLQA: Evaluating Cross-lingual Extractive Question Answering},
+  author = {Lewis, Patrick and Oguz, Barlas and Rinott, Ruty and Riedel, Sebastian and Schwenk, Holger},
+  journal = {arXiv preprint arXiv:1910.07475},
+  year = 2019,
+  eid = {arXiv: 1910.07475}
 }
 
 ```

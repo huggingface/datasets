@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
-- other-requires-accepting-data-licensing-terms-for-non-commercial-research-and-educational-purposes-only
+license:
+- other
 multilinguality:
 - monolingual
 pretty_name: CORNELL NEWSROOM

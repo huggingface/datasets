@@ -3,12 +3,12 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
 - hi
-licenses:
+license:
 - cc-by-sa-3.0
-- gfdl-1.3-or-later
+- gfdl
 multilinguality:
 - multilingual
 - translation

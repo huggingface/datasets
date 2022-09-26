@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: winogrande
 pretty_name: WinoGrande

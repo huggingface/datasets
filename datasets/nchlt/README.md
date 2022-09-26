@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - af
 - nr
 - nso
@@ -13,7 +13,7 @@ languages:
 - ve
 - xh
 - zu
-licenses:
+license:
 - cc-by-2.5
 multilinguality:
 - multilingual

@@ -3,16 +3,19 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - de
-- en_GB
+- en
 - es
 - fr
 - ja
 - ru
 - sv
-- zh_CN
-licenses:
+- zh
+language_bcp47:
+- en-GB
+- zh-CN
+license:
 - unknown
 multilinguality:
 - multilingual

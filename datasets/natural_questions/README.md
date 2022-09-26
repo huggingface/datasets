@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-3.0
 multilinguality:
 - monolingual
@@ -50,8 +50,8 @@ paperswithcode_id: natural-questions
 ## Dataset Description
 
 - **Homepage:** [https://ai.google.com/research/NaturalQuestions/dataset](https://ai.google.com/research/NaturalQuestions/dataset)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** [https://github.com/google-research-datasets/natural-questions](https://github.com/google-research-datasets/natural-questions)
+- **Paper:** [https://research.google/pubs/pub47761/](https://research.google/pubs/pub47761/)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 42981.34 MB
 - **Size of the generated dataset:** 95175.86 MB
@@ -67,25 +67,73 @@ NQ to be a more realistic and challenging task than prior QA datasets.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[https://ai.google.com/research/NaturalQuestions](https://ai.google.com/research/NaturalQuestions)
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+en
 
 ## Dataset Structure
 
 ### Data Instances
 
-#### default
-
 - **Size of downloaded dataset files:** 42981.34 MB
 - **Size of the generated dataset:** 95175.86 MB
 - **Total amount of disk used:** 138157.19 MB
 
-An example of 'train' looks as follows.
+An example of 'train' looks as follows. This is a toy example.
 ```
-
+{
+  "id": "797803103760793766",
+  "document": {
+    "title": "Google",
+    "url": "http://www.wikipedia.org/Google",
+    "html": "<html><body><h1>Google Inc.</h1><p>Google was founded in 1998 By:<ul><li>Larry</li><li>Sergey</li></ul></p></body></html>",
+    "tokens":[
+      {"token": "<h1>", "start_byte": 12, "end_byte": 16, "is_html": True},
+      {"token": "Google", "start_byte": 16, "end_byte": 22, "is_html": False},
+      {"token": "inc", "start_byte": 23, "end_byte": 26, "is_html": False},
+      {"token": ".", "start_byte": 26, "end_byte": 27, "is_html": False},
+      {"token": "</h1>", "start_byte": 27, "end_byte": 32, "is_html": True},
+      {"token": "<p>", "start_byte": 32, "end_byte": 35, "is_html": True},
+      {"token": "Google", "start_byte": 35, "end_byte": 41, "is_html": False},
+      {"token": "was", "start_byte": 42, "end_byte": 45, "is_html": False},
+      {"token": "founded", "start_byte": 46, "end_byte": 53, "is_html": False},
+      {"token": "in", "start_byte": 54, "end_byte": 56, "is_html": False},
+      {"token": "1998", "start_byte": 57, "end_byte": 61, "is_html": False},
+      {"token": "by", "start_byte": 62, "end_byte": 64, "is_html": False},
+      {"token": ":", "start_byte": 64, "end_byte": 65, "is_html": False},
+      {"token": "<ul>", "start_byte": 65, "end_byte": 69, "is_html": True},
+      {"token": "<li>", "start_byte": 69, "end_byte": 73, "is_html": True},
+      {"token": "Larry", "start_byte": 73, "end_byte": 78, "is_html": False},
+      {"token": "</li>", "start_byte": 78, "end_byte": 83, "is_html": True},
+      {"token": "<li>", "start_byte": 83, "end_byte": 87, "is_html": True},
+      {"token": "Sergey", "start_byte": 87, "end_byte": 92, "is_html": False},
+      {"token": "</li>", "start_byte": 92, "end_byte": 97, "is_html": True},
+      {"token": "</ul>", "start_byte": 97, "end_byte": 102, "is_html": True},
+      {"token": "</p>", "start_byte": 102, "end_byte": 106, "is_html": True}
+    ],
+  },
+  "question" :{
+    "text": "who founded google",
+    "tokens": ["who", "founded", "google"]
+  },
+  "long_answer_candidates": [
+    {"start_byte": 32, "end_byte": 106, "start_token": 5, "end_token": 22, "top_level": True},
+    {"start_byte": 65, "end_byte": 102, "start_token": 13, "end_token": 21, "top_level": False},
+    {"start_byte": 69, "end_byte": 83, "start_token": 14, "end_token": 17, "top_level": False},
+    {"start_byte": 83, "end_byte": 92, "start_token": 17, "end_token": 20 , "top_level": False}
+  ],
+  "annotations": [{
+    "id": "6782080525527814293",
+    "long_answer": {"start_byte": 32, "end_byte": 106, "start_token": 5, "end_token": 22, "candidate_index": 0},
+    "short_answers": [
+      {"start_byte": 73, "end_byte": 78, "start_token": 15, "end_token": 16, "text": "Larry"},
+      {"start_byte": 87, "end_byte": 92, "start_token": 18, "end_token": 19, "text": "Sergey"}
+    ],
+    "yes_no_answer": -1
+  }]
+}
 ```
 
 ### Data Fields
@@ -94,20 +142,32 @@ The data fields are the same among all splits.
 
 #### default
 - `id`: a `string` feature.
-- `title`: a `string` feature.
-- `url`: a `string` feature.
-- `html`: a `string` feature.
-- `tokens`: a dictionary feature containing:
-  - `token`: a `string` feature.
-  - `is_html`: a `bool` feature.
-- `text`: a `string` feature.
-- `tokens`: a `list` of `string` features.
-- `annotations`: a dictionary feature containing:
-  - `id`: a `string` feature.
+- `document` a dictionary feature containing:
+  - `title`: a `string` feature.
+  - `url`: a `string` feature.
+  - `html`: a `string` feature.
+  - `tokens`: a dictionary feature containing:
+    - `token`: a `string` feature.
+    - `is_html`: a `bool` feature.
+    - `start_byte`: a `int64` feature.
+    - `end_byte`: a `int64` feature.
+- `question`: a dictionary feature containing:
+  - `text`: a `string` feature.
+  - `tokens`: a `list` of `string` features.
+- `long_answer_candidates`: a dictionary feature containing:
   - `start_token`: a `int64` feature.
   - `end_token`: a `int64` feature.
   - `start_byte`: a `int64` feature.
   - `end_byte`: a `int64` feature.
+  - `top_level`: a `bool` feature.
+- `annotations`: a dictionary feature containing:
+  - `id`: a `string` feature.
+  - `long_answers`: a dictionary feature containing:
+    - `start_token`: a `int64` feature.
+    - `end_token`: a `int64` feature.
+    - `start_byte`: a `int64` feature.
+    - `end_byte`: a `int64` feature.
+    - `candidate_index`: a `int64` feature.
   - `short_answers`: a dictionary feature containing:
     - `start_token`: a `int64` feature.
     - `end_token`: a `int64` feature.

@@ -3,10 +3,11 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
-- other-imagenet-agreement
+license:
+- other
+license_details: imagenet-agreement
 multilinguality:
 - monolingual
 paperswithcode_id: imagenet

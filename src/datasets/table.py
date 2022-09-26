@@ -252,6 +252,19 @@ class Table(IndexedTableMixin):
         """
         return self.table.to_pydict(*args, **kwargs)
 
+    def to_pylist(self, *args, **kwargs):
+        """
+        Convert the Table to a list
+
+        Returns:
+            :obj:`list`
+        """
+        try:
+            return self.table.to_pylist(*args, **kwargs)
+        except AttributeError:  # pyarrow <7 does not have to_pylist, so we use to_pydict
+            pydict = self.table.to_pydict(*args, **kwargs)
+            return [{k: pydict[k][i] for k in pydict} for i in range(len(self.table))]
+
     def to_pandas(self, *args, **kwargs):
         """
         Convert to a pandas-compatible NumPy array or DataFrame, as appropriate
@@ -750,6 +763,28 @@ class InMemoryTable(TableBlock):
         return cls(pa.Table.from_pydict(*args, **kwargs))
 
     @classmethod
+    def from_pylist(cls, mapping, *args, **kwargs):
+        """
+        Construct a Table from list of rows / dictionaries.
+
+        Args:
+            mapping (:obj:`List[dict]`):
+                A mapping of strings to row values.
+            schema (:obj:`Schema`, defaults to :obj:`None`):
+                If not passed, will be inferred from the Mapping values
+            metadata (:obj:`Union[dict, Mapping]`, default None):
+                Optional metadata for the schema (if inferred).
+
+        Returns:
+            :class:`datasets.table.Table`:
+        """
+        try:
+            return cls(pa.Table.from_pylist(mapping, *args, **kwargs))
+        except AttributeError:  # pyarrow <7 does not have from_pylist, so we convert and use from_pydict
+            mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]} if mapping else {}
+            return cls(pa.Table.from_pydict(mapping, *args, **kwargs))
+
+    @classmethod
     def from_batches(cls, *args, **kwargs):
         """
         Construct a Table from a sequence or iterator of Arrow RecordBatches.
@@ -1232,6 +1267,9 @@ class ConcatenationTable(Table):
     The first axis concatenates the tables along the axis 0 (it appends rows),
     while the second axis concatenates tables along the axis 1 (it appends columns).
 
+    If some columns are missing when concatenating on axis 0, they are filled with null values.
+    This is done using `pyarrow.concat_tables(tables, promote=True)`.
+
     You can access the fully combined table by accessing the ConcatenationTable.table attribute,
     and the blocks by accessing the ConcatenationTable.blocks attribute.
     """
@@ -1261,6 +1299,7 @@ class ConcatenationTable(Table):
     def _concat_blocks(blocks: List[Union[TableBlock, pa.Table]], axis: int = 0) -> pa.Table:
         pa_tables = [table.table if hasattr(table, "table") else table for table in blocks]
         if axis == 0:
+            # we set promote=True to fill missing columns with null values
             return pa.concat_tables(pa_tables, promote=True)
         elif axis == 1:
             for i, table in enumerate(pa_tables):
@@ -1474,7 +1513,10 @@ class ConcatenationTable(Table):
         Returns:
             :class:`datasets.table.Table`:
         """
+        from .features import Features
+
         table = table_cast(self.table, target_schema, *args, **kwargs)
+        target_features = Features.from_arrow_schema(target_schema)
         blocks = []
         for subtables in self.blocks:
             new_tables = []
@@ -1483,7 +1525,8 @@ class ConcatenationTable(Table):
                 subfields = []
                 for name in subtable.column_names:
                     subfields.append(fields.pop(next(i for i, field in enumerate(fields) if field.name == name)))
-                subschema = pa.schema(subfields)
+                subfeatures = Features({subfield.name: target_features[subfield.name] for subfield in subfields})
+                subschema = subfeatures.arrow_schema
                 new_tables.append(subtable.cast(subschema, *args, **kwargs))
             blocks.append(new_tables)
         return ConcatenationTable(table, blocks)
@@ -1749,6 +1792,8 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             raise TypeError(
                 f"Couldn't cast array of type {array.type} to {pa_type} since allow_number_to_str is set to {allow_number_to_str}"
             )
+        if pa.types.is_null(pa_type) and not pa.types.is_null(array.type):
+            raise TypeError(f"Couldn't cast array of type {array.type} to {pa_type}")
         return array.cast(pa_type)
     raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{pa_type}")
 
@@ -1773,7 +1818,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
             = if casting from numbers to strings and allow_number_to_str is False
 
     Returns:
-         array (:obj:`pyarrow.Array`): the casted array
+        array (:obj:`pyarrow.Array`): the casted array
     """
     from .features.features import Sequence, get_nested_type
 
@@ -1844,8 +1889,91 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
     raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{feature}")
 
 
+@_wrap_for_chunked_arrays
+def embed_array_storage(array: pa.Array, feature: "FeatureType"):
+    """Embed data into an arrays's storage.
+    For custom features like Audio or Image, it takes into account the "embed_storage" methods
+    they defined to enable embedding external data (e.g. an image file) into an other arrow types.
+
+    <Added version="2.4.0"/>
+
+    Args:
+        array (pa.Array): the PyArrow array in which to embed data
+        feature (FeatureType): array features
+
+    Raises:
+        TypeError: if the target type is not supported according, e.g.
+
+            - if a field is missing
+
+    Returns:
+         array (:obj:`pyarrow.Array`): the casted array
+    """
+    from .features import Sequence
+
+    _e = embed_array_storage
+
+    if isinstance(array, pa.ExtensionArray):
+        array = array.storage
+    if hasattr(feature, "embed_storage"):
+        return feature.embed_storage(array)
+    elif pa.types.is_struct(array.type):
+        # feature must be a dict or Sequence(subfeatures_dict)
+        if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
+            feature = {
+                name: Sequence(subfeature, length=feature.length) for name, subfeature in feature.feature.items()
+            }
+        if isinstance(feature, dict):
+            arrays = [_e(array.field(name), subfeature) for name, subfeature in feature.items()]
+            return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
+    elif pa.types.is_list(array.type):
+        # feature must be either [subfeature] or Sequence(subfeature)
+        if isinstance(feature, list):
+            if array.null_count > 0:
+                warnings.warn(
+                    f"None values are converted to empty lists when embedding array storage with {feature}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                )
+            return pa.ListArray.from_arrays(array.offsets, _e(array.values, feature[0]))
+        elif isinstance(feature, Sequence):
+            if feature.length > -1:
+                if feature.length * len(array) == len(array.values):
+                    return pa.FixedSizeListArray.from_arrays(_e(array.values, feature.feature), feature.length)
+            else:
+                casted_values = _e(array.values, feature.feature)
+                if casted_values.type == array.values.type:
+                    return array
+                else:
+                    if array.null_count > 0:
+                        warnings.warn(
+                            f"None values are converted to empty lists when embedding array storage with {feature}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                        )
+                    return pa.ListArray.from_arrays(array.offsets, _e(array.values, feature.feature))
+    elif pa.types.is_fixed_size_list(array.type):
+        # feature must be either [subfeature] or Sequence(subfeature)
+        if isinstance(feature, list):
+            if array.null_count > 0:
+                warnings.warn(
+                    f"None values are converted to empty lists when embedding array storage with {feature}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                )
+            return pa.ListArray.from_arrays(array.offsets, _e(array.values, feature[0]))
+        elif isinstance(feature, Sequence):
+            if feature.length > -1:
+                if feature.length * len(array) == len(array.values):
+                    return pa.FixedSizeListArray.from_arrays(_e(array.values, feature.feature), feature.length)
+            else:
+                offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+                if array.null_count > 0:
+                    warnings.warn(
+                        f"None values are converted to empty lists when embedding array storage with {feature}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                    )
+                return pa.ListArray.from_arrays(offsets_arr, _e(array.values, feature.feature))
+    if not isinstance(feature, (Sequence, dict, list, tuple)):
+        return array
+    raise TypeError(f"Couldn't embed array of type\n{array.type}\nwith\n{feature}")
+
+
 def cast_table_to_features(table: pa.Table, features: "Features"):
-    """Cast an table to the arrow schema that corresponds to the requested features.
+    """Cast a table to the arrow schema that corresponds to the requested features.
 
     Args:
         table (:obj:`pyarrow.Table`): PyArrow table to cast
@@ -1877,6 +2005,27 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
         raise ValueError(f"Couldn't cast\n{table.schema}\nto\n{features}\nbecause column names don't match")
     arrays = [cast_array_to_feature(table[name], feature) for name, feature in features.items()]
     return pa.Table.from_arrays(arrays, schema=schema)
+
+
+def embed_table_storage(table: pa.Table):
+    """Embed external data into a table's storage.
+
+    <Added version="2.4.0"/>
+
+    Args:
+        table (:obj:`pyarrow.Table`): PyArrow table in which to embed data
+
+    Returns:
+        table (:obj:`pyarrow.Table`): the table with embedded data
+    """
+    from .features.features import Features, require_storage_embed
+
+    features = Features.from_arrow_schema(table.schema)
+    arrays = [
+        embed_array_storage(table[name], feature) if require_storage_embed(feature) else table[name]
+        for name, feature in features.items()
+    ]
+    return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
 
 
 def table_cast(table: pa.Table, schema: pa.Schema):

@@ -362,6 +362,9 @@ class NamedSplit(SplitBase):
         else:
             raise ValueError(f"Equality not supported between split {self} and {other}")
 
+    def __lt__(self, other):
+        return self._name < other._name  # pylint: disable=protected-access
+
     def __hash__(self):
         return hash(self._name)
 

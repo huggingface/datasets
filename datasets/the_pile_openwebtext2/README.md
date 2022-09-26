@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -17,11 +17,11 @@ source_datasets:
 task_categories:
 - text-generation
 - fill-mask
-- text-scoring
+- text-classification
 task_ids:
 - language-modeling
 - masked-language-modeling
-- text-scoring-other-rating
+- text-scoring
 ---
 
 # Dataset Card for the_pile_openwebtext2

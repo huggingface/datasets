@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -23,7 +23,7 @@ paperswithcode_id: null
 pretty_name: ConvAi
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for ConvAi
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

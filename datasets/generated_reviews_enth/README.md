@@ -4,10 +4,10 @@ annotations_creators:
 - machine-generated
 language_creators:
 - machine-generated
-languages:
+language:
 - en
 - th
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - translation
@@ -16,7 +16,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- transkation
+- translation
 - text-classification
 task_ids:
 - multi-class-classification

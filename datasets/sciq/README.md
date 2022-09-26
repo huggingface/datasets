@@ -1,6 +1,22 @@
 ---
-languages:
+annotations_creators:
+- no-annotation
+language_creators:
+- crowdsourced
+language:
 - en
+license:
+- cc-by-nc-3.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- closed-domain-qa
 paperswithcode_id: sciq
 pretty_name: SciQ
 ---
@@ -147,7 +163,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The dataset is licensed under the [Creative Commons Attribution-NonCommercial 3.0 Unported License](http://creativecommons.org/licenses/by-nc/3.0/).
 
 ### Citation Information
 
@@ -158,9 +174,7 @@ The data fields are the same among all splits.
     year={2017},
     journal={arXiv:1707.06209v1}
 }
-
 ```
-
 
 ### Contributions
 

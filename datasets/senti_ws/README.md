@@ -4,9 +4,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - de
-licenses:
+license:
 - cc-by-sa-3.0
 multilinguality:
 - monolingual
@@ -20,7 +20,7 @@ task_categories:
 task_ids:
 - text-scoring
 - sentiment-scoring
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: null
 pretty_name: SentiWS
 ---

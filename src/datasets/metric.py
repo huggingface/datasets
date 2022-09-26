@@ -31,6 +31,7 @@ from .download.download_manager import DownloadManager
 from .features import Features
 from .info import DatasetInfo, MetricInfo
 from .naming import camelcase_to_snakecase
+from .utils.deprecation_utils import deprecated
 from .utils.filelock import BaseFileLock, FileLock, Timeout
 from .utils.logging import get_logger
 from .utils.py_utils import copyfunc, temp_seed
@@ -76,6 +77,13 @@ def summarize_if_long_list(obj):
 class MetricInfoMixin:
     """This base class exposes some attributes of MetricInfo
     at the base level of the Metric for easy access.
+
+    <Deprecated version="2.5.0">
+
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
+
     """
 
     def __init__(self, info: MetricInfo):
@@ -138,6 +146,12 @@ class MetricInfoMixin:
 class Metric(MetricInfoMixin):
     """A Metric is the base class and common API for all metrics.
 
+    <Deprecated version="2.5.0">
+
+    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
+
     Args:
         config_name (``str``): This is used to define a hash specific to a metrics computation script and prevents the metric's data
             to be overridden when the metric loading script is modified.
@@ -155,6 +169,7 @@ class Metric(MetricInfoMixin):
         timeout (``Union[int, float]``): Timeout in second for distributed setting synchronization.
     """
 
+    @deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
     def __init__(
         self,
         config_name: Optional[str] = None,

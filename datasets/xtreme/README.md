@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - af
 - ar
 - bg
@@ -15,7 +15,6 @@ languages:
 - et
 - eu
 - fa
-- fa-IR
 - fi
 - fr
 - he
@@ -45,13 +44,16 @@ languages:
 - vi
 - yo
 - zh
-licenses:
+language_bcp47:
+- fa-IR
+license:
 - apache-2.0
 - cc-by-4.0
 - cc-by-2.0
 - cc-by-sa-4.0
-- other-Licence Universal Dependencies v2.5
+- other
 - cc-by-nc-4.0
+license_details: "Licence Universal Dependencies v2.5"
 multilinguality:
 - multilingual
 - translation
@@ -85,7 +87,7 @@ task_ids:
 - text-classification-other-paraphrase-identification
 - text-retrieval-other-parallel-sentence-retrieval
 - named-entity-recognition
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: xtreme
 configs:
 - MLQA.ar.ar

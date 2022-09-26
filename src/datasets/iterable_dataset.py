@@ -1,4 +1,6 @@
 import copy
+import itertools
+from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass
 from itertools import cycle, islice
@@ -9,7 +11,7 @@ import pyarrow as pa
 
 from .arrow_dataset import DatasetInfoMixin
 from .features import Features
-from .features.features import FeatureType
+from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned
 from .formatting import PythonFormatter
 from .info import DatasetInfo
 from .splits import NamedSplit
@@ -27,10 +29,11 @@ def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Fe
 
 
 def _examples_to_batch(examples: List[Dict[str, Any]]) -> Dict[str, list]:
-    cols = sorted(examples[0].keys())
-    arrays = []
-    for col in cols:
-        arrays.append([example[col] for example in examples])
+    # we order the columns by order of appearance
+    # to do so, we use a dict as an ordered set
+    cols = {col: None for example in examples for col in example}
+    # when an example is missing a column, we set the value to None with .get()
+    arrays = [[example.get(col) for example in examples] for col in cols]
     return dict(zip(cols, arrays))
 
 
@@ -46,21 +49,26 @@ class _BaseExamplesIterable:
 
     def __iter__(self):
         """An examples iterable should yield tuples (example_key, example) of type (int/str, dict)"""
-        raise NotImplementedError()
+        raise NotImplementedError(f"{type(self)} doesn't implement __iter__ yet")
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "_BaseExamplesIterable":
         """
         Either shuffle the shards/sources of the dataset, or propagate the shuffling to the underlying iterable.
         If the order of the shards must stay fixed (when using .skip or .take for example), then this method returns self.
         """
-        raise NotImplementedError()
+        raise NotImplementedError(f"{type(self)} doesn't implement shuffle_data_sources yet")
+
+    def shard_data_sources(self, shard_idx: int) -> "_BaseExamplesIterable":
+        """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        raise NotImplementedError(f"{type(self)} doesn't implement shard_data_sources yet")
 
     @property
     def n_shards(self) -> int:
-        raise NotImplementedError()
+        raise NotImplementedError(f"{type(self)} doesn't implement n_shards yet")
 
 
 def _shuffle_kwargs(rng: np.random.Generator, kwargs: dict) -> dict:
+    """Return a shuffled copy of the input kwargs"""
     # We must shuffle all the lists, and lists of the same size must have the same shuffling.
     # This way entangled lists of (shard, shard_metadata) are still in the right order.
 
@@ -78,6 +86,24 @@ def _shuffle_kwargs(rng: np.random.Generator, kwargs: dict) -> dict:
     return shuffled_kwargs
 
 
+def _shard_kwargs(shard_idx: int, kwargs: dict) -> dict:
+    """Return a copy of the input kwargs but with only one shard"""
+    # Having lists of different sizes makes sharding ambigious, raise an error in this case
+    # until we decide how to define sharding without ambiguity for users
+    lists_lengths = {key: len(value) for key, value in kwargs.items() if isinstance(value, list)}
+    if len(set(lists_lengths.values())) > 1:
+        raise RuntimeError(
+            (
+                "Sharding is ambiguous for this dataset: "
+                + "we found several data sources lists of different lengths, and we don't know over which list we should parallelize:\n"
+                + "\n".join(f"\t- key {key} has length {length}" for key, length in lists_lengths.items())
+                + "\nTo fix this, check the dataset script 'gen_kwargs' and make sure to use lists only for data sources, "
+                + "and use tuples otherwise. In the end there should only be one single list, or several lists with the same length."
+            )
+        )
+    return {key: [value[shard_idx]] if isinstance(value, list) else value for key, value in kwargs.items()}
+
+
 class ExamplesIterable(_BaseExamplesIterable):
     def __init__(self, generate_examples_fn: Callable, kwargs: dict):
         self.generate_examples_fn = generate_examples_fn
@@ -88,6 +114,11 @@ class ExamplesIterable(_BaseExamplesIterable):
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "ExamplesIterable":
         return ShardShuffledExamplesIterable(self.generate_examples_fn, self.kwargs, generator)
+
+    def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
+        """Keep only the requested shard."""
+        kwargs_with_requested_data_source = _shard_kwargs(shard_idx, self.kwargs)
+        yield from self.generate_examples_fn(**kwargs_with_requested_data_source)
 
     @property
     def n_shards(self) -> int:
@@ -105,6 +136,13 @@ class ShardShuffledExamplesIterable(ExamplesIterable):
         rng = deepcopy(self.generator)
         kwargs_with_shuffled_shards = _shuffle_kwargs(rng, self.kwargs)
         yield from self.generate_examples_fn(**kwargs_with_shuffled_shards)
+
+    def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
+        """Keep only the requested shard."""
+        rng = deepcopy(self.generator)
+        kwargs_with_shuffled_shards = _shuffle_kwargs(rng, self.kwargs)
+        kwargs_with_requested_data_source = _shard_kwargs(shard_idx, kwargs_with_shuffled_shards)
+        return ExamplesIterable(self.generate_examples_fn, kwargs_with_requested_data_source)
 
 
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
@@ -129,6 +167,116 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     @property
     def n_shards(self) -> int:
         return sum(ex_iterable.n_shards for ex_iterable in self.ex_iterables)
+
+    def shard_data_sources(self, shard_idx: int) -> "CyclingMultiSourcesExamplesIterable":
+        """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        raise NotImplementedError("Sharding a CyclingMultiSourcesExamplesIterable is not implemented")
+
+
+class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
+    """
+    VerticallyConcatenatedMultiSourcesExamplesIterable simply chains the input iterables.
+    It doesn't require the examples iterables to always yield the same columns.
+    Instead, this is handled by the `IterableDataset` class or `TypedExamplesIterable`.
+
+    For information, `IterableDataset` merges the features of all the datasets to concatenate into one.
+    We use `IterableDataset._resolve_features` to obtain the features of all the datasets to concatenate.
+
+    Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
+    This is done with `_apply_feature_types`.
+    """
+
+    def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
+        self.ex_iterables = ex_iterables
+
+    def __iter__(self):
+        for ex_iterable in self.ex_iterables:
+            yield from ex_iterable
+
+    def shuffle_data_sources(
+        self, generator: np.random.Generator
+    ) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
+        """Shuffle the list of examples iterable, as well as each underlying examples iterable."""
+        rng = deepcopy(generator)
+        ex_iterables = list(self.ex_iterables)
+        rng.shuffle(ex_iterables)
+        ex_iterables = [ex_iterable.shuffle_data_sources(generator) for ex_iterable in ex_iterables]
+        return VerticallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
+
+    @property
+    def n_shards(self) -> int:
+        return sum(ex_iterable.n_shards for ex_iterable in self.ex_iterables)
+
+    def shard_data_sources(self, shard_idx: int) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
+        """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        raise NotImplementedError("Sharding a VerticallyConcatenatedMultiSourcesExamplesIterable is not implemented")
+
+
+def _check_column_names(column_names: List[str]):
+    """Check the column names to make sure they don't contain duplicates."""
+    counter = Counter(column_names)
+    if not all(count == 1 for count in counter.values()):
+        duplicated_columns = [col for col in counter if counter[col] > 1]
+        raise ValueError(
+            f"The examples iterables can't have duplicated columns but columns {duplicated_columns} are duplicated."
+        )
+
+
+class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
+    """
+    HorizontallyConcatenatedMultiSourcesExamplesIterable merges examples together for the input list of iterables.
+    It also checks that there are no duplicate columns (otherwise we don't know which one to keep).
+    This check is done once when yielding the first example.
+
+    However it doesn't fill missing columns with None.
+    Instead, this is handled by the `IterableDataset` class or `TypedExamplesIterable`.
+
+    For information, `IterableDataset` merges the features of all the datasets to concatenate into one.
+    We use `IterableDataset._resolve_features` to obtain the features of all the datasets to concatenate.
+
+    Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
+    This is done with `_apply_feature_types`.
+    """
+
+    def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
+        self.ex_iterables = ex_iterables
+
+    def __iter__(self):
+        ex_iterators = [iter(ex_iterable) for ex_iterable in self.ex_iterables]
+        for i in itertools.count():
+            keys = []
+            examples = []
+            for ex_iterator in list(ex_iterators):
+                try:
+                    key, example = next(ex_iterator)
+                    keys.append(key)
+                    examples.append(example)
+                except StopIteration:
+                    ex_iterators.remove(ex_iterator)
+            if ex_iterators:
+                if i == 0:
+                    _check_column_names([column_name for example in examples for column_name in example])
+                new_example = {}
+                for example in examples:
+                    new_example.update(example)
+                new_key = "_".join(str(key) for key in keys)
+                yield new_key, new_example
+            else:
+                break
+
+    def shuffle_data_sources(
+        self, generator: np.random.Generator
+    ) -> "HorizontallyConcatenatedMultiSourcesExamplesIterable":
+        """Doesn't shuffle the wrapped examples iterable since it would break the alignment between them."""
+        return self
+
+    @property
+    def n_shards(self) -> int:
+        return 1
+
+    def shard_data_sources(self, shard_idx: int) -> "HorizontallyConcatenatedMultiSourcesExamplesIterable":
+        """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        raise NotImplementedError("Sharding a HorizontallyConcatenatedMultiSourcesExamplesIterable is not implemented")
 
 
 class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIterable):
@@ -170,6 +318,10 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
             ex_iterables, generator=generator, probabilities=self.probabilities
         )
 
+    def shard_data_sources(self, shard_idx: int) -> "RandomlyCyclingMultiSourcesExamplesIterable":
+        """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        raise NotImplementedError("Sharding a RandomlyCyclingMultiSourcesExamplesIterable is not implemented")
+
 
 class MappedExamplesIterable(_BaseExamplesIterable):
     def __init__(
@@ -182,6 +334,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         batch_size: int = 1000,
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
+        fn_kwargs: Optional[dict] = None,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
@@ -191,6 +344,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         self.remove_columns = remove_columns
         self.with_indices = with_indices
         self.input_columns = input_columns
+        self.fn_kwargs = fn_kwargs or {}
 
     def __iter__(self):
         iterator = iter(self.ex_iterable)
@@ -211,7 +365,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self.with_indices:
                     function_args.append([current_idx + i for i in range(len(key_examples_list))])
                 transformed_batch = dict(batch)  # this will be updated with the function output
-                transformed_batch.update(self.function(*function_args))
+                transformed_batch.update(self.function(*function_args, **self.fn_kwargs))
                 # then remove the unwanted columns
                 if self.remove_columns:
                     for c in self.remove_columns:
@@ -244,7 +398,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self.with_indices:
                     function_args.append(current_idx)
                 transformed_example = dict(example)  # this will be updated with the function output
-                transformed_example.update(self.function(*function_args))
+                transformed_example.update(self.function(*function_args, **self.fn_kwargs))
                 # then we remove the unwanted columns
                 if self.remove_columns:
                     for c in self.remove_columns:
@@ -262,6 +416,20 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             batched=self.batched,
             batch_size=self.batch_size,
             remove_columns=self.remove_columns,
+            fn_kwargs=self.fn_kwargs,
+        )
+
+    def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
+        """Keep only the requested shard."""
+        return MappedExamplesIterable(
+            self.ex_iterable.shard_data_sources(shard_idx),
+            function=self.function,
+            with_indices=self.with_indices,
+            input_columns=self.input_columns,
+            batched=self.batched,
+            batch_size=self.batch_size,
+            remove_columns=self.remove_columns,
+            fn_kwargs=self.fn_kwargs,
         )
 
     @property
@@ -320,10 +488,21 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                     yield key, example
                 current_idx += 1
 
-    def shuffle_data_sources(self, seed: Optional[int]) -> "MappedExamplesIterable":
+    def shuffle_data_sources(self, seed: Optional[int]) -> "FilteredExamplesIterable":
         """Shuffle the wrapped examples iterable."""
         return FilteredExamplesIterable(
             self.ex_iterable.shuffle_data_sources(seed),
+            function=self.function,
+            with_indices=self.with_indices,
+            input_columns=self.input_columns,
+            batched=self.batched,
+            batch_size=self.batch_size,
+        )
+
+    def shard_data_sources(self, shard_idx: int) -> "FilteredExamplesIterable":
+        """Keep only the requested shard."""
+        return FilteredExamplesIterable(
+            self.ex_iterable.shard_data_sources(shard_idx),
             function=self.function,
             with_indices=self.with_indices,
             input_columns=self.input_columns,
@@ -370,6 +549,12 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
             self.ex_iterable.shuffle_data_sources(generator), buffer_size=self.buffer_size, generator=generator
         )
 
+    def shard_data_sources(self, shard_idx: int) -> "BufferShuffledExamplesIterable":
+        """Keep only the requested shard."""
+        return BufferShuffledExamplesIterable(
+            self.ex_iterable.shard_data_sources(shard_idx), buffer_size=self.buffer_size, generator=self.generator
+        )
+
     @property
     def n_shards(self) -> int:
         return self.ex_iterable.n_shards
@@ -412,24 +597,52 @@ class TakeExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.n_shards
 
 
+def _apply_feature_types(
+    example: dict, features: Features, token_per_repo_id: Dict[str, Union[str, bool, None]]
+) -> dict:
+    example = dict(example)
+    # add missing columns
+    for column_name in features:
+        if column_name not in example:
+            example[column_name] = None
+    # we encode the example for ClassLabel feature types for example
+    encoded_example = features.encode_example(example)
+    # Decode example for Audio feature, e.g.
+    decoded_example = features.decode_example(encoded_example, token_per_repo_id=token_per_repo_id)
+    return decoded_example
+
+
 class TypedExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterable: _BaseExamplesIterable, features: Features):
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        features: Features,
+        token_per_repo_id: Dict[str, Union[str, bool, None]],
+    ):
         self.ex_iterable = ex_iterable
         self.features = features
+        self.token_per_repo_id = token_per_repo_id
 
     def __iter__(self):
+        # Then for each example, `TypedExamplesIterable` automatically fills missing columns with None.
+        # This is done with `_apply_feature_types`.
         for key, example in self.ex_iterable:
-            # we encode the example for ClassLabel feature types for example
-            encoded_example = self.features.encode_example(example)
-            # Decode example for Audio feature, e.g.
-            decoded_example = self.features.decode_example(encoded_example)
-            yield key, decoded_example
+            yield key, _apply_feature_types(example, self.features, token_per_repo_id=self.token_per_repo_id)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "TypedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
         return TypedExamplesIterable(
             self.ex_iterable.shuffle_data_sources(generator),
             features=self.features,
+            token_per_repo_id=self.token_per_repo_id,
+        )
+
+    def shard_data_sources(self, shard_idx: int) -> "TypedExamplesIterable":
+        """Keep only the requested shard."""
+        return TypedExamplesIterable(
+            self.ex_iterable.shard_data_sources(shard_idx),
+            features=self.features,
+            token_per_repo_id=self.token_per_repo_id,
         )
 
     @property
@@ -472,7 +685,7 @@ class IterableDataset(DatasetInfoMixin):
         self._format_type = format_type
         self._shuffling = shuffling
         self._epoch = 0
-        self._token_per_repo_id = token_per_repo_id or {}
+        self._token_per_repo_id: Dict[str, Union[str, bool, None]] = token_per_repo_id or {}
 
     def _head(self, n=5):
         return _examples_to_batch([x for key, x in islice(self._iter(), n)])
@@ -499,17 +712,19 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = self._ex_iterable
         yield from ex_iterable
 
+    def _iter_shard(self, shard_idx: int):
+        if self._shuffling:
+            ex_iterable = self._ex_iterable.shuffle_data_sources(self._effective_generator())
+        else:
+            ex_iterable = self._ex_iterable
+        yield from ex_iterable.shard_data_sources(shard_idx)
+
     def __iter__(self):
         for key, example in self._iter():
             if self.features:
-                # we encode the example for ClassLabel feature types for example
-                encoded_example = self.features.encode_example(example)
-                # Decode example for Audio feature, e.g.
-                # the auth token is required to acecss and decode files from private repositories
-                decoded_example = self.features.decode_example(
-                    encoded_example, token_per_repo_id=self._token_per_repo_id
-                )
-                yield decoded_example
+                # `IterableDataset` automatically fills missing columns with None.
+                # This is done with `_apply_feature_types`.
+                yield _apply_feature_types(example, self.features, token_per_repo_id=self._token_per_repo_id)
             else:
                 yield example
 
@@ -548,6 +763,7 @@ class IterableDataset(DatasetInfoMixin):
         batch_size: int = 1000,
         drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, List[str]]] = None,
+        fn_kwargs: Optional[dict] = None,
     ) -> "IterableDataset":
         """
         Apply a function to all the examples in the iterable dataset (individually or in batches) and update them.
@@ -586,6 +802,7 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
+            fn_kwargs (:obj:`Dict`, optional, default `None`): Keyword arguments to be passed to `function`.
 
         Example:
 
@@ -610,10 +827,12 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns = [remove_columns]
         if function is None:
             function = lambda x: x  # noqa: E731
+        if fn_kwargs is None:
+            fn_kwargs = {}
         info = self._info.copy()
         info.features = None
         ex_iterable = MappedExamplesIterable(
-            TypedExamplesIterable(self._ex_iterable, self._info.features)
+            TypedExamplesIterable(self._ex_iterable, self._info.features, token_per_repo_id=self._token_per_repo_id)
             if self._info.features is not None
             else self._ex_iterable,
             function=function,
@@ -623,6 +842,7 @@ class IterableDataset(DatasetInfoMixin):
             batch_size=batch_size,
             drop_last_batch=drop_last_batch,
             remove_columns=remove_columns,
+            fn_kwargs=fn_kwargs,
         )
         return iterable_dataset(
             ex_iterable=ex_iterable,
@@ -682,7 +902,7 @@ class IterableDataset(DatasetInfoMixin):
 
         # We need the examples to be decoded for certain feature types like Image or Audio, so we use TypedExamplesIterable here
         ex_iterable = FilteredExamplesIterable(
-            TypedExamplesIterable(self._ex_iterable, self._info.features)
+            TypedExamplesIterable(self._ex_iterable, self._info.features, token_per_repo_id=self._token_per_repo_id)
             if self._info.features is not None
             else self._ex_iterable,
             function=function,
@@ -1042,6 +1262,24 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
+    def _resolve_features(self):
+        if self.features is not None:
+            return self
+        elif isinstance(self._ex_iterable, TypedExamplesIterable):
+            features = self._ex_iterable.features
+        else:
+            features = _infer_features_from_batch(self._head())
+        info = self.info.copy()
+        info.features = features
+        return iterable_dataset(
+            ex_iterable=self._ex_iterable,
+            info=info,
+            split=self._split,
+            format_type=self._format_type,
+            shuffling=copy.deepcopy(self._shuffling),
+            token_per_repo_id=self._token_per_repo_id,
+        )
+
 
 def iterable_dataset(
     ex_iterable: Iterable,
@@ -1052,10 +1290,7 @@ def iterable_dataset(
     token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
 ):
     if format_type is not None and format_type == "torch":
-        import torch
-
-        class TorchIterableDataset(IterableDataset, torch.utils.data.IterableDataset):
-            pass
+        from .formatting.dataset_wrappers.torch_iterable_dataset import TorchIterableDataset
 
         cls = TorchIterableDataset
     else:
@@ -1068,3 +1303,123 @@ def iterable_dataset(
         shuffling=shuffling,
         token_per_repo_id=token_per_repo_id,
     )
+
+
+def _concatenate_iterable_datasets(
+    dsets: List[IterableDataset],
+    info: Optional[DatasetInfo] = None,
+    split: Optional[NamedSplit] = None,
+    axis: int = 0,
+) -> IterableDataset:
+    """
+    Converts a list of :class:`IterableDataset` with the same schema into a single :class:`IterableDataset`.
+    Missing data are filled with None values.
+
+    <Added version="2.4.0"/>
+
+    Args:
+        dsets (:obj:`List[datasets.IterableDataset]`): List of Datasets to concatenate.
+        info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+        split (:class:`NamedSplit`, optional): Name of the dataset split.
+        axis (``{0, 1}``, default ``0``, meaning over rows):
+            Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
+            (horizontally).
+
+            *New in version 1.6.0*
+
+    Example:
+
+    ```py
+    >>> ds3 = _concatenate_iterable_datasets([ds1, ds2])
+    ```
+    """
+    dsets = [d._resolve_features() for d in dsets]
+
+    # Perform checks (and a potentional cast if axis=0)
+    if axis == 0:
+        _check_if_features_can_be_aligned([dset.features for dset in dsets])
+    else:
+        _check_column_names([col_name for dset in dsets for col_name in dset.features])
+
+    # TODO: improve this to account for a mix of ClassLabel and Value for example
+    # right now it would keep the type of the first dataset in the list
+    features = Features(
+        {k: v for features in _align_features([dset.features for dset in dsets]) for k, v in features.items()}
+    )
+
+    ex_iterables = [d._ex_iterable for d in dsets]
+    if axis == 0:
+        ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
+    else:
+        ex_iterable = HorizontallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
+    # Set new info - we update the features
+    # setting the features also ensures to fill missing columns with None
+    if info is None:
+        info = DatasetInfo.from_merge([d.info for d in dsets])
+    else:
+        info = info.copy()
+    info.features = features
+    # Get all the auth tokens per repository - in case the datasets come from different private repositories
+    token_per_repo_id = {repo_id: token for dataset in dsets for repo_id, token in dataset._token_per_repo_id.items()}
+    # Return new daset
+    return iterable_dataset(ex_iterable=ex_iterable, info=info, split=split, token_per_repo_id=token_per_repo_id)
+
+
+def _interleave_iterable_datasets(
+    datasets: List[IterableDataset],
+    probabilities: Optional[List[float]] = None,
+    seed: Optional[int] = None,
+    info: Optional[DatasetInfo] = None,
+    split: Optional[NamedSplit] = None,
+) -> IterableDataset:
+    """
+    Interleave several iterable datasets (sources) into a single iterable dataset.
+    The new iterable dataset alternates between the sources to yield examples.
+    If `probabilities = None` (default) the iterable dataset will cycles through the sources in order for each next example in the iteration.
+    If `probabilities` is not `None, the iterable dataset will sample a random source according to the provided probabilities for each next examples in the iteration.
+
+    <Added version="2.4.0"/>
+
+    Args:
+        datasets (:obj:`List[IterableDataset]`): list of datasets to interleave
+        probabilities (:obj:`List[float]`, optional, default None): If specified, the new iterable dataset samples
+            examples from one source at a time according to these probabilities.
+        seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
+
+    Output:
+        :class:`datasets.IterableDataset`
+    """
+    datasets = [d._resolve_features() for d in datasets]
+
+    # Perform checks
+    _check_if_features_can_be_aligned([dset.features for dset in datasets])
+
+    # TODO: improve this to account for a mix of ClassLabel and Value for example
+    # right now it would keep the type of the first dataset in the list
+    features = Features(
+        {k: v for features in _align_features([dset.features for dset in datasets]) for k, v in features.items()}
+    )
+
+    ex_iterables = [d._ex_iterable for d in datasets]
+
+    # Use cycling or random cycling or sources
+    if probabilities is None:
+        ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables)
+    else:
+        generator = np.random.default_rng(seed)
+        ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
+            ex_iterables, generator=generator, probabilities=probabilities
+        )
+    # Set new info - we update the features
+    # setting the features also ensures to fill missing columns with None
+    if info is None:
+        info = DatasetInfo.from_merge([d.info for d in datasets])
+    else:
+        info = info.copy()
+    info.features = features
+    # Get all the auth tokens per repository - in case the datasets come from different private repositories
+    token_per_repo_id = {
+        repo_id: token for dataset in datasets for repo_id, token in dataset._token_per_repo_id.items()
+    }
+    # Return new daset
+    return iterable_dataset(ex_iterable=ex_iterable, info=info, split=split, token_per_repo_id=token_per_repo_id)

@@ -3,9 +3,11 @@ annotations_creators:
 - machine-generated
 language_creators:
 - machine-generated
-languages:
+language:
+- it
+language_bcp47:
 - it-IT
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

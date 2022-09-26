@@ -5,7 +5,7 @@ multilinguality:
 - monolingual
 task_ids:
 - text-scoring
-languages:
+language:
 - en
 annotations_creators:
 - crowdsourced
@@ -13,7 +13,7 @@ source_datasets:
 - extended
 size_categories:
 - 10K<n<100K
-licenses:
+license:
 - cc-by-sa-4.0
 paperswithcode_id: null
 pretty_name: GoogleWellformedQuery

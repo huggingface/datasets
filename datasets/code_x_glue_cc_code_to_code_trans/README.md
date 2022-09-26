@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - code
-licenses:
-- other-C-UDA
+license:
+- c-uda
 multilinguality:
 - other-programming-languages
 size_categories:

@@ -3,7 +3,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - af
 - ak
 - am
@@ -18,9 +18,9 @@ languages:
 - br
 - bs
 - ca
+- ceb
 - ckb
 - cs
-- ceb
 - cy
 - de
 - dv
@@ -48,6 +48,7 @@ languages:
 - iu
 - ja
 - ka
+- kac
 - kg
 - kk
 - km
@@ -71,7 +72,6 @@ languages:
 - ms
 - mt
 - my
-- my
 - ne
 - nl
 - 'no'
@@ -83,8 +83,6 @@ languages:
 - pl
 - ps
 - pt
-- shn
-- kac
 - rm
 - ro
 - ru
@@ -92,6 +90,7 @@ languages:
 - sc
 - sd
 - se
+- shn
 - si
 - sk
 - sl
@@ -116,23 +115,22 @@ languages:
 - tr
 - ts
 - tt
-- zgh
 - ug
 - uk
 - ur
 - uz
 - ve
 - vi
-- wo
 - war
+- wo
 - xh
 - yi
 - yo
-- zh
+- zgh
 - zh
 - zu
 - zza
-licenses:
+license:
 - unknown
 multilinguality:
 - translation

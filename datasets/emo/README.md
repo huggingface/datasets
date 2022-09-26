@@ -1,6 +1,22 @@
 ---
-languages:
+annotations_creators:
+- expert-generated
+language_creators:
+- crowdsourced
+language:
 - en
+license:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- sentiment-classification
 paperswithcode_id: emocontext
 pretty_name: EmoContext
 ---

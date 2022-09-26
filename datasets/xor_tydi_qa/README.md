@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - expert-generated
 - found
-languages:
+language:
 - ar
 - bn
 - fi
@@ -12,7 +12,7 @@ languages:
 - ko
 - ru
 - te
-licenses:
+license:
 - mit
 multilinguality:
 - multilingual

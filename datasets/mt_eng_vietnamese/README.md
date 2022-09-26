@@ -5,10 +5,10 @@ language_creators:
 - found
 multilinguality:
 - multilingual
-languages:
+language:
 - en
 - vi
-licenses:
+license:
 - unknown
 size_categories:
 - 100K<n<1M

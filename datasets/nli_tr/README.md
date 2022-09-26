@@ -3,14 +3,15 @@ annotations_creators:
 - expert-generated
 language_creators:
 - machine-generated
-languages:
+language:
 - tr
-licenses:
+license:
 - cc-by-3.0
 - cc-by-4.0
-- cc-by-sa-3.0-at
+- cc-by-sa-3.0
 - mit
-- other-Open Portion of the American National Corpus
+- other
+license_details: "Open Portion of the American National Corpus"
 multilinguality:
 - monolingual
 size_categories:
@@ -20,10 +21,10 @@ source_datasets:
 - extended|multi_nli
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
 - natural-language-inference
 - semantic-similarity-scoring
+- text-scoring
 paperswithcode_id: nli-tr
 pretty_name: Natural Language Inference in Turkish
 configs:

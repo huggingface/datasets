@@ -5,9 +5,9 @@ language_creators:
 - crowdsourced
 pretty_name: Wikipedia
 paperswithcode_id: null
-licenses:
+license:
 - cc-by-sa-3.0
-- gfdl-1.3-or-later
+- gfdl
 task_categories:
 - text-generation
 - fill-mask
@@ -24,8 +24,7 @@ size_categories:
 - 10K<n<100K
 - 100K<n<1M
 - 1M<n<10M
-languages:
-- "no"
+language:
 - aa
 - ab
 - ace
@@ -208,12 +207,12 @@ languages:
 - nan
 - nap
 - nds
-- nds-nl
 - ne
 - new
 - ng
 - nl
 - nn
+- 'no'
 - nov
 - nrf
 - nso
@@ -260,7 +259,6 @@ languages:
 - sgs
 - sh
 - si
-- simple
 - sk
 - sl
 - sm
@@ -298,7 +296,6 @@ languages:
 - udm
 - ug
 - uk
-- unknown
 - ur
 - uz
 - ve
@@ -322,6 +319,8 @@ languages:
 - zea
 - zh
 - zu
+language_bcp47:
+- nds-nl
 configs:
 - 20220301.aa
 - 20220301.ab

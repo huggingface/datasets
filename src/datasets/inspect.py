@@ -13,8 +13,12 @@
 # limitations under the License.
 
 # Lint as: python3
-""" List and inspect datasets and metrics."""
+""" List and inspect datasets."""
 
+import inspect
+import os
+import shutil
+from pathlib import PurePath
 from typing import Dict, List, Mapping, Optional, Sequence, Union
 
 import huggingface_hub
@@ -23,13 +27,9 @@ from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager
 from .info import DatasetInfo
-from .load import (
-    dataset_module_factory,
-    extend_dataset_builder_for_streaming,
-    import_main_class,
-    load_dataset_builder,
-    metric_module_factory,
-)
+from .load import dataset_module_factory, import_main_class, load_dataset_builder, metric_module_factory
+from .utils.deprecation_utils import deprecated
+from .utils.file_utils import relative_to_absolute_path
 from .utils.logging import get_logger
 from .utils.version import Version
 
@@ -71,8 +71,17 @@ def list_datasets(with_community_datasets=True, with_details=False):
     return datasets
 
 
+@deprecated(
+    "Use 'evaluate.list_evaluation_modules' instead, from the new library 🤗 Evaluate: https://huggingface.co/docs/evaluate"
+)
 def list_metrics(with_community_metrics=True, with_details=False):
     """List all the metrics script available on the Hugging Face Hub.
+
+    <Deprecated version="2.5.0">
+
+    Use `evaluate.list_evaluation_modules` instead, from the new library 🤗 Evaluate: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
 
     Args:
         with_community_metrics (:obj:`bool`, optional, default ``True``): Include the community provided metrics.
@@ -102,34 +111,56 @@ def list_metrics(with_community_metrics=True, with_details=False):
 
 
 def inspect_dataset(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
-    r"""
+    """
     Allow inspection/modification of a dataset script by copying on local drive at local_path.
 
     Args:
-        path (``str``): path to the dataset processing script with the dataset builder. Can be either:
+        path (`str`): Path to the dataset processing script with the dataset builder. Can be either:
 
-            - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
-                e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
-                e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
-        local_path (``str``): path to the local folder to copy the datset script to.
-        download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
-        **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
+            - a local path to processing script or the directory containing the script (if the script has the same name
+                as the directory),
+                e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`list_datasets`])
+                e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``.
+        local_path (`str`): Path to the local folder to copy the dataset script to.
+        download_config ([`DownloadConfig`], *optional*): Specific download configuration parameters.
+        **download_kwargs (additional keyword arguments): Optional arguments for [`DownloadConfig`] which will override
+            the attributes of `download_config` if supplied.
     """
-    dataset_module = dataset_module_factory(
-        path, download_config=download_config, force_local_path=local_path, **download_kwargs
-    )
+    dataset_module = dataset_module_factory(path, download_config=download_config, **download_kwargs)
+    builder_cls = import_main_class(dataset_module.module_path, dataset=True)
+    module_source_path = inspect.getsourcefile(builder_cls)
+    module_source_dirpath = os.path.dirname(module_source_path)
+    for dirpath, dirnames, filenames in os.walk(module_source_dirpath):
+        dst_dirpath = os.path.join(local_path, os.path.relpath(dirpath, module_source_dirpath))
+        os.makedirs(dst_dirpath, exist_ok=True)
+        # skipping hidden directories; prune the search
+        # [:] for the in-place list modification required by os.walk
+        dirnames[:] = [dirname for dirname in dirnames if not dirname.startswith((".", "__"))]
+        for filename in filenames:
+            shutil.copy2(os.path.join(dirpath, filename), os.path.join(dst_dirpath, filename))
+        shutil.copystat(dirpath, dst_dirpath)
+    local_path = relative_to_absolute_path(local_path)
     print(
         f"The processing script for dataset {path} can be inspected at {local_path}. "
-        f"The main class is in {dataset_module.module_path}. "
-        f"You can modify this processing script and use it with `datasets.load_dataset({local_path})`."
+        f"The main class is in {module_source_dirpath}. "
+        f'You can modify this processing script and use it with `datasets.load_dataset("{PurePath(local_path).as_posix()}")`.'
     )
 
 
+@deprecated(
+    "Use 'evaluate.inspect_evaluation_module' instead, from the new library 🤗 Evaluate: https://huggingface.co/docs/evaluate"
+)
 def inspect_metric(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
     r"""
     Allow inspection/modification of a metric script by copying it on local drive at local_path.
 
+    <Deprecated version="2.5.0">
+
+    Use `evaluate.inspect_evaluation_module` instead, from the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
+
+    </Deprecated>
+
     Args:
         path (``str``): path to the dataset processing script with the dataset builder. Can be either:
 
@@ -138,16 +169,26 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
             - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         local_path (``str``): path to the local folder to copy the datset script to.
-        download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
-        **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
+        download_config (Optional ``datasets.DownloadConfig``): specific download configuration parameters.
+        **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
-    metric_module = metric_module_factory(
-        path, download_config=download_config, force_local_path=local_path, **download_kwargs
-    )
+    metric_module = metric_module_factory(path, download_config=download_config, **download_kwargs)
+    builder_cls = import_main_class(metric_module.module_path, dataset=False)
+    module_source_path = inspect.getsourcefile(builder_cls)
+    module_source_dirpath = os.path.dirname(module_source_path)
+    for dirpath, dirnames, filenames in os.walk(module_source_dirpath):
+        dst_dirpath = os.path.join(local_path, os.path.relpath(dirpath, module_source_dirpath))
+        os.makedirs(dst_dirpath, exist_ok=True)
+        # skipping hidden directories; prune the search
+        dirnames[:] = [dirname for dirname in dirnames if not dirname.startswith((".", "__"))]
+        for filename in filenames:
+            shutil.copy2(os.path.join(dirpath, filename), os.path.join(dst_dirpath, filename))
+        shutil.copystat(dirpath, dst_dirpath)
+    local_path = relative_to_absolute_path(local_path)
     print(
         f"The processing scripts for metric {path} can be inspected at {local_path}. "
-        f"The main class is in {metric_module.module_path}. "
-        f"You can modify this processing scripts and use it with `datasets.load_metric({local_path})`."
+        f"The main class is in {module_source_dirpath}. "
+        f'You can modify this processing scripts and use it with `datasets.load_metric("{PurePath(local_path).as_posix()}")`.'
     )
 
 
@@ -173,14 +214,14 @@ def get_dataset_infos(
             If specified, the dataset module will be loaded from the datasets repository at this version.
             By default:
             - it is set to the local version of the lib.
-            - it will also try to load it from the master branch if it's not available at the local version of the lib.
+            - it will also try to load it from the main branch if it's not available at the local version of the lib.
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
-        config_kwargs: optional attributes for builder class which will override the attributes if supplied.
+        **config_kwargs (additional keyword arguments): optional attributes for builder class which will override the attributes if supplied.
 
     Example:
 
@@ -217,7 +258,6 @@ def get_dataset_config_names(
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[DownloadMode] = None,
-    force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
     data_files: Optional[Union[Dict, List, str]] = None,
     **download_kwargs,
@@ -235,17 +275,15 @@ def get_dataset_config_names(
             If specified, the dataset module will be loaded from the datasets repository at this version.
             By default:
             - it is set to the local version of the lib.
-            - it will also try to load it from the master branch if it's not available at the local version of the lib.
+            - it will also try to load it from the main branch if it's not available at the local version of the lib.
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
-            Used to inspect or modify the script folder.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default the datasets and metrics are stored inside the `datasets_modules` module.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
-        download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied,
+        **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override the attributes in download_config if supplied,
             for example ``use_auth_token``
 
     Example:
@@ -272,13 +310,12 @@ def get_dataset_config_names(
         revision=revision,
         download_config=download_config,
         download_mode=download_mode,
-        force_local_path=force_local_path,
         dynamic_modules_path=dynamic_modules_path,
         data_files=data_files,
         **download_kwargs,
     )
     builder_cls = import_main_class(dataset_module.module_path)
-    return list(builder_cls.builder_configs.keys()) or [dataset_module.builder_kwargs.get("name", "default")]
+    return list(builder_cls.builder_configs.keys()) or [dataset_module.builder_kwargs.get("config_name", "default")]
 
 
 def get_dataset_config_info(
@@ -307,12 +344,12 @@ def get_dataset_config_info(
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
+              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
             - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
-        config_kwargs: optional attributes for builder class which will override the attributes if supplied.
+        **config_kwargs (additional keyword arguments): optional attributes for builder class which will override the attributes if supplied.
 
     """
     builder = load_dataset_builder(
@@ -325,13 +362,15 @@ def get_dataset_config_info(
         use_auth_token=use_auth_token,
         **config_kwargs,
     )
-    extend_dataset_builder_for_streaming(builder, use_auth_token=use_auth_token)
     info = builder.info
     if info.splits is None:
+        download_config = download_config.copy() if download_config else DownloadConfig()
+        if use_auth_token is not None:
+            download_config.use_auth_token = use_auth_token
+        builder._check_manual_download(
+            StreamingDownloadManager(base_path=builder.base_path, download_config=download_config)
+        )
         try:
-            download_config = download_config.copy() if download_config else DownloadConfig()
-            if use_auth_token is not None:
-                download_config.use_auth_token = use_auth_token
             info.splits = {
                 split_generator.name: {"name": split_generator.name, "dataset_name": path}
                 for split_generator in builder._split_generators(
@@ -369,12 +408,12 @@ def get_dataset_split_names(
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
+              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
             - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
-        config_kwargs: optional attributes for builder class which will override the attributes if supplied.
+        **config_kwargs (additional keyword arguments): optional attributes for builder class which will override the attributes if supplied.
 
     Example:
 

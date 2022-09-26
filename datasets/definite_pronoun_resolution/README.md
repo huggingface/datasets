@@ -1,6 +1,22 @@
 ---
-languages:
+annotations_creators:
+- expert-generated
+language_creators:
+- crowdsourced
+language:
 - en
+license:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- token-classification
+task_ids:
+- word-sense-disambiguation
 paperswithcode_id: definite-pronoun-resolution-dataset
 pretty_name: Definite Pronoun Resolution Dataset
 ---
@@ -33,7 +49,7 @@ pretty_name: Definite Pronoun Resolution Dataset
 
 ## Dataset Description
 
-- **Homepage:** [http://www.hlt.utdallas.edu/~vince/data/emnlp12/](http://www.hlt.utdallas.edu/~vince/data/emnlp12/)
+- **Homepage:** [https://www.hlt.utdallas.edu/~vince/data/emnlp12/](https://www.hlt.utdallas.edu/~vince/data/emnlp12/)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)

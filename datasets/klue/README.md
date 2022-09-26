@@ -4,9 +4,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - ko
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

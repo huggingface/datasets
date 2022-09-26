@@ -3,10 +3,10 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
-- unknown
+license:
+- mit
 multilinguality:
 - monolingual
 pretty_name: CommonsenseQA
@@ -164,7 +164,9 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-Unknown.
+The dataset is licensed under the MIT License.
+
+See: https://github.com/jonathanherzig/commonsenseqa/issues/5
 
 ### Citation Information
 

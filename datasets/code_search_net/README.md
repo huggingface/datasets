@@ -3,10 +3,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - machine-generated
-languages:
+language:
 - code
-licenses:
-- other-several-licenses
+license:
+- other
 multilinguality:
 - multilingual
 size_categories:

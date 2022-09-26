@@ -18,6 +18,7 @@ from .features import Features
 from .features.features import FeatureType
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .info import DatasetInfo
+from .naming import _split_re
 from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import Table
 from .tasks import TaskTemplate
@@ -50,7 +51,7 @@ class DatasetDict(dict):
             return super().__getitem__(k)
         else:
             available_suggested_splits = [
-                str(split) for split in (Split.TRAIN, Split.TEST, Split.VALIDATION) if split in self
+                split for split in (Split.TRAIN, Split.TEST, Split.VALIDATION) if split in self
             ]
             suggested_split = available_suggested_splits[0] if available_suggested_splits else list(self)[0]
             raise KeyError(
@@ -465,7 +466,7 @@ class DatasetDict(dict):
             columns (:obj:`List[str]`, optional): columns to format in the output
                 None means ``__getitem__`` returns all columns (default)
             output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
-            format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+            **format_kwargs (additional keyword arguments): keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         self._check_values_type()
         old_format_type = {k: dataset._format_type for k, dataset in self.items()}
@@ -497,7 +498,7 @@ class DatasetDict(dict):
             columns (:obj:`List[str]`, optional): columns to format in the output.
                 None means ``__getitem__`` returns all columns (default).
             output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
-            format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+            **format_kwargs (additional keyword arguments): keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
 
         It is possible to call ``map`` after calling ``set_format``. Since ``map`` may add new columns, then the list of formatted columns
         gets updated. In this case, if you apply ``map`` on a dataset to add a new column, then this column will be formatted:
@@ -601,7 +602,7 @@ class DatasetDict(dict):
             columns (:obj:`List[str]`, optional): columns to format in the output
                 None means ``__getitem__`` returns all columns (default)
             output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
-            format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+            **format_kwargs (additional keyword arguments): keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
 
         Example:
 
@@ -1135,7 +1136,7 @@ class DatasetDict(dict):
             features (:class:`Features`, optional): Dataset features.
             cache_dir (str, optional, default="~/.cache/huggingface/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
-            **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
+            **kwargs (additional keyword arguments): Keyword arguments to be passed to :meth:`pandas.read_csv`.
 
         Returns:
             :class:`DatasetDict`
@@ -1169,7 +1170,7 @@ class DatasetDict(dict):
             features (:class:`Features`, optional): Dataset features.
             cache_dir (str, optional, default="~/.cache/huggingface/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
-            **kwargs: Keyword arguments to be passed to :class:`JsonConfig`.
+            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`JsonConfig`.
 
         Returns:
             :class:`DatasetDict`
@@ -1207,7 +1208,7 @@ class DatasetDict(dict):
             columns (:obj:`List[str]`, optional): If not None, only these columns will be read from the file.
                 A column name may be a prefix of a nested field, e.g. 'a' will select
                 'a.b', 'a.c', and 'a.d.e'.
-            **kwargs: Keyword arguments to be passed to :class:`ParquetConfig`.
+            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`ParquetConfig`.
 
         Returns:
             :class:`DatasetDict`
@@ -1246,7 +1247,7 @@ class DatasetDict(dict):
             features (:class:`Features`, optional): Dataset features.
             cache_dir (str, optional, default="~/.cache/huggingface/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
-            **kwargs: Keyword arguments to be passed to :class:`TextConfig`.
+            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`TextConfig`.
 
         Returns:
             :class:`DatasetDict`
@@ -1286,7 +1287,7 @@ class DatasetDict(dict):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         branch: Optional[None] = None,
-        max_shard_size: Union[int, str] = "500MB",
+        max_shard_size: Optional[Union[int, str]] = None,
         shard_size: Optional[int] = "deprecated",
         embed_external_files: bool = True,
     ):
@@ -1344,10 +1345,15 @@ class DatasetDict(dict):
         info_to_dump: DatasetInfo = next(iter(self.values())).info.copy()
         dataset_name = repo_id.split("/")[-1]
         info_to_dump.splits = SplitDict(dataset_name=dataset_name)
+
+        for split in self.keys():
+            if not re.match(_split_re, split):
+                raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
+
         for split in self.keys():
             logger.warning(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
-            repo_id, split, uploaded_size, dataset_nbytes = self[split]._push_parquet_shards_to_hub(
+            repo_id, split, uploaded_size, dataset_nbytes, _, _ = self[split]._push_parquet_shards_to_hub(
                 repo_id,
                 split=split,
                 private=private,
@@ -1377,7 +1383,6 @@ class DatasetDict(dict):
             token=token,
             repo_type="dataset",
             revision=branch,
-            identical_ok=True,
         )
 
 

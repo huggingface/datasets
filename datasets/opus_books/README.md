@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - ca
 - de
 - el
@@ -20,7 +20,7 @@ languages:
 - pt
 - ru
 - sv
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -35,7 +35,7 @@ paperswithcode_id: null
 pretty_name: OpusBooks
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for OpusBooks
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

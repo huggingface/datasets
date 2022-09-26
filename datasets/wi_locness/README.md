@@ -3,11 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
-- other-locness-license
-- other-wi-license
+license:
+- other
 multilinguality:
 - monolingual
 - other-language-learner

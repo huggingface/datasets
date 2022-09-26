@@ -8,6 +8,7 @@ from types import CodeType, FunctionType
 from unittest import TestCase
 from unittest.mock import patch
 
+import pytest
 from multiprocess import Pool
 
 import datasets
@@ -49,6 +50,7 @@ class UnpicklableCallable:
 
 class TokenizersDumpTest(TestCase):
     @require_transformers
+    @pytest.mark.integration
     def test_hash_tokenizer(self):
         from transformers import AutoTokenizer
 
@@ -76,6 +78,7 @@ class TokenizersDumpTest(TestCase):
         self.assertNotEqual(hash1_encode, hash2_encode)
 
     @require_transformers
+    @pytest.mark.integration
     def test_hash_tokenizer_with_cache(self):
         from transformers import AutoTokenizer
 
@@ -226,21 +229,6 @@ class RecurseDumpTest(TestCase):
         self.assertEqual(hash1, hash2)
 
 
-class TypeHintDumpTest(TestCase):
-    def test_dump_type_hint(self):
-        from typing import Union
-
-        t1 = Union[str, None]  # this type is not picklable in python 3.6
-        # let's check that we can pickle it anyway using our pickler, even in 3.6
-        hash1 = md5(datasets.utils.py_utils.dumps(t1)).hexdigest()
-        t2 = Union[str]  # this type is picklable in python 3.6
-        hash2 = md5(datasets.utils.py_utils.dumps(t2)).hexdigest()
-        t3 = Union[str, None]
-        hash3 = md5(datasets.utils.py_utils.dumps(t3)).hexdigest()
-        self.assertEqual(hash1, hash3)
-        self.assertNotEqual(hash1, hash2)
-
-
 class HashingTest(TestCase):
     def test_hash_simple(self):
         hash1 = Hasher.hash("hello")
@@ -294,6 +282,7 @@ class HashingTest(TestCase):
         self.assertEqual(hash1, hash3)
 
 
+@pytest.mark.integration
 def test_move_script_doesnt_change_hash(tmp_path: Path):
     dir1 = tmp_path / "dir1"
     dir2 = tmp_path / "dir2"

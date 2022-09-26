@@ -4,9 +4,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - fi
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual
@@ -21,7 +21,7 @@ task_ids:
 paperswithcode_id: null
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Turku NER corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

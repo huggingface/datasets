@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: biomrc
 pretty_name: BIOMRC

@@ -3,10 +3,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
-- other-bsd
+license:
+- bsd
 multilinguality:
 - monolingual
 pretty_name: SCAN
@@ -15,7 +15,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text2text-generation
 task_ids:
 - other-multi-turn
 paperswithcode_id: scan

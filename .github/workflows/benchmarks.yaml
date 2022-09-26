@@ -3,13 +3,16 @@ on: [push]
 jobs:
   run:
     runs-on: [ubuntu-latest]
-    container: docker://dvcorg/cml-py3:latest
+    container: docker://dvcorg/cml:latest
     steps:
       - uses: actions/checkout@v2
       - name: cml_run
         env:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # See https://github.com/actions/checkout/issues/760
+          git config --global --add safe.directory /__w/datasets/datasets
+
           # Your ML workflow goes here
 
           pip install --upgrade pip
@@ -22,7 +25,7 @@ jobs:
           dvc repro --force
 
           git fetch --prune
-          dvc metrics diff --show-json master > report.json
+          dvc metrics diff --show-json main > report.json
 
           python ./benchmarks/format.py report.json report.md
 
@@ -35,7 +38,7 @@ jobs:
           dvc repro --force
 
           git fetch --prune
-          dvc metrics diff --show-json master > report.json
+          dvc metrics diff --show-json main > report.json
 
           python ./benchmarks/format.py report.json report.md
 

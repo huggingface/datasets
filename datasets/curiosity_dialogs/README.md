@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-nc-4.0
 multilinguality:
 - monolingual
@@ -18,7 +18,6 @@ task_categories:
 - fill-mask
 task_ids:
 - dialogue-modeling
-- text-generation
 - fill-mask-other-conversational-curiosity
 paperswithcode_id: curiosity
 pretty_name: Curiosity Dataset

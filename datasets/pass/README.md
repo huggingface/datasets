@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - machine-generated
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -111,7 +111,7 @@ A data point comprises an image and its meta-data:
 
 ### Data Splits
 
-All the data is contained in training set. The training set has 1.4M (1,439,719) instances.
+All the data is contained in the training set. The training set has 1,439,588 instances as this implementation corresponds to the most recent release (v3) from the [version history](https://github.com/yukimasano/PASS/blob/main/version_history.txt).
 
 From the paper:
 
@@ -213,7 +213,7 @@ YM. Asano, C. Rupprecht, A. Zisserman and A. Vedaldi.
 
 From the paper:
 
-> **Who created the dataset (e.g., which team, research group) and on behalf of which entity (e.g., company, institution, organization)?** The dataset has been constructued by the research group
+> **Who created the dataset (e.g., which team, research group) and on behalf of which entity (e.g., company, institution, organization)?** The dataset has been constructed by the research group
 “Visual Geometry Group” at the University of Oxford at the Engineering Science Department.
 
 ### Licensing Information

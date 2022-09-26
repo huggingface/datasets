@@ -1,11 +1,27 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language_creators:
+- found
+language:
 - en
+license:
+- cc-by-sa-3.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- natural-language-inference
 paperswithcode_id: boolq
-pretty_name: Boolean Questions
+pretty_name: BoolQ
 ---
 
-# Dataset Card for "boolq"
+# Dataset Card for Boolq
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -144,7 +160,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+BoolQ is released under the [Creative Commons Share-Alike 3.0](https://creativecommons.org/licenses/by-sa/3.0/) license.
 
 ### Citation Information
 

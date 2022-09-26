@@ -1,6 +1,6 @@
 ---
 pretty_name: Mathematics Dataset
-languages:
+language:
 - en
 paperswithcode_id: mathematics
 ---

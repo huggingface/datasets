@@ -4,9 +4,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - nl
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual
@@ -25,7 +25,7 @@ task_ids:
 paperswithcode_id: dbrd
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for DBRD
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

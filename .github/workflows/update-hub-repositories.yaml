@@ -3,7 +3,7 @@ name: Update Hub repositories
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   update-hub-repositories:

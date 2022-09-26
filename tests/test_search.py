@@ -5,11 +5,15 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import numpy as np
+import pytest
 
 from datasets.arrow_dataset import Dataset
 from datasets.search import ElasticSearchIndex, FaissIndex, MissingIndex
 
 from .utils import require_elasticsearch, require_faiss
+
+
+pytestmark = pytest.mark.integration
 
 
 @require_faiss
@@ -25,7 +29,7 @@ class IndexableDatasetTest(TestCase):
         dset = dset.map(
             lambda ex, i: {"vecs": i * np.ones(5, dtype=np.float32)}, with_indices=True, keep_in_memory=True
         )
-        dset = dset.add_faiss_index("vecs", metric_type=faiss.METRIC_INNER_PRODUCT)
+        dset = dset.add_faiss_index("vecs", batch_size=100, metric_type=faiss.METRIC_INNER_PRODUCT)
         scores, examples = dset.get_nearest_examples("vecs", np.ones(5, dtype=np.float32))
         self.assertEqual(examples["filename"][0], "my_name-train_29")
         dset.drop_index("vecs")
@@ -37,6 +41,7 @@ class IndexableDatasetTest(TestCase):
         dset.add_faiss_index_from_external_arrays(
             external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1),
             index_name="vecs",
+            batch_size=100,
             metric_type=faiss.METRIC_INNER_PRODUCT,
         )
         scores, examples = dset.get_nearest_examples("vecs", np.ones(5, dtype=np.float32))

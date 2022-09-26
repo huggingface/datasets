@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - crowdsourced
-languages:
+language:
 - de
 - en
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

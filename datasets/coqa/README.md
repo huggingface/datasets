@@ -1,8 +1,28 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
+language_creators:
+- found
+license:
+- other
+multilinguality:
+- monolingual
+pretty_name: "CoQA: Conversational Question Answering Challenge"
+size_categories:
+- 1K<n<10K
+source_datasets:
+- extended|race
+- extended|cnn_dailymail
+- extended|wikipedia
+- extended|other
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
+- question-answering-other-conversational-qa
 paperswithcode_id: coqa
-pretty_name: Conversational Question Answering Challenge
 ---
 
 # Dataset Card for "coqa"
@@ -34,16 +54,18 @@ pretty_name: Conversational Question Answering Challenge
 ## Dataset Description
 
 - **Homepage:** [https://stanfordnlp.github.io/coqa/](https://stanfordnlp.github.io/coqa/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/stanfordnlp/coqa-baselines
+- **Paper:** [CoQA: A Conversational Question Answering Challenge](https://arxiv.org/abs/1808.07042)
+- **Point of Contact:** [Google Group](https://groups.google.com/forum/#!forum/coqa), [Siva Reddy](mailto:siva.reddy@mila.quebec), [Danqi Chen](mailto:danqic@cs.princeton.edu)
 - **Size of downloaded dataset files:** 55.40 MB
 - **Size of the generated dataset:** 18.35 MB
 - **Total amount of disk used:** 73.75 MB
 
 ### Dataset Summary
 
-CoQA: A Conversational Question Answering Challenge
+CoQA is a large-scale dataset for building Conversational Question Answering systems.
+
+Our dataset contains 127k questions with answers, obtained from 8k conversations about text passages from seven diverse domains. The questions are conversational, and the answers are free-form text with their corresponding evidence highlighted in the passage.
 
 ### Supported Tasks and Leaderboards
 
@@ -146,21 +168,30 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+CoQA contains passages from seven domains. We make five of these public under the following licenses:
+- Literature and Wikipedia passages are shared under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) license.
+- Children's stories are collected from [MCTest](https://www.microsoft.com/en-us/research/publication/mctest-challenge-dataset-open-domain-machine-comprehension-text/) which comes with [MSR-LA](https://github.com/mcobzarenco/mctest/blob/master/data/MCTest/LICENSE.pdf) license.
+- Middle/High school exam passages are collected from [RACE](https://arxiv.org/abs/1704.04683) which comes with its [own](http://www.cs.cmu.edu/~glai1/data/race/) license.
+- News passages are collected from the [DeepMind CNN dataset](https://arxiv.org/abs/1506.03340) which comes with [Apache](https://github.com/deepmind/rc-data/blob/master/LICENSE) license. 
 
 ### Citation Information
 
 ```
-@InProceedings{SivaAndAl:Coca,
-       author = {Siva, Reddy and Danqi, Chen and  Christopher D., Manning},
-        title = {WikiQA: A Challenge Dataset for Open-Domain Question Answering},
-      journal = { arXiv},
-         year = {2018},
-
+@article{reddy-etal-2019-coqa,
+    title = "{C}o{QA}: A Conversational Question Answering Challenge",
+    author = "Reddy, Siva  and
+      Chen, Danqi  and
+      Manning, Christopher D.",
+    journal = "Transactions of the Association for Computational Linguistics",
+    volume = "7",
+    year = "2019",
+    address = "Cambridge, MA",
+    publisher = "MIT Press",
+    url = "https://aclanthology.org/Q19-1016",
+    doi = "10.1162/tacl_a_00266",
+    pages = "249--266",
 }
-
 ```
-
 
 ### Contributions
 

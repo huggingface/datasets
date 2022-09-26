@@ -3,13 +3,13 @@ annotations_creators:
 - found
 language_creators:
 - expert-generated
-languages:
+language:
 - de
 - en
 - es
 - fr
 - sv
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual

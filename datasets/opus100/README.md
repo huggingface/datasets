@@ -8,8 +8,7 @@ multilinguality:
 task_ids:
 - language-modeling
 - masked-language-modeling
-languages:
-- 'no'
+language:
 - af
 - am
 - an
@@ -74,6 +73,7 @@ languages:
 - ne
 - nl
 - nn
+- 'no'
 - oc
 - or
 - pa
@@ -111,6 +111,8 @@ languages:
 - zu
 annotations_creators:
 - no-annotation
+language_creators:
+- found
 source_datasets:
 - extended
 size_categories:
@@ -119,7 +121,7 @@ size_categories:
 - 1K<n<10K
 - 1M<n<10M
 - n<1K
-licenses:
+license:
 - unknown
 paperswithcode_id: opus-100
 configs:
@@ -239,7 +241,7 @@ configs:
 - ru-zh
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Opus100
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -289,7 +291,12 @@ OPUS-100 contains approximately 55M sentence pairs. Of the 99 language pairs, 44
 
 ### Data Instances
 
-[More Information Needed]
+```
+{
+  "ca": "El departament de bombers té el seu propi equip d'investigació.",
+  "en": "Well, the fire department has its own investigative unit."
+}
+```
 
 ### Data Fields
 
