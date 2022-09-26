@@ -1,6 +1,7 @@
 import os.path
 import time
 from contextlib import contextmanager
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -16,7 +17,7 @@ CI_HUB_USER_TOKEN = "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"
 
 CI_HUB_ENDPOINT = "https://hub-ci.huggingface.co"
 CI_HUB_DATASETS_URL = CI_HUB_ENDPOINT + "/datasets/{repo_id}/resolve/{revision}/{path}"
-CI_HUB_TOKEN_PATH = os.path.expanduser("~/.huggingface/hub_ci_token")
+CI_HUB_TOKEN_PATH = Path("~/.huggingface/hub_ci_token").expanduser()
 
 
 @pytest.fixture
