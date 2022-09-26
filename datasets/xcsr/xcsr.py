@@ -84,14 +84,14 @@ _LANGUAGES = ("en", "zh", "de", "es", "fr", "it", "jap", "nl", "pl", "pt", "ru",
 class XcsrConfig(datasets.BuilderConfig):
     """BuilderConfig for XCSR."""
 
-    def __init__(self, name: str, language: str, languages=None, **kwargs):
+    def __init__(self, subset: str, language: str, **kwargs):
         """BuilderConfig for XCSR.
         Args:
         language: One of {en, zh, de, es, fr, it, jap, nl, pl, pt, ru, ar, vi, hi, sw, ur}, or all_languages
           **kwargs: keyword arguments forwarded to super.
         """
-        super(XcsrConfig, self).__init__(**kwargs)
-        self.name = name
+        super().__init__(name=f"{subset}-{language}", **kwargs)
+        self.subset = subset
         self.language = language
 
 
@@ -99,11 +99,10 @@ class XcsrConfig(datasets.BuilderConfig):
 class Xcsr(datasets.GeneratorBasedBuilder):
     """XCSR: A dataset for evaluating multi-lingual language models (ML-LMs) for commonsense reasoning in a cross-lingual zero-shot transfer setting"""
 
-    VERSION = datasets.Version("1.1.0", "")
     BUILDER_CONFIG_CLASS = XcsrConfig
     BUILDER_CONFIGS = [
         XcsrConfig(
-            name="X-CSQA-" + lang,
+            subset="X-CSQA",
             language=lang,
             version=datasets.Version("1.1.0", ""),
             description=f"Plain text import of X-CSQA for the {lang} language",
@@ -111,7 +110,7 @@ class Xcsr(datasets.GeneratorBasedBuilder):
         for lang in _LANGUAGES
     ] + [
         XcsrConfig(
-            name="X-CODAH-" + lang,
+            subset="X-CODAH",
             language=lang,
             version=datasets.Version("1.1.0", ""),
             description=f"Plain text import of X-CODAH for the {lang} language",
@@ -120,8 +119,7 @@ class Xcsr(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if self.config.name.startswith("X-CSQA"):
+        if self.config.subset == "X-CSQA":
             features = datasets.Features(
                 {
                     "id": datasets.Value("string"),
@@ -138,7 +136,7 @@ class Xcsr(datasets.GeneratorBasedBuilder):
                     "answerKey": datasets.Value("string"),
                 }
             )
-        elif self.config.name.startswith("X-CODAH"):
+        elif self.config.subset == "X-CODAH":
             features = datasets.Features(
                 {
                     "id": datasets.Value("string"),
@@ -176,32 +174,19 @@ class Xcsr(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        my_urls = _URL
-        data_dir = dl_manager.download_and_extract(my_urls)
-        if self.config.name.startswith("X-CSQA"):
-            sub_test_path = "X-CSR_datasets/X-CSQA/" + self.config.language + "/test.jsonl"
-            sub_dev_path = "X-CSR_datasets/X-CSQA/" + self.config.language + "/dev.jsonl"
-        elif self.config.name.startswith("X-CODAH"):
-            sub_test_path = "X-CSR_datasets/X-CODAH/" + self.config.language + "/test.jsonl"
-            sub_dev_path = "X-CSR_datasets/X-CODAH/" + self.config.language + "/dev.jsonl"
-
+        data_dir = dl_manager.download_and_extract(_URL)
+        filepath = os.path.join(data_dir, "X-CSR_datasets", self.config.subset, self.config.language, "{split}.jsonl")
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, sub_test_path),
+                    "filepath": filepath.format(split="test"),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, sub_dev_path),
+                    "filepath": filepath.format(split="dev"),
                 },
             ),
         ]
