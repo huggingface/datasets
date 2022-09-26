@@ -1,7 +1,25 @@
 ---
-pretty_name: Question Answering via Sentence Composition (QASC)
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
+language_creators:
+- found
+license:
+- cc-by-4.0
+multilinguality:
+- monolingual
+pretty_name: Question Answering via Sentence Composition (QASC)
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- question-answering
+- multiple-choice
+task_ids:
+- extractive-qa
+- multiple-choice-qa
 paperswithcode_id: qasc
 ---
 
@@ -34,8 +52,8 @@ paperswithcode_id: qasc
 ## Dataset Description
 
 - **Homepage:** [https://allenai.org/data/qasc](https://allenai.org/data/qasc)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/allenai/qasc/
+- **Paper:** [QASC: A Dataset for Question Answering via Sentence Composition](https://arxiv.org/abs/1910.11473)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 1.54 MB
 - **Size of the generated dataset:** 5.60 MB
@@ -155,7 +173,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The dataset is released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) license.
 
 ### Citation Information
 
@@ -166,9 +184,7 @@ The data fields are the same among all splits.
       journal   = {arXiv:1910.11473v2},
       year      = {2020},
 }
-
 ```
-
 
 ### Contributions
 

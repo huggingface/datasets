@@ -89,7 +89,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
         if self._name is not None and self._all_configs:
             print("Both parameters `name` and `all_configs` can't be used at once.")
             exit(1)
-        path, name = self._dataset, self._name
+        path, config_name = self._dataset, self._name
         dataset_module = dataset_module_factory(path)
         builder_cls = import_main_class(dataset_module.module_path)
         builders: List[DatasetBuilder] = []
@@ -103,7 +103,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
             for builder_config in builder_cls.BUILDER_CONFIGS:
                 builders.append(
                     builder_cls(
-                        name=builder_config.name,
+                        config_name=builder_config.name,
                         data_dir=self._data_dir,
                         hash=dataset_module.hash,
                         beam_options=beam_options,
@@ -114,7 +114,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
         else:
             builders.append(
                 builder_cls(
-                    name=name,
+                    config_name=config_name,
                     data_dir=self._data_dir,
                     beam_options=beam_options,
                     cache_dir=self._cache_dir,

@@ -6,9 +6,10 @@ from unittest.mock import patch
 
 import numpy as np
 import pyarrow as pa
+import pyarrow.parquet as pq
 import pytest
 
-from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, TypedSequence
+from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
 from datasets.features import Array2D, ClassLabel, Features, Image, Value
 from datasets.features.features import Array2DExtensionType, cast_to_python_objects
 from datasets.keyhash import DuplicatedKeysError, InvalidKeyError
@@ -179,6 +180,7 @@ def test_write_batch(fields, writer_batch_size):
     schema = pa.schema(fields) if fields else None
     with ArrowWriter(stream=output, schema=schema, writer_batch_size=writer_batch_size) as writer:
         writer.write_batch({"col_1": ["foo", "bar"], "col_2": [1, 2]})
+        writer.write_batch({"col_1": [], "col_2": []})
         num_examples, num_bytes = writer.finalize()
     assert num_examples == 2
     assert num_bytes > 0
@@ -298,3 +300,54 @@ def test_arrow_writer_closes_stream(raise_exception, tmp_path):
         pass
     finally:
         assert writer.stream.closed
+
+
+def test_arrow_writer_with_filesystem(mockfs):
+    path = "mock://dataset-train.arrow"
+    with ArrowWriter(path=path, storage_options=mockfs.storage_options) as writer:
+        assert isinstance(writer._fs, type(mockfs))
+        assert writer._fs.storage_options == mockfs.storage_options
+        writer.write({"col_1": "foo", "col_2": 1})
+        writer.write({"col_1": "bar", "col_2": 2})
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 2
+    assert num_bytes > 0
+    assert mockfs.exists(path)
+
+
+def test_parquet_writer_write():
+    output = pa.BufferOutputStream()
+    with ParquetWriter(stream=output) as writer:
+        writer.write({"col_1": "foo", "col_2": 1})
+        writer.write({"col_1": "bar", "col_2": 2})
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 2
+    assert num_bytes > 0
+    stream = pa.BufferReader(output.getvalue())
+    pa_table: pa.Table = pq.read_table(stream)
+    assert pa_table.to_pydict() == {"col_1": ["foo", "bar"], "col_2": [1, 2]}
+
+
+@require_pil
+@pytest.mark.parametrize("embed_local_files", [False, True])
+def test_writer_embed_local_files(tmp_path, embed_local_files):
+    import PIL.Image
+
+    image_path = str(tmp_path / "test_image_rgb.jpg")
+    PIL.Image.fromarray(np.zeros((5, 5), dtype=np.uint8)).save(image_path, format="png")
+    output = pa.BufferOutputStream()
+    with ParquetWriter(
+        stream=output, features=Features({"image": Image()}), embed_local_files=embed_local_files
+    ) as writer:
+        writer.write({"image": image_path})
+        writer.finalize()
+    stream = pa.BufferReader(output.getvalue())
+    pa_table: pa.Table = pq.read_table(stream)
+    out = pa_table.to_pydict()
+    if embed_local_files:
+        assert out["image"][0]["path"] is None
+        with open(image_path, "rb") as f:
+            assert out["image"][0]["bytes"] == f.read()
+    else:
+        assert out["image"][0]["path"] == image_path
+        assert out["image"][0]["bytes"] is None

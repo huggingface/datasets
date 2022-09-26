@@ -309,7 +309,7 @@ def _request_with_retry(
         base_wait_time (float): Duration (in seconds) to wait before retrying the first time. Wait time between
             retries then grows exponentially, capped by max_wait_time.
         max_wait_time (float): Maximum amount of time between two retries, in seconds.
-        **params: Params to pass to :obj:`requests.request`.
+        **params (additional keyword arguments): Params to pass to :obj:`requests.request`.
     """
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
     tries, success = 0, False
@@ -509,7 +509,7 @@ def get_from_cache(
                 logger.info(f"Couldn't get ETag version for url {url}")
             elif response.status_code == 401 and config.HF_ENDPOINT in url and use_auth_token is None:
                 raise ConnectionError(
-                    f"Unauthorized for URL {url}. Please use the parameter ``use_auth_token=True`` after logging in with ``huggingface-cli login``"
+                    f"Unauthorized for URL {url}. Please use the parameter `use_auth_token=True` after logging in with `huggingface-cli login`"
                 )
         except (OSError, requests.exceptions.Timeout) as e:
             # not connected

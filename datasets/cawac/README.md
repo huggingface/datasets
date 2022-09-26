@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - ca
-licenses:
+license:
 - cc-by-sa-3.0
 multilinguality:
 - monolingual

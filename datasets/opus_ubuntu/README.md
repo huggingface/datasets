@@ -1,9 +1,10 @@
 ---
 annotations_creators:
-- found
+- crowdsourced
+- expert-generated
 language_creators:
 - found
-languages:
+language:
 - ace
 - af
 - ak
@@ -11,7 +12,6 @@ languages:
 - an
 - ang
 - ar
-- ar_SY
 - ary
 - as
 - ast
@@ -24,7 +24,6 @@ languages:
 - bg
 - bho
 - bn
-- bn_IN
 - bo
 - br
 - brx
@@ -44,48 +43,21 @@ languages:
 - cy
 - da
 - de
-- de_AT
-- de_DE
 - dsb
 - dv
 - dz
 - el
 - en
-- en_AU
-- en_CA
-- en_GB
-- en_NZ
-- en_US
 - eo
 - es
-- es_AR
-- es_CL
-- es_CO
-- es_CR
-- es_DO
-- es_EC
-- es_ES
-- es_GT
-- es_HN
-- es_MX
-- es_NI
-- es_PA
-- es_PE
-- es_PR
-- es_SV
-- es_UY
-- es_VE
 - et
 - eu
 - fa
-- fa_AF
 - ff
 - fi
 - fil
 - fo
 - fr
-- fr_CA
-- fr_FR
 - frm
 - frp
 - fur
@@ -153,7 +125,6 @@ languages:
 - mk
 - ml
 - mn
-- mo
 - mr
 - ms
 - mt
@@ -166,13 +137,11 @@ languages:
 - ne
 - nhn
 - nl
-- nl_NL
 - nn
-- n/o
+- 'no'
 - nso
 - ny
 - oc
-- oj
 - om
 - or
 - os
@@ -184,8 +153,6 @@ languages:
 - pmy
 - ps
 - pt
-- pt_BR
-- pt_PT
 - qu
 - rm
 - ro
@@ -215,7 +182,6 @@ languages:
 - syr
 - szl
 - ta
-- ta_LK
 - te
 - tet
 - tg
@@ -243,13 +209,47 @@ languages:
 - yi
 - yo
 - zh
-- zh_CN
-- zh_HK
-- zh_TW
 - zu
 - zza
-licenses:
-- unknown
+language_bcp47:
+- ar-SY
+- bn-IN
+- de-AT
+- de-DE
+- en-AU
+- en-CA
+- en-GB
+- en-NZ
+- en-US
+- es-AR
+- es-CL
+- es-CO
+- es-CR
+- es-DO
+- es-EC
+- es-ES
+- es-GT
+- es-HN
+- es-MX
+- es-NI
+- es-PA
+- es-PE
+- es-PR
+- es-SV
+- es-UY
+- es-VE
+- fa-AF
+- fr-CA
+- fr-FR
+- nl-NL
+- pt-BR
+- pt-PT
+- ta-LK
+- zh-CN
+- zh-HK
+- zh-TW
+license:
+- bsd-3-clause
 multilinguality:
 - multilingual
 size_categories:
@@ -262,7 +262,7 @@ task_categories:
 - translation
 task_ids: []
 paperswithcode_id: null
-pretty_name: OpusUbuntu
+pretty_name: Opus Ubuntu
 configs:
 - as-bs
 - az-cs
@@ -276,7 +276,7 @@ configs:
 - bs-szl
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Opus Ubuntu
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -312,12 +312,13 @@ configs:
 
 ### Dataset Summary
 
+These are translations of the Ubuntu software package messages, donated by the Ubuntu community.
 
 To load a language pair which isn't part of the config, all you need to do is specify the language code as pairs.
 You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/Ubuntu.php
 E.g.
 
-`dataset = load_dataset("ubuntu", lang1="it", lang2="pl")`
+`dataset = load_dataset("opus_ubuntu", lang1="it", lang2="pl")`
 
 
 ### Supported Tasks and Leaderboards
@@ -332,15 +333,40 @@ E.g.
 
 ### Data Instances
 
-[More Information Needed]
+Example instance:
+
+```
+{
+  'id': '0', 
+  'translation': {
+    'it': 'Comprende Gmail, Google Docs, Google+, YouTube e Picasa',
+    'pl': 'Zawiera Gmail, Google Docs, Google+, YouTube oraz Picasa'
+  }
+}
+```
 
 ### Data Fields
 
-[More Information Needed]
+Each instance has two fields:
+- **id**: the id of the example
+- **translation**: a dictionary containing translated texts in two languages.
 
 ### Data Splits
 
-[More Information Needed]
+Each subset simply consists in a train set. We provide the number of examples for certain language pairs:
+
+|          |   train |
+|:---------|--------:|
+| as-bs    |    8583 |
+| az-cs    |     293 |
+| bg-de    |     184 |
+| br-es_PR |     125 |
+| bn-ga    |    7324 |
+| br-hi    |   15551 |
+| br-la    |     527 |
+| bs-szl   |     646 |
+| br-uz    |    1416 |
+| br-yi    |    2799 |
 
 ## Dataset Creation
 
@@ -398,10 +424,11 @@ E.g.
 
 ### Licensing Information
 
-[More Information Needed]
+BSD "Revised" license (see (https://help.launchpad.net/Legal#Translations_copyright)[https://help.launchpad.net/Legal#Translations_copyright])
 
 ### Citation Information
 
+```bibtex
 @InProceedings{TIEDEMANN12.463,
   author = {J{\"o}rg Tiedemann},
   title = {Parallel Data, Tools and Interfaces in OPUS},
@@ -415,6 +442,7 @@ E.g.
   isbn = {978-2-9517408-7-7},
   language = {english}
  }
+```
 
 ### Contributions
 

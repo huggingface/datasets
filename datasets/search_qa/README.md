@@ -1,8 +1,24 @@
 ---
-languages:
+annotations_creators:
+- found
+language:
 - en
-paperswithcode_id: searchqa
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
 pretty_name: SearchQA
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
+paperswithcode_id: searchqa
 ---
 
 # Dataset Card for "search_qa"
@@ -33,9 +49,8 @@ pretty_name: SearchQA
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/nyu-dl/dl4ir-searchQA](https://github.com/nyu-dl/dl4ir-searchQA)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/nyu-dl/dl4ir-searchQA
+- **Paper:** [SearchQA: A New Q&A Dataset Augmented with Context from a Search Engine](https://arxiv.org/abs/1704.05179)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 6163.54 MB
 - **Size of the generated dataset:** 14573.76 MB
@@ -188,8 +203,7 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
-    @article{DBLP:journals/corr/DunnSHGCC17,
+@article{DBLP:journals/corr/DunnSHGCC17,
     author    = {Matthew Dunn and
                 Levent Sagun and
                 Mike Higgins and
@@ -207,8 +221,7 @@ The data fields are the same among all splits.
     timestamp = {Mon, 13 Aug 2018 16:47:09 +0200},
     biburl    = {https://dblp.org/rec/journals/corr/DunnSHGCC17.bib},
     bibsource = {dblp computer science bibliography, https://dblp.org}
-    }
-
+}
 ```
 
 

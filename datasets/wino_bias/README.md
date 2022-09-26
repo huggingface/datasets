@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -58,8 +58,7 @@ pretty_name: WinoBias
 ### Dataset Summary
 
 WinoBias, a Winograd-schema dataset for coreference resolution focused on gender bias.
-The corpus contains Winograd-schema style sentences with entities corresponding to people
-referred by their occupation (e.g. the nurse, the doctor, the carpenter).
+The corpus contains Winograd-schema style sentences with entities corresponding to people referred by their occupation (e.g. the nurse, the doctor, the carpenter).
 
 ### Supported Tasks and Leaderboards
 
@@ -72,7 +71,11 @@ English
 
 ### Data Instances
 
-[More Information Needed]
+The dataset has 4 subsets: `type1_pro`, `type1_anti`, `type2_pro` and `type2_anti`.
+
+The `*_pro` subsets contain sentences that reinforce gender stereotypes (e.g. mechanics are male, nurses are female), whereas the `*_anti` datasets contain "anti-stereotypical" sentences  (e.g. mechanics are female, nurses are male).
+
+The `type1` (*WB-Knowledge*) subsets contain sentences for which world knowledge is necessary to resolve the co-references, and `type2` (*WB-Syntax*) subsets require only the syntactic information present in the sentence to resolve them.
 
 ### Data Fields
 
@@ -97,7 +100,7 @@ Dev and Test Split available
 
 ### Curation Rationale
 
-[More Information Needed]
+The WinoBias dataset was introduced in 2018 (see [paper](https://arxiv.org/abs/1804.06876)), with its original task being *coreference resolution*, which is a task that aims to identify mentions that refer to the same entity or person.
 
 ### Source Data
 
@@ -107,7 +110,7 @@ Dev and Test Split available
 
 #### Who are the source language producers?
 
-[More Information Needed]
+ The dataset was created by researchers familiar with the WinoBias project, based on two prototypical templates provided by the authors, in which entities interact in plausible ways.
 
 ### Annotations
 
@@ -117,7 +120,7 @@ Dev and Test Split available
 
 #### Who are the annotators?
 
-[More Information Needed]
+"Researchers familiar with the [WinoBias] project"
 
 ### Personal and Sensitive Information
 
@@ -131,7 +134,7 @@ Dev and Test Split available
 
 ### Discussion of Biases
 
-Gender Bias is discussed with the help of this dataset.
+[Recent work](https://www.microsoft.com/en-us/research/uploads/prod/2021/06/The_Salmon_paper.pdf) has shown that this dataset contains grammatical issues, incorrect or ambiguous labels, and stereotype conflation, among other limitations. 
 
 ### Other Known Limitations
 
@@ -141,7 +144,7 @@ Gender Bias is discussed with the help of this dataset.
 
 ### Dataset Curators
 
-[More Information Needed]
+Jieyu Zhao, Tianlu Wang, Mark Yatskar, Vicente Ordonez and Kai-Wei Chan
 
 ### Licensing Information
 

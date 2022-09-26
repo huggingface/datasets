@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - found
-languages:
+language:
 - de
 - en
 - es
@@ -15,7 +15,7 @@ languages:
 - pt
 - ru
 - zh
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual

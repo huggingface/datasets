@@ -3,10 +3,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - expert-generated
-languages:
+language:
 - ca
 - es
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - translation

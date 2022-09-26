@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - ur
-licenses:
-- other-my-license
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -222,7 +222,12 @@ Zeerak Ahmed
 
 ### Citation Information
 
-[More Information Needed]
+```
+@misc{makhzan,
+title={Maḵẖzan},
+howpublished = "\url{https://github.com/zeerakahmed/makhzan/}",
+}
+```
 
 ### Contributions
 

@@ -48,6 +48,8 @@ features for us bills. ca bills does not have.
 
 _URL = "https://drive.google.com/uc?export=download&id=1g89WgFHMRbr4QrvA0ngh26PY081Nv3lx"
 
+_LICENSE = "CC0"
+
 _DOCUMENT = "text"
 _SUMMARY = "summary"
 
@@ -63,6 +65,7 @@ class Billsum(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
+            license=_LICENSE,
             features=datasets.Features(
                 {
                     _DOCUMENT: datasets.Value("string"),

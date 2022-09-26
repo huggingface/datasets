@@ -3,11 +3,11 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - de
 - en
 - it
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -34,7 +34,7 @@ configs:
 - it_en
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Wizard-of-Oz
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

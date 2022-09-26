@@ -77,7 +77,7 @@ def _reset_library_root_logger() -> None:
 
 def get_logger(name: Optional[str] = None) -> logging.Logger:
     """Return a logger with the specified name.
-    This function can be used in dataset and metrics scripts.
+    This function can be used in dataset scripts.
     """
     if name is None:
         name = _get_library_name()

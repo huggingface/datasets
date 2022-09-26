@@ -3,15 +3,15 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - de
 - en
 - es
 - fr
 - ja
 - zh
-licenses:
-- other-amazon-license
+license:
+- other
 multilinguality:
 - monolingual
 - multilingual
@@ -47,28 +47,36 @@ configs:
 # Dataset Card for The Multilingual Amazon Reviews Corpus
 
 ## Table of Contents
-- [Dataset Description](#dataset-description)
-  - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-  - [Languages](#languages)
-- [Dataset Structure](#dataset-structure)
-  - [Data Instances](#data-instances)
-  - [Data Fields](#data-fields)
-  - [Data Splits](#data-splits)
-- [Dataset Creation](#dataset-creation)
-  - [Curation Rationale](#curation-rationale)
-  - [Source Data](#source-data)
-  - [Annotations](#annotations)
-  - [Personal and Sensitive Information](#personal-and-sensitive-information)
-- [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Impact of Dataset](#social-impact-of-dataset)
-  - [Discussion of Biases](#discussion-of-biases)
-  - [Other Known Limitations](#other-known-limitations)
-- [Additional Information](#additional-information)
-  - [Dataset Curators](#dataset-curators)
-  - [Licensing Information](#licensing-information)
-  - [Citation Information](#citation-information)
-  - [Contributions](#contributions)
+- [Dataset Card for amazon_reviews_multi](#dataset-card-for-amazon_reviews_multi)
+  - [Table of Contents](#table-of-contents)
+  - [Dataset Description](#dataset-description)
+    - [Dataset Summary](#dataset-summary)
+    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+    - [Languages](#languages)
+  - [Dataset Structure](#dataset-structure)
+    - [Data Instances](#data-instances)
+      - [plain_text](#plain_text)
+    - [Data Fields](#data-fields)
+      - [plain_text](#plain_text-1)
+    - [Data Splits](#data-splits)
+  - [Dataset Creation](#dataset-creation)
+    - [Curation Rationale](#curation-rationale)
+    - [Source Data](#source-data)
+      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
+      - [Who are the source language producers?](#who-are-the-source-language-producers)
+    - [Annotations](#annotations)
+      - [Annotation process](#annotation-process)
+      - [Who are the annotators?](#who-are-the-annotators)
+    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Considerations for Using the Data](#considerations-for-using-the-data)
+    - [Social Impact of Dataset](#social-impact-of-dataset)
+    - [Discussion of Biases](#discussion-of-biases)
+    - [Other Known Limitations](#other-known-limitations)
+  - [Additional Information](#additional-information)
+    - [Dataset Curators](#dataset-curators)
+    - [Licensing Information](#licensing-information)
+    - [Citation Information](#citation-information)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -83,6 +91,10 @@ We provide an Amazon product reviews dataset for multilingual text classificatio
 For each language, there are 200,000, 5,000 and 5,000 reviews in the training, development and test sets respectively. The maximum number of reviews per reviewer is 20 and the maximum number of reviews per product is 20. All reviews are truncated after 2,000 characters, and all reviews are at least 20 characters long.
 
 Note that the language of a review does not necessarily match the language of its marketplace (e.g. reviews from amazon.de are primarily written in German, but could also be written in English, etc.). For this reason, we applied a language detection algorithm based on the work in Bojanowski et al. (2017) to determine the language of the review text and we removed reviews that were not written in the expected language.
+
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
 
 ### Languages
 
@@ -192,7 +204,7 @@ Published by Phillip Keung, Yichao Lu, György Szarvas, and Noah A. Smith. Manag
 
 ### Licensing Information
 
-Amazon has licensed this dataset under its own agreement, to be found at the dataset webpage here:
+Amazon has licensed this dataset under its own agreement for non-commercial research usage only. This licence is quite restrictive preventing use anywhere a fee is received including paid for internships etc.  A copy of the agreement can be found at the dataset webpage here:
 https://docs.opendata.aws/amazon-reviews-ml/license.txt
 
 ### Citation Information

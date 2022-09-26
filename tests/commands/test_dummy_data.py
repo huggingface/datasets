@@ -1,45 +1,24 @@
 import os
 from collections import namedtuple
-from dataclasses import dataclass
 
-from packaging import version
-
-from datasets import config
 from datasets.commands.dummy_data import DummyDataCommand
 
 
-if config.PY_VERSION >= version.parse("3.7"):
-    DummyDataCommandArgs = namedtuple(
-        "DummyDataCommandArgs",
-        [
-            "path_to_dataset",
-            "auto_generate",
-            "n_lines",
-            "json_field",
-            "xml_tag",
-            "match_text_files",
-            "keep_uncompressed",
-            "cache_dir",
-            "encoding",
-        ],
-        defaults=[False, 5, None, None, None, False, None, None],
-    )
-else:
-
-    @dataclass
-    class DummyDataCommandArgs:
-        path_to_dataset: str
-        auto_generate: bool = False
-        n_lines: int = 5
-        json_field: str = None
-        xml_tag: str = None
-        match_text_files: str = None
-        keep_uncompressed: bool = False
-        cache_dir: str = None
-        encoding: str = None
-
-        def __iter__(self):
-            return iter(self.__dict__.values())
+DummyDataCommandArgs = namedtuple(
+    "DummyDataCommandArgs",
+    [
+        "path_to_dataset",
+        "auto_generate",
+        "n_lines",
+        "json_field",
+        "xml_tag",
+        "match_text_files",
+        "keep_uncompressed",
+        "cache_dir",
+        "encoding",
+    ],
+    defaults=[False, 5, None, None, None, False, None, None],
+)
 
 
 class MockDummyDataCommand(DummyDataCommand):

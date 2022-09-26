@@ -3,11 +3,11 @@ annotations_creators:
 - no-annotation
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-3.0
-- gfdl-1.3-or-later
+- gfdl
 multilinguality:
 - monolingual
 paperswithcode_id: wikitext-2

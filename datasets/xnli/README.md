@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: xnli
 pretty_name: Cross-lingual Natural Language Inference

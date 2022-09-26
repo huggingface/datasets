@@ -16,9 +16,6 @@
 # Lint as: python3
 """The BookCorpus dataset."""
 
-
-import os
-
 import datasets
 
 
@@ -83,20 +80,16 @@ class Bookcorpus(datasets.GeneratorBasedBuilder):
             yield ex["text"]
 
     def _split_generators(self, dl_manager):
-        arch_path = dl_manager.download_and_extract(URL)
-
+        arch_path = dl_manager.download(URL)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"directory": arch_path}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_archive(arch_path)}
+            ),
         ]
 
-    def _generate_examples(self, directory):
-        files = [
-            os.path.join(directory, "books_large_p1.txt"),
-            os.path.join(directory, "books_large_p2.txt"),
-        ]
+    def _generate_examples(self, files):
         _id = 0
-        for txt_file in files:
-            with open(txt_file, mode="r", encoding="utf-8") as f:
-                for line in f:
-                    yield _id, {"text": line.strip()}
-                    _id += 1
+        for path, file in files:
+            for line in file:
+                yield _id, {"text": line.decode("utf-8").strip()}
+                _id += 1

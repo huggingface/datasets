@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - th
-licenses:
-- other-aiforthai
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -17,7 +17,7 @@ task_categories:
 - token-classification
 task_ids:
 - named-entity-recognition
-- part-of-speech-tagging
+- part-of-speech
 - token-classification-other-clause-segmentation
 - token-classification-other-sentence-segmentation
 - token-classification-other-word-segmentation

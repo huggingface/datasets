@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -27,7 +27,7 @@ pretty_name: SofcMaterialsArticles
 ---
 
 
-# Dataset Card Creation Guide
+# Dataset Card for SofcMaterialsArticles
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

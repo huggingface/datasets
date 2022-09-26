@@ -7,7 +7,7 @@ language_creators:
 - crowdsourced
 - expert-generated
 - machine-generated
-languages:
+language:
 - af
 - ar
 - az
@@ -61,7 +61,7 @@ languages:
 - ur
 - vi
 - zh
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - translation

@@ -3,10 +3,10 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- cc-by-3.0-at
+license:
+- cc-by-3.0
 multilinguality:
 - monolingual
 size_categories:

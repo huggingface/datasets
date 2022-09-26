@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - ko
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -143,7 +143,7 @@ This dataset is licensed under the MIT License.
 
 ### Citation Information
 
-[More Information Needed]
+Unknown citation information: https://github.com/SpellOnYou/korean-sarcasm
 
 ### Contributions
 

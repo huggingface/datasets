@@ -42,7 +42,7 @@ def test_download_manager_download(urls_type, tmp_path, monkeypatch):
         urls = {"train": url}
     dataset_name = "dummy"
     cache_subdir = "downloads"
-    cache_dir_root = str(tmp_path)
+    cache_dir_root = tmp_path
     download_config = DownloadConfig(
         cache_dir=os.path.join(cache_dir_root, cache_subdir),
         use_etag=False,
@@ -136,3 +136,10 @@ def test_iter_archive_file(tar_nested_jsonl_path):
             _test_jsonl(subpath, subfile)
     assert num_tar == 1
     assert num_jsonl == 2
+
+
+def test_iter_files(data_dir_with_hidden_files):
+    dl_manager = DownloadManager()
+    for num_file, file in enumerate(dl_manager.iter_files(data_dir_with_hidden_files), start=1):
+        pass
+    assert num_file == 2

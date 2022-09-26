@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - sv
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -21,7 +21,7 @@ paperswithcode_id: null
 pretty_name: Swedish NER Corpus
 ---
 
-# Dataset Card of Swedish NER Corpus
+# Dataset Card for Swedish NER Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

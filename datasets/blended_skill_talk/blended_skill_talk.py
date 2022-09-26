@@ -47,7 +47,11 @@ class BlendedSkillTalk(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                     "free_messages": datasets.features.Sequence(datasets.Value("string")),
                     "guided_messages": datasets.features.Sequence(datasets.Value("string")),
-                    "suggestions": datasets.features.Sequence({task: datasets.Value("string") for task in _TASK})
+                    "suggestions": datasets.features.Sequence({task: datasets.Value("string") for task in _TASK}),
+                    "guided_chosen_suggestions": datasets.features.Sequence(datasets.Value("string")),
+                    "label_candidates": datasets.features.Sequence(
+                        datasets.features.Sequence(datasets.Value("string"))
+                    ),
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -119,6 +123,11 @@ class BlendedSkillTalk(datasets.GeneratorBasedBuilder):
                         convai_suggestions.append(suggestions[2 * i + 1]["convai2"])
                         empathetic_suggestions.append(suggestions[2 * i + 1]["empathetic_dialogues"])
                         wow_suggestions.append(suggestions[2 * i + 1]["wizard_of_wikipedia"])
+                    chosen_suggestions = row["chosen_suggestions"]
+                    guided_chosen_suggestions = []
+                    for i in range(len(chosen_suggestions) // 2):
+                        guided_chosen_suggestions.append(chosen_suggestions[2 * i + 1])
+                    label_candidates = row["label_candidates"] if "label_candidates" in row else []
                     yield id_, {
                         "personas": personas,
                         "additional_context": add_context,
@@ -131,5 +140,7 @@ class BlendedSkillTalk(datasets.GeneratorBasedBuilder):
                             "empathetic_dialogues": empathetic_suggestions,
                             "wizard_of_wikipedia": wow_suggestions,
                         },
+                        "guided_chosen_suggestions": guided_chosen_suggestions,
+                        "label_candidates": label_candidates,
                     }
                 break

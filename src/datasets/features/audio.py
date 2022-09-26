@@ -1,8 +1,10 @@
 import os
+import warnings
 from dataclasses import dataclass, field
 from io import BytesIO
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
 
+import numpy as np
 import pyarrow as pa
 from packaging import version
 
@@ -33,7 +35,7 @@ class Audio:
 
         - path: String with relative path of the audio file to the archive file.
         - array: Array containing the audio sample
-        - sampling_rate: Integer corresponding to the samping rate of the audio sample.
+        - sampling_rate: Integer corresponding to the sampling rate of the audio sample.
 
       This is useful for archived files with sequential access.
 
@@ -92,7 +94,22 @@ class Audio:
             return {"bytes": buffer.getvalue(), "path": None}
         elif value.get("path") is not None and os.path.isfile(value["path"]):
             # we set "bytes": None to not duplicate the data if they're already available locally
-            return {"bytes": None, "path": value.get("path")}
+            if value["path"].endswith("pcm"):
+                # "PCM" only has raw audio bytes
+                if value.get("sampling_rate") is None:
+                    # At least, If you want to convert "PCM-byte" to "WAV-byte", you have to know sampling rate
+                    raise KeyError("To use PCM files, please specify a 'sampling_rate' in Audio object")
+                if value.get("bytes"):
+                    # If we already had PCM-byte, we don`t have to make "read file, make bytes" (just use it!)
+                    bytes_value = np.frombuffer(value["bytes"], dtype=np.int16).astype(np.float32) / 32767
+                else:
+                    bytes_value = np.memmap(value["path"], dtype="h", mode="r").astype(np.float32) / 32767
+
+                buffer = BytesIO(bytes())
+                sf.write(buffer, bytes_value, value["sampling_rate"], format="wav")
+                return {"bytes": buffer.getvalue(), "path": None}
+            else:
+                return {"bytes": None, "path": value.get("path")}
         elif value.get("bytes") is not None or value.get("path") is not None:
             # store the audio bytes, and path is used to infer the audio format using the file extension
             return {"bytes": value.get("bytes"), "path": value.get("path")}
@@ -101,7 +118,9 @@ class Audio:
                 f"An audio sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
             )
 
-    def decode_example(self, value: dict, token_per_repo_id=None) -> dict:
+    def decode_example(
+        self, value: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None
+    ) -> dict:
         """Decode example audio file into audio data.
 
         Args:
@@ -211,7 +230,9 @@ class Audio:
         storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
         return array_cast(storage, self.pa_type)
 
-    def _decode_non_mp3_path_like(self, path, format=None, token_per_repo_id=None):
+    def _decode_non_mp3_path_like(
+        self, path, format=None, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None
+    ):
         try:
             import librosa
         except ImportError as err:
@@ -248,7 +269,7 @@ class Audio:
             if version.parse(sf.__libsndfile_version__) < version.parse("1.0.30"):
                 raise RuntimeError(
                     "Decoding .opus files requires 'libsndfile'>=1.0.30, "
-                    + "it can be installed via conda: `conda install -c conda-forge libsndfile>=1.0.30`"
+                    + 'it can be installed via conda: `conda install -c conda-forge "libsndfile>=1.0.30"`'
                 )
         array, sampling_rate = sf.read(file)
         array = array.T
@@ -262,13 +283,44 @@ class Audio:
     def _decode_mp3(self, path_or_file):
         try:
             import torchaudio
-            import torchaudio.transforms as T
         except ImportError as err:
             raise ImportError("To support decoding 'mp3' audio files, please install 'torchaudio'.") from err
-        try:
-            torchaudio.set_audio_backend("sox_io")
-        except RuntimeError as err:
-            raise ImportError("To support decoding 'mp3' audio files, please install 'sox'.") from err
+        if version.parse(torchaudio.__version__) < version.parse("0.12.0"):
+            try:
+                torchaudio.set_audio_backend("sox_io")
+            except RuntimeError as err:
+                raise ImportError("To support decoding 'mp3' audio files, please install 'sox'.") from err
+            array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
+        else:
+            try:  # try torchaudio anyway because sometimes it works (depending on the os and os packages installed)
+                array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
+            except RuntimeError:
+                try:
+                    # flake8: noqa
+                    import librosa
+                except ImportError as err:
+                    raise ImportError(
+                        "Your version of `torchaudio` (>=0.12.0) doesn't support decoding 'mp3' files on your machine. "
+                        "To support 'mp3' decoding with `torchaudio>=0.12.0`, please install `ffmpeg>=4` system package "
+                        'or downgrade `torchaudio` to <0.12: `pip install "torchaudio<0.12"`. '
+                        "To support decoding 'mp3' audio files without `torchaudio`, please install `librosa`: "
+                        "`pip install librosa`. Note that decoding will be extremely slow in that case."
+                    ) from err
+                # try to decode with librosa for torchaudio>=0.12.0 as a workaround
+                warnings.warn("Decoding mp3 with `librosa` instead of `torchaudio`, decoding is slow.")
+                try:
+                    array, sampling_rate = self._decode_mp3_librosa(path_or_file)
+                except RuntimeError as err:
+                    raise RuntimeError(
+                        "Decoding of 'mp3' failed, probably because of streaming mode "
+                        "(`librosa` cannot decode 'mp3' file-like objects, only path-like)."
+                    ) from err
+
+        return array, sampling_rate
+
+    def _decode_mp3_torchaudio(self, path_or_file):
+        import torchaudio
+        import torchaudio.transforms as T
 
         array, sampling_rate = torchaudio.load(path_or_file, format="mp3")
         if self.sampling_rate and self.sampling_rate != sampling_rate:
@@ -279,4 +331,10 @@ class Audio:
         array = array.numpy()
         if self.mono:
             array = array.mean(axis=0)
+        return array, sampling_rate
+
+    def _decode_mp3_librosa(self, path_or_file):
+        import librosa
+
+        array, sampling_rate = librosa.load(path_or_file, mono=self.mono, sr=self.sampling_rate)
         return array, sampling_rate

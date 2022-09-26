@@ -5,25 +5,27 @@ multilinguality:
 - multilingual
 task_ids:
 - text-classification-other-language-identification
-languages:
-- hi
+language:
 - awa
 - bho
-- mag
 - bra
+- hi
+- mag
+language_creators:
+- found
 annotations_creators:
-- unknown
+- no-annotation
 source_datasets:
 - original
 size_categories:
 - 10K<n<100K
-licenses:
-- unknown
+license:
+- cc-by-4.0
 paperswithcode_id: null
 pretty_name: ilist
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for ilist
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -51,15 +53,17 @@ pretty_name: ilist
 
 ## Dataset Description
 
-- **Homepage:** [GitHub](https://github.com/kmi-linguistics/vardial2018)
-- **Repository:** [GitHub](https://github.com/kmi-linguistics/vardial2018)
-- **Paper:** [Link](https://www.aclweb.org/anthology/W18-3900/)
+- **Homepage:**
+- **Repository:** https://github.com/kmi-linguistics/vardial2018
+- **Paper:** [Language Identification and Morphosyntactic Tagging: The Second VarDial Evaluation Campaign](https://aclanthology.org/W18-3901/)
 - **Leaderboard:**
 - **Point of Contact:** linguistics.kmi@gmail.com
 
 ### Dataset Summary
 
-This datasets is introduced in a task which aimed at identifying 5 closely-related languages of Indo-Aryan language family – Hindi (also known as Khari Boli), Braj Bhasha, Awadhi, Bhojpuri and Magahi. These languages form part of a continuum starting from Western Uttar Pradesh (Hindi and Braj Bhasha) to Eastern Uttar Pradesh (Awadhi and Bhojpuri) and the neighbouring Eastern state of Bihar (Bhojpuri and Magahi). For this task, participants were provided with a dataset of approximately 15,000 sentences in each language, mainly from the domain of literature, published over the web as well as in print.
+This dataset is introduced in a task which aimed at identifying 5 closely-related languages of Indo-Aryan language family: Hindi (also known as Khari Boli), Braj Bhasha, Awadhi, Bhojpuri and Magahi. These languages form part of a continuum starting from Western Uttar Pradesh (Hindi and Braj Bhasha) to Eastern Uttar Pradesh (Awadhi and Bhojpuri) and the neighbouring Eastern state of Bihar (Bhojpuri and Magahi).
+
+For this task, participants were provided with a dataset of approximately 15,000 sentences in each language, mainly from the domain of literature, published over the web as well as in print.
 
 ### Supported Tasks and Leaderboards
 
@@ -100,11 +104,18 @@ The language ids correspond to the following languages: "AWA", "BRA", "MAG", "BH
 
 ### Source Data
 
-[More Information Needed]
+The data for this task was collected from both hard printed and digital sources. Printed materials were
+obtained from different institutions that promote these languages. We also gathered data from libraries,
+as well as from local literary and cultural groups. We collected printed stories, novels and essays in
+books, magazines, and newspapers.
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+We scanned the printed materials, then we performed OCR, and
+finally we asked native speakers of the respective languages to correct the OCR output. Since there are
+no specific OCR models available for these languages, we used the Google OCR for Hindi, part of the
+Drive API. Since all the languages used the Devanagari script, we expected the OCR to work reasonably
+well, and overall it did. We further managed to get some blogs in Magahi and Bhojpuri.
 
 #### Who are the source language producers?
 
@@ -146,24 +157,38 @@ The language ids correspond to the following languages: "AWA", "BRA", "MAG", "BH
 
 ### Licensing Information
 
-[More Information Needed]
+This work is licensed under a Creative Commons Attribution 4.0 International License: http://creativecommons.org/licenses/by/4.0/
 
 ### Citation Information
 
 ```
-@proceedings{ws-2018-nlp-similar,
-    title = "Proceedings of the Fifth Workshop on {NLP} for Similar Languages, Varieties and Dialects ({V}ar{D}ial 2018)",
-    editor = {Zampieri, Marcos  and
+@inproceedings{zampieri-etal-2018-language,
+    title = "Language Identification and Morphosyntactic Tagging: The Second {V}ar{D}ial Evaluation Campaign",
+    author = {Zampieri, Marcos  and
+      Malmasi, Shervin  and
       Nakov, Preslav  and
+      Ali, Ahmed  and
+      Shon, Suwon  and
+      Glass, James  and
+      Scherrer, Yves  and
+      Samard{\v{z}}i{\'c}, Tanja  and
       Ljube{\v{s}}i{\'c}, Nikola  and
       Tiedemann, J{\"o}rg  and
-      Malmasi, Shervin  and
-      Ali, Ahmed},
+      van der Lee, Chris  and
+      Grondelaers, Stefan  and
+      Oostdijk, Nelleke  and
+      Speelman, Dirk  and
+      van den Bosch, Antal  and
+      Kumar, Ritesh  and
+      Lahiri, Bornini  and
+      Jain, Mayank},
+    booktitle = "Proceedings of the Fifth Workshop on {NLP} for Similar Languages, Varieties and Dialects ({V}ar{D}ial 2018)",
     month = aug,
     year = "2018",
     address = "Santa Fe, New Mexico, USA",
     publisher = "Association for Computational Linguistics",
-    url = "https://www.aclweb.org/anthology/W18-3900",
+    url = "https://aclanthology.org/W18-3901",
+    pages = "1--17",
 }
 ```
 

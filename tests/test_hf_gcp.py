@@ -60,7 +60,7 @@ class TestDatasetOnHfGcp(TestCase):
 
             builder_instance: DatasetBuilder = builder_cls(
                 cache_dir=tmp_dir,
-                name=config_name,
+                config_name=config_name,
                 hash=dataset_module.hash,
             )
 

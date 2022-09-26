@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - machine-generated
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

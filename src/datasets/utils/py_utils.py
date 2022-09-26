@@ -17,20 +17,20 @@
 
 """
 
-import contextlib
+import copy
 import functools
 import itertools
 import os
-import pickle
 import re
-import sys
 import types
 from contextlib import contextmanager
+from dataclasses import fields, is_dataclass
 from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
 from shutil import disk_usage
 from types import CodeType, FunctionType
-from typing import Callable, ClassVar, Dict, Generic, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 import dill
 import numpy as np
@@ -114,7 +114,7 @@ def convert_file_size_to_int(size: Union[int, str]) -> int:
     if size.upper().endswith("KB"):
         int_size = int(size[:-2]) * (10**3)
         return int_size // 8 if size.endswith("b") else int_size
-    raise ValueError("`size` is not in a valid format. Use an integer followed by the unit, e.g., '5GB'.")
+    raise ValueError(f"`size={size}` is not in a valid format. Use an integer followed by the unit, e.g., '5GB'.")
 
 
 def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
@@ -136,18 +136,59 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
 
     Returns:
         Dict[str, str]: dictionary of variable -> value, retrieved from the input using the pattern
+
+    Raises:
+        ValueError: if the string doesn't match the pattern
     """
     regex = re.sub(r"{(.+?)}", r"(?P<_\1>.+)", pattern)
     result = re.search(regex, string)
     if result is None:
-        raise ValueError(f"Pattern {pattern} doesn't match {string}")
+        raise ValueError(f"String {string} doesn't match the pattern {pattern}")
     values = list(result.groups())
     keys = re.findall(r"{(.+?)}", pattern)
     _dict = dict(zip(keys, values))
     return _dict
 
 
-@contextlib.contextmanager
+def asdict(obj):
+    """Convert an object to its dictionary representation recursively.
+
+    <Added version="2.4.0"/>
+    """
+
+    # Implementation based on https://docs.python.org/3/library/dataclasses.html#dataclasses.asdict
+
+    def _is_dataclass_instance(obj):
+        # https://docs.python.org/3/library/dataclasses.html#dataclasses.is_dataclass
+        return is_dataclass(obj) and not isinstance(obj, type)
+
+    def _asdict_inner(obj):
+        if _is_dataclass_instance(obj):
+            result = {}
+            for f in fields(obj):
+                value = _asdict_inner(getattr(obj, f.name))
+                result[f.name] = value
+            return result
+        elif isinstance(obj, tuple) and hasattr(obj, "_fields"):
+            # obj is a namedtuple
+            return type(obj)(*[_asdict_inner(v) for v in obj])
+        elif isinstance(obj, (list, tuple)):
+            # Assume we can create an object of this type by passing in a
+            # generator (which is not true for namedtuples, handled
+            # above).
+            return type(obj)(_asdict_inner(v) for v in obj)
+        elif isinstance(obj, dict):
+            return {_asdict_inner(k): _asdict_inner(v) for k, v in obj.items()}
+        else:
+            return copy.deepcopy(obj)
+
+    if not isinstance(obj, dict) and not _is_dataclass_instance(obj):
+        raise TypeError(f"{obj} is not a dict or a dataclass")
+
+    return _asdict_inner(obj)
+
+
+@contextmanager
 def temporary_assignment(obj, attr, value):
     """Temporarily assign obj.attr to value."""
     original = getattr(obj, attr, None)
@@ -314,19 +355,54 @@ def _single_map_nested(args):
 
 
 def map_nested(
-    function,
-    data_struct,
+    function: Callable[[Any], Any],
+    data_struct: Any,
     dict_only: bool = False,
     map_list: bool = True,
     map_tuple: bool = False,
     map_numpy: bool = False,
     num_proc: Optional[int] = None,
-    types=None,
+    parallel_min_length: int = 2,
+    types: Optional[tuple] = None,
     disable_tqdm: bool = True,
     desc: Optional[str] = None,
-):
+) -> Any:
     """Apply a function recursively to each element of a nested data struct.
-    If num_proc > 1 and the length of data_struct is longer than num_proc: use multi-processing
+
+    Use multiprocessing if num_proc > 1 and the length of data_struct is greater than or equal to
+    `parallel_min_length`.
+
+    <Changed version="2.5.0">
+
+    Before version 2.5.0, multiprocessing was not used if `num_proc` was greater than or equal to ``len(iterable)``.
+
+    Now, if `num_proc` is greater than or equal to ``len(iterable)``, `num_proc` is set to ``len(iterable)`` and
+    multiprocessing is used.
+
+    </Changed>
+
+    Args:
+        function (`Callable`): Function to be applied to `data_struct`.
+        data_struct (`Any`): Data structure to apply `function` to.
+        dict_only (`bool`, default `False`): Whether only apply `function` recursively to `dict` values in
+            `data_struct`.
+        map_list (`bool`, default `True`): Whether also apply `function` recursively to `list` elements (besides `dict`
+            values).
+        map_tuple (`bool`, default `False`): Whether also apply `function` recursively to `tuple` elements (besides
+            `dict` values).
+        map_numpy (`bool, default `False`): Whether also apply `function` recursively to `numpy.array` elements (besides
+            `dict` values).
+        num_proc (`int`, *optional*): Number of processes.
+        parallel_min_length (`int`, default `2`): Minimum length of `data_struct` required for parallel
+            processing.
+            <Added version="2.5.0"/>
+        types (`tuple`, *optional*): Additional types (besides `dict` values) to apply `function` recursively to their
+            elements.
+        disable_tqdm (`bool`, default `True`): Whether to disable the tqdm progressbar.
+        desc (`str`, *optional*): Prefix for the tqdm progressbar.
+
+    Returns:
+        `Any`
     """
     if types is None:
         types = []
@@ -348,12 +424,13 @@ def map_nested(
 
     if num_proc is None:
         num_proc = 1
-    if num_proc <= 1 or len(iterable) <= num_proc:
+    if num_proc <= 1 or len(iterable) < parallel_min_length:
         mapped = [
             _single_map_nested((function, obj, types, None, True, None))
             for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
+        num_proc = num_proc if num_proc <= len(iterable) else len(iterable)
         split_kwds = []  # We organize the splits ourselve (contiguous splits)
         for index in range(num_proc):
             div = len(iterable) // num_proc
@@ -414,23 +491,102 @@ def has_sufficient_disk_space(needed_bytes, directory="."):
     return needed_bytes < free_bytes
 
 
+def _convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
+    """Convert a link to a file on a github repo in a link to the raw github object."""
+    parsed = urlparse(url_path)
+    sub_directory = None
+    if parsed.scheme in ("http", "https", "s3") and parsed.netloc == "github.com":
+        if "blob" in url_path:
+            if not url_path.endswith(".py"):
+                raise ValueError(f"External import from github at {url_path} should point to a file ending with '.py'")
+            url_path = url_path.replace("blob", "raw")  # Point to the raw file
+        else:
+            # Parse github url to point to zip
+            github_path = parsed.path[1:]
+            repo_info, branch = github_path.split("/tree/") if "/tree/" in github_path else (github_path, "master")
+            repo_owner, repo_name = repo_info.split("/")
+            url_path = f"https://github.com/{repo_owner}/{repo_name}/archive/{branch}.zip"
+            sub_directory = f"{repo_name}-{branch}"
+    return url_path, sub_directory
+
+
+def get_imports(file_path: str) -> Tuple[str, str, str, str]:
+    """Find whether we should import or clone additional files for a given processing script.
+        And list the import.
+
+    We allow:
+    - library dependencies,
+    - local dependencies and
+    - external dependencies whose url is specified with a comment starting from "# From:' followed by the raw url to a file, an archive or a github repository.
+        external dependencies will be downloaded (and extracted if needed in the dataset folder).
+        We also add an `__init__.py` to each sub-folder of a downloaded folder so the user can import from them in the script.
+
+    Note that only direct import in the dataset processing script will be handled
+    We don't recursively explore the additional import to download further files.
+
+    Example::
+
+        import tensorflow
+        import .c4_utils
+        import .clicr.dataset-code.build_json_dataset  # From: https://raw.githubusercontent.com/clips/clicr/master/dataset-code/build_json_dataset
+    """
+    lines = []
+    with open(file_path, encoding="utf-8") as f:
+        lines.extend(f.readlines())
+
+    logger.debug(f"Checking {file_path} for additional imports.")
+    imports: List[Tuple[str, str, str, Optional[str]]] = []
+    is_in_docstring = False
+    for line in lines:
+        docstr_start_match = re.findall(r'[\s\S]*?"""[\s\S]*?', line)
+
+        if len(docstr_start_match) == 1:
+            # flip True <=> False only if doctstring
+            # starts at line without finishing
+            is_in_docstring = not is_in_docstring
+
+        if is_in_docstring:
+            # import statements in doctstrings should
+            # not be added as required dependencies
+            continue
+
+        match = re.match(r"^import\s+(\.?)([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)", line, flags=re.MULTILINE)
+        if match is None:
+            match = re.match(
+                r"^from\s+(\.?)([^\s\.]+)(?:[^\s]*)\s+import\s+[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)",
+                line,
+                flags=re.MULTILINE,
+            )
+            if match is None:
+                continue
+        if match.group(1):
+            # The import starts with a '.', we will download the relevant file
+            if any(imp[1] == match.group(2) for imp in imports):
+                # We already have this import
+                continue
+            if match.group(3):
+                # The import has a comment with 'From:', we'll retrieve it from the given url
+                url_path = match.group(3)
+                url_path, sub_directory = _convert_github_url(url_path)
+                imports.append(("external", match.group(2), url_path, sub_directory))
+            elif match.group(2):
+                # The import should be at the same place as the file
+                imports.append(("internal", match.group(2), match.group(2), None))
+        else:
+            if match.group(3):
+                # The import has a comment with `From: git+https:...`, asks user to pip install from git.
+                url_path = match.group(3)
+                imports.append(("library", match.group(2), url_path, None))
+            else:
+                imports.append(("library", match.group(2), match.group(2), None))
+
+    return imports
+
+
 class Pickler(dill.Pickler):
     """Same Pickler as the one from dill, but improved for notebooks and shells"""
 
     dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
-
-    def save_global(self, obj, name=None):
-        if sys.version_info[:2] < (3, 7) and _CloudPickleTypeHintFix._is_parametrized_type_hint(
-            obj
-        ):  # noqa  # pragma: no branch
-            # Parametrized typing constructs in Python < 3.7 are not compatible
-            # with type checks and ``isinstance`` semantics. For this reason,
-            # it is easier to detect them using a duck-typing-based check
-            # (``_is_parametrized_type_hint``) than to populate the Pickler's
-            # dispatch with type-specific savers.
-            _CloudPickleTypeHintFix._save_parametrized_type_hint(self, obj)
-        else:
-            dill.Pickler.save_global(self, obj, name=name)
 
     def memoize(self, obj):
         # don't memoize strings since two identical strings can have different python ids
@@ -444,7 +600,7 @@ def dump(obj, file):
     return
 
 
-@contextlib.contextmanager
+@contextmanager
 def _no_cache_fields(obj):
     try:
         if (
@@ -475,47 +631,6 @@ def pklregister(t):
         return func
 
     return proxy
-
-
-class _CloudPickleTypeHintFix:
-    """
-    Type hints can't be properly pickled in python < 3.7
-    CloudPickle provided a way to make it work in older versions.
-    This class provide utilities to fix pickling of type hints in older versions.
-    from https://github.com/cloudpipe/cloudpickle/pull/318/files
-    """
-
-    def _is_parametrized_type_hint(obj):
-        # This is very cheap but might generate false positives.
-        origin = getattr(obj, "__origin__", None)  # typing Constructs
-        values = getattr(obj, "__values__", None)  # typing_extensions.Literal
-        type_ = getattr(obj, "__type__", None)  # typing_extensions.Final
-        return origin is not None or values is not None or type_ is not None
-
-    def _create_parametrized_type_hint(origin, args):
-        return origin[args]
-
-    def _save_parametrized_type_hint(pickler, obj):
-        # The distorted type check sematic for typing construct becomes:
-        # ``type(obj) is type(TypeHint)``, which means "obj is a
-        # parametrized TypeHint"
-        if type(obj) is type(Literal):  # pragma: no branch
-            initargs = (Literal, obj.__values__)
-        elif type(obj) is type(Final):  # pragma: no branch
-            initargs = (Final, obj.__type__)
-        elif type(obj) is type(ClassVar):
-            initargs = (ClassVar, obj.__type__)
-        elif type(obj) in [type(Union), type(Tuple), type(Generic)]:
-            initargs = (obj.__origin__, obj.__args__)
-        elif type(obj) is type(Callable):
-            args = obj.__args__
-            if args[0] is Ellipsis:
-                initargs = (obj.__origin__, args)
-            else:
-                initargs = (obj.__origin__, (list(args[:-1]), args[-1]))
-        else:  # pragma: no cover
-            raise pickle.PicklingError(f"Datasets pickle Error: Unknown type {type(obj)}")
-        pickler.save_reduce(_CloudPickleTypeHintFix._create_parametrized_type_hint, initargs, obj=obj)
 
 
 @pklregister(CodeType)
@@ -629,7 +744,7 @@ if config.DILL_VERSION < version.parse("0.3.5"):
             # therefore we have to sort the keys to make deterministic.
             # This is important to make `dump` deterministic.
             # Only this line is different from the original implementation:
-            globs = {k: globs[k] for k in sorted(globs.keys())}
+            globs = dict(sorted(globs.items()))
             # The rest is the same as in the original dill implementation
             _byref = getattr(pickler, "_byref", None)
             _recurse = getattr(pickler, "_recurse", None)
@@ -722,6 +837,22 @@ else:  # config.DILL_VERSION >= version.parse("0.3.5")
                 else:
                     globs = {"__name__": obj.__module__}
 
+            # DONE: modified here for huggingface/datasets
+            # - globs is a dictionary with keys = var names (str) and values = python objects
+            # - globs_copy is a dictionary with keys = var names (str) and values = ids of the python objects
+            # however the dictionary is not always loaded in the same order
+            # therefore we have to sort the keys to make deterministic.
+            # This is important to make `dump` deterministic.
+            # Only these line are different from the original implementation:
+            # START
+            globs_is_globs_copy = globs is globs_copy
+            globs = dict(sorted(globs.items()))
+            if globs_is_globs_copy:
+                globs_copy = globs
+            elif globs_copy is not None:
+                globs_copy = dict(sorted(globs_copy.items()))
+            # END
+
             if globs_copy is not None and globs is not globs_copy:
                 # In the case that the globals are copied, we need to ensure that
                 # the globals dictionary is updated when all objects in the
@@ -736,13 +867,6 @@ else:  # config.DILL_VERSION >= version.parse("0.3.5")
                         break
                 else:
                     postproc_list.append((dill._dill._setitems, (globs, globs_copy)))
-
-            # DONE: globs is a dictionary with keys = var names (str) and values = python objects
-            # however the dictionary is not always loaded in the same order
-            # therefore we have to sort the keys to make deterministic.
-            # This is important to make `dump` deterministic.
-            # Only this line is different from the original implementation:
-            globs = {k: globs[k] for k in sorted(globs.keys())}
 
             if dill._dill.PY3:
                 closure = obj.__closure__

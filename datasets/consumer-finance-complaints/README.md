@@ -3,10 +3,10 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
-- upl-1.0
+license:
+- cc0-1.0
 multilinguality:
 - monolingual
 pretty_name: consumer-finance-complaints

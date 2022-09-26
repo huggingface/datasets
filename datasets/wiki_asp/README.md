@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -21,7 +21,7 @@ paperswithcode_id: wikiasp
 pretty_name: WikiAsp
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for WikiAsp
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

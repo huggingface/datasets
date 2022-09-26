@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - af
 - ar
 - bg
@@ -45,7 +45,6 @@ languages:
 - 'no'
 - pl
 - pt
-- pt_br
 - ro
 - ru
 - si
@@ -62,11 +61,14 @@ languages:
 - uk
 - ur
 - vi
-- ze_en
-- ze_zh
-- zh_cn
-- zh_tw
-licenses:
+- zh
+language_bcp47:
+- pt-BR
+- ze-EN
+- ze-ZH
+- zh-CN
+- zh-TW
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -89,7 +91,7 @@ configs:
 - fr-hy
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for OpenSubtitles
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -138,7 +140,69 @@ E.g.
 
 ### Languages
 
-[More Information Needed]
+The languages in the dataset are:
+- af
+- ar
+- bg
+- bn
+- br
+- bs
+- ca
+- cs
+- da
+- de
+- el
+- en
+- eo
+- es
+- et
+- eu
+- fa
+- fi
+- fr
+- gl
+- he
+- hi
+- hr
+- hu
+- hy
+- id
+- is
+- it
+- ja
+- ka
+- kk
+- ko
+- lt
+- lv
+- mk
+- ml
+- ms
+- nl
+- no
+- pl
+- pt
+- pt_br: Portuguese (Brazil) (pt-BR)
+- ro
+- ru
+- si
+- sk
+- sl
+- sq
+- sr
+- sv
+- ta
+- te
+- th
+- tl
+- tr
+- uk
+- ur
+- vi
+- ze_en: English constituent of Bilingual Chinese-English (subtitles displaying two languages at once, one per line)
+- ze_zh: Chinese constituent of Bilingual Chinese-English (subtitles displaying two languages at once, one per line)
+- zh_cn: Simplified Chinese (zh-CN, `zh-Hans`)
+- zh_tw: Traditional Chinese (zh-TW, `zh-Hant`)
 
 ## Dataset Structure
 

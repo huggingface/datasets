@@ -3,11 +3,11 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - ar
 - en
 - zh
-licenses:
+license:
 - cc-by-nc-nd-4.0
 multilinguality:
 - multilingual
@@ -21,8 +21,8 @@ task_categories:
 - token-classification
 task_ids:
 - named-entity-recognition
-- part-of-speech-tagging
-- semantic-role-labeling
+- part-of-speech
+- token-classification-other-semantic-role-labeling
 - coreference-resolution
 - parsing
 - lemmatization

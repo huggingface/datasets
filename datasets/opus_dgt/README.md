@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - bg
 - cs
 - da
@@ -29,7 +29,7 @@ languages:
 - sk
 - sl
 - sv
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -57,7 +57,7 @@ configs:
 - mt-sh
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for OpusDgt
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -93,12 +93,18 @@ configs:
 
 ### Dataset Summary
 
+A collection of translation memories provided by the Joint Research Centre (JRC) Directorate-General for Translation (DGT): https://ec.europa.eu/jrc/en/language-technologies/dgt-translation-memory
 
-To load a language pair which isn't part of the config, all you need to do is specify the language code as pairs.
+Tha dataset contains 25 languages and 299 bitexts.
+
+To load a language pair which isn't part of the config, all you need to do is specify the language code as pairs,
+e.g.
+
+```python
+dataset = load_dataset("opus_dgt", lang1="it", lang2="pl")
+```
+
 You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/DGT.php
-E.g.
-
-`dataset = load_dataset("dgt", lang1="it", lang2="pl")`
 
 
 ### Supported Tasks and Leaderboards
@@ -107,21 +113,55 @@ E.g.
 
 ### Languages
 
-[More Information Needed]
+The languages in the dataset are:
+- bg
+- cs
+- da
+- de
+- el
+- en
+- es
+- et
+- fi
+- fr
+- ga
+- hr
+- hu
+- it
+- lt
+- lv
+- mt
+- nl
+- pl
+- pt
+- ro
+- sh
+- sk
+- sl
+- sv
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+```
+{
+  'id': '0', 
+  'translation': {
+    "bg": "Протокол за поправка на Конвенцията относно компетентността, признаването и изпълнението на съдебни решения по граждански и търговски дела, подписана в Лугано на 30 октомври 2007 г.",
+    "ga": "Miontuairisc cheartaitheach maidir le Coinbhinsiún ar dhlínse agus ar aithint agus ar fhorghníomhú breithiúnas in ábhair shibhialta agus tráchtála, a siníodh in Lugano an 30 Deireadh Fómhair 2007"
+  }
+}
+```
 
 ### Data Fields
 
-[More Information Needed]
+- `id` (`str`): Unique identifier of the parallel sentence for the pair of languages.
+- `translation` (`dict`): Parallel sentences for the pair of languages.
 
 ### Data Splits
 
-[More Information Needed]
+The dataset contains a single `train` split.
 
 ## Dataset Creation
 
@@ -183,6 +223,7 @@ E.g.
 
 ### Citation Information
 
+```bibtex
 @InProceedings{TIEDEMANN12.463,
   author = {J{\"o}rg Tiedemann},
   title = {Parallel Data, Tools and Interfaces in OPUS},
@@ -195,7 +236,8 @@ E.g.
   publisher = {European Language Resources Association (ELRA)},
   isbn = {978-2-9517408-7-7},
   language = {english}
- }
+}
+```
 
 ### Contributions
 

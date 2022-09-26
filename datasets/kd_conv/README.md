@@ -4,9 +4,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - zh
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual

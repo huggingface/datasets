@@ -3,9 +3,11 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
+- pt
+language_bcp47:
 - pt-BR
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

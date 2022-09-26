@@ -4,17 +4,12 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - af
 - bn
 - ca
-- en-GB
-- en-IE
-- en-NG
-- es-CL
-- es-CO
-- es-PE
-- es-PR
+- en
+- es
 - eu
 - gl
 - gu
@@ -34,7 +29,15 @@ languages:
 - ve
 - xh
 - yo
-licenses:
+language_bcp47:
+- en-GB
+- en-IE
+- en-NG
+- es-CL
+- es-CO
+- es-PE
+- es-PR
+license:
 - cc-by-sa-4.0
 multilinguality:
 - multilingual

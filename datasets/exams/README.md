@@ -4,7 +4,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - ar
 - bg
 - de
@@ -21,7 +21,7 @@ languages:
 - sr
 - tr
 - vi
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -95,13 +95,13 @@ configs:
 
 ## Dataset Description
 
-- **Repository:** [EXAMS github repository](https://github.com/mhardalov/exams-qa)
+- **Repository:** https://github.com/mhardalov/exams-qa
 - **Paper:** [EXAMS: A Multi-Subject High School Examinations Dataset for Cross-Lingual and Multilingual Question Answering](https://arxiv.org/abs/2011.03080)
 - **Point of Contact:** [hardalov@@fmi.uni-sofia.bg](hardalov@@fmi.uni-sofia.bg)
 
 ### Dataset Summary
 
-Eχαµs is a benchmark dataset for multilingual and cross-lingual question answering from high school examinations. It consists of more than 24,000 high-quality high school exam questions in 16 languages, covering 8 language families and 24 school subjects from Natural Sciences and Social Sciences, among others.
+EXAMS is a benchmark dataset for multilingual and cross-lingual question answering from high school examinations. It consists of more than 24,000 high-quality high school exam questions in 16 languages, covering 8 language families and 24 school subjects from Natural Sciences and Social Sciences, among others.
 
 ### Supported Tasks and Leaderboards
 
@@ -109,7 +109,23 @@ Eχαµs is a benchmark dataset for multilingual and cross-lingual question answ
 
 ### Languages
 
-[More Information Needed]
+The languages in the dataset are:
+- ar
+- bg
+- de
+- es
+- fr
+- hr
+- hu
+- it
+- lt
+- mk
+- pl
+- pt
+- sq
+- sr
+- tr
+- vi
 
 ## Dataset Structure
 
@@ -150,7 +166,11 @@ A data instance contains the following fields:
 
 ### Data Splits
 
-[More Information Needed]
+Depending on the configuration, the dataset have different splits:
+- "alignments": a single "full" split
+- "multilingual" and "multilingual_with_para": "train", "validation" and "test" splits
+- "crosslingual_test" and "crosslingual_with_para_test": a single "test" split
+- the rest of crosslingual configurations: "train" and "validation" splits
 
 ## Dataset Creation
 
@@ -166,7 +186,7 @@ Eχαµs was collected from official state exams prepared by the ministries of e
 
 The questions cover a large variety of subjects and material based on the country’s education system. They cover major school subjects such as Biology, Chemistry, Geography, History, and Physics, but we also  highly specialized ones such as Agriculture, Geology, Informatics, as well as some applied and profiled studies.
 
-Some countries allow students to take official examinations in several languages. This dataset rprovides 9,857 parallel question pairs spread across seven languages coming from Croatia (Croatian, Serbian, Italian, Hungarian), Hungary (Hungarian, German, French, Spanish, Croatian, Serbian, Italian), and North Macedonia (Macedonian, Albanian, Turkish).
+Some countries allow students to take official examinations in several languages. This dataset provides 9,857 parallel question pairs spread across seven languages coming from Croatia (Croatian, Serbian, Italian, Hungarian), Hungary (Hungarian, German, French, Spanish, Croatian, Serbian, Italian), and North Macedonia (Macedonian, Albanian, Turkish).
 
 For all languages in the dataset, the first step in the process of data collection was to download the PDF files per year, per subject, and per language (when parallel languages were available in the same source), convert the PDF files to text, and select those that were well formatted and followed the document structure.
 

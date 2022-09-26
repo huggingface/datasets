@@ -180,9 +180,9 @@ class ETT(datasets.GeneratorBasedBuilder):
         train_end_date_index = 12 * 30 * 24 * factor  # 1 year
 
         if split == "dev":
-            end_date_index = 12 * 30 * 24 + 4 * 30 * 24 * factor  # 1 year + 4 months
+            end_date_index = train_end_date_index + 4 * 30 * 24 * factor  # 1 year + 4 months
         else:
-            end_date_index = 12 * 30 * 24 + 8 * 30 * 24 * factor  # 1 year + 8 months
+            end_date_index = train_end_date_index + 8 * 30 * 24 * factor  # 1 year + 8 months
 
         if self.config.multivariate:
             if split in ["test", "dev"]:

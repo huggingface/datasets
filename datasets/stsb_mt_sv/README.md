@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - machine-generated
-languages:
+language:
 - sv
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual

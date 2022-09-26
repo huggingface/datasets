@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
-- other-my-license
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:

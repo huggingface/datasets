@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - cs
 - de
 - en
@@ -17,7 +17,7 @@ languages:
 - ko
 - nl
 - pl
-- pt_BR
+- pt
 - ro
 - ru
 - sk
@@ -26,8 +26,10 @@ languages:
 - tr
 - tw
 - zh
-- zh_TW
-licenses:
+language_bcp47:
+- pt-BR
+- zh-TW
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -42,7 +44,7 @@ paperswithcode_id: null
 pretty_name: php
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for php
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

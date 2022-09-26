@@ -1,8 +1,27 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: "AESLC: Annotated Enron Subject Line Corpus"
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- summarization
+task_ids:
+- summarization-other-email-headline-generation
+- summarization-other-conversations-summarization
+- summarization-other-multi-document-summarization
+- summarization-other-aspect-based-summarization
 paperswithcode_id: aeslc
-pretty_name: AESLC
 ---
 
 # Dataset Card for "aeslc"
@@ -33,9 +52,9 @@ pretty_name: AESLC
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/ryanzhumich/AESLC](https://github.com/ryanzhumich/AESLC)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Homepage:**
+- **Repository:** https://github.com/ryanzhumich/AESLC
+- **Paper:** [This Email Could Save Your Life: Introducing the Task of Email Subject Line Generation](https://arxiv.org/abs/1906.03497)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 11.10 MB
 - **Size of the generated dataset:** 14.26 MB
@@ -55,7 +74,7 @@ There are two features:
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Monolingual English (mainly en-US) with some exceptions.
 
 ## Dataset Structure
 
@@ -146,18 +165,20 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
-@misc{zhang2019email,
-    title={This Email Could Save Your Life: Introducing the Task of Email Subject Line Generation},
-    author={Rui Zhang and Joel Tetreault},
-    year={2019},
-    eprint={1906.03497},
-    archivePrefix={arXiv},
-    primaryClass={cs.CL}
+@inproceedings{zhang-tetreault-2019-email,
+    title = "This Email Could Save Your Life: Introducing the Task of Email Subject Line Generation",
+    author = "Zhang, Rui  and
+      Tetreault, Joel",
+    booktitle = "Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics",
+    month = jul,
+    year = "2019",
+    address = "Florence, Italy",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/P19-1043",
+    doi = "10.18653/v1/P19-1043",
+    pages = "446--456",
 }
-
 ```
-
 
 ### Contributions
 

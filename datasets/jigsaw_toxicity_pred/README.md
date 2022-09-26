@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - other
-languages:
+language:
 - en
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - monolingual
@@ -202,7 +202,7 @@ The "Toxic Comment Classification" dataset is released under [CC0], with the und
 
 ### Citation Information
 
-[More Information Needed]
+No citation information.
 
 ### Contributions
 

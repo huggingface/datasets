@@ -4,9 +4,11 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
+- en
+language_bcp47:
 - en-US
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual

@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: conll-2000-1
 pretty_name: CoNLL-2000

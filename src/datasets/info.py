@@ -32,16 +32,20 @@ import copy
 import dataclasses
 import json
 import os
-from dataclasses import asdict, dataclass, field
+import posixpath
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Union
+
+from fsspec.implementations.local import LocalFileSystem
 
 from . import config
 from .features import Features, Value
+from .filesystems import is_remote_filesystem
 from .splits import SplitDict
 from .tasks import TaskTemplate, task_template_from_dict
 from .utils import Version
 from .utils.logging import get_logger
-from .utils.py_utils import unique_values
+from .utils.py_utils import asdict, unique_values
 
 
 logger = get_logger(__name__)
@@ -110,7 +114,7 @@ class DatasetInfo:
         dataset_size (int, optional): The combined size in bytes of the Arrow tables for all splits.
         size_in_bytes (int, optional): The combined size in bytes of all files associated with the dataset (downloaded files + Arrow files).
         task_templates (List[TaskTemplate], optional): The task templates to prepare the dataset for during training and evaluation. Each template casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
-        **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
+        **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
     """
 
     # Set in the dataset scripts
@@ -176,15 +180,16 @@ class DatasetInfo:
                     template.align_with_features(self.features) for template in (self.task_templates)
                 ]
 
-    def _license_path(self, dataset_info_dir):
-        return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)
-
-    def write_to_directory(self, dataset_info_dir, pretty_print=False):
+    def write_to_directory(self, dataset_info_dir, pretty_print=False, fs=None):
         """Write `DatasetInfo` and license (if present) as JSON files to `dataset_info_dir`.
 
         Args:
             dataset_info_dir (str): Destination directory.
             pretty_print (bool, default ``False``): If True, the JSON will be pretty-printed with the indent level of 4.
+            fs (``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
+                Instance of the remote filesystem used to download the files from.
+
+                <Added version="2.5.0"/>
 
         Example:
 
@@ -194,10 +199,14 @@ class DatasetInfo:
         >>> ds.info.write_to_directory("/path/to/directory/")
         ```
         """
-        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
+        fs = fs or LocalFileSystem()
+        is_local = not is_remote_filesystem(fs)
+        path_join = os.path.join if is_local else posixpath.join
+
+        with fs.open(path_join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f, pretty_print=pretty_print)
         if self.license:
-            with open(os.path.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
+            with fs.open(path_join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
                 self._dump_license(f)
 
     def _dump_info(self, file, pretty_print=False):
@@ -211,10 +220,10 @@ class DatasetInfo:
     @classmethod
     def from_merge(cls, dataset_infos: List["DatasetInfo"]):
         dataset_infos = [dset_info.copy() for dset_info in dataset_infos if dset_info is not None]
-        description = "\n\n".join(unique_values(info.description for info in dataset_infos))
-        citation = "\n\n".join(unique_values(info.citation for info in dataset_infos))
-        homepage = "\n\n".join(unique_values(info.homepage for info in dataset_infos))
-        license = "\n\n".join(unique_values(info.license for info in dataset_infos))
+        description = "\n\n".join(unique_values(info.description for info in dataset_infos)).strip()
+        citation = "\n\n".join(unique_values(info.citation for info in dataset_infos)).strip()
+        homepage = "\n\n".join(unique_values(info.homepage for info in dataset_infos)).strip()
+        license = "\n\n".join(unique_values(info.license for info in dataset_infos)).strip()
         features = None
         supervised_keys = None
         task_templates = None
@@ -239,7 +248,7 @@ class DatasetInfo:
         )
 
     @classmethod
-    def from_directory(cls, dataset_info_dir: str) -> "DatasetInfo":
+    def from_directory(cls, dataset_info_dir: str, fs=None) -> "DatasetInfo":
         """Create DatasetInfo from the JSON file in `dataset_info_dir`.
 
         This function updates all the dynamically generated fields (num_examples,
@@ -250,6 +259,10 @@ class DatasetInfo:
         Args:
             dataset_info_dir (`str`): The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
+            fs (``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
+                Instance of the remote filesystem used to download the files from.
+
+                <Added version="2.5.0"/>
 
         Example:
 
@@ -258,11 +271,15 @@ class DatasetInfo:
         >>> ds_info = DatasetInfo.from_directory("/path/to/directory/")
         ```
         """
+        fs = fs or LocalFileSystem()
         logger.info(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
 
-        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), encoding="utf-8") as f:
+        is_local = not is_remote_filesystem(fs)
+        path_join = os.path.join if is_local else posixpath.join
+
+        with fs.open(path_join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
             dataset_info_dict = json.load(f)
         return cls.from_dict(dataset_info_dict)
 

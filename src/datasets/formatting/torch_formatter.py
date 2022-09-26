@@ -46,7 +46,7 @@ class TorchFormatter(Formatter[dict, "torch.Tensor", dict]):
         # support for nested types like struct of list of struct
         if isinstance(data_struct, (list, np.ndarray)):
             data_struct = np.array(data_struct, copy=False)
-            if data_struct.dtype == np.object:  # pytorch tensors cannot be instantied from an array of objects
+            if data_struct.dtype == object:  # pytorch tensors cannot be instantied from an array of objects
                 return [self.recursive_tensorize(substruct) for substruct in data_struct]
         return self._tensorize(data_struct)
 

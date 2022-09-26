@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -16,7 +16,7 @@ source_datasets:
 - extended|wiki40b
 - extended|wikipedia
 task_categories:
-- sequence-modeling
+- text-generation
 - other
 task_ids:
 - language-modeling

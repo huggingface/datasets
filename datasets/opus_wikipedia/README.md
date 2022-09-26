@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - ar
 - bg
 - cs
@@ -24,7 +24,7 @@ languages:
 - sl
 - tr
 - vi
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -46,7 +46,7 @@ configs:
 - en-vi
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for OpusWikipedia
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -82,12 +82,18 @@ configs:
 
 ### Dataset Summary
 
+This is a corpus of parallel sentences extracted from Wikipedia by Krzysztof Wołk and Krzysztof Marasek.
 
-To load a language pair which isn't part of the config, all you need to do is specify the language code as pairs.
+Tha dataset contains 20 languages and 36 bitexts.
+
+To load a language pair which isn't part of the config, all you need to do is specify the language code as pairs,
+e.g.
+
+```python
+dataset = load_dataset("opus_wikipedia", lang1="it", lang2="pl")
+```
+
 You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/Wikipedia.php
-E.g.
-
-`dataset = load_dataset("wikipedia", lang1="it", lang2="pl")`
 
 
 ### Supported Tasks and Leaderboards
@@ -96,21 +102,50 @@ E.g.
 
 ### Languages
 
-[More Information Needed]
+The languages in the dataset are:
+- ar
+- bg
+- cs
+- de
+- el
+- en
+- es
+- fa
+- fr
+- he
+- hu
+- it
+- nl
+- pl
+- pt
+- ro
+- ru
+- sl
+- tr
+- vi
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+```
+{
+  'id': '0', 
+  'translation': {
+    "ar": "* Encyclopaedia of Mathematics online encyclopaedia from Springer, Graduate-level reference work with over 8,000 entries, illuminating nearly 50,000 notions in mathematics.",
+    "en": "*Encyclopaedia of Mathematics online encyclopaedia from Springer, Graduate-level reference work with over 8,000 entries, illuminating nearly 50,000 notions in mathematics."
+  } 
+}
+```
 
 ### Data Fields
 
-[More Information Needed]
+- `id` (`str`): Unique identifier of the parallel sentence for the pair of languages.
+- `translation` (`dict`): Parallel sentences for the pair of languages.
 
 ### Data Splits
 
-[More Information Needed]
+The dataset contains a single `train` split.
 
 ## Dataset Creation
 
@@ -172,6 +207,23 @@ E.g.
 
 ### Citation Information
 
+```bibtex
+@article{WOLK2014126,
+title = {Building Subject-aligned Comparable Corpora and Mining it for Truly Parallel Sentence Pairs},
+journal = {Procedia Technology},
+volume = {18},
+pages = {126-132},
+year = {2014},
+note = {International workshop on Innovations in Information and Communication Science and Technology, IICST 2014, 3-5 September 2014, Warsaw, Poland},
+issn = {2212-0173},
+doi = {https://doi.org/10.1016/j.protcy.2014.11.024},
+url = {https://www.sciencedirect.com/science/article/pii/S2212017314005453},
+author = {Krzysztof Wołk and Krzysztof Marasek},
+keywords = {Comparable corpora, machine translation, NLP},
+}
+```
+
+```bibtex
 @InProceedings{TIEDEMANN12.463,
   author = {J{\"o}rg Tiedemann},
   title = {Parallel Data, Tools and Interfaces in OPUS},
@@ -184,7 +236,8 @@ E.g.
   publisher = {European Language Resources Association (ELRA)},
   isbn = {978-2-9517408-7-7},
   language = {english}
- }
+}
+```
 
 ### Contributions
 

@@ -1,12 +1,12 @@
 ---
 annotations_creators:
-- unknown
+- other
 language_creators:
 - machine-generated
-languages:
+language:
 - en
-licenses:
-- cc-by-4.0
+license:
+- cc-by-sa-4.0
 multilinguality:
 - monolingual
 pretty_name: Adversarial GLUE
@@ -65,6 +65,9 @@ configs:
 - **Paper:** [arXiv](https://arxiv.org/pdf/2111.02840.pdf)
 - **Leaderboard:**
 - **Point of Contact:**
+
+### Dataset Summary
+
 Adversarial GLUE Benchmark (AdvGLUE) is a comprehensive robustness evaluation benchmark that focuses on the adversarial robustness evaluation of language models. It covers five natural language understanding tasks from the famous GLUE tasks and is an adversarial version of GLUE benchmark.
 
 AdvGLUE considers textual adversarial attacks from different perspectives and hierarchies, including word-level transformations, sentence-level manipulations, and human-written adversarial examples, which provide comprehensive coverage of various adversarial linguistic phenomena.
@@ -143,9 +146,21 @@ Adversarial GLUE provides only a 'dev' split.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed]
+
+#### Who are the source language producers?
+
 [More Information Needed]
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
 
 [More Information Needed]
 
@@ -168,6 +183,14 @@ Adversarial GLUE provides only a 'dev' split.
 [More Information Needed]
 
 ## Additional Information
+
+### Dataset Curators
+
+[More Information Needed]
+
+### Licensing Information
+
+The dataset is distributed under the [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/legalcode) license.
 
 ### Citation Information
 

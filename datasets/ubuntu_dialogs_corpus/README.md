@@ -1,8 +1,24 @@
 ---
-languages:
+annotations_creators:
+- found
+language:
 - en
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: "UDC (Ubuntu Dialogue Corpus)"
+size_categories:
+- 1M<n<10M
+source_datasets:
+- original
+task_categories:
+- conversational
+task_ids:
+- dialogue-generation
 paperswithcode_id: ubuntu-dialogue-corpus
-pretty_name: Ubuntu Dialogue Corpus
 ---
 
 # Dataset Card for "ubuntu_dialogs_corpus"
@@ -33,9 +49,8 @@ pretty_name: Ubuntu Dialogue Corpus
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/rkadlec/ubuntu-ranking-dataset-creator](https://github.com/rkadlec/ubuntu-ranking-dataset-creator)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/rkadlec/ubuntu-ranking-dataset-creator
+- **Paper:** [The Ubuntu Dialogue Corpus: A Large Dataset for Research in Unstructured Multi-Turn Dialogue Systems](https://arxiv.org/abs/1506.08909)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 0.00 MB
 - **Size of the generated dataset:** 62.46 MB
@@ -163,7 +178,6 @@ The data fields are the same among all splits.
   biburl    = {https://dblp.org/rec/journals/corr/LowePSP15.bib},
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
-
 ```
 
 

@@ -1,11 +1,35 @@
 ---
-pretty_name: WMT19
-paperswithcode_id: null
+annotations_creators:
+- no-annotation
+language_creators:
+- found
+language:
+- cs
+- de
+- en
+- fi
+- fr
+- gu
+- kk
+- lt
+- ru
+- zh
+license:
+- unknown
 multilinguality:
 - translation
+size_categories:
+- 10M<n<100M
+source_datasets:
+- extended|europarl_bilingual
+- extended|news_commentary
+- extended|opus_paracrawl
+- extended|un_multi
 task_categories:
 - translation
 task_ids: []
+pretty_name: WMT19
+paperswithcode_id: null
 ---
 
 # Dataset Card for "wmt19"
@@ -46,22 +70,31 @@ task_ids: []
 
 ### Dataset Summary
 
-Translate dataset based on the data from statmt.org.
+Translation dataset based on the data from statmt.org.
 
-Versions exists for the different years using a combination of multiple data
-sources. The base `wmt_translate` allows you to create your own config to choose
-your own data/language pair by creating a custom `datasets.translate.wmt.WmtConfig`.
+Versions exist for different years using a combination of data
+sources. The base `wmt` allows you to create a custom dataset by choosing
+your own data/language pair. This can be done as follows:
 
-```
-config = datasets.wmt.WmtConfig(
-    version="0.0.1",
+```python
+from datasets import inspect_dataset, load_dataset_builder
+
+inspect_dataset("wmt19", "path/to/scripts")
+builder = load_dataset_builder(
+    "path/to/scripts/wmt_utils.py",
     language_pair=("fr", "de"),
     subsets={
         datasets.Split.TRAIN: ["commoncrawl_frde"],
         datasets.Split.VALIDATION: ["euelections_dev2019"],
     },
 )
-builder = datasets.builder("wmt_translate", config=config)
+
+# Standard version
+builder.download_and_prepare()
+ds = builder.as_dataset()
+
+# Streamable version
+ds = builder.as_streaming_dataset()
 ```
 
 ### Supported Tasks and Leaderboards

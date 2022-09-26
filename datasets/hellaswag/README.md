@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: hellaswag
 pretty_name: HellaSwag
@@ -42,6 +42,8 @@ pretty_name: HellaSwag
 - **Total amount of disk used:** 130.47 MB
 
 ### Dataset Summary
+
+HellaSwag: Can a Machine Really Finish Your Sentence? is a new dataset for commonsense NLI. A paper was published at ACL2019.
 
 ### Supported Tasks and Leaderboards
 

@@ -3,10 +3,10 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
-- other-university-of-washington-academic
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -15,9 +15,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-to-structured
+- other-text-to-structured
 task_ids:
-- relation-extraction
+- other-relation-extraction
 paperswithcode_id: null
 pretty_name: Ollie
 configs:

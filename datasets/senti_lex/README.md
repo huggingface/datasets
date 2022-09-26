@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - af
 - an
 - ar
@@ -87,7 +87,7 @@ languages:
 - yi
 - zh
 - zhw
-licenses:
+license:
 - gpl-3.0
 multilinguality:
 - multilingual

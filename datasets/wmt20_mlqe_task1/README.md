@@ -5,7 +5,7 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - de
 - en
 - et
@@ -14,7 +14,7 @@ languages:
 - ru
 - si
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - translation
@@ -37,7 +37,7 @@ configs:
 - si-en
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for WMT20 - MultiLingual Quality Estimation (MLQE) Task1
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

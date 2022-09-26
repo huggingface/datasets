@@ -1,8 +1,24 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
+language_creators:
+- found
+license:
+- cc-by-nc-sa-4.0
+multilinguality:
+- monolingual
+pretty_name: Question Answering for Artificial Intelligence (QuAIL)
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- multiple-choice
+task_ids:
+- multiple-choice-qa
 paperswithcode_id: quail
-pretty_name: Question Answering for Artificial Intelligence
 ---
 
 # Dataset Card for "quail"
@@ -34,8 +50,8 @@ pretty_name: Question Answering for Artificial Intelligence
 ## Dataset Description
 
 - **Homepage:** [https://text-machine-lab.github.io/blog/2020/quail/](https://text-machine-lab.github.io/blog/2020/quail/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/text-machine-lab/quail
+- **Paper:** [Getting Closer to AI Complete Question Answering: A Set of Prerequisite Real Tasks](https://doi.org/10.1609/aaai.v34i05.6398 )
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 6.11 MB
 - **Size of the generated dataset:** 28.25 MB

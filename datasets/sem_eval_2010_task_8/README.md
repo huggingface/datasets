@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: semeval-2010-task-8
 pretty_name: SemEval-2010 Task 8

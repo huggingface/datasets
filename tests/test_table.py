@@ -7,7 +7,7 @@ import pyarrow as pa
 import pytest
 
 from datasets import Sequence, Value
-from datasets.features.features import ClassLabel, Features
+from datasets.features.features import ClassLabel, Features, Image
 from datasets.table import (
     ConcatenationTable,
     InMemoryTable,
@@ -20,7 +20,10 @@ from datasets.table import (
     _memory_mapped_arrow_table_from_file,
     cast_array_to_feature,
     concat_tables,
+    embed_array_storage,
+    embed_table_storage,
     inject_arrow_table_documentation,
+    table_cast,
 )
 
 from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, slow
@@ -250,6 +253,13 @@ def test_in_memory_table_from_pydict(in_memory_pa_table):
         table = InMemoryTable.from_pydict(pydict)
         assert isinstance(table, InMemoryTable)
         assert table.table == pa.Table.from_pydict(pydict)
+
+
+def test_in_memory_table_from_pylist(in_memory_pa_table):
+    pylist = InMemoryTable(in_memory_pa_table).to_pylist()
+    table = InMemoryTable.from_pylist(pylist)
+    assert isinstance(table, InMemoryTable)
+    assert pylist == table.to_pylist()
 
 
 def test_in_memory_table_from_batches(in_memory_pa_table):
@@ -722,6 +732,22 @@ def test_concatenation_table_pickle(
     assert_index_attributes_equal(table, unpickled_table)
 
 
+def test_concat_tables_with_features_metadata(arrow_file, in_memory_pa_table):
+    input_features = Features.from_arrow_schema(in_memory_pa_table.schema)
+    input_features["id"] = Value("int64", id="my_id")
+    intput_schema = input_features.arrow_schema
+    t0 = in_memory_pa_table.replace_schema_metadata(intput_schema.metadata)
+    t1 = MemoryMappedTable.from_file(arrow_file)
+    tables = [t0, t1]
+    concatenated_table = concat_tables(tables, axis=0)
+    output_schema = concatenated_table.schema
+    output_features = Features.from_arrow_schema(output_schema)
+    assert output_schema == intput_schema
+    assert output_schema.metadata == intput_schema.metadata
+    assert output_features == input_features
+    assert output_features["id"].id == "my_id"
+
+
 @pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
 def test_concatenation_table_slice(
     blocks_type, in_memory_pa_table, in_memory_blocks, memory_mapped_blocks, mixed_in_memory_and_memory_mapped_blocks
@@ -808,6 +834,27 @@ def test_concatenation_table_cast(
     table = ConcatenationTable.from_blocks(blocks).cast(schema)
     assert table.table == in_memory_pa_table.cast(schema)
     assert isinstance(table, ConcatenationTable)
+
+
+@pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
+def test_concat_tables_cast_with_features_metadata(
+    blocks_type, in_memory_pa_table, in_memory_blocks, memory_mapped_blocks, mixed_in_memory_and_memory_mapped_blocks
+):
+    blocks = {
+        "in_memory": in_memory_blocks,
+        "memory_mapped": memory_mapped_blocks,
+        "mixed": mixed_in_memory_and_memory_mapped_blocks,
+    }[blocks_type]
+    input_features = Features.from_arrow_schema(in_memory_pa_table.schema)
+    input_features["id"] = Value("int64", id="my_id")
+    intput_schema = input_features.arrow_schema
+    concatenated_table = ConcatenationTable.from_blocks(blocks).cast(intput_schema)
+    output_schema = concatenated_table.schema
+    output_features = Features.from_arrow_schema(output_schema)
+    assert output_schema == intput_schema
+    assert output_schema.metadata == intput_schema.metadata
+    assert output_features == input_features
+    assert output_features["id"].id == "my_id"
 
 
 @pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
@@ -1034,3 +1081,40 @@ def test_cast_array_to_features_nested_with_null_values():
     assert casted_array.to_pylist() == [
         {"foo": [[], [0]]}
     ]  # empty list because of https://github.com/huggingface/datasets/issues/3676
+
+
+def test_cast_array_to_features_to_null_type():
+    # same type
+    arr = pa.array([[None, None]])
+    assert cast_array_to_feature(arr, Sequence(Value("null"))).type == pa.list_(pa.null())
+
+    # different type
+    arr = pa.array([[None, 1]])
+    with pytest.raises(TypeError):
+        cast_array_to_feature(arr, Sequence(Value("null")))
+
+
+def test_embed_array_storage(image_file):
+    array = pa.array([{"bytes": None, "path": image_file}], type=Image.pa_type)
+    embedded_images_array = embed_array_storage(array, Image())
+    assert embedded_images_array.to_pylist()[0]["path"] is None
+    assert isinstance(embedded_images_array.to_pylist()[0]["bytes"], bytes)
+
+
+def test_embed_array_storage_nested(image_file):
+    array = pa.array([[{"bytes": None, "path": image_file}]], type=pa.list_(Image.pa_type))
+    embedded_images_array = embed_array_storage(array, [Image()])
+    assert embedded_images_array.to_pylist()[0][0]["path"] is None
+    assert isinstance(embedded_images_array.to_pylist()[0][0]["bytes"], bytes)
+    array = pa.array([{"foo": {"bytes": None, "path": image_file}}], type=pa.struct({"foo": Image.pa_type}))
+    embedded_images_array = embed_array_storage(array, {"foo": Image()})
+    assert embedded_images_array.to_pylist()[0]["foo"]["path"] is None
+    assert isinstance(embedded_images_array.to_pylist()[0]["foo"]["bytes"], bytes)
+
+
+def test_embed_table_storage(image_file):
+    features = Features({"image": Image()})
+    table = table_cast(pa.table({"image": [image_file]}), features.arrow_schema)
+    embedded_images_table = embed_table_storage(table)
+    assert embedded_images_table.to_pydict()["image"][0]["path"] is None
+    assert isinstance(embedded_images_table.to_pydict()["image"][0]["bytes"], bytes)

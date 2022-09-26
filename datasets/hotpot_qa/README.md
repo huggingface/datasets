@@ -1,8 +1,24 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
-paperswithcode_id: hotpotqa
+language_creators:
+- found
+license:
+- cc-by-sa-4.0
+multilinguality:
+- monolingual
 pretty_name: HotpotQA
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- question-answering-other-multi-hop
+paperswithcode_id: hotpotqa
 ---
 
 # Dataset Card for "hotpot_qa"
@@ -34,8 +50,8 @@ pretty_name: HotpotQA
 ## Dataset Description
 
 - **Homepage:** [https://hotpotqa.github.io/](https://hotpotqa.github.io/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/hotpotqa/hotpot
+- **Paper:** [HotpotQA: A Dataset for Diverse, Explainable Multi-hop Question Answering](https://arxiv.org/abs/1809.09600)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 1213.88 MB
 - **Size of the generated dataset:** 1186.81 MB
@@ -43,7 +59,7 @@ pretty_name: HotpotQA
 
 ### Dataset Summary
 
-HotpotQA is a new dataset with 113k  Wikipedia-based question-answer  pairs with  four  key  features:  (1)  the  questions  require finding and reasoning over multiple supporting  documents  to  answer;  (2)  the  questions  are  diverse  and  not  constrained  to  any pre-existing  knowledge  bases  or  knowledge schemas;  (3)  we  provide  sentence-level  supporting facts required for reasoning, allowingQA systems to reason with strong supervisionand explain the predictions; (4) we offer a new type  of  factoid  comparison  questions  to  testQA  systems’  ability  to  extract  relevant  facts and perform necessary comparison.
+HotpotQA is a new dataset with 113k  Wikipedia-based question-answer  pairs with  four  key  features:  (1)  the  questions  require finding and reasoning over multiple supporting  documents  to  answer;  (2)  the  questions  are  diverse  and  not  constrained  to  any pre-existing  knowledge  bases  or  knowledge schemas;  (3)  we  provide  sentence-level  supporting facts required for reasoning, allowingQA systems to reason with strong supervision and explain the predictions; (4) we offer a new type  of  factoid  comparison  questions  to  test QA  systems’  ability  to  extract  relevant  facts and perform necessary comparison.
 
 ### Supported Tasks and Leaderboards
 
@@ -203,21 +219,18 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+HotpotQA is distributed under a [CC BY-SA 4.0 License](http://creativecommons.org/licenses/by-sa/4.0/).
 
 ### Citation Information
 
 ```
-
 @inproceedings{yang2018hotpotqa,
   title={{HotpotQA}: A Dataset for Diverse, Explainable Multi-hop Question Answering},
   author={Yang, Zhilin and Qi, Peng and Zhang, Saizheng and Bengio, Yoshua and Cohen, William W. and Salakhutdinov, Ruslan and Manning, Christopher D.},
   booktitle={Conference on Empirical Methods in Natural Language Processing ({EMNLP})},
   year={2018}
 }
-
 ```
-
 
 ### Contributions
 

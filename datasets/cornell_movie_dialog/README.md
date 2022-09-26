@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: cornell-movie-dialogs-corpus
 pretty_name: Cornell Movie-Dialogs Corpus

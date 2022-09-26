@@ -26,7 +26,7 @@ def zstd_path(tmp_path_factory):
 @pytest.mark.parametrize("compression_format", ["gzip", "xz", "zstd"])
 def test_cached_path_extract(compression_format, gz_file, xz_file, zstd_path, tmp_path, text_file):
     input_paths = {"gzip": gz_file, "xz": xz_file, "zstd": zstd_path}
-    input_path = str(input_paths[compression_format])
+    input_path = input_paths[compression_format]
     cache_dir = tmp_path / "cache"
     download_config = DownloadConfig(cache_dir=cache_dir, extract_compressed_file=True)
     extracted_path = cached_path(input_path, download_config=download_config)

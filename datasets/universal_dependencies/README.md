@@ -3,8 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
-- 'no'
+language:
 - af
 - aii
 - ajp
@@ -72,6 +71,7 @@ languages:
 - myu
 - myv
 - nl
+- 'no'
 - nyq
 - olo
 - orv
@@ -79,8 +79,6 @@ languages:
 - pcm
 - pl
 - pt
-- qhe
-- qtd
 - ro
 - ru
 - sa
@@ -108,7 +106,7 @@ languages:
 - yo
 - yue
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -117,10 +115,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- token-classification
 task_ids:
-- constituency-parsing
-- dependency-parsing
+- parsing
+- token-classification-other-constituency-parsing
+- token-classification-other-dependency-parsing
 paperswithcode_id: universal-dependencies
 pretty_name: Universal Dependencies Treebank
 configs:

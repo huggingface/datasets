@@ -1,50 +1,33 @@
 import json
 import os
 from collections import namedtuple
-from dataclasses import dataclass
 
-from packaging import version
+import pytest
 
 from datasets import config
 from datasets.commands.test import TestCommand
 
 
-if config.PY_VERSION >= version.parse("3.7"):
-    TestCommandArgs = namedtuple(
-        "TestCommandArgs",
-        [
-            "dataset",
-            "name",
-            "cache_dir",
-            "data_dir",
-            "all_configs",
-            "save_infos",
-            "ignore_verifications",
-            "force_redownload",
-            "clear_cache",
-        ],
-        defaults=[None, None, None, False, False, False, False, False],
-    )
-else:
-
-    @dataclass
-    class TestCommandArgs:
-        dataset: str
-        name: str = None
-        cache_dir: str = None
-        data_dir: str = None
-        all_configs: bool = False
-        save_infos: bool = False
-        ignore_verifications: bool = False
-        force_redownload: bool = False
-        clear_cache: bool = False
-
-        def __iter__(self):
-            return iter(self.__dict__.values())
+_TestCommandArgs = namedtuple(
+    "_TestCommandArgs",
+    [
+        "dataset",
+        "name",
+        "cache_dir",
+        "data_dir",
+        "all_configs",
+        "save_infos",
+        "ignore_verifications",
+        "force_redownload",
+        "clear_cache",
+    ],
+    defaults=[None, None, None, False, False, False, False, False],
+)
 
 
+@pytest.mark.integration
 def test_test_command(dataset_loading_script_dir):
-    args = TestCommandArgs(dataset=dataset_loading_script_dir, all_configs=True, save_infos=True)
+    args = _TestCommandArgs(dataset=dataset_loading_script_dir, all_configs=True, save_infos=True)
     test_command = TestCommand(*args)
     test_command.run()
     dataset_infos_path = os.path.join(dataset_loading_script_dir, config.DATASETDICT_INFOS_FILENAME)

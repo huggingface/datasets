@@ -1,8 +1,24 @@
 ---
-pretty_name: 20 Newsgroups
-languages:
+annotations_creators:
+- found
+language:
 - en
-paperswithcode_id: null
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: 20 Newsgroups
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- multi-class-classification
+paperswithcode_id: 20-newsgroups
 ---
 
 # Dataset Card for "newsgroup"
@@ -35,7 +51,7 @@ paperswithcode_id: null
 
 - **Homepage:** [http://qwone.com/~jason/20Newsgroups/](http://qwone.com/~jason/20Newsgroups/)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [NewsWeeder: Learning to Filter Netnews](https://doi.org/10.1016/B978-1-55860-377-6.50048-7)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 886.22 MB
 - **Size of the generated dataset:** 118.65 MB
@@ -203,9 +219,20 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
+@incollection{LANG1995331,
+title = {NewsWeeder: Learning to Filter Netnews},
+editor = {Armand Prieditis and Stuart Russell},
+booktitle = {Machine Learning Proceedings 1995},
+publisher = {Morgan Kaufmann},
+address = {San Francisco (CA)},
+pages = {331-339},
+year = {1995},
+isbn = {978-1-55860-377-6},
+doi = {https://doi.org/10.1016/B978-1-55860-377-6.50048-7},
+url = {https://www.sciencedirect.com/science/article/pii/B9781558603776500487},
+author = {Ken Lang},
+}
 ```
-
 
 ### Contributions
 

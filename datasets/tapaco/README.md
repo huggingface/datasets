@@ -3,7 +3,7 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - af
 - ar
 - az
@@ -66,7 +66,7 @@ languages:
 - tk
 - tl
 - tlh
-- toki
+- tok
 - tr
 - tt
 - ug
@@ -77,7 +77,7 @@ languages:
 - war
 - wuu
 - yue
-licenses:
+license:
 - cc-by-2.0
 multilinguality:
 - multilingual
@@ -162,7 +162,7 @@ configs:
 - tk
 - tl
 - tlh
-- toki
+- tok
 - tr
 - tt
 - ug

@@ -3,11 +3,11 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
-- en
+language:
 - code
-licenses:
-- other-C-UDA
+- en
+license:
+- c-uda
 multilinguality:
 - other-programming-languages
 size_categories:

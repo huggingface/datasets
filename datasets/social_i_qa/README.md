@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: social-iqa
 pretty_name: Social Interaction QA

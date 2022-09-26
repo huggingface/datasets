@@ -3,12 +3,12 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - af
 - el
 - en
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -27,7 +27,7 @@ configs:
 - en-zh
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for spc
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

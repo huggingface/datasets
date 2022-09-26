@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -21,7 +21,7 @@ paperswithcode_id: null
 pretty_name: YahooAnswersQa
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for YahooAnswersQa
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

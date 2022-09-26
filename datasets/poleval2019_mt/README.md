@@ -4,11 +4,11 @@ annotations_creators:
 language_creators:
 - expert-generated
 - found
-languages:
+language:
 - en
 - pl
 - ru
-licenses:
+license:
 - unknown
 multilinguality:
 - translation

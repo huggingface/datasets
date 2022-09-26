@@ -133,6 +133,7 @@ PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None
 RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None
 ZSTANDARD_AVAILABLE = importlib.util.find_spec("zstandard") is not None
 LZ4_AVAILABLE = importlib.util.find_spec("lz4") is not None
+PY7ZR_AVAILABLE = importlib.util.find_spec("py7zr") is not None
 
 
 # Cache location
@@ -170,6 +171,9 @@ DEFAULT_MAX_BATCH_SIZE = 10_000
 # Pickling tables works only for small tables (<4GiB)
 # For big tables, we write them on disk instead
 MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
+
+# Max shard size in bytes (e.g. to shard parquet datasets in push_to_hub or download_and_prepare)
+MAX_SHARD_SIZE = "500MB"
 
 # Offline mode
 HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper() in ENV_VARS_TRUE_VALUES

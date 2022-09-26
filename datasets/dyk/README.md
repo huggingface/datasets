@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - other
-languages:
+language:
 - pl
-licenses:
+license:
 - bsd-3-clause
 multilinguality:
 - monolingual

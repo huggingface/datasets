@@ -3,75 +3,42 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - af
 - am
 - an
 - ang
 - ar
-- ar_TN
-- ara
 - as
 - ast
 - az
-- az_IR
 - bal
 - be
 - bem
 - bg
-- bg_BG
 - bn
-- bn_IN
 - bo
 - br
 - brx
 - bs
 - ca
-- cat
 - crh
 - cs
 - csb
 - cy
 - da
-- da_DK
 - de
-- de_CH
 - dv
 - dz
 - el
 - en
-- en_AU
-- en_CA
-- en_GB
-- en_NZ
-- en_US
-- en_ZA
 - eo
 - es
-- es_AR
-- es_CL
-- es_CO
-- es_CR
-- es_DO
-- es_EC
-- es_ES
-- es_GT
-- es_HN
-- es_MX
-- es_NI
-- es_PA
-- es_PE
-- es_PR
-- es_SV
-- es_UY
-- es_VE
 - et
 - eu
 - fa
-- fa_IR
 - fi
 - fo
-- foo
 - fr
 - fur
 - fy
@@ -79,13 +46,11 @@ languages:
 - gd
 - gl
 - gn
-- gr
 - gu
 - gv
 - ha
 - he
 - hi
-- hi_IN
 - hr
 - hu
 - hy
@@ -95,7 +60,6 @@ languages:
 - io
 - is
 - it
-- it_IT
 - ja
 - jbo
 - ka
@@ -122,20 +86,16 @@ languages:
 - mn
 - mr
 - ms
-- ms_MY
 - mt
 - mus
 - my
 - nb
-- nb_NO
 - nds
 - ne
 - nhn
 - nl
 - nn
-- nn_NO
-- n/o
-- no_nb
+- 'no'
 - nqo
 - nr
 - nso
@@ -146,8 +106,6 @@ languages:
 - pl
 - ps
 - pt
-- pt_BR
-- pt_PT
 - quz
 - ro
 - ru
@@ -158,7 +116,6 @@ languages:
 - so
 - sq
 - sr
-- sr_ME
 - st
 - sv
 - sw
@@ -166,32 +123,73 @@ languages:
 - ta
 - te
 - tg
-- tg_TJ
 - th
 - tk
 - tl
-- tl_PH
-- tmp
 - tr
-- tr_TR
 - ts
 - tt
+- tyj
 - ug
 - uk
 - ur
-- ur_PK
 - uz
 - vi
-- vi_VN
 - wa
 - xh
 - yi
 - yo
-- zh_CN
-- zh_HK
-- zh_TW
+- zh
 - zu
-licenses:
+language_bcp47:
+- ar-TN
+- az-IR
+- bg-BG
+- bn-IN
+- da-DK
+- de-CH
+- en-AU
+- en-CA
+- en-GB
+- en-NZ
+- en-US
+- en-ZA
+- es-AR
+- es-CL
+- es-CO
+- es-CR
+- es-DO
+- es-EC
+- es-ES
+- es-GT
+- es-HN
+- es-MX
+- es-NI
+- es-PA
+- es-PE
+- es-PR
+- es-SV
+- es-UY
+- es-VE
+- fa-IR
+- hi-IN
+- it-IT
+- ms-MY
+- nb-NO
+- nn-NO
+- no-NB
+- pt-BR
+- pt-PT
+- sr-ME
+- tg-TJ
+- tl-PH
+- tr-TR
+- ur-PK
+- vi-VN
+- zh-CN
+- zh-HK
+- zh-TW
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -219,7 +217,7 @@ configs:
 - en_GB-my
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Opus Gnome
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -260,7 +258,7 @@ To load a language pair which isn't part of the config, all you need to do is sp
 You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/GNOME.php
 E.g.
 
-`dataset = load_dataset("gnome", lang1="it", lang2="pl")`
+`dataset = load_dataset("opus_gnome", lang1="it", lang2="pl")`
 
 
 ### Supported Tasks and Leaderboards
@@ -273,17 +271,38 @@ E.g.
 
 ## Dataset Structure
 
-### Data Instances
-
-[More Information Needed]
-
+### Data Instances  
+```
+{
+  'id': '0', 
+  'translation': {
+    'ar': 'إعداد سياسة القفل',
+    'bal': 'تنظیم کتن سیاست کبل'
+  }
+}
+```
 ### Data Fields
 
-[More Information Needed]
+Each instance has two fields:
+- **id**: the id of the example
+- **translation**: a dictionary containing translated texts in two languages.
 
 ### Data Splits
 
-[More Information Needed]
+Each subset simply consists in a train set. We provide the number of examples for certain language pairs:
+
+|          |   train |
+|:---------|--------:|
+| ar-bal   |      60 |
+| bg-csb   |      10 |
+| ca-en_GB |    7982 |
+| cs-eo    |      73 |
+| de-ha    |     216 |
+| cs-tk    |   18686 |
+| da-vi    |     149 |
+| en_GB-my |   28232 |
+| el-sk    |     150 |
+| de-tt    |    2169 |
 
 ## Dataset Creation
 

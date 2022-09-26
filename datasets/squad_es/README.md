@@ -1,4 +1,22 @@
 ---
+annotations_creators:
+- machine-generated
+language_creators:
+- machine-generated
+language:
+- es
+license:
+- cc-by-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- extended|squad
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
 paperswithcode_id: squad-es
 pretty_name: SQuAD-es
 ---
@@ -41,7 +59,7 @@ pretty_name: SQuAD-es
 
 ### Dataset Summary
 
-automatic translation of the Stanford Question Answering Dataset (SQuAD) v2 into Spanish
+Automatic translation of the Stanford Question Answering Dataset (SQuAD) v2 into Spanish
 
 ### Supported Tasks and Leaderboards
 
@@ -148,7 +166,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The SQuAD-es dataset is licensed under the [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) license.
 
 ### Citation Information
 

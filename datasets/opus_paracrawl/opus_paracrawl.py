@@ -20,37 +20,66 @@ import datasets
 
 
 _DESCRIPTION = """\
-Parallel corpora from Web Crawls collected in the ParaCrawl project
-40 languages, 41 bitexts
-total number of files: 20,995
-total number of tokens: 21.40G
-total number of sentence fragments: 1.12G
+Parallel corpora from Web Crawls collected in the ParaCrawl project.
+
+42 languages, 43 bitexts
+total number of files: 59,996
+total number of tokens: 56.11G
+total number of sentence fragments: 3.13G
 """
-_HOMEPAGE_URL = "http://opus.nlpl.eu/ParaCrawl.php"
-_CITATION = """\
+_HOMEPAGE = "http://opus.nlpl.eu/ParaCrawl.php"
+_CITATION = r"""\
+@inproceedings{banon-etal-2020-paracrawl,
+    title = "{P}ara{C}rawl: Web-Scale Acquisition of Parallel Corpora",
+    author = "Ba{\~n}{\'o}n, Marta  and
+      Chen, Pinzhen  and
+      Haddow, Barry  and
+      Heafield, Kenneth  and
+      Hoang, Hieu  and
+      Espl{\`a}-Gomis, Miquel  and
+      Forcada, Mikel L.  and
+      Kamran, Amir  and
+      Kirefu, Faheem  and
+      Koehn, Philipp  and
+      Ortiz Rojas, Sergio  and
+      Pla Sempere, Leopoldo  and
+      Ram{\'\i}rez-S{\'a}nchez, Gema  and
+      Sarr{\'\i}as, Elsa  and
+      Strelec, Marek  and
+      Thompson, Brian  and
+      Waites, William  and
+      Wiggins, Dion  and
+      Zaragoza, Jaume",
+    booktitle = "Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics",
+    month = jul,
+    year = "2020",
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2020.acl-main.417",
+    doi = "10.18653/v1/2020.acl-main.417",
+    pages = "4555--4567",
+}
 @InProceedings{TIEDEMANN12.463,
-  author = {J{\"o}rg Tiedemann},
+  author = {Jörg Tiedemann},
   title = {Parallel Data, Tools and Interfaces in OPUS},
   booktitle = {Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC'12)},
   year = {2012},
   month = {may},
   date = {23-25},
   address = {Istanbul, Turkey},
-  editor = {Nicoletta Calzolari (Conference Chair) and Khalid Choukri and Thierry Declerck and Mehmet Ugur Dogan and Bente Maegaard and Joseph Mariani and Jan Odijk and Stelios Piperidis},
+  editor = {Nicoletta Calzolari (Conference Chair) and Khalid Choukri and Thierry Declerck and Mehmet Uğur Doğan and Bente Maegaard and Joseph Mariani and Asuncion Moreno and Jan Odijk and Stelios Piperidis},
   publisher = {European Language Resources Association (ELRA)},
   isbn = {978-2-9517408-7-7},
   language = {english}
- }
+}
 """
 
-_VERSION = "1.0.0"
+_VERSION = "9.0.0"
 _BASE_NAME = "ParaCrawl.{}.{}"
-_BASE_URL = "https://object.pouta.csc.fi/OPUS-ParaCrawl/v7.1/moses/{}-{}.txt.zip"
+_BASE_URL = "https://object.pouta.csc.fi/OPUS-ParaCrawl/v9/moses/{}-{}.txt.zip"
 # Please note that only few pairs are shown here. You can use config to generate data for all language pairs
 _LANGUAGE_PAIRS = [
     ("el", "en"),
-    ("en", "ha"),
-    ("en", "ig"),
     ("en", "km"),
     ("en", "so"),
     ("de", "pl"),
@@ -95,7 +124,7 @@ class OpusParaCrawl(datasets.GeneratorBasedBuilder):
                 },
             ),
             supervised_keys=None,
-            homepage=_HOMEPAGE_URL,
+            homepage=_HOMEPAGE,
             citation=_CITATION,
         )
 
@@ -110,21 +139,17 @@ class OpusParaCrawl(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, datapath):
-        l1, l2 = self.config.lang1, self.config.lang2
-        folder = l1 + "-" + l2
-        l1_file = _BASE_NAME.format(folder, l1)
-        l2_file = _BASE_NAME.format(folder, l2)
-        l1_path = os.path.join(datapath, l1_file)
-        l2_path = os.path.join(datapath, l2_file)
-        with open(l1_path, encoding="utf-8") as f1, open(l2_path, encoding="utf-8") as f2:
-            for sentence_counter, (x, y) in enumerate(zip(f1, f2)):
-                x = x.strip()
-                y = y.strip()
-                result = (
-                    sentence_counter,
-                    {
-                        "id": str(sentence_counter),
-                        "translation": {l1: x, l2: y},
-                    },
-                )
-                yield result
+        lang1, lang2 = self.config.lang1, self.config.lang2
+        folder = lang1 + "-" + lang2
+        lang1_filename = _BASE_NAME.format(folder, lang1)
+        lang2_filename = _BASE_NAME.format(folder, lang2)
+        lang1_path = os.path.join(datapath, lang1_filename)
+        lang2_path = os.path.join(datapath, lang2_filename)
+        with open(lang1_path, encoding="utf-8") as f1, open(lang2_path, encoding="utf-8") as f2:
+            for id_, (lang1_sentence, lang2_sentence) in enumerate(zip(f1, f2)):
+                lang1_sentence = lang1_sentence.strip()
+                lang2_sentence = lang2_sentence.strip()
+                yield id_, {
+                    "id": str(id_),
+                    "translation": {lang1: lang1_sentence, lang2: lang2_sentence},
+                }

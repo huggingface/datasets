@@ -3,14 +3,14 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - da
-- nb
-- lv
-- zh
 - en
-licenses:
-- other-C-UDA
+- lv
+- nb
+- zh
+license:
+- c-uda
 multilinguality:
 - multilingual
 size_categories:

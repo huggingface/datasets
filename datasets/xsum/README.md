@@ -1,8 +1,20 @@
 ---
-pretty_name: Extreme Summarization (XSum)
-languages:
+annotations_creators:
+- found
+language_creators:
+- found
+language:
 - en
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: Extreme Summarization (XSum)
 paperswithcode_id: xsum
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
 task_categories:
 - summarization
 task_ids:
@@ -50,10 +62,10 @@ train-eval-index:
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/EdinburghNLP/XSum/tree/master/XSum-Dataset](https://github.com/EdinburghNLP/XSum/tree/master/XSum-Dataset)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Homepage:**
+- **Repository:** https://github.com/EdinburghNLP/XSum
+- **Paper:** [Don't Give Me the Details, Just the Summary! Topic-Aware Convolutional Neural Networks for Extreme Summarization](https://arxiv.org/abs/1808.08745)
+- **Point of Contact:** [Shashi Narayan](mailto:shashi.narayan@ed.ac.uk)
 - **Size of downloaded dataset files:** 245.38 MB
 - **Size of the generated dataset:** 507.60 MB
 - **Total amount of disk used:** 752.98 MB
@@ -166,7 +178,6 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
 @article{Narayan2018DontGM,
   title={Don't Give Me the Details, Just the Summary! Topic-Aware Convolutional Neural Networks for Extreme Summarization},
   author={Shashi Narayan and Shay B. Cohen and Mirella Lapata},
@@ -174,7 +185,6 @@ The data fields are the same among all splits.
   year={2018},
   volume={abs/1808.08745}
 }
-
 ```
 
 

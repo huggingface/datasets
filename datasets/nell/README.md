@@ -3,9 +3,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -16,13 +16,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-to-tabular
+- other-text-to-tabular
 - text-retrieval
-- text-to-structured
+- other-text-to-structured
 task_ids:
 - entity-linking-retrieval
 - fact-checking-retrieval
-- relation-extraction
+- other-relation-extraction
 paperswithcode_id: nell
 pretty_name: Never Ending Language Learning (NELL)
 configs:

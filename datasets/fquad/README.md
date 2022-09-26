@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - found
-languages:
+language:
 - fr
-licenses:
+license:
 - cc-by-nc-sa-3.0
 multilinguality:
 - monolingual
@@ -164,6 +164,8 @@ Illuin Technology:  [https://fquad.illuin.tech/](https://fquad.illuin.tech/)
 ### Licensing Information
 
 The FQuAD dataset is licensed under the [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/fr/) license.
+
+It allows personal and academic research uses of the dataset, but not commercial uses. So concretely, the dataset cannot be used to train a model that is then put into production within a business or a company. For this type of commercial use, we invite FQuAD users to contact [the authors](https://www.illuin.tech/contact/) to discuss possible partnerships.
 
 ### Citation Information
 

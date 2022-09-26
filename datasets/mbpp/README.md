@@ -5,9 +5,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -130,7 +130,14 @@ DatasetDict({
 - `challenge_test_list`: list of more challenging test to further probe solution
 
 ### Data Splits
-There are two version of the dataset (full and sanitized) which only one split each (test).
+There are two version of the dataset (full and sanitized), each with four splits:
+- train
+- evaluation
+- test
+- prompt
+
+The `prompt` split corresponds to samples used for few-shot prompting and not for training.
+
 ## Dataset Creation
 See section 2.1 of original [paper](https://arxiv.org/abs/2108.07732).
 

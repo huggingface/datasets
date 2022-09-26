@@ -4,9 +4,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - ar
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -123,31 +123,45 @@ An example from the dataset is:
 
 ### Curation Rationale
 
-[Needs More Information]
+The corpus was created with Speech Synthesis as the main application in mind. Although it has been used as part of a larger corpus for speech recognition and speech denoising. Here are some explanations why the corpus was built the way it is:
+
+* Corpus size: Budget limitations and the research goal resulted in the decision not to gather more data. The goal was to show that high quality speech synthesis is possible with smaller corpora.
+* Phonetic diversity: Just like with many corpora, the phonetic diversity was acheived using greedy methods. Start with a core set of utterances and add more utterances which contribute to adding more phonetic diversity the most iterativly. The measure of diversity is based on the diphone frequency.
+* Content: News, sports, economics, fully diacritised content from the internet was gathered. The choice of utterances was random to avoid copyright issues. Because of corpus size, acheiving diversity of content type was difficult and was not the goal.
+* Non-sense utterances: The corpus contains a large set of utterances that are generated computationally to compensate for the diphones missing in the main part of the corpus. The usefullness of non-sense utterances was not proven in the PhD thesis.
+* The talent: The voice talent had a Syrian dialect from Damascus and spoke in formal Arabic.
+
+Please refer to [PhD thesis](#Citation-Information) for more detailed information.
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[Needs More Information]
+News, sports, economics, fully diacritised content from the internet was gathered. The choice of utterances was random to avoid copyright issues. Because of corpus size, acheiving diversity of content type was difficult and was not the goal. We were restricted to content which was fully diacritised to make the annotation process easier.
+
+Just like with many corpora, the phonetic diversity was acheived using greedy methods. Start with a core set of utterances and add more utterances which contribute to adding more phonetic diversity the most iterativly. The measure of diversity is based on the diphone frequency.
+
+Please refer to [PhD thesis](#Citation-Information).
 
 #### Who are the source language producers?
 
-[Needs More Information]
+Please refer to [PhD thesis](#Citation-Information).
 
 ### Annotations
 
 #### Annotation process
 
-[Needs More Information]
+Three annotators aligned audio with phonemes with the help of HTK forced alignment. They worked on overlapping parts as well to assess annotator agreement and the quality of the annotations. The entire corpus was checked by human annotators.
+
+Please refer to [PhD thesis](#Citation-Information).
 
 #### Who are the annotators?
 
-[Needs More Information]
+Nawar Halabi and two anonymous Arabic language teachers.
 
 ### Personal and Sensitive Information
 
-The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset.
+The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset. The voice talent agreed in writing for their voice to be used in speech technologies as long as they stay anonymous.
 
 ## Considerations for Using the Data
 
@@ -186,4 +200,8 @@ The corpus was recorded in south Levantine Arabic (Damascian accent) using a pro
 
 ### Contributions
 
-Thanks to [@zaidalyafeai](https://github.com/zaidalyafeai) for adding this dataset.
+This dataset was created by:
+* Nawar Halabi [@nawarhalabi](https://github.com/nawarhalabi) main creator and annotator.
+* Two anonymous Arabic langauge teachers as annotators.
+* One anonymous voice talent.
+* Thanks to [@zaidalyafeai](https://github.com/zaidalyafeai) for adding this dataset.

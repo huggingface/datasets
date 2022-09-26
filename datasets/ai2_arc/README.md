@@ -3,9 +3,11 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
+- en
+language_bcp47:
 - en-US
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual

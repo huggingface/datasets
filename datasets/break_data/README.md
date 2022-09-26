@@ -1,6 +1,22 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+language:
 - en
+license:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text2text-generation
+task_ids:
+- open-domain-abstractive-qa
 paperswithcode_id: break
 pretty_name: BREAK
 ---
@@ -250,9 +266,7 @@ The data fields are the same among all splits.
   journal={Transactions of the Association for Computational Linguistics},
   year={2020},
 }
-
 ```
-
 
 ### Contributions
 

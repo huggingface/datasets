@@ -3,16 +3,16 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - de
 - en
 - es
 - fr
 - it
-- jp
+- ja
 - ru
 - zh
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - multilingual
@@ -46,7 +46,7 @@ configs:
 - spanish_insertions
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for WikiAtomicEdits
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -90,7 +90,15 @@ configs:
 
 ### Languages
 
-[More Information Needed]
+The languages in the dataset are:
+- de
+- en
+- es
+- fr
+- it
+- jp: Japanese (`ja`)
+- ru
+- zh
 
 ## Dataset Structure
 

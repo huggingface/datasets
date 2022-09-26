@@ -3,48 +3,48 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
-- ca
-- de
-- es
-- fi
-- hi
-- id
-- ko
-- ms
-- pl
-- ru
-- sr
-- tl
-- vi
+language:
 - ar
-- cs
-- el
-- et
-- fr
-- hr
-- it
-- lt
-- nl
-- pt
-- sk
-- sv
-- tr
-- zh
 - bg
+- ca
+- cs
 - da
+- de
+- el
 - en
+- es
+- et
 - fa
+- fi
+- fr
 - he
+- hi
+- hr
 - hu
+- id
+- it
 - ja
+- ko
+- lt
 - lv
-- "no"
+- ms
+- nl
+- 'no'
+- pl
+- pt
 - ro
+- ru
+- sk
 - sl
+- sr
+- sv
 - th
+- tl
+- tr
 - uk
-licenses:
+- vi
+- zh
+license:
 - unknown
 multilinguality:
 - multilingual

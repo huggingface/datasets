@@ -3,8 +3,7 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
-- 'no'
+language:
 - ace
 - af
 - als
@@ -21,7 +20,6 @@ languages:
 - ba
 - bar
 - be
-- be-tarask
 - bg
 - bh
 - bn
@@ -47,7 +45,6 @@ languages:
 - el
 - eml
 - en
-- en-basiceng
 - eo
 - es
 - et
@@ -83,7 +80,6 @@ languages:
 - ja
 - jbo
 - jv
-- jv-x-bms
 - ka
 - kk
 - km
@@ -120,6 +116,7 @@ languages:
 - ne
 - nl
 - nn
+- 'no'
 - nov
 - oc
 - or
@@ -180,7 +177,11 @@ languages:
 - yue
 - zea
 - zh
-licenses:
+language_bcp47:
+- be-tarask
+- en-basiceng
+- jv-x-bms
+license:
 - unknown
 multilinguality:
 - multilingual

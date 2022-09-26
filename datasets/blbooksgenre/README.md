@@ -4,12 +4,12 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
-- en
+language:
 - de
+- en
 - fr
 - nl
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - multilingual

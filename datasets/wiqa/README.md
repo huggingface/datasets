@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: wiqa
 pretty_name: What-If Question Answering

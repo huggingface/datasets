@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: scitail
 pretty_name: SciTail

@@ -1,10 +1,22 @@
 import json
 import logging
 import re
+import warnings
 from collections import Counter
 from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, Type, Union
+
+
+try:  # Python >= 3.8
+    from typing import get_args, get_origin
+except ImportError:
+
+    def get_args(tp):
+        return getattr(tp, "__args__", ())
+
+    def get_origin(tp):
+        return getattr(tp, "__origin__", None)
 
 
 # loading package files: https://stackoverflow.com/a/20885799
@@ -19,7 +31,7 @@ import yaml
 from . import resources
 
 
-BASE_REF_URL = "https://github.com/huggingface/datasets/tree/master/src/datasets/utils"
+BASE_REF_URL = "https://github.com/huggingface/datasets/tree/main/src/datasets/utils"
 this_url = f"{BASE_REF_URL}/{__file__}"
 logger = logging.getLogger(__name__)
 
@@ -33,7 +45,6 @@ def load_json_resource(resource: str) -> Tuple[Any, str]:
 # https://datahub.io/core/language-codes/r/ietf-language-tags.csv
 # Language names were obtained with langcodes: https://github.com/LuminosoInsight/langcodes
 known_language_codes, known_language_codes_url = load_json_resource("languages.json")
-known_licenses, known_licenses_url = load_json_resource("licenses.json")
 known_task_ids, known_task_ids_url = load_json_resource("tasks.json")
 known_creators, known_creators_url = load_json_resource("creators.json")
 known_size_categories, known_size_categories_url = load_json_resource("size_categories.json")
@@ -131,10 +142,10 @@ def validate_type(value: Any, expected_type: Type):
             return error_string
     # Add more `elif` statements if primitive type checking is needed
     else:
-        expected_type_name = str(expected_type).split(".", 1)[-1].split("[")[0]  # typing.List[str] -> List
-        expected_type_args = expected_type.__args__
+        expected_type_origin = get_origin(expected_type)  # typing.List[str] -> list
+        expected_type_args = get_args(expected_type)  # typing.List[str] -> (str, )
 
-        if expected_type_name == "Union":
+        if expected_type_origin is Union:
             for type_arg in expected_type_args:
                 temp_error_string = validate_type(value, type_arg)
                 if temp_error_string == "":  # at least one type is successfully validated
@@ -158,10 +169,10 @@ def validate_type(value: Any, expected_type: Type):
             if not isinstance(value, (dict, tuple, list)) or len(value) == 0:
                 return f"Expected `{expected_type}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
 
-            if expected_type_name == "Dict":
+            if expected_type_origin is dict:
                 if not isinstance(value, dict):
                     return f"Expected `{expected_type}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
-                if expected_type_args != Dict.__args__:  # if we specified types for keys and values
+                if expected_type_args != get_args(Dict):  # if we specified types for keys and values
                     key_type, value_type = expected_type_args
                     key_error_string = ""
                     value_error_string = ""
@@ -174,7 +185,7 @@ def validate_type(value: Any, expected_type: Type):
             else:  # `List`/`Tuple`
                 if not isinstance(value, (list, tuple)):
                     return f"Expected `{expected_type}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
-                if expected_type_args != List.__args__:  # if we specified types for the items in the list
+                if expected_type_args != get_args(List):  # if we specified types for the items in the list
                     value_type = expected_type_args[0]
                     value_error_string = ""
                     for v in value:
@@ -210,23 +221,36 @@ EmptyList = List[_nothing]
 class DatasetMetadata:
     annotations_creators: List[str]
     language_creators: Union[EmptyList, List[str]]
-    languages: Union[EmptyList, List[str]]
-    licenses: List[str]
+    language: Union[EmptyList, List[str]]
+    license: List[str]
     multilinguality: List[str]
     pretty_name: str
     size_categories: List[str]
     source_datasets: List[str]
     task_categories: List[str]
     task_ids: Union[EmptyList, List[str]]
+    language_details: Optional[str] = None
+    language_bcp47: Optional[List[str]] = None
     paperswithcode_id: Optional[str] = None
     train_eval_index: Optional[List[Dict]] = None
     configs: Optional[List[str]] = None
     extra_gated_fields: Optional[Dict] = None
     extra_gated_prompt: Optional[str] = None
+    license_details: Optional[str] = None
+    tags: Optional[List[str]] = None
+    licenses: Optional[Union[EmptyList, List[str]]] = None  # deprecated
+    languages: Optional[Union[EmptyList, List[str]]] = None  # deprecated
 
     # class attributes
     _FIELDS_WITH_DASHES: ClassVar[set] = {"train_eval_index"}  # train-eval-index in the YAML metadata
     _ALLOWED_YAML_KEYS: ClassVar[set] = set()  # populated later
+    _DEPRECATED_YAML_KEYS = ["licenses", "languages"]
+
+    def __post_init__(self):
+        if self.licenses is not None:
+            warnings.warning("The 'licenses' YAML field is deprecated, please use 'license' instead.")
+        if self.languages is not None:
+            warnings.warning("The 'languages' YAML field is deprecated, please use 'language' instead.")
 
     def validate(self):
         validate_metadata_type(metadata_dict=vars(self))
@@ -235,8 +259,7 @@ class DatasetMetadata:
             self.annotations_creators
         )
         self.language_creators, language_creators_errors = self.validate_language_creators(self.language_creators)
-        self.languages, languages_errors = self.validate_language_codes(self.languages)
-        self.licenses, licenses_errors = self.validate_licences(self.licenses)
+        self.language, language_errors = self.validate_language_codes(self.language or self.languages)
         self.multilinguality, multilinguality_errors = self.validate_mulitlinguality(self.multilinguality)
         self.size_categories, size_categories_errors = self.validate_size_catgeories(self.size_categories)
         self.source_datasets, source_datasets_errors = self.validate_source_datasets(self.source_datasets)
@@ -250,21 +273,20 @@ class DatasetMetadata:
         errors = {
             "annotations_creators": annotations_creators_errors,
             "language_creators": language_creators_errors,
-            "licenses": licenses_errors,
             "multilinguality": multilinguality_errors,
             "size_categories": size_categories_errors,
             "source_datasets": source_datasets_errors,
             "task_categories": task_categories_errors,
             "task_ids": task_ids_errors,
-            "languages": languages_errors,
+            "language": language_errors,
             "paperswithcode_id": paperswithcode_id_errors,
             "train_eval_index": train_eval_index_errors,
         }
 
         exception_msg_dict = dict()
-        for field, errs in errors.items():
+        for yaml_field, errs in errors.items():
             if errs is not None:
-                exception_msg_dict[field] = errs
+                exception_msg_dict[yaml_field] = errs
         if len(exception_msg_dict) > 0:
             raise TypeError(
                 "Could not validate the metadata, found the following errors:\n"
@@ -355,21 +377,10 @@ class DatasetMetadata:
         return tagset_validator(
             languages,
             known_language_codes.keys(),
-            "languages",
+            "language",
             known_language_codes_url,
             lambda lang: lang == "unknown",
         )
-
-    @staticmethod
-    def validate_licences(licenses: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
-        validated, error = tagset_validator(
-            licenses,
-            list(known_licenses.keys()),
-            "licenses",
-            known_licenses_url,
-            lambda e: "-other-" in e or e.startswith("other-"),
-        )
-        return validated, error
 
     @staticmethod
     def validate_task_categories(task_categories: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:

@@ -1,8 +1,24 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
-paperswithcode_id: cosmosqa
+language_creators:
+- found
+license:
+- cc-by-4.0
+multilinguality:
+- monolingual
 pretty_name: CosmosQA
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- multiple-choice
+task_ids:
+- multiple-choice-qa
+paperswithcode_id: cosmosqa
 ---
 
 # Dataset Card for "cosmos_qa"
@@ -34,9 +50,9 @@ pretty_name: CosmosQA
 ## Dataset Description
 
 - **Homepage:** [https://wilburone.github.io/cosmos/](https://wilburone.github.io/cosmos/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/wilburOne/cosmosqa/
+- **Paper:** [Cosmos QA: Machine Reading Comprehension with Contextual Commonsense Reasoning](https://arxiv.org/abs/1909.00277)
+- **Point of Contact:** [Lifu Huang](mailto:warrior.fu@gmail.com)
 - **Size of downloaded dataset files:** 23.27 MB
 - **Size of the generated dataset:** 23.37 MB
 - **Total amount of disk used:** 46.64 MB
@@ -151,19 +167,26 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+As reported via email by Yejin Choi, the dataset is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) license.
 
 ### Citation Information
 
 ```
-@inproceedings{cosmos,
-    title={COSMOS QA: Machine Reading Comprehension
-    with Contextual Commonsense Reasoning},
-    author={Lifu Huang and Ronan Le Bras and Chandra Bhagavatula and Yejin Choi},
-    booktitle ={arXiv:1909.00277v2},
-    year={2019}
+@inproceedings{huang-etal-2019-cosmos,
+    title = "Cosmos {QA}: Machine Reading Comprehension with Contextual Commonsense Reasoning",
+    author = "Huang, Lifu  and
+      Le Bras, Ronan  and
+      Bhagavatula, Chandra  and
+      Choi, Yejin",
+    booktitle = "Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)",
+    month = nov,
+    year = "2019",
+    address = "Hong Kong, China",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/D19-1243",
+    doi = "10.18653/v1/D19-1243",
+    pages = "2391--2401",
 }
-
 ```
 
 
