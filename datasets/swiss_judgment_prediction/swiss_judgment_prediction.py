@@ -143,62 +143,54 @@ class SwissJudgmentPrediction(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": dl_dir["train"], "split": "train", "mt_filepath": dl_dir["train_mt"]},
+                gen_kwargs={"filepath": dl_dir["train"], "mt_filepath": dl_dir["train_mt"]},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": dl_dir["val"], "split": "validation", "mt_filepath": None},
+                gen_kwargs={"filepath": dl_dir["val"], "mt_filepath": None},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": dl_dir["test"], "split": "test", "mt_filepath": None},
+                gen_kwargs={"filepath": dl_dir["test"], "mt_filepath": None},
             ),
         ]
 
-    def _generate_examples(self, filepath, split, mt_filepath):
+    def _generate_examples(self, filepath, mt_filepath):
         """This function returns the examples in the raw (text) form."""
         if self.config.language == "all":  # without mt pseudo languages
             with open(filepath, encoding="utf-8") as f:
                 for id_, row in enumerate(f):
                     data = json.loads(row)
-                    yield id_, self.make_dict(data)
+                    _ = data.setdefault("source_language", "n/a")
+                    yield id_, data
         elif self.config.language == "all+mt":  # original languages and mt languages
             with open(filepath, encoding="utf-8") as f:
                 for id_, row in enumerate(f):
                     data = json.loads(row)
-                    yield id_, self.make_dict(data)
+                    _ = data.setdefault("source_language", "n/a")
+                    yield id_, data
             last_id = id_ + 1
             if mt_filepath:  # yield data from mt_filepath
                 with open(mt_filepath, encoding="utf-8") as f:
                     for id_, row in enumerate(f):
                         data = json.loads(row)
-                        yield last_id + id_, self.make_dict(data)
+                        _ = data.setdefault("source_language", "n/a")
+                        yield last_id + id_, data
         elif self.config.language in _MT_LANGUAGES:  # mt languages
             if mt_filepath:  # yield data from mt_filepath
                 with open(mt_filepath, encoding="utf-8") as f:
                     for id_, row in enumerate(f):
                         data = json.loads(row)
+                        _ = data.setdefault("source_language", "n/a")
                         if data["language"] in self.config.language:  # "de" in "mt_de"
-                            yield id_, self.make_dict(data)
+                            yield id_, data
         else:  # original languages
             assert self.config.language in _ORIGINAL_LANGUAGES
             with open(filepath, encoding="utf-8") as f:
                 for id_, row in enumerate(f):
                     data = json.loads(row)
+                    _ = data.setdefault("source_language", "n/a")
                     if data["language"] == self.config.language:
-                        yield id_, self.make_dict(data)
-
-    def make_dict(self, data):
-        return {
-            "id": data["id"],
-            "year": data["year"],
-            "text": data["text"],
-            "label": data["label"],
-            "language": data["language"],
-            "region": data["region"],
-            "canton": data["canton"],
-            "legal area": data["legal area"],
-            "source_language": data["source_language"] if "source_language" in data else "n/a",
-        }
+                        yield id_, data
