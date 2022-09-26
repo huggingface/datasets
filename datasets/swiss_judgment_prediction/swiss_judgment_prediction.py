@@ -18,6 +18,7 @@ import json
 
 import datasets
 
+
 logger = datasets.logging.get_logger(__name__)
 
 _CITATION = """\
@@ -83,27 +84,27 @@ class SwissJudgmentPrediction(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("2.0.0", "")
     BUILDER_CONFIG_CLASS = SwissJudgmentPredictionConfig
     BUILDER_CONFIGS = [
-                          SwissJudgmentPredictionConfig(
-                              name=lang,
-                              language=lang,
-                              version=datasets.Version("2.0.0", ""),
-                              description=f"Plain text import of SwissJudgmentPrediction for the {lang} language",
-                          )
-                          for lang in _LANGUAGES
-                      ] + [
-                          SwissJudgmentPredictionConfig(
-                              name="all",
-                              language="all",
-                              version=datasets.Version("2.0.0", ""),
-                              description="Plain text import of SwissJudgmentPrediction for all languages",
-                          ),
-                          SwissJudgmentPredictionConfig(
-                              name="all+mt",
-                              language="all+mt",
-                              version=datasets.Version("2.0.0", ""),
-                              description="Plain text import of SwissJudgmentPrediction for all languages with machine translation",
-                          )
-                      ]
+        SwissJudgmentPredictionConfig(
+            name=lang,
+            language=lang,
+            version=datasets.Version("2.0.0", ""),
+            description=f"Plain text import of SwissJudgmentPrediction for the {lang} language",
+        )
+        for lang in _LANGUAGES
+    ] + [
+        SwissJudgmentPredictionConfig(
+            name="all",
+            language="all",
+            version=datasets.Version("2.0.0", ""),
+            description="Plain text import of SwissJudgmentPrediction for all languages",
+        ),
+        SwissJudgmentPredictionConfig(
+            name="all+mt",
+            language="all+mt",
+            version=datasets.Version("2.0.0", ""),
+            description="Plain text import of SwissJudgmentPrediction for all languages with machine translation",
+        ),
+    ]
 
     def _info(self):
         features = datasets.Features(
