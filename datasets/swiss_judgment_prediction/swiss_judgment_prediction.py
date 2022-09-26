@@ -131,9 +131,8 @@ class SwissJudgmentPrediction(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        urls_to_dl = _URLS
         try:
-            dl_dir = dl_manager.download_and_extract(urls_to_dl)
+            dl_dir = dl_manager.download(_URLS)
         except Exception:
             logger.warning(
                 "This dataset is downloaded through Zenodo which is flaky. "
