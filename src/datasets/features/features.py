@@ -880,7 +880,7 @@ class ClassLabel:
     Example:
 
     ```py
-    >>> from datasets Features
+    >>> from datasets import Features
     >>> features = Features({'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'])})
     >>> features
     {'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'], id=None)}
