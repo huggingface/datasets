@@ -50,13 +50,15 @@
       title: Load audio data
     - local: audio_process
       title: Process audio data
+    - local: audio_dataset
+      title: Create an audio dataset
     title: "Audio"
   - sections:
     - local: image_load
       title: Load image data
     - local: image_process
       title: Process image data
-    - local: image_dataset_script
+    - local: image_dataset
       title: Create an image dataset
     - local: image_classification
       title: Image classification

@@ -379,12 +379,12 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                     for elmt in obj
                 ], True
             else:
-                if isinstance(obj, list):
+                if isinstance(obj, (list, tuple)):
                     return obj, False
                 else:
                     return list(obj), True
         else:
-            return obj if isinstance(obj, list) else [], isinstance(obj, tuple)
+            return obj, False
     else:
         return obj, False
 
@@ -880,7 +880,7 @@ class ClassLabel:
     Example:
 
     ```py
-    >>> from datasets Features
+    >>> from datasets import Features
     >>> features = Features({'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'])})
     >>> features
     {'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'], id=None)}
@@ -1136,7 +1136,7 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
         )  # however don't sort on struct types since the order matters
     elif isinstance(schema, (list, tuple)):
         if len(schema) != 1:
-            raise ValueError("We defining list feature, you should just provide one example of the inner type")
+            raise ValueError("When defining list feature, you should just provide one example of the inner type")
         value_type = get_nested_type(schema[0])
         return pa.list_(value_type)
     elif isinstance(schema, Sequence):

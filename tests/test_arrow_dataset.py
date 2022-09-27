@@ -1341,6 +1341,23 @@ class BaseDatasetTest(TestCase):
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
+    @require_torch
+    def test_map_tensor_batched(self, in_memory):
+        import torch
+
+        def func(batch):
+            return {"tensor": torch.tensor([[1.0, 2, 3]] * len(batch["filename"]))}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func, batched=True) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"filename": Value("string"), "tensor": Sequence(Value("float32"))}),
+                    )
+                    self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
+
     def test_map_input_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
@@ -1458,6 +1475,15 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(dset["col"], [1, 2])
                     with dset.filter(lambda x: [i < 2 for i in x["col"]], batched=True) as dset:
                         self.assertListEqual(dset["col"], [1])
+
+    def test_filter_input_columns(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = Dataset.from_dict({"col_1": [0, 1, 2], "col_2": ["a", "b", "c"]})
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                with dset.filter(lambda x: x > 0, input_columns=["col_1"]) as filtered_dset:
+                    self.assertListEqual(filtered_dset.column_names, dset.column_names)
+                    self.assertListEqual(filtered_dset["col_1"], [1, 2])
+                    self.assertListEqual(filtered_dset["col_2"], ["b", "c"])
 
     def test_filter_fn_kwargs(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -3176,6 +3202,60 @@ def test_dataset_from_text_path_type(path_type, text_path, tmp_path):
     expected_features = {"text": "string"}
     dataset = Dataset.from_text(path, cache_dir=cache_dir)
     _check_text_dataset(dataset, expected_features)
+
+
+@pytest.fixture
+def data_generator():
+    def _gen():
+        data = [
+            {"col_1": "0", "col_2": 0, "col_3": 0.0},
+            {"col_1": "1", "col_2": 1, "col_3": 1.0},
+            {"col_1": "2", "col_2": 2, "col_3": 2.0},
+            {"col_1": "3", "col_2": 3, "col_3": 3.0},
+        ]
+        for item in data:
+            yield item
+
+    return _gen
+
+
+def _check_generator_dataset(dataset, expected_features):
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_dataset_from_generator_keep_in_memory(keep_in_memory, data_generator, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = Dataset.from_generator(data_generator, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    _check_generator_dataset(dataset, expected_features)
+
+
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+def test_dataset_from_generator_features(features, data_generator, tmp_path):
+    cache_dir = tmp_path / "cache"
+    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = Dataset.from_generator(data_generator, features=features, cache_dir=cache_dir)
+    _check_generator_dataset(dataset, expected_features)
 
 
 def test_dataset_to_json(dataset, tmp_path):
