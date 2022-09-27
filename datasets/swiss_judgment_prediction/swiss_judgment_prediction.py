@@ -61,7 +61,7 @@ _URLS = {
 class SwissJudgmentPredictionConfig(datasets.BuilderConfig):
     """BuilderConfig for SwissJudgmentPrediction."""
 
-    def __init__(self, language: str, languages=None, **kwargs):
+    def __init__(self, language: str, **kwargs):
         """BuilderConfig for SwissJudgmentPrediction.
 
         Args:
@@ -70,12 +70,6 @@ class SwissJudgmentPredictionConfig(datasets.BuilderConfig):
         """
         super(SwissJudgmentPredictionConfig, self).__init__(**kwargs)
         self.language = language
-        if language == "all":
-            self.languages = languages if languages is not None else _ORIGINAL_LANGUAGES
-        elif language == "all+mt":
-            self.languages = languages if languages is not None else _LANGUAGES
-        else:
-            self.languages = [language]
 
 
 class SwissJudgmentPrediction(datasets.GeneratorBasedBuilder):
