@@ -29,7 +29,7 @@ from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
 
 import fsspec
 import requests
-from huggingface_hub import HfApi, HfFolder
+from huggingface_hub import HfApi
 
 from . import config
 from .arrow_dataset import Dataset
