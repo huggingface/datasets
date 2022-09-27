@@ -81,6 +81,7 @@ def get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data):
         "pandas": ".pkl",
         "csv": ".csv",
         "parquet": ".parquet",
+        "xml": ".xml",
         "imagefolder": "/",
         "audiofolder": "/",
     }
@@ -95,8 +96,10 @@ def get_packaged_dataset_config_attributes(dataset_name):
     if dataset_name == "json":
         # The json dummy data are formatted as the squad format
         # which has the list of examples in the field named "data".
-        # Therefore we have to tell the json loader to load this field.
+        # Therefore, we have to tell the json loader to load this field.
         return {"field": "data"}
+    elif dataset_name == "xml":
+        return {"field": "country"}
     else:
         return {}
 
