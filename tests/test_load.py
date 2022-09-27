@@ -756,18 +756,6 @@ def test_load_dataset_streaming_csv(path_extension, streaming, csv_path, bz2_csv
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
 
 
-@require_pil
-@pytest.mark.integration
-@pytest.mark.parametrize("streaming", [False, True])
-def test_load_dataset_private_zipped_images(hf_private_dataset_repo_zipped_img_data, hf_token, streaming):
-    ds = load_dataset(
-        hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, use_auth_token=hf_token
-    )
-    assert isinstance(ds, IterableDataset if streaming else Dataset)
-    ds_items = list(ds)
-    assert len(ds_items) == 2
-
-
 @pytest.mark.parametrize("streaming", [False, True])
 @pytest.mark.parametrize("data_file", ["zip_csv_path", "zip_csv_with_dir_path", "csv_path"])
 def test_load_dataset_zip_csv(data_file, streaming, zip_csv_path, zip_csv_with_dir_path, csv_path):
@@ -872,6 +860,22 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
                 with pytest.raises((ConnectionError, requests.exceptions.ConnectionError)):
                     load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, use_auth_token="foo")
         mock_head.assert_called()
+
+
+@require_pil
+@pytest.mark.integration
+@pytest.mark.parametrize("implicit_token", [False, True])
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_private_zipped_images(
+    hf_private_dataset_repo_zipped_img_data, hf_token, streaming, implicit_token
+):
+    use_auth_token = None if implicit_token else hf_token
+    ds = load_dataset(
+        hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, use_auth_token=use_auth_token
+    )
+    assert isinstance(ds, IterableDataset if streaming else Dataset)
+    ds_items = list(ds)
+    assert len(ds_items) == 2
 
 
 @pytest.mark.integration
