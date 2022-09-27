@@ -159,38 +159,20 @@ class SwissJudgmentPrediction(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, mt_filepath):
         """This function returns the examples in the raw (text) form."""
-        if self.config.language == "all":  # without mt pseudo languages
+        if self.config.language in ["all", "all+mt"] + _ORIGINAL_LANGUAGES:
             with open(filepath, encoding="utf-8") as f:
                 for id_, row in enumerate(f):
                     data = json.loads(row)
                     _ = data.setdefault("source_language", "n/a")
-                    yield id_, data
-        elif self.config.language == "all+mt":  # original languages and mt languages
-            with open(filepath, encoding="utf-8") as f:
-                for id_, row in enumerate(f):
-                    data = json.loads(row)
-                    _ = data.setdefault("source_language", "n/a")
-                    yield id_, data
-            last_id = id_ + 1
-            if mt_filepath:  # yield data from mt_filepath
-                with open(mt_filepath, encoding="utf-8") as f:
-                    for id_, row in enumerate(f):
-                        data = json.loads(row)
-                        _ = data.setdefault("source_language", "n/a")
-                        yield last_id + id_, data
-        elif self.config.language in _MT_LANGUAGES:  # mt languages
-            if mt_filepath:  # yield data from mt_filepath
-                with open(mt_filepath, encoding="utf-8") as f:
-                    for id_, row in enumerate(f):
-                        data = json.loads(row)
-                        _ = data.setdefault("source_language", "n/a")
-                        if data["language"] in self.config.language:  # "de" in "mt_de"
-                            yield id_, data
-        else:  # original languages
-            assert self.config.language in _ORIGINAL_LANGUAGES
-            with open(filepath, encoding="utf-8") as f:
-                for id_, row in enumerate(f):
-                    data = json.loads(row)
-                    _ = data.setdefault("source_language", "n/a")
-                    if data["language"] == self.config.language:
+                    if self.config.language in ["all", "all+mt"] or data["language"] == self.config.language:
                         yield id_, data
+        if self.config.language in ["all+mt"] + _MT_LANGUAGES:
+            if mt_filepath:  # yield data from mt_filepath
+                with open(mt_filepath, encoding="utf-8") as f:
+                    for id_, row in enumerate(f):
+                        data = json.loads(row)
+                        _ = data.setdefault("source_language", "n/a")
+                        if (
+                            self.config.language == "all+mt" or data["language"] in self.config.language
+                        ):  # "de" in "mt_de"
+                            yield f"mt_{id_}", data
