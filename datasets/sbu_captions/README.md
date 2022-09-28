@@ -51,11 +51,11 @@ pretty_name: SBU Captioned Photo Dataset
 
 ## Dataset Description
 
-- **Homepage:** [SBU Captioned Photo Dataset homepage](http://www.cs.virginia.edu/~vicente/sbucaptions/)
+- **Homepage:** https://www.cs.rice.edu/~vo9/sbucaptions/
 - **Repository:**
 - **Paper:** [Im2Text: Describing Images Using 1 Million Captioned Photographs](https://papers.nips.cc/paper/2011/hash/5dd9db5e033da9c6fb5ba83c7a7ebea9-Abstract.html)
 - **Leaderboard:**
-- **Point of Contact:** [Vicente Ordóñez Román](mailto:vicente@virginia.edu)
+- **Point of Contact:** [Vicente Ordóñez Román](mailto:vicenteor@rice.edu)
 
 ### Dataset Summary
 
