@@ -933,29 +933,37 @@ def test_concatenate_datasets_axis_1_with_different_lengths():
 
 
 @pytest.mark.parametrize(
-    "probas, seed, expected_length",
+    "probas, seed, expected_length, stopping_strategy",
     [
-        (None, None, 3 * DEFAULT_N_EXAMPLES),
-        ([1, 0, 0], None, DEFAULT_N_EXAMPLES),
-        ([0, 1, 0], None, DEFAULT_N_EXAMPLES),
-        ([0.2, 0.5, 0.3], 42, None),
-        ([0.1, 0.1, 0.8], 1337, None),
-        ([0.5, 0.2, 0.3], 101010, None),
+        (None, None, 3 * (DEFAULT_N_EXAMPLES - 1) + 1, "first_exhausted"),
+        ([1, 0, 0], None, DEFAULT_N_EXAMPLES, "first_exhausted"),
+        ([0, 1, 0], None, DEFAULT_N_EXAMPLES, "first_exhausted"),
+        ([0.2, 0.5, 0.3], 42, None, "first_exhausted"),
+        ([0.1, 0.1, 0.8], 1337, None, "first_exhausted"),
+        ([0.5, 0.2, 0.3], 101010, None, "first_exhausted"),
+        (None, None, 3 * DEFAULT_N_EXAMPLES, "all_exhausted"),
+        ([0.2, 0.5, 0.3], 42, None, "all_exhausted"),
+        ([0.1, 0.1, 0.8], 1337, None, "all_exhausted"),
+        ([0.5, 0.2, 0.3], 101010, None, "all_exhausted"),
     ],
 )
-def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_length):
+def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_length, stopping_strategy):
     d1 = dataset
     d2 = dataset.map(lambda x: {"id+1": x["id"] + 1, **x})
     d3 = dataset.with_format("python")
     datasets = [d1, d2, d3]
-    merged_dataset = interleave_datasets(datasets, probabilities=probas, seed=seed)
+    merged_dataset = interleave_datasets(
+        datasets, probabilities=probas, seed=seed, stopping_strategy=stopping_strategy
+    )
     # Check the examples iterable
     assert isinstance(
         merged_dataset._ex_iterable, (CyclingMultiSourcesExamplesIterable, RandomlyCyclingMultiSourcesExamplesIterable)
     )
     # Check that it is deterministic
     if seed is not None:
-        merged_dataset2 = interleave_datasets([d1, d2, d3], probabilities=probas, seed=seed)
+        merged_dataset2 = interleave_datasets(
+            [d1, d2, d3], probabilities=probas, seed=seed, stopping_strategy=stopping_strategy
+        )
         assert list(merged_dataset) == list(merged_dataset2)
     # Check first example
     if seed is not None:
@@ -967,13 +975,14 @@ def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_le
     # Compute length it case it's random
     if expected_length is None:
         expected_length = 0
-        counts = [len(list(d)) for d in datasets]
+        counts = np.array([len(list(d)) for d in datasets])
+        bool_strategy_func = np.all if stopping_strategy == "all_exhausted" else np.any
         rng = np.random.default_rng(seed)
         for i in RandomlyCyclingMultiSourcesExamplesIterable._iter_random_indices(rng, len(datasets), p=probas):
-            if counts[i] == 0:
-                break
             counts[i] -= 1
             expected_length += 1
+            if bool_strategy_func(counts <= 0):
+                break
     # Check length
     assert len(list(merged_dataset)) == expected_length
 
