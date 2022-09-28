@@ -36,58 +36,68 @@ _DESCRIPTION = """
 Swiss-Judgment-Prediction is a multilingual, diachronic dataset of 85K Swiss Federal Supreme Court (FSCS) cases annotated with the respective binarized judgment outcome (approval/dismissal), posing a challenging text classification task. We also provide additional metadata, i.e., the publication year, the legal area and the canton of origin per case, to promote robustness and fairness studies on the critical area of legal NLP.
 """
 
-_LANGUAGES = [
+_ORIGINAL_LANGUAGES = [
     "de",
     "fr",
     "it",
 ]
+_MT_LANGUAGES = [
+    "mt_de",
+    "mt_fr",
+    "mt_it",
+    "mt_en",
+]
+_LANGUAGES = _ORIGINAL_LANGUAGES + _MT_LANGUAGES
 
-_URL = "https://zenodo.org/record/5529712/files/"
+_URL = "https://zenodo.org/record/7109926/files/"
 _URLS = {
     "train": _URL + "train.jsonl",
-    "test": _URL + "test.jsonl",
+    "train_mt": _URL + "train_mt.jsonl",
     "val": _URL + "val.jsonl",
+    "test": _URL + "test.jsonl",
 }
 
 
 class SwissJudgmentPredictionConfig(datasets.BuilderConfig):
     """BuilderConfig for SwissJudgmentPrediction."""
 
-    def __init__(self, language: str, languages=None, **kwargs):
+    def __init__(self, language: str, **kwargs):
         """BuilderConfig for SwissJudgmentPrediction.
 
         Args:
-        language: One of de,fr,it, or all_languages
+        language: One of de, fr, it, or all, or all+mt
           **kwargs: keyword arguments forwarded to super.
         """
         super(SwissJudgmentPredictionConfig, self).__init__(**kwargs)
         self.language = language
-        if language != "all_languages":
-            self.languages = [language]
-        else:
-            self.languages = languages if languages is not None else _LANGUAGES
 
 
 class SwissJudgmentPrediction(datasets.GeneratorBasedBuilder):
     """SwissJudgmentPrediction: A Multilingual Legal Judgment PredictionBenchmark"""
 
-    VERSION = datasets.Version("1.0.0", "")
+    VERSION = datasets.Version("2.0.0", "")
     BUILDER_CONFIG_CLASS = SwissJudgmentPredictionConfig
     BUILDER_CONFIGS = [
         SwissJudgmentPredictionConfig(
             name=lang,
             language=lang,
-            version=datasets.Version("1.0.0", ""),
+            version=datasets.Version("2.0.0", ""),
             description=f"Plain text import of SwissJudgmentPrediction for the {lang} language",
         )
         for lang in _LANGUAGES
     ] + [
         SwissJudgmentPredictionConfig(
-            name="all_languages",
-            language="all_languages",
-            version=datasets.Version("1.0.0", ""),
+            name="all",
+            language="all",
+            version=datasets.Version("2.0.0", ""),
             description="Plain text import of SwissJudgmentPrediction for all languages",
-        )
+        ),
+        SwissJudgmentPredictionConfig(
+            name="all+mt",
+            language="all+mt",
+            version=datasets.Version("2.0.0", ""),
+            description="Plain text import of SwissJudgmentPrediction for all languages with machine translation",
+        ),
     ]
 
     def _info(self):
@@ -101,6 +111,7 @@ class SwissJudgmentPrediction(datasets.GeneratorBasedBuilder):
                 "region": datasets.Value("string"),
                 "canton": datasets.Value("string"),
                 "legal area": datasets.Value("string"),
+                "source_language": datasets.Value("string"),
             }
         )
         return datasets.DatasetInfo(
@@ -114,61 +125,48 @@ class SwissJudgmentPrediction(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        urls_to_dl = _URLS
         try:
-            dl_dir = dl_manager.download_and_extract(urls_to_dl)
+            dl_dir = dl_manager.download(_URLS)
         except Exception:
             logger.warning(
-                "This dataset is downloaded through Zenodo which is flaky. If this download failed try a few times before reporting an issue"
+                "This dataset is downloaded through Zenodo which is flaky. "
+                "If this download failed try a few times before reporting an issue"
             )
             raise
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": dl_dir["train"], "split": "train"},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": dl_dir["test"], "split": "test"},
+                gen_kwargs={"filepath": dl_dir["train"], "mt_filepath": dl_dir["train_mt"]},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": dl_dir["val"], "split": "dev"},
+                gen_kwargs={"filepath": dl_dir["val"], "mt_filepath": None},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"filepath": dl_dir["test"], "mt_filepath": None},
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath, mt_filepath):
         """This function returns the examples in the raw (text) form."""
-
-        if self.config.language == "all_languages":
+        if self.config.language in ["all", "all+mt"] + _ORIGINAL_LANGUAGES:
             with open(filepath, encoding="utf-8") as f:
                 for id_, row in enumerate(f):
                     data = json.loads(row)
-                    yield id_, {
-                        "id": data["id"],
-                        "year": data["year"],
-                        "text": data["text"],
-                        "label": data["label"],
-                        "language": data["language"],
-                        "region": data["region"],
-                        "canton": data["canton"],
-                        "legal area": data["legal area"],
-                    }
-        else:
-            with open(filepath, encoding="utf-8") as f:
-                for id_, row in enumerate(f):
-                    data = json.loads(row)
-                    if data["language"] == self.config.language:
-                        yield id_, {
-                            "id": data["id"],
-                            "year": data["year"],
-                            "text": data["text"],
-                            "label": data["label"],
-                            "language": data["language"],
-                            "region": data["region"],
-                            "canton": data["canton"],
-                            "legal area": data["legal area"],
-                        }
+                    _ = data.setdefault("source_language", "n/a")
+                    if self.config.language in ["all", "all+mt"] or data["language"] == self.config.language:
+                        yield id_, data
+        if self.config.language in ["all+mt"] + _MT_LANGUAGES:
+            if mt_filepath:  # yield data from mt_filepath
+                with open(mt_filepath, encoding="utf-8") as f:
+                    for id_, row in enumerate(f):
+                        data = json.loads(row)
+                        _ = data.setdefault("source_language", "n/a")
+                        if (
+                            self.config.language == "all+mt" or data["language"] in self.config.language
+                        ):  # "de" in "mt_de"
+                            yield f"mt_{id_}", data
