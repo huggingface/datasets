@@ -105,31 +105,33 @@ class DatasetTester:
     def __init__(self, parent):
         self.parent = parent if parent is not None else TestCase()
 
-    def load_builder_class(self, dataset_name, is_local=False):
+    def load_builder_class(self, dataset_name, is_local=False, data_files=None):
         # Download/copy dataset script
         if is_local is True:
             dataset_module = dataset_module_factory(os.path.join("datasets", dataset_name))
         else:
-            dataset_module = dataset_module_factory(dataset_name, download_config=DownloadConfig(force_download=True))
+            dataset_module = dataset_module_factory(
+                dataset_name, download_config=DownloadConfig(force_download=True), data_files=data_files
+            )
         # Get dataset builder class
         builder_cls = import_main_class(dataset_module.module_path)
         return builder_cls
 
-    def load_all_configs(self, dataset_name, is_local=False) -> List[Optional[BuilderConfig]]:
+    def load_all_configs(self, dataset_name, is_local=False, data_files=None) -> List[Optional[BuilderConfig]]:
         # get builder class
-        builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
+        builder_cls = self.load_builder_class(dataset_name, is_local=is_local, data_files=data_files)
         builder = builder_cls
 
         if len(builder.BUILDER_CONFIGS) == 0:
             return [None]
         return builder.BUILDER_CONFIGS
 
-    def check_load_dataset(self, dataset_name, configs, is_local=False, use_local_dummy_data=False):
+    def check_load_dataset(self, dataset_name, configs, is_local=False, use_local_dummy_data=False, data_files=None):
         for config in configs:
             with tempfile.TemporaryDirectory() as processed_temp_dir, tempfile.TemporaryDirectory() as raw_temp_dir:
 
                 # create config and dataset
-                dataset_builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
+                dataset_builder_cls = self.load_builder_class(dataset_name, is_local=is_local, data_files=data_files)
                 config_name = config.name if config is not None else None
                 dataset_builder = dataset_builder_cls(config_name=config_name, cache_dir=processed_temp_dir)
 
