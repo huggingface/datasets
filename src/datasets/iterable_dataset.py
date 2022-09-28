@@ -184,11 +184,14 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
         # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
         self.bool_strategy_func = np.all if (stopping_strategy == "all_exhausted") else np.any
 
+    def _give_indice_iterator(self):
+        # this is an infinite iterator to keep track of which iterator we want to pick examples from
+        return cycle(range(len(self.ex_iterables)))
+
     def __iter__(self):
         iterators = [HasNextIterator(ex_iterable) for ex_iterable in self.ex_iterables]
 
-        # this is an infinite iterator to keep track of which iterator we want to pick examples from
-        indices_iterator = cycle(range(len(iterators)))
+        indices_iterator = self._give_indice_iterator()
 
         is_exhausted = np.full(len(self.ex_iterables), False)
         for i in indices_iterator:
@@ -363,38 +366,10 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
             while True:
                 yield from (int(i) for i in rng.choice(num_sources, size=random_batch_size, p=p))
 
-    def __iter__(self):
+    def _give_indice_iterator(self):
         rng = deepcopy(self.generator)
-        iterators = [HasNextIterator(ex_iterable) for ex_iterable in self.ex_iterables]
         # this is an infinite iterator that randomly samples the index of the source to pick examples from
-        indices_iterator = self._iter_random_indices(rng, len(iterators), p=self.probabilities)
-
-        is_exhausted = np.full(len(self.ex_iterables), False)
-
-        for i in indices_iterator:
-            try:  # let's pick one example from the iterator at index i
-                yield next(iterators[i])
-
-                # it will resume from the yield at the next call so that we can directly test if the iterable is exhausted and if we need to break out of the loop
-                if not iterators[i].hasnext():
-                    is_exhausted[i] = True
-
-                    if self.bool_strategy_func(is_exhausted):
-                        # if the stopping criteria is met, break the main for loop
-                        break
-                    # otherwise reinitialise the iterator and yield the first example
-                    iterators[i] = HasNextIterator(self.ex_iterables[i])
-
-            except StopIteration:
-                # here it means that the i-th iterabledataset is empty, i.e we never have the occasion to yield an element of the i-th dataset.
-                # we still check if the stopping criteria is met and if we break out of the loop in case of an oversampling strategy
-                is_exhausted[i] = True
-
-                if self.bool_strategy_func(is_exhausted):
-                    # if the stopping criteria is met, break the main for loop
-                    break
-                # otherwise reinitialise the iterator and yield the first example
-                iterators[i] = HasNextIterator(self.ex_iterables[i])
+        return self._iter_random_indices(rng, len(self.ex_iterables), p=self.probabilities)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "RandomlyCyclingMultiSourcesExamplesIterable":
         """Shuffle the data sources of each wrapped examples iterable."""
