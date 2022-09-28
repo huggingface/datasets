@@ -995,3 +995,27 @@ def test_interleave_datasets_with_features(
     assert isinstance(merged_dataset._ex_iterable.ex_iterables[1], TypedExamplesIterable)
     assert merged_dataset._ex_iterable.ex_iterables[1].features == features
     assert next(iter(merged_dataset)) == next(iter(dataset_with_features))
+
+
+def test_interleave_datasets_with_oversampling():
+    # Test hardcoded results
+    d1 = IterableDataset(ExamplesIterable((lambda: (yield from [(i, {"a": i}) for i in [0, 1, 2]])), {}))
+    d2 = IterableDataset(ExamplesIterable((lambda: (yield from [(i, {"a": i}) for i in [10, 11, 12, 13]])), {}))
+    d3 = IterableDataset(ExamplesIterable((lambda: (yield from [(i, {"a": i}) for i in [20, 21, 22, 23, 24]])), {}))
+
+    expected_values = [0, 10, 20, 1, 11, 21, 2, 12, 22, 0, 13, 23, 1, 10, 24]
+
+    # Check oversampling strategy without probabilities
+    assert [x["a"] for x in interleave_datasets([d1, d2, d3], stopping_strategy="all_exhausted")] == expected_values
+
+    # Check oversampling strategy with probabilities
+    expected_values = [20, 0, 21, 10, 1, 22, 23, 24, 2, 0, 1, 20, 11, 21, 2, 0, 12, 1, 22, 13]
+
+    values = [
+        x["a"]
+        for x in interleave_datasets(
+            [d1, d2, d3], probabilities=[0.5, 0.2, 0.3], seed=42, stopping_strategy="all_exhausted"
+        )
+    ]
+
+    assert values == expected_values
