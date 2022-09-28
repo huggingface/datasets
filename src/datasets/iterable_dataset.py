@@ -179,7 +179,7 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     ):
         self.ex_iterables = ex_iterables
         self.stopping_strategy = stopping_strategy
-        self.is_exhausted = np.full(len(ex_iterables), False)
+
         # if undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted
         # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
         self.bool_strategy_func = np.all if (stopping_strategy == "all_exhausted") else np.any
@@ -189,15 +189,17 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
         # this is an infinite iterator to keep track of which iterator we want to pick examples from
         indices_iterator = cycle(range(len(iterators)))
+
+        is_exhausted = np.full(len(self.ex_iterables), False)
         for i in indices_iterator:
             try:  # let's pick one example from the iterator at index i
                 yield next(iterators[i])
 
                 # it will resume from the yield at the next call so that we can directly test if the iterable is exhausted and if we need to break out of the loop
                 if not iterators[i].hasnext():
-                    self.is_exhausted[i] = True
+                    is_exhausted[i] = True
 
-                    if self.bool_strategy_func(self.is_exhausted):
+                    if self.bool_strategy_func(is_exhausted):
                         # if the stopping criteria is met, break the main for loop
                         break
                     # otherwise reinitialise the iterator and yield the first example
@@ -206,9 +208,9 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             except StopIteration:
                 # here it means that the i-th iterabledataset is empty, i.e we never have the occasion to yield an element of the i-th dataset.
                 # we still check if the stopping criteria is met and if we break out of the loop in case of an oversampling strategy
-                self.is_exhausted[i] = True
+                is_exhausted[i] = True
 
-                if self.bool_strategy_func(self.is_exhausted):
+                if self.bool_strategy_func(is_exhausted):
                     # if the stopping criteria is met, break the main for loop
                     break
                 # otherwise reinitialise the iterator and yield the first example
@@ -366,15 +368,18 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         iterators = [HasNextIterator(ex_iterable) for ex_iterable in self.ex_iterables]
         # this is an infinite iterator that randomly samples the index of the source to pick examples from
         indices_iterator = self._iter_random_indices(rng, len(iterators), p=self.probabilities)
+
+        is_exhausted = np.full(len(self.ex_iterables), False)
+
         for i in indices_iterator:
             try:  # let's pick one example from the iterator at index i
                 yield next(iterators[i])
 
                 # it will resume from the yield at the next call so that we can directly test if the iterable is exhausted and if we need to break out of the loop
                 if not iterators[i].hasnext():
-                    self.is_exhausted[i] = True
+                    is_exhausted[i] = True
 
-                    if self.bool_strategy_func(self.is_exhausted):
+                    if self.bool_strategy_func(is_exhausted):
                         # if the stopping criteria is met, break the main for loop
                         break
                     # otherwise reinitialise the iterator and yield the first example
@@ -383,9 +388,9 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
             except StopIteration:
                 # here it means that the i-th iterabledataset is empty, i.e we never have the occasion to yield an element of the i-th dataset.
                 # we still check if the stopping criteria is met and if we break out of the loop in case of an oversampling strategy
-                self.is_exhausted[i] = True
+                is_exhausted[i] = True
 
-                if self.bool_strategy_func(self.is_exhausted):
+                if self.bool_strategy_func(is_exhausted):
                     # if the stopping criteria is met, break the main for loop
                     break
                 # otherwise reinitialise the iterator and yield the first example
