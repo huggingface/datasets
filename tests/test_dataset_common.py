@@ -305,20 +305,29 @@ class PackagedDatasetTest(parameterized.TestCase):
         self.dataset_tester = DatasetTester(self)
 
     def test_load_dataset_offline(self, dataset_name):
+        # pass existing dummy data_files to avoid slow inferring over root directory
+        # overwritten afterwards with extracted dummy data
+        dummy_data_files = f"datasets/{dataset_name}/dummy/0.0.0/dummy_data.zip"
         for offline_simulation_mode in list(OfflineSimulationMode):
             with offline(offline_simulation_mode):
-                configs = self.dataset_tester.load_all_configs(dataset_name)[:1]
-                self.dataset_tester.check_load_dataset(dataset_name, configs, use_local_dummy_data=True)
+                configs = self.dataset_tester.load_all_configs(dataset_name, data_files=dummy_data_files)[:1]
+                self.dataset_tester.check_load_dataset(
+                    dataset_name, configs, use_local_dummy_data=True, data_files=dummy_data_files
+                )
 
     def test_builder_class(self, dataset_name):
-        builder_cls = self.dataset_tester.load_builder_class(dataset_name)
+        # pass existing dummy data_files to avoid slow inferring over root directory; not used afterwards
+        dummy_data_files = f"datasets/{dataset_name}/dummy/0.0.0/dummy_data.zip"
+        builder_cls = self.dataset_tester.load_builder_class(dataset_name, data_files=dummy_data_files)
         config_name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
             builder = builder_cls(config_name=config_name, cache_dir=tmp_cache_dir)
             self.assertIsInstance(builder, DatasetBuilder)
 
     def test_builder_configs(self, dataset_name):
-        builder_configs = self.dataset_tester.load_all_configs(dataset_name)
+        # pass existing dummy data_files to avoid slow inferring over root directory; not used afterwards
+        dummy_data_files = f"datasets/{dataset_name}/dummy/0.0.0/dummy_data.zip"
+        builder_configs = self.dataset_tester.load_all_configs(dataset_name, data_files=dummy_data_files)
         self.assertTrue(len(builder_configs) > 0)
 
         if builder_configs[0] is not None:
