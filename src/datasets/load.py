@@ -618,9 +618,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
     def get_module(self) -> DatasetModule:
         base_path = os.path.join(self.path, self.data_dir) if self.data_dir else self.path
         patterns = (
-            sanitize_patterns(self.data_files)
-            if self.data_files is not None
-            else get_data_patterns_locally(base_path)
+            sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
         )
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
@@ -686,9 +684,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
     def get_module(self) -> DatasetModule:
         base_path = str(Path(self.data_dir).resolve()) if self.data_dir is not None else str(Path().resolve())
         patterns = (
-            sanitize_patterns(self.data_files)
-            if self.data_files is not None
-            else get_data_patterns_locally(base_path)
+            sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
         )
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
