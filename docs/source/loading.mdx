@@ -54,11 +54,16 @@ If you don't specify which data files to use, [`load_dataset`] will return all t
 
 </Tip>
 
-You can also load a specific subset of the files with the `data_files` parameter. The example below only loads files that match the grep pattern:
+You can also load a specific subset of the files with the `data_files` or `data_dir` parameter. These parameters can accept a relative path which resolves to the base path corresponding to where the dataset is loaded from.
 
 ```py
 >>> from datasets import load_dataset
+
+# load files that match the grep pattern
 >>> c4_subset = load_dataset("allenai/c4", data_files="en/c4-train.0000*-of-01024.json.gz")
+
+# load dataset from the en directory on the Hub
+>>> c4_subset = load_dataset("allenai/c4", data_dir="en")
 ```
 
 The `split` parameter can also map a data file to a specific split:
@@ -205,6 +210,31 @@ Load Python dictionaries with [`~Dataset.from_dict`]:
 >>> dataset = Dataset.from_dict(my_dict)
 ```
 
+### Python list of dictionaries
+
+Load a list of Python dictionaries with [`~Dataset.from_list`]:
+
+```py
+>>> from datasets import Dataset
+>>> my_list = [{"a": 1}, {"a": 2}, {"a": 3}]
+>>> dataset = Dataset.from_list(my_list)
+```
+
+### Python generator
+
+Create a dataset from a Python generator with [`~Dataset.from_generator`]:
+
+```py
+>>> from datasets import Dataset
+>>> def my_gen():
+...     for i in range(1, 4):
+...         yield {"a": i}
+...
+>>> dataset = Dataset.from_generator(my_dict)
+```
+
+This approach supports loading data larger than available memory.
+
 ### Pandas DataFrame
 
 Load Pandas DataFrames with [`~Dataset.from_pandas`]:
@@ -260,7 +290,7 @@ Or select a percentage of a split with:
 Select a combination of percentages from each split:
 
 ```py
->>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split="tr"in[:10%]+train[-80%:]")
+>>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split="train[:10%]+train[-80%:]")
 ===STRINGAPI-READINSTRUCTION-SPLIT===
 >>> ri = (datasets.ReadInstruction("train", to=10, unit="%") + datasets.ReadInstruction("train", from_=-80, unit="%"))
 >>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split=ri)
@@ -325,6 +355,7 @@ Please follow the manual download instructions: To use MATINF you have to downlo
 Manual data can be loaded with `datasets.load_dataset(matinf, data_dir='<path/to/manual/data>') 
 ```
 
+If you've already downloaded a dataset from the *Hub with a loading script* to your computer, then you need to pass an absolute path to the `data_dir` or `data_files` parameter to load that dataset. Otherwise, if you pass a relative path, [`load_dataset`] will load the directory from the repository on the Hub instead of the local directory.
 
 ### Specify features
 

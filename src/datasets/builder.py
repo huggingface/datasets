@@ -27,7 +27,11 @@ import urllib
 import warnings
 from dataclasses import dataclass
 from functools import partial
+from pathlib import Path
 from typing import Dict, Mapping, Optional, Tuple, Union
+
+import fsspec
+from tqdm.contrib.concurrent import thread_map
 
 from . import config, utils
 from .arrow_dataset import Dataset
@@ -38,7 +42,7 @@ from .arrow_reader import (
     MissingFilesOnHfGcsError,
     ReadInstruction,
 )
-from .arrow_writer import ArrowWriter, BeamWriter
+from .arrow_writer import ArrowWriter, BeamWriter, ParquetWriter
 from .data_files import DataFilesDict, sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
@@ -46,6 +50,7 @@ from .download.download_manager import DownloadManager, DownloadMode
 from .download.mock_download_manager import MockDownloadManager
 from .download.streaming_download_manager import StreamingDownloadManager
 from .features import Features
+from .filesystems import is_remote_filesystem
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
@@ -59,6 +64,7 @@ from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
 from .utils.py_utils import (
     classproperty,
+    convert_file_size_to_int,
     has_sufficient_disk_space,
     map_nested,
     memoize,
@@ -345,6 +351,10 @@ class DatasetBuilder:
                         )
                         os.rmdir(self._cache_dir)
 
+        # Store in the cache by default unless the user specifies a custom output_dir to download_and_prepare
+        self._output_dir = self._cache_dir
+        self._fs: fsspec.AbstractFileSystem = fsspec.filesystem("file")
+
         # Set download manager
         self.dl_manager = None
 
@@ -536,7 +546,7 @@ class DatasetBuilder:
             version_dirnames.sort(reverse=True)
             return version_dirnames
 
-        # Check and warn if other versions exist on disk
+        # Check and warn if other versions exist
         if not is_remote_url(builder_data_dir):
             version_dirs = _other_versions_on_disk()
             if version_dirs:
@@ -568,8 +578,17 @@ class DatasetBuilder:
         """Return the path of the module of this class or subclass."""
         return os.path.dirname(inspect.getfile(inspect.getmodule(cls)))
 
+    def _rename(self, src: str, dst: str):
+        is_local = not is_remote_filesystem(self._fs)
+        if is_local:
+            # LocalFileSystem.mv does copy + rm, it is more efficient to simply move a local directory
+            shutil.move(self._fs._strip_protocol(src), self._fs._strip_protocol(dst))
+        else:
+            self._fs.mv(src, dst, recursive=True)
+
     def download_and_prepare(
         self,
+        output_dir: Optional[str] = None,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[DownloadMode] = None,
         ignore_verifications: bool = False,
@@ -577,11 +596,18 @@ class DatasetBuilder:
         dl_manager: Optional[DownloadManager] = None,
         base_path: Optional[str] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
+        file_format: str = "arrow",
+        max_shard_size: Optional[Union[int, str]] = None,
+        storage_options: Optional[dict] = None,
         **download_and_prepare_kwargs,
     ):
         """Downloads and prepares dataset for reading.
 
         Args:
+            output_dir (:obj:`str`, optional): output directory for the dataset.
+                Default to this builder's ``cache_dir``, which is inside ~/.cache/huggingface/datasets by default.
+
+                <Added version="2.5.0"/>
             download_config (:class:`DownloadConfig`, optional): specific download configuration parameters.
             download_mode (:class:`DownloadMode`, optional): select the download/generate mode - Default to ``REUSE_DATASET_IF_EXISTS``
             ignore_verifications (:obj:`bool`): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
@@ -591,19 +617,75 @@ class DatasetBuilder:
                 If not specified, the value of the `base_path` attribute (`self.base_path`) will be used instead.
             use_auth_token (:obj:`Union[str, bool]`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
                 If True, will get token from ~/.huggingface.
+            file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
+                Supported formats: "arrow", "parquet". Default to "arrow" format.
+                If the format is "parquet", then image and audio data are embedded into the Parquet files instead of pointing to local files.
+
+                <Added version="2.5.0"/>
+            max_shard_size (:obj:`Union[str, int]`, optional): Maximum number of bytes written per shard.
+                Only available for the "parquet" format with a default of "500MB". The size is based on uncompressed data size,
+                so in practice your shard files may be smaller than `max_shard_size` thanks to Parquet compression.
+
+                <Added version="2.5.0"/>
+            storage_options (:obj:`dict`, *optional*): Key/value pairs to be passed on to the caching file-system backend, if any.
+
+                <Added version="2.5.0"/>
             **download_and_prepare_kwargs (additional keyword arguments): Keyword arguments.
 
         Example:
 
+        Downdload and prepare the dataset as Arrow files that can be loaded as a Dataset using `builder.as_dataset()`
+
         ```py
         >>> from datasets import load_dataset_builder
-        >>> builder = load_dataset_builder('rotten_tomatoes')
+        >>> builder = load_dataset_builder("rotten_tomatoes")
         >>> ds = builder.download_and_prepare()
         ```
+
+        Downdload and prepare the dataset as sharded Parquet files locally
+
+        ```py
+        >>> from datasets import load_dataset_builder
+        >>> builder = load_dataset_builder("rotten_tomatoes")
+        >>> ds = builder.download_and_prepare("./output_dir", file_format="parquet")
+        ```
+
+        Downdload and prepare the dataset as sharded Parquet files in a cloud storage
+
+        ```py
+        >>> from datasets import load_dataset_builder
+        >>> storage_options = {"key": aws_access_key_id, "secret": aws_secret_access_key}
+        >>> builder = load_dataset_builder("rotten_tomatoes")
+        >>> ds = builder.download_and_prepare("s3://my-bucket/my_rotten_tomatoes", storage_options=storage_options, file_format="parquet")
+        ```
         """
+        output_dir = output_dir if output_dir is not None else self._cache_dir
+        # output_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
+        fs_token_paths = fsspec.get_fs_token_paths(output_dir, storage_options=storage_options)
+        self._fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+        is_local = not is_remote_filesystem(self._fs)
+        self._output_dir = fs_token_paths[2][0] if is_local else self._fs.unstrip_protocol(fs_token_paths[2][0])
+
         download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
         base_path = base_path if base_path is not None else self.base_path
+
+        if file_format is not None and file_format not in ["arrow", "parquet"]:
+            raise ValueError(f"Unsupported file_format: {file_format}. Expected 'arrow' or 'parquet'")
+
+        if file_format == "arrow" and max_shard_size is not None:
+            raise NotImplementedError(
+                "Writing sharded arrow files is not supported. Please don't use max_shard_size or use file_format='parquet'."
+            )
+
+        if self._fs._strip_protocol(self._output_dir) == "":
+            # We don't support the root directory, because it has no dirname,
+            # and we need a dirname to use a <dirname>.incomplete directory
+            # when the dataset is being written
+            raise RuntimeError(
+                f"Unable to download and prepare the dataset at the root {self._output_dir}. "
+                f"Please specify a subdirectory, e.g. '{self._output_dir + self.name}'"
+            )
 
         if dl_manager is None:
             if download_config is None:
@@ -625,28 +707,40 @@ class DatasetBuilder:
                 else False,
             )
 
-        elif isinstance(dl_manager, MockDownloadManager):
+        if (
+            isinstance(dl_manager, MockDownloadManager)
+            or not is_local
+            or file_format != "arrow"
+            or max_shard_size is not None
+        ):
             try_from_hf_gcs = False
         self.dl_manager = dl_manager
 
-        # Prevent parallel disk operations
-        is_local = not is_remote_url(self._cache_dir_root)
+        # Prevent parallel local disk operations
         if is_local:
-            lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
+            # Create parent directory of the output_dir to put the lock file in there
+            Path(self._output_dir).parent.mkdir(parents=True, exist_ok=True)
+            lock_path = self._output_dir + "_builder.lock"
+
         # File locking only with local paths; no file locking on GCS or S3
         with FileLock(lock_path) if is_local else contextlib.nullcontext():
-            if is_local:
-                data_exists = os.path.exists(self._cache_dir)
-                if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
-                    logger.warning(f"Reusing dataset {self.name} ({self._cache_dir})")
-                    # We need to update the info in case some splits were added in the meantime
-                    # for example when calling load_dataset from multiple workers.
-                    self.info = self._load_info()
-                    self.download_post_processing_resources(dl_manager)
-                    return
-            logger.info(f"Generating dataset {self.name} ({self._cache_dir})")
+
+            # Check if the data already exists
+            path_join = os.path.join if is_local else posixpath.join
+            data_exists = self._fs.exists(path_join(self._output_dir, config.DATASET_INFO_FILENAME))
+            if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
+                logger.warning(f"Found cached dataset {self.name} ({self._output_dir})")
+                # We need to update the info in case some splits were added in the meantime
+                # for example when calling load_dataset from multiple workers.
+                self.info = self._load_info()
+                self.download_post_processing_resources(dl_manager)
+                return
+
+            logger.info(f"Generating dataset {self.name} ({self._output_dir})")
             if is_local:  # if cache dir is local, check for available space
-                if not has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
+                if not has_sufficient_disk_space(
+                    self.info.size_in_bytes or 0, directory=Path(self._output_dir).parent
+                ):
                     raise OSError(
                         f"Not enough disk space. Needed: {size_str(self.info.size_in_bytes or 0)} (download: {size_str(self.info.download_size or 0)}, generated: {size_str(self.info.dataset_size or 0)}, post-processed: {size_str(self.info.post_processing_size or 0)})"
                     )
@@ -654,7 +748,8 @@ class DatasetBuilder:
             @contextlib.contextmanager
             def incomplete_dir(dirname):
                 """Create temporary dir for dirname and rename on exit."""
-                if is_remote_url(dirname):
+                if not is_local:
+                    self._fs.makedirs(dirname, exist_ok=True)
                     yield dirname
                 else:
                     tmp_dir = dirname + ".incomplete"
@@ -663,6 +758,7 @@ class DatasetBuilder:
                         yield tmp_dir
                         if os.path.isdir(dirname):
                             shutil.rmtree(dirname)
+                        # LocalFileSystem.mv does copy + rm, it is more efficient to simply rename a local directory
                         shutil.move(tmp_dir, dirname)
                     finally:
                         if os.path.exists(tmp_dir):
@@ -676,20 +772,22 @@ class DatasetBuilder:
                     f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
                     f"(download: {size_str(self.info.download_size)}, generated: {size_str(self.info.dataset_size)}, "
                     f"post-processed: {size_str(self.info.post_processing_size)}, "
-                    f"total: {size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
+                    f"total: {size_str(self.info.size_in_bytes)}) to {self._output_dir}..."
                 )
             else:
+                _dest = self._fs._strip_protocol(self._output_dir) if is_local else self._output_dir
                 print(
-                    f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} to {self._cache_dir}..."
+                    f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} to {_dest}..."
                 )
 
             self._check_manual_download(dl_manager)
 
-            # Create a tmp dir and rename to self._cache_dir on successful exit.
-            with incomplete_dir(self._cache_dir) as tmp_data_dir:
-                # Temporarily assign _cache_dir to tmp_data_dir to avoid having to forward
+            # Create a tmp dir and rename to self._output_dir on successful exit.
+            with incomplete_dir(self._output_dir) as tmp_output_dir:
+                # Temporarily assign _output_dir to tmp_data_dir to avoid having to forward
                 # it to every sub function.
-                with temporary_assignment(self, "_cache_dir", tmp_data_dir):
+                with temporary_assignment(self, "_output_dir", tmp_output_dir):
+
                     # Try to download the already prepared dataset files
                     downloaded_from_gcs = False
                     if try_from_hf_gcs:
@@ -701,8 +799,16 @@ class DatasetBuilder:
                         except ConnectionError:
                             logger.warning("HF google storage unreachable. Downloading and preparing it from source")
                     if not downloaded_from_gcs:
+                        prepare_split_kwargs = {
+                            "file_format": file_format,
+                            "max_shard_size": max_shard_size,
+                            **download_and_prepare_kwargs,
+                        }
                         self._download_and_prepare(
-                            dl_manager=dl_manager, verify_infos=verify_infos, **download_and_prepare_kwargs
+                            dl_manager=dl_manager,
+                            verify_infos=verify_infos,
+                            **prepare_split_kwargs,
+                            **download_and_prepare_kwargs,
                         )
                     # Sync info
                     self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
@@ -715,7 +821,7 @@ class DatasetBuilder:
             self.download_post_processing_resources(dl_manager)
 
             print(
-                f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
+                f"Dataset {self.name} downloaded and prepared to {self._output_dir}. "
                 f"Subsequent calls will reuse this data."
             )
 
@@ -734,10 +840,10 @@ class DatasetBuilder:
 
     def _download_prepared_from_hf_gcs(self, download_config: DownloadConfig):
         relative_data_dir = self._relative_data_dir(with_version=True, with_hash=False)
-        reader = ArrowReader(self._cache_dir, self.info)
+        reader = ArrowReader(self._output_dir, self.info)
         # use reader instructions to download the right files
         reader.download_from_hf_gcs(download_config, relative_data_dir)
-        downloaded_info = DatasetInfo.from_directory(self._cache_dir)
+        downloaded_info = DatasetInfo.from_directory(self._output_dir)
         self.info.update(downloaded_info)
         # download post processing resources
         remote_cache_dir = HF_GCP_BASE_URL + "/" + relative_data_dir.replace(os.sep, "/")
@@ -747,7 +853,7 @@ class DatasetBuilder:
                     raise ValueError(f"Resources shouldn't be in a sub-directory: {resource_file_name}")
                 try:
                     resource_path = cached_path(remote_cache_dir + "/" + resource_file_name)
-                    shutil.move(resource_path, os.path.join(self._cache_dir, resource_file_name))
+                    shutil.move(resource_path, os.path.join(self._output_dir, resource_file_name))
                 except ConnectionError:
                     logger.info(f"Couldn't download resourse file {resource_file_name} from Hf google storage.")
         logger.info("Dataset downloaded from Hf google storage.")
@@ -760,10 +866,9 @@ class DatasetBuilder:
         the pre-processed datasets files.
 
         Args:
-            dl_manager: (DownloadManager) `DownloadManager` used to download and cache
-                data.
-            verify_infos: bool, if False, do not perform checksums and size tests.
-            prepare_split_kwargs: Additional options.
+            dl_manager: (:obj:`DownloadManager`) `DownloadManager` used to download and cache data.
+            verify_infos (:obj:`bool`): if False, do not perform checksums and size tests.
+            prepare_split_kwargs: Additional options, such as file_format, max_shard_size
         """
         # Generating data for all splits
         split_dict = SplitDict(dataset_name=self.name)
@@ -815,11 +920,13 @@ class DatasetBuilder:
         self.info.download_size = dl_manager.downloaded_size
 
     def download_post_processing_resources(self, dl_manager):
-        for split in self.info.splits:
+        for split in self.info.splits or []:
             for resource_name, resource_file_name in self._post_processing_resources(split).items():
+                if not not is_remote_filesystem(self._fs):
+                    raise NotImplementedError(f"Post processing is not supported on filesystem {self._fs}")
                 if os.sep in resource_file_name:
                     raise ValueError(f"Resources shouldn't be in a sub-directory: {resource_file_name}")
-                resource_path = os.path.join(self._cache_dir, resource_file_name)
+                resource_path = os.path.join(self._output_dir, resource_file_name)
                 if not os.path.exists(resource_path):
                     downloaded_resource_path = self._download_post_processing_resources(
                         split, resource_name, dl_manager
@@ -829,16 +936,20 @@ class DatasetBuilder:
                         shutil.move(downloaded_resource_path, resource_path)
 
     def _load_info(self) -> DatasetInfo:
-        return DatasetInfo.from_directory(self._cache_dir)
+        return DatasetInfo.from_directory(self._output_dir, fs=self._fs)
 
     def _save_info(self):
-        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(lock_path):
-            self.info.write_to_directory(self._cache_dir)
+        is_local = not is_remote_filesystem(self._fs)
+        if is_local:
+            lock_path = self._output_dir + "_info.lock"
+        with FileLock(lock_path) if is_local else contextlib.nullcontext():
+            self.info.write_to_directory(self._output_dir, fs=self._fs)
 
     def _save_infos(self):
-        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(lock_path):
+        is_local = not is_remote_filesystem(self._fs)
+        if is_local:
+            lock_path = self._output_dir + "_infos.lock"
+        with FileLock(lock_path) if is_local else contextlib.nullcontext():
             DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -876,14 +987,17 @@ class DatasetBuilder:
         })
         ```
         """
-        if not os.path.exists(self._cache_dir):
+        is_local = not is_remote_filesystem(self._fs)
+        if not is_local:
+            raise NotImplementedError(f"Loading a dataset cached in a {type(self._fs).__name__} is not supported.")
+        if not os.path.exists(self._output_dir):
             raise AssertionError(
-                f"Dataset {self.name}: could not find data in {self._cache_dir_root}. Please make sure to call "
-                "builder.download_and_prepare(), or pass download=True to "
+                f"Dataset {self.name}: could not find data in {self._output_dir}. Please make sure to call "
+                "builder.download_and_prepare(), or use "
                 "datasets.load_dataset() before trying to access the Dataset object."
             )
 
-        logger.debug(f'Constructing Dataset for split {split or ", ".join(self.info.splits)}, from {self._cache_dir}')
+        logger.debug(f'Constructing Dataset for split {split or ", ".join(self.info.splits)}, from {self._output_dir}')
 
         # By default, return all splits
         if split is None:
@@ -930,7 +1044,7 @@ class DatasetBuilder:
                 if os.sep in resource_file_name:
                     raise ValueError(f"Resources shouldn't be in a sub-directory: {resource_file_name}")
             resources_paths = {
-                resource_name: os.path.join(self._cache_dir, resource_file_name)
+                resource_name: os.path.join(self._output_dir, resource_file_name)
                 for resource_name, resource_file_name in self._post_processing_resources(split).items()
             }
             post_processed = self._post_process(ds, resources_paths)
@@ -989,8 +1103,8 @@ class DatasetBuilder:
         Returns:
             `Dataset`
         """
-
-        dataset_kwargs = ArrowReader(self._cache_dir, self.info).read(
+        cache_dir = self._fs._strip_protocol(self._output_dir)
+        dataset_kwargs = ArrowReader(cache_dir, self.info).read(
             name=self.name,
             instructions=split,
             split_infos=self.info.splits.values(),
@@ -1014,6 +1128,12 @@ class DatasetBuilder:
     ) -> Union[Dict[str, IterableDataset], IterableDataset]:
         if not isinstance(self, (GeneratorBasedBuilder, ArrowBasedBuilder)):
             raise ValueError(f"Builder {self.name} is not streamable.")
+
+        is_local = not is_remote_filesystem(self._fs)
+        if not is_local:
+            raise NotImplementedError(
+                f"Loading a streaming dataset cached in a {type(self._fs).__name__} is not supported yet."
+            )
 
         dl_manager = StreamingDownloadManager(
             base_path=base_path or self.base_path,
@@ -1113,11 +1233,22 @@ class DatasetBuilder:
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def _prepare_split(self, split_generator: SplitGenerator, **kwargs):
+    def _prepare_split(
+        self,
+        split_generator: SplitGenerator,
+        file_format: str = "arrow",
+        max_shard_size: Optional[Union[str, int]] = None,
+        **kwargs,
+    ):
         """Generate the examples and record them on disk.
 
         Args:
             split_generator: `SplitGenerator`, Split generator to process
+            file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
+                Supported formats: "arrow", "parquet". Default to "arrow" format.
+            max_shard_size (:obj:`Union[str, int]`, optional): Approximate maximum number of bytes written per shard.
+                Only available for the "parquet" format with a default of "500MB". The size is based on uncompressed data size,
+                so in practice your shard files may be smaller than `max_shard_size` thanks to Parquet compression.
             **kwargs: Additional kwargs forwarded from _download_and_prepare (ex:
                 beam pipeline)
         """
@@ -1188,43 +1319,103 @@ class GeneratorBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
-    def _prepare_split(self, split_generator, check_duplicate_keys):
+    def _prepare_split(
+        self,
+        split_generator: SplitGenerator,
+        check_duplicate_keys: bool,
+        file_format="arrow",
+        max_shard_size: Optional[Union[int, str]] = None,
+    ):
+        is_local = not is_remote_filesystem(self._fs)
+        path_join = os.path.join if is_local else posixpath.join
+
+        if file_format == "arrow":
+            if max_shard_size is not None:
+                raise NotImplementedError(
+                    "Writing sharded arrow files is not supported. Please don't use max_shard_size or use file_format='parquet'."
+                )
+        else:
+            max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+
         if self.info.splits is not None:
             split_info = self.info.splits[split_generator.name]
         else:
             split_info = split_generator.split_info
 
-        fname = f"{self.name}-{split_generator.name}.arrow"
-        fpath = os.path.join(self._cache_dir, fname)
+        suffix = "-SSSSS-of-NNNNN" if file_format == "parquet" else ""
+        fname = f"{self.name}-{split_generator.name}{suffix}.{file_format}"
+        fpath = path_join(self._output_dir, fname)
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
 
-        with ArrowWriter(
+        writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
+        embed_local_files = file_format == "parquet"
+
+        shard_id = 0
+        # TODO: embed the images/audio files inside parquet files.
+        writer = writer_class(
             features=self.info.features,
-            path=fpath,
+            path=fpath.replace("SSSSS", f"{shard_id:05d}"),
             writer_batch_size=self._writer_batch_size,
             hash_salt=split_info.name,
             check_duplicates=check_duplicate_keys,
-        ) as writer:
-            try:
-                for key, record in logging.tqdm(
-                    generator,
-                    unit=" examples",
-                    total=split_info.num_examples,
-                    leave=False,
-                    disable=not logging.is_progress_bar_enabled(),
-                    desc=f"Generating {split_info.name} split",
-                ):
-                    example = self.info.features.encode_example(record)
-                    writer.write(example, key)
-            finally:
-                num_examples, num_bytes = writer.finalize()
+            storage_options=self._fs.storage_options,
+            embed_local_files=embed_local_files,
+        )
+        total_num_examples, total_num_bytes = 0, 0
+        try:
+            for key, record in logging.tqdm(
+                generator,
+                unit=" examples",
+                total=split_info.num_examples,
+                leave=False,
+                disable=not logging.is_progress_bar_enabled(),
+                desc=f"Generating {split_info.name} split",
+            ):
+                if max_shard_size is not None and writer._num_bytes > max_shard_size:
+                    num_examples, num_bytes = writer.finalize()
+                    writer.close()
+                    total_num_examples += num_examples
+                    total_num_bytes += num_bytes
+                    shard_id += 1
+                    writer = writer_class(
+                        features=writer._features,
+                        path=fpath.replace("SSSSS", f"{shard_id:05d}"),
+                        writer_batch_size=self._writer_batch_size,
+                        hash_salt=split_info.name,
+                        check_duplicates=check_duplicate_keys,
+                        storage_options=self._fs.storage_options,
+                        embed_local_files=embed_local_files,
+                    )
+                example = self.info.features.encode_example(record) if self.info.features is not None else record
+                writer.write(example, key)
+        finally:
+            num_shards = shard_id + 1
+            num_examples, num_bytes = writer.finalize()
+            writer.close()
+            total_num_examples += num_examples
+            total_num_bytes += num_bytes
 
-        split_generator.split_info.num_examples = num_examples
-        split_generator.split_info.num_bytes = num_bytes
+        if file_format == "parquet":
 
-    def _download_and_prepare(self, dl_manager, verify_infos):
-        super()._download_and_prepare(dl_manager, verify_infos, check_duplicate_keys=verify_infos)
+            def _rename_shard(shard_id: int):
+                self._rename(
+                    fpath.replace("SSSSS", f"{shard_id:05d}"),
+                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("NNNNN", f"{num_shards:05d}"),
+                )
+
+            logger.debug(f"Renaming {num_shards} shards.")
+            thread_map(_rename_shard, range(num_shards), disable=True, max_workers=64)
+
+        split_generator.split_info.num_examples = total_num_examples
+        split_generator.split_info.num_bytes = total_num_bytes
+        if self.info.features is None:
+            self.info.features = writer._features
+
+    def _download_and_prepare(self, dl_manager, verify_infos, **prepare_splits_kwargs):
+        super()._download_and_prepare(
+            dl_manager, verify_infos, check_duplicate_keys=verify_infos, **prepare_splits_kwargs
+        )
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
         return ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
@@ -1265,20 +1456,81 @@ class ArrowBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
-    def _prepare_split(self, split_generator):
-        fname = f"{self.name}-{split_generator.name}.arrow"
-        fpath = os.path.join(self._cache_dir, fname)
+    def _prepare_split(
+        self,
+        split_generator: SplitGenerator,
+        file_format: str = "arrow",
+        max_shard_size: Optional[Union[str, int]] = None,
+    ):
+        is_local = not is_remote_filesystem(self._fs)
+        path_join = os.path.join if is_local else posixpath.join
+
+        if file_format == "arrow":
+            if max_shard_size is not None:
+                raise NotImplementedError(
+                    "Writing sharded arrow files is not supported. Please don't use max_shard_size or use file_format='parquet'."
+                )
+        else:
+            max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+
+        suffix = "-SSSSS-of-NNNNN" if file_format == "parquet" else ""
+        fname = f"{self.name}-{split_generator.name}{suffix}.{file_format}"
+        fpath = path_join(self._output_dir, fname)
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
-        with ArrowWriter(features=self.info.features, path=fpath) as writer:
-            for key, table in logging.tqdm(
-                generator, unit=" tables", leave=False, disable=(not logging.is_progress_bar_enabled())
-            ):
-                writer.write_table(table)
-            num_examples, num_bytes = writer.finalize()
 
-        split_generator.split_info.num_examples = num_examples
-        split_generator.split_info.num_bytes = num_bytes
+        writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
+        embed_local_files = file_format == "parquet"
+
+        shard_id = 0
+        # TODO: embed the images/audio files inside parquet files.
+        writer = writer_class(
+            features=self.info.features,
+            path=fpath.replace("SSSSS", f"{shard_id:05d}"),
+            storage_options=self._fs.storage_options,
+            embed_local_files=embed_local_files,
+        )
+        total_num_examples, total_num_bytes = 0, 0
+        try:
+            for key, table in logging.tqdm(
+                generator,
+                unit=" tables",
+                leave=False,
+                disable=not logging.is_progress_bar_enabled(),
+            ):
+                if max_shard_size is not None and writer._num_bytes > max_shard_size:
+                    num_examples, num_bytes = writer.finalize()
+                    writer.close()
+                    total_num_examples += num_examples
+                    total_num_bytes += num_bytes
+                    shard_id += 1
+                    writer = writer_class(
+                        features=writer._features,
+                        path=fpath.replace("SSSSS", f"{shard_id:05d}"),
+                        storage_options=self._fs.storage_options,
+                        embed_local_files=embed_local_files,
+                    )
+                writer.write_table(table)
+        finally:
+            num_shards = shard_id + 1
+            num_examples, num_bytes = writer.finalize()
+            writer.close()
+            total_num_examples += num_examples
+            total_num_bytes += num_bytes
+
+        if file_format == "parquet":
+
+            def _rename_shard(shard_id: int):
+                self._rename(
+                    fpath.replace("SSSSS", f"{shard_id:05d}"),
+                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("NNNNN", f"{num_shards:05d}"),
+                )
+
+            logger.debug(f"Renaming {num_shards} shards.")
+            thread_map(_rename_shard, range(num_shards), disable=True, max_workers=64)
+
+        split_generator.split_info.num_examples = total_num_examples
+        split_generator.split_info.num_bytes = total_num_bytes
         if self.info.features is None:
             self.info.features = writer._features
 
@@ -1351,7 +1603,7 @@ class BeamBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
-    def _download_and_prepare(self, dl_manager, verify_infos):
+    def _download_and_prepare(self, dl_manager, verify_infos, **prepare_splits_kwargs):
         # Create the Beam pipeline and forward it to _prepare_split
         import apache_beam as beam
 
@@ -1386,9 +1638,7 @@ class BeamBasedBuilder(DatasetBuilder):
             options=beam_options,
         )
         super()._download_and_prepare(
-            dl_manager,
-            verify_infos=False,
-            pipeline=pipeline,
+            dl_manager, verify_infos=False, pipeline=pipeline, **prepare_splits_kwargs
         )  # TODO handle verify_infos in beam datasets
         # Run pipeline
         pipeline_results = pipeline.run()
@@ -1404,27 +1654,34 @@ class BeamBasedBuilder(DatasetBuilder):
             split_info.num_bytes = num_bytes
 
     def _save_info(self):
-        if os.path.exists(self._cache_dir):
-            super()._save_info()
-        else:
-            import apache_beam as beam
-
-            fs = beam.io.filesystems.FileSystems
-            with fs.create(os.path.join(self._cache_dir, config.DATASET_INFO_FILENAME)) as f:
-                self.info._dump_info(f)
-            if self.info.license:
-                with fs.create(os.path.join(self._cache_dir, config.LICENSE_FILENAME)) as f:
-                    self.info._dump_license(f)
-
-    def _prepare_split(self, split_generator, pipeline):
         import apache_beam as beam
 
-        # To write examples to disk:
+        fs = beam.io.filesystems.FileSystems
+        path_join = os.path.join if not is_remote_filesystem(self._fs) else posixpath.join
+        with fs.create(path_join(self._output_dir, config.DATASET_INFO_FILENAME)) as f:
+            self.info._dump_info(f)
+        if self.info.license:
+            with fs.create(path_join(self._output_dir, config.LICENSE_FILENAME)) as f:
+                self.info._dump_license(f)
+
+    def _prepare_split(
+        self, split_generator, pipeline, file_format="arrow", max_shard_size: Optional[Union[str, int]] = None
+    ):
+        import apache_beam as beam
+
+        if max_shard_size is not None:
+            raise NotImplementedError(
+                "max_shard_size is not supported for Beam datasets."
+                "Please set it to None to use the default Apache Beam sharding and get the best performance."
+            )
+
+        # To write examples in filesystem:
         split_name = split_generator.split_info.name
-        fname = f"{self.name}-{split_name}.arrow"
-        fpath = os.path.join(self._cache_dir, fname)
+        fname = f"{self.name}-{split_name}.{file_format}"
+        path_join = os.path.join if not is_remote_filesystem(self._fs) else posixpath.join
+        fpath = path_join(self._output_dir, fname)
         beam_writer = BeamWriter(
-            features=self.info.features, path=fpath, namespace=split_name, cache_dir=self._cache_dir
+            features=self.info.features, path=fpath, namespace=split_name, cache_dir=self._output_dir
         )
         self._beam_writers[split_name] = beam_writer
 

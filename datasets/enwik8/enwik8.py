@@ -21,16 +21,16 @@ _CITATION = ""
 
 # You can copy an official description
 _DESCRIPTION = """\
-The dataset is based on the Hutter Prize (http://prize.hutter1.net) and contains the first 10^8 byte of Wikipedia
+The dataset is based on the Hutter Prize (http://prize.hutter1.net) and contains the first 10^8 bytes of English Wikipedia in 2006 in XML
 """
 
-_HOMEPAGE = "https://cs.fit.edu/~mmahoney/compression/textdata.html"
+_HOMEPAGE = "http://mattmahoney.net/dc/textdata.html"
 
 _LICENSE = ""
 
 # The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URLS = {"source": "http://cs.fit.edu/~mmahoney/compression/enwik8.zip"}
+_URLS = {"source": "http://mattmahoney.net/dc/enwik8.zip"}
 
 
 class Enwik8(datasets.GeneratorBasedBuilder):

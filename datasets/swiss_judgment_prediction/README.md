@@ -8,6 +8,7 @@ language:
 - de 
 - fr
 - it
+- en
 license:
 - cc-by-sa-4.0
 multilinguality:
@@ -74,6 +75,8 @@ Switzerland has four official languages with 3 languages (German, French and Ita
 
 ## Dataset Structure
 
+In version 2 we added machine translated data using [EasyNMT](https://github.com/UKPLab/EasyNMT) for all documents into German, French, Italian and English as an additional training set.
+
 ### Data Instances
 
 **Multilingual use of the dataset**
@@ -124,7 +127,7 @@ dataset = load_dataset('swiss_judgment_prediction', 'de')
 
 **Multilingual use of the dataset**
 
-The following data fields are provided for documents (`train`, `dev`, `test`):
+The following data fields are provided for documents (`train`, `validation`, `test`):
 
 `id`: (**int**) a unique identifier of the for the document \
 `year`: (**int**) the publication year \
@@ -139,7 +142,7 @@ The following data fields are provided for documents (`train`, `dev`, `test`):
 
 **Monolingual use of the dataset**
 
-The following data fields are provided for documents (`train`, `dev`, `test`):
+The following data fields are provided for documents (`train`, `validation`, `test`):
 
 `id`: (**int**) a unique identifier of the for the document \
 `year`: (**int**) the publication year \
@@ -153,11 +156,16 @@ The following data fields are provided for documents (`train`, `dev`, `test`):
 
 ### Data Splits
 
-| Language |  ISO code | Number of Documents (Training/Dev/Test) | 
-| ---- | ---- |  ---- |  
-| German    | **de**   | 35'452 / 4'705 / 9'725
-| French    | **fr**   | 21'179 / 3'095 / 6'820
-Italian     | **it**   | 3'072 / 408 / 812
+| Language   | Subset     | Number of Documents (Training/Validation/Test) | 
+|------------|------------|------------------------------------------------|  
+| German     | **de**     | 35'452 / 4'705 / 9'725                         |
+| French     | **fr**     | 21'179 / 3'095 / 6'820                         |
+| Italian    | **it**     | 3'072 / 408 / 812                              |
+| All        | **all**    | 59'709 / 8'208 / 17'357                        |
+| MT German  | **mt_de**  | 24'251 / 0 / 0                                 |
+| MT French  | **mt_fr**  | 38'524 / 0 / 0                                 |
+| MT Italian | **mt_it**  | 56'631 / 0 / 0                                 |
+| MT All     | **all+mt** | 238'818 / 8'208 / 17'357                       |
 
 ## Dataset Creation
 

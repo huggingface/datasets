@@ -222,7 +222,12 @@ Zeerak Ahmed
 
 ### Citation Information
 
-No citation information.
+```
+@misc{makhzan,
+title={Maḵẖzan},
+howpublished = "\url{https://github.com/zeerakahmed/makhzan/}",
+}
+```
 
 ### Contributions
 

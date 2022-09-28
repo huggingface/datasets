@@ -39,9 +39,9 @@ The SBU Captioned Photo Dataset is a collection of over 1 million images with as
 
 _LICENSE = "unknown"
 
-_HOMEPAGE = "http://www.cs.virginia.edu/~vicente/sbucaptions"
+_HOMEPAGE = "https://www.cs.rice.edu/~vo9/sbucaptions/"
 
-_URL = "http://www.cs.virginia.edu/~vicente/sbucaptions/sbu-captions-all.tar.gz"
+_URL = "https://www.cs.rice.edu/~vo9/sbucaptions/sbu-captions-all.tar.gz"
 
 _FEATURES = datasets.Features(
     {"image_url": datasets.Value("string"), "user_id": datasets.Value("string"), "caption": datasets.Value("string")}

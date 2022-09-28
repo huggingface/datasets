@@ -201,14 +201,24 @@ The details of the dataset construction, especially the translation procedures, 
 [Needs More Information]
 
 ### Citation Information
+
 ```
 # X-CSR
-@inproceedings{lin-etal-2021-xcsr,
-    title = "Common Sense Beyond English: Evaluating and Improving Multilingual Language Models for Commonsense Reasoning",
-    author = "Lin, Bill Yuchen and Lee, Seyeon and Qiao, Xiaoyang and Ren, Xiang",
-    booktitle = "Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics (ACL-IJCNLP 2021)",
+@inproceedings{lin-etal-2021-common,
+    title = "Common Sense Beyond {E}nglish: Evaluating and Improving Multilingual Language Models for Commonsense Reasoning",
+    author = "Lin, Bill Yuchen  and
+      Lee, Seyeon  and
+      Qiao, Xiaoyang  and
+      Ren, Xiang",
+    booktitle = "Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 1: Long Papers)",
+    month = aug,
     year = "2021",
-    note={to appear}
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2021.acl-long.102",
+    doi = "10.18653/v1/2021.acl-long.102",
+    pages = "1274--1287",
+    abstract = "Commonsense reasoning research has so far been limited to English. We aim to evaluate and improve popular multilingual language models (ML-LMs) to help advance commonsense reasoning (CSR) beyond English. We collect the Mickey corpus, consisting of 561k sentences in 11 different languages, which can be used for analyzing and improving ML-LMs. We propose Mickey Probe, a language-general probing task for fairly evaluating the common sense of popular ML-LMs across different languages. In addition, we also create two new datasets, X-CSQA and X-CODAH, by translating their English versions to 14 other languages, so that we can evaluate popular ML-LMs for cross-lingual commonsense reasoning. To improve the performance beyond English, we propose a simple yet effective method {---} multilingual contrastive pretraining (MCP). It significantly enhances sentence representations, yielding a large performance gain on both benchmarks (e.g., +2.7{\%} accuracy for X-CSQA over XLM-R{\_}L).",
 }
 
 # CSQA

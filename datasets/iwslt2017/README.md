@@ -1,8 +1,32 @@
 ---
-paperswithcode_id: null
-pretty_name: IWSLT 2017
+annotations_creators:
+- crowdsourced
+language:
+- ar
+- de
+- en
+- fr
+- it
+- ja
+- ko
+- nl
+- ro
+- zh
+language_creators:
+- expert-generated
 license:
 - cc-by-nc-nd-4.0
+multilinguality:
+- translation
+pretty_name: IWSLT 2017
+size_categories:
+- 1M<n<10M
+source_datasets:
+- original
+task_categories:
+- translation
+task_ids: []
+paperswithcode_id: iwslt-2017
 ---
 
 # Dataset Card for IWSLT 2017
@@ -35,7 +59,7 @@ license:
 
 - **Homepage:** [https://sites.google.com/site/iwsltevaluation2017/TED-tasks](https://sites.google.com/site/iwsltevaluation2017/TED-tasks)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [Overview of the IWSLT 2017 Evaluation Campaign](https://aclanthology.org/2017.iwslt-1.1/)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 4046.89 MB
 - **Size of the generated dataset:** 1087.28 MB
@@ -43,11 +67,9 @@ license:
 
 ### Dataset Summary
 
-The IWSLT 2017 Evaluation Campaign includes a multilingual TED Talks MT task. The languages involved are five:
-
-  German, English, Italian, Dutch, Romanian.
-
-For each language pair, training and development sets are available through the entry of the table below: by clicking, an archive will be downloaded which contains the sets and a README file. Numbers in the table refer to millions of units (untokenized words) of the target side of all parallel training sets.
+The IWSLT 2017 Multilingual Task addresses text translation, including zero-shot translation, with a single MT system
+across all directions including English, German, Dutch, Italian and Romanian. As unofficial task, conventional
+bilingual text translation is offered between English and Arabic, French, Japanese, Chinese, German and Korean.
 
 ### Supported Tasks and Leaderboards
 
@@ -227,18 +249,25 @@ See the (TED Talks Usage Policy)[https://www.ted.com/about/our-organization/our-
 ### Citation Information
 
 ```
-@inproceedings{cettoloEtAl:EAMT2012,
-Address = {Trento, Italy},
-Author = {Mauro Cettolo and Christian Girardi and Marcello Federico},
-Booktitle = {Proceedings of the 16$^{th}$ Conference of the European Association for Machine Translation (EAMT)},
-Date = {28-30},
-Month = {May},
-Pages = {261--268},
-Title = {WIT$^3$: Web Inventory of Transcribed and Translated Talks},
-Year = {2012}}
-
+@inproceedings{cettolo-etal-2017-overview,
+    title = "Overview of the {IWSLT} 2017 Evaluation Campaign",
+    author = {Cettolo, Mauro  and
+      Federico, Marcello  and
+      Bentivogli, Luisa  and
+      Niehues, Jan  and
+      St{\"u}ker, Sebastian  and
+      Sudoh, Katsuhito  and
+      Yoshino, Koichiro  and
+      Federmann, Christian},
+    booktitle = "Proceedings of the 14th International Conference on Spoken Language Translation",
+    month = dec # " 14-15",
+    year = "2017",
+    address = "Tokyo, Japan",
+    publisher = "International Workshop on Spoken Language Translation",
+    url = "https://aclanthology.org/2017.iwslt-1.1",
+    pages = "2--14",
+}
 ```
-
 
 ### Contributions
 

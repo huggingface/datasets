@@ -10,8 +10,8 @@ import numpy as np
 import pyarrow as pa
 
 from .arrow_dataset import DatasetInfoMixin
-from .features import Features, Value
-from .features.features import FeatureType
+from .features import Features
+from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned
 from .formatting import PythonFormatter
 from .info import DatasetInfo
 from .splits import NamedSplit
@@ -29,10 +29,11 @@ def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Fe
 
 
 def _examples_to_batch(examples: List[Dict[str, Any]]) -> Dict[str, list]:
-    cols = sorted(examples[0].keys())
-    arrays = []
-    for col in cols:
-        arrays.append([example[col] for example in examples])
+    # we order the columns by order of appearance
+    # to do so, we use a dict as an ordered set
+    cols = {col: None for example in examples for col in example}
+    # when an example is missing a column, we set the value to None with .get()
+    arrays = [[example.get(col) for example in examples] for col in cols]
     return dict(zip(cols, arrays))
 
 
@@ -394,6 +395,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         batch_size: int = 1000,
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
+        fn_kwargs: Optional[dict] = None,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
@@ -403,6 +405,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         self.remove_columns = remove_columns
         self.with_indices = with_indices
         self.input_columns = input_columns
+        self.fn_kwargs = fn_kwargs or {}
 
     def __iter__(self):
         iterator = iter(self.ex_iterable)
@@ -423,7 +426,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self.with_indices:
                     function_args.append([current_idx + i for i in range(len(key_examples_list))])
                 transformed_batch = dict(batch)  # this will be updated with the function output
-                transformed_batch.update(self.function(*function_args))
+                transformed_batch.update(self.function(*function_args, **self.fn_kwargs))
                 # then remove the unwanted columns
                 if self.remove_columns:
                     for c in self.remove_columns:
@@ -456,7 +459,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self.with_indices:
                     function_args.append(current_idx)
                 transformed_example = dict(example)  # this will be updated with the function output
-                transformed_example.update(self.function(*function_args))
+                transformed_example.update(self.function(*function_args, **self.fn_kwargs))
                 # then we remove the unwanted columns
                 if self.remove_columns:
                     for c in self.remove_columns:
@@ -474,6 +477,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             batched=self.batched,
             batch_size=self.batch_size,
             remove_columns=self.remove_columns,
+            fn_kwargs=self.fn_kwargs,
         )
 
     def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
@@ -486,6 +490,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             batched=self.batched,
             batch_size=self.batch_size,
             remove_columns=self.remove_columns,
+            fn_kwargs=self.fn_kwargs,
         )
 
     @property
@@ -819,6 +824,7 @@ class IterableDataset(DatasetInfoMixin):
         batch_size: int = 1000,
         drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, List[str]]] = None,
+        fn_kwargs: Optional[dict] = None,
     ) -> "IterableDataset":
         """
         Apply a function to all the examples in the iterable dataset (individually or in batches) and update them.
@@ -857,6 +863,7 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
+            fn_kwargs (:obj:`Dict`, optional, default `None`): Keyword arguments to be passed to `function`.
 
         Example:
 
@@ -881,6 +888,8 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns = [remove_columns]
         if function is None:
             function = lambda x: x  # noqa: E731
+        if fn_kwargs is None:
+            fn_kwargs = {}
         info = self._info.copy()
         info.features = None
         ex_iterable = MappedExamplesIterable(
@@ -894,6 +903,7 @@ class IterableDataset(DatasetInfoMixin):
             batch_size=batch_size,
             drop_last_batch=drop_last_batch,
             remove_columns=remove_columns,
+            fn_kwargs=fn_kwargs,
         )
         return iterable_dataset(
             ex_iterable=ex_iterable,
@@ -1356,25 +1366,6 @@ def iterable_dataset(
     )
 
 
-def _check_if_features_can_be_aligned(features_list: List[Features]):
-    """Check if the dictionaries of features can be aligned.
-
-    Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
-    """
-    name2feature = {}
-    for features in features_list:
-        for k, v in features.items():
-            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
-                name2feature[k] = v
-
-    for features in features_list:
-        for k, v in features.items():
-            if not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
-                raise ValueError(
-                    f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
-                )
-
-
 def _concatenate_iterable_datasets(
     dsets: List[IterableDataset],
     info: Optional[DatasetInfo] = None,
@@ -1411,9 +1402,11 @@ def _concatenate_iterable_datasets(
     else:
         _check_column_names([col_name for dset in dsets for col_name in dset.features])
 
-    features = Features()
-    for dset in dsets:
-        features.update(dset.features)
+    # TODO: improve this to account for a mix of ClassLabel and Value for example
+    # right now it would keep the type of the first dataset in the list
+    features = Features(
+        {k: v for features in _align_features([dset.features for dset in dsets]) for k, v in features.items()}
+    )
 
     ex_iterables = [d._ex_iterable for d in dsets]
     if axis == 0:
@@ -1465,13 +1458,19 @@ def _interleave_iterable_datasets(
     Output:
         :class:`datasets.IterableDataset`
     """
-    # TODO(QL): merge the features as in _concatenate_iterable_datasets() and don't use TypedExamplesIterable
-    ex_iterables = [
-        TypedExamplesIterable(d._ex_iterable, d.features, token_per_repo_id=d._token_per_repo_id)
-        if not isinstance(d._ex_iterable, TypedExamplesIterable) and d.features is not None
-        else d._ex_iterable
-        for d in datasets
-    ]
+    datasets = [d._resolve_features() for d in datasets]
+
+    # Perform checks
+    _check_if_features_can_be_aligned([dset.features for dset in datasets])
+
+    # TODO: improve this to account for a mix of ClassLabel and Value for example
+    # right now it would keep the type of the first dataset in the list
+    features = Features(
+        {k: v for features in _align_features([dset.features for dset in datasets]) for k, v in features.items()}
+    )
+
+    ex_iterables = [d._ex_iterable for d in datasets]
+
     # Use cycling or random cycling or sources
     if probabilities is None:
         ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables, stopping_strategy=stopping_strategy)
@@ -1480,11 +1479,13 @@ def _interleave_iterable_datasets(
         ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
             ex_iterables, generator=generator, probabilities=probabilities, stopping_strategy=stopping_strategy
         )
-    # Set new info - we reset the features
-    # TODO(QL): merge the features as in _concatenate_iterable_datasets() and use them here
+    # Set new info - we update the features
+    # setting the features also ensures to fill missing columns with None
     if info is None:
         info = DatasetInfo.from_merge([d.info for d in datasets])
-        info.features = None
+    else:
+        info = info.copy()
+    info.features = features
     # Get all the auth tokens per repository - in case the datasets come from different private repositories
     token_per_repo_id = {
         repo_id: token for dataset in datasets for repo_id, token in dataset._token_per_repo_id.items()

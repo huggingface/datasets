@@ -379,12 +379,12 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                     for elmt in obj
                 ], True
             else:
-                if isinstance(obj, list):
+                if isinstance(obj, (list, tuple)):
                     return obj, False
                 else:
                     return list(obj), True
         else:
-            return obj if isinstance(obj, list) else [], isinstance(obj, tuple)
+            return obj, False
     else:
         return obj, False
 
@@ -880,7 +880,7 @@ class ClassLabel:
     Example:
 
     ```py
-    >>> from datasets Features
+    >>> from datasets import Features
     >>> features = Features({'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'])})
     >>> features
     {'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'], id=None)}
@@ -1136,7 +1136,7 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
         )  # however don't sort on struct types since the order matters
     elif isinstance(schema, (list, tuple)):
         if len(schema) != 1:
-            raise ValueError("We defining list feature, you should just provide one example of the inner type")
+            raise ValueError("When defining list feature, you should just provide one example of the inner type")
         value_type = get_nested_type(schema[0])
         return pa.list_(value_type)
     elif isinstance(schema, Sequence):
@@ -1755,7 +1755,12 @@ class Features(dict):
                 if not isinstance(target, dict):
                     raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
                 if sorted(source) != sorted(target):
-                    raise ValueError(f"Keys mismatch: between {source} and {target}" + stack_position)
+                    message = (
+                        f"Keys mismatch: between {source} (source) and {target} (target).\n"
+                        f"{source.keys()-target.keys()} are missing from target "
+                        f"and {target.keys()-source.keys()} are missing from source" + stack_position
+                    )
+                    raise ValueError(message)
                 return {key: recursive_reorder(source[key], target[key], stack + f".{key}") for key in target}
             elif isinstance(source, list):
                 if not isinstance(target, list):
@@ -1818,3 +1823,33 @@ class Features(dict):
             if no_change:
                 break
         return self
+
+
+def _align_features(features_list: List[Features]) -> List[Features]:
+    """Align dictionaries of features so that the keys that are found in multiple dictionaries share the same feature."""
+    name2feature = {}
+    for features in features_list:
+        for k, v in features.items():
+            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+                name2feature[k] = v
+
+    return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
+
+
+def _check_if_features_can_be_aligned(features_list: List[Features]):
+    """Check if the dictionaries of features can be aligned.
+
+    Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
+    """
+    name2feature = {}
+    for features in features_list:
+        for k, v in features.items():
+            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+                name2feature[k] = v
+
+    for features in features_list:
+        for k, v in features.items():
+            if not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
+                raise ValueError(
+                    f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
+                )

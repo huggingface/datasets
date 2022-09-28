@@ -20,7 +20,9 @@ import copy
 import itertools
 import json
 import os
+import re
 import shutil
+import sys
 import tempfile
 import warnings
 import weakref
@@ -63,7 +65,14 @@ from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .download.download_config import DownloadConfig
 from .download.streaming_download_manager import xgetsize
 from .features import Audio, ClassLabel, Features, Image, Sequence, Value
-from .features.features import FeatureType, decode_nested_example, pandas_types_mapper, require_decoding
+from .features.features import (
+    FeatureType,
+    _align_features,
+    _check_if_features_can_be_aligned,
+    decode_nested_example,
+    pandas_types_mapper,
+    require_decoding,
+)
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -77,6 +86,7 @@ from .fingerprint import (
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
 from .formatting.formatting import _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
+from .naming import _split_re
 from .search import IndexableMixin
 from .splits import NamedSplit, Split, SplitInfo
 from .table import (
@@ -224,7 +234,7 @@ class TensorflowDatasetMixin:
         collate_fn_args: dict,
         cols_to_retain: Optional[List[str]] = None,
         batch_size: Optional[int] = None,
-        num_test_batches: int = 10,
+        num_test_batches: int = 200,
     ):
         """Private method used by `to_tf_dataset()` to find the shapes and dtypes of samples from this dataset
            after being passed through the collate_fn. Tensorflow needs an exact signature for tf.numpy_function, so
@@ -241,6 +251,7 @@ class TensorflowDatasetMixin:
                 `collate_fn`.
             batch_size (:obj:`int`, optional): The size of batches loaded from the dataset. Used for shape inference.
                 Can be None, which indicates that batch sizes can be variable.
+            num_test_batches (:obj:`int`): The number of batches to load from the dataset for shape inference.
 
         Returns:
             :obj:`dict`: Dict mapping column names to tf.Tensorspec objects
@@ -253,22 +264,19 @@ class TensorflowDatasetMixin:
 
         if len(dataset) == 0:
             raise ValueError("Unable to get the output signature because the dataset is empty.")
-        if batch_size is None:
-            test_batch_size = min(len(dataset), 8)
-        else:
+        if batch_size is not None:
             batch_size = min(len(dataset), batch_size)
-            test_batch_size = batch_size
+        test_batch_size = min(len(dataset), 2)
+
+        if cols_to_retain is not None:
+            cols_to_retain = list(set(cols_to_retain + ["label_ids", "label", "labels"]))
 
         test_batches = []
         for _ in range(num_test_batches):
             indices = sample(range(len(dataset)), test_batch_size)
             test_batch = dataset[indices]
             if cols_to_retain is not None:
-                test_batch = {
-                    key: value
-                    for key, value in test_batch.items()
-                    if key in cols_to_retain or key in ("label_ids", "label")
-                }
+                test_batch = {key: value for key, value in test_batch.items() if key in cols_to_retain}
             test_batch = [{key: value[i] for key, value in test_batch.items()} for i in range(test_batch_size)]
             test_batch = collate_fn(test_batch, **collate_fn_args)
             test_batches.append(test_batch)
@@ -399,19 +407,16 @@ class TensorflowDatasetMixin:
                 raise ValueError("List of columns contains duplicates.")
             cols_to_retain = list(set(columns + label_cols))
         else:
-            cols_to_retain = None  # Indicates keeping all non-numerical columns
+            cols_to_retain = None  # Indicates keeping all valid columns
             columns = []
 
         if self.format["type"] != "custom":
             dataset = self.with_format("numpy")
         else:
             dataset = self
-        # If the user hasn't specified columns, give them all columns. This may break some data collators if columns
-        # are non-numeric!
 
-        # If drop_remainder is True then all batches will have the same size, so this can be included in the
-        # output shape. If drop_remainder is False then batch size can be variable, so that dimension should
-        # be listed as None
+        # TODO(Matt, QL): deprecate the retention of label_ids and label
+
         output_signature, columns_to_np_types = dataset._get_output_signature(
             dataset,
             collate_fn=collate_fn,
@@ -420,19 +425,36 @@ class TensorflowDatasetMixin:
             batch_size=batch_size if drop_remainder else None,
         )
 
+        if "labels" in output_signature:
+            if ("label_ids" in columns or "label" in columns) and "labels" not in columns:
+                columns = [col for col in columns if col not in ["label_ids", "label"]] + ["labels"]
+            if ("label_ids" in label_cols or "label" in label_cols) and "labels" not in label_cols:
+                label_cols = [col for col in label_cols if col not in ["label_ids", "label"]] + ["labels"]
+
+        for col in columns:
+            if col not in output_signature:
+                raise ValueError(f"Column {col} not found in dataset!")
+
+        for col in label_cols:
+            if col not in output_signature:
+                raise ValueError(f"Label column {col} not found in dataset!")
+
         def np_get_batch(indices):
-            # Following the logic in `transformers.Trainer`, we do not drop `label_ids` or `label` even if they
-            # are not in the list of requested columns, because the collator may rename them
-            # This might work better if moved to a method attached to our transformers Model objects, but doing so
-            # could break backward compatibility
-            # TODO(Matt, QL): deprecate the retention of label_ids and label
-            batch = dataset[indices]
+            # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
+            if np.all(np.diff(indices) == 1):
+                batch = dataset[indices[0] : indices[-1] + 1]
+            else:
+                batch = dataset[indices]
+
             if cols_to_retain is not None:
                 batch = {
                     key: value
                     for key, value in batch.items()
-                    if key in cols_to_retain or key in ("label_ids", "label")
+                    if key in cols_to_retain or key in ("label", "label_ids", "labels")
                 }
+            elif cols_to_retain is not None:
+                batch = {key: value for key, value in batch.items() if key in cols_to_retain}
+
             actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
             # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
             batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
@@ -467,23 +489,21 @@ class TensorflowDatasetMixin:
 
         tf_dataset = tf_dataset.map(ensure_shapes)
 
-        if label_cols:
-
-            def split_features_and_labels(input_batch):
-                features = {key: tensor for key, tensor in input_batch.items() if key in columns}
-                labels = {key: tensor for key, tensor in input_batch.items() if key in label_cols}
-                assert set(features.keys()).union(labels.keys()) == set(input_batch.keys())
-                if len(features) == 1:
-                    features = list(features.values())[0]
-                if len(labels) == 1:
-                    labels = list(labels.values())[0]
+        def split_features_and_labels(input_batch):
+            # TODO(Matt, QL): deprecate returning the dict content when there's only one key
+            features = {key: tensor for key, tensor in input_batch.items() if key in columns}
+            labels = {key: tensor for key, tensor in input_batch.items() if key in label_cols}
+            if len(features) == 1:
+                features = list(features.values())[0]
+            if len(labels) == 1:
+                labels = list(labels.values())[0]
+            if isinstance(labels, dict) and len(labels) == 0:
+                return features
+            else:
                 return features, labels
 
+        if cols_to_retain is not None:
             tf_dataset = tf_dataset.map(split_features_and_labels)
-
-        # TODO(Matt, QL): deprecate returning the dict content when there's only one key
-        elif isinstance(tf_dataset.element_spec, dict) and len(tf_dataset.element_spec) == 1:
-            tf_dataset = tf_dataset.map(lambda x: list(x.values())[0])
 
         if prefetch:
             tf_dataset = tf_dataset.prefetch(tf.data.experimental.AUTOTUNE)
@@ -611,36 +631,6 @@ def _check_valid_indices_value(index, size):
         raise IndexError(f"Index {index} out of range for dataset of size {size}.")
 
 
-def _check_if_features_can_be_aligned(features_list: List[Features]):
-    """Check if the dictionaries of features can be aligned.
-
-    Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
-    """
-    name2feature = {}
-    for features in features_list:
-        for k, v in features.items():
-            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
-                name2feature[k] = v
-
-    for features in features_list:
-        for k, v in features.items():
-            if not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
-                raise ValueError(
-                    f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
-                )
-
-
-def _align_features(features_list: List[Features]) -> List[Features]:
-    """Align dictionaries of features so that the keys that are found in multiple dictionaries share the same feature."""
-    name2feature = {}
-    for features in features_list:
-        for k, v in features.items():
-            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
-                name2feature[k] = v
-
-    return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
-
-
 class NonExistentDatasetError(Exception):
     """Used when we expect the existence of a dataset"""
 
@@ -686,7 +676,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if self.info.features is None:
             self.info.features = inferred_features
         else:  # make sure the nested columns are in the right order
-            self.info.features = self.info.features.reorder_fields_as(inferred_features)
+            try:
+                self.info.features = self.info.features.reorder_fields_as(inferred_features)
+            except ValueError as e:
+                raise ValueError(
+                    f"{e}\nThe 'source' features come from dataset_info.json, and the 'target' ones are those of the dataset arrow file."
+                )
 
         # Infer fingerprint if None
 
@@ -872,6 +867,33 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             info.features = Features({col: ts.get_inferred_type() for col, ts in mapping.items()})
         return cls(pa_table, info=info, split=split)
 
+    @classmethod
+    def from_list(
+        cls,
+        mapping: List[dict],
+        features: Optional[Features] = None,
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
+    ) -> "Dataset":
+        """
+        Convert a list of dicts to a :obj:`pyarrow.Table` to create a :class:`Dataset`.
+
+        Note that the keys of the first entry will be used to determine the dataset columns,
+        regardless of what is passed to features.
+
+        Args:
+            mapping (:obj:`List[dict]`): A list of mappings of strings to row values.
+            features (:class:`Features`, optional): Dataset features.
+            info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+            split (:class:`NamedSplit`, optional): Name of the dataset split.
+
+        Returns:
+            :class:`Dataset`
+        """
+        # for simplicity and consistency wrt OptimizedTypedSequence we do not use InMemoryTable.from_pylist here
+        mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]} if mapping else {}
+        return cls.from_dict(mapping, features, info, split)
+
     @staticmethod
     def from_csv(
         path_or_paths: Union[PathLike, List[PathLike]],
@@ -905,6 +927,46 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return CsvDatasetReader(
             path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()
+
+    @staticmethod
+    def from_generator(
+        generator: Callable,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        gen_kwargs: Optional[dict] = None,
+    ):
+        """Create a Dataset from a generator.
+
+        Args:
+            generator (:obj:`Callable`): A generator function that `yields` examples.
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
+            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            gen_kwargs(:obj:`dict`, optional): Keyword arguments to be passed to the `generator` callable.
+
+        Returns:
+            :class:`Dataset`
+
+        Example:
+
+        ```py
+        >>> def gen():
+        ...     yield {"text": "Good", "label": 0}
+        ...     yield {"text": "Bad", "label": 1}
+        ...
+        >>> ds = Dataset.from_generator(gen)
+        ```
+        """
+        from .io.generator import GeneratorDatasetInputStream
+
+        return GeneratorDatasetInputStream(
+            generator=generator,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            gen_kwargs=gen_kwargs,
         ).read()
 
     @staticmethod
@@ -1134,7 +1196,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         fs.makedirs(dataset_path, exist_ok=True)
         with fs.open(Path(dataset_path, config.DATASET_ARROW_FILENAME).as_posix(), "wb") as dataset_file:
             with ArrowWriter(stream=dataset_file) as writer:
-                writer.write_table(dataset._data)
+                writer.write_table(dataset._data.table)
                 writer.finalize()
         with fs.open(
             Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "w", encoding="utf-8"
@@ -2630,7 +2692,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"Provided `function` which is applied to all elements of table returns a variable of type {type(processed_inputs)}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects."
                 )
             elif isinstance(indices, list) and isinstance(processed_inputs, Mapping):
-                allowed_batch_return_types = (list, np.ndarray)
+                allowed_batch_return_types = (list, np.ndarray, pd.Series)
+                if config.TF_AVAILABLE and "tensorflow" in sys.modules:
+                    import tensorflow as tf
+
+                    allowed_batch_return_types += (tf.Tensor,)
+                if config.TORCH_AVAILABLE and "torch" in sys.modules:
+                    import torch
+
+                    allowed_batch_return_types += (torch.Tensor,)
+                if config.JAX_AVAILABLE and "jax" in sys.modules:
+                    import jax.numpy as jnp
+
+                    allowed_batch_return_types += (jnp.ndarray,)
                 all_dict_values_are_lists = all(
                     isinstance(value, allowed_batch_return_types) for value in processed_inputs.values()
                 )
@@ -2659,7 +2733,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
-            if self._format_type is not None:
+            if self._format_type or input_columns:
                 inputs = self._getitem(
                     key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1] + 1)),
                     format_type=None,
@@ -2726,8 +2800,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     input_dataset = self.with_format(
                         self._format_type, columns=input_columns, output_all_columns=False, **self._format_kwargs
                     )
-                    if remove_columns:
-                        remove_columns = list(set(remove_columns) & set(input_columns))
                 else:
                     input_dataset = self
 
@@ -4031,7 +4103,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         branch: Optional[str] = None,
-        max_shard_size: Union[int, str] = "500MB",
+        max_shard_size: Optional[Union[int, str]] = None,
         embed_external_files: bool = True,
     ) -> Tuple[str, str, int, int]:
         """Pushes the dataset to the hub.
@@ -4077,7 +4149,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
         ```
         """
-        max_shard_size = convert_file_size_to_int(max_shard_size)
+        max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
 
         api = HfApi(endpoint=config.HF_ENDPOINT)
         token = token if token is not None else HfFolder.get_token()
@@ -4089,6 +4161,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if split is None:
             split = str(self.split) if self.split is not None else "train"
+
+        if not re.match(_split_re, split):
+            raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
 
         identifier = repo_id.split("/")
 
@@ -4203,7 +4278,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         token=token,
                         repo_type="dataset",
                         revision=branch,
-                        identical_ok=False,
                     ),
                     exceptions=HTTPError,
                     status_codes=[504],
@@ -4246,7 +4320,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         branch: Optional[str] = None,
-        max_shard_size: Union[int, str] = "500MB",
+        max_shard_size: Optional[Union[int, str]] = None,
         shard_size: Optional[int] = "deprecated",
         embed_external_files: bool = True,
     ):
@@ -4358,7 +4432,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             token=token,
             repo_type="dataset",
             revision=branch,
-            identical_ok=True,
         )
 
     @transmit_format

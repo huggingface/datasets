@@ -53,7 +53,7 @@ train_ds = load_dataset('guardian_authorship', name="cross_topic_<<#>>",
 tests_ds = load_dataset('guardian_authorship', name="cross_topic_<<#>>",
                         split='train[-40%:]+validation[-40%:]+test[-40%:]')
 
-IMPORTANT: train+validation+test[:60%] will generate the wrong splits becasue the data is imbalanced
+IMPORTANT: train+validation+test[:60%] will generate the wrong splits because the data is imbalanced
 
 * See https://huggingface.co/docs/datasets/splits.html for detailed/more examples
 """

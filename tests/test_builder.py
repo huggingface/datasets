@@ -8,12 +8,14 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import numpy as np
+import pyarrow as pa
+import pyarrow.parquet as pq
 import pytest
 from multiprocess.pool import Pool
 
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_writer import ArrowWriter
-from datasets.builder import BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
+from datasets.builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.download.download_manager import DownloadMode
 from datasets.features import Features, Value
@@ -21,8 +23,15 @@ from datasets.info import DatasetInfo, PostProcessedInfo
 from datasets.iterable_dataset import IterableDataset
 from datasets.splits import Split, SplitDict, SplitGenerator, SplitInfo
 from datasets.streaming import xjoin
+from datasets.utils.file_utils import is_local_path
 
-from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_faiss
+from .utils import (
+    assert_arrow_memory_doesnt_increase,
+    assert_arrow_memory_increases,
+    require_beam,
+    require_faiss,
+    set_current_working_directory_to_temp_dir,
+)
 
 
 class DummyBuilder(DatasetBuilder):
@@ -34,7 +43,7 @@ class DummyBuilder(DatasetBuilder):
 
     def _prepare_split(self, split_generator, **kwargs):
         fname = f"{self.name}-{split_generator.name}.arrow"
-        with ArrowWriter(features=self.info.features, path=os.path.join(self._cache_dir, fname)) as writer:
+        with ArrowWriter(features=self.info.features, path=os.path.join(self._output_dir, fname)) as writer:
             writer.write_batch({"text": ["foo"] * 100})
             num_examples, num_bytes = writer.finalize()
         split_generator.split_info.num_examples = num_examples
@@ -55,6 +64,35 @@ class DummyGeneratorBasedBuilder(GeneratorBasedBuilder):
     def _generate_examples(self):
         for i in range(100):
             yield i, {"text": "foo"}
+
+
+class DummyArrowBasedBuilder(ArrowBasedBuilder):
+    def _info(self):
+        return DatasetInfo(features=Features({"text": Value("string")}))
+
+    def _split_generators(self, dl_manager):
+        return [SplitGenerator(name=Split.TRAIN)]
+
+    def _generate_tables(self):
+        for i in range(10):
+            yield i, pa.table({"text": ["foo"] * 10})
+
+
+class DummyBeamBasedBuilder(BeamBasedBuilder):
+    def _info(self):
+        return DatasetInfo(features=Features({"text": Value("string")}))
+
+    def _split_generators(self, dl_manager):
+        return [SplitGenerator(name=Split.TRAIN)]
+
+    def _build_pcollection(self, pipeline):
+        import apache_beam as beam
+
+        def _process(item):
+            for i in range(10):
+                yield f"{i}_{item}", {"text": "foo"}
+
+        return pipeline | "Initialize" >> beam.Create(range(10)) | "Extract content" >> beam.FlatMap(_process)
 
 
 class DummyGeneratorBasedBuilderWithIntegers(GeneratorBasedBuilder):
@@ -690,6 +728,51 @@ class BuilderTest(TestCase):
             self.assertNotEqual(builder.cache_dir, other_builder.cache_dir)
 
 
+def test_arrow_based_download_and_prepare(tmp_path):
+    builder = DummyArrowBasedBuilder(cache_dir=tmp_path)
+    builder.download_and_prepare()
+    assert os.path.exists(
+        os.path.join(
+            tmp_path,
+            builder.name,
+            "default",
+            "0.0.0",
+            f"{builder.name}-train.arrow",
+        )
+    )
+    assert builder.info.features, Features({"text": Value("string")})
+    assert builder.info.splits["train"].num_examples, 100
+    assert os.path.exists(os.path.join(tmp_path, builder.name, "default", "0.0.0", "dataset_info.json"))
+
+
+@require_beam
+def test_beam_based_download_and_prepare(tmp_path):
+    builder = DummyBeamBasedBuilder(cache_dir=tmp_path, beam_runner="DirectRunner")
+    builder.download_and_prepare()
+    assert os.path.exists(
+        os.path.join(
+            tmp_path,
+            builder.name,
+            "default",
+            "0.0.0",
+            f"{builder.name}-train.arrow",
+        )
+    )
+    assert builder.info.features, Features({"text": Value("string")})
+    assert builder.info.splits["train"].num_examples, 100
+    assert os.path.exists(os.path.join(tmp_path, builder.name, "default", "0.0.0", "dataset_info.json"))
+
+
+@require_beam
+def test_beam_based_as_dataset(tmp_path):
+    builder = DummyBeamBasedBuilder(cache_dir=tmp_path, beam_runner="DirectRunner")
+    builder.download_and_prepare()
+    dataset = builder.as_dataset()
+    assert dataset
+    assert isinstance(dataset["train"], Dataset)
+    assert len(dataset["train"]) > 0
+
+
 @pytest.mark.parametrize(
     "split, expected_dataset_class, expected_dataset_length",
     [
@@ -846,3 +929,151 @@ def test_builder_config_version(builder_class, kwargs, tmp_path):
     cache_dir = str(tmp_path)
     builder = builder_class(cache_dir=cache_dir, **kwargs)
     assert builder.config.version == "2.0.0"
+
+
+def test_builder_download_and_prepare_with_absolute_output_dir(tmp_path):
+    builder = DummyGeneratorBasedBuilder()
+    output_dir = str(tmp_path)
+    builder.download_and_prepare(output_dir)
+    assert builder._output_dir.startswith(tmp_path.resolve().as_posix())
+    assert os.path.exists(os.path.join(output_dir, "dataset_info.json"))
+    assert os.path.exists(os.path.join(output_dir, f"{builder.name}-train.arrow"))
+    assert not os.path.exists(os.path.join(output_dir + ".incomplete"))
+
+
+def test_builder_download_and_prepare_with_relative_output_dir():
+    with set_current_working_directory_to_temp_dir():
+        builder = DummyGeneratorBasedBuilder()
+        output_dir = "test-out"
+        builder.download_and_prepare(output_dir)
+        assert Path(builder._output_dir).resolve().as_posix().startswith(Path(output_dir).resolve().as_posix())
+        assert os.path.exists(os.path.join(output_dir, "dataset_info.json"))
+        assert os.path.exists(os.path.join(output_dir, f"{builder.name}-train.arrow"))
+        assert not os.path.exists(os.path.join(output_dir + ".incomplete"))
+
+
+def test_builder_with_filesystem_download_and_prepare(tmp_path, mockfs):
+    builder = DummyGeneratorBasedBuilder(cache_dir=tmp_path)
+    builder.download_and_prepare("mock://my_dataset", storage_options=mockfs.storage_options)
+    assert builder._output_dir.startswith("mock://my_dataset")
+    assert is_local_path(builder._cache_downloaded_dir)
+    assert isinstance(builder._fs, type(mockfs))
+    assert builder._fs.storage_options == mockfs.storage_options
+    assert mockfs.exists("my_dataset/dataset_info.json")
+    assert mockfs.exists(f"my_dataset/{builder.name}-train.arrow")
+    assert not mockfs.exists("my_dataset.incomplete")
+
+
+def test_builder_with_filesystem_download_and_prepare_reload(tmp_path, mockfs, caplog):
+    builder = DummyGeneratorBasedBuilder(cache_dir=tmp_path)
+    mockfs.makedirs("my_dataset")
+    DatasetInfo().write_to_directory("my_dataset", fs=mockfs)
+    mockfs.touch(f"my_dataset/{builder.name}-train.arrow")
+    caplog.clear()
+    builder.download_and_prepare("mock://my_dataset", storage_options=mockfs.storage_options)
+    assert "Found cached dataset" in caplog.text
+
+
+def test_generator_based_builder_download_and_prepare_as_parquet(tmp_path):
+    builder = DummyGeneratorBasedBuilder(cache_dir=tmp_path)
+    builder.download_and_prepare(file_format="parquet")
+    assert builder.info.splits["train"].num_examples, 100
+    parquet_path = os.path.join(
+        tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-00001.parquet"
+    )
+    assert os.path.exists(parquet_path)
+    assert pq.ParquetFile(parquet_path) is not None
+
+
+def test_generator_based_builder_download_and_prepare_as_sharded_parquet(tmp_path):
+    writer_batch_size = 25
+    builder = DummyGeneratorBasedBuilder(cache_dir=tmp_path, writer_batch_size=writer_batch_size)
+    with patch("datasets.config.MAX_SHARD_SIZE", 1):  # one batch per shard
+        builder.download_and_prepare(file_format="parquet")
+    expected_num_shards = 100 // writer_batch_size
+    assert builder.info.splits["train"].num_examples, 100
+    parquet_path = os.path.join(
+        tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-{expected_num_shards:05d}.parquet"
+    )
+    assert os.path.exists(parquet_path)
+    parquet_files = [
+        pq.ParquetFile(parquet_path)
+        for parquet_path in Path(tmp_path).rglob(f"{builder.name}-train-*-of-{expected_num_shards:05d}.parquet")
+    ]
+    assert len(parquet_files) == expected_num_shards
+    assert sum(parquet_file.metadata.num_rows for parquet_file in parquet_files) == 100
+
+
+def test_generator_based_builder_download_and_prepare_as_sharded_parquet_with_max_shard_size(tmp_path):
+    writer_batch_size = 25
+    builder = DummyGeneratorBasedBuilder(cache_dir=tmp_path, writer_batch_size=writer_batch_size)
+    builder.download_and_prepare(file_format="parquet", max_shard_size=1)  # one batch per shard
+    expected_num_shards = 100 // writer_batch_size
+    assert builder.info.splits["train"].num_examples, 100
+    parquet_path = os.path.join(
+        tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-{expected_num_shards:05d}.parquet"
+    )
+    assert os.path.exists(parquet_path)
+    parquet_files = [
+        pq.ParquetFile(parquet_path)
+        for parquet_path in Path(tmp_path).rglob(f"{builder.name}-train-*-of-{expected_num_shards:05d}.parquet")
+    ]
+    assert len(parquet_files) == expected_num_shards
+    assert sum(parquet_file.metadata.num_rows for parquet_file in parquet_files) == 100
+
+
+def test_arrow_based_builder_download_and_prepare_as_parquet(tmp_path):
+    builder = DummyArrowBasedBuilder(cache_dir=tmp_path)
+    builder.download_and_prepare(file_format="parquet")
+    assert builder.info.splits["train"].num_examples, 100
+    parquet_path = os.path.join(
+        tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-00001.parquet"
+    )
+    assert os.path.exists(parquet_path)
+    assert pq.ParquetFile(parquet_path) is not None
+
+
+def test_arrow_based_builder_download_and_prepare_as_sharded_parquet(tmp_path):
+    builder = DummyArrowBasedBuilder(cache_dir=tmp_path)
+    with patch("datasets.config.MAX_SHARD_SIZE", 1):  # one batch per shard
+        builder.download_and_prepare(file_format="parquet")
+    expected_num_shards = 10
+    assert builder.info.splits["train"].num_examples, 100
+    parquet_path = os.path.join(
+        tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-{expected_num_shards:05d}.parquet"
+    )
+    assert os.path.exists(parquet_path)
+    parquet_files = [
+        pq.ParquetFile(parquet_path)
+        for parquet_path in Path(tmp_path).rglob(f"{builder.name}-train-*-of-{expected_num_shards:05d}.parquet")
+    ]
+    assert len(parquet_files) == expected_num_shards
+    assert sum(parquet_file.metadata.num_rows for parquet_file in parquet_files) == 100
+
+
+def test_arrow_based_builder_download_and_prepare_as_sharded_parquet_with_max_shard_size(tmp_path):
+    builder = DummyArrowBasedBuilder(cache_dir=tmp_path)
+    builder.download_and_prepare(file_format="parquet", max_shard_size=1)  # one table per shard
+    expected_num_shards = 10
+    assert builder.info.splits["train"].num_examples, 100
+    parquet_path = os.path.join(
+        tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-{expected_num_shards:05d}.parquet"
+    )
+    assert os.path.exists(parquet_path)
+    parquet_files = [
+        pq.ParquetFile(parquet_path)
+        for parquet_path in Path(tmp_path).rglob(f"{builder.name}-train-*-of-{expected_num_shards:05d}.parquet")
+    ]
+    assert len(parquet_files) == expected_num_shards
+    assert sum(parquet_file.metadata.num_rows for parquet_file in parquet_files) == 100
+
+
+def test_beam_based_builder_download_and_prepare_as_parquet(tmp_path):
+    builder = DummyBeamBasedBuilder(cache_dir=tmp_path, beam_runner="DirectRunner")
+    builder.download_and_prepare(file_format="parquet")
+    assert builder.info.splits["train"].num_examples, 100
+    parquet_path = os.path.join(
+        tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-00001.parquet"
+    )
+    assert os.path.exists(parquet_path)
+    assert pq.ParquetFile(parquet_path) is not None
