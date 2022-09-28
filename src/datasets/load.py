@@ -621,8 +621,6 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             sanitize_patterns(self.data_files)
             if self.data_files is not None
             else get_data_patterns_locally(base_path)
-            if self.data_dir is not None
-            else get_data_patterns_locally(base_path)
         )
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
@@ -690,8 +688,6 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
-            else get_data_patterns_locally(base_path)
-            if self.data_dir is not None
             else get_data_patterns_locally(base_path)
         )
         data_files = DataFilesDict.from_local_or_remote(
