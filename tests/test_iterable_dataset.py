@@ -1021,7 +1021,7 @@ def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_le
     d2 = dataset.map(lambda x: {"id+1": x["id"] + 1, **x})
     d3 = dataset.with_format("python")
     datasets = [d1, d2, d3]
-    
+
     merged_dataset = interleave_datasets(
         datasets, probabilities=probas, seed=seed, stopping_strategy=stopping_strategy
     )
@@ -1101,4 +1101,3 @@ def test_interleave_datasets_with_oversampling():
     ]
 
     assert values == expected_values
-
