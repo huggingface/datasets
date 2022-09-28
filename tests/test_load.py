@@ -756,6 +756,15 @@ def test_load_dataset_streaming_csv(path_extension, streaming, csv_path, bz2_csv
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
 
 
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_streaming_xml(streaming, xml_path):
+    data_files = str(xml_path)
+    ds = load_dataset("xml", field="country", split="train", data_files=data_files, streaming=streaming)
+    assert isinstance(ds, IterableDataset if streaming else Dataset)
+    ds_item = next(iter(ds))
+    assert ds_item == {"@name": "Liechtenstein", "rank": "1", "year": "2008", "gdppc": "141100"}
+
+
 @require_pil
 @pytest.mark.integration
 @pytest.mark.parametrize("streaming", [False, True])
