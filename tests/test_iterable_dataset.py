@@ -151,6 +151,9 @@ def test_cycling_multi_sources_examples_iterable():
     ex_iterable = CyclingMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
     expected = list(chain(*zip(generate_examples_fn(text="foo"), generate_examples_fn(text="bar"))))
 
+    # The cycling stops as soon as one iterable is out of examples (here ex_iterable1), so the last sample from ex_iterable2 is unecessary
+    expected = expected[:-1]
+
     assert next(iter(ex_iterable)) == expected[0]
     assert list(ex_iterable) == expected
     assert all((x["id"], x["text"]) == (i // 2, "bar" if i % 2 else "foo") for i, (_, x) in enumerate(ex_iterable))
@@ -173,9 +176,13 @@ def test_randomly_cycling_multi_sources_examples_iterable(probabilities):
         rng, len(iterators), p=probabilities
     )
     expected = []
+    lengths = [len(list(ex_iterable1)), len(list(ex_iterable2))]
     for i in indices_iterator:
+        if lengths[0] == 0 or lengths[1] == 0:
+            break
         for key, example in iterators[i]:
             expected.append((key, example))
+            lengths[i] -= 1
             break
         else:
             break
