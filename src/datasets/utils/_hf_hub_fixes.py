@@ -111,10 +111,11 @@ def dataset_info(
     use_auth_token: Optional[Union[bool, str]] = None,
 ) -> DatasetInfo:
     """
-    Get info on one specific dataset on huggingface.co.
-    Dataset can be private if you pass an acceptable token.
+    The huggingface_hub.HfApi.dataset_info parameters changed in 0.10.0 and some of them were deprecated.
+    This function checks the huggingface_hub version to call the right parameters.
+
     Args:
-    hf_api (`huggingface_hub.HfApi`): Hub client
+        hf_api (`huggingface_hub.HfApi`): Hub client
         repo_id (`str`):
             A namespace (user or an organization) and a repo name separated
             by a `/`.
@@ -164,7 +165,8 @@ def list_repo_files(
     timeout: Optional[float] = None,
 ) -> List[str]:
     """
-    Get the list of files in a given repo.
+    The huggingface_hub.HfApi.list_repo_files parameters changed in 0.10.0 and some of them were deprecated.
+    This function checks the huggingface_hub version to call the right parameters.
     """
     if version.parse(huggingface_hub.__version__) < version.parse("0.10.0"):
         return hf_api.list_repo_files(repo_id, revision=revision, repo_type=repo_type, token=token, timeout=timeout)
