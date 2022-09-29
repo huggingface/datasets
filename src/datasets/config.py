@@ -168,6 +168,9 @@ HF_UPDATE_DOWNLOAD_COUNTS = (
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 10_000
 
+# Number of examples prefetched in `Dataset.__iter__`
+DEFAULT_ITER_BATCH_SIZE = 10
+
 # Pickling tables works only for small tables (<4GiB)
 # For big tables, we write them on disk instead
 MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30

@@ -1864,12 +1864,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Fast iteration
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
             formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
-            schema = self.data._schema
-            for i, batch in enumerate(self.data.to_reader(max_chunksize=batch_size)):
-                pa_subtable = pa.Table.from_batches([batch], schema=schema)
+            for batch in self.data.to_reader(max_chunksize=batch_size):
+                pa_subtable = pa.Table.from_batches([batch])
                 formatted_output = format_table(
                     pa_subtable,
-                    slice(i, i + batch_size),
+                    range(pa_subtable.num_rows),
                     formatter=formatter,
                     format_columns=self._format_columns,
                     output_all_columns=self._output_all_columns,
@@ -1892,17 +1891,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Fast iteration
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
             formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
-            schema = self.data._schema
-            for i, batch in enumerate(self.data.to_reader(max_chunksize=1)):
-                pa_subtable = pa.Table.from_batches([batch], schema=schema)
-                formatted_output = format_table(
-                    pa_subtable,
-                    i,
-                    formatter=formatter,
-                    format_columns=self._format_columns,
-                    output_all_columns=self._output_all_columns,
-                )
-                yield formatted_output
+            batch_size = config.DEFAULT_ITER_BATCH_SIZE
+            for batch in self.data.to_reader(max_chunksize=batch_size):
+                for i in range(batch.num_rows):
+                    batch_ex = batch.slice(i, 1)
+                    pa_subtable = pa.Table.from_batches([batch_ex])
+                    formatted_output = format_table(
+                        pa_subtable,
+                        0,
+                        formatter=formatter,
+                        format_columns=self._format_columns,
+                        output_all_columns=self._output_all_columns,
+                    )
+                    yield formatted_output
         else:
             for i in range(self.num_rows):
                 yield self._getitem(
