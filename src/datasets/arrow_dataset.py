@@ -2385,18 +2385,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # If the array is empty we do nothing (but we make sure to handle an empty indices mapping and remove the requested columns anyway)
         if len(self) == 0:
-            dset = self
-            if dset._indices is not None:  # empty incides mapping
-                dset = Dataset(
+            if self._indices is not None:  # empty incides mapping
+                self = Dataset(
                     self.data.slice(0, 0),
                     info=self.info.copy(),
                     split=self.split,
                     fingerprint=new_fingerprint,
                 )
             if remove_columns:
-                return dset.remove_columns(remove_columns)
+                return self.remove_columns(remove_columns)
             else:
-                return dset
+                return self
 
         if function is None:
             function = lambda x: x  # noqa: E731
