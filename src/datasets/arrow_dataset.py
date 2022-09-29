@@ -1862,6 +1862,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         if self._indices is None and config.PYARROW_VERSION.major >= 8:
             # Fast iteration
+            # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
             formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
             for batch in self.data.to_reader(max_chunksize=batch_size):
@@ -1889,9 +1890,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         if self._indices is None and config.PYARROW_VERSION.major >= 8:
             # Fast iteration
+            # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
             formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
-            batch_size = config.DEFAULT_ITER_BATCH_SIZE
+            batch_size = config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
             for batch in self.data.to_reader(max_chunksize=batch_size):
                 for i in range(batch.num_rows):
                     batch_ex = batch.slice(i, 1)
