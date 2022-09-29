@@ -1854,7 +1854,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         return self.num_rows
 
-    def _iter_batches(self, batch_size, decoded: bool = True):
+    def _iter_batches(self, batch_size: int, decoded: bool = True):
         """Iterate through the batches of size `batch_size`.
 
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
