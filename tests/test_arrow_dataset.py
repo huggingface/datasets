@@ -2188,6 +2188,7 @@ class BaseDatasetTest(TestCase):
                         dset.unique(dset.column_names[0])
                         assert_arrow_metadata_are_synced_with_dataset_features(dset)
 
+        # Empty indices mapping
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertIsNone(dset._indices, None)
