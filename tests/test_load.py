@@ -862,6 +862,18 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
         mock_head.assert_called()
 
 
+@pytest.mark.integration
+def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
+    ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
+    assert next(iter(ds)) is not None
+
+
+@pytest.mark.integration
+def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_dataset_repo_zipped_txt_data):
+    ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
+    assert next(iter(ds)) is not None
+
+
 @require_pil
 @pytest.mark.integration
 @pytest.mark.parametrize("implicit_token", [False, True])
@@ -876,22 +888,6 @@ def test_load_dataset_private_zipped_images(
     assert isinstance(ds, IterableDataset if streaming else Dataset)
     ds_items = list(ds)
     assert len(ds_items) == 2
-
-
-@pytest.mark.integration
-def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
-    with pytest.raises(FileNotFoundError):
-        load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
-    ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True, use_auth_token=hf_token)
-    assert next(iter(ds)) is not None
-
-
-@pytest.mark.integration
-def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_dataset_repo_zipped_txt_data):
-    with pytest.raises(FileNotFoundError):
-        load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
-    ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True, use_auth_token=hf_token)
-    assert next(iter(ds)) is not None
 
 
 def test_load_dataset_then_move_then_reload(dataset_loading_script_dir, data_dir, tmp_path, caplog):
