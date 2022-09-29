@@ -245,6 +245,19 @@ Source: https://www.bger.ch/files/live/sites/bger/files/pdf/de/urteilsveroeffent
 }
 ```
 
+and the new citation
+
+```
+@misc{niklaus2022empirical,
+    title={An Empirical Study on Cross-X Transfer for Legal Judgment Prediction},
+    author={Joel Niklaus and Matthias Stürmer and Ilias Chalkidis},
+    year={2022},
+    eprint={2209.12325},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+```
+
 ### Contributions
 
 Thanks to [@joelniklaus](https://github.com/joelniklaus) for adding this dataset.

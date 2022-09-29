@@ -30,7 +30,16 @@ _CITATION = """\
   booktitle = {Proceedings of the 2021 Natural Legal Language Processing Workshop},
   year = {2021},
   location = {Punta Cana, Dominican Republic},
-}"""
+}
+@misc{niklaus2022empirical,
+    title={An Empirical Study on Cross-X Transfer for Legal Judgment Prediction},
+    author={Joel Niklaus and Matthias Stürmer and Ilias Chalkidis},
+    year={2022},
+    eprint={2209.12325},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+"""
 
 _DESCRIPTION = """
 Swiss-Judgment-Prediction is a multilingual, diachronic dataset of 85K Swiss Federal Supreme Court (FSCS) cases annotated with the respective binarized judgment outcome (approval/dismissal), posing a challenging text classification task. We also provide additional metadata, i.e., the publication year, the legal area and the canton of origin per case, to promote robustness and fairness studies on the critical area of legal NLP.
