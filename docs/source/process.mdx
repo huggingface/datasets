@@ -516,9 +516,9 @@ In this case, the new dataset is constructed by getting examples one by one from
 [10, 11, 20, 12, 0, 21, 13]
 ```
 
-In the case of [`Dataset`] objects, you can also specify the `stopping_strategy`. The default strategy, `first_exhausted`, is an subsampling strategy, i.e the dataset construction is stopped as soon one of the dataset runs out of samples.
+You can also specify the `stopping_strategy`. The default strategy, `first_exhausted`, is a subsampling strategy, i.e the dataset construction is stopped as soon one of the dataset runs out of samples.
 You can specify `stopping_strategy=all_exhausted` to execute an oversampling strategy. In this case, the dataset construction is stopped as soon as every samples in every dataset has been added at least once. In practice, it means that if a dataset is exhausted, it will return to the beginning of this dataset until the stop criterion has been reached.
-Note that if no sampling probabilities are specified, the new dataset will have `max_length_datasets*nb_dataset samples`
+Note that if no sampling probabilities are specified, the new dataset will have `max_length_datasets*nb_dataset samples`.
 
 ```py
 >>> d1 = Dataset.from_dict({"a": [0, 1, 2]})
