@@ -23,7 +23,7 @@ def _test_command_factory(args):
         args.cache_dir,
         args.data_dir,
         args.all_configs,
-        args.save_infos,
+        args.save_info or args.save_infos,
         args.ignore_verifications,
         args.force_redownload,
         args.clear_cache,
@@ -51,7 +51,7 @@ class TestCommand(BaseDatasetsCLICommand):
         )
         test_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
         test_parser.add_argument(
-            "--save_infos", action="store_true", help="Save the dataset infos in the dataset card (README.md)"
+            "--save_info", action="store_true", help="Save the dataset infos in the dataset card (README.md)"
         )
         test_parser.add_argument(
             "--ignore_verifications", action="store_true", help="Run the test without checksums and splits checks"
@@ -61,6 +61,10 @@ class TestCommand(BaseDatasetsCLICommand):
             "--clear_cache",
             action="store_true",
             help="Remove downloaded files and cached datasets after each config test",
+        )
+        # aliases
+        test_parser.add_argument(
+            "--save_infos", action="store_true", help="alias to save_info"
         )
         test_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
         test_parser.set_defaults(func=_test_command_factory)
