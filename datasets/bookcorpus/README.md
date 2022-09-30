@@ -153,7 +153,9 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[MIT License](https://github.com/soskek/bookcorpus/blob/master/LICENSE)
+The books have been crawled from https://www.smashwords.com, see their [terms of service](https://www.smashwords.com/about/tos) for more information.
+
+A data sheet for this dataset has also been created and published in [Addressing "Documentation Debt" in Machine Learning Research: A Retrospective Datasheet for BookCorpus](https://arxiv.org/abs/2105.05241).
 
 ### Citation Information
 
@@ -165,9 +167,7 @@ The data fields are the same among all splits.
     month = {December},
     year = {2015}
 }
-
 ```
-
 
 ### Contributions
 
