@@ -5,6 +5,7 @@ from datasets.arrow_dataset import Dataset
 from datasets.features import Audio, ClassLabel, Features, Image, Sequence, Value
 from datasets.info import DatasetInfo
 from datasets.tasks import (
+    AudioClassification,
     AutomaticSpeechRecognition,
     ImageClassification,
     LanguageModeling,
@@ -124,6 +125,33 @@ class AutomaticSpeechRecognitionTest(TestCase):
         self.assertEqual("automatic-speech-recognition", task.task)
         self.assertEqual(input_schema, task.input_schema)
         self.assertEqual(label_schema, task.label_schema)
+
+
+class AudioClassificationTest(TestCase):
+    def setUp(self):
+        self.labels = sorted(["pos", "neg"])
+
+    def test_column_mapping(self):
+        task = AudioClassification(audio_column="input_audio", label_column="input_label")
+        self.assertDictEqual({"input_audio": "audio", "input_label": "labels"}, task.column_mapping)
+
+    def test_from_dict(self):
+        input_schema = Features({"audio": Audio()})
+        label_schema = Features({"labels": ClassLabel})
+        template_dict = {
+            "audio_column": "input_image",
+            "label_column": "input_label",
+        }
+        task = AudioClassification.from_dict(template_dict)
+        self.assertEqual("audio-classification", task.task)
+        self.assertEqual(input_schema, task.input_schema)
+        self.assertEqual(label_schema, task.label_schema)
+
+    def test_align_with_features(self):
+        task = AudioClassification(audio_column="input_audio", label_column="input_label")
+        self.assertEqual(task.label_schema["labels"], ClassLabel)
+        task = task.align_with_features(Features({"input_label": ClassLabel(names=self.labels)}))
+        self.assertEqual(task.label_schema["labels"], ClassLabel(names=self.labels))
 
 
 class ImageClassificationTest(TestCase):
