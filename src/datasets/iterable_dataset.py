@@ -217,8 +217,6 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
                 if self.bool_strategy_func(is_exhausted):
                     # if the stopping criteria is met, break the main for loop
                     break
-                # otherwise reinitialise the iterator and yield the first example
-                iterators[i] = HasNextIterator(self.ex_iterables[i])
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "CyclingMultiSourcesExamplesIterable":
         """Shuffle each underlying examples iterable."""
