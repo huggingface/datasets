@@ -63,9 +63,7 @@ class TestCommand(BaseDatasetsCLICommand):
             help="Remove downloaded files and cached datasets after each config test",
         )
         # aliases
-        test_parser.add_argument(
-            "--save_infos", action="store_true", help="alias to save_info"
-        )
+        test_parser.add_argument("--save_infos", action="store_true", help="alias to save_info")
         test_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
         test_parser.set_defaults(func=_test_command_factory)
 
