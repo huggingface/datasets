@@ -1,4 +1,33 @@
 ---
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
+language:
+- et
+- ht
+- id
+- it
+- qu
+- sw
+- ta
+- th
+- tr
+- vi
+- zh
+license:
+- cc-by-4.0
+multilinguality:
+- multilingual
+pretty_name: XCOPA
+size_categories:
+- unknown
+source_datasets:
+- extended|copa
+task_categories:
+- question-answering
+task_ids:
+- multiple-choice-qa
 paperswithcode_id: xcopa
 ---
 
@@ -54,11 +83,19 @@ Xcopa language et
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- et
+- ht
+- id
+- it
+- qu
+- sw
+- ta
+- th
+- tr
+- vi
+- zh
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -268,7 +305,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
 
 ### Citation Information
 
@@ -290,7 +327,6 @@ The data fields are the same among all splits.
 }
 
 ```
-
 
 ### Contributions
 

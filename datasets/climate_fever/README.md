@@ -4,9 +4,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,12 +18,14 @@ source_datasets:
 task_categories:
 - text-classification
 - text-retrieval
-- text-scoring
 task_ids:
+- text-scoring
 - fact-checking
 - fact-checking-retrieval
 - semantic-similarity-scoring
+- multi-input-text-classification
 paperswithcode_id: climate-fever
+pretty_name: ClimateFever
 ---
 
 # Dataset Card for ClimateFever

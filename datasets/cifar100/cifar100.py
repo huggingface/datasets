@@ -193,9 +193,7 @@ class Cifar100(datasets.GeneratorBasedBuilder):
             supervised_keys=None,  # Probably needs to be fixed.
             homepage="https://www.cs.toronto.edu/~kriz/cifar.html",
             citation=_CITATION,
-            task_templates=[
-                ImageClassification(image_column="img", label_column="fine_label", labels=_FINE_LABEL_NAMES)
-            ],
+            task_templates=[ImageClassification(image_column="img", label_column="fine_label")],
         )
 
     def _split_generators(self, dl_manager):

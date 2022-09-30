@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -14,18 +14,20 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
-- structure-prediction
+- text-generation
+- fill-mask
+- token-classification
 - text-classification
 task_ids:
 - named-entity-recognition
 - slot-filling
 - topic-classification
 paperswithcode_id: null
+pretty_name: SofcMaterialsArticles
 ---
 
 
-# Dataset Card Creation Guide
+# Dataset Card for SofcMaterialsArticles
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

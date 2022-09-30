@@ -4,9 +4,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -15,10 +15,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 - text-classification
 task_ids:
-- explanation-generation
+- text2text-generation-other-explanation-generation
 - hate-speech-detection
 paperswithcode_id: null
 ---
@@ -78,8 +78,6 @@ Another of Sap et al.’s models performed better in the generation task. They r
 The language in SBIC is predominantly white-aligned English (78%, using a lexical dialect detector, [Blodgett et al., 2016](https://www.aclweb.org/anthology/D16-1120)). The curators find less than 10% of posts in SBIC are detected to have the AAE dialect category. The BCP-47 language tag is, presumably, en-US. 
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

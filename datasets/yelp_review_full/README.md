@@ -3,10 +3,11 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
-- other-yelp-licence
+license:
+- other
+license_details: yelp-licence
 multilinguality:
 - monolingual
 size_categories:
@@ -18,6 +19,57 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: YelpReviewFull
+train-eval-index:
+- config: yelp_review_full
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    text: text
+    label: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 macro
+      args:
+        average: macro
+    - type: f1
+      name: F1 micro
+      args:
+        average: micro
+    - type: f1
+      name: F1 weighted
+      args:
+        average: weighted
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
+---
 ---
 
 # Dataset Card for YelpReviewFull
@@ -60,7 +112,7 @@ It is extracted from the Yelp Dataset Challenge 2015 data.
 
 ### Supported Tasks and Leaderboards
 
-- `text-classification`, `sentiment-classification`: The dataset is mainly used for text classification: given the text, predict the sentiment. 
+- `text-classification`, `sentiment-classification`: The dataset is mainly used for text classification: given the text, predict the sentiment.
 
 ### Languages
 

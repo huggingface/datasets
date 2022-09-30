@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - other
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - semantic-similarity-classification
 paperswithcode_id: null
+pretty_name: MedicalQuestionsPairs
 ---
 
 # Dataset Card for [medical_questions_pairs]
@@ -86,10 +87,10 @@ The dataset contains dr_id, question_1, question_2, label. 11 different doctors 
 
 The dataset as of now consists of only one split(train) but can be split seperately based on the requirement
 
-|                             | Tain   | 
-| -----                       | ------ | 
-| Non similar Question Pairs  | 1524   |
-| Similar Question Pairs      | 1524   |
+|                            | train |
+|----------------------------|------:|
+| Non similar Question Pairs |  1524 |
+| Similar Question Pairs     |  1524 |
 
 ## Dataset Creation
 Doctors with a list of 1524 patient-asked questions randomly sampled from the publicly available crawl of [HealthTap](https://github.com/durakkerem/Medical-Question-Answer-Datasets). Each question results in one similar and one different pair through the following instructions provided to the labelers:

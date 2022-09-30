@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - zh
-licenses:
-- other-non-commercial-research
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -18,8 +18,9 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: c3
+pretty_name: C3
 ---
-# Dataset Card Creation Guide
+# Dataset Card for C3
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -129,7 +130,7 @@ We present a comprehensive analysis of the prior knowledge (i.e., linguistic, do
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

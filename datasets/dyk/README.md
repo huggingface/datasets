@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - other
-languages:
+language:
 - pl
-licenses:
+license:
 - bsd-3-clause
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: null
+pretty_name: dyk
 ---
 
 # Dataset Card for [Dataset Name]

@@ -3,10 +3,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - other
-languages:
+language:
 - en
 - ur
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -15,13 +15,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: umc005-english-urdu
+pretty_name: UMC005 English-Urdu
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for UMC005 English-Urdu
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

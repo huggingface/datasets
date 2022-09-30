@@ -3,7 +3,7 @@ from pathlib import Path
 
 import fsspec as fs
 import requests
-from oscar import _BASE_CHECKSUM_FILE_NAME, Oscar
+from oscar import _BASE_CHECKSUM_FILE_NAME, Oscar, logger
 
 
 N_EXAMPLES = 2
@@ -11,7 +11,7 @@ N_EXAMPLES = 2
 if __name__ == "__main__":
 
     for i, config in enumerate(Oscar.BUILDER_CONFIGS):
-        print(f"Loading config '{config.name}' ({i + 1}/{len(Oscar.BUILDER_CONFIGS)})")
+        logger.info(f"Loading config '{config.name}' ({i + 1}/{len(Oscar.BUILDER_CONFIGS)})")
 
         # Get data url
         checksum_filename = _BASE_CHECKSUM_FILE_NAME.format(language=config.language)
@@ -42,6 +42,6 @@ if __name__ == "__main__":
         root_dir = str(dummy_data_dir.parent)
         base_name = str(dummy_data_dir)
         base_dir = "dummy_data"
-        print(f"Compressing dummy data folder to '{base_name}.zip'")
+        logger.info(f"Compressing dummy data folder to '{base_name}.zip'")
         shutil.make_archive(base_name, "zip", root_dir, base_dir)
         shutil.rmtree(base_name)

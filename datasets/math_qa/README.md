@@ -1,10 +1,28 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
+language_creators:
+- crowdsourced
+- expert-generated
+license:
+- apache-2.0
+multilinguality:
+- monolingual
+pretty_name: MathQA
+size_categories:
+- 10K<n<100K
+source_datasets:
+- extended|aqua_rat
+task_categories:
+- question-answering
+task_ids:
+- multiple-choice-qa
 paperswithcode_id: mathqa
 ---
 
-# Dataset Card for "math_qa"
+# Dataset Card for MathQA
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -34,7 +52,7 @@ paperswithcode_id: mathqa
 
 - **Homepage:** [https://math-qa.github.io/math-QA/](https://math-qa.github.io/math-QA/)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [MathQA: Towards Interpretable Math Word Problem Solving with Operation-Based Formalisms](https://aclanthology.org/N19-1245/)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 6.96 MB
 - **Size of the generated dataset:** 21.90 MB
@@ -42,7 +60,11 @@ paperswithcode_id: mathqa
 
 ### Dataset Summary
 
-Our dataset is gathered by using a new representation language to annotate over the AQuA-RAT dataset. AQuA-RAT has provided the questions, options, rationale, and the correct options.
+We introduce a large-scale dataset of math word problems.
+
+Our dataset is gathered by using a new representation language to annotate over the AQuA-RAT dataset with fully-specified operational programs.
+
+AQuA-RAT has provided the questions, options, rationale, and the correct options.
 
 ### Supported Tasks and Leaderboards
 
@@ -53,8 +75,6 @@ Our dataset is gathered by using a new representation language to annotate over 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -148,12 +168,28 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The dataset is licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
 
 ### Citation Information
 
 ```
-
+@inproceedings{amini-etal-2019-mathqa,
+    title = "{M}ath{QA}: Towards Interpretable Math Word Problem Solving with Operation-Based Formalisms",
+    author = "Amini, Aida  and
+      Gabriel, Saadia  and
+      Lin, Shanchuan  and
+      Koncel-Kedziorski, Rik  and
+      Choi, Yejin  and
+      Hajishirzi, Hannaneh",
+    booktitle = "Proceedings of the 2019 Conference of the North {A}merican Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers)",
+    month = jun,
+    year = "2019",
+    address = "Minneapolis, Minnesota",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/N19-1245",
+    doi = "10.18653/v1/N19-1245",
+    pages = "2357--2367",
+}
 ```
 
 

@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - es
 - eu
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -15,10 +15,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: eitb-parcc
+pretty_name: EiTB-ParCC
 ---
 
 # Dataset Card for [Dataset Name]

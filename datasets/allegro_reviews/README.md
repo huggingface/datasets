@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - pl
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -14,10 +14,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
 - sentiment-scoring
+- text-scoring
 paperswithcode_id: allegro-reviews
+pretty_name: Allegro Reviews
 ---
 
 # Dataset Card for [Dataset Name]

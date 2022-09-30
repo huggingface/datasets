@@ -3,10 +3,11 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
-- Microsoft Research Data License Agreement
+license:
+- other
+license_details: "Microsoft Research Data License Agreement"
 multilinguality:
 - monolingual
 size_categories:
@@ -14,10 +15,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - dialogue-modeling
 paperswithcode_id: metalwoz
+pretty_name: Meta-Learning Wizard-of-Oz
 ---
 
 # Dataset Card for MetaLWOz

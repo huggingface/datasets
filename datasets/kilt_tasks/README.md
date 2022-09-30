@@ -1,207 +1,66 @@
 ---
 annotations_creators:
-  aidayago2:
-  - crowdsourced
-  - found
-  - machine-generated
-  cweb:
-  - crowdsourced
-  - found
-  - machine-generated
-  eli5:
-  - crowdsourced
-  - found
-  fever:
-  - crowdsourced
-  - found
-  - machine-generated
-  hotpotqa:
-  - crowdsourced
-  - found
-  - machine-generated
-  nq:
-  - crowdsourced
-  - found
-  - machine-generated
-  structured_zeroshot:
-  - crowdsourced
-  - found
-  - machine-generated
-  trex:
-  - crowdsourced
-  - found
-  - machine-generated
-  triviaqa_support_only:
-  - crowdsourced
-  - found
-  - machine-generated
-  wned:
-  - crowdsourced
-  - found
-  - machine-generated
-  wow:
-  - crowdsourced
-  - found
-  - machine-generated
+- crowdsourced
+- found
+- machine-generated
 language_creators:
-  aidayago2:
-  - crowdsourced
-  cweb:
-  - crowdsourced
-  eli5:
-  - found
-  fever:
-  - crowdsourced
-  hotpotqa:
-  - crowdsourced
-  - found
-  nq:
-  - found
-  structured_zeroshot:
-  - crowdsourced
-  trex:
-  - crowdsourced
-  triviaqa_support_only:
-  - found
-  wned:
-  - crowdsourced
-  wow:
-  - crowdsourced
-languages:
+- crowdsourced
+- found
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
 size_categories:
-  aidayago2:
-  - 10K<n<100K
-  cweb:
-  - 10K<n<100K
-  eli5:
-  - 100K<n<1M
-  fever:
-  - 100K<n<1M
-  hotpotqa:
-  - 100K<n<1M
-  nq:
-  - 10K<n<100K
-  structured_zeroshot:
-  - 100K<n<1M
-  trex:
-  - 1M<n<10M
-  triviaqa_support_only:
-  - 10K<n<100K
-  wned:
-  - 1K<n<10K
-  wow:
-  - 100K<n<1M
+- 100K<n<1M
+- 10K<n<100K
+- 1K<n<10K
+- 1M<n<10M
 source_datasets:
-  aidayago2:
-  - extended|other-aidayago
-  - original
-  cweb:
-  - extended|other-wned-cweb
-  - original
-  eli5:
-  - extended|other-hotpotqa
-  - original
-  fever:
-  - extended|other-fever
-  - original
-  hotpotqa:
-  - extended|other-hotpotqa
-  - original
-  nq:
-  - extended|natural_questions
-  - original
-  structured_zeroshot:
-  - extended|other-zero-shot-re
-  - original
-  trex:
-  - extended|other-trex
-  - original
-  triviaqa_support_only:
-  - extended|other-triviaqa
-  - original
-  wned:
-  - extended|other-wned-wiki
-  - original
-  wow:
-  - extended|other-wizardsofwikipedia
-  - original
+- extended|natural_questions
+- extended|other-aidayago
+- extended|other-fever
+- extended|other-hotpotqa
+- extended|other-trex
+- extended|other-triviaqa
+- extended|other-wizardsofwikipedia
+- extended|other-wned-cweb
+- extended|other-wned-wiki
+- extended|other-zero-shot-re
+- original
 task_categories:
-  aidayago2:
-  - text-retrieval
-  cweb:
-  - text-retrieval
-  eli5:
-  - question-answering
-  - text-retrieval
-  fever:
-  - text-classification
-  - text-retrieval
-  hotpotqa:
-  - question-answering
-  - text-retrieval
-  nq:
-  - question-answering
-  - text-retrieval
-  structured_zeroshot:
-  - sequence-modeling
-  - text-retrieval
-  trex:
-  - sequence-modeling
-  - text-retrieval
-  triviaqa_support_only:
-  - question-answering
-  - text-retrieval
-  wned:
-  - text-retrieval
-  wow:
-  - sequence-modeling
-  - text-retrieval
+- fill-mask
+- question-answering
+- text-classification
+- text-generation
+- text-retrieval
+- text2text-generation
 task_ids:
-  aidayago2:
-  - document-retrieval
-  - entity-linking-retrieval
-  cweb:
-  - document-retrieval
-  - entity-linking-retrieval
-  eli5:
-  - abstractive-qa
-  - document-retrieval
-  - open-domain-qa
-  fever:
-  - document-retrieval
-  - fact-checking
-  - fact-checking-retrieval
-  hotpotqa:
-  - document-retrieval
-  - extractive-qa
-  - open-domain-qa
-  nq:
-  - document-retrieval
-  - extractive-qa
-  - open-domain-qa
-  structured_zeroshot:
-  - document-retrieval
-  - slot-filling
-  trex:
-  - document-retrieval
-  - slot-filling
-  triviaqa_support_only:
-  - document-retrieval
-  - extractive-qa
-  - open-domain-qa
-  wned:
-  - document-retrieval
-  - entity-linking-retrieval
-  wow:
-  - dialogue-modeling
-  - document-retrieval
+- abstractive-qa
+- dialogue-modeling
+- document-retrieval
+- entity-linking-retrieval
+- extractive-qa
+- fact-checking
+- fact-checking-retrieval
+- open-domain-abstractive-qa
+- open-domain-qa
+- slot-filling
 paperswithcode_id: kilt
 pretty_name: KILT
+configs:
+- aidayago2
+- cweb
+- eli5
+- fever
+- hotpotqa
+- nq
+- structured_zeroshot
+- trex
+- triviaqa_support_only
+- wned
+- wow
 ---
 
 # Dataset Card for KILT

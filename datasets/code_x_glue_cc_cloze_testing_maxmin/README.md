@@ -3,31 +3,30 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - code
-licenses:
-- other-C-UDA
+license:
+- c-uda
 multilinguality:
 - monolingual
 size_categories:
-  go:
-  - 10K<n<100K
-  java:
-  - 10K<n<100K
-  javascript:
-  - 10K<n<100K
-  php:
-  - 10K<n<100K
-  python:
-  - 10K<n<100K
-  ruby:
-  - 1K<n<10K
+- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - slot-filling
+pretty_name: CodeXGlueCcClozeTestingMaxmin
+configs:
+- go
+- java
+- javascript
+- php
+- python
+- ruby
 ---
 # Dataset Card for "code_x_glue_cc_cloze_testing_maxmin"
 

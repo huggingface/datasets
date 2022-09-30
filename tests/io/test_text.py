@@ -50,7 +50,7 @@ def test_dataset_from_text_split(split, text_path, tmp_path):
     expected_features = {"text": "string"}
     dataset = TextDatasetReader(text_path, cache_dir=cache_dir, split=split).read()
     _check_text_dataset(dataset, expected_features)
-    assert dataset.split == str(split) if split else "train"
+    assert dataset.split == split if split else "train"
 
 
 @pytest.mark.parametrize("path_type", [str, list])

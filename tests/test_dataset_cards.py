@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 HuggingFace Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +20,7 @@ import pytest
 
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.utils.logging import get_logger
-from datasets.utils.metadata import DatasetMetadata
+from datasets.utils.metadata import DatasetMetadata, validate_metadata_type, yaml_block_from_readme
 from datasets.utils.readme import ReadMe
 
 from .utils import slow
@@ -33,27 +32,27 @@ logger = get_logger(__name__)
 
 
 def get_changed_datasets(repo_path: Path) -> List[Path]:
-    diff_output = check_output(["git", "diff", "--name-only", "origin/master...HEAD"], cwd=repo_path)
+    diff_output = check_output(["git", "diff", "--name-only", "origin/main...HEAD"], cwd=repo_path)
     changed_files = [Path(repo_path, f) for f in diff_output.decode().splitlines()]
 
     datasets_dir_path = repo_path / "datasets"
 
-    changed_datasets = set(
+    changed_datasets = {
         f.resolve().relative_to(datasets_dir_path).parts[0]
         for f in changed_files
-        if f.exists() and str(f.resolve()).startswith(str(datasets_dir_path))
-    )
-
+        if f.exists() and str(f.resolve()).startswith(str(datasets_dir_path)) and not f.name == "dummy_data.zip"
+    }
     return sorted(dataset_name for dataset_name in changed_datasets if dataset_name not in _PACKAGED_DATASETS_MODULES)
 
 
 def get_all_datasets(repo_path: Path) -> List[Path]:
-    dataset_names = [path.parts[-1] for path in (repo_path / "datasets").iterdir()]
+    dataset_names = [path.parts[-1] for path in (repo_path / "datasets").iterdir() if path.is_dir()]
     return [dataset_name for dataset_name in dataset_names if dataset_name not in _PACKAGED_DATASETS_MODULES]
 
 
 @pytest.mark.parametrize("dataset_name", get_changed_datasets(repo_path))
 def test_changed_dataset_card(dataset_name):
+    """Validate the content of the dataset cards that were changed"""
     card_path = repo_path / "datasets" / dataset_name / "README.md"
     assert card_path.exists()
     error_messages = []
@@ -82,9 +81,24 @@ def test_changed_dataset_card(dataset_name):
         raise ValueError("\n".join(error_messages))
 
 
+@pytest.mark.parametrize("dataset_name", get_all_datasets(repo_path))
+def test_dataset_card_yaml_structure(dataset_name):
+    """
+    Just check that the dataset cards have valid YAML.
+    It doesn't validate the content.
+    """
+    card_path = repo_path / "datasets" / dataset_name / "README.md"
+    assert card_path.exists()
+    yaml_string = yaml_block_from_readme(card_path)
+    metadata_dict = DatasetMetadata._metadata_dict_from_yaml_string(yaml_string)
+    assert len(metadata_dict) > 0
+    validate_metadata_type(metadata_dict)
+
+
 @slow
 @pytest.mark.parametrize("dataset_name", get_all_datasets(repo_path))
 def test_dataset_card(dataset_name):
+    """Validate the content of the dataset cards"""
     card_path = repo_path / "datasets" / dataset_name / "README.md"
     assert card_path.exists()
     error_messages = []

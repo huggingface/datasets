@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - pt
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -14,13 +14,14 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: HAREM
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for HAREM
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -58,7 +59,7 @@ paperswithcode_id: null
 The HAREM is a Portuguese language corpus commonly used for Named Entity Recognition tasks. It includes about 93k words, from 129 different texts,
 from several genres, and language varieties. The split of this dataset version follows the division made by [1], where 7% HAREM
 documents are the validation set and the miniHAREM corpus (with about 65k words) is the test set. There are two versions of the dataset set,
-a version that has a total of 10 different named entity classes (Person, Organization, Location, Value, Date, Title, Thing, Event, 
+a version that has a total of 10 different named entity classes (Person, Organization, Location, Value, Date, Title, Thing, Event,
 Abstraction, and Other) and a "selective" version with only 5 classes (Person, Organization, Location, Value, and Date).
 
 It's important to note that the original version of the HAREM dataset has 2 levels of NER details, namely "Category" and "Sub-type".

@@ -1,7 +1,8 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: null
+pretty_name: CivilComments
 ---
 
 # Dataset Card for "civil_comments"
@@ -64,8 +65,6 @@ dataset is released under CC0, as is the underlying comment text.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

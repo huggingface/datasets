@@ -1,92 +1,258 @@
 ---
-annotations_creators: []
+annotations_creators:
+- found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
 size_categories:
-  emoji:
-  - 100K<n<1M
-  emotion:
-  - 1K<n<10K
-  hate:
-  - 10K<n<100K
-  irony:
-  - 1K<n<10K
-  offensive:
-  - 10K<n<100K
-  sentiment:
-  - 10K<n<100K
-  stance_abortion:
-  - n<1K
-  stance_atheism:
-  - n<1K
-  stance_climate:
-  - n<1K
-  stance_feminist:
-  - n<1K
-  stance_hillary:
-  - n<1K
+- 100K<n<1M
+- 10K<n<100K
+- 1K<n<10K
+- n<1K
 source_datasets:
-  emoji:
-  - extended|other-tweet-datasets
-  emotion:
-  - extended|other-tweet-datasets
-  hate:
-  - extended|other-tweet-datasets
-  irony:
-  - extended|other-tweet-datasets
-  offensive:
-  - extended|other-tweet-datasets
-  sentiment:
-  - extended|other-tweet-datasets
-  stance_abortion:
-  - extended|other-tweet-datasets
-  stance_atheism:
-  - extended|other-tweet-datasets
-  stance_climate:
-  - extended|other-tweet-datasets
-  stance_feminist:
-  - extended|other-tweet-datasets
-  stance_hillary:
-  - extended|other-tweet-datasets
+- extended|other-tweet-datasets
 task_categories:
 - text-classification
 task_ids:
-  emoji:
-  - multi-class-classification
-  emotion:
-  - multi-class-classification
-  - sentiment-classification
-  hate:
-  - intent-classification
-  irony:
-  - multi-class-classification
-  offensive:
-  - intent-classification
-  sentiment:
-  - multi-class-classification
-  - sentiment-classification
-  stance_abortion:
-  - intent-classification
-  - multi-class-classification
-  stance_atheism:
-  - intent-classification
-  - multi-class-classification
-  stance_climate:
-  - intent-classification
-  - multi-class-classification
-  stance_feminist:
-  - intent-classification
-  - multi-class-classification
-  stance_hillary:
-  - intent-classification
-  - multi-class-classification
+- intent-classification
+- multi-class-classification
+- sentiment-classification
 paperswithcode_id: tweeteval
+pretty_name: TweetEval
+train-eval-index:
+- config: emotion
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    text: text
+    label: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 macro
+      args:
+        average: macro
+    - type: f1
+      name: F1 micro
+      args:
+        average: micro
+    - type: f1
+      name: F1 weighted
+      args:
+        average: weighted
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
+- config: hate
+  task: text-classification
+  task_id: binary_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    text: text
+    label: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 binary
+      args:
+        average: binary
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
+- config: irony
+  task: text-classification
+  task_id: binary_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    text: text
+    label: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 binary
+      args:
+        average: binary
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
+- config: offensive
+  task: text-classification
+  task_id: binary_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    text: text
+    label: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 binary
+      args:
+        average: binary
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
+- config: sentiment
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    text: text
+    label: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 macro
+      args:
+        average: macro
+    - type: f1
+      name: F1 micro
+      args:
+        average: micro
+    - type: f1
+      name: F1 weighted
+      args:
+        average: weighted
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
+configs:
+- emoji
+- emotion
+- hate
+- irony
+- offensive
+- sentiment
+- stance_abortion
+- stance_atheism
+- stance_climate
+- stance_feminist
+- stance_hillary
 ---
 
 # Dataset Card for tweet_eval
@@ -438,7 +604,20 @@ Francesco Barbieri, Jose Camacho-Collados, Luis Espiinosa-Anke and Leonardo Neve
 
 ### Licensing Information
 
-[Needs More Information]
+This is not a single dataset, therefore each subset has its own license (the collection itself does not have additional restrictions).
+
+All of the datasets require complying with Twitter [Terms Of Service](https://twitter.com/tos) and Twitter API [Terms Of Service](https://developer.twitter.com/en/developer-terms/agreement-and-policy)
+
+Additionally the license are:
+- emoji: Undefined
+- emotion(EmoInt): Undefined
+- hate (HateEval): Need permission [here](http://hatespeech.di.unito.it/hateval.html)
+- irony: Undefined
+- Offensive: Undefined
+- Sentiment: [Creative Commons Attribution 3.0 Unported License](https://groups.google.com/g/semevaltweet/c/k5DDcvVb_Vo/m/zEOdECFyBQAJ)
+- Stance: Undefined
+
+
 ### Citation Information
 
 ```
@@ -447,6 +626,90 @@ title={{TweetEval:Unified Benchmark and Comparative Evaluation for Tweet Classif
 author={Barbieri, Francesco and Camacho-Collados, Jose and Espinosa-Anke, Luis and Neves, Leonardo},
 booktitle={Proceedings of Findings of EMNLP},
 year={2020}
+}
+```
+
+If you use any of the TweetEval datasets, please cite their original publications:
+
+#### Emotion Recognition:
+```
+@inproceedings{mohammad2018semeval,
+  title={Semeval-2018 task 1: Affect in tweets},
+  author={Mohammad, Saif and Bravo-Marquez, Felipe and Salameh, Mohammad and Kiritchenko, Svetlana},
+  booktitle={Proceedings of the 12th international workshop on semantic evaluation},
+  pages={1--17},
+  year={2018}
+}
+
+```
+#### Emoji Prediction:
+```
+@inproceedings{barbieri2018semeval,
+  title={Semeval 2018 task 2: Multilingual emoji prediction},
+  author={Barbieri, Francesco and Camacho-Collados, Jose and Ronzano, Francesco and Espinosa-Anke, Luis and
+    Ballesteros, Miguel and Basile, Valerio and Patti, Viviana and Saggion, Horacio},
+  booktitle={Proceedings of The 12th International Workshop on Semantic Evaluation},
+  pages={24--33},
+  year={2018}
+}
+```
+
+#### Irony Detection:
+```
+@inproceedings{van2018semeval,
+  title={Semeval-2018 task 3: Irony detection in english tweets},
+  author={Van Hee, Cynthia and Lefever, Els and Hoste, V{\'e}ronique},
+  booktitle={Proceedings of The 12th International Workshop on Semantic Evaluation},
+  pages={39--50},
+  year={2018}
+}
+```
+
+#### Hate Speech Detection:
+```
+@inproceedings{basile-etal-2019-semeval,
+    title = "{S}em{E}val-2019 Task 5: Multilingual Detection of Hate Speech Against Immigrants and Women in {T}witter",
+    author = "Basile, Valerio  and Bosco, Cristina  and Fersini, Elisabetta  and Nozza, Debora and Patti, Viviana and
+      Rangel Pardo, Francisco Manuel  and Rosso, Paolo  and Sanguinetti, Manuela",
+    booktitle = "Proceedings of the 13th International Workshop on Semantic Evaluation",
+    year = "2019",
+    address = "Minneapolis, Minnesota, USA",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/S19-2007",
+    doi = "10.18653/v1/S19-2007",
+    pages = "54--63"
+}
+```
+#### Offensive Language Identification:
+```
+@inproceedings{zampieri2019semeval,
+  title={SemEval-2019 Task 6: Identifying and Categorizing Offensive Language in Social Media (OffensEval)},
+  author={Zampieri, Marcos and Malmasi, Shervin and Nakov, Preslav and Rosenthal, Sara and Farra, Noura and Kumar, Ritesh},
+  booktitle={Proceedings of the 13th International Workshop on Semantic Evaluation},
+  pages={75--86},
+  year={2019}
+}
+```
+
+#### Sentiment Analysis:
+```
+@inproceedings{rosenthal2017semeval,
+  title={SemEval-2017 task 4: Sentiment analysis in Twitter},
+  author={Rosenthal, Sara and Farra, Noura and Nakov, Preslav},
+  booktitle={Proceedings of the 11th international workshop on semantic evaluation (SemEval-2017)},
+  pages={502--518},
+  year={2017}
+}
+```
+
+#### Stance Detection:
+```
+@inproceedings{mohammad2016semeval,
+  title={Semeval-2016 task 6: Detecting stance in tweets},
+  author={Mohammad, Saif and Kiritchenko, Svetlana and Sobhani, Parinaz and Zhu, Xiaodan and Cherry, Colin},
+  booktitle={Proceedings of the 10th International Workshop on Semantic Evaluation (SemEval-2016)},
+  pages={31--41},
+  year={2016}
 }
 ```
 

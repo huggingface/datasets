@@ -5,9 +5,9 @@ language_creators:
 - crowdsourced
 - expert-generated
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -22,6 +22,7 @@ task_ids:
 - other-other-text-to-speech
 - other-other-web-search
 paperswithcode_id: common-crawl-domain-names
+pretty_name: Common Crawl Domain Names
 ---
 
 # Dataset Card for Common Crawl Domain Names

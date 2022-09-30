@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -19,6 +19,7 @@ task_ids:
 - extractive-qa
 - open-domain-qa
 paperswithcode_id: adversarialqa
+pretty_name: adversarialQA
 ---
 
 # Dataset Card for adversarialQA

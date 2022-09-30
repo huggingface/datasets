@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -15,15 +15,16 @@ source_datasets:
 - extended|net-activities-captions
 - original
 task_categories:
-- structure-prediction
+- token-classification
 - text-classification
 task_ids:
 - multi-class-classification
 - named-entity-recognition
 paperswithcode_id: limit
+pretty_name: LiMiT
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for LiMiT
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -108,9 +109,9 @@ Example of one instance in the dataset
 
 The dataset is split into a `train`, and `test` split with the following sizes:
 
-|                            | Tain   | Valid |
-| -----                      | ------ | ----- |
-| Number of examples         | 23559  | 1000  |
+|                            | train | validation |
+| -----                      |------:|-----------:|
+| Number of examples         | 23559 |       1000 |
 
 ## Dataset Creation
 

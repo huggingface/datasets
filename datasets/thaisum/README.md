@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - th
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -14,15 +14,17 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- sequence-modeling
+- summarization
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
-- summarization
+- masked-language-modeling
 paperswithcode_id: null
+pretty_name: ThaiSum
 ---
 
-# Dataset Card for `thaisum`
+# Dataset Card for ThaiSum
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -93,7 +95,7 @@ train/valid/test: 358868 / 11000 / 11000
 
 ### Curation Rationale
 
-Sequence-to-sequence (Seq2Seq) models have shown great achievement in text summarization. However, Seq2Seq model often requires large-scale training data to achieve effective results. Although many impressive advancements in text summarization field have been made, most of summarization studies focus on resource-rich languages. The progress of Thai text summarization is still far behind. The dearth of large-scale dataset keeps Thai text summarization in its infancy. As far as our knowledge goes, there is not a large-scale dataset for Thai text summarization available anywhere. Thus, we present ThaiSum, a large-scale corpus for Thai text summarization obtained from several online news websites namely Thairath, ThaiPBS, Prachathai, and The Standard. 
+Sequence-to-sequence (Seq2Seq) models have shown great achievement in text summarization. However, Seq2Seq model often requires large-scale training data to achieve effective results. Although many impressive advancements in text summarization field have been made, most of summarization studies focus on resource-rich languages. The progress of Thai text summarization is still far behind. The dearth of large-scale dataset keeps Thai text summarization in its infancy. As far as our knowledge goes, there is not a large-scale dataset for Thai text summarization available anywhere. Thus, we present ThaiSum, a large-scale corpus for Thai text summarization obtained from several online news websites namely Thairath, ThaiPBS, Prachathai, and The Standard.
 
 ### Source Data
 
@@ -102,26 +104,26 @@ Sequence-to-sequence (Seq2Seq) models have shown great achievement in text summa
 We used a python library named Scrapy to crawl articles from several news websites namely Thairath, Prachatai, ThaiPBS and, The Standard. We first collected news URLs provided in their sitemaps. During web-crawling, we used HTML markup and metadata available in HTML pages to identify article text, summary, headline, tags and label. Collected articles were published online from 2014 to August 2020.  <br> <br>
 We further performed data cleansing process to minimize noisy data. We filtered out articles that their article text or summary is missing. Articles that contains article text with less than 150 words or summary with less than 15 words were removed. We also discarded articles that contain at least one of these following tags: ‘ดวง’ (horoscope), ‘นิยาย’ (novel), ‘อินสตราแกรมดารา’ (celebrity Instagram), ‘คลิปสุดฮา’(funny video) and ‘สรุปข่าว’ (highlight news). Some summaries were completely irrelevant to their original article texts. To eliminate those irrelevant summaries, we calculated abstractedness score between summary and its article text. Abstractedness score is written formally as: <br>
 <center><a href="https://www.codecogs.com/eqnedit.php?latex=\begin{equation}&space;\frac{|S-A|}{r}&space;\times&space;100&space;\end{equation}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\begin{equation}&space;\frac{|S-A|}{r}&space;\times&space;100&space;\end{equation}" title="\begin{equation} \frac{|S-A|}{r} \times 100 \end{equation}" /></a></center><br>
-<br>Where 𝑆 denotes set of article tokens. 𝐴 denotes set of summary tokens. 𝑟 denotes a total number of summary tokens. We omitted articles that have abstractedness score at 1-grams higher than 60%. 
+<br>Where 𝑆 denotes set of article tokens. 𝐴 denotes set of summary tokens. 𝑟 denotes a total number of summary tokens. We omitted articles that have abstractedness score at 1-grams higher than 60%.
 <br><br>
 
-It is important to point out that we used [PyThaiNLP](https://github.com/PyThaiNLP/pythainlp), version 2.2.4, tokenizing engine = newmm, to process Thai texts in this study. It is challenging to tokenize running Thai text into words or sentences because there are not clear word/sentence delimiters in Thai language. Therefore, using different tokenization engines may result in different segment of words/sentences. 
+It is important to point out that we used [PyThaiNLP](https://github.com/PyThaiNLP/pythainlp), version 2.2.4, tokenizing engine = newmm, to process Thai texts in this study. It is challenging to tokenize running Thai text into words or sentences because there are not clear word/sentence delimiters in Thai language. Therefore, using different tokenization engines may result in different segment of words/sentences.
 
 After data-cleansing process, ThaiSum dataset contains over 358,000 articles. The size of this dataset is comparable to a well-known English document summarization dataset, CNN/Dily mail dataset. Moreover, we analyse the characteristics of this dataset by measuring the abstractedness level, compassion rate, and content diversity.  For more details, see [thaisum_exploration.ipynb](https://github.com/nakhunchumpolsathien/ThaiSum/blob/master/thaisum_exploration.ipynb).
 
 #### Dataset Statistics
 
-ThaiSum dataset consists of 358,868 articles. Average lengths of article texts and summaries are approximately 530 and 37 words respectively. As mentioned earlier, we also collected headlines, tags and labels provided in each article. Tags are similar to keywords of the article. An article normally contains several tags but a few labels. Tags can be name of places or persons that article is about while labels indicate news category (politic, entertainment, etc.). Ultimatly, ThaiSum contains 538,059 unique tags and 59 unique labels. Note that not every article contains tags or labels. 
+ThaiSum dataset consists of 358,868 articles. Average lengths of article texts and summaries are approximately 530 and 37 words respectively. As mentioned earlier, we also collected headlines, tags and labels provided in each article. Tags are similar to keywords of the article. An article normally contains several tags but a few labels. Tags can be name of places or persons that article is about while labels indicate news category (politic, entertainment, etc.). Ultimatly, ThaiSum contains 538,059 unique tags and 59 unique labels. Note that not every article contains tags or labels.
 
 |Dataset Size| 358,868 |  articles |
 |:---|---:|---:|
-|Avg. Article Length|   529.5 | words| 
-|Avg. Summary Length  | 37.3  | words| 
-|Avg. Headline Length |   12.6  | words| 
-|Unique Vocabulary Size | 407,355 | words| 
-|Occurring > 10 times | 81,761  | words| 
-|Unique News Tag Size |   538,059 | tags| 
-|Unique News Label Size | 59  | labels| 
+|Avg. Article Length|   529.5 | words|
+|Avg. Summary Length  | 37.3  | words|
+|Avg. Headline Length |   12.6  | words|
+|Unique Vocabulary Size | 407,355 | words|
+|Occurring > 10 times | 81,761  | words|
+|Unique News Tag Size |   538,059 | tags|
+|Unique News Label Size | 59  | labels|
 
 #### Who are the source language producers?
 
@@ -131,7 +133,7 @@ Journalists of respective articles
 
 #### Annotation process
 
-`summary`, `type` and `tags` are created by journalists who wrote the articles and/or their publishers. 
+`summary`, `type` and `tags` are created by journalists who wrote the articles and/or their publishers.
 
 #### Who are the annotators?
 
@@ -174,10 +176,10 @@ MIT License
 ### Citation Information
 
 ```
-@mastersthesis{chumpolsathien_2020, 
+@mastersthesis{chumpolsathien_2020,
     title={Using Knowledge Distillation from Keyword Extraction to Improve the Informativeness of Neural Cross-lingual Summarization},
-    author={Chumpolsathien, Nakhun}, 
-    year={2020}, 
+    author={Chumpolsathien, Nakhun},
+    year={2020},
     school={Beijing Institute of Technology}
 ```
 

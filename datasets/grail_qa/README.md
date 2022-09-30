@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - question-answering-other-knowledge-base-qa
 paperswithcode_id: null
+pretty_name: Grail QA
 ---
 
 # Dataset Card for Grail QA
@@ -48,9 +49,9 @@ paperswithcode_id: null
 
 ## Dataset Description
 
-- **Homepage: [Grail QA](https://dki-lab.github.io/GrailQA/)**
+- **Homepage:** [Grail QA](https://dki-lab.github.io/GrailQA/)
 - **Repository:**
-- **Paper:[GrailQA paper (Gu et al. '20)](https://arxiv.org/abs/2011.07743)**
+- **Paper:** [GrailQA paper (Gu et al. '20)](https://arxiv.org/abs/2011.07743)
 - **Leaderboard:**
 - **Point of Contact:**
 

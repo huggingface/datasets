@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: null
+pretty_name: '''Adversarial Examples for SQuAD'''
 ---
 
 # Dataset Card for 'Adversarial Examples for SQuAD'

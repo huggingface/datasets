@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: wikihow
+pretty_name: WikiHow
 ---
 
 ### Contributions

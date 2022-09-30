@@ -3,9 +3,9 @@ annotations_creators:
 - other
 language_creators:
 - other
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,18 +18,17 @@ source_datasets:
 - extended|other-librimix
 - extended|other-speech_commands
 task_categories:
-- speech-processing
-task_ids:
 - automatic-speech-recognition
-- phoneme-recognition
+- audio-classification
+task_ids:
 - keyword-spotting
-- query-by-example-spoken-term-detection
+- audio-classification-other-query-by-example-spoken-term-detection
 - speaker-identification
-- automatic-speaker-verification
-- speaker-diarization
-- intent-classification
-- slot-filling
-- emotion-recognition
+- audio-classification-other-automatic-speaker-verification
+- audio-classification-other-speaker-diarization
+- audio-intent-classification
+- other-audio-slot-filling
+- audio-emotion-recognition
 ---
 
 # Dataset Card for SUPERB
@@ -471,7 +470,7 @@ The data is split into 5 sets intended for 5-fold cross-validation:
 
 ### Personal and Sensitive Information
 
-[More Information Needed]
+The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset.
 
 ## Considerations for Using the Data
 
@@ -485,7 +484,7 @@ The data is split into 5 sets intended for 5-fold cross-validation:
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 
@@ -495,7 +494,36 @@ The data is split into 5 sets intended for 5-fold cross-validation:
 
 ### Licensing Information
 
-[More Information Needed]
+#### pr and asr
+
+The license for Librispeech is the Creative Commons Attribution 4.0 International license ((CC-BY-4.0)[https://creativecommons.org/licenses/by/4.0/]).
+
+#### ks
+
+The license for Speech Commands is [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/legalcode)
+
+#### qbe
+
+The license for QUESST 2014 is not known.
+
+#### ic
+
+The license for Fluent Speech Commands dataset is the [Fluent Speech Commands Public License](https://fluent.ai/wp-content/uploads/2021/04/Fluent_Speech_Commands_Public_License.pdf)
+
+#### sf
+
+The license for Audio SNIPS dataset is not known.
+
+#### si and asv
+
+The license for VoxCeleb1 dataset is the Creative Commons Attribution 4.0 International license ([CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/)).
+
+#### sd
+
+LibriMix is based on the LibriSpeech (see above) and Wham! noises datasets. The Wham! noises dataset is distributed under the Attribution-NonCommercial 4.0 International ([CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)) license.
+
+#### er
+The IEMOCAP license is ditributed under [its own license](https://sail.usc.edu/iemocap/Data_Release_Form_IEMOCAP.pdf).
 
 ### Citation Information
 

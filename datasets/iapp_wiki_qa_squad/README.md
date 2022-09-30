@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - th
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -19,6 +19,7 @@ task_ids:
 - extractive-qa
 - open-domain-qa
 paperswithcode_id: null
+pretty_name: IappWikiQaSquad
 ---
 
 # Dataset Card for `iapp_wiki_qa_squad`

@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - ur
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -19,6 +19,7 @@ task_ids:
 - fact-checking
 - intent-classification
 paperswithcode_id: null
+pretty_name: Bend the Truth (Urdu Fake News)
 ---
 
 # Dataset Card for Bend the Truth (Urdu Fake News)

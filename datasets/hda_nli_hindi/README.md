@@ -3,9 +3,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - hi
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - natural-language-inference
 paperswithcode_id: null
+pretty_name: Hindi Discourse Analysis Dataset
 ---
 
 # Dataset Card for Hindi Discourse Analysis Dataset

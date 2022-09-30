@@ -4,9 +4,11 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
+- en
+language_bcp47:
 - en-US
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -66,9 +68,9 @@ QASPER is a dataset for question answering on scientific research papers. It con
 
 ### Supported Tasks and Leaderboards
 
-- `question-answering`: The dataset can be used to train a model for Question Answering. Success on this task is typically measured by achieving a *high* [F1 score](https://huggingface.co/metrics/f1). The [official baseline model](https://github.com/allenai/qasper-led-baseline) currently achieves 33.63 Token F1 score & uses [Longformer](https://huggingface.co/transformers/model_doc/longformer.html). This task has an active leaderboard which can be found [here](https://paperswithcode.com/sota/question-answering-on-qasper) 
+- `question-answering`: The dataset can be used to train a model for Question Answering. Success on this task is typically measured by achieving a *high* [F1 score](https://huggingface.co/metrics/f1). The [official baseline model](https://github.com/allenai/qasper-led-baseline) currently achieves 33.63 Token F1 score & uses [Longformer](https://huggingface.co/transformers/model_doc/longformer.html). This task has an active leaderboard which can be found [here](https://paperswithcode.com/sota/question-answering-on-qasper)
 
-- `evidence-selection`: The dataset can be used to train a model for Evidence Selection. Success on this task is typically measured by achieving a *high* [F1 score](https://huggingface.co/metrics/f1). The [official baseline model](https://github.com/allenai/qasper-led-baseline) currently achieves 39.37 F1 score & uses [Longformer](https://huggingface.co/transformers/model_doc/longformer.html). This task has an active leaderboard which can be found [here](https://paperswithcode.com/sota/evidence-selection-on-qasper) 
+- `evidence-selection`: The dataset can be used to train a model for Evidence Selection. Success on this task is typically measured by achieving a *high* [F1 score](https://huggingface.co/metrics/f1). The [official baseline model](https://github.com/allenai/qasper-led-baseline) currently achieves 39.37 F1 score & uses [Longformer](https://huggingface.co/transformers/model_doc/longformer.html). This task has an active leaderboard which can be found [here](https://paperswithcode.com/sota/evidence-selection-on-qasper)
 
 
 ### Languages
@@ -95,17 +97,17 @@ A typical instance in the dataset:
       'answer': [{
           'unanswerable':False,
           'extractive_spans':["q1_answer1_extractive_span1","q1_answer1_extractive_span2"],
-          'yes_no':False, 
-          'free_form_answer':"q1_answer1", 
-          'evidence':["q1_answer1_evidence1","q1_answer1_evidence2",..], 
+          'yes_no':False,
+          'free_form_answer':"q1_answer1",
+          'evidence':["q1_answer1_evidence1","q1_answer1_evidence2",..],
           'highlighted_evidence':["q1_answer1_highlighted_evidence1","q1_answer1_highlighted_evidence2",..]
           },
           {
           'unanswerable':False,
           'extractive_spans':["q1_answer2_extractive_span1","q1_answer2_extractive_span2"],
-          'yes_no':False, 
-          'free_form_answer':"q1_answer2", 
-          'evidence':["q1_answer2_evidence1","q1_answer2_evidence2",..], 
+          'yes_no':False,
+          'free_form_answer':"q1_answer2",
+          'evidence':["q1_answer2_evidence1","q1_answer2_evidence2",..],
           'highlighted_evidence':["q1_answer2_highlighted_evidence1","q1_answer2_highlighted_evidence2",..]
           }],
       'worker_id':["q1_answer1_worker_id","q1_answer2_worker_id"]
@@ -152,7 +154,7 @@ Unanswerable answers have "unanswerable" set to true. The remaining answers have
 
 ### Data Splits
 
-|                            | Train   | Valid | 
+|                            | Train   | Valid |
 | -----                      | ------ | ----- |
 | Number of papers            |     888   |      281 |
 | Number of questions            |     2593   |      1005 |

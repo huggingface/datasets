@@ -3,11 +3,11 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - de
-- en
 - egy
-licenses:
+- en
+license:
 - cc-by-4.0
 multilinguality:
 - multilingual
@@ -16,10 +16,10 @@ size_categories:
 source_datasets:
 - extended|wikipedia
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
+pretty_name: BbawEgyptian
 ---
 
 # Dataset Card for "bbaw_egyptian"

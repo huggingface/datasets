@@ -1,14 +1,12 @@
 ---
 annotations_creators:
 - crowdsourced
-extended:
-- original
 language_creators:
 - crowdsourced
 - found
-languages:
+language:
 - fr
-licenses:
+license:
 - cc-by-nc-sa-3.0
 multilinguality:
 - monolingual
@@ -23,9 +21,10 @@ task_ids:
 - extractive-qa
 - closed-domain-qa
 paperswithcode_id: fquad
+pretty_name: "FQuAD: French Question Answering Dataset"
 ---
 
-# Dataset Card for "fquad"
+# Dataset Card for FQuAD
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -63,10 +62,10 @@ paperswithcode_id: fquad
 ### Dataset Summary
 
 FQuAD: French Question Answering Dataset
-We introduce FQuAD, a native French Question Answering Dataset. 
+We introduce FQuAD, a native French Question Answering Dataset.
 
 FQuAD contains 25,000+ question and answer pairs.
-Finetuning CamemBERT on FQuAD yields a F1 score of 88% and an exact match of 77.9%.  
+Finetuning CamemBERT on FQuAD yields a F1 score of 88% and an exact match of 77.9%.
 Developped to provide a SQuAD equivalent in the French language. Questions are original and based on high quality Wikipedia articles.
 
 ### Supported Tasks and Leaderboards
@@ -78,8 +77,6 @@ Developped to provide a SQuAD equivalent in the French language. Questions are o
 This dataset is exclusively in French, with context data from Wikipedia and questions from French university students (`fr`).
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -116,7 +113,7 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-The FQuAD dataset has 3 splits: _train_, _validation_, and _test_. The _test_ split is however not released publicly at the moment. The splits contain disjoint sets of articles. The following table contains stats about each split. 
+The FQuAD dataset has 3 splits: _train_, _validation_, and _test_. The _test_ split is however not released publicly at the moment. The splits contain disjoint sets of articles. The following table contains stats about each split.
 
 Dataset Split | Number of Articles in Split | Number of paragraphs in split | Number of questions in split
 --------------|------------------------------|--------------------------|-------------------------
@@ -134,7 +131,7 @@ Test | 10 | 532 | 2189
 The text used for the contexts are from the curated list of French High-Quality Wikipedia [articles](https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Article_de_qualit%C3%A9).
 ### Annotations
 
-Annotations (spans and questions) are written by students of the CentraleSupélec school of engineering. 
+Annotations (spans and questions) are written by students of the CentraleSupélec school of engineering.
 Wikipedia articles were scraped and Illuin used an internally-developped tool to help annotators ask questions and indicate the answer spans.
 Annotators were given paragraph sized contexts and asked to generate 4/5 non-trivial questions about information in the context.
 
@@ -167,6 +164,8 @@ Illuin Technology:  [https://fquad.illuin.tech/](https://fquad.illuin.tech/)
 ### Licensing Information
 
 The FQuAD dataset is licensed under the [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/fr/) license.
+
+It allows personal and academic research uses of the dataset, but not commercial uses. So concretely, the dataset cannot be used to train a model that is then put into production within a business or a company. For this type of commercial use, we invite FQuAD users to contact [the authors](https://www.illuin.tech/contact/) to discuss possible partnerships.
 
 ### Citation Information
 

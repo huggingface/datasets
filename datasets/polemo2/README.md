@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - other
-languages:
+language:
 - pl
-licenses:
+license:
 - bsd-3-clause
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: polemo2
 ---
 
 # Dataset Card for [Dataset Name]
@@ -128,7 +129,7 @@ Note that the test set doesn't have targets so -1 is used instead
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - text-classification-other-hate-speech-detection
 paperswithcode_id: hatexplain
+pretty_name: hatexplain
 ---
 
 # Dataset Card for hatexplain

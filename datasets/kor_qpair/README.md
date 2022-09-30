@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - other
-languages:
+language:
 - ko
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - semantic-similarity-classification
 paperswithcode_id: null
+pretty_name: KorQpair
 ---
 
 # Dataset Card for [Dataset Name]

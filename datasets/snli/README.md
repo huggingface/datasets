@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -18,7 +18,9 @@ task_categories:
 - text-classification
 task_ids:
 - natural-language-inference
+- multi-input-text-classification
 paperswithcode_id: snli
+pretty_name: Stanford Natural Language Inference
 ---
 # Dataset Card for SNLI
 

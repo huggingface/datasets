@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - ig
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: Igbo NER dataset
 ---
 
 # Dataset Card for Igbo NER dataset

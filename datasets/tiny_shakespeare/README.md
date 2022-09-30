@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: null
+pretty_name: TinyShakespeare
 ---
 
 # Dataset Card for "tiny_shakespeare"
@@ -66,8 +67,6 @@ d = d.batch(batch_size)
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

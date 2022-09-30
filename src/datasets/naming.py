@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +27,8 @@ _single_underscore_re = re.compile(r"(?<!_)_(?!_)")
 _multiple_underscores_re = re.compile(r"(_{2,})")
 
 _split_re = r"^\w+(\.\w+)*$"
+
+INVALID_WINDOWS_CHARACTERS_IN_PATH = r"<>:/\|?*"
 
 
 def camelcase_to_snakecase(name):

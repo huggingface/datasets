@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-3.0
 multilinguality:
 - monolingual
@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: ambigqa
+pretty_name: 'AmbigQA: Answering Ambiguous Open-domain Questions'
 ---
 
 # Dataset Card for AmbigQA: Answering Ambiguous Open-domain Questions

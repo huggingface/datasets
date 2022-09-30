@@ -3,27 +3,13 @@ annotations_creators:
 - found
 language_creators:
 - crowdsourced
-languages:
-  release_v1:
-  - en
-  release_v2:
-  - en
-  release_v2.1:
-  - en
-  release_v2.1_constrained:
-  - en
-  release_v2_constrained:
-  - en
-  release_v3.0_en:
-  - en
-  release_v3.0_ru:
-  - ru
-  webnlg_challenge_2017:
-  - en
-licenses:
+language:
+- en
+- ru
+license:
 - cc-by-sa-3.0
 - cc-by-nc-sa-4.0
-- gfdl-1.1
+- gfdl
 multilinguality:
 - monolingual
 size_categories:
@@ -32,41 +18,20 @@ source_datasets:
 - extended|other-db_pedia
 - original
 task_categories:
-  release_v1:
-  - conditional-text-generation
-  release_v2:
-  - conditional-text-generation
-  release_v2.1:
-  - conditional-text-generation
-  release_v2.1_constrained:
-  - conditional-text-generation
-  release_v2_constrained:
-  - conditional-text-generation
-  release_v3.0_en:
-  - conditional-text-generation
-  release_v3.0_ru:
-  - conditional-text-generation
-  webnlg_challenge_2017:
-  - conditional-text-generation
+- tabular-to-text
 task_ids:
-  release_v1:
-  - other-structured-to-text
-  release_v2:
-  - other-structured-to-text
-  release_v2.1:
-  - other-structured-to-text
-  release_v2.1_constrained:
-  - other-structured-to-text
-  release_v2_constrained:
-  - other-structured-to-text
-  release_v3.0_en:
-  - other-structured-to-text
-  release_v3.0_ru:
-  - other-structured-to-text
-  webnlg_challenge_2017:
-  - other-structured-to-text
+- rdf-to-text
 paperswithcode_id: webnlg
 pretty_name: WebNLG
+configs:
+- release_v1
+- release_v2
+- release_v2.1
+- release_v2.1_constrained
+- release_v2_constrained
+- release_v3.0_en
+- release_v3.0_ru
+- webnlg_challenge_2017
 ---
 
 # Dataset Card for WebNLG

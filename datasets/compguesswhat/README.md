@@ -1,4 +1,23 @@
 ---
+annotations_creators:
+- machine-generated
+language:
+- en
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: CompGuessWhat?!
+size_categories:
+- 100K<n<1M
+source_datasets:
+- extended|other-guesswhat
+task_categories:
+- visual-question-answering
+task_ids:
+- visual-question-answering
 paperswithcode_id: compguesswhat
 ---
 
@@ -53,8 +72,6 @@ paperswithcode_id: compguesswhat
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

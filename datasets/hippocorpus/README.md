@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
-- other-my-license
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -14,10 +14,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
-- text-scoring-other-narrative-flow
+- text-scoring
+- text-classification-other-narrative-flow
 paperswithcode_id: null
+pretty_name: hippocorpus
 ---
 
 # Dataset Card for [Dataset Name]

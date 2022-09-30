@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- o-uda-1.0
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - intent-classification
 paperswithcode_id: null
+pretty_name: BingCoronavirusQuerySet
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for BingCoronavirusQuerySet
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

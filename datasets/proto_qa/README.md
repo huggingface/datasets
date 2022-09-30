@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - other
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -20,6 +20,7 @@ task_ids:
 - multiple-choice-qa
 - open-domain-qa
 paperswithcode_id: protoqa
+pretty_name: ProtoQA
 ---
 
 # Dataset Card for [Dataset Name]

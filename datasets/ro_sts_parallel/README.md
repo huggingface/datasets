@@ -1,11 +1,12 @@
 ---
-annotations_creators: []
+annotations_creators:
+- crowdsourced
 language_creators:
 - crowdsourced
-languages:
-- ro
+language:
 - en
-licenses:
+- ro
+license:
 - cc-by-4.0
 multilinguality:
 - multilingual
@@ -14,9 +15,8 @@ size_categories:
 source_datasets:
 - extended|other-sts-b
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
 pretty_name: RO-STS-Parallel
 ---
@@ -142,7 +142,14 @@ CC BY-SA 4.0 License
 
 ### Citation Information
 
-[Needs More Information]
+```
+@inproceedings{dumitrescu2021liro,
+  title={Liro: Benchmark and leaderboard for romanian language tasks},
+  author={Dumitrescu, Stefan Daniel and Rebeja, Petru and Lorincz, Beata and Gaman, Mihaela and Avram, Andrei and Ilie, Mihai and Pruteanu, Andrei and Stan, Adriana and Rosia, Lorena and Iacobescu, Cristina and others},
+  booktitle={Thirty-fifth Conference on Neural Information Processing Systems Datasets and Benchmarks Track (Round 1)},
+  year={2021}
+}
+```
 
 ### Contributions
 

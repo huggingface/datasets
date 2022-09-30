@@ -1,5 +1,28 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- machine-generated
+- expert-generated
+language:
+- ko
+license:
+- cc-by-sa-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- extended|multi_nli
+- extended|snli
+- extended|xnli
+task_categories:
+- text-classification
+task_ids:
+- natural-language-inference
+- multi-input-text-classification
 paperswithcode_id: kornli
+pretty_name: KorNLI
 ---
 
 # Dataset Card for "kor_nli"
@@ -40,7 +63,7 @@ paperswithcode_id: kornli
 
 ### Dataset Summary
 
- Korean Natural  Language Inference datasets
+Korean Natural Language Inference datasets.
 
 ### Supported Tasks and Leaderboards
 
@@ -51,8 +74,6 @@ paperswithcode_id: kornli
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -180,7 +201,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The dataset is licensed under Creative Commons [Attribution-ShareAlike license (CC BY-SA 4.0)](http://creativecommons.org/licenses/by-sa/4.0/).
 
 ### Citation Information
 

@@ -65,9 +65,7 @@ class BeamBuilderTest(TestCase):
             builder.download_and_prepare()
             self.assertTrue(
                 os.path.exists(
-                    os.path.join(
-                        tmp_cache_dir, "dummy_beam_dataset", "default", "0.0.0", "dummy_beam_dataset-train.arrow"
-                    )
+                    os.path.join(tmp_cache_dir, builder.name, "default", "0.0.0", f"{builder.name}-train.arrow")
                 )
             )
             self.assertDictEqual(builder.info.features, datasets.Features({"content": datasets.Value("string")}))
@@ -79,9 +77,7 @@ class BeamBuilderTest(TestCase):
                 dset["train"][expected_num_examples - 1], get_test_dummy_examples()[expected_num_examples - 1][1]
             )
             self.assertTrue(
-                os.path.exists(
-                    os.path.join(tmp_cache_dir, "dummy_beam_dataset", "default", "0.0.0", "dataset_info.json")
-                )
+                os.path.exists(os.path.join(tmp_cache_dir, builder.name, "default", "0.0.0", "dataset_info.json"))
             )
             del dset
 
@@ -99,9 +95,7 @@ class BeamBuilderTest(TestCase):
             builder.download_and_prepare()
             self.assertTrue(
                 os.path.exists(
-                    os.path.join(
-                        tmp_cache_dir, "nested_beam_dataset", "default", "0.0.0", "nested_beam_dataset-train.arrow"
-                    )
+                    os.path.join(tmp_cache_dir, builder.name, "default", "0.0.0", f"{builder.name}-train.arrow")
                 )
             )
             self.assertDictEqual(
@@ -115,8 +109,6 @@ class BeamBuilderTest(TestCase):
                 dset["train"][expected_num_examples - 1], get_test_nested_examples()[expected_num_examples - 1][1]
             )
             self.assertTrue(
-                os.path.exists(
-                    os.path.join(tmp_cache_dir, "nested_beam_dataset", "default", "0.0.0", "dataset_info.json")
-                )
+                os.path.exists(os.path.join(tmp_cache_dir, builder.name, "default", "0.0.0", "dataset_info.json"))
             )
             del dset

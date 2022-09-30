@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
-- false
-licenses:
-- other-national-library-of-norway
+language:
+- 'no'
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: 'NorNE: Norwegian Named Entities'
 ---
 
 # Dataset Card for NorNE: Norwegian Named Entities

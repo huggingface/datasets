@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 HuggingFace Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,6 +69,7 @@ def get_local_metric_names():
 @parameterized.named_parameters(get_local_metric_names())
 @for_all_test_methods(skip_if_metric_requires_fairseq, skip_on_windows_if_not_windows_compatible)
 @local
+@pytest.mark.integration
 class LocalMetricTest(parameterized.TestCase):
     INTENSIVE_CALLS_PATCHER = {}
     metric_name = None
@@ -82,8 +82,6 @@ class LocalMetricTest(parameterized.TestCase):
         metric = datasets.load.import_main_class(metric_module.__name__, dataset=False)
         # check parameters
         parameters = inspect.signature(metric._compute).parameters
-        self.assertTrue("predictions" in parameters)
-        self.assertTrue("references" in parameters)
         self.assertTrue(all([p.kind != p.VAR_KEYWORD for p in parameters.values()]))  # no **kwargs
         # run doctest
         with self.patch_intensive_calls(metric_name, metric_module.__name__):
@@ -174,22 +172,22 @@ def patch_bertscore(module_name):
 
 @LocalMetricTest.register_intensive_calls_patcher("comet")
 def patch_comet(module_name):
-    def download_model(model):
+    def load_from_checkpoint(model_path):
         class Model:
             def predict(self, data, *args, **kwargs):
                 assert len(data) == 2
                 scores = [0.19, 0.92]
-                data[0]["predicted_score"] = scores[0]
-                data[1]["predicted_score"] = scores[1]
-                return data, scores
+                return scores, sum(scores) / len(scores)
 
-        print("Download succeeded. Loading model...")
         return Model()
 
-    # mock download_model which is supposed to do download a bert model
-    with patch("comet.models.download_model") as mock_download_model:
-        mock_download_model.side_effect = download_model
-        yield
+    # mock load_from_checkpoint which is supposed to do download a bert model
+    # mock load_from_checkpoint which is supposed to do download a bert model
+    with patch("comet.download_model") as mock_download_model:
+        mock_download_model.return_value = None
+        with patch("comet.load_from_checkpoint") as mock_load_from_checkpoint:
+            mock_load_from_checkpoint.side_effect = load_from_checkpoint
+            yield
 
 
 def test_seqeval_raises_when_incorrect_scheme():

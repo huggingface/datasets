@@ -8,16 +8,16 @@ from datasets import config
 from datasets.arrow_reader import HF_GCP_BASE_URL
 from datasets.builder import DatasetBuilder
 from datasets.load import dataset_module_factory, import_main_class
-from datasets.utils import cached_path
+from datasets.utils.file_utils import cached_path
 
 
 DATASETS_ON_HF_GCP = [
-    {"dataset": "wikipedia", "config_name": "20200501.en"},
-    {"dataset": "wikipedia", "config_name": "20200501.it"},
-    {"dataset": "wikipedia", "config_name": "20200501.fr"},
-    {"dataset": "wikipedia", "config_name": "20200501.frr"},
-    {"dataset": "wikipedia", "config_name": "20200501.simple"},
-    {"dataset": "wikipedia", "config_name": "20200501.de"},
+    {"dataset": "wikipedia", "config_name": "20220301.de"},
+    {"dataset": "wikipedia", "config_name": "20220301.en"},
+    {"dataset": "wikipedia", "config_name": "20220301.fr"},
+    {"dataset": "wikipedia", "config_name": "20220301.frr"},
+    {"dataset": "wikipedia", "config_name": "20220301.it"},
+    {"dataset": "wikipedia", "config_name": "20220301.simple"},
     {"dataset": "snli", "config_name": "plain_text"},
     {"dataset": "eli5", "config_name": "LFQA_reddit"},
     {"dataset": "wiki40b", "config_name": "en"},
@@ -40,7 +40,7 @@ def list_datasets_on_hf_gcp_parameters(with_config=True):
         ]
     else:
         return [
-            {"testcase_name": dataset, "dataset": dataset} for dataset in set(d["dataset"] for d in DATASETS_ON_HF_GCP)
+            {"testcase_name": dataset, "dataset": dataset} for dataset in {d["dataset"] for d in DATASETS_ON_HF_GCP}
         ]
 
 
@@ -60,7 +60,7 @@ class TestDatasetOnHfGcp(TestCase):
 
             builder_instance: DatasetBuilder = builder_cls(
                 cache_dir=tmp_dir,
-                name=config_name,
+                config_name=config_name,
                 hash=dataset_module.hash,
             )
 

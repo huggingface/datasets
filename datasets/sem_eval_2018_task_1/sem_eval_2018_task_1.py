@@ -39,21 +39,9 @@ _HOMEPAGE = "https://competitions.codalab.org/competitions/17751"
 _LICENSE = ""
 
 _URLs = {
-    "subtask5.english": [
-        "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/E-c/English/2018-E-c-En-train.zip",
-        "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/E-c/English/2018-E-c-En-dev.zip",
-        "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/AIT2018-TEST-DATA/semeval2018englishtestfiles/2018-E-c-En-test.zip",
-    ],
-    "subtask5.spanish": [
-        "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/E-c/Spanish/2018-E-c-Es-train.zip",
-        "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/E-c/Spanish/2018-E-c-Es-dev.zip",
-        "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/AIT2018-TEST-DATA/semeval2018spanishtestfiles/2018-E-c-Es-test.zip",
-    ],
-    "subtask5.arabic": [
-        "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/E-c/Arabic/2018-E-c-Ar-train.zip",
-        "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/E-c/Arabic/2018-E-c-Ar-dev.zip",
-        "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/AIT2018-TEST-DATA/semeval2018arabictestfiles/2018-E-c-Ar-test.zip",
-    ],
+    "subtask5.english": ["https://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/SemEval2018-Task1-all-data.zip"],
+    "subtask5.spanish": ["https://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/SemEval2018-Task1-all-data.zip"],
+    "subtask5.arabic": ["https://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/SemEval2018-Task1-all-data.zip"],
 }
 
 
@@ -112,30 +100,42 @@ class SemEval2018Task1(datasets.GeneratorBasedBuilder):
         my_urls = _URLs[self.config.name]
         if self.config.name == "subtask5.english":
             shortname = "En"
+            longname = "English"
         if self.config.name == "subtask5.spanish":
             shortname = "Es"
+            longname = "Spanish"
         if self.config.name == "subtask5.arabic":
             shortname = "Ar"
+            longname = "Arabic"
         data_dir = dl_manager.download_and_extract(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir[0], "2018-E-c-" + shortname + "-train.txt"),
+                    "filepath": os.path.join(
+                        data_dir[0],
+                        "SemEval2018-Task1-all-data/" + longname + "/E-c/2018-E-c-" + shortname + "-train.txt",
+                    ),
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir[2], "2018-E-c-" + shortname + "-test.txt"),
+                    "filepath": os.path.join(
+                        data_dir[0],
+                        "SemEval2018-Task1-all-data/" + longname + "/E-c/2018-E-c-" + shortname + "-test-gold.txt",
+                    ),
                     "split": "test",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir[1], "2018-E-c-" + shortname + "-dev.txt"),
+                    "filepath": os.path.join(
+                        data_dir[0],
+                        "SemEval2018-Task1-all-data/" + longname + "/E-c/2018-E-c-" + shortname + "-dev.txt",
+                    ),
                     "split": "dev",
                 },
             ),
@@ -151,15 +151,15 @@ class SemEval2018Task1(datasets.GeneratorBasedBuilder):
                 yield id_, {
                     "ID": data[0],
                     "Tweet": data[1],
-                    "anger": int(data[2]) if split != "test" else None,
-                    "anticipation": int(data[3]) if split != "test" else None,
-                    "disgust": int(data[4]) if split != "test" else None,
-                    "fear": int(data[5]) if split != "test" else None,
-                    "joy": int(data[6]) if split != "test" else None,
-                    "love": int(data[7]) if split != "test" else None,
-                    "optimism": int(data[8]) if split != "test" else None,
-                    "pessimism": int(data[9]) if split != "test" else None,
-                    "sadness": int(data[10]) if split != "test" else None,
-                    "surprise": int(data[11]) if split != "test" else None,
-                    "trust": int(data[12]) if split != "test" else None,
+                    "anger": int(data[2]),
+                    "anticipation": int(data[3]),
+                    "disgust": int(data[4]),
+                    "fear": int(data[5]),
+                    "joy": int(data[6]),
+                    "love": int(data[7]),
+                    "optimism": int(data[8]),
+                    "pessimism": int(data[9]),
+                    "sadness": int(data[10]),
+                    "surprise": int(data[11]),
+                    "trust": int(data[12]),
                 }

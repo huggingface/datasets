@@ -3,12 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
-  ca:
-  - ca
-  eu:
-  - eu
-licenses:
+language:
+- ca
+- eu
+license:
 - cc-by-3.0
 multilinguality:
 - monolingual
@@ -21,6 +19,10 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: multibooked
+pretty_name: MultiBooked
+configs:
+- ca
+- eu
 ---
 
 # Dataset Card for MultiBooked

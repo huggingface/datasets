@@ -1,9 +1,66 @@
 ---
+annotations_creators:
+- machine-generated
+language_creators:
+- found
+language:
+- ar
+- bg
+- ca
+- cs
+- da
+- de
+- el
+- en
+- es
+- et
+- fa
+- fi
+- fr
+- he
+- hi
+- hr
+- hu
+- id
+- it
+- ja
+- ko
+- lt
+- lv
+- ms
+- nl
+- 'no'
+- pl
+- pt
+- ro
+- ru
+- sk
+- sl
+- sr
+- sv
+- th
+- tl
+- tr
+- uk
+- vi
+- zh
+license:
+- unknown
+multilinguality:
+- multilingual
 pretty_name: Polyglot-NER
+size_categories:
+- unknown
+source_datasets:
+- original
+task_categories:
+- token-classification
+task_ids:
+- named-entity-recognition
 paperswithcode_id: polyglot-ner
 ---
 
-# Dataset Card for "polyglot_ner"
+# Dataset Card for Polyglot-NER
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -58,8 +115,6 @@ corresponding to a different language. For example, "es" includes only spanish e
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -189,13 +244,13 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-|  name  | train  |
-|--------|-------:|
-|ar      |  339109|
-|bg      |  559694|
-|ca      |  372665|
-|combined|21070925|
-|cs      |  564462|
+| name     |    train |
+|----------|---------:|
+| ar       |   339109 |
+| bg       |   559694 |
+| ca       |   372665 |
+| combined | 21070925 |
+| cs       |   564462 |
 
 ## Dataset Creation
 

@@ -1,7 +1,25 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+language:
 - en
+license:
+- cc-by-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
+- open-domain-qa
 paperswithcode_id: quartz
+pretty_name: QuaRTz
 ---
 
 # Dataset Card for "quartz"
@@ -58,8 +76,6 @@ The dataset is split into train (2696), dev (384) and test (784). A background s
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -184,7 +200,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The dataset is licensed under Creative Commons [Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
 
 ### Citation Information
 

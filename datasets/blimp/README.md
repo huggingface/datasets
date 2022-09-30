@@ -1,6 +1,23 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language_creators:
+- machine-generated
+language:
 - en
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: BLiMP
+size_categories:
+- "10K<n<100K"
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- acceptability-classification
 paperswithcode_id: blimp
 ---
 
@@ -57,8 +74,6 @@ expert-crafted grammars.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

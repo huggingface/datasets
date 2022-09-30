@@ -3,9 +3,9 @@ annotations_creators:
 - other
 language_creators:
 - other
-languages:
+language:
 - kn
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - topic-classification
 paperswithcode_id: null
+pretty_name: KannadaNews Dataset
 ---
 
 # Dataset Card for kannada_news dataset 
@@ -93,9 +94,10 @@ Data has two fields:
 ### Data Splits
 
 The dataset is divided into two splits. All the headlines are scraped from news websites on the internet.
-|                            | Tain   | Valid | 
-| -----                      | ------ | ----- |
-| Input Sentences            |  5167  | 1293  |
+
+|                 |   train | validation | 
+|-----------------|--------:|-----------:|
+| Input Sentences |    5167 |       1293 |
 
 ## Dataset Creation
 
@@ -156,7 +158,7 @@ cc-by-sa-4.0
 
 ### Citation Information
 
-[More Information Needed]
+https://www.kaggle.com/disisbig/kannada-news-dataset
 
 ### Contributions
 

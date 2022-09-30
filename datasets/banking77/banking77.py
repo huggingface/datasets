@@ -21,7 +21,7 @@ import datasets
 from datasets.tasks import TextClassification
 
 
-_CITATION = """\
+_CITATION = r"""\
 @inproceedings{Casanueva2020,
     author      = {I{\~{n}}igo Casanueva and Tadas Temcinas and Daniela Gerz and Matthew Henderson and Ivan Vulic},
     title       = {Efficient Intent Detection with Dual Sentence Encoders},

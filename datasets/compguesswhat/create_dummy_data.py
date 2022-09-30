@@ -1,5 +1,6 @@
 import gzip
 import json
+import logging
 import os
 from argparse import ArgumentParser
 
@@ -50,10 +51,10 @@ def create_dummy_data_for_split(data_path, dataset_name, dataset_version, data_f
         os.makedirs(dummy_data_path)
 
     for split_name, split_file in data_files.items():
-        print(f"Generating dummy data for split {split_name} (num. examples = {args.examples})")
+        logging.info(f"Generating dummy data for split {split_name} (num. examples = {args.examples})")
 
         split_filepath = os.path.join(data_path, full_dataset_name, dataset_version, split_file)
-        print(f"Reading split file {split_filepath}")
+        logging.info(f"Reading split file {split_filepath}")
         with gzip.open(split_filepath) as in_file:
             dummy_filepath = os.path.join(dummy_data_path, split_file)
             with gzip.open(dummy_filepath, mode="w") as out_file:
@@ -81,12 +82,12 @@ def main(args):
 
     dataset_version = dataset_info["compguesswhat-original"]["version"]["version_str"]
 
-    print(f"Creating dummy data for CompGuessWhat?! {dataset_version}")
+    logging.info(f"Creating dummy data for CompGuessWhat?! {dataset_version}")
 
-    print("Original dataset...")
+    logging.info("Original dataset...")
     create_dummy_data_for_split(args.data_path, "original", dataset_version, original_data_files)
 
-    print("Zero-shot dataset...")
+    logging.info("Zero-shot dataset...")
     create_dummy_data_for_split(args.data_path, "zero_shot", dataset_version, zs_data_files)
 
 

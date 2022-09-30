@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - pl
-licenses:
+license:
 - cc-by-sa-3.0
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - semantic-similarity-classification
 paperswithcode_id: null
+pretty_name: wrbsc
 ---
 
 # Dataset Card for wrbsc

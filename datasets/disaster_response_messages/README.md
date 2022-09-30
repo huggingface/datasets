@@ -3,13 +3,13 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
 - es
 - fr
 - ht
 - ur
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -18,13 +18,14 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 - text-classification
 task_ids:
 - intent-classification
 - sentiment-classification
 - text-simplification
 paperswithcode_id: null
+pretty_name: Disaster Response Messages
 ---
 
 # Dataset Card for Disaster Response Messages 
@@ -55,11 +56,11 @@ paperswithcode_id: null
 
 ## Dataset Description
 
-- **Homepage: [HomePage](https://appen.com/datasets/combined-disaster-response-data/)
-- **Repository: [Repo to Download the Dataset](https://datasets.appen.com/appen_datasets/disaster_response_data/disaster_response_messages_training.csv)
+- **Homepage:** [HomePage](https://appen.com/datasets/combined-disaster-response-data/)
+- **Repository:** [Repo to Download the Dataset](https://datasets.appen.com/appen_datasets/disaster_response_data/disaster_response_messages_training.csv)
 - **Paper:
 - **Leaderboard:
-- **Point of Contact:[Darshan Gandhi](darshangandhi1151@gmail.com)
+- **Point of Contact:** [Darshan Gandhi](darshangandhi1151@gmail.com)
 
 ### Dataset Summary
 

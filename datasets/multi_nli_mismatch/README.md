@@ -4,13 +4,14 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-3.0
-- cc-by-sa-3.0-at
+- cc-by-sa-3.0
 - mit
-- other-Open Portion of the American National Corpus
+- other
+license_details: "Open Portion of the American National Corpus"
 multilinguality:
 - monolingual
 size_categories:
@@ -18,10 +19,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
-- semantic-similarity-scoring
+- natural-language-inference
+- multi-input-text-classification
 paperswithcode_id: multinli
+pretty_name: Multi-Genre Natural Language Inference
 ---
 
 # Dataset Card for Multi-Genre Natural Language Inference (Mismatched only)
@@ -78,8 +81,6 @@ basis for the shared task of the RepEval 2017 Workshop at EMNLP in Copenhagen.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

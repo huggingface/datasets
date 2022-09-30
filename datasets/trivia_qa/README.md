@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - machine-generated
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,8 +18,10 @@ source_datasets:
 - original
 task_categories:
 - question-answering
+- text2text-generation
 task_ids:
 - open-domain-qa
+- open-domain-abstractive-qa
 - extractive-qa
 - abstractive-qa
 ---
@@ -78,8 +80,6 @@ supervision for answering the questions.
 English.
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

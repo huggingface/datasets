@@ -1,6 +1,23 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
+language_creators:
+- crowdsourced
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: Commonsense Explanations
+size_categories:
+- 10K<n<100K
+source_datasets:
+- extended|commonsense_qa
+task_categories:
+- question-answering
+task_ids:
+- open-domain-qa
 paperswithcode_id: cos-e
 ---
 
@@ -32,9 +49,9 @@ paperswithcode_id: cos-e
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/salesforce/cos-e](https://github.com/salesforce/cos-e)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Homepage:**
+- **Repository:** https://github.com/salesforce/cos-e
+- **Paper:** [Explain Yourself! Leveraging Language Models for Commonsense Reasoning](https://arxiv.org/abs/1906.02361)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 10.33 MB
 - **Size of the generated dataset:** 5.14 MB
@@ -55,8 +72,6 @@ inference in a novel Commonsense Auto-Generated Explanation (CAGE) framework.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -175,12 +190,11 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Unknown.
 
 ### Citation Information
 
 ```
-
 @inproceedings{rajani2019explain,
      title = "Explain Yourself! Leveraging Language models for Commonsense Reasoning",
     author = "Rajani, Nazneen Fatema  and
@@ -191,7 +205,6 @@ The data fields are the same among all splits.
     booktitle = "Proceedings of the 2019 Conference of the Association for Computational Linguistics (ACL2019)",
     url ="https://arxiv.org/abs/1906.02361"
 }
-
 ```
 
 

@@ -3,20 +3,11 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
-  en:
-  - en
-  de:
-  - de
-  it:
-  - it
-  de_en:
-  - en
-  - de
-  it_en:
-  - en
-  - it
-licenses:
+language:
+- de
+- en
+- it
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -25,17 +16,25 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
-- structure-prediction
+- text-generation
+- fill-mask
+- token-classification
 - text-classification
 task_ids:
 - dialogue-modeling
 - multi-class-classification
 - parsing
 paperswithcode_id: wizard-of-oz
+pretty_name: Wizard-of-Oz
+configs:
+- de
+- de_en
+- en
+- it
+- it_en
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Wizard-of-Oz
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

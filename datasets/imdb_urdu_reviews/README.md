@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - machine-generated
-languages:
+language:
 - ur
-licenses:
-- odbl-1.0
+license:
+- odbl
 multilinguality:
 - monolingual
 size_categories:
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: ImDB Urdu Reviews
 ---
 
 # Dataset Card for ImDB Urdu Reviews

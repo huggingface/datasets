@@ -5,9 +5,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -17,9 +17,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- speech-processing
-task_ids:
 - automatic-speech-recognition
+- audio-classification
+task_ids:
+- speaker-identification
 ---
 
 # Dataset Card for librispeech_asr
@@ -53,7 +54,7 @@ task_ids:
 - **Homepage:** [LibriSpeech ASR corpus](http://www.openslr.org/12)
 - **Repository:** [Needs More Information]
 - **Paper:** [LibriSpeech: An ASR Corpus Based On Public Domain Audio Books](https://www.danielpovey.com/files/2015_icassp_librispeech.pdf)
-- **Leaderboard:** [Paperswithcode Leaderboard](https://paperswithcode.com/sota/speech-recognition-on-librispeech-test-other)
+- **Leaderboard:** [The 🤗 Speech Bench](https://huggingface.co/spaces/huggingface/hf-speech-bench)
 - **Point of Contact:** [Daniel Povey](mailto:dpovey@gmail.com)
 
 ### Dataset Summary
@@ -62,7 +63,7 @@ LibriSpeech is a corpus of approximately 1000 hours of 16kHz read English speech
 
 ### Supported Tasks and Leaderboards
 
-- `automatic-speech-recognition`, `speaker-identification`: The dataset can be used to train a model for Automatic Speech Recognition (ASR). The model is presented with an audio file and asked to transcribe the audio file to written text. The most common evaluation metric is the word error rate (WER). The task has an active leaderboard which can be found at https://paperswithcode.com/sota/speech-recognition-on-librispeech-test-clean and ranks models based on their WER.
+- `automatic-speech-recognition`, `audio-speaker-identification`: The dataset can be used to train a model for Automatic Speech Recognition (ASR). The model is presented with an audio file and asked to transcribe the audio file to written text. The most common evaluation metric is the word error rate (WER). The task has an active Hugging Face leaderboard which can be found at https://huggingface.co/spaces/huggingface/hf-speech-bench. The leaderboard ranks models uploaded to the Hub based on their WER. An external leaderboard at https://paperswithcode.com/sota/speech-recognition-on-librispeech-test-clean ranks the latest models from research and academia.
 
 ### Languages
 
@@ -160,7 +161,7 @@ For "other", the data is split into train, validation, and test set. The train s
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset.
 
 ## Considerations for Using the Data
 
@@ -184,7 +185,7 @@ The dataset was initially created by Vassil Panayotov, Guoguo Chen, Daniel Povey
 
 ### Licensing Information
 
-CC BY 4.0
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
 ### Citation Information
 

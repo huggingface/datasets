@@ -1,12 +1,12 @@
 ---
 annotations_creators:
-- no-annotation
+- found
 language_creators:
 - found
-languages:
+language:
 - es
-licenses:
-- cc-by-2.1
+license:
+- unknown
 multilinguality:
 - monolingual
 size_categories:
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: Muchocine
 ---
 
 # Dataset Card for Muchocine
@@ -57,29 +58,36 @@ each with a shorter summary review, and a rating on a 1-5 scale.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `text-classification`: This dataset can be used for Text Classification, more precisely Sentiment Classification where the task is to predict the `star_rating` for a `reveiw_body` or a `review summaray`.
 
 ### Languages
 
-Spanish
+Spanish.
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+An example from the train split:
+
+```
+{
+  'review_body': 'Zoom nos cuenta la historia de Jack Shepard, anteriormente conocido como el Capitán Zoom, Superhéroe que perdió sus poderes y que actualmente vive en el olvido. La llegada de una amenaza para la Tierra hará que la agencia del gobierno que se ocupa de estos temas acuda a él para que entrene a un grupo de jóvenes con poderes para combatir esta amenaza.Zoom es una comedia familiar, con todo lo que eso implica, es decir, guión flojo y previsible, bromas no salidas de tono, historia amorosa de por medio y un desenlace tópico. La gracia está en que los protagonistas son jóvenes con superpoderes, una producción cargada de efectos especiales y unos cuantos guiños frikis. La película además se pasa volando ya que dura poco mas de ochenta minutos y cabe destacar su prologo en forma de dibujos de comics explicando la historia de la cual partimos en la película.Tim Allen protagoniza la cinta al lado de un envejecido Chevy Chase, que hace de doctor encargado del proyecto, un papel bastante gracioso y ridículo, pero sin duda el mejor papel es el de Courteney Cox, en la piel de una científica amante de los comics y de lo más friki. Del grupito de los cuatro niños sin duda la mas graciosa es la niña pequeña con súper fuerza y la que provocara la mayor parte de los gags debido a su poder.Una comedia entretenida y poca cosa más para ver una tarde de domingo. ',
+  'review_summary': 'Una comedia entretenida y poca cosa más para ver una tarde de domingo ', 'star_rating': 2
+}
+```
 
 ### Data Fields
 
-- review_body - longform review
-- review_summary - shorter-form review
-- star_rating - an integer star rating (1-5)
+- `review_body` - longform review
+- `review_summary` - shorter-form review
+- `star_rating` - an integer star rating (1-5)
 
 The original source also includes part-of-speech tagging for body and summary fields.
 
 ### Data Splits
 
-One split (train) with 3,872 reviews
+One split (train) with 3,872 reviews.
 
 ## Dataset Creation
 
@@ -92,7 +100,7 @@ One split (train) with 3,872 reviews
 #### Initial Data Collection and Normalization
 
 Data was collected from www.muchocine.net and uploaded by Dr. Fermín L. Cruz Mata
-of La Universidad de Sevilla
+of La Universidad de Sevilla.
 
 #### Who are the source language producers?
 
@@ -130,11 +138,11 @@ The text reviews and star ratings came directly from users, so no additional ann
 
 ### Dataset Curators
 
-- Dr. Fermín L. Cruz Mata
+Dr. Fermín L. Cruz Mata.
 
 ### Licensing Information
 
-CC-BY-2.1
+[More Information Needed]
 
 ### Citation Information
 

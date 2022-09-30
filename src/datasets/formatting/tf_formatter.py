@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,9 +65,7 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
     def _recursive_tensorize(self, data_struct: dict):
         # support for nested types like struct of list of struct
         if isinstance(data_struct, (list, np.ndarray)):
-            if (
-                data_struct.dtype == np.object
-            ):  # tensorflow tensors can sometimes be instantied from an array of objects
+            if data_struct.dtype == object:  # tensorflow tensors can sometimes be instantied from an array of objects
                 try:
                     return self._tensorize(data_struct)
                 except ValueError:

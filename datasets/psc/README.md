@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - other
-languages:
+language:
 - pl
-licenses:
+license:
 - cc-by-sa-3.0
 multilinguality:
 - monolingual
@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- news-articles-summarization
 paperswithcode_id: null
+pretty_name: psc
 ---
 
 # Dataset Card for [Dataset Name]

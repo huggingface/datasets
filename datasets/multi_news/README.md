@@ -1,12 +1,43 @@
 ---
-languages:
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
+language:
 - en
+license:
+- other
+multilinguality:
+- monolingual
+pretty_name: Multi-News
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- summarization
+task_ids:
+- news-articles-summarization
 paperswithcode_id: multi-news
+train-eval-index:
+- config: default
+  task: summarization
+  task_id: summarization
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    document: text
+    summary: target
+  metrics:
+    - type: rouge
+      name: Rouge
 ---
 
-# Dataset Card for "multi_news"
+# Dataset Card for Multi-News
 
 ## Table of Contents
+- [Table of Contents](#table-of-contents)
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
   - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
@@ -60,8 +91,6 @@ There are two features:
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -145,7 +174,25 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+```
+This Dataset Usage Agreement ("Agreement") is a legal agreement with LILY LAB for the Dataset made available to the individual or entity ("Researcher") exercising rights under this Agreement. "Dataset" includes all text, data, information, source code, and any related materials, documentation, files, media, updates or revisions.
+
+The Dataset is intended for non-commercial research and educational purposes only, and is made available free of charge without extending any license or other intellectual property rights. By downloading or using the Dataset, the Researcher acknowledges that they agree to the terms in this Agreement, and represent and warrant that they have authority to do so on behalf of any entity exercising rights under this Agreement. The Researcher accepts and agrees to be bound by the terms and conditions of this Agreement. If the Researcher does not agree to this Agreement, they may not download or use the Dataset.
+
+By sharing content with m, such as by submitting content to this site or by corresponding with LILY LAB contributors, the Researcher grants LILY LAB the right to use, reproduce, display, perform, adapt, modify, distribute, have distributed, and promote the content in any form, anywhere and for any purpose, such as for evaluating and comparing summarization systems. Nothing in this Agreement shall obligate LILY LAB to provide any support for the Dataset. Any feedback, suggestions, ideas, comments, improvements given by the Researcher related to the Dataset is voluntarily given, and may be used by LILY LAB without obligation or restriction of any kind.
+
+The Researcher accepts full responsibility for their use of the Dataset and shall defend indemnify, and hold harmless m, including their employees, trustees, officers, and agents, against any and all claims arising from the Researcher's use of the Dataset. The Researcher agrees to comply with all laws and regulations as they relate to access to and use of the Dataset and Service including U.S. export jurisdiction and other U.S. and international regulations.
+
+THE DATASET IS PROVIDED "AS IS." LILY LAB DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. WITHOUT LIMITATION OF THE ABOVE, LILY LAB DISCLAIMS ANY WARRANTY THAT DATASET IS BUG OR ERROR-FREE, AND GRANTS NO WARRANTY REGARDING ITS USE OR THE RESULTS THEREFROM INCLUDING, WITHOUT LIMITATION, ITS CORRECTNESS, ACCURACY, OR RELIABILITY. THE DATASET IS NOT WARRANTIED TO FULFILL ANY PARTICULAR PURPOSES OR NEEDS.
+
+TO THE EXTENT NOT PROHIBITED BY LAW, IN NO EVENT SHALL LILY LAB BE LIABLE FOR ANY LOSS, DAMAGE OR INJURY, DIRECT AND INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES, HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER FOR BREACH OF CONTRACT, TORT (INCLUDING NEGLIGENCE) OR OTHERWISE, ARISING OUT OF THIS AGREEMENT, INCLUDING BUT NOT LIMITED TO LOSS OF PROFITS, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+
+This Agreement is effective until terminated. LILY LAB reserves the right to terminate the Researcher's access to the Dataset at any time. If the Researcher breaches this Agreement, the Researcher's rights to use the Dataset shall terminate automatically. The Researcher will immediately cease all use and distribution of the Dataset and destroy any copies or portions of the Dataset in their possession.
+
+This Agreement is governed by the laws of the SOME_PLACE, without regard to conflict of law principles. All terms and provisions of this Agreement shall, if possible, be construed in a manner which makes them valid, but in the event any term or provision of this Agreement is found by a court of competent jurisdiction to be illegal or unenforceable, the validity or enforceability of the remainder of this Agreement shall not be affected.
+
+This Agreement is the complete and exclusive agreement between the parties with respect to its subject matter and supersedes all prior or contemporaneous oral or written agreements or understandings relating to the subject matter.
+```
 
 ### Citation Information
 

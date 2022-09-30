@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -14,10 +14,13 @@ size_categories:
 source_datasets:
 - extended|other-ROC-stories
 task_categories:
-- sequence-modeling
-task_ids:
-- sequence-modeling-other-common-sense-inference
+- text-generation
+- fill-mask
+- text-generation
+- fill-mask
+- text-generation-other-common-sense-inference
 paperswithcode_id: glucose
+pretty_name: GLUCOSE
 ---
 
 # Dataset Card for [Dataset Name]
@@ -50,7 +53,7 @@ paperswithcode_id: glucose
 
 - **[Repository](https://github.com/TevenLeScao/glucose)**
 - **[Paper](https://arxiv.org/abs/2009.07758)**
-- **Point of Contact: [glucose@elementalcognition.com](mailto:glucose@elementalcognition.com)**
+- **Point of Contact:** [glucose@elementalcognition.com](mailto:glucose@elementalcognition.com)
 
 ### Dataset Summary
 

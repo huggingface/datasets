@@ -1,7 +1,8 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: null
+pretty_name: jeopardy
 ---
 
 # Dataset Card for "jeopardy"
@@ -65,8 +66,6 @@ Note: Tiebreaker questions do happen but they're very rare (like once every 20 y
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

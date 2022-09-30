@@ -1,9 +1,11 @@
 ---
-annotations_creators: []
-language_creators: []
-languages:
+annotations_creators:
+- found
+language_creators:
+- found
+language:
 - my
-licenses:
+license:
 - gpl-3.0
 multilinguality:
 - monolingual
@@ -16,13 +18,14 @@ task_categories:
 task_ids:
 - topic-classification
 paperswithcode_id: null
+pretty_name: MyanmarNews
 ---
 
 # Dataset Card for Myanmar_News
 
 ## Dataset Description
 
-- **Repository: ** https://github.com/ayehninnkhine/MyanmarNewsClassificationSystem
+- **Repository:** https://github.com/ayehninnkhine/MyanmarNewsClassificationSystem
 
 ### Dataset Summary
 

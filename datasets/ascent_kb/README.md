@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - other-other-knowledge-base
 paperswithcode_id: ascentkb
+pretty_name: Ascent KB
 ---
 
 # Dataset Card for Ascent KB

@@ -3,25 +3,28 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
 size_categories:
-  ParaphraseRC:
-  - 100K<n<1M
-  SelfRC:
-  - 10K<n<100K
+- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
 - question-answering
+- text2text-generation
 task_ids:
 - abstractive-qa
 - extractive-qa
 paperswithcode_id: duorc
+pretty_name: DuoRC
+configs:
+- ParaphraseRC
+- SelfRC
 ---
 
 # Dataset Card for duorc

@@ -3,82 +3,43 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
 size_categories:
-  dyda_da:
-  - 100K<n<1M
-  dyda_e:
-  - 100K<n<1M
-  iemocap:
-  - 10K<n<100K
-  maptask:
-  - 10K<n<100K
-  meld_e:
-  - 10K<n<100K
-  meld_s:
-  - 10K<n<100K
-  mrda:
-  - 100K<n<1M
-  oasis:
-  - 10K<n<100K
-  sem:
-  - 1K<n<10K
-  swda:
-  - 100K<n<1M
+- 100K<n<1M
+- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 - text-classification
-- text-scoring
 task_ids:
-  dyda_da:
-  - dialogue-modeling
-  - language-modeling
-  - text-classification-other-dialogue-act-classification
-  dyda_e:
-  - dialogue-modeling
-  - language-modeling
-  - text-classification-other-emotion-classification
-  iemocap:
-  - dialogue-modeling
-  - language-modeling
-  - text-classification-other-emotion-classification
-  maptask:
-  - dialogue-modeling
-  - language-modeling
-  - text-classification-other-dialogue-act-classification
-  meld_e:
-  - dialogue-modeling
-  - language-modeling
-  - text-classification-other-emotion-classification
-  meld_s:
-  - dialogue-modeling
-  - language-modeling
-  - sentiment-classification
-  mrda:
-  - dialogue-modeling
-  - language-modeling
-  - text-classification-other-dialogue-act-classification
-  oasis:
-  - dialogue-modeling
-  - language-modeling
-  - text-classification-other-dialogue-act-classification
-  sem:
-  - dialogue-modeling
-  - language-modeling
-  - sentiment-classification
-  swda:
-  - dialogue-modeling
-  - language-modeling
-  - text-classification-other-dialogue-act-classification
+- dialogue-modeling
+- language-modeling
+- masked-language-modeling
+- sentiment-classification
+- text-classification-other-dialogue-act-classification
+- text-classification-other-emotion-classification
+- text-scoring
 paperswithcode_id: null
 pretty_name: SILICONE Benchmark
+configs:
+- dyda_da
+- dyda_e
+- iemocap
+- maptask
+- meld_e
+- meld_s
+- mrda
+- oasis
+- sem
+- swda
 ---
 
 # Dataset Card for SILICONE Benchmark

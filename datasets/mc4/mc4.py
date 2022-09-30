@@ -299,7 +299,7 @@ class Mc4(datasets.GeneratorBasedBuilder):
         for split in ["train", "validation"]:
             data_urls[split] = [
                 _DATA_URL.format(
-                    language=self.config.name,
+                    language=lang,
                     split_suffix="-validation" if split == "validation" else "",
                     index=index,
                     n_shards=_N_SHARDS_PER_SPLIT[lang][split],

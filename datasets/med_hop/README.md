@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-3.0
 multilinguality:
 - monolingual
@@ -19,9 +19,10 @@ task_ids:
 - extractive-qa
 - question-answering-other-multi-hop
 paperswithcode_id: medhop
+pretty_name: MedHop
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for MedHop
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

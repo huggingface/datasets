@@ -16,7 +16,6 @@
 
 
 import csv
-import os
 
 import datasets
 
@@ -28,7 +27,7 @@ The Yahoo! Answers topic classification dataset is constructed using 10 largest 
 From all the answers and other meta-information, this dataset only used the best answer content and the main category information.
 """
 
-_URL = "https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9Qhbd2JNdDBsQUdocVU"
+_URL = "https://s3.amazonaws.com/fast-ai-nlp/yahoo_answers_csv.tgz"
 
 _TOPICS = [
     "Society & Culture",
@@ -72,27 +71,35 @@ class YahooAnswersTopics(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        data_dir = dl_manager.download_and_extract(_URL)
-
-        # Extracting (un-taring) the training data
-        data_dir = os.path.join(data_dir, "yahoo_answers_csv")
+        archive = dl_manager.download(_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "train.csv")}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": "yahoo_answers_csv/train.csv",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "test.csv")}
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "filepath": "yahoo_answers_csv/test.csv",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
         ]
 
-    def _generate_examples(self, filepath):
-        with open(filepath, encoding="utf-8") as f:
-            rows = csv.reader(f)
-            for i, row in enumerate(rows):
-                yield i, {
-                    "id": i,
-                    "topic": int(row[0]) - 1,
-                    "question_title": row[1],
-                    "question_content": row[2],
-                    "best_answer": row[3],
-                }
+    def _generate_examples(self, filepath, files):
+        for path, f in files:
+            if path == filepath:
+                lines = (line.decode("utf-8") for line in f)
+                rows = csv.reader(lines)
+                for i, row in enumerate(rows):
+                    yield i, {
+                        "id": i,
+                        "topic": int(row[0]) - 1,
+                        "question_title": row[1],
+                        "question_content": row[2],
+                        "best_answer": row[3],
+                    }
+                break

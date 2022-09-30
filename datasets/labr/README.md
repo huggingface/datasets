@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - ar
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -87,9 +87,9 @@ A typical data point comprises a rating from 1 to 5 where the higher the rating 
 
 The data is split into a training and testing. The split is organized as the following 
 
-|           | Tain   | Test |
-|---------- | ------ | ---- |
-|data split | 11,760 | 2,935|
+|           |  train |  test |
+|---------- |-------:|------:|
+|data split | 11,760 | 2,935 |
 
 ## Dataset Creation
 

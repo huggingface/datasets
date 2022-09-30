@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - code
-licenses:
-- other-C-UDA
+license:
+- c-uda
 multilinguality:
 - other-programming-languages
 size_categories:
@@ -14,9 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
-- conditional-text-generation-other-debugging
+- text2text-generation-other-debugging
+pretty_name: CodeXGlueCcCodeRefinement
 ---
 
 # Dataset Card for "code_x_glue_cc_code_refinement"
@@ -57,7 +58,7 @@ We use the dataset released by this paper(https://arxiv.org/pdf/1812.08693.pdf).
 
 ### Supported Tasks and Leaderboards
 
-- `conditional-text-generation-other-debugging`: The dataset can be used to train a model for automatically fixing buggy code.
+- `text2text-generation-other-debugging`: The dataset can be used to train a model for automatically fixing buggy code.
 
 ### Languages
 

@@ -1,6 +1,26 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+- machine-generated
+language:
 - en
+language_creators:
+- found
+license:
+- cc-by-nc-4.0
+multilinguality:
+- monolingual
+pretty_name: Adversarial NLI
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+- extended|hotpot_qa
+task_categories:
+- text-classification
+task_ids:
+- natural-language-inference
+- multi-input-text-classification
 paperswithcode_id: anli
 ---
 
@@ -32,9 +52,9 @@ paperswithcode_id: anli
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/facebookresearch/anli/](https://github.com/facebookresearch/anli/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Homepage:**
+- **Repository:** [https://github.com/facebookresearch/anli/](https://github.com/facebookresearch/anli/)
+- **Paper:** [Adversarial NLI: A New Benchmark for Natural Language Understanding](https://arxiv.org/abs/1910.14599)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 17.76 MB
 - **Size of the generated dataset:** 73.55 MB
@@ -53,11 +73,9 @@ It contains three rounds. Each round has train/dev/test splits.
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+English
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -149,7 +167,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[cc-4 Attribution-NonCommercial](https://github.com/facebookresearch/anli/blob/main/LICENSE)
 
 ### Citation Information
 

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,7 +74,7 @@ class SplitBase(metaclass=abc.ABCMeta):
     """Abstract base class for Split compositionality.
 
     See the
-    [guide on splits](https://github.com/huggingface/datasets/blob/master/docs/source/splits.rst)
+    [guide on splits](/docs/datasets/loading#slice-splits)
     for more information.
 
     There are three parts to the composition:
@@ -138,7 +137,7 @@ class SplitBase(metaclass=abc.ABCMeta):
         dataset with `datasets.percent`), and `weighted` (get subsplits with proportions
         specified by `weighted`).
 
-        Examples:
+        Example::
 
         ```
         # 50% train, 50% test
@@ -253,7 +252,7 @@ class PercentSlice(metaclass=PercentSliceMeta):
     """Syntactic sugar for defining slice subsplits: `datasets.percent[75:-5]`.
 
     See the
-    [guide on splits](https://github.com/huggingface/datasets/blob/master/docs/source/splits.rst)
+    [guide on splits](/docs/datasets/loading#slice-splits)
     for more information.
     """
     # pylint: enable=line-too-long
@@ -304,7 +303,7 @@ class _SubSplit(SplitBase):
 class NamedSplit(SplitBase):
     """Descriptor corresponding to a named split (train, test, ...).
 
-    Examples:
+    Example::
         Each descriptor can be composed with other using addition or slice. Ex::
 
             split = datasets.Split.TRAIN.subsplit(datasets.percent[0:25]) + datasets.Split.TEST
@@ -363,6 +362,9 @@ class NamedSplit(SplitBase):
         else:
             raise ValueError(f"Equality not supported between split {self} and {other}")
 
+    def __lt__(self, other):
+        return self._name < other._name  # pylint: disable=protected-access
+
     def __hash__(self):
         return hash(self._name)
 
@@ -374,7 +376,7 @@ class NamedSplitAll(NamedSplit):
     """Split corresponding to the union of all defined dataset splits."""
 
     def __init__(self):
-        super(NamedSplitAll, self).__init__("all")
+        super().__init__("all")
 
     def __repr__(self):
         return "NamedSplitAll()"
@@ -403,6 +405,23 @@ class Split:
     Note: All splits, including compositions inherit from `datasets.SplitBase`
 
     See the :doc:`guide on splits </loading>` for more information.
+
+    Example:
+
+    ```py
+    >>> datasets.SplitGenerator(
+    ...     name=datasets.Split.TRAIN,
+    ...     gen_kwargs={"split_key": "train", "files": dl_manager.download_and extract(url)},
+    ... ),
+    ... datasets.SplitGenerator(
+    ...     name=datasets.Split.VALIDATION,
+    ...     gen_kwargs={"split_key": "validation", "files": dl_manager.download_and extract(url)},
+    ... ),
+    ... datasets.SplitGenerator(
+    ...     name=datasets.Split.TEST,
+    ...     gen_kwargs={"split_key": "test", "files": dl_manager.download_and extract(url)},
+    ... )
+    ```
     """
     # pylint: enable=line-too-long
     TRAIN = NamedSplit("train")
@@ -484,13 +503,13 @@ class SplitDict(dict):
     """Split info object."""
 
     def __init__(self, *args, dataset_name=None, **kwargs):
-        super(SplitDict, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.dataset_name = dataset_name
 
     def __getitem__(self, key: Union[SplitBase, str]):
         # 1st case: The key exists: `info.splits['train']`
         if str(key) in self:
-            return super(SplitDict, self).__getitem__(str(key))
+            return super().__getitem__(str(key))
         # 2nd case: Uses instructions: `info.splits['train[50%]']`
         else:
             instructions = make_file_instructions(
@@ -505,14 +524,14 @@ class SplitDict(dict):
             raise ValueError(f"Cannot add elem. (key mismatch: '{key}' != '{value.name}')")
         if key in self:
             raise ValueError(f"Split {key} already present")
-        super(SplitDict, self).__setitem__(key, value)
+        super().__setitem__(key, value)
 
     def add(self, split_info: SplitInfo):
         """Add the split info."""
         if split_info.name in self:
             raise ValueError(f"Split {split_info.name} already present")
         split_info.dataset_name = self.dataset_name
-        super(SplitDict, self).__setitem__(split_info.name, split_info)
+        super().__setitem__(split_info.name, split_info)
 
     @property
     def total_num_examples(self):
@@ -540,7 +559,7 @@ class SplitDict(dict):
     def to_split_dict(self):
         """Returns a list of SplitInfo protos that we have."""
         # Return the SplitInfo, sorted by name
-        return sorted([s for s in self.values()], key=lambda s: s.name)
+        return sorted((s for s in self.values()), key=lambda s: s.name)
 
     def copy(self):
         return SplitDict.from_split_dict(self.to_split_dict(), self.dataset_name)
@@ -560,6 +579,15 @@ class SplitGenerator:
             create the examples.
         **gen_kwargs: Keyword arguments to forward to the :meth:`DatasetBuilder._generate_examples` method
             of the builder.
+
+    Example:
+
+    ```py
+    >>> datasets.SplitGenerator(
+    ...     name=datasets.Split.TRAIN,
+    ...     gen_kwargs={"split_key": "train", "files": dl_manager.download_and_extract(url)},
+    ... )
+    ```
     """
 
     name: str

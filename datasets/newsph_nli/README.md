@@ -3,9 +3,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - tl
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - natural-language-inference
 paperswithcode_id: newsph-nli
+pretty_name: NewsPH NLI
 ---
 
 # Dataset Card for NewsPH NLI
@@ -48,11 +49,11 @@ paperswithcode_id: newsph-nli
 
 ## Dataset Description
 
-- **Homepage: [NewsPH NLI homepage](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)**
-- **Repository: [NewsPH NLI repository](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)**
-- **Paper: [Arxiv paper](https://arxiv.org/pdf/2010.11574.pdf)**
+- **Homepage:** [NewsPH NLI homepage](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
+- **Repository:** [NewsPH NLI repository](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
+- **Paper:** [Arxiv paper](https://arxiv.org/pdf/2010.11574.pdf)
 - **Leaderboard:**
-- **Point of Contact: [Jan Christian Cruz](mailto:jan_christian_cruz@dlsu.edu.ph)**
+- **Point of Contact:** [Jan Christian Cruz](mailto:jan_christian_cruz@dlsu.edu.ph)
 
 ### Dataset Summary
 

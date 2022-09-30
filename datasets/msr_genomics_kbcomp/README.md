@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
-- other-my-license
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - other-other-NCI-PID-PubMed Genomics Knowledge Base Completion Dataset
 paperswithcode_id: null
+pretty_name: MsrGenomicsKbcomp
 ---
 
 # Dataset Card for [Dataset Name]

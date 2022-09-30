@@ -3,53 +3,14 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
-  ar-to-en:
-  - ar
-  - en
-  ar-to-es:
-  - ar
-  - es
-  ar-to-fr:
-  - ar
-  - fr
-  ar-to-ru:
-  - ar
-  - ru
-  ar-to-zh:
-  - ar
-  - zh
-  en-to-es:
-  - en
-  - es
-  en-to-fr:
-  - en
-  - fr
-  en-to-ru:
-  - en
-  - ru
-  en-to-zh:
-  - en
-  - zh
-  es-to-fr:
-  - es
-  - fr
-  es-to-ru:
-  - es
-  - ru
-  es-to-zh:
-  - es
-  - zh
-  fr-to-ru:
-  - fr
-  - ru
-  fr-to-zh:
-  - fr
-  - zh
-  ru-to-zh:
-  - ru
-  - zh
-licenses:
+language:
+- ar
+- en
+- es
+- fr
+- ru
+- zh
+license:
 - unknown
 multilinguality:
 - translation
@@ -58,10 +19,26 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
+pretty_name: UnGa
+configs:
+- ar-to-en
+- ar-to-es
+- ar-to-fr
+- ar-to-ru
+- ar-to-zh
+- en-to-es
+- en-to-fr
+- en-to-ru
+- en-to-zh
+- es-to-fr
+- es-to-ru
+- es-to-zh
+- fr-to-ru
+- fr-to-zh
+- ru-to-zh
 ---
 
 # Dataset Card for [Dataset Name]

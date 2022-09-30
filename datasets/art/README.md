@@ -1,6 +1,25 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: Abductive Reasoning in narrative Text
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- multiple-choice
+- text-classification
+task_ids:
+- natural-language-inference
+- text-classification-other-abductive-natural-language-inference
 paperswithcode_id: art-dataset
 ---
 
@@ -33,8 +52,8 @@ paperswithcode_id: art-dataset
 ## Dataset Description
 
 - **Homepage:** [https://leaderboard.allenai.org/anli/submissions/get-started](https://leaderboard.allenai.org/anli/submissions/get-started)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/allenai/abductive-commonsense-reasoning
+- **Paper:** [Abductive Commonsense Reasoning](https://arxiv.org/abs/1908.05739)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 4.88 MB
 - **Size of the generated dataset:** 32.77 MB
@@ -42,7 +61,9 @@ paperswithcode_id: art-dataset
 
 ### Dataset Summary
 
-the Abductive Natural Language Inference Dataset from AI2
+ART consists of over 20k commonsense narrative contexts and 200k explanations.
+
+The Abductive Natural Language Inference Dataset from AI2.
 
 ### Supported Tasks and Leaderboards
 
@@ -53,8 +74,6 @@ the Abductive Natural Language Inference Dataset from AI2
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -149,21 +168,14 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-@InProceedings{anli,
-  author = "Chandra, Bhagavatula
-    and Ronan, Le Bras
-    and Chaitanya, Malaviya
-    and Keisuke, Sakaguchi
-    and Ari, Holtzman
-    and Hannah, Rashkin
-    and Doug, Downey
-    and Scott, Wen-tau Yih
-    and Yejin, Choi",
-  title = "Abductive Commonsense Reasoning",
-  year = "2020",
+@inproceedings{Bhagavatula2020Abductive,
+  title={Abductive Commonsense Reasoning},
+  author={Chandra Bhagavatula and Ronan Le Bras and Chaitanya Malaviya and Keisuke Sakaguchi and Ari Holtzman and Hannah Rashkin and Doug Downey and Wen-tau Yih and Yejin Choi},
+  booktitle={International Conference on Learning Representations},
+  year={2020},
+  url={https://openreview.net/forum?id=Byg1v1HKDB}
 }
 ```
-
 
 ### Contributions
 

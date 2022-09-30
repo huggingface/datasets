@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual
@@ -19,6 +19,7 @@ task_ids:
 - closed-domain-qa
 - extractive-qa
 paperswithcode_id: null
+pretty_name: COVID-QA
 ---
 
 

@@ -39,15 +39,15 @@ _DESCRIPTION = """\
 CCAligned consists of parallel or comparable web-document pairs in 137 languages aligned with English. These web-document pairs were constructed by performing language identification on raw web-documents, and ensuring corresponding language codes were corresponding in the URLs of web documents. This pattern matching approach yielded more than 100 million aligned documents paired with English. Recognizing that each English document was often aligned to mulitple documents in different target language, we can join on English documents to obtain aligned documents that directly pair two non-English documents (e.g., Arabic-French).
 """
 
-_HOMEPAGE = "http://www.statmt.org/cc-aligned/"
+_HOMEPAGE = "https://data.statmt.org/cc-aligned/"
 
 
 _LICENSE = ""  # Unknown
 
 
 _URLs = {
-    "documents": "http://www.statmt.org/cc-aligned/",
-    "sentences": "http://www.statmt.org/cc-aligned/sentence-aligned/",
+    "documents": "https://data.statmt.org/cc-aligned/",
+    "sentences": "https://data.statmt.org/cc-aligned/sentence-aligned/",
 }
 
 reverse_mapped_sentences = [

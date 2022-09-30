@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - multi-class-classification
 paperswithcode_id: gutenberg-time-dataset
+pretty_name: the Gutenberg Time dataset
 ---
 
 # Dataset Card for the Gutenberg Time dataset

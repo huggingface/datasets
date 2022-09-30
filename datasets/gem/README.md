@@ -1,286 +1,65 @@
 ---
 annotations_creators:
-  common_gen:
-  - crowdsourced
-  - found
-  cs_restaurants:
-  - crowdsourced
-  - found
-  dart:
-  - crowdsourced
-  - found
-  e2e_nlg:
-  - crowdsourced
-  - found
-  mlsum_de:
-  - found
-  mlsum_es:
-  - found
-  schema_guided_dialog:
-  - crowdsourced
-  totto:
-  - crowdsourced
-  - found
-  web_nlg_en:
-  - crowdsourced
-  - found
-  web_nlg_ru:
-  - crowdsourced
-  - found
-  wiki_auto_asset_turk:
-  - crowdsourced
-  - found
-  wiki_lingua_es_en:
-  - found
-  wiki_lingua_ru_en:
-  - found
-  wiki_lingua_tr_en:
-  - found
-  wiki_lingua_vi_en:
-  - found
-  xsum:
-  - found
+- crowdsourced
+- found
 language_creators:
-  common_gen:
-  - found
-  cs_restaurants:
-  - found
-  dart:
-  - found
-  e2e_nlg:
-  - found
-  mlsum_de:
-  - found
-  mlsum_es:
-  - found
-  schema_guided_dialog:
-  - crowdsourced
-  - machine-generated
-  totto:
-  - found
-  web_nlg_en:
-  - found
-  web_nlg_ru:
-  - found
-  wiki_auto_asset_turk:
-  - found
-  wiki_lingua_es_en:
-  - found
-  wiki_lingua_ru_en:
-  - found
-  wiki_lingua_tr_en:
-  - found
-  wiki_lingua_vi_en:
-  - found
-  xsum:
-  - found
-languages:
-  common_gen:
-  - en
-  cs_restaurants:
-  - cs
-  dart:
-  - en
-  e2e_nlg:
-  - en
-  mlsum_de:
-  - de
-  mlsum_es:
-  - es
-  schema_guided_dialog:
-  - en
-  totto:
-  - en
-  web_nlg_en:
-  - en
-  web_nlg_ru:
-  - ru
-  wiki_auto_asset_turk:
-  - en
-  wiki_lingua_es_en:
-  - en
-  - es
-  wiki_lingua_ru_en:
-  - en
-  - ru
-  wiki_lingua_tr_en:
-  - en
-  - tr
-  wiki_lingua_vi_en:
-  - en
-  - vi
-  xsum:
-  - en
-licenses:
-- other-research-only
+- crowdsourced
+- found
+- machine-generated
+language:
+- cs
+- de
+- en
+- es
+- ru
+- tr
+- vi
+license:
+- other
 multilinguality:
-  common_gen:
-  - monolingual
-  cs_restaurants:
-  - monolingual
-  dart:
-  - monolingual
-  e2e_nlg:
-  - monolingual
-  mlsum_de:
-  - monolingual
-  mlsum_es:
-  - monolingual
-  schema_guided_dialog:
-  - monolingual
-  totto:
-  - monolingual
-  web_nlg_en:
-  - monolingual
-  web_nlg_ru:
-  - monolingual
-  wiki_auto_asset_turk:
-  - monolingual
-  wiki_lingua_es_en:
-  - multilingual
-  wiki_lingua_ru_en:
-  - multilingual
-  wiki_lingua_tr_en:
-  - multilingual
-  wiki_lingua_vi_en:
-  - multilingual
-  xsum:
-  - monolingual
+- monolingual
+- multilingual
 size_categories:
-  common_gen:
-  - 10K<n<100K
-  cs_restaurants:
-  - 1K<n<10K
-  dart:
-  - 10K<n<100K
-  e2e_nlg:
-  - 10K<n<100K
-  mlsum_de:
-  - 100K<n<1M
-  mlsum_es:
-  - 100K<n<1M
-  schema_guided_dialog:
-  - 100K<n<1M
-  totto:
-  - 100K<n<1M
-  web_nlg_en:
-  - 10K<n<100K
-  web_nlg_ru:
-  - 10K<n<100K
-  wiki_auto_asset_turk:
-  - 100K<n<1M
-  wiki_lingua_es_en:
-  - 100K<n<1M
-  wiki_lingua_ru_en:
-  - 10K<n<100K
-  wiki_lingua_tr_en:
-  - 1K<n<10K
-  wiki_lingua_vi_en:
-  - 10K<n<100K
-  xsum:
-  - 10K<n<100K
+- 100K<n<1M
+- 10K<n<100K
+- 1K<n<10K
 source_datasets:
-  common_gen:
-  - extended|other-vision-datasets
-  - original
-  cs_restaurants:
-  - original
-  dart:
-  - original
-  e2e_nlg:
-  - original
-  mlsum_de:
-  - original
-  mlsum_es:
-  - original
-  schema_guided_dialog:
-  - original
-  totto:
-  - original
-  web_nlg_en:
-  - original
-  web_nlg_ru:
-  - original
-  wiki_auto_asset_turk:
-  - original
-  wiki_lingua_es_en:
-  - original
-  wiki_lingua_ru_en:
-  - original
-  wiki_lingua_tr_en:
-  - original
-  wiki_lingua_vi_en:
-  - original
-  xsum:
-  - original
+- extended|other-vision-datasets
+- original
 task_categories:
-  common_gen:
-  - conditional-text-generation
-  cs_restaurants:
-  - conditional-text-generation
-  dart:
-  - conditional-text-generation
-  e2e_nlg:
-  - conditional-text-generation
-  mlsum_de:
-  - conditional-text-generation
-  mlsum_es:
-  - conditional-text-generation
-  schema_guided_dialog:
-  - sequence-modeling
-  totto:
-  - conditional-text-generation
-  web_nlg_en:
-  - conditional-text-generation
-  web_nlg_ru:
-  - conditional-text-generation
-  wiki_auto_asset_turk:
-  - conditional-text-generation
-  wiki_lingua_es_en:
-  - conditional-text-generation
-  wiki_lingua_ru_en:
-  - conditional-text-generation
-  wiki_lingua_tr_en:
-  - conditional-text-generation
-  wiki_lingua_vi_en:
-  - conditional-text-generation
-  xsum:
-  - conditional-text-generation
+- fill-mask
+- summarization
+- table-to-text
+- tabular-to-text
+- text-generation
+- text2text-generation
 task_ids:
-  common_gen:
-  - other-structured-to-text
-  cs_restaurants:
-  - other-structured-to-text
-  dart:
-  - other-structured-to-text
-  e2e_nlg:
-  - other-structured-to-text
-  mlsum_de:
-  - summarization
-  mlsum_es:
-  - summarization
-  schema_guided_dialog:
-  - dialogue-modeling
-  totto:
-  - table-to-text
-  web_nlg_en:
-  - other-structured-to-text
-  web_nlg_ru:
-  - other-structured-to-text
-  wiki_auto_asset_turk:
-  - text-simplification
-  wiki_lingua_es_en:
-  - summarization
-  wiki_lingua_ru_en:
-  - summarization
-  wiki_lingua_tr_en:
-  - summarization
-  wiki_lingua_vi_en:
-  - summarization
-  xsum:
-  - summarization
+- dialogue-modeling
+- other-concepts-to-text
+- other-intent-to-text
+- rdf-to-text
+- news-articles-summarization
+- text-simplification
+- text2text-generation-other-meaning-representation-to-text
 paperswithcode_id: gem
 pretty_name: GEM
+configs:
+- common_gen
+- cs_restaurants
+- dart
+- e2e_nlg
+- mlsum_de
+- mlsum_es
+- schema_guided_dialog
+- totto
+- web_nlg_en
+- web_nlg_ru
+- wiki_auto_asset_turk
+- wiki_lingua_es_en
+- wiki_lingua_ru_en
+- wiki_lingua_tr_en
+- wiki_lingua_vi_en
+- xsum
 ---
 
 # Dataset Card for GEM
@@ -380,8 +159,6 @@ Each example has one `target` per example in its training set, and a set of `ref
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

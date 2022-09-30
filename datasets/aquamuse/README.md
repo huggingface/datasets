@@ -5,9 +5,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -20,11 +20,13 @@ source_datasets:
 task_categories:
 - other
 - question-answering
+- text2text-generation
 task_ids:
 - abstractive-qa
 - extractive-qa
 - other-other-query-based-multi-document-summarization
 paperswithcode_id: aquamuse
+pretty_name: AQuaMuSe
 ---
 
 # Dataset Card for AQuaMuSe

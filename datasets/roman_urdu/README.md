@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - ur
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: roman-urdu-data-set
+pretty_name: Roman Urdu Dataset
 ---
 
 # Dataset Card for Roman Urdu Dataset

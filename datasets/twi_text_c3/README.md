@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - tw
-licenses:
+license:
 - cc-by-nc-4.0
 multilinguality:
 - monolingual
@@ -14,10 +14,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: null
+pretty_name: Twi Text C3
 ---
 
 # Dataset Card for Twi Text C3

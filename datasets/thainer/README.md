@@ -5,9 +5,9 @@ annotations_creators:
 language_creators:
 - found
 - expert-generated
-languages:
+language:
 - th
-licenses:
+license:
 - cc-by-3.0
 multilinguality:
 - monolingual
@@ -16,11 +16,12 @@ size_categories:
 source_datasets:
 - extended|other-tirasaroj-aroonmanakun
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: null
+pretty_name: thainer
 ---
 
 # Dataset Card for `thainer`

@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - bn
 - en
 - fil
@@ -17,35 +17,31 @@ languages:
 - th
 - vi
 - zh
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - multilingual
 - translation
 size_categories:
-  alt-en:
-  - 10K<n<100K
-  alt-jp:
-  - 10K<n<100K
-  alt-km:
-  - 10K<n<100K
-  alt-my:
-  - 10K<n<100K
-  alt-my-transliteration:
-  - 10K<n<100K
-  alt-my-west-transliteration:
-  - 100K<n<1M
-  alt-parallel:
-  - 10K<n<100K
+- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- structure-prediction
+- translation
+- token-classification
 task_ids:
-- machine-translation
 - parsing
 paperswithcode_id: alt
+pretty_name: Asian Language Treebank
+configs:
+- alt-en
+- alt-jp
+- alt-km
+- alt-my
+- alt-my-transliteration
+- alt-my-west-transliteration
+- alt-parallel
 ---
 
 # Dataset Card for Asian Language Treebank (ALT)
@@ -93,7 +89,7 @@ Machine Translation, Dependency Parsing
 
 ### Languages
 
-It supports 13 languages: 
+It supports 13 language: 
   * Bengali
   * English
   * Filipino

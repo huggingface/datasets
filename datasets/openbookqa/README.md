@@ -1,10 +1,28 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+- expert-generated
+language_creators:
+- expert-generated
+language:
 - en
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: OpenBookQA
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- open-domain-qa
 paperswithcode_id: openbookqa
 ---
 
-# Dataset Card for "openbookqa"
+# Dataset Card for OpenBookQA
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -59,20 +77,7 @@ a subject.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
-
-#### additional
-
-- **Size of downloaded dataset files:** 1.38 MB
-- **Size of the generated dataset:** 1.38 MB
-- **Total amount of disk used:** 2.75 MB
-
-An example of 'train' looks as follows.
-```
-
-```
 
 #### main
 
@@ -80,23 +85,44 @@ An example of 'train' looks as follows.
 - **Size of the generated dataset:** 1.38 MB
 - **Total amount of disk used:** 2.75 MB
 
-An example of 'validation' looks as follows.
+An example of 'train' looks as follows:
+```
+{'id': '7-980',
+ 'question_stem': 'The sun is responsible for',
+ 'choices': {'text': ['puppies learning new tricks',
+   'children growing up and getting old',
+   'flowers wilting in a vase',
+   'plants sprouting, blooming and wilting'],
+  'label': ['A', 'B', 'C', 'D']},
+ 'answerKey': 'D'}
 ```
 
+#### additional
+
+- **Size of downloaded dataset files:** 1.38 MB
+- **Size of the generated dataset:** 1.38 MB
+- **Total amount of disk used:** 2.75 MB
+
+An example of 'train' looks as follows:
+```
+{'id': '7-980',
+ 'question_stem': 'The sun is responsible for',
+ 'choices': {'text': ['puppies learning new tricks',
+   'children growing up and getting old',
+   'flowers wilting in a vase',
+   'plants sprouting, blooming and wilting'],
+  'label': ['A', 'B', 'C', 'D']},
+ 'answerKey': 'D',
+ 'fact1': 'the sun is the source of energy for physical cycles on Earth',
+ 'humanScore': 1.0,
+ 'clarity': 2.0,
+ 'turkIdAnonymized': 'b356d338b7'}
 ```
 
 ### Data Fields
 
 The data fields are the same among all splits.
 
-#### additional
-- `id`: a `string` feature.
-- `question_stem`: a `string` feature.
-- `choices`: a dictionary feature containing:
-  - `text`: a `string` feature.
-  - `label`: a `string` feature.
-- `answerKey`: a `string` feature.
-
 #### main
 - `id`: a `string` feature.
 - `question_stem`: a `string` feature.
@@ -105,12 +131,24 @@ The data fields are the same among all splits.
   - `label`: a `string` feature.
 - `answerKey`: a `string` feature.
 
+#### additional
+- `id`: a `string` feature.
+- `question_stem`: a `string` feature.
+- `choices`: a dictionary feature containing:
+  - `text`: a `string` feature.
+  - `label`: a `string` feature.
+- `answerKey`: a `string` feature.
+- `fact1` (`str`): oOriginating common knowledge core fact associated to the question.
+- `humanScore` (`float`): Human accuracy score.
+- `clarity` (`float`): Clarity score.
+- `turkIdAnonymized` (`str`): Anonymized crowd-worker ID.
+
 ### Data Splits
 
-|   name   |train|validation|test|
-|----------|----:|---------:|---:|
-|additional| 4957|       500| 500|
-|main      | 4957|       500| 500|
+| name       | train | validation | test |
+|------------|------:|-----------:|-----:|
+| main       |  4957 |        500 |  500 |
+| additional |  4957 |        500 |  500 |
 
 ## Dataset Creation
 

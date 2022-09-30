@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,29 +15,33 @@
 import errno
 import json
 import os
-import socket
 import sys
-from dataclasses import asdict
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
+import fsspec
 import numpy as np
 import pyarrow as pa
+import pyarrow.parquet as pq
 
-from . import config, utils
-from .features import (
-    Features,
-    ImageExtensionType,
+from . import config
+from .features import Features, Image, Value
+from .features.features import (
+    FeatureType,
     _ArrayXDExtensionType,
     cast_to_python_objects,
+    generate_from_arrow_type,
+    get_nested_type,
     list_of_np_array_to_pyarrow_listarray,
     numpy_to_pyarrow_listarray,
-    objects_to_list_of_image_dicts,
+    to_pyarrow_listarray,
 )
+from .filesystems import is_remote_filesystem
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
+from .table import array_cast, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
 from .utils.file_utils import hash_url_to_filename
-from .utils.py_utils import first_non_null_value
+from .utils.py_utils import asdict, first_non_null_value
 
 
 logger = logging.get_logger(__name__)
@@ -63,144 +66,202 @@ class TypedSequence:
 
     Example::
 
-        from datasets.features import Array2DExtensionType
+        from datasets.features import Array2D, Array2DExtensionType, Value
         from datasets.arrow_writer import TypedSequence
         import pyarrow as pa
 
-        arr = pa.array(TypedSequence([1, 2, 3], type=pa.int32()))
+        arr = pa.array(TypedSequence([1, 2, 3], type=Value("int32")))
         assert arr.type == pa.int32()
 
-        arr = pa.array(TypedSequence([1, 2, 3], try_type=pa.int32()))
+        arr = pa.array(TypedSequence([1, 2, 3], try_type=Value("int32")))
         assert arr.type == pa.int32()
 
-        arr = pa.array(TypedSequence(["foo", "bar"], try_type=pa.int32()))
+        arr = pa.array(TypedSequence(["foo", "bar"], try_type=Value("int32")))
         assert arr.type == pa.string()
 
-        arr = pa.array(TypedSequence([[[1, 2, 3]]], type=Array2DExtensionType((1, 3), "int64")))
+        arr = pa.array(TypedSequence([[[1, 2, 3]]], type=Array2D((1, 3), "int64")))
         assert arr.type == Array2DExtensionType((1, 3), "int64")
 
         table = pa.Table.from_pydict({
-            "image": TypedSequence([[[1, 2, 3]]], type=Array2DExtensionType((1, 3), "int64"))
+            "image": TypedSequence([[[1, 2, 3]]], type=Array2D((1, 3), "int64"))
         })
         assert table["image"].type == Array2DExtensionType((1, 3), "int64")
 
     """
 
-    def __init__(self, data, type=None, try_type=None, optimized_int_type=None):
+    def __init__(
+        self,
+        data: Iterable,
+        type: Optional[FeatureType] = None,
+        try_type: Optional[FeatureType] = None,
+        optimized_int_type: Optional[FeatureType] = None,
+    ):
         # assert type is None or try_type is None,
         if type is not None and try_type is not None:
             raise ValueError("You cannot specify both type and try_type")
+        # set attributes
         self.data = data
         self.type = type
         self.try_type = try_type  # is ignored if it doesn't match the data
         self.optimized_int_type = optimized_int_type
+        # when trying a type (is ignored if data is not compatible)
+        self.trying_type = self.try_type is not None
+        self.trying_int_optimization = optimized_int_type is not None and type is None and try_type is None
+        # used to get back the inferred type after __arrow_array__() is called once
+        self._inferred_type = None
 
-    def __arrow_array__(self, type=None):
-        """This function is called when calling pa.array(typed_sequence)"""
+    def get_inferred_type(self) -> FeatureType:
+        """Return the inferred feature type.
+        This is done by converting the sequence to an Arrow array, and getting the corresponding
+        feature type.
 
+        Since building the Arrow array can be expensive, the value of the inferred type is cached
+        as soon as pa.array is called on the typed sequence.
+
+        Returns:
+            FeatureType: inferred feature type of the sequence.
+        """
+        if self._inferred_type is None:
+            self._inferred_type = generate_from_arrow_type(pa.array(self).type)
+        return self._inferred_type
+
+    @staticmethod
+    def _infer_custom_type_and_encode(data: Iterable) -> Tuple[Iterable, Optional[FeatureType]]:
+        """Implement type inference for custom objects like PIL.Image.Image -> Image type.
+
+        This function is only used for custom python objects that can't be direclty passed to build
+        an Arrow array. In such cases is infers the feature type to use, and it encodes the data so
+        that they can be passed to an Arrow array.
+
+        Args:
+            data (Iterable): array of data to infer the type, e.g. a list of PIL images.
+
+        Returns:
+            Tuple[Iterable, Optional[FeatureType]]: a tuple with:
+                - the (possibly encoded) array, if the inferred feature type requires encoding
+                - the inferred feature type if the array is made of supported custom objects like
+                    PIL images, else None.
+        """
         if config.PIL_AVAILABLE and "PIL" in sys.modules:
             import PIL.Image
 
+            non_null_idx, non_null_value = first_non_null_value(data)
+            if isinstance(non_null_value, PIL.Image.Image):
+                return [Image().encode_example(value) if value is not None else None for value in data], Image()
+        return data, None
+
+    def __arrow_array__(self, type: Optional[pa.DataType] = None):
+        """This function is called when calling pa.array(typed_sequence)"""
+
         if type is not None:
             raise ValueError("TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)")
-        trying_type = False
-        if type is not None:  # user explicitly passed the feature
-            pass
-        elif type is None and self.try_type:
-            type = self.try_type
-            trying_type = True
+        del type  # make sure we don't use it
+        data = self.data
+        # automatic type inference for custom objects
+        if self.type is None and self.try_type is None:
+            data, self._inferred_type = self._infer_custom_type_and_encode(data)
+        if self._inferred_type is None:
+            type = self.try_type if self.trying_type else self.type
         else:
-            type = self.type
-        trying_int_optimization = False
-        non_null_idx, non_null_value = first_non_null_value(self.data)
-        if type is None:  # automatic type inference for custom objects
-            if config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(non_null_value, PIL.Image.Image):
-                type = ImageExtensionType()
+            type = self._inferred_type
+        pa_type = get_nested_type(type) if type is not None else None
+        optimized_int_pa_type = (
+            get_nested_type(self.optimized_int_type) if self.optimized_int_type is not None else None
+        )
+        trying_cast_to_python_objects = False
         try:
-            if isinstance(type, _ArrayXDExtensionType):
-                if isinstance(self.data, np.ndarray):
-                    storage = numpy_to_pyarrow_listarray(self.data, type=type.value_type)
-                elif isinstance(self.data, list) and self.data and isinstance(non_null_value, np.ndarray):
-                    storage = list_of_np_array_to_pyarrow_listarray(self.data, type=type.value_type)
-                else:
-                    storage = pa.array(self.data, type.storage_dtype)
-                out = pa.ExtensionArray.from_storage(type, storage)
-            elif isinstance(type, ImageExtensionType):
-                storage = pa.array(objects_to_list_of_image_dicts(self.data), type=type.storage_type)
-                out = pa.ExtensionArray.from_storage(type, storage)
-            elif isinstance(self.data, np.ndarray):
-                out = numpy_to_pyarrow_listarray(self.data)
-                if type is not None:
-                    out = out.cast(type)
-            elif isinstance(self.data, list) and self.data and isinstance(non_null_value, np.ndarray):
-                out = list_of_np_array_to_pyarrow_listarray(self.data)
-                if type is not None:
-                    out = out.cast(type)
+            # custom pyarrow types
+            if isinstance(pa_type, _ArrayXDExtensionType):
+                storage = to_pyarrow_listarray(data, pa_type)
+                return pa.ExtensionArray.from_storage(pa_type, storage)
+
+            # efficient np array to pyarrow array
+            if isinstance(data, np.ndarray):
+                out = numpy_to_pyarrow_listarray(data)
+            elif isinstance(data, list) and data and isinstance(first_non_null_value(data)[1], np.ndarray):
+                out = list_of_np_array_to_pyarrow_listarray(data)
             else:
-                out = pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True), type=type)
-            if trying_type and not isinstance(type, ImageExtensionType) and non_null_idx != -1:
-                is_equal = (
-                    np.array_equal(np.array(out[non_null_idx].as_py()), self.data[non_null_idx])
-                    if isinstance(self.data[non_null_idx], np.ndarray)
-                    else out[non_null_idx].as_py() == self.data[non_null_idx]
-                )
-                if not is_equal:
-                    raise TypeError(
-                        "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
-                    )
-            if self.optimized_int_type and self.type is None and self.try_type is None:
-                trying_int_optimization = True
+                trying_cast_to_python_objects = True
+                out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
+            # use smaller integer precisions if possible
+            if self.trying_int_optimization:
                 if pa.types.is_int64(out.type):
-                    out = out.cast(self.optimized_int_type)
+                    out = out.cast(optimized_int_pa_type)
                 elif pa.types.is_list(out.type):
                     if pa.types.is_int64(out.type.value_type):
-                        out = out.cast(pa.list_(self.optimized_int_type))
+                        out = array_cast(out, pa.list_(optimized_int_pa_type))
                     elif pa.types.is_list(out.type.value_type) and pa.types.is_int64(out.type.value_type.value_type):
-                        out = out.cast(pa.list_(pa.list_(self.optimized_int_type)))
+                        out = array_cast(out, pa.list_(pa.list_(optimized_int_pa_type)))
+            # otherwise we can finally use the user's type
+            elif type is not None:
+                # We use cast_array_to_feature to support casting to custom types like Audio and Image
+                # Also, when trying type "string", we don't want to convert integers or floats to "string".
+                # We only do it if trying_type is False - since this is what the user asks for.
+                out = cast_array_to_feature(out, type, allow_number_to_str=not self.trying_type)
             return out
         except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
-            if trying_type:
+            if self.trying_type:
                 try:  # second chance
-                    if isinstance(self.data, np.ndarray):
-                        return numpy_to_pyarrow_listarray(self.data)
-                    elif (
-                        isinstance(self.data, list)
-                        and self.data
-                        and any(isinstance(value, np.ndarray) for value in self.data)
-                    ):
-                        return list_of_np_array_to_pyarrow_listarray(self.data)
+                    if isinstance(data, np.ndarray):
+                        return numpy_to_pyarrow_listarray(data)
+                    elif isinstance(data, list) and data and any(isinstance(value, np.ndarray) for value in data):
+                        return list_of_np_array_to_pyarrow_listarray(data)
                     else:
-                        return pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True))
+                        trying_cast_to_python_objects = True
+                        return pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
                 except pa.lib.ArrowInvalid as e:
                     if "overflow" in str(e):
                         raise OverflowError(
-                            f"There was an overflow with type {type_(self.data)}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({e})"
+                            f"There was an overflow with type {type_(data)}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({e})"
                         ) from None
-                    elif trying_int_optimization and "not in range" in str(e):
-                        optimized_int_type_str = np.dtype(self.optimized_int_type.to_pandas_dtype()).name
-                        logger.info(f"Failed to cast a sequence to {optimized_int_type_str}. Falling back to int64.")
+                    elif self.trying_int_optimization and "not in range" in str(e):
+                        optimized_int_pa_type_str = np.dtype(optimized_int_pa_type.to_pandas_dtype()).name
+                        logger.info(
+                            f"Failed to cast a sequence to {optimized_int_pa_type_str}. Falling back to int64."
+                        )
+                        return out
+                    elif trying_cast_to_python_objects and "Could not convert" in str(e):
+                        out = pa.array(
+                            cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False)
+                        )
+                        if type is not None:
+                            out = cast_array_to_feature(out, type, allow_number_to_str=True)
                         return out
                     else:
                         raise
             elif "overflow" in str(e):
                 raise OverflowError(
-                    f"There was an overflow with type {type_(self.data)}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({e})"
+                    f"There was an overflow with type {type_(data)}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({e})"
                 ) from None
-            elif trying_int_optimization and "not in range" in str(e):
-                optimized_int_type_str = np.dtype(self.optimized_int_type.to_pandas_dtype()).name
-                logger.info(f"Failed to cast a sequence to {optimized_int_type_str}. Falling back to int64.")
+            elif self.trying_int_optimization and "not in range" in str(e):
+                optimized_int_pa_type_str = np.dtype(optimized_int_pa_type.to_pandas_dtype()).name
+                logger.info(f"Failed to cast a sequence to {optimized_int_pa_type_str}. Falling back to int64.")
+                return out
+            elif trying_cast_to_python_objects and "Could not convert" in str(e):
+                out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False))
+                if type is not None:
+                    out = cast_array_to_feature(out, type, allow_number_to_str=True)
                 return out
             else:
                 raise
 
 
 class OptimizedTypedSequence(TypedSequence):
-    def __init__(self, data, type=None, try_type=None, col=None, optimized_int_type=None):
+    def __init__(
+        self,
+        data,
+        type: Optional[FeatureType] = None,
+        try_type: Optional[FeatureType] = None,
+        col: Optional[str] = None,
+        optimized_int_type: Optional[FeatureType] = None,
+    ):
         optimized_int_type_by_col = {
-            "attention_mask": pa.int8(),  # binary tensor
-            "special_tokens_mask": pa.int8(),
-            "input_ids": pa.int32(),  # typical vocab size: 0-50k (max ~500k, never > 1M)
-            "token_type_ids": pa.int8(),  # binary mask; some (XLNetModel) use an additional token represented by a 2
+            "attention_mask": Value("int8"),  # binary tensor
+            "special_tokens_mask": Value("int8"),
+            "input_ids": Value("int32"),  # typical vocab size: 0-50k (max ~500k, never > 1M)
+            "token_type_ids": Value(
+                "int8"
+            ),  # binary mask; some (XLNetModel) use an additional token represented by a 2
         }
         if type is None and try_type is None:
             optimized_int_type = optimized_int_type_by_col.get(col, None)
@@ -209,6 +270,8 @@ class OptimizedTypedSequence(TypedSequence):
 
 class ArrowWriter:
     """Shuffles and writes Examples to Arrow files."""
+
+    _WRITER_CLASS = pa.RecordBatchStreamWriter
 
     def __init__(
         self,
@@ -224,6 +287,8 @@ class ArrowWriter:
         update_features: bool = False,
         with_metadata: bool = True,
         unit: str = "examples",
+        embed_local_files: bool = False,
+        storage_options: Optional[dict] = None,
     ):
         if path is None and stream is None:
             raise ValueError("At least one of path and stream must be provided.")
@@ -246,11 +311,19 @@ class ArrowWriter:
         self._check_duplicates = check_duplicates
         self._disable_nullable = disable_nullable
 
-        self._path = path
         if stream is None:
-            self.stream = pa.OSFile(self._path, "wb")
+            fs_token_paths = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+            self._fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+            self._path = (
+                fs_token_paths[2][0]
+                if not is_remote_filesystem(self._fs)
+                else self._fs.unstrip_protocol(fs_token_paths[2][0])
+            )
+            self.stream = self._fs.open(fs_token_paths[2][0], "wb")
             self._closable_stream = True
         else:
+            self._fs = None
+            self._path = None
             self.stream = stream
             self._closable_stream = False
 
@@ -260,6 +333,7 @@ class ArrowWriter:
         self.update_features = update_features
         self.with_metadata = with_metadata
         self.unit = unit
+        self.embed_local_files = embed_local_files
 
         self._num_examples = 0
         self._num_bytes = 0
@@ -309,7 +383,7 @@ class ArrowWriter:
         if self.with_metadata:
             schema = schema.with_metadata(self._build_metadata(DatasetInfo(features=self._features), self.fingerprint))
         self._schema = schema
-        self.pa_writer = pa.RecordBatchStreamWriter(self.stream, schema)
+        self.pa_writer = self._WRITER_CLASS(self.stream, schema)
 
     @property
     def schema(self):
@@ -337,38 +411,18 @@ class ArrowWriter:
         if not self.current_examples:
             return
 
-        # Since current_examples contains (example, key) tuples
+        # order the columns properly
         cols = (
             [col for col in self.schema.names if col in self.current_examples[0][0]]
             + [col for col in self.current_examples[0][0].keys() if col not in self.schema.names]
             if self.schema
             else self.current_examples[0][0].keys()
         )
-
-        schema = None if self.pa_writer is None and self.update_features else self.schema
-        try_schema = self.schema if self.pa_writer is None and self.update_features else None
-        arrays = []
-        inferred_types = []
+        batch_examples = {}
         for col in cols:
-            col_type = schema.field(col).type if schema else None
-            col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
-            typed_sequence = OptimizedTypedSequence(
-                [row[0][col] for row in self.current_examples], type=col_type, try_type=col_try_type, col=col
-            )
-            pa_array = pa.array(typed_sequence)
-            inferred_type = pa_array.type
-            first_example = pa.array(OptimizedTypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
-            if pa_array[0] != first_example:  # Sanity check (check for overflow in StructArray or ListArray)
-                # This check fails with FloatArrays with nans, which is not what we want, so account for that:
-                if not isinstance(pa_array[0], pa.lib.FloatScalar):
-                    raise OverflowError(
-                        f"There was an overflow in the {type(pa_array)}. Try to reduce writer_batch_size to have batches smaller than 2GB"
-                    )
-            arrays.append(pa_array)
-            inferred_types.append(inferred_type)
-        schema = pa.schema(zip(cols, inferred_types)) if self.pa_writer is None else self.schema
-        table = pa.Table.from_arrays(arrays, schema=schema)
-        self.write_table(table)
+            # Since current_examples contains (example, key) tuples
+            batch_examples[col] = [row[0][col] for row in self.current_examples]
+        self.write_batch(batch_examples=batch_examples)
         self.current_examples = []
 
     def write_rows_on_file(self):
@@ -417,7 +471,13 @@ class ArrowWriter:
         tmp_record = set()
         for hash, key in self.hkey_record:
             if hash in tmp_record:
-                raise DuplicatedKeysError(key)
+                duplicate_key_indices = [
+                    str(self._num_examples + index)
+                    for index, (duplicate_hash, _) in enumerate(self.hkey_record)
+                    if duplicate_hash == hash
+                ]
+
+                raise DuplicatedKeysError(key, duplicate_key_indices)
             else:
                 tmp_record.add(hash)
 
@@ -435,7 +495,7 @@ class ArrowWriter:
 
     def write_batch(
         self,
-        batch_examples: Dict[str, List[Any]],
+        batch_examples: Dict[str, List],
         writer_batch_size: Optional[int] = None,
     ):
         """Write a batch of Example to file.
@@ -447,15 +507,24 @@ class ArrowWriter:
         """
         if batch_examples and len(next(iter(batch_examples.values()))) == 0:
             return
-        schema = None if self.pa_writer is None and self.update_features else self.schema
-        try_schema = self.schema if self.pa_writer is None and self.update_features else None
-        typed_sequence_examples = {}
-        for col in sorted(batch_examples.keys()):
-            col_type = schema.field(col).type if schema else None
-            col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
+        features = None if self.pa_writer is None and self.update_features else self._features
+        try_features = self._features if self.pa_writer is None and self.update_features else None
+        arrays = []
+        inferred_features = Features()
+        cols = (
+            [col for col in self.schema.names if col in batch_examples]
+            + [col for col in batch_examples.keys() if col not in self.schema.names]
+            if self.schema
+            else batch_examples.keys()
+        )
+        for col in cols:
+            col_type = features[col] if features else None
+            col_try_type = try_features[col] if try_features is not None and col in try_features else None
             typed_sequence = OptimizedTypedSequence(batch_examples[col], type=col_type, try_type=col_try_type, col=col)
-            typed_sequence_examples[col] = typed_sequence
-        pa_table = pa.Table.from_pydict(typed_sequence_examples)
+            arrays.append(pa.array(typed_sequence))
+            inferred_features[col] = typed_sequence.get_inferred_type()
+        schema = inferred_features.arrow_schema if self.pa_writer is None else self.schema
+        pa_table = pa.Table.from_arrays(arrays, schema=schema)
         self.write_table(pa_table, writer_batch_size)
 
     def write_table(self, pa_table: pa.Table, writer_batch_size: Optional[int] = None):
@@ -468,14 +537,12 @@ class ArrowWriter:
             writer_batch_size = self.writer_batch_size
         if self.pa_writer is None:
             self._build_writer(inferred_schema=pa_table.schema)
-        # reorder the arrays if necessary + cast to self._schema
-        # we can't simply use .cast here because we may need to change the order of the columns
-        pa_table = pa.Table.from_arrays([pa_table[name] for name in self._schema.names], schema=self._schema)
-        batches: List[pa.RecordBatch] = pa_table.to_batches(max_chunksize=writer_batch_size)
-        self._num_bytes += sum(batch.nbytes for batch in batches)
+        pa_table = table_cast(pa_table, self._schema)
+        if self.embed_local_files:
+            pa_table = embed_table_storage(pa_table)
+        self._num_bytes += pa_table.nbytes
         self._num_examples += pa_table.num_rows
-        for batch in batches:
-            self.pa_writer.write_batch(batch)
+        self.pa_writer.write_table(pa_table, writer_batch_size)
 
     def finalize(self, close_stream=True):
         self.write_rows_on_file()
@@ -491,12 +558,17 @@ class ArrowWriter:
             else:
                 raise ValueError("Please pass `features` or at least one example when writing data")
         self.pa_writer.close()
+        self.pa_writer = None
         if close_stream:
             self.stream.close()
         logger.debug(
             f"Done writing {self._num_examples} {self.unit} in {self._num_bytes} bytes {self._path if self._path else ''}."
         )
         return self._num_examples, self._num_bytes
+
+
+class ParquetWriter(ArrowWriter):
+    _WRITER_CLASS = pq.ParquetWriter
 
 
 class BeamWriter:
@@ -520,7 +592,7 @@ class BeamWriter:
 
         if features is not None:
             self._features: Features = features
-            self._schema: pa.Schema = pa.schema(features.type)
+            self._schema: pa.Schema = features.arrow_schema
         else:
             self._schema: pa.Schema = schema
             self._features: Features = Features.from_arrow_schema(schema)
@@ -542,14 +614,12 @@ class BeamWriter:
         _ = pcoll_examples | "Count N. Examples" >> beam.Map(inc_num_examples)
 
         # save dataset
-        simplified_schema = pa.schema({field.name: pa.string() for field in self._schema})
         return (
             pcoll_examples
             | "Get values" >> beam.Values()
-            | "simplify" >> beam.Map(lambda ex: {k: json.dumps(v) for k, v in ex.items()})
             | "Save to parquet"
             >> beam.io.parquetio.WriteToParquet(
-                self._parquet_path, simplified_schema, shard_name_template="-SSSSS-of-NNNNN.parquet"
+                self._parquet_path, self._schema, shard_name_template="-SSSSS-of-NNNNN.parquet"
             )
         )
 
@@ -567,49 +637,61 @@ class BeamWriter:
         from .utils import beam_utils
 
         # Convert to arrow
-        logger.info(f"Converting parquet file {self._parquet_path} to arrow {self._path}")
-        shards = [
-            metadata.path
-            for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
-        ]
-        try:  # stream conversion
-            sources = [beam.io.filesystems.FileSystems.open(shard) for shard in shards]
-            with beam.io.filesystems.FileSystems.create(self._path) as dest:
-                parquet_to_arrow(sources, dest)
-        except socket.error as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
-            if e.errno != errno.EPIPE:  # not a broken pipe
-                raise
-            logger.warning("Broken Pipe during stream conversion from parquet to arrow. Using local convert instead")
-            local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
-            os.makedirs(local_convert_dir, exist_ok=True)
-            local_arrow_path = os.path.join(local_convert_dir, hash_url_to_filename(self._parquet_path) + ".arrow")
-            local_shards = []
-            for shard in shards:
-                local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(shard) + ".parquet")
-                local_shards.append(local_parquet_path)
-                beam_utils.download_remote_to_local(shard, local_parquet_path)
-            parquet_to_arrow(local_shards, local_arrow_path)
-            beam_utils.upload_local_to_remote(local_arrow_path, self._path)
+        if self._path.endswith(".arrow"):
+            logger.info(f"Converting parquet file {self._parquet_path} to arrow {self._path}")
+            shards = [
+                metadata.path
+                for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[
+                    0
+                ].metadata_list
+            ]
+            try:  # stream conversion
+                sources = [beam.io.filesystems.FileSystems.open(shard) for shard in shards]
+                with beam.io.filesystems.FileSystems.create(self._path) as dest:
+                    parquet_to_arrow(sources, dest)
+            except OSError as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
+                if e.errno != errno.EPIPE:  # not a broken pipe
+                    raise
+                logger.warning(
+                    "Broken Pipe during stream conversion from parquet to arrow. Using local convert instead"
+                )
+                local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
+                os.makedirs(local_convert_dir, exist_ok=True)
+                local_arrow_path = os.path.join(local_convert_dir, hash_url_to_filename(self._parquet_path) + ".arrow")
+                local_shards = []
+                for shard in shards:
+                    local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(shard) + ".parquet")
+                    local_shards.append(local_parquet_path)
+                    beam_utils.download_remote_to_local(shard, local_parquet_path)
+                parquet_to_arrow(local_shards, local_arrow_path)
+                beam_utils.upload_local_to_remote(local_arrow_path, self._path)
+            output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
+            num_bytes = output_file_metadata.size_in_bytes
+        else:
+            num_bytes = sum(
+                [
+                    metadata.size_in_bytes
+                    for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[
+                        0
+                    ].metadata_list
+                ]
+            )
 
         # Save metrics
         counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
         self._num_examples = counters_dict["num_examples"]
-        output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
-        self._num_bytes = output_file_metadata.size_in_bytes
+        self._num_bytes = num_bytes
         return self._num_examples, self._num_bytes
 
 
 def parquet_to_arrow(sources, destination):
     """Convert parquet files to arrow file. Inputs can be str paths or file-like objects"""
     stream = None if isinstance(destination, str) else destination
-    disable = bool(logging.get_verbosity() == logging.NOTSET)
+    disable = not logging.is_progress_bar_enabled()
     with ArrowWriter(path=destination, stream=stream) as writer:
-        for source in utils.tqdm(sources, unit="sources", disable=disable):
-            pf = pa.parquet.ParquetFile(source)
-            for i in utils.tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=disable):
-                df = pf.read_row_group(i).to_pandas()
-                for col in df.columns:
-                    df[col] = df[col].apply(json.loads)
-                reconstructed_table = pa.Table.from_pandas(df)
-                writer.write_table(reconstructed_table)
+        for source in logging.tqdm(sources, unit="sources", disable=disable):
+            parquet_file = pa.parquet.ParquetFile(source)
+            for record_batch in parquet_file.iter_batches():
+                pa_table = pa.Table.from_batches([record_batch])
+                writer.write_table(pa_table)
     return destination

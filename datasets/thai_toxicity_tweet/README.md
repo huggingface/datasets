@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - th
-licenses:
+license:
 - cc-by-nc-3.0
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: ThaiToxicityTweet
 ---
 
 # Dataset Card for `thai_toxicity_tweet`

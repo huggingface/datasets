@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - ar
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - text-classification-other-poetry-classification
 paperswithcode_id: metrec
+pretty_name: MetRec
 ---
 
 # Dataset Card for MetRec
@@ -82,9 +83,9 @@ A typical data point comprises a label which is out of 13 classes and a verse pa
 
 The data is split into a training and testing. The split is organized as the following 
 
-|           | Tain   | Test |
-|---------- | ------ | ---- |
-|data split | 47,124 | 8,316|
+|            |  train |  test |
+|------------|-------:|------:|
+| data split | 47,124 | 8,316 |
 
 ## Dataset Creation
 
@@ -122,7 +123,11 @@ The dataset does not contain any additional annotations.
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
 
 [More Information Needed]
 

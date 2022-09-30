@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - he
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: modern-hebrew-sentiment-dataset
+pretty_name: HebrewSentiment
 ---
 
 # Dataset Card for HebrewSentiment

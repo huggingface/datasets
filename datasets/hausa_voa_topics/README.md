@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - ha
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - topic-classification
 paperswithcode_id: null
+pretty_name: Hausa Voa News Topic Classification Dataset (HausaVoaTopics)
 ---
 
 # Dataset Card for Hausa VOA News Topic Classification dataset (hausa_voa_topics)

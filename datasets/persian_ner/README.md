@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - fa
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -14,9 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
+pretty_name: Persian NER
 ---
 
 # Dataset Card for [Persian NER]

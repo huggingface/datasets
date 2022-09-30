@@ -1,6 +1,31 @@
 ---
-languages:
+annotations_creators:
+- no-annotation
+language:
 - en
+language_creators:
+- found
+license:
+- other
+multilinguality:
+- monolingual
+pretty_name: Amazon US Reviews
+size_categories:
+- 100M<n<1B
+source_datasets:
+- original
+task_categories:
+- summarization
+- text-generation
+- fill-mask
+- text-classification
+task_ids:
+- text-scoring
+- language-modeling
+- masked-language-modeling
+- sentiment-classification
+- sentiment-scoring
+- topic-classification
 paperswithcode_id: null
 ---
 
@@ -72,8 +97,6 @@ Each Dataset contains the following columns :
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -309,11 +332,52 @@ The data fields are the same among all splits.
 
 |      name      | train  |
 |----------------|-------:|
-|Apparel_v1_00   | 5906333|
-|Automotive_v1_00| 3514942|
-|Baby_v1_00      | 1752932|
-|Beauty_v1_00    | 5115666|
-|Books_v1_00     |10319090|
+|Apparel_v1_00 | 5906333|
+|Automotive_v1_00 | 3514942|
+|Baby_v1_00 | 1752932|
+|Beauty_v1_00 | 5115666|
+|Books_v1_00 | 10319090|
+|Books_v1_01 | 6106719|
+|Books_v1_02 | 3105520|
+|Camera_v1_00 | 1801974|
+|Digital_Ebook_Purchase_v1_00 | 12520722|
+|Digital_Ebook_Purchase_v1_01 | 5101693|
+|Digital_Music_Purchase_v1_00 | 1688884|
+|Digital_Software_v1_00 | 102084|
+|Digital_Video_Download_v1_00 | 4057147|
+|Digital_Video_Games_v1_00 | 145431|
+|Electronics_v1_00 | 3093869|
+|Furniture_v1_00 | 792113|
+|Gift_Card_v1_00 | 149086|
+|Grocery_v1_00 | 2402458|
+|Health_Personal_Care_v1_00 | 5331449|
+|Home_Entertainment_v1_00 | 705889|
+|Home_Improvement_v1_00 | 2634781|
+|Home_v1_00 | 6221559|
+|Jewelry_v1_00 | 1767753|
+|Kitchen_v1_00 | 4880466|
+|Lawn_and_Garden_v1_00 | 2557288|
+|Luggage_v1_00 | 348657|
+|Major_Appliances_v1_00 | 96901|
+|Mobile_Apps_v1_00 | 5033376|
+|Mobile_Electronics_v1_00 | 104975|
+|Music_v1_00 | 4751577|
+|Musical_Instruments_v1_00 | 904765|
+|Office_Products_v1_00 | 2642434|
+|Outdoors_v1_00 | 2302401|
+|PC_v1_00 | 6908554|
+|Personal_Care_Appliances_v1_00 | 85981|
+|Pet_Products_v1_00 | 2643619|
+|Shoes_v1_00 | 4366916|
+|Software_v1_00 | 341931|
+|Sports_v1_00 | 4850360|
+|Tools_v1_00 | 1741100|
+|Toys_v1_00 | 4864249|
+|Video_DVD_v1_00 | 5069140|
+|Video_Games_v1_00 | 1785997|
+|Video_v1_00 | 380604|
+|Watches_v1_00 | 960872|
+|Wireless_v1_00 | 9002021|
 
 ## Dataset Creation
 
@@ -367,14 +431,31 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+https://s3.amazonaws.com/amazon-reviews-pds/LICENSE.txt
+
+By accessing the Amazon Customer Reviews Library ("Reviews Library"), you agree that the
+Reviews Library is an Amazon Service subject to the [Amazon.com Conditions of Use](https://www.amazon.com/gp/help/customer/display.html/ref=footer_cou?ie=UTF8&nodeId=508088)
+and you agree to be bound by them, with the following additional conditions:
+
+In addition to the license rights granted under the Conditions of Use,
+Amazon or its content providers grant you a limited, non-exclusive, non-transferable,
+non-sublicensable, revocable license to access and use the Reviews Library
+for purposes of academic research.
+You may not resell, republish, or make any commercial use of the Reviews Library
+or its contents, including use of the Reviews Library for commercial research,
+such as research related to a funding or consultancy contract, internship, or
+other relationship in which the results are provided for a fee or delivered
+to a for-profit organization. You may not (a) link or associate content
+in the Reviews Library with any personal information (including Amazon customer accounts),
+or (b) attempt to determine the identity of the author of any content in the
+Reviews Library.
+If you violate any of the foregoing conditions, your license to access and use the
+Reviews Library will automatically terminate without prejudice to any of the
+other rights or remedies Amazon may have.
 
 ### Citation Information
 
-```
-
-```
-
+No citation information.
 
 ### Contributions
 

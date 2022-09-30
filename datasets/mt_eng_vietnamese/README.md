@@ -5,20 +5,20 @@ language_creators:
 - found
 multilinguality:
 - multilingual
-languages:
+language:
 - en
 - vi
-licenses:
+license:
 - unknown
 size_categories:
 - 100K<n<1M
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
+pretty_name: MtEngVietnamese
 ---
 
 # Dataset Card for mt_eng_vietnamese

@@ -1,7 +1,25 @@
 ---
-pretty_name: EmpatheticDialogues
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
+language_creators:
+- crowdsourced
+license:
+- cc-by-nc-4.0
+multilinguality:
+- monolingual
+pretty_name: EmpatheticDialogues
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- conversational
+- question-answering
+task_ids:
+- dialogue-generation
+- open-domain-qa
 paperswithcode_id: empatheticdialogues
 ---
 
@@ -34,8 +52,8 @@ paperswithcode_id: empatheticdialogues
 ## Dataset Description
 
 - **Homepage:** [https://github.com/facebookresearch/EmpatheticDialogues](https://github.com/facebookresearch/EmpatheticDialogues)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/facebookresearch/EmpatheticDialogues
+- **Paper:** [Towards Empathetic Open-domain Conversation Models: a New Benchmark and Dataset](https://arxiv.org/abs/1811.00207)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 26.72 MB
 - **Size of the generated dataset:** 23.97 MB
@@ -54,8 +72,6 @@ PyTorch original implementation of Towards Empathetic Open-domain Conversation M
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -151,20 +167,27 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Creative Commons [Attribution-NonCommercial 4.0 International](https://creativecommons.org/licenses/by-nc/4.0/).
 
 ### Citation Information
 
 ```
-@inproceedings{rashkin2019towards,
-  title = {Towards Empathetic Open-domain Conversation Models: a New Benchmark and Dataset},
-  author = {Hannah Rashkin and Eric Michael Smith and Margaret Li and Y-Lan Boureau},
-  booktitle = {ACL},
-  year = {2019},
+@inproceedings{rashkin-etal-2019-towards,
+    title = "Towards Empathetic Open-domain Conversation Models: A New Benchmark and Dataset",
+    author = "Rashkin, Hannah  and
+      Smith, Eric Michael  and
+      Li, Margaret  and
+      Boureau, Y-Lan",
+    booktitle = "Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics",
+    month = jul,
+    year = "2019",
+    address = "Florence, Italy",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/P19-1534",
+    doi = "10.18653/v1/P19-1534",
+    pages = "5370--5381",
 }
-
 ```
-
 
 ### Contributions
 

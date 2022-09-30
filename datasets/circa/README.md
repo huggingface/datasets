@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -19,6 +19,7 @@ task_ids:
 - multi-class-classification
 - text-classification-other-question-answer-pair-classification
 paperswithcode_id: circa
+pretty_name: CIRCA
 ---
 
 # Dataset Card for CIRCA

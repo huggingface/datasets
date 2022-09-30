@@ -3,41 +3,35 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- unknown
+license:
+- cc-by-4.0
 multilinguality:
 - monolingual
 size_categories:
-  a:
-  - 100K<n<1M
-  all:
-  - 1M<n<10M
-  b:
-  - 100K<n<1M
-  c:
-  - 100K<n<1M
-  d:
-  - 10K<n<100K
-  e:
-  - 10K<n<100K
-  f:
-  - 10K<n<100K
-  g:
-  - 100K<n<1M
-  h:
-  - 100K<n<1M
-  y:
-  - 100K<n<1M
+- 100K<n<1M
+- 10K<n<100K
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- summarization-other-patent-summarization
 paperswithcode_id: bigpatent
 pretty_name: Big Patent
+configs:
+- a
+- all
+- b
+- c
+- d
+- e
+- f
+- g
+- h
+- y
 ---
 
 # Dataset Card for Big Patent
@@ -68,11 +62,11 @@ pretty_name: Big Patent
 
 ## Dataset Description
 
-- **Homepage:[Big Patent](https://evasharma.github.io/bigpatent/)**
+- **Homepage:** [Big Patent](https://evasharma.github.io/bigpatent/)
 - **Repository:**
-- **Paper:[BIGPATENT: A Large-Scale Dataset for Abstractive and Coherent Summarization](https://arxiv.org/abs/1906.03741)**
+- **Paper:** [BIGPATENT: A Large-Scale Dataset for Abstractive and Coherent Summarization](https://arxiv.org/abs/1906.03741)
 - **Leaderboard:**
-- **Point of Contact:**
+- **Point of Contact:** [Lu Wang](mailto:wangluxy@umich.edu)
 
 ### Dataset Summary
 

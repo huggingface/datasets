@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual
@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: aqua-rat
+pretty_name: Algebra Question Answering with Rationales
 ---
 
 # Dataset Card for AQUA-RAT

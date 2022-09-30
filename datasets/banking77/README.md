@@ -1,13 +1,11 @@
 ---
 annotations_creators:
 - expert-generated
-extended:
-- original
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -21,6 +19,56 @@ task_ids:
 - intent-classification
 - multi-class-classification
 paperswithcode_id: null
+pretty_name: BANKING77
+train-eval-index:
+- config: default
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    text: text
+    label: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 macro
+      args:
+        average: macro
+    - type: f1
+      name: F1 micro
+      args:
+        average: micro  
+    - type: f1
+      name: F1 weighted
+      args:
+        average: weighted
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro  
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro  
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted  
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro  
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro  
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
 ---
 
 # Dataset Card for BANKING77

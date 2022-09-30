@@ -3,9 +3,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -14,10 +14,12 @@ size_categories:
 source_datasets:
 - extended|other-Generics-KB
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
-- text-scoring-other-Meronym-Prediction
+- text-scoring
+- text-classification-other-Meronym-Prediction
 paperswithcode_id: haspart-kb
+pretty_name: hasPart KB
 ---
 
 # Dataset Card for [HasPart]

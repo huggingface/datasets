@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - machine-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -15,14 +15,16 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
-- structure-prediction
+- text-generation
+- fill-mask
+- token-classification
 - text-classification
 task_ids:
 - dialogue-modeling
 - multi-class-classification
 - parsing
 paperswithcode_id: sgd
+pretty_name: Schema-Guided Dialogue
 ---
 
 # Dataset Card for The Schema-Guided Dialogue Dataset
@@ -108,15 +110,35 @@ Each dialog instance has the following fields:
       - `requested_slots`: A list of slots requested by the user in the current turn.
       - `slot_values`: A pair of lists of the same lengths: `slot_name` contains slot names and `slot_value_list` contains the corresponding lists of strings. For categorical slots, this list contains a single value assigned to the slot. For non-categorical slots, all the values in this list are spoken variations of each other and are equivalent (e.g, "6 pm", "six in the evening", "evening at 6" etc.).
 
+The mapping from the action ID and the action name is the following:
+
+0: AFFIRM
+1: AFFIRM_INTENT
+2: CONFIRM
+3: GOODBYE
+4: INFORM
+5: INFORM_COUNT
+6: INFORM_INTENT
+7: NEGATE
+8: NEGATE_INTENT
+9: NOTIFY_FAILURE
+10: NOTIFY_SUCCESS
+11: OFFER
+12: OFFER_INTENT
+13: REQUEST
+14: REQUEST_ALTS
+15: REQ_MORE
+16: SELECT
+17: THANK_YOU
 
 ### Data Splits
 
 The dataset is split into a `train`, `validation`, and `test` split with the following sizes:
 
-|                            | Tain   | Valid | Test  |
-| -----                      | ------ | ----- | ----- |
-| Number of dialogues        | 16142  | 2482  | 4201  |
-| Number of turns            | 48426  | 7446  | 12603 |
+|                     | train | validation |  test |
+|---------------------|------:|-----------:|------:|
+| Number of dialogues | 16142 |       2482 |  4201 |
+| Number of turns     | 48426 |       7446 | 12603 |
 
 
 ## Dataset Creation

@@ -3,8 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
+license:
+- cc0-1.0
 multilinguality:
 - monolingual
 size_categories:
@@ -18,6 +20,7 @@ task_ids:
 - multi-class-classification
 - multi-label-classification
 paperswithcode_id: metooma
+pretty_name: '#MeTooMA dataset'
 ---
 
 # Dataset Card for #MeTooMA dataset
@@ -49,8 +52,9 @@ paperswithcode_id: metooma
 ## Dataset Description
 
 - **Homepage:** https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/JN4EYU
+- **Repository:** https://github.com/midas-research/MeTooMA
 - **Paper:** https://ojs.aaai.org//index.php/ICWSM/article/view/7292
-- **Point of Contact:** https://github.com/midas-research/MeTooMA
+- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 
 ### Dataset Summary

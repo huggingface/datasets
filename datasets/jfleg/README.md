@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual
@@ -15,10 +15,11 @@ size_categories:
 source_datasets:
 - extended|other-GUG-grammaticality-judgements
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
-- conditional-text-generation-other-grammatical-error-correction
+- text2text-generation-other-grammatical-error-correction
 paperswithcode_id: jfleg
+pretty_name: JHU FLuency-Extended GUG corpus
 ---
 
 # Dataset Card for JFLEG

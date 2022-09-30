@@ -3,11 +3,11 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - code
 - en
-licenses:
-- other-C-UDA
+license:
+- c-uda
 multilinguality:
 - other-programming-languages
 size_categories:
@@ -18,6 +18,7 @@ task_categories:
 - text-retrieval
 task_ids:
 - document-retrieval
+pretty_name: CodeXGlueTcNlCodeSearchAdv
 ---
 # Dataset Card for "code_x_glue_tc_nl_code_search_adv"
 

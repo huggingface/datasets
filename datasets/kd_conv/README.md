@@ -4,9 +4,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - zh
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual
@@ -15,11 +15,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - dialogue-modeling
-- other-multi-turn
 paperswithcode_id: kdconv
+pretty_name: Knowledge-driven Conversation
 ---
 
 # Dataset Card for KdConv
@@ -154,21 +155,21 @@ Knowledge Base data fields:
 
 The conversation dataset is split into a `train`, `validation`, and `test` split with the following sizes:
 
-|                            | train  | dev    | test |
-| -----                      | ------ | -----  | ---- |
-| travel                     | 1200   | 1200   | 1200 |
-| film                       | 1200   | 150    | 150  |
-| music                      | 1200   | 150    | 150  |
-| all                        | 3600   | 450    | 450  |
+|        | train | validation | test |
+|--------|------:|-----------:|-----:|
+| travel |  1200 |       1200 | 1200 |
+| film   |  1200 |        150 |  150 |
+| music  |  1200 |        150 |  150 |
+| all    |  3600 |        450 |  450 |
 
 The Knowledge base dataset is having only train split with following sizes:
 
-|           | train  |
-| -----     | ------ |
-| travel    | 1154   | 
-| film      | 8090   | 
-| music     | 4441   | 
-| all       | 13685   | 
+|        | train |
+|--------|------:|
+| travel |  1154 | 
+| film   |  8090 | 
+| music  |  4441 | 
+| all    | 13685 | 
 
 ## Dataset Creation
 

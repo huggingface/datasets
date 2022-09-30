@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: null
+pretty_name: StyleChangeDetection
 ---
 
 # Dataset Card for "style_change_detection"
@@ -53,8 +54,6 @@ Access to the dataset needs to be requested from zenodo.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

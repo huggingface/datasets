@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -14,10 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- conditional-text-generation-other-dialogue-generation
+- conversational
+task_ids: []
 paperswithcode_id: negotiation-dialogues-dataset
+pretty_name: Deal or No Deal Negotiator
 ---
 
 
@@ -85,10 +85,10 @@ The text in the dataset is in English
 
 ### Data Splits
 
-|           | Tain   | Valid | Test |
-| -----     | ------ | ----- | ---- |
-| dialogues |  10095 |  1087 | 1052 |
-| self_play |   8172 |  NA   | NA   |
+|            | train | validation | test |
+|------------|------:|-----------:|-----:|
+| dialogues  | 10095 |       1087 | 1052 |
+| self_play  |  8172 |         NA |   NA |
 
 ## Dataset Creation
 

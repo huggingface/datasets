@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - other
-languages:
+language:
 - en
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - monolingual
@@ -18,6 +18,56 @@ task_categories:
 task_ids:
 - multi-label-classification
 paperswithcode_id: null
+pretty_name: JigsawToxicityPred
+train-eval-index:
+- config: default
+  task: text-classification
+  task_id: binary_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    comment_text: text
+    toxic: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 macro
+      args:
+        average: macro
+    - type: f1
+      name: F1 micro
+      args:
+        average: micro
+    - type: f1
+      name: F1 weighted
+      args:
+        average: weighted
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
 ---
 
 # Dataset Card for [Dataset Name]
@@ -56,7 +106,7 @@ paperswithcode_id: null
 
 ### Dataset Summary
 
-Discussing things you care about can be difficult. The threat of abuse and harassment online means that many people stop expressing themselves and give up on seeking different opinions. Platforms struggle to effectively facilitate conversations, leading many communities to limit or completely shut down user comments. This dataset consists of a large number of Wikipedia comments which have been labeled by human raters for toxic behavior. 
+Discussing things you care about can be difficult. The threat of abuse and harassment online means that many people stop expressing themselves and give up on seeking different opinions. Platforms struggle to effectively facilitate conversations, leading many communities to limit or completely shut down user comments. This dataset consists of a large number of Wikipedia comments which have been labeled by human raters for toxic behavior.
 
 ### Supported Tasks and Leaderboards
 
@@ -152,7 +202,7 @@ The "Toxic Comment Classification" dataset is released under [CC0], with the und
 
 ### Citation Information
 
-[More Information Needed]
+No citation information.
 
 ### Contributions
 

@@ -5,10 +5,10 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - vi
-licenses:
-- cc-by-sa-4.0
+license:
+- cc-by-nc-sa-4.0
 multilinguality:
 - monolingual
 size_categories:
@@ -16,9 +16,8 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- speech-processing
-task_ids:
 - automatic-speech-recognition
+task_ids: []
 ---
 
 # Dataset Card for VIVOS
@@ -55,9 +54,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://ailab.hcmus.edu.vn/vivos
+- **Homepage:** https://doi.org/10.5281/zenodo.7068130
 - **Repository:** [Needs More Information]
-- **Paper:** [A non-expert Kaldi recipe for Vietnamese Speech Recognition System](https://ailab.hcmus.edu.vn/assets/WLSI3_2016_Luong_non_expert.pdf)
+- **Paper:** [A non-expert Kaldi recipe for Vietnamese Speech Recognition System](https://aclanthology.org/W16-5207/)
 - **Leaderboard:** [Needs More Information]
 - **Point of Contact:** [AILAB](mailto:ailab@hcmus.edu.vn)
 
@@ -143,7 +142,7 @@ Speech was recorded in a quiet environment with high quality microphone, speaker
 
 ### Personal and Sensitive Information
 
-The dataset consists of people who have donated their voice online.  You agree to not attempt to determine the identity of speakers in the Common Voice dataset.
+The dataset consists of people who have donated their voice online.  You agree to not attempt to determine the identity of speakers in this dataset.
 
 ## Considerations for Using the Data
 
@@ -157,7 +156,7 @@ The dataset consists of people who have donated their voice online.  You agree t
 
 ### Other Known Limitations
 
-[More Information Needed] 
+Dataset provided for research purposes only. Please check dataset license for additional information. 
 
 ## Additional Information
 
@@ -167,16 +166,22 @@ The dataset was initially prepared by AILAB, a computer science lab of VNUHCM - 
 
 ### Licensing Information
 
-Creative Commons Attribution NonCommercial ShareAlike v4.0 (CC BY-NC-SA 4.0)
+Public Domain, Creative Commons Attribution NonCommercial ShareAlike v4.0 ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode))
 
 ### Citation Information
 
 ```
-@InProceedings{vivos:2016,
-Address = {Ho Chi Minh, Vietnam}
-title = {VIVOS: 15 hours of recording speech prepared for Vietnamese Automatic Speech Recognition},
-author={Prof. Vu Hai Quan},
-year={2016}
+@inproceedings{luong-vu-2016-non,
+    title = "A non-expert {K}aldi recipe for {V}ietnamese Speech Recognition System",
+    author = "Luong, Hieu-Thi  and
+      Vu, Hai-Quan",
+    booktitle = "Proceedings of the Third International Workshop on Worldwide Language Service Infrastructure and Second Workshop on Open Infrastructures and Analysis Frameworks for Human Language Technologies ({WLSI}/{OIAF}4{HLT}2016)",
+    month = dec,
+    year = "2016",
+    address = "Osaka, Japan",
+    publisher = "The COLING 2016 Organizing Committee",
+    url = "https://aclanthology.org/W16-5207",
+    pages = "51--55",
 }
 ```
 

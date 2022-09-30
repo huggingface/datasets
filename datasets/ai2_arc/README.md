@@ -3,9 +3,11 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
+- en
+language_bcp47:
 - en-US
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -19,6 +21,7 @@ task_ids:
 - open-domain-qa
 - multiple-choice-qa
 paperswithcode_id: null
+pretty_name: Ai2Arc
 ---
 
 # Dataset Card for "ai2_arc"
@@ -73,8 +76,6 @@ A new dataset of 7,787 genuine grade-school level, multiple-choice science quest
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

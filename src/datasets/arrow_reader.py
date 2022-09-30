@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,11 +26,11 @@ from typing import TYPE_CHECKING, List, Optional, Union
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from datasets.utils.file_utils import DownloadConfig
-
+from .download.download_config import DownloadConfig
 from .naming import _split_re, filename_for_dataset_split
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables
-from .utils import cached_path, logging
+from .utils import logging
+from .utils.file_utils import cached_path
 
 
 if TYPE_CHECKING:
@@ -44,7 +43,7 @@ logger = logging.get_logger(__name__)
 HF_GCP_BASE_URL = "https://storage.googleapis.com/huggingface-nlp/cache/datasets"
 
 _SUB_SPEC_RE = re.compile(
-    fr"""
+    rf"""
 ^
  (?P<split>{_split_re[1:-1]})
  (\[
@@ -96,7 +95,7 @@ def make_file_instructions(name, split_infos, instruction, filetype_suffix=None)
         name: Name of the dataset.
         split_infos: `List[SplitInfo]`, Dataset splits information
         instruction: `ReadInstruction` or `str`
-        filetype_suffix: `Optional[str]` suffix of dataset files, e.g. 'arrow' or 'parquet'
+        filetype_suffix: :obj:`str`, optional suffix of dataset files, e.g. 'arrow' or 'parquet'
 
     Returns:
         file_intructions: FileInstructions instance
@@ -458,9 +457,7 @@ def _rel_to_abs_instr(rel_instr, name2len):
 class ReadInstruction:
     """Reading instruction for a dataset.
 
-    Examples of usage:
-
-    .. code:: python
+    Examples::
 
       # The following lines are equivalent:
       ds = datasets.load_dataset('mnist', split='test[:33%]')
@@ -562,7 +559,7 @@ class ReadInstruction:
         if not subs:
             raise AssertionError(f"No instructions could be built out of {spec}")
         instruction = _str_to_read_instruction(subs[0])
-        return sum([_str_to_read_instruction(sub) for sub in subs[1:]], instruction)
+        return sum((_str_to_read_instruction(sub) for sub in subs[1:]), instruction)
 
     def to_spec(self):
         rel_instr_specs = []

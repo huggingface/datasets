@@ -4,31 +4,31 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
-- en
-- da 
-- de 
-- nl 
-- sv 
+language:
 - bg 
 - cs 
-- hr 
-- pl 
-- sk 
-- sl 
+- da 
+- de 
+- el 
+- en
 - es 
-- fr 
-- it 
-- pt 
-- ro 
 - et 
 - fi 
+- fr 
+- hr 
 - hu 
+- it 
 - lt 
 - lv 
-- el 
 - mt
-licenses:
+- nl 
+- pl 
+- pt 
+- ro 
+- sk 
+- sl 
+- sv 
+license:
 - cc-by-sa-4.0
 multilinguality:
 - multilingual

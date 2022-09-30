@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -15,13 +15,15 @@ source_datasets:
 - original
 task_categories:
 - other
-- sequence-modeling
-- structure-prediction
+- text-generation
+- fill-mask
+- token-classification
 task_ids:
 - other-other-Conversational Recommendation
 - dialogue-modeling
 - parsing
 paperswithcode_id: coached-conversational-preference-elicitation
+pretty_name: Coached Conversational Preference Elicitation
 ---
 
 # Dataset Card for Coached Conversational Preference Elicitation

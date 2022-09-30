@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -20,6 +20,7 @@ task_ids:
 - sentiment-classification
 - text-classification-other-dialogue-sentiment-classification
 paperswithcode_id: redial
+pretty_name: ReDial (Recommendation Dialogues)
 ---
 
 # Dataset Card for ReDial (Recommendation Dialogues)

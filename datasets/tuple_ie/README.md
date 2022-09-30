@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - machine-generated
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -49,9 +49,9 @@ pretty_name: TupleInf Open IE
 
 ## Dataset Description
 
-- **Homepage: [Tuple IE Homepage](https://allenai.org/data/tuple-ie)**
+- **Homepage:** [Tuple IE Homepage](https://allenai.org/data/tuple-ie)
 - **Repository:**
-- **Paper: [Answering Complex Questions Using Open Information Extraction](https://www.semanticscholar.org/paper/Answering-Complex-Questions-Using-Open-Information-Khot-Sabharwal/0ff595f0645a3e25a2f37145768985b10ead0509)**
+- **Paper:** [Answering Complex Questions Using Open Information Extraction](https://www.semanticscholar.org/paper/Answering-Complex-Questions-Using-Open-Information-Khot-Sabharwal/0ff595f0645a3e25a2f37145768985b10ead0509)
 - **Leaderboard:**
 - **Point of Contact:**
 

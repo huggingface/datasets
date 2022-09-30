@@ -59,7 +59,7 @@ _URLs = {
     "korean": "https://drive.google.com/uc?export=download&id=1cqu_YAgvlyVSzzjcUyP1Cz7q0k8Pw7vN",
     "portuguese": "https://drive.google.com/uc?export=download&id=1GTHUJxxmjLmG2lnF9dwRgIDRFZaOY3-F",
     "russian": "https://drive.google.com/uc?export=download&id=1fUR3MqJ8jTMka6owA0S-Fe6aHmiophc_",
-    "spanish": "https://drive.google.com/uc?export=download&id=17FGi8KI9N9SuGe7elM8qU8_3fx4sfgTr",
+    "spanish": "https://drive.google.com/uc?export=download&id=1KtMDsoYNukGP89PLujQTGVgt37cOARs5",
     "thai": "https://drive.google.com/uc?export=download&id=1QsV8C5EPJrQl37mwva_5-IJOrCaOi2tH",
     "turkish": "https://drive.google.com/uc?export=download&id=1M1M5yIOyjKWGprc3LUeVVwxgKXxgpqxm",
     "vietnamese": "https://drive.google.com/uc?export=download&id=17FGi8KI9N9SuGe7elM8qU8_3fx4sfgTr",
@@ -69,7 +69,7 @@ _URLs = {
 class WikiLingua(datasets.GeneratorBasedBuilder):
     """TODO: Short description of my dataset."""
 
-    VERSION = datasets.Version("1.1.0")
+    VERSION = datasets.Version("1.1.1")
 
     # This is an example of a dataset with multiple configurations.
     # If you don't want/need to define several sub-sets in your dataset,

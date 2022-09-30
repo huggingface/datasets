@@ -1,6 +1,24 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
+language_creators:
+- found
+- machine-generated
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: WikiSQL
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text2text-generation
+task_ids:
+- text2text-generation-other-text-to-sql
 paperswithcode_id: wikisql
 ---
 
@@ -32,9 +50,8 @@ paperswithcode_id: wikisql
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/salesforce/WikiSQL](https://github.com/salesforce/WikiSQL)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/salesforce/WikiSQL
+- **Paper:** [Seq2SQL: Generating Structured Queries from Natural Language using Reinforcement Learning](https://arxiv.org/abs/1709.00103)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 24.95 MB
 - **Size of the generated dataset:** 147.57 MB
@@ -42,7 +59,10 @@ paperswithcode_id: wikisql
 
 ### Dataset Summary
 
-A large crowd-sourced dataset for developing natural language interfaces for relational databases
+A large crowd-sourced dataset for developing natural language interfaces for relational databases.
+
+WikiSQL is a dataset of 80654 hand-annotated examples
+of questions and SQL queries distributed across 24241 tables from Wikipedia.
 
 ### Supported Tasks and Leaderboards
 
@@ -53,8 +73,6 @@ A large crowd-sourced dataset for developing natural language interfaces for rel
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -183,9 +201,7 @@ The data fields are the same among all splits.
   volume    = {abs/1709.00103},
   year      = {2017}
 }
-
 ```
-
 
 ### Contributions
 

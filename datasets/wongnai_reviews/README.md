@@ -1,10 +1,12 @@
 ---
-annotations_creators: []
-language_creators: []
-languages:
+annotations_creators:
+- found
+language_creators:
+- found
+language:
 - th
-licenses:
-- lgpl-3.0-only
+license:
+- lgpl-3.0
 multilinguality:
 - monolingual
 size_categories:
@@ -16,13 +18,14 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: WongnaiReviews
 ---
 
 # Dataset Card for Wongnai_Reviews
 
 ## Dataset Description
 
-- **Repository: ** https://github.com/wongnai/wongnai-corpus
+- **Repository:** https://github.com/wongnai/wongnai-corpus
 
 ### Dataset Summary
 

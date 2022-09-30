@@ -3,9 +3,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -14,13 +14,15 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - dialogue-modeling
 paperswithcode_id: craigslistbargains
+pretty_name: CraigslistBargains
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for CraigslistBargains
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

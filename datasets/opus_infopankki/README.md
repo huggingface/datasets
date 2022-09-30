@@ -3,206 +3,20 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
-  ar-en:
-  - ar
-  - en
-  ar-es:
-  - ar
-  - es
-  ar-et:
-  - ar
-  - et
-  ar-fa:
-  - ar
-  - fa
-  ar-fi:
-  - ar
-  - fi
-  ar-fr:
-  - ar
-  - fr
-  ar-ru:
-  - ar
-  - ru
-  ar-so:
-  - ar
-  - so
-  ar-sv:
-  - ar
-  - sv
-  ar-tr:
-  - ar
-  - tr
-  ar-zh:
-  - ar
-  - zh
-  en-es:
-  - en
-  - es
-  en-et:
-  - en
-  - et
-  en-fa:
-  - en
-  - fa
-  en-fi:
-  - en
-  - fi
-  en-fr:
-  - en
-  - fr
-  en-ru:
-  - en
-  - ru
-  en-so:
-  - en
-  - so
-  en-sv:
-  - en
-  - sv
-  en-tr:
-  - en
-  - tr
-  en-zh:
-  - en
-  - zh
-  es-et:
-  - es
-  - et
-  es-fa:
-  - es
-  - fa
-  es-fi:
-  - es
-  - fi
-  es-fr:
-  - es
-  - fr
-  es-ru:
-  - es
-  - ru
-  es-so:
-  - es
-  - so
-  es-sv:
-  - es
-  - sv
-  es-tr:
-  - es
-  - tr
-  es-zh:
-  - es
-  - zh
-  et-fa:
-  - et
-  - fa
-  et-fi:
-  - et
-  - fi
-  et-fr:
-  - et
-  - fr
-  et-ru:
-  - et
-  - ru
-  et-so:
-  - et
-  - so
-  et-sv:
-  - et
-  - sv
-  et-tr:
-  - et
-  - tr
-  et-zh:
-  - et
-  - zh
-  fa-fi:
-  - fa
-  - fi
-  fa-fr:
-  - fa
-  - fr
-  fa-ru:
-  - fa
-  - ru
-  fa-so:
-  - fa
-  - so
-  fa-sv:
-  - fa
-  - sv
-  fa-tr:
-  - fa
-  - tr
-  fa-zh:
-  - fa
-  - zh
-  fi-fr:
-  - fi
-  - fr
-  fi-ru:
-  - fi
-  - ru
-  fi-so:
-  - fi
-  - so
-  fi-sv:
-  - fi
-  - sv
-  fi-tr:
-  - fi
-  - tr
-  fi-zh:
-  - fi
-  - zh
-  fr-ru:
-  - fr
-  - ru
-  fr-so:
-  - fr
-  - so
-  fr-sv:
-  - fr
-  - sv
-  fr-tr:
-  - fr
-  - tr
-  fr-zh:
-  - fr
-  - zh
-  ru-so:
-  - ru
-  - so
-  ru-sv:
-  - ru
-  - sv
-  ru-tr:
-  - ru
-  - tr
-  ru-zh:
-  - ru
-  - zh
-  so-sv:
-  - so
-  - sv
-  so-tr:
-  - so
-  - tr
-  so-zh:
-  - so
-  - zh
-  sv-tr:
-  - sv
-  - tr
-  sv-zh:
-  - sv
-  - zh
-  tr-zh:
-  - tr
-  - zh
-licenses:
+language:
+- ar
+- en
+- es
+- et
+- fa
+- fi
+- fr
+- ru
+- so
+- sv
+- tr
+- zh
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -211,10 +25,77 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
+pretty_name: OpusInfopankki
+configs:
+- ar-en
+- ar-es
+- ar-et
+- ar-fa
+- ar-fi
+- ar-fr
+- ar-ru
+- ar-so
+- ar-sv
+- ar-tr
+- ar-zh
+- en-es
+- en-et
+- en-fa
+- en-fi
+- en-fr
+- en-ru
+- en-so
+- en-sv
+- en-tr
+- en-zh
+- es-et
+- es-fa
+- es-fi
+- es-fr
+- es-ru
+- es-so
+- es-sv
+- es-tr
+- es-zh
+- et-fa
+- et-fi
+- et-fr
+- et-ru
+- et-so
+- et-sv
+- et-tr
+- et-zh
+- fa-fi
+- fa-fr
+- fa-ru
+- fa-so
+- fa-sv
+- fa-tr
+- fa-zh
+- fi-fr
+- fi-ru
+- fi-so
+- fi-sv
+- fi-tr
+- fi-zh
+- fr-ru
+- fr-so
+- fr-sv
+- fr-tr
+- fr-zh
+- ru-so
+- ru-sv
+- ru-tr
+- ru-zh
+- so-sv
+- so-tr
+- so-zh
+- sv-tr
+- sv-zh
+- tr-zh
 ---
 
 # Dataset Card for [Dataset Name]

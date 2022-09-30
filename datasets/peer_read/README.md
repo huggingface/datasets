@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - text-classification-other-acceptability-classification
 paperswithcode_id: peerread
+pretty_name: PeerRead
 ---
 
 # Dataset Card for peer_read

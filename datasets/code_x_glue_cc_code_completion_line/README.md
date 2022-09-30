@@ -3,31 +3,30 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - code
-licenses:
-- other-C-UDA
+license:
+- c-uda
 multilinguality:
 - monolingual
 size_categories:
-  go:
-  - n<1K
-  java:
-  - n<1K
-  javascript:
-  - n<1K
-  php:
-  - n<1K
-  python:
-  - 1K<n<10K
-  ruby:
-  - n<1K
+- 1K<n<10K
+- n<1K
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - slot-filling
+pretty_name: CodeXGlueCcCodeCompletionLine
+configs:
+- go
+- java
+- javascript
+- php
+- python
+- ruby
 ---
 # Dataset Card for "code_x_glue_cc_code_completion_line"
 

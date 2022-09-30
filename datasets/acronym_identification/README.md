@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -14,10 +14,20 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
-- structure-prediction-other-acronym-identification
+- token-classification-other-acronym-identification
 paperswithcode_id: acronym-identification
+pretty_name: Acronym Identification Dataset
+train-eval-index:
+- config: default
+  task: token-classification
+  task_id: entity_extraction
+  splits:
+    eval_split: test
+  col_mapping:
+    tokens: tokens
+    labels: tags
 ---
 
 # Dataset Card for Acronym Identification Dataset
@@ -164,7 +174,7 @@ Papers published on arXiv are unlikely to contain much personal information, alt
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

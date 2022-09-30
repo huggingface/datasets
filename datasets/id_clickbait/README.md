@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - id
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - fact-checking
 paperswithcode_id: null
+pretty_name: Indonesian Clickbait Headlines
 ---
 
 # Dataset Card for Indonesian Clickbait Headlines

@@ -3,22 +3,16 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
 - fi
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - multilingual
 size_categories:
-  en_annotated:
-  - 10K<n<100K
-  en_neutral:
-  - 1K<n<10K
-  fi_annotated:
-  - 10K<n<100K
-  fi_neutral:
-  - 10K<n<100K
+- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - extended|other-OpenSubtitles2016
 task_categories:
@@ -29,6 +23,12 @@ task_ids:
 - multi-label-classification
 - sentiment-classification
 paperswithcode_id: xed
+pretty_name: XedEnglishFinnish
+configs:
+- en_annotated
+- en_neutral
+- fi_annotated
+- fi_neutral
 ---
 
 # Dataset Card for xed_english_finnish

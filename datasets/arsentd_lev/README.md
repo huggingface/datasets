@@ -3,11 +3,11 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - apc
-- apj
-licenses:
-- other-Copyright-2018-by-[American-University-of-Beirut]
+- ajp
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -20,6 +20,7 @@ task_ids:
 - sentiment-classification
 - topic-classification
 paperswithcode_id: arsentd-lev
+pretty_name: ArSenTD-LEV
 ---
 
 # Dataset Card for ArSenTD-LEV

@@ -3,21 +3,15 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
 size_categories:
-  generics_kb:
-  - 1M<n<10M
-  generics_kb_best:
-  - 1M<n<10M
-  generics_kb_simplewiki:
-  - 10K<n<100K
-  generics_kb_waterloo:
-  - 1M<n<10M
+- 10K<n<100K
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -25,6 +19,12 @@ task_categories:
 task_ids:
 - other-other-knowledge-base
 paperswithcode_id: genericskb
+pretty_name: GenericsKB
+configs:
+- generics_kb
+- generics_kb_best
+- generics_kb_simplewiki
+- generics_kb_waterloo
 ---
 
 # Dataset Card for Generics KB

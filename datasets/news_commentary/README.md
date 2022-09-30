@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - ar
 - cs
 - de
@@ -16,7 +16,7 @@ languages:
 - pt
 - ru
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -25,13 +25,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
+pretty_name: NewsCommentary
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for NewsCommentary
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

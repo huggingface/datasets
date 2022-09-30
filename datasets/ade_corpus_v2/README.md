@@ -3,36 +3,78 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
 size_categories:
-  Ade_corpus_v2_classification:
-  - 10K<n<100K
-  Ade_corpus_v2_drug_ade_relation:
-  - 1K<n<10K
-  Ade_corpus_v2_drug_dosage_relation:
-  - n<1K
+- 10K<n<100K
+- 1K<n<10K
+- n<1K
 source_datasets:
 - original
 task_categories:
-  Ade_corpus_v2_classification:
-  - text-classification
-  Ade_corpus_v2_drug_ade_relation:
-  - structure-prediction
-  Ade_corpus_v2_drug_dosage_relation:
-  - structure-prediction
+- text-classification
+- token-classification
 task_ids:
-  Ade_corpus_v2_classification:
-  - fact-checking
-  Ade_corpus_v2_drug_ade_relation:
-  - coreference-resolution
-  Ade_corpus_v2_drug_dosage_relation:
-  - coreference-resolution
+- coreference-resolution
+- fact-checking
 paperswithcode_id: null
+pretty_name: Adverse Drug Reaction Data v2
+train-eval-index:
+- config: Ade_corpus_v2_classification
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+  col_mapping:
+    text: text
+    label: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 macro
+      args:
+        average: macro
+    - type: f1
+      name: F1 micro
+      args:
+        average: micro  
+    - type: f1
+      name: F1 weighted
+      args:
+        average: weighted
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro  
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro  
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted  
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro  
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro  
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
+configs:
+- Ade_corpus_v2_classification
+- Ade_corpus_v2_drug_ade_relation
+- Ade_corpus_v2_drug_dosage_relation
 ---
 
 # Dataset Card for Adverse Drug Reaction Data v2

@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: dream
+pretty_name: DREAM
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for DREAM
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

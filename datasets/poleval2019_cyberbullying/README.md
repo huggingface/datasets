@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - pl
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - intent-classification
 paperswithcode_id: null
+pretty_name: Poleval 2019 cyberbullying
 ---
 
 # Dataset Card for Poleval 2019 cyberbullying

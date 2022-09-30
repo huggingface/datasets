@@ -1,289 +1,87 @@
 ---
 annotations_creators:
-  mlqa:
-  - crowdsourced
-  nc:
-  - machine-generated
-  ner:
-  - expert-generated
-  - found
-  ntg:
-  - machine-generated
-  paws-x:
-  - expert-generated
-  pos:
-  - expert-generated
-  - found
-  qadsm:
-  - machine-generated
-  qam:
-  - machine-generated
-  qg:
-  - machine-generated
-  wpr:
-  - machine-generated
-  xnli:
-  - machine-generated
+- crowdsourced
+- expert-generated
+- found
+- machine-generated
 language_creators:
-  mlqa:
-  - found
-  nc:
-  - found
-  ner:
-  - crowdsourced
-  - expert-generated
-  ntg:
-  - machine-generated
-  paws-x:
-  - expert-generated
-  pos:
-  - crowdsourced
-  - expert-generated
-  qadsm:
-  - found
-  qam:
-  - found
-  qg:
-  - machine-generated
-  wpr:
-  - found
-  xnli:
-  - crowdsourced
-  - expert-generated
-languages:
-  mlqa:
-  - ar
-  - de
-  - en
-  - es
-  - hi
-  - vi
-  - zh
-  nc:
-  - en
-  - de
-  - es
-  - fr
-  - ru
-  ner:
-  - de
-  - en
-  - es
-  - nl
-  ntg:
-  - en
-  - de
-  - es
-  - fr
-  - ru
-  paws-x:
-  - en
-  - de
-  - es
-  - fr
-  pos:
-  - ar
-  - bg
-  - de
-  - el
-  - en
-  - es
-  - fr
-  - hi
-  - it
-  - nl
-  - pl
-  - ru
-  - th
-  - tr
-  - ur
-  - vi
-  - zh
-  qadsm:
-  - en
-  - de
-  - fr
-  qam:
-  - en
-  - de
-  - fr
-  qg:
-  - en
-  - de
-  - fr
-  - pt
-  - it
-  - zh
-  wpr:
-  - en
-  - de
-  - fr
-  - es
-  - it
-  - pt
-  - zh
-  xnli:
-  - ar
-  - bg
-  - de
-  - el
-  - en
-  - es
-  - fr
-  - hi
-  - ru
-  - sw
-  - th
-  - tr
-  - ur
-  - vi
-  - zh
-licenses:
-  mlqa:
-  - cc-by-sa-4.0
-  nc:
-  - unknown
-  ner:
-  - unknown
-  ntg:
-  - unknown
-  paws-x:
-  - unknown
-  pos:
-  - other-Licence Universal Dependencies v2.5
-  qadsm:
-  - unknown
-  qam:
-  - unknown
-  qg:
-  - unknown
-  wpr:
-  - unknown
-  xnli:
-  - cc-by-nc-4.0
+- crowdsourced
+- expert-generated
+- found
+- machine-generated
+language:
+- ar
+- bg
+- de
+- el
+- en
+- es
+- fr
+- hi
+- it
+- nl
+- pl
+- pt
+- ru
+- sw
+- th
+- tr
+- ur
+- vi
+- zh
+license:
+- cc-by-nc-4.0
+- cc-by-sa-4.0
+- other
+license_details: "Licence Universal Dependencies v2.5"
 multilinguality:
-  mlqa:
-  - multilingual
-  nc:
-  - multilingual
-  ner:
-  - multilingual
-  ntg:
-  - multilingual
-  paws-x:
-  - multilingual
-  pos:
-  - multilingual
-  qadsm:
-  - multilingual
-  qam:
-  - multilingual
-  qg:
-  - multilingual
-  wpr:
-  - multilingual
-  xnli:
-  - multilingual
-  - translation
+- multilingual
+- translation
 size_categories:
-  mlqa:
-  - 100K<n<1M
-  nc:
-  - 100K<n<1M
-  ner:
-  - 10K<n<100K
-  ntg:
-  - 100K<n<1M
-  paws-x:
-  - 10K<n<100K
-  pos:
-  - 10K<n<100K
-  qadsm:
-  - 100K<n<1M
-  qam:
-  - 100K<n<1M
-  qg:
-  - 100K<n<1M
-  wpr:
-  - 100K<n<1M
-  xnli:
-  - 100K<n<1M
+- 100K<n<1M
+- 10K<n<100K
 source_datasets:
-  mlqa:
-  - extended|squad
-  nc:
-  - original
-  ner:
-  - extended|conll2003
-  ntg:
-  - original
-  paws-x:
-  - original
-  pos:
-  - original
-  qadsm:
-  - original
-  qam:
-  - original
-  qg:
-  - original
-  wpr:
-  - original
-  xnli:
-  - extended|xnli
+- extended|conll2003
+- extended|squad
+- extended|xnli
+- original
 task_categories:
-  mlqa:
-  - question-answering
-  nc:
-  - text-classification
-  ner:
-  - structure-prediction
-  ntg:
-  - conditional-text-generation
-  paws-x:
-  - text-classification
-  pos:
-  - structure-prediction
-  qadsm:
-  - text-classification
-  qam:
-  - text-classification
-  qg:
-  - conditional-text-generation
-  wpr:
-  - text-classification
-  xnli:
-  - text-classification
+- question-answering
+- summarization
+- text-classification
+- text2text-generation
+- token-classification
 task_ids:
-  mlqa:
-  - extractive-qa
-  - open-domain-qa
-  nc:
-  - topic-classification
-  ner:
-  - named-entity-recognition
-  ntg:
-  - summarization
-  paws-x:
-  - text-classification-other-paraphrase-identification
-  pos:
-  - parsing
-  qadsm:
-  - acceptability-classification
-  qam:
-  - acceptability-classification
-  qg:
-  - conditional-text-generation-other-question-answering
-  wpr:
-  - acceptability-classification
-  xnli:
-  - natural-language-inference
+- acceptability-classification
+- extractive-qa
+- named-entity-recognition
+- natural-language-inference
+- news-articles-headline-generation
+- open-domain-qa
+- parsing
+- text-classification-other-paraphrase-identification
+- text2text-generation-other-question-answering
+- topic-classification
 paperswithcode_id: null
+pretty_name: XGLUE
+configs:
+- mlqa
+- nc
+- ner
+- ntg
+- paws-x
+- pos
+- qadsm
+- qam
+- qg
+- wpr
+- xnli
 ---
 
 # Dataset Card for XGLUE
 
 ## Table of Contents
+- [Table of Contents](#table-of-contents)
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
   - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
@@ -323,10 +121,27 @@ The following table shows which languages are present as validation and test dat
 
 Therefore, for each config, a cross-lingual pre-trained model should be fine-tuned on the English training data, and evaluated on for all languages.
 
-### Leaderboards
+### Supported Tasks and Leaderboards
 
 The XGLUE leaderboard can be found on the [homepage](https://microsoft.github.io/XGLUE/) and 
 consits of a XGLUE-Understanding Score (the average of the tasks `ner`, `pos`, `mlqa`, `nc`, `xnli`, `paws-x`, `qadsm`, `wpr`, `qam`) and a XGLUE-Generation Score (the average of the tasks `qg`, `ntg`).
+
+### Languages
+
+For all tasks (configurations), the "train" split is in English (`en`).
+
+For each task, the "validation" and "test" splits are present in these languages:
+- ner: `en`, `de`, `es`, `nl`
+- pos: `en`, `de`, `es`, `nl`, `bg`, `el`, `fr`, `pl`, `tr`, `vi`, `zh`, `ur`, `hi`, `it`, `ar`, `ru`, `th`
+- mlqa: `en`, `de`, `ar`, `es`, `hi`, `vi`, `zh`
+- nc: `en`, `de`, `es`, `fr`, `ru`
+- xnli: `en`, `ar`, `bg`, `de`, `el`, `es`, `fr`, `hi`, `ru`, `sw`, `th`, `tr`, `ur`, `vi`, `zh`
+- paws-x: `en`, `de`, `es`, `fr`
+- qadsm: `en`, `de`, `fr`
+- wpr: `en`, `de`, `es`, `fr`, `it`, `pt`, `zh`
+- qam: `en`, `de`, `fr`
+- qg: `en`, `de`, `es`, `fr`, `it`, `pt`
+- ntg: `en`, `de`, `es`, `fr`, `ru`
 
 ## Dataset Structure
 
@@ -719,12 +534,6 @@ The following table shows the number of data samples/number of rows for each spl
 |    |train |validation.en|validation.ar|validation.bg|validation.de|validation.el|validation.es|validation.fr|validation.hi|validation.ru|validation.sw|validation.th|validation.tr|validation.ur|validation.vi|validation.zh|test.en|test.ar|test.bg|test.de|test.el|test.es|test.fr|test.hi|test.ru|test.sw|test.th|test.tr|test.ur|test.vi|test.zh|
 |----|-----:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|
 |xnli|392702|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|         2490|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|   5010|
-
-The following table shows the number of data samples/number of rows for each split in mlqa.
-
-|    |train|validation.en|validation.de|validation.ar|validation.es|validation.hi|validation.vi|validation.zh|test.en|test.de|test.ar|test.es|test.hi|test.vi|test.zh|                                                                                                                                                      
-|----|----:|------------:|------------:|------------:|------------:|------------:|------------:|------------:|------:|------:|------:|------:|------:|------:|------:|                                                                                                                                                      
-|mlqa|87599|         1148|          512|          517|          500|          507|          511|          504|  11590|   4517|   5335|   5253|   4918|   5495|   5137|                                                                                                                                                      
 
 
 #### nc

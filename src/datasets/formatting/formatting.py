@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import partial
+
 # Lint as: python3
 from typing import Any, Callable, Dict, Generic, Iterable, List, MutableMapping, Optional, TypeVar, Union
 
@@ -20,9 +21,9 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 
-from ..features import _ArrayXDExtensionType, _is_zero_copy_only, pandas_types_mapper
+from ..features.features import _ArrayXDExtensionType, _is_zero_copy_only, decode_nested_example, pandas_types_mapper
 from ..table import Table
-from ..utils import no_op_if_value_is_null
+from ..utils.py_utils import no_op_if_value_is_null
 
 
 T = TypeVar("T")
@@ -55,7 +56,7 @@ def _query_table_with_indices_mapping(
         key = indices.fast_slice(key % indices.num_rows, 1).column(0)[0].as_py()
         return _query_table(table, key)
     if isinstance(key, slice):
-        key = range(*key.indices(table.num_rows))
+        key = range(*key.indices(indices.num_rows))
     if isinstance(key, range):
         if _is_range_contiguous(key) and key.start >= 0:
             return _query_table(
@@ -193,11 +194,11 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
                 array: List = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
         if len(array) > 0:
             if any(
-                (isinstance(x, np.ndarray) and (x.dtype == np.object or x.shape != array[0].shape))
+                (isinstance(x, np.ndarray) and (x.dtype == object or x.shape != array[0].shape))
                 or (isinstance(x, float) and np.isnan(x))
                 for x in array
             ):
-                return np.array(array, copy=False, **{**self.np_array_kwargs, "dtype": np.object})
+                return np.array(array, copy=False, **{**self.np_array_kwargs, "dtype": object})
         return np.array(array, copy=False, **self.np_array_kwargs)
 
 
@@ -233,9 +234,9 @@ class PandasFeaturesDecoder:
     def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
         decode = (
             {
-                column_name: no_op_if_value_is_null(feature.decode_example)
+                column_name: no_op_if_value_is_null(partial(decode_nested_example, feature))
                 for column_name, feature in self.features.items()
-                if column_name in row.columns and hasattr(feature, "decode_example")
+                if self.features._column_requires_decoding[column_name]
             }
             if self.features
             else {}
@@ -246,8 +247,8 @@ class PandasFeaturesDecoder:
 
     def decode_column(self, column: pd.Series, column_name: str) -> pd.Series:
         decode = (
-            no_op_if_value_is_null(self.features[column_name].decode_example)
-            if self.features and column_name in self.features and hasattr(self.features[column_name], "decode_example")
+            no_op_if_value_is_null(partial(decode_nested_example, self.features[column_name]))
+            if self.features and column_name in self.features and self.features._column_requires_decoding[column_name]
             else None
         )
         if decode:
@@ -507,9 +508,9 @@ def format_table(
             the table as either a row, a column or a batch.
         formatter (``datasets.formatting.formatting.Formatter``): Any subclass of a Formatter such as
             PythonFormatter, NumpyFormatter, etc.
-        format_columns (Optional ``List[str]``): if not None, it defines the columns that will be formatted using the
+        format_columns (:obj:`List[str]`, optional): if not None, it defines the columns that will be formatted using the
             given formatter. Other columns are discarded (unless ``output_all_columns`` is True)
-        output_all_columns (``bool``, defaults to False). If True, the formatted output is completed using the columns
+        output_all_columns (:obj:`bool`, defaults to False). If True, the formatted output is completed using the columns
             that are not in the ``format_columns`` list. For these columns, the PythonFormatter is used.
 
 

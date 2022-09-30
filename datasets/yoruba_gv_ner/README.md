@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - yo
-licenses:
-- Creative Commons 3.0
+license:
+- cc-by-3.0
 multilinguality:
 - monolingual
 size_categories:
@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: Yoruba GV NER Corpus
 ---
 
 # Dataset Card for Yoruba GV NER Corpus

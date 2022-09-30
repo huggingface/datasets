@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - zh
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: cmrc-2018
+pretty_name: Chinese Machine Reading Comprehension 2018
 ---
 
 # Dataset Card for "cmrc2018"
@@ -73,8 +74,6 @@ inference throughout the context.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

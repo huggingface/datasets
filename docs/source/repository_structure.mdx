@@ -1,0 +1,131 @@
+# Structure your repository
+
+To host and share your dataset, you can create a dataset repository on the Hugging Face Dataset Hub and upload your data files.
+
+This guide will show you how to structure your dataset repository when you upload it.
+A dataset with a supported structure and file format (text, JSON, JSON Lines, CSV, Parquet) can be loaded automatically with [`~datasets.load_dataset`], and it'll have a preview on its dataset page on the Hub.
+
+For more flexibility over how to load and generate a dataset, you can also write a [dataset loading script](./dataset_script).
+
+## Main use-case
+
+The simplest dataset structure has two files: `train.csv` and `test.csv`.
+
+Your repository will also contain a `README.md` file, the [dataset card](dataset_card) displayed on your dataset page.
+
+```
+my_dataset_repository/
+├── README.md
+├── train.csv
+└── test.csv
+```
+
+## Splits and file names
+
+🤗 Datasets automatically infer a dataset's train, validation, and test splits from the file names.
+
+All the files that contain a split name in their names (delimited by non-word characters, see below) are considered part of that split:
+
+- train split: `train.csv`, `my_train_file.csv`, `train1.csv`
+- validation split: `validation.csv`, `my_validation_file.csv`, `validation1.csv`
+- test split: `test.csv`, `my_test_file.csv`, `test1.csv`
+
+Here is an example where all the files are placed into a directory named `data`:
+
+```
+my_dataset_repository/
+├── README.md
+└── data/
+    ├── train.csv
+    ├── test.csv
+    └── validation.csv
+```
+
+Note that if a file contains *test* but is embedded in another word (e.g. `testfile.csv`), it's not counted as a test file.
+It must be delimited by non-word characters, e.g. `test_file.csv`.
+Supported delimiters are underscores, dashes, spaces, dots and numbers.
+
+## Multiple files per split
+
+If one of your splits comprises several files, 🤗 Datasets can still infer whether it is the train, validation, and test split from the file name.
+For example, if your train and test splits span several files:
+
+```
+my_dataset_repository/
+├── README.md
+├── train_0.csv
+├── train_1.csv
+├── train_2.csv
+├── train_3.csv
+├── test_0.csv
+└── test_1.csv
+```
+
+Make sure all the files of your `train` set have *train* in their names (same for test and validation).
+Even if you add a prefix or suffix to `train` in the file name (like `my_train_file_00001.csv` for example),
+🤗 Datasets can still infer the appropriate split.
+
+For convenience, you can also place your data files into different directories.
+In this case, the split name is inferred from the directory name.
+
+```
+my_dataset_repository/
+├── README.md
+└── data/
+    ├── train/
+    │   ├── shard_0.csv
+    │   ├── shard_1.csv
+    │   ├── shard_2.csv
+    │   └── shard_3.csv
+    └── test/
+        ├── shard_0.csv
+        └── shard_1.csv
+```
+
+<Tip>
+
+Eventually, you'll also be able to structure your repository to specify different dataset configurations. Stay tuned on this [issue](https://github.com/huggingface/datasets/issues/4578) for the latest updates! 
+
+</Tip>
+
+## Split names keywords
+
+Validation splits are sometimes called "dev", and test splits are called "eval".
+These other names are also supported.
+In particular, these keywords are equivalent:
+
+- train, training
+- validation, valid, val, dev
+- test, testing, eval, evaluation
+
+Therefore this is also a valid repository:
+
+```
+my_dataset_repository/
+├── README.md
+└── data/
+    ├── training.csv
+    ├── eval.csv
+    └── valid.csv
+```
+
+
+## Custom split names
+
+If you have other data files in addition to the traditional train, validation, and test sets, you must use a different structure.
+Use this exact file name format for this structure type: `data/<split_name>-xxxxx-of-xxxxx.csv`.
+
+Here is an example with three splits: `train`, `test`, and `random`:
+
+```
+my_dataset_repository/
+├── README.md
+└── data/
+    ├── train-00000-of-00003.csv
+    ├── train-00001-of-00003.csv
+    ├── train-00002-of-00003.csv
+    ├── test-00000-of-00001.csv
+    ├── random-00000-of-00003.csv
+    ├── random-00001-of-00003.csv
+    └── random-00002-of-00003.csv
+```

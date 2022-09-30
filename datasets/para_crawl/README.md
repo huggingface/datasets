@@ -1,4 +1,45 @@
 ---
+annotations_creators:
+- no-annotation
+language_creators:
+- found
+language:
+- bg
+- cs
+- da
+- de
+- el
+- en
+- es
+- et
+- fi
+- fr
+- ga
+- hr
+- hu
+- it
+- lt
+- lv
+- mt
+- nl
+- pl
+- pt
+- ro
+- sk
+- sl
+- sv
+license:
+- cc0-1.0
+multilinguality:
+- translation
+pretty_name: ParaCrawl
+size_categories:
+- 10M<n<100M
+source_datasets:
+- original
+task_categories:
+- translation
+task_ids: []
 paperswithcode_id: paracrawl
 ---
 
@@ -51,8 +92,6 @@ Web-Scale Parallel Corpora for Official European Languages.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -152,13 +191,13 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-|name| train  |
-|----|-------:|
-|enbg| 1039885|
-|encs| 2981949|
-|enda| 2414895|
-|ende|16264448|
-|enel| 1985233|
+| name |    train |
+|------|---------:|
+| enbg |  1039885 |
+| encs |  2981949 |
+| enda |  2414895 |
+| ende | 16264448 |
+| enel |  1985233 |
 
 ## Dataset Creation
 
@@ -212,17 +251,42 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[Creative Commons CC0 license ("no rights reserved")](https://creativecommons.org/share-your-work/public-domain/cc0/).
 
 ### Citation Information
 
 ```
-@misc {paracrawl,
-    title  = "ParaCrawl",
-    year   = "2018",
-    url    = "http://paracrawl.eu/download.html."
+@inproceedings{banon-etal-2020-paracrawl,
+    title = "{P}ara{C}rawl: Web-Scale Acquisition of Parallel Corpora",
+    author = "Ba{\~n}{\'o}n, Marta  and
+      Chen, Pinzhen  and
+      Haddow, Barry  and
+      Heafield, Kenneth  and
+      Hoang, Hieu  and
+      Espl{\`a}-Gomis, Miquel  and
+      Forcada, Mikel L.  and
+      Kamran, Amir  and
+      Kirefu, Faheem  and
+      Koehn, Philipp  and
+      Ortiz Rojas, Sergio  and
+      Pla Sempere, Leopoldo  and
+      Ram{\'\i}rez-S{\'a}nchez, Gema  and
+      Sarr{\'\i}as, Elsa  and
+      Strelec, Marek  and
+      Thompson, Brian  and
+      Waites, William  and
+      Wiggins, Dion  and
+      Zaragoza, Jaume",
+    booktitle = "Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics",
+    month = jul,
+    year = "2020",
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2020.acl-main.417",
+    doi = "10.18653/v1/2020.acl-main.417",
+    pages = "4555--4567",
+    abstract = "We report on methods to create the largest publicly available parallel corpora by crawling the web, using open source software. We empirically compare alternative methods and publish benchmark data sets for sentence alignment and sentence pair filtering. We also describe the parallel corpora released and evaluate their quality and their usefulness to create machine translation systems.",
 }
-
 ```
 
 

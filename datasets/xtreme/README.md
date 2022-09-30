@@ -3,437 +3,61 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
-  XNLI:
-  - ar
-  - bg
-  - de
-  - el
-  - en
-  - es
-  - fr
-  - hi
-  - ru
-  - sw
-  - th
-  - tr
-  - ur
-  - vi
-  - zh
-  PAWS-X.en:
-  - en
-  PAWS-X.de:
-  - de
-  PAWS-X.es:
-  - es
-  PAWS-X.fr:
-  - fr
-  PAWS-X.ja:
-  - ja
-  PAWS-X.ko:
-  - ko
-  PAWS-X.zh:
-  - zh
-  udpos.Afrikans:
-  - af
-  udpos.Arabic:
-  - ar
-  udpos.Basque:
-  - eu
-  udpos.Bulgarian:
-  - bg
-  udpos.Dutch:
-  - nl
-  udpos.English:
-  - en
-  udpos.Estonian:
-  - et
-  udpos.Finnish:
-  - fi
-  udpos.French:
-  - fr
-  udpos.German:
-  - de
-  udpos.Greek:
-  - el
-  udpos.Hebrew:
-  - he
-  udpos.Hindi:
-  - hi
-  udpos.Hungarian:
-  - hu
-  udpos.Indonesian:
-  - id
-  udpos.Italian:
-  - it
-  udpos.Japanese:
-  - ja
-  udpos.Kazakh:
-  - kk
-  udpos.Korean:
-  - ko
-  udpos.Chinese:
-  - zh
-  udpos.Marathi:
-  - mr
-  udpos.Persian:
-  - fa
-  udpos.Portuguese:
-  - pt
-  udpos.Russian:
-  - ru
-  udpos.Spanish:
-  - es
-  udpos.Tagalog:
-  - tl
-  udpos.Tamil:
-  - ta
-  udpos.Telugu:
-  - te
-  udpos.Thai:
-  - th
-  udpos.Turkish:
-  - tr
-  udpos.Urdu:
-  - ur
-  udpos.Vietnamese:
-  - vi
-  udpos.Yoruba:
-  - yo
-  PAN-X.af:
-  - af
-  PAN-X.ar:
-  - ar
-  PAN-X.bg:
-  - bg
-  PAN-X.bn:
-  - bn
-  PAN-X.de:
-  - de
-  PAN-X.el:
-  - el
-  PAN-X.en:
-  - en
-  PAN-X.es:
-  - es
-  PAN-X.et:
-  - et
-  PAN-X.eu:
-  - eu
-  PAN-X.fa:
-  - fa
-  PAN-X.fi:
-  - fi
-  PAN-X.fr:
-  - fr
-  PAN-X.he:
-  - he
-  PAN-X.hi:
-  - hi
-  PAN-X.hu:
-  - hu
-  PAN-X.id:
-  - id
-  PAN-X.it:
-  - it
-  PAN-X.ja:
-  - ja
-  PAN-X.jv:
-  - jv
-  PAN-X.ka:
-  - ka
-  PAN-X.kk:
-  - kk
-  PAN-X.ko:
-  - ko
-  PAN-X.ml:
-  - ml
-  PAN-X.mr:
-  - mr
-  PAN-X.ms:
-  - ms
-  PAN-X.my:
-  - my
-  PAN-X.nl:
-  - nl
-  PAN-X.pt:
-  - pt
-  PAN-X.ru:
-  - ru
-  PAN-X.sw:
-  - sw
-  PAN-X.ta:
-  - ta
-  PAN-X.te:
-  - te
-  PAN-X.th:
-  - th
-  PAN-X.tl:
-  - tl
-  PAN-X.tr:
-  - tr
-  PAN-X.ur:
-  - ur
-  PAN-X.vi:
-  - vi
-  PAN-X.yo:
-  - yo
-  PAN-X.zh:
-  - zh
-  XQuAD:
-  - ar
-  - de
-  - vi
-  - zh
-  - en
-  - es
-  - hi
-  - el
-  - ru
-  - th
-  - tr
-  MLQA.ar.ar:
-  - ar
-  MLQA.ar.de:
-  - ar
-  - de
-  MLQA.ar.vi:
-  - ar
-  - vi
-  MLQA.ar.zh:
-  - ar
-  - zh
-  MLQA.ar.en:
-  - ar
-  - en
-  MLQA.ar.es:
-  - ar
-  - es
-  MLQA.ar.hi:
-  - ar
-  - hi
-  MLQA.de.ar:
-  - de
-  - ar
-  MLQA.de.de:
-  - de
-  MLQA.de.vi:
-  - de
-  - vi
-  MLQA.de.zh:
-  - de
-  - zh
-  MLQA.de.en:
-  - de
-  - en
-  MLQA.de.es:
-  - de
-  - es
-  MLQA.de.hi:
-  - de
-  - hi
-  MLQA.vi.ar:
-  - vi
-  - ar
-  MLQA.vi.de:
-  - vi
-  - de
-  MLQA.vi.vi:
-  - vi
-  MLQA.vi.zh:
-  - vi
-  - zh
-  MLQA.vi.en:
-  - vi
-  - en
-  MLQA.vi.es:
-  - vi
-  - es
-  MLQA.vi.hi:
-  - vi
-  - hi
-  MLQA.zh.ar:
-  - zh
-  - ar
-  MLQA.zh.de:
-  - zh
-  - de
-  MLQA.zh.vi:
-  - zh
-  - vi
-  MLQA.zh.zh:
-  - zh
-  MLQA.zh.en:
-  - zh
-  - en
-  MLQA.zh.es:
-  - zh
-  - es
-  MLQA.zh.hi:
-  - zh
-  - hi
-  MLQA.en.ar:
-  - en
-  - ar
-  MLQA.en.de:
-  - en
-  - de
-  MLQA.en.vi:
-  - en
-  - vi
-  MLQA.en.zh:
-  - en
-  - zh
-  MLQA.en.en:
-  - en
-  MLQA.en.es:
-  - en
-  - es
-  MLQA.en.hi:
-  - en
-  - hi
-  MLQA.es.ar:
-  - es
-  - ar
-  MLQA.es.de:
-  - es
-  - de
-  MLQA.es.vi:
-  - es
-  - vi
-  MLQA.es.zh:
-  - es
-  - zh
-  MLQA.es.en:
-  - es
-  - en
-  MLQA.es.es:
-  - es
-  MLQA.es.hi:
-  - es
-  - hi
-  MLQA.hi.ar:
-  - hi
-  - ar
-  MLQA.hi.de:
-  - hi
-  - de
-  MLQA.hi.vi:
-  - hi
-  - vi
-  MLQA.hi.zh:
-  - hi
-  - zh
-  MLQA.hi.en:
-  - hi
-  - en
-  MLQA.hi.es:
-  - hi
-  - es
-  MLQA.hi.hi:
-  - hi
-  tydiqa:
-  - fi
-  - te
-  - ru
-  - ar
-  - id
-  - en
-  - sw
-  - ko
-  - bn
-  bucc18.de:
-  - de
-  bucc18.fr:
-  - fr
-  bucc18.zh:
-  - zh
-  bucc18.ru:
-  - ru
-  tatoeba.afr:
-  - af
-  tatoeba.ara:
-  - ar
-  tatoeba.ben:
-  - bn
-  tatoeba.bul:
-  - bg
-  tatoeba.deu:
-  - de
-  tatoeba.cmn:
-  - zh
-  tatoeba.ell:
-  - el
-  tatoeba.est:
-  - et
-  tatoeba.eus:
-  - eu
-  tatoeba.fin:
-  - fi
-  tatoeba.fra:
-  - fr
-  tatoeba.heb:
-  - he
-  tatoeba.hin:
-  - hi
-  tatoeba.hun:
-  - hu
-  tatoeba.ind:
-  - id
-  tatoeba.ita:
-  - it
-  tatoeba.jav:
-  - jv
-  tatoeba.jpn:
-  - ja
-  tatoeba.kat:
-  - ka
-  tatoeba.kaz:
-  - kk
-  tatoeba.kor:
-  - ko
-  tatoeba.mal:
-  - ml
-  tatoeba.mar:
-  - mr
-  tatoeba.nld:
-  - nl
-  tatoeba.pes:
-  - fa-IR
-  tatoeba.por:
-  - pt
-  tatoeba.rus:
-  - ru
-  tatoeba.spa:
-  - es
-  tatoeba.swh:
-  - sw
-  tatoeba.tam:
-  - ta
-  tatoeba.tel:
-  - te
-  tatoeba.tgl:
-  - tl
-  tatoeba.tha:
-  - th
-  tatoeba.tur:
-  - tr
-  tatoeba.urd:
-  - ur
-  tatoeba.vie:
-  - vi
-  SQuAD:
-  - en
-licenses:
+language:
+- af
+- ar
+- bg
+- bn
+- de
+- el
+- en
+- es
+- et
+- eu
+- fa
+- fi
+- fr
+- he
+- hi
+- hu
+- id
+- it
+- ja
+- jv
+- ka
+- kk
+- ko
+- ml
+- mr
+- ms
+- my
+- nl
+- pt
+- ru
+- sw
+- ta
+- te
+- th
+- tl
+- tr
+- ur
+- vi
+- yo
+- zh
+language_bcp47:
+- fa-IR
+license:
 - apache-2.0
 - cc-by-4.0
 - cc-by-2.0
 - cc-by-sa-4.0
-- other-Licence Universal Dependencies v2.5
+- other
 - cc-by-nc-4.0
+license_details: "Licence Universal Dependencies v2.5"
 multilinguality:
 - multilingual
 - translation
+pretty_name: XTREME
 size_categories:
 - n<1K
 - 1K<n<10K
@@ -449,21 +73,196 @@ source_datasets:
 - extended|tatoeba
 - extended|squad
 task_categories:
+- multiple-choice
 - question-answering
-- structure-prediction
+- token-classification
 - text-classification
 - text-retrieval
+- token-classification
 task_ids:
-- open-domain-qa
 - multiple-choice-qa
 - extractive-qa
-- named-entity-recognition
-- part-of-speech-tagging
+- open-domain-qa
 - natural-language-inference
 - text-classification-other-paraphrase-identification
 - text-retrieval-other-parallel-sentence-retrieval
+- named-entity-recognition
+- part-of-speech
 paperswithcode_id: xtreme
-pretty_name: XTREME
+configs:
+- MLQA.ar.ar
+- MLQA.ar.de
+- MLQA.ar.en
+- MLQA.ar.es
+- MLQA.ar.hi
+- MLQA.ar.vi
+- MLQA.ar.zh
+- MLQA.de.ar
+- MLQA.de.de
+- MLQA.de.en
+- MLQA.de.es
+- MLQA.de.hi
+- MLQA.de.vi
+- MLQA.de.zh
+- MLQA.en.ar
+- MLQA.en.de
+- MLQA.en.en
+- MLQA.en.es
+- MLQA.en.hi
+- MLQA.en.vi
+- MLQA.en.zh
+- MLQA.es.ar
+- MLQA.es.de
+- MLQA.es.en
+- MLQA.es.es
+- MLQA.es.hi
+- MLQA.es.vi
+- MLQA.es.zh
+- MLQA.hi.ar
+- MLQA.hi.de
+- MLQA.hi.en
+- MLQA.hi.es
+- MLQA.hi.hi
+- MLQA.hi.vi
+- MLQA.hi.zh
+- MLQA.vi.ar
+- MLQA.vi.de
+- MLQA.vi.en
+- MLQA.vi.es
+- MLQA.vi.hi
+- MLQA.vi.vi
+- MLQA.vi.zh
+- MLQA.zh.ar
+- MLQA.zh.de
+- MLQA.zh.en
+- MLQA.zh.es
+- MLQA.zh.hi
+- MLQA.zh.vi
+- MLQA.zh.zh
+- PAN-X.af
+- PAN-X.ar
+- PAN-X.bg
+- PAN-X.bn
+- PAN-X.de
+- PAN-X.el
+- PAN-X.en
+- PAN-X.es
+- PAN-X.et
+- PAN-X.eu
+- PAN-X.fa
+- PAN-X.fi
+- PAN-X.fr
+- PAN-X.he
+- PAN-X.hi
+- PAN-X.hu
+- PAN-X.id
+- PAN-X.it
+- PAN-X.ja
+- PAN-X.jv
+- PAN-X.ka
+- PAN-X.kk
+- PAN-X.ko
+- PAN-X.ml
+- PAN-X.mr
+- PAN-X.ms
+- PAN-X.my
+- PAN-X.nl
+- PAN-X.pt
+- PAN-X.ru
+- PAN-X.sw
+- PAN-X.ta
+- PAN-X.te
+- PAN-X.th
+- PAN-X.tl
+- PAN-X.tr
+- PAN-X.ur
+- PAN-X.vi
+- PAN-X.yo
+- PAN-X.zh
+- PAWS-X.de
+- PAWS-X.en
+- PAWS-X.es
+- PAWS-X.fr
+- PAWS-X.ja
+- PAWS-X.ko
+- PAWS-X.zh
+- SQuAD
+- XNLI
+- XQuAD
+- bucc18.de
+- bucc18.fr
+- bucc18.ru
+- bucc18.zh
+- tatoeba.afr
+- tatoeba.ara
+- tatoeba.ben
+- tatoeba.bul
+- tatoeba.cmn
+- tatoeba.deu
+- tatoeba.ell
+- tatoeba.est
+- tatoeba.eus
+- tatoeba.fin
+- tatoeba.fra
+- tatoeba.heb
+- tatoeba.hin
+- tatoeba.hun
+- tatoeba.ind
+- tatoeba.ita
+- tatoeba.jav
+- tatoeba.jpn
+- tatoeba.kat
+- tatoeba.kaz
+- tatoeba.kor
+- tatoeba.mal
+- tatoeba.mar
+- tatoeba.nld
+- tatoeba.pes
+- tatoeba.por
+- tatoeba.rus
+- tatoeba.spa
+- tatoeba.swh
+- tatoeba.tam
+- tatoeba.tel
+- tatoeba.tgl
+- tatoeba.tha
+- tatoeba.tur
+- tatoeba.urd
+- tatoeba.vie
+- tydiqa
+- udpos.Afrikans
+- udpos.Arabic
+- udpos.Basque
+- udpos.Bulgarian
+- udpos.Chinese
+- udpos.Dutch
+- udpos.English
+- udpos.Estonian
+- udpos.Finnish
+- udpos.French
+- udpos.German
+- udpos.Greek
+- udpos.Hebrew
+- udpos.Hindi
+- udpos.Hungarian
+- udpos.Indonesian
+- udpos.Italian
+- udpos.Japanese
+- udpos.Kazakh
+- udpos.Korean
+- udpos.Marathi
+- udpos.Persian
+- udpos.Portuguese
+- udpos.Russian
+- udpos.Spanish
+- udpos.Tagalog
+- udpos.Tamil
+- udpos.Telugu
+- udpos.Thai
+- udpos.Turkish
+- udpos.Urdu
+- udpos.Vietnamese
+- udpos.Yoruba
 ---
 
 # Dataset Card for "xtreme"
@@ -529,8 +328,6 @@ Niger-Congo languages Swahili and Yoruba, spoken in Africa.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

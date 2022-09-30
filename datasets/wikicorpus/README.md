@@ -1,88 +1,43 @@
 ---
 pretty_name: Wikicorpus
 annotations_creators:
-  raw_ca:
-  - no-annotation
-  raw_en:
-  - no-annotation
-  raw_es:
-  - no-annotation
-  tagged_ca:
-  - machine-generated
-  tagged_en:
-  - machine-generated
-  tagged_es:
-  - machine-generated
+- machine-generated
+- no-annotation
 language_creators:
 - found
-languages:
-  raw_ca:
-  - ca
-  raw_en:
-  - en
-  raw_es:
-  - es
-  tagged_ca:
-  - ca
-  tagged_en:
-  - en
-  tagged_es:
-  - es
-licenses:
-- gfdl-1.1
+language:
+- ca
+- en
+- es
+license:
+- gfdl
 multilinguality:
 - monolingual
 size_categories:
-  raw_ca:
-  - 100K<n<1M
-  raw_en:
-  - 1M<n<10M
-  raw_es:
-  - 100K<n<1M
-  tagged_ca:
-  - 1M<n<10M
-  tagged_en:
-  - 10M<n<100M
-  tagged_es:
-  - 1M<n<10M
+- 100K<n<1M
+- 10M<n<100M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-  raw_ca:
-  - sequence-modeling
-  raw_en:
-  - sequence-modeling
-  raw_es:
-  - sequence-modeling
-  tagged_ca:
-  - structure-prediction
-  - text-classification
-  tagged_en:
-  - structure-prediction
-  - text-classification
-  tagged_es:
-  - structure-prediction
-  - text-classification
+- fill-mask
+- text-classification
+- text-generation
+- token-classification
 task_ids:
-  raw_ca:
-  - language-modeling
-  raw_en:
-  - language-modeling
-  raw_es:
-  - language-modeling
-  tagged_ca:
-  - structure-prediction-other-lemmatization
-  - part-of-speech-tagging
-  - text-classification-other-word-sense-disambiguation
-  tagged_en:
-  - structure-prediction-other-lemmatization
-  - part-of-speech-tagging
-  - text-classification-other-word-sense-disambiguation
-  tagged_es:
-  - structure-prediction-other-lemmatization
-  - part-of-speech-tagging
-  - text-classification-other-word-sense-disambiguation
+- language-modeling
+- masked-language-modeling
+- part-of-speech
+- text-classification-other-word-sense-disambiguation
+- token-classification-other-lemmatization
 paperswithcode_id: null
+configs:
+- raw_ca
+- raw_en
+- raw_es
+- tagged_ca
+- tagged_en
+- tagged_es
 ---
 
 # Dataset Card for Wikicorpus

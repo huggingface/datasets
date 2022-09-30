@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - ko
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - intent-classification
 paperswithcode_id: null
+pretty_name: Structured Argument Extraction for Korean
 ---
 
 # Dataset Card for Structured Argument Extraction for Korean
@@ -48,10 +49,10 @@ paperswithcode_id: null
 
 ## Dataset Description
 
-- **Homepage: [Structured Argument Extraction for Korean](https://github.com/warnikchow/sae4k)**
-- **Repository: [Structured Argument Extraction for Korean](https://github.com/warnikchow/sae4k)**
-- **Paper: [Machines Getting with the Program: Understanding Intent Arguments of Non-Canonical Directives](https://arxiv.org/abs/1912.00342)**
-- **Point of Contact: [Won Ik Cho](wicho@hi.snu.ac.kr)**
+- **Homepage:** [Structured Argument Extraction for Korean](https://github.com/warnikchow/sae4k)
+- **Repository:** [Structured Argument Extraction for Korean](https://github.com/warnikchow/sae4k)
+- **Paper:** [Machines Getting with the Program: Understanding Intent Arguments of Non-Canonical Directives](https://arxiv.org/abs/1912.00342)
+- **Point of Contact:** [Won Ik Cho](wicho@hi.snu.ac.kr)
 
 ### Dataset Summary
 

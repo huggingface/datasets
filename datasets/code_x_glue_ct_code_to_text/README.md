@@ -3,32 +3,30 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - code
 - en
-licenses:
-- other-C-UDA
+license:
+- c-uda
 multilinguality:
 - other-programming-languages
 size_categories:
-  go:
-  - 100K<n<1M
-  java:
-  - 100K<n<1M
-  javascript:
-  - 10K<n<100K
-  php:
-  - 100K<n<1M
-  python:
-  - 100K<n<1M
-  ruby:
-  - 10K<n<100K
+- 100K<n<1M
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- translation
 task_ids:
-- machine-translation
+- translation-other-code-to-text
+pretty_name: CodeXGlueCtCodeToText
+configs:
+- go
+- java
+- javascript
+- php
+- python
+- ruby
 ---
 # Dataset Card for "code_x_glue_ct_code_to_text"
 

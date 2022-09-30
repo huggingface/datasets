@@ -3,7 +3,7 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - ar
 multilinguality:
 - monolingual
@@ -16,6 +16,7 @@ task_categories:
 task_ids:
 - other-other-data-mining
 paperswithcode_id: arcov-19
+pretty_name: ArCOV19
 ---
 
 # Dataset Card for ArCOV19

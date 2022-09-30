@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - monolingual
@@ -14,20 +14,20 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- translation
+- summarization
 - text-retrieval
 task_ids:
 - document-retrieval
 - entity-linking-retrieval
 - explanation-generation
 - fact-checking-retrieval
-- machine-translation
-- summarization
 - text-simplification
 paperswithcode_id: null
+pretty_name: arXiv Dataset
 ---
 
-# Dataset Card For arXiv Dataset
+# Dataset Card for arXiv Dataset
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - pl
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - entity-linking-retrieval
 paperswithcode_id: null
+pretty_name: bprec
 ---
 
 # Dataset Card for [Dataset Name]

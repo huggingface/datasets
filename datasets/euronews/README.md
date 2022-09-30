@@ -3,11 +3,11 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - de
 - fr
 - nl
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - multilingual
@@ -16,10 +16,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: europeana-newspapers
+pretty_name: Europeana Newspapers
 ---
 
 # Dataset Card for Europeana Newspapers

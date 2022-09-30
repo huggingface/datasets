@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - de
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -14,13 +14,14 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: legal-documents-entity-recognition
+pretty_name: Legal Documents Entity Recognition
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Legal Documents Entity Recognition
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

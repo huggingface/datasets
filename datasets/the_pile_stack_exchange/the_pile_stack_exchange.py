@@ -34,7 +34,8 @@ This dataset is part of EleutherAI/The Pile dataset and is a dataset for Languag
 which is an anonymized dump of all user-contributed content on the Stack Exchange network.
 """
 
-_URL = "https://the-eye.eu/public/AI/pile_preliminary_components/stackexchange_dataset.tar"
+_HOST_URL = "https://mystic.the-eye.eu"  # Before: "https://the-eye.eu"
+_URL = f"{_HOST_URL}/public/AI/pile_preliminary_components/stackexchange_dataset.tar"
 
 
 class ThePileStackExchange(datasets.GeneratorBasedBuilder):

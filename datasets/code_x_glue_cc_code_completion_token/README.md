@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - code
-licenses:
-- other-C-UDA
+license:
+- c-uda
 multilinguality:
 - monolingual
 size_categories:
@@ -14,9 +14,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
+pretty_name: CodeXGlueCcCodeCompletionToken
 ---
 # Dataset Card for "code_x_glue_cc_code_completion_token"
 

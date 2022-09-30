@@ -5,23 +5,25 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - machine-generated
-languages:
+language:
 - en
 - fr
-licenses:
+license:
 - mit
 multilinguality:
 - translation
 size_categories:
 - 1K<n<10K
-source_datasets: []
+source_datasets:
+- extended|other-wikimatrix
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
 - semantic-similarity-classification
 - semantic-similarity-scoring
+- text-scoring
 paperswithcode_id: refresd
+pretty_name: Rationalized English-French Semantic Divergences
 ---
 
 # Dataset Card for REFreSD Dataset

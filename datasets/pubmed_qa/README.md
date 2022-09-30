@@ -4,19 +4,16 @@ annotations_creators:
 - machine-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
 size_categories:
-  pqa_artificial:
-  - 100K<n<1M
-  pqa_labeled:
-  - 1K<n<10K
-  pqa_unlabeled:
-  - 10K<n<100K
+- 100K<n<1M
+- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -24,6 +21,11 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: pubmedqa
+pretty_name: PubMedQA
+configs:
+- pqa_artificial
+- pqa_labeled
+- pqa_unlabeled
 ---
 
 # Dataset Card for [Dataset Name]

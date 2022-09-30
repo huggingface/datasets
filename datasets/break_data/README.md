@@ -1,7 +1,24 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+language:
 - en
+license:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text2text-generation
+task_ids:
+- open-domain-abstractive-qa
 paperswithcode_id: break
+pretty_name: BREAK
 ---
 
 # Dataset Card for "break_data"
@@ -55,8 +72,6 @@ This repository contains the Break dataset along with information on the exact d
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -251,9 +266,7 @@ The data fields are the same among all splits.
   journal={Transactions of the Association for Computational Linguistics},
   year={2020},
 }
-
 ```
-
 
 ### Contributions
 

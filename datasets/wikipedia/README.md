@@ -5,13 +5,15 @@ language_creators:
 - crowdsourced
 pretty_name: Wikipedia
 paperswithcode_id: null
-licenses:
+license:
 - cc-by-sa-3.0
-- gfdl-1.3-or-later
+- gfdl
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 source_datasets:
 - original
 multilinguality:
@@ -22,611 +24,607 @@ size_categories:
 - 10K<n<100K
 - 100K<n<1M
 - 1M<n<10M
-- 10M<n<100M
-languages:
-  20200501.aa:
-  - aa
-  20200501.ab:
-  - ab
-  20200501.ace:
-  - ace
-  20200501.ady:
-  - unknown
-  20200501.af:
-  - af
-  20200501.ak:
-  - ak
-  20200501.als:
-  - als
-  20200501.am:
-  - am
-  20200501.an:
-  - an
-  20200501.ang:
-  - ang
-  20200501.ar:
-  - ar
-  20200501.arc:
-  - arc
-  20200501.arz:
-  - arz
-  20200501.as:
-  - as
-  20200501.ast:
-  - ast
-  20200501.atj:
-  - atj
-  20200501.av:
-  - av
-  20200501.ay:
-  - ay
-  20200501.az:
-  - az
-  20200501.azb:
-  - azb
-  20200501.ba:
-  - ba
-  20200501.bar:
-  - bar
-  20200501.bat-smg:
-  - sgs
-  20200501.bcl:
-  - bcl
-  20200501.be:
-  - be
-  20200501.be-x-old:
-  - unknown
-  20200501.bg:
-  - bg
-  20200501.bh:
-  - bh
-  20200501.bi:
-  - bi
-  20200501.bjn:
-  - bjn
-  20200501.bm:
-  - bm
-  20200501.bn:
-  - bn
-  20200501.bo:
-  - bo
-  20200501.bpy:
-  - bpy
-  20200501.br:
-  - br
-  20200501.bs:
-  - bs
-  20200501.bug:
-  - bug
-  20200501.bxr:
-  - bxr
-  20200501.ca:
-  - ca
-  20200501.cbk-zam:
-  - cbk
-  20200501.cdo:
-  - cdo
-  20200501.ce:
-  - ce
-  20200501.ceb:
-  - ceb
-  20200501.ch:
-  - ch
-  20200501.cho:
-  - cho
-  20200501.chr:
-  - chr
-  20200501.chy:
-  - chy
-  20200501.ckb:
-  - ckb
-  20200501.co:
-  - co
-  20200501.cr:
-  - cr
-  20200501.crh:
-  - crh
-  20200501.cs:
-  - cs
-  20200501.csb:
-  - csb
-  20200501.cu:
-  - cu
-  20200501.cv:
-  - cv
-  20200501.cy:
-  - cy
-  20200501.da:
-  - da
-  20200501.de:
-  - de
-  20200501.din:
-  - din
-  20200501.diq:
-  - diq
-  20200501.dsb:
-  - dsb
-  20200501.dty:
-  - dty
-  20200501.dv:
-  - dv
-  20200501.dz:
-  - dz
-  20200501.ee:
-  - ee
-  20200501.el:
-  - el
-  20200501.eml:
-  - eml
-  20200501.en:
-  - en
-  20200501.eo:
-  - eo
-  20200501.es:
-  - es
-  20200501.et:
-  - et
-  20200501.eu:
-  - eu
-  20200501.ext:
-  - ext
-  20200501.fa:
-  - fa
-  20200501.ff:
-  - ff
-  20200501.fi:
-  - fi
-  20200501.fiu-vro:
-  - vro
-  20200501.fj:
-  - fj
-  20200501.fo:
-  - fo
-  20200501.fr:
-  - fr
-  20200501.frp:
-  - frp
-  20200501.frr:
-  - frr
-  20200501.fur:
-  - fur
-  20200501.fy:
-  - fy
-  20200501.ga:
-  - ga
-  20200501.gag:
-  - gag
-  20200501.gan:
-  - gan
-  20200501.gd:
-  - gd
-  20200501.gl:
-  - gl
-  20200501.glk:
-  - glk
-  20200501.gn:
-  - gn
-  20200501.gom:
-  - gom
-  20200501.gor:
-  - gor
-  20200501.got:
-  - got
-  20200501.gu:
-  - gu
-  20200501.gv:
-  - gv
-  20200501.ha:
-  - ha
-  20200501.hak:
-  - hak
-  20200501.haw:
-  - haw
-  20200501.he:
-  - he
-  20200501.hi:
-  - hi
-  20200501.hif:
-  - hif
-  20200501.ho:
-  - ho
-  20200501.hr:
-  - hr
-  20200501.hsb:
-  - hsb
-  20200501.ht:
-  - ht
-  20200501.hu:
-  - hu
-  20200501.hy:
-  - hy
-  20200501.ia:
-  - ia
-  20200501.id:
-  - id
-  20200501.ie:
-  - ie
-  20200501.ig:
-  - ig
-  20200501.ii:
-  - ii
-  20200501.ik:
-  - ik
-  20200501.ilo:
-  - ilo
-  20200501.inh:
-  - inh
-  20200501.io:
-  - io
-  20200501.is:
-  - is
-  20200501.it:
-  - it
-  20200501.iu:
-  - iu
-  20200501.ja:
-  - ja
-  20200501.jam:
-  - jam
-  20200501.jbo:
-  - jbo
-  20200501.jv:
-  - jv
-  20200501.ka:
-  - ka
-  20200501.kaa:
-  - kaa
-  20200501.kab:
-  - kab
-  20200501.kbd:
-  - kbd
-  20200501.kbp:
-  - kbp
-  20200501.kg:
-  - kg
-  20200501.ki:
-  - ki
-  20200501.kj:
-  - kj
-  20200501.kk:
-  - kk
-  20200501.kl:
-  - kl
-  20200501.km:
-  - km
-  20200501.kn:
-  - kn
-  20200501.ko:
-  - ko
-  20200501.koi:
-  - koi
-  20200501.krc:
-  - krc
-  20200501.ks:
-  - ks
-  20200501.ksh:
-  - ksh
-  20200501.ku:
-  - ku
-  20200501.kv:
-  - kv
-  20200501.kw:
-  - kw
-  20200501.ky:
-  - ky
-  20200501.la:
-  - la
-  20200501.lad:
-  - lad
-  20200501.lb:
-  - lb
-  20200501.lbe:
-  - lbe
-  20200501.lez:
-  - lez
-  20200501.lfn:
-  - lfn
-  20200501.lg:
-  - lg
-  20200501.li:
-  - li
-  20200501.lij:
-  - lij
-  20200501.lmo:
-  - lmo
-  20200501.ln:
-  - ln
-  20200501.lo:
-  - lo
-  20200501.lrc:
-  - lrc
-  20200501.lt:
-  - lt
-  20200501.ltg:
-  - ltg
-  20200501.lv:
-  - lv
-  20200501.mai:
-  - mai
-  20200501.map-bms:
-  - unknown
-  20200501.mdf:
-  - mdf
-  20200501.mg:
-  - mg
-  20200501.mh:
-  - mh
-  20200501.mhr:
-  - mhr
-  20200501.mi:
-  - mi
-  20200501.min:
-  - min
-  20200501.mk:
-  - mk
-  20200501.ml:
-  - ml
-  20200501.mn:
-  - mn
-  20200501.mr:
-  - mr
-  20200501.mrj:
-  - mrj
-  20200501.ms:
-  - ms
-  20200501.mt:
-  - mt
-  20200501.mus:
-  - mus
-  20200501.mwl:
-  - mwl
-  20200501.my:
-  - my
-  20200501.myv:
-  - myv
-  20200501.mzn:
-  - mzn
-  20200501.na:
-  - na
-  20200501.nah:
-  - nah
-  20200501.nap:
-  - nap
-  20200501.nds:
-  - nds
-  20200501.nds-nl:
-  - nds-nl
-  20200501.ne:
-  - ne
-  20200501.new:
-  - new
-  20200501.ng:
-  - ng
-  20200501.nl:
-  - nl
-  20200501.nn:
-  - nn
-  20200501.no:
-  - "no"
-  20200501.nov:
-  - nov
-  20200501.nrm:
-  - nrf
-  20200501.nso:
-  - nso
-  20200501.nv:
-  - nv
-  20200501.ny:
-  - ny
-  20200501.oc:
-  - oc
-  20200501.olo:
-  - olo
-  20200501.om:
-  - om
-  20200501.or:
-  - or
-  20200501.os:
-  - os
-  20200501.pa:
-  - pa
-  20200501.pag:
-  - pag
-  20200501.pam:
-  - pam
-  20200501.pap:
-  - pap
-  20200501.pcd:
-  - pcd
-  20200501.pdc:
-  - pdc
-  20200501.pfl:
-  - pfl
-  20200501.pi:
-  - pi
-  20200501.pih:
-  - pih
-  20200501.pl:
-  - pl
-  20200501.pms:
-  - pms
-  20200501.pnb:
-  - pnb
-  20200501.pnt:
-  - pnt
-  20200501.ps:
-  - ps
-  20200501.pt:
-  - pt
-  20200501.qu:
-  - qu
-  20200501.rm:
-  - rm
-  20200501.rmy:
-  - rmy
-  20200501.rn:
-  - rn
-  20200501.ro:
-  - ro
-  20200501.roa-rup:
-  - rup
-  20200501.roa-tara:
-  - unknown
-  20200501.ru:
-  - ru
-  20200501.rue:
-  - rue
-  20200501.rw:
-  - rw
-  20200501.sa:
-  - sa
-  20200501.sah:
-  - sah
-  20200501.sat:
-  - sat
-  20200501.sc:
-  - sc
-  20200501.scn:
-  - scn
-  20200501.sco:
-  - sco
-  20200501.sd:
-  - sd
-  20200501.se:
-  - se
-  20200501.sg:
-  - sg
-  20200501.sh:
-  - sh
-  20200501.si:
-  - si
-  20200501.simple:
-  - simple
-  20200501.sk:
-  - sk
-  20200501.sl:
-  - sl
-  20200501.sm:
-  - sm
-  20200501.sn:
-  - sn
-  20200501.so:
-  - so
-  20200501.sq:
-  - sq
-  20200501.sr:
-  - sr
-  20200501.srn:
-  - srn
-  20200501.ss:
-  - ss
-  20200501.st:
-  - st
-  20200501.stq:
-  - stq
-  20200501.su:
-  - su
-  20200501.sv:
-  - sv
-  20200501.sw:
-  - sw
-  20200501.szl:
-  - szl
-  20200501.ta:
-  - ta
-  20200501.tcy:
-  - tcy
-  20200501.te:
-  - te
-  20200501.tet:
-  - tdt
-  20200501.tg:
-  - tg
-  20200501.th:
-  - th
-  20200501.ti:
-  - ti
-  20200501.tk:
-  - tk
-  20200501.tl:
-  - tl
-  20200501.tn:
-  - tn
-  20200501.to:
-  - to
-  20200501.tpi:
-  - tpi
-  20200501.tr:
-  - tr
-  20200501.ts:
-  - ts
-  20200501.tt:
-  - tt
-  20200501.tum:
-  - tum
-  20200501.tw:
-  - tw
-  20200501.ty:
-  - ty
-  20200501.tyv:
-  - tyv
-  20200501.udm:
-  - udm
-  20200501.ug:
-  - ug
-  20200501.uk:
-  - uk
-  20200501.ur:
-  - ur
-  20200501.uz:
-  - uz
-  20200501.ve:
-  - ve
-  20200501.vec:
-  - vec
-  20200501.vep:
-  - vep
-  20200501.vi:
-  - vi
-  20200501.vls:
-  - vls
-  20200501.vo:
-  - vo
-  20200501.wa:
-  - wa
-  20200501.war:
-  - war
-  20200501.wo:
-  - wo
-  20200501.wuu:
-  - wuu
-  20200501.xal:
-  - xal
-  20200501.xh:
-  - xh
-  20200501.xmf:
-  - xmf
-  20200501.yi:
-  - yi
-  20200501.yo:
-  - yo
-  20200501.za:
-  - za
-  20200501.zea:
-  - zea
-  20200501.zh:
-  - zh
-  20200501.zh-classical:
-  - lzh
-  20200501.zh-min-nan:
-  - nan
-  20200501.zh-yue:
-  - yue
-  20200501.zu:
-  - zu
+language:
+- aa
+- ab
+- ace
+- af
+- ak
+- als
+- am
+- an
+- ang
+- ar
+- arc
+- arz
+- as
+- ast
+- atj
+- av
+- ay
+- az
+- azb
+- ba
+- bar
+- bcl
+- be
+- bg
+- bh
+- bi
+- bjn
+- bm
+- bn
+- bo
+- bpy
+- br
+- bs
+- bug
+- bxr
+- ca
+- cbk
+- cdo
+- ce
+- ceb
+- ch
+- cho
+- chr
+- chy
+- ckb
+- co
+- cr
+- crh
+- cs
+- csb
+- cu
+- cv
+- cy
+- da
+- de
+- din
+- diq
+- dsb
+- dty
+- dv
+- dz
+- ee
+- el
+- eml
+- en
+- eo
+- es
+- et
+- eu
+- ext
+- fa
+- ff
+- fi
+- fj
+- fo
+- fr
+- frp
+- frr
+- fur
+- fy
+- ga
+- gag
+- gan
+- gd
+- gl
+- glk
+- gn
+- gom
+- gor
+- got
+- gu
+- gv
+- ha
+- hak
+- haw
+- he
+- hi
+- hif
+- ho
+- hr
+- hsb
+- ht
+- hu
+- hy
+- ia
+- id
+- ie
+- ig
+- ii
+- ik
+- ilo
+- inh
+- io
+- is
+- it
+- iu
+- ja
+- jam
+- jbo
+- jv
+- ka
+- kaa
+- kab
+- kbd
+- kbp
+- kg
+- ki
+- kj
+- kk
+- kl
+- km
+- kn
+- ko
+- koi
+- krc
+- ks
+- ksh
+- ku
+- kv
+- kw
+- ky
+- la
+- lad
+- lb
+- lbe
+- lez
+- lfn
+- lg
+- li
+- lij
+- lmo
+- ln
+- lo
+- lrc
+- lt
+- ltg
+- lv
+- lzh
+- mai
+- mdf
+- mg
+- mh
+- mhr
+- mi
+- min
+- mk
+- ml
+- mn
+- mr
+- mrj
+- ms
+- mt
+- mus
+- mwl
+- my
+- myv
+- mzn
+- na
+- nah
+- nan
+- nap
+- nds
+- ne
+- new
+- ng
+- nl
+- nn
+- 'no'
+- nov
+- nrf
+- nso
+- nv
+- ny
+- oc
+- olo
+- om
+- or
+- os
+- pa
+- pag
+- pam
+- pap
+- pcd
+- pdc
+- pfl
+- pi
+- pih
+- pl
+- pms
+- pnb
+- pnt
+- ps
+- pt
+- qu
+- rm
+- rmy
+- rn
+- ro
+- ru
+- rue
+- rup
+- rw
+- sa
+- sah
+- sat
+- sc
+- scn
+- sco
+- sd
+- se
+- sg
+- sgs
+- sh
+- si
+- sk
+- sl
+- sm
+- sn
+- so
+- sq
+- sr
+- srn
+- ss
+- st
+- stq
+- su
+- sv
+- sw
+- szl
+- ta
+- tcy
+- tdt
+- te
+- tg
+- th
+- ti
+- tk
+- tl
+- tn
+- to
+- tpi
+- tr
+- ts
+- tt
+- tum
+- tw
+- ty
+- tyv
+- udm
+- ug
+- uk
+- ur
+- uz
+- ve
+- vec
+- vep
+- vi
+- vls
+- vo
+- vro
+- wa
+- war
+- wo
+- wuu
+- xal
+- xh
+- xmf
+- yi
+- yo
+- yue
+- za
+- zea
+- zh
+- zu
+language_bcp47:
+- nds-nl
+configs:
+- 20220301.aa
+- 20220301.ab
+- 20220301.ace
+- 20220301.ady
+- 20220301.af
+- 20220301.ak
+- 20220301.als
+- 20220301.am
+- 20220301.an
+- 20220301.ang
+- 20220301.ar
+- 20220301.arc
+- 20220301.arz
+- 20220301.as
+- 20220301.ast
+- 20220301.atj
+- 20220301.av
+- 20220301.ay
+- 20220301.az
+- 20220301.azb
+- 20220301.ba
+- 20220301.bar
+- 20220301.bat-smg
+- 20220301.bcl
+- 20220301.be
+- 20220301.be-x-old
+- 20220301.bg
+- 20220301.bh
+- 20220301.bi
+- 20220301.bjn
+- 20220301.bm
+- 20220301.bn
+- 20220301.bo
+- 20220301.bpy
+- 20220301.br
+- 20220301.bs
+- 20220301.bug
+- 20220301.bxr
+- 20220301.ca
+- 20220301.cbk-zam
+- 20220301.cdo
+- 20220301.ce
+- 20220301.ceb
+- 20220301.ch
+- 20220301.cho
+- 20220301.chr
+- 20220301.chy
+- 20220301.ckb
+- 20220301.co
+- 20220301.cr
+- 20220301.crh
+- 20220301.cs
+- 20220301.csb
+- 20220301.cu
+- 20220301.cv
+- 20220301.cy
+- 20220301.da
+- 20220301.de
+- 20220301.din
+- 20220301.diq
+- 20220301.dsb
+- 20220301.dty
+- 20220301.dv
+- 20220301.dz
+- 20220301.ee
+- 20220301.el
+- 20220301.eml
+- 20220301.en
+- 20220301.eo
+- 20220301.es
+- 20220301.et
+- 20220301.eu
+- 20220301.ext
+- 20220301.fa
+- 20220301.ff
+- 20220301.fi
+- 20220301.fiu-vro
+- 20220301.fj
+- 20220301.fo
+- 20220301.fr
+- 20220301.frp
+- 20220301.frr
+- 20220301.fur
+- 20220301.fy
+- 20220301.ga
+- 20220301.gag
+- 20220301.gan
+- 20220301.gd
+- 20220301.gl
+- 20220301.glk
+- 20220301.gn
+- 20220301.gom
+- 20220301.gor
+- 20220301.got
+- 20220301.gu
+- 20220301.gv
+- 20220301.ha
+- 20220301.hak
+- 20220301.haw
+- 20220301.he
+- 20220301.hi
+- 20220301.hif
+- 20220301.ho
+- 20220301.hr
+- 20220301.hsb
+- 20220301.ht
+- 20220301.hu
+- 20220301.hy
+- 20220301.ia
+- 20220301.id
+- 20220301.ie
+- 20220301.ig
+- 20220301.ii
+- 20220301.ik
+- 20220301.ilo
+- 20220301.inh
+- 20220301.io
+- 20220301.is
+- 20220301.it
+- 20220301.iu
+- 20220301.ja
+- 20220301.jam
+- 20220301.jbo
+- 20220301.jv
+- 20220301.ka
+- 20220301.kaa
+- 20220301.kab
+- 20220301.kbd
+- 20220301.kbp
+- 20220301.kg
+- 20220301.ki
+- 20220301.kj
+- 20220301.kk
+- 20220301.kl
+- 20220301.km
+- 20220301.kn
+- 20220301.ko
+- 20220301.koi
+- 20220301.krc
+- 20220301.ks
+- 20220301.ksh
+- 20220301.ku
+- 20220301.kv
+- 20220301.kw
+- 20220301.ky
+- 20220301.la
+- 20220301.lad
+- 20220301.lb
+- 20220301.lbe
+- 20220301.lez
+- 20220301.lfn
+- 20220301.lg
+- 20220301.li
+- 20220301.lij
+- 20220301.lmo
+- 20220301.ln
+- 20220301.lo
+- 20220301.lrc
+- 20220301.lt
+- 20220301.ltg
+- 20220301.lv
+- 20220301.mai
+- 20220301.map-bms
+- 20220301.mdf
+- 20220301.mg
+- 20220301.mh
+- 20220301.mhr
+- 20220301.mi
+- 20220301.min
+- 20220301.mk
+- 20220301.ml
+- 20220301.mn
+- 20220301.mr
+- 20220301.mrj
+- 20220301.ms
+- 20220301.mt
+- 20220301.mus
+- 20220301.mwl
+- 20220301.my
+- 20220301.myv
+- 20220301.mzn
+- 20220301.na
+- 20220301.nah
+- 20220301.nap
+- 20220301.nds
+- 20220301.nds-nl
+- 20220301.ne
+- 20220301.new
+- 20220301.ng
+- 20220301.nl
+- 20220301.nn
+- 20220301.no
+- 20220301.nov
+- 20220301.nrm
+- 20220301.nso
+- 20220301.nv
+- 20220301.ny
+- 20220301.oc
+- 20220301.olo
+- 20220301.om
+- 20220301.or
+- 20220301.os
+- 20220301.pa
+- 20220301.pag
+- 20220301.pam
+- 20220301.pap
+- 20220301.pcd
+- 20220301.pdc
+- 20220301.pfl
+- 20220301.pi
+- 20220301.pih
+- 20220301.pl
+- 20220301.pms
+- 20220301.pnb
+- 20220301.pnt
+- 20220301.ps
+- 20220301.pt
+- 20220301.qu
+- 20220301.rm
+- 20220301.rmy
+- 20220301.rn
+- 20220301.ro
+- 20220301.roa-rup
+- 20220301.roa-tara
+- 20220301.ru
+- 20220301.rue
+- 20220301.rw
+- 20220301.sa
+- 20220301.sah
+- 20220301.sat
+- 20220301.sc
+- 20220301.scn
+- 20220301.sco
+- 20220301.sd
+- 20220301.se
+- 20220301.sg
+- 20220301.sh
+- 20220301.si
+- 20220301.simple
+- 20220301.sk
+- 20220301.sl
+- 20220301.sm
+- 20220301.sn
+- 20220301.so
+- 20220301.sq
+- 20220301.sr
+- 20220301.srn
+- 20220301.ss
+- 20220301.st
+- 20220301.stq
+- 20220301.su
+- 20220301.sv
+- 20220301.sw
+- 20220301.szl
+- 20220301.ta
+- 20220301.tcy
+- 20220301.te
+- 20220301.tet
+- 20220301.tg
+- 20220301.th
+- 20220301.ti
+- 20220301.tk
+- 20220301.tl
+- 20220301.tn
+- 20220301.to
+- 20220301.tpi
+- 20220301.tr
+- 20220301.ts
+- 20220301.tt
+- 20220301.tum
+- 20220301.tw
+- 20220301.ty
+- 20220301.tyv
+- 20220301.udm
+- 20220301.ug
+- 20220301.uk
+- 20220301.ur
+- 20220301.uz
+- 20220301.ve
+- 20220301.vec
+- 20220301.vep
+- 20220301.vi
+- 20220301.vls
+- 20220301.vo
+- 20220301.wa
+- 20220301.war
+- 20220301.wo
+- 20220301.wuu
+- 20220301.xal
+- 20220301.xh
+- 20220301.xmf
+- 20220301.yi
+- 20220301.yo
+- 20220301.za
+- 20220301.zea
+- 20220301.zh
+- 20220301.zh-classical
+- 20220301.zh-min-nan
+- 20220301.zh-yue
+- 20220301.zu
 ---
 
-# Dataset Card for "wikipedia"
+# Dataset Card for Wikipedia
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -658,9 +656,6 @@ languages:
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Size of downloaded dataset files:** 30739.25 MB
-- **Size of the generated dataset:** 35376.35 MB
-- **Total amount of disk used:** 66115.60 MB
 
 ### Dataset Summary
 
@@ -670,82 +665,123 @@ The datasets are built from the Wikipedia dump
 contains the content of one full Wikipedia article with cleaning to strip
 markdown and unwanted sections (references, etc.).
 
-The articles have been parsed using the ``mwparserfromhell`` tool.
+The articles are parsed using the ``mwparserfromhell`` tool.
+
+To load this dataset you need to install Apache Beam and ``mwparserfromhell`` first:
+
+```
+pip install apache_beam mwparserfromhell
+```
+
+Then, you can load any subset of Wikipedia per language and per date this way:
+
+```python
+from datasets import load_dataset
+
+load_dataset("wikipedia", language="sw", date="20220120", beam_runner=...)
+```
+where you can pass as `beam_runner` any Apache Beam supported runner for (distributed) data processing 
+(see [here](https://beam.apache.org/documentation/runners/capability-matrix/)).
+Pass "DirectRunner" to run it on your machine. 
+
+You can find the full list of languages and dates [here](https://dumps.wikimedia.org/backup-index.html).
+
+Some subsets of Wikipedia have already been processed by HuggingFace, and you can load them just with:
+```python
+from datasets import load_dataset
+
+load_dataset("wikipedia", "20220301.en")
+```
+
+The list of pre-processed subsets is:
+- "20220301.de"
+- "20220301.en"
+- "20220301.fr"
+- "20220301.frr"
+- "20220301.it"
+- "20220301.simple"
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The dataset is generally used for Language Modeling.
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+You can find the list of languages [here](https://meta.wikimedia.org/wiki/List_of_Wikipedias).
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
+An example looks as follows:
 
-#### 20200501.en
-
-- **Size of downloaded dataset files:** 17396.28 MB
-- **Size of the generated dataset:** 17481.07 MB
-- **Total amount of disk used:** 34877.35 MB
-
-An example looks as follows.
 ```
-{
-  'title': 'Yangliuqing',
-  'text': 'Yangliuqing () is a market town in Xiqing District, in the western suburbs of Tianjin,
-     ...
-     and traditional period furnishings and crafts.\n\nSee also \n\nList of township-level divisions of Tianjin\n\nReferences \n\n
-     http://arts.cultural-china.com/en/65Arts4795.html\n\nCategory:Towns in Tianjin'
+{'id': '1',
+ 'url': 'https://simple.wikipedia.org/wiki/April',
+ 'title': 'April',
+ 'text': 'April is the fourth month...'
 }
 ```
 
-#### 20200501.de
+Some subsets of Wikipedia have already been processed by HuggingFace, as you can see below:
 
-- **Size of downloaded dataset files:** 5531.82 MB
-- **Size of the generated dataset:** 7716.79 MB
-- **Total amount of disk used:** 13248.61 MB
+#### 20220301.de
 
-#### 20200501.fr
+- **Size of downloaded dataset files:** 6523.22 MB
+- **Size of the generated dataset:** 8905.28 MB
+- **Total amount of disk used:** 15428.50 MB
 
-- **Size of downloaded dataset files:** 4653.55 MB
-- **Size of the generated dataset:** 6182.24 MB
-- **Total amount of disk used:** 10835.79 MB
+#### 20220301.en
 
-#### 20200501.frr
+- **Size of downloaded dataset files:** 20598.31 MB
+- **Size of the generated dataset:** 20275.52 MB
+- **Total amount of disk used:** 40873.83 MB
 
-- **Size of downloaded dataset files:** 9.05 MB
-- **Size of the generated dataset:** 5.88 MB
-- **Total amount of disk used:** 14.93 MB
+#### 20220301.fr
 
-#### 20200501.it
+- **Size of downloaded dataset files:** 5602.57 MB
+- **Size of the generated dataset:** 7375.92 MB
+- **Total amount of disk used:** 12978.49 MB
 
-- **Size of downloaded dataset files:** 2970.57 MB
-- **Size of the generated dataset:** 3809.89 MB
-- **Total amount of disk used:** 6780.46 MB
+#### 20220301.frr
+
+- **Size of downloaded dataset files:** 12.44 MB
+- **Size of the generated dataset:** 9.13 MB
+- **Total amount of disk used:** 21.57 MB
+
+#### 20220301.it
+
+- **Size of downloaded dataset files:** 3516.44 MB
+- **Size of the generated dataset:** 4539.94 MB
+- **Total amount of disk used:** 8056.39 MB
+
+#### 20220301.simple
+
+- **Size of downloaded dataset files:** 239.68 MB
+- **Size of the generated dataset:** 235.07 MB
+- **Total amount of disk used:** 474.76 MB
 
 ### Data Fields
 
-The data fields are the same among all splits and configurations:
+The data fields are the same among all configurations:
 
-- `title`: a `string` feature corresponding to the title of the article
-- `text`: a `string` feature corresponding to the text content of the article
+- `id` (`str`): ID of the article.
+- `url` (`str`): URL of the article.
+- `title` (`str`): Title of the article.
+- `text` (`str`): Text content of the article.
 
 ### Data Splits
 
-Here are the sizes for several configurations:
+Here are the number of examples for several configurations:
 
-|    name    | train |
-|------------|------:|
-|20200501.de |3140341|
-|20200501.en |6078422|
-|20200501.fr |2210508|
-|20200501.frr|  11803|
-|20200501.it |1931197|
+| name            |   train |
+|-----------------|--------:|
+| 20220301.de     | 2665357 |
+| 20220301.en     | 6458670 |
+| 20220301.fr     | 2402095 |
+| 20220301.frr    |   15199 |
+| 20220301.it     | 1743035 |
+| 20220301.simple |  205328 |
 
 ## Dataset Creation
 
@@ -799,19 +835,24 @@ Here are the sizes for several configurations:
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Most of Wikipedia's text and many of its images are co-licensed under the
+[Creative Commons Attribution-ShareAlike 3.0 Unported License](https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License)
+(CC BY-SA) and the [GNU Free Documentation License](https://en.wikipedia.org/wiki/Wikipedia:Text_of_the_GNU_Free_Documentation_License)
+(GFDL) (unversioned, with no invariant sections, front-cover texts, or back-cover texts). 
+
+Some text has been imported only under CC BY-SA and CC BY-SA-compatible license and cannot be reused under GFDL; such
+text will be identified on the page footer, in the page history, or on the discussion page of the article that utilizes
+the text.
 
 ### Citation Information
 
 ```
-@ONLINE {wikidump,
+@ONLINE{wikidump,
     author = "Wikimedia Foundation",
     title  = "Wikimedia Downloads",
     url    = "https://dumps.wikimedia.org"
 }
-
 ```
-
 
 ### Contributions
 

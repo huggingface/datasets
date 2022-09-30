@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -14,10 +14,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
+- text-scoring
 - sentiment-scoring
 paperswithcode_id: null
+pretty_name: AppReviews
 ---
 
 # Dataset Card for [Dataset Name]
@@ -48,11 +50,11 @@ paperswithcode_id: null
 
 ## Dataset Description
 
-- **Homepage: [Home Page](https://github.com/sealuzh/user_quality)
-- **Repository: [Repo Link](https://github.com/sealuzh/user_quality)
-- **Paper: [Link](https://giograno.me/assets/pdf/workshop/wama17.pdf)
+- **Homepage:** [Home Page](https://github.com/sealuzh/user_quality)
+- **Repository:** [Repo Link](https://github.com/sealuzh/user_quality)
+- **Paper:** [Link](https://giograno.me/assets/pdf/workshop/wama17.pdf)
 - **Leaderboard:
-- **Point of Contact: [Darshan Gandhi](darshangandhi1151@gmail.com)
+- **Point of Contact:** [Darshan Gandhi](darshangandhi1151@gmail.com)
 
 ### Dataset Summary
 

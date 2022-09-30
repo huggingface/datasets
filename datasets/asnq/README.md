@@ -1,6 +1,23 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
+language_creators:
+- found
+license:
+- cc-by-nc-sa-3.0
+multilinguality:
+- monolingual
+pretty_name: Answer Sentence Natural Questions (ASNQ)
+size_categories:
+- 10M<n<100M
+source_datasets:
+- extended|natural_questions
+task_categories:
+- multiple-choice
+task_ids:
+- multiple-choice-qa
 paperswithcode_id: asnq
 ---
 
@@ -34,7 +51,7 @@ paperswithcode_id: asnq
 
 - **Homepage:** [https://github.com/alexa/wqa_tanda#answer-sentence-natural-questions-asnq](https://github.com/alexa/wqa_tanda#answer-sentence-natural-questions-asnq)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [TANDA: Transfer and Adapt Pre-Trained Transformer Models for Answer Sentence Selection](https://arxiv.org/abs/1911.04118)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 3398.76 MB
 - **Size of the generated dataset:** 3647.70 MB
@@ -51,7 +68,7 @@ sentence_in_long_answer and short_answer_in_sentence indicating whether ot not t
 candidate sentence is contained in the long_answer and if the short_answer is in the candidate sentence.
 
 For more details please see
-https://arxiv.org/pdf/1911.04118.pdf
+https://arxiv.org/abs/1911.04118
 
 and
 
@@ -66,8 +83,6 @@ https://research.google/pubs/pub47761/
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -157,20 +172,27 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The data is made available under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License:
+https://github.com/alexa/wqa_tanda/blob/master/LICENSE
 
 ### Citation Information
 
 ```
-@article{garg2019tanda,
-    title={TANDA: Transfer and Adapt Pre-Trained Transformer Models for Answer Sentence Selection},
-    author={Siddhant Garg and Thuy Vu and Alessandro Moschitti},
-    year={2019},
-    eprint={1911.04118},
+@article{Garg_2020,
+   title={TANDA: Transfer and Adapt Pre-Trained Transformer Models for Answer Sentence Selection},
+   volume={34},
+   ISSN={2159-5399},
+   url={http://dx.doi.org/10.1609/AAAI.V34I05.6282},
+   DOI={10.1609/aaai.v34i05.6282},
+   number={05},
+   journal={Proceedings of the AAAI Conference on Artificial Intelligence},
+   publisher={Association for the Advancement of Artificial Intelligence (AAAI)},
+   author={Garg, Siddhant and Vu, Thuy and Moschitti, Alessandro},
+   year={2020},
+   month={Apr},
+   pages={7780–7788}
 }
-
 ```
-
 
 ### Contributions
 

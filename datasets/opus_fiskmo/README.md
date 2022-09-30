@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - fi
 - sv
-licenses:
+license:
 - unknown
 multilinguality:
 - translation
@@ -15,10 +15,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
+pretty_name: OpusFiskmo
 ---
 
 # Dataset Card for [opus_fiskmo]

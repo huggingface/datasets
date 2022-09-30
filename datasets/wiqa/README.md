@@ -1,7 +1,8 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: wiqa
+pretty_name: What-If Question Answering
 ---
 
 # Dataset Card for "wiqa"
@@ -54,8 +55,6 @@ The dataset is split into 29808 train questions, 6894 dev questions and 3003 tes
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

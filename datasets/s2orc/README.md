@@ -3,9 +3,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-2.0
 multilinguality:
 - monolingual
@@ -15,14 +15,17 @@ source_datasets:
 - original
 task_categories:
 - other
-- sequence-modeling
+- text-generation
+- fill-mask
 - text-classification
 task_ids:
 - language-modeling
+- masked-language-modeling
 - multi-class-classification
 - multi-label-classification
 - other-other-citation-recommendation
 paperswithcode_id: s2orc
+pretty_name: S2ORC
 ---
 
 # Dataset Card for S2ORC: The Semantic Scholar Open Research Corpus

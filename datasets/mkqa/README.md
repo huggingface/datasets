@@ -3,7 +3,7 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - ar
 - da
 - de
@@ -15,8 +15,8 @@ languages:
 - hu
 - it
 - ja
-- ko
 - km
+- ko
 - ms
 - nl
 - 'no'
@@ -28,7 +28,7 @@ languages:
 - tr
 - vi
 - zh
-licenses:
+license:
 - cc-by-3.0
 multilinguality:
 - multilingual
@@ -43,6 +43,7 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: mkqa
+pretty_name: Multilingual Knowledge Questions and Answers
 ---
 
 # Dataset Card for MKQA: Multilingual Knowledge Questions & Answers

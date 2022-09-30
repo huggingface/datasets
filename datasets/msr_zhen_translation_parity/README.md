@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - expert-generated
 - machine-generated
-languages:
+language:
 - en
-licenses:
+license:
 - ms-pl
 multilinguality:
 - monolingual
@@ -16,10 +16,10 @@ size_categories:
 source_datasets:
 - extended|other-newstest2017
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
+pretty_name: MsrZhenTranslationParity
 ---
 
 # Dataset Card for msr_zhen_translation_parity

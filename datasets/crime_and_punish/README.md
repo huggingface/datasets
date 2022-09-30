@@ -1,7 +1,8 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: null
+pretty_name: CrimeAndPunish
 ---
 
 # Dataset Card for "crime_and_punish"
@@ -51,8 +52,6 @@ paperswithcode_id: null
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

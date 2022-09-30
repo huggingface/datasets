@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-nc-sa-3.0
 multilinguality:
 - monolingual
@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - multi-label-classification
 paperswithcode_id: null
+pretty_name: The Switchboard Dialog Act Corpus (SwDA)
 ---
 
-# Dataset Card for swda
+# Dataset Card for SwDA
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -48,19 +49,19 @@ paperswithcode_id: null
 
 ## Dataset Description
 
-- **Homepage: [The Switchboard Dialog Act Corpus](http://compprag.christopherpotts.net/swda.html)**
-- **Repository: [NathanDuran/Switchboard-Corpus](https://github.com/cgpotts/swda)**
-- **Paper:[The Switchboard Dialog Act Corpus](http://compprag.christopherpotts.net/swda.html)**
+- **Homepage:** [The Switchboard Dialog Act Corpus](http://compprag.christopherpotts.net/swda.html)
+- **Repository:** [NathanDuran/Switchboard-Corpus](https://github.com/cgpotts/swda)
+- **Paper:** [The Switchboard Dialog Act Corpus](http://compprag.christopherpotts.net/swda.html)
 = **Leaderboard: [Dialogue act classification](https://github.com/sebastianruder/NLP-progress/blob/master/english/dialogue.md#dialogue-act-classification)**
-- **Point of Contact: [Christopher Potts](https://web.stanford.edu/~cgpotts/)**
+- **Point of Contact:** [Christopher Potts](https://web.stanford.edu/~cgpotts/)
 
 ### Dataset Summary
 
-The Switchboard Dialog Act Corpus (SwDA) extends the Switchboard-1 Telephone Speech Corpus, Release 2 with 
-turn/utterance-level dialog-act tags. The tags summarize syntactic, semantic, and pragmatic information about the 
+The Switchboard Dialog Act Corpus (SwDA) extends the Switchboard-1 Telephone Speech Corpus, Release 2 with
+turn/utterance-level dialog-act tags. The tags summarize syntactic, semantic, and pragmatic information about the
 associated turn. The SwDA project was undertaken at UC Boulder in the late 1990s.
-The SwDA is not inherently linked to the Penn Treebank 3 parses of Switchboard, and it is far from straightforward to 
-align the two resources. In addition, the SwDA is not distributed with the Switchboard's tables of metadata about the 
+The SwDA is not inherently linked to the Penn Treebank 3 parses of Switchboard, and it is far from straightforward to
+align the two resources. In addition, the SwDA is not distributed with the Switchboard's tables of metadata about the
 conversations and their participants.
 
 
@@ -72,7 +73,7 @@ conversations and their participants.
 | SGNN (Ravi et al., 2018) | 83.1 | [Self-Governing Neural Networks for On-Device Short Text Classification](https://www.aclweb.org/anthology/D18-1105.pdf)
 | CASA (Raheja et al., 2019) | 82.9 | [Dialogue Act Classification with Context-Aware Self-Attention](https://www.aclweb.org/anthology/N19-1373.pdf)
 | DAH-CRF (Li et al., 2019) | 82.3 | [A Dual-Attention Hierarchical Recurrent Neural Network for Dialogue Act Classification](https://www.aclweb.org/anthology/K19-1036.pdf)
-| ALDMN (Wan et al., 2018) | 81.5 | [Improved Dynamic Memory Network for Dialogue Act Classification with Adversarial Training](https://arxiv.org/pdf/1811.05021.pdf) 
+| ALDMN (Wan et al., 2018) | 81.5 | [Improved Dynamic Memory Network for Dialogue Act Classification with Adversarial Training](https://arxiv.org/pdf/1811.05021.pdf)
 | CRF-ASN (Chen et al., 2018) | 81.3 | [Dialogue Act Recognition via CRF-Attentive Structured Network](https://arxiv.org/abs/1711.05568)
 | Pretrained H-Transformer (Chapuis et al., 2020) |  79.3 | [Hierarchical Pre-training for Sequence Labelling in Spoken Dialog] (https://www.aclweb.org/anthology/2020.findings-emnlp.239)
 | Bi-LSTM-CRF (Kumar et al., 2017) | 79.2 | [Dialogue Act Sequence Labeling using Hierarchical encoder with CRF](https://arxiv.org/abs/1709.04250) | [Link](https://github.com/YanWenqiang/HBLSTM-CRF) |
@@ -122,7 +123,7 @@ An example from the dataset is:
 * `to_caller_education`:      (int) Called education level 0, 1, 2, 3, 9.
 * `to_caller_birth_year`:     (int) Caller birth year YYYY.
 * `to_caller_dialect_area`:   (str) MIXED, NEW ENGLAND, NORTH MIDLAND, NORTHERN, NYC, SOUTH MIDLAND, SOUTHERN, UNK, WESTERN.
-    
+
 
 ### Dialog act annotations
 
@@ -196,7 +197,7 @@ The development set is a subset of the training set to speed up development and 
 
 #### Initial Data Collection and Normalization
 
-The SwDA is not inherently linked to the Penn Treebank 3 parses of Switchboard, and it is far from straightforward to align the two resources Calhoun et al. 2010, §2.4. In addition, the SwDA is not distributed with the Switchboard's tables of metadata about the conversations and their participants. 
+The SwDA is not inherently linked to the Penn Treebank 3 parses of Switchboard, and it is far from straightforward to align the two resources Calhoun et al. 2010, §2.4. In addition, the SwDA is not distributed with the Switchboard's tables of metadata about the conversations and their participants.
 
 #### Who are the source language producers?
 

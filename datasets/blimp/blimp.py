@@ -46,21 +46,17 @@ _DOWNLOAD_URL = "https://raw.githubusercontent.com/alexwarstadt/blimp/master/"
 class BlimpConfig(datasets.BuilderConfig):
     """BuilderConfig for Blimp."""
 
-    def __init__(self, paradigm_uid, **kwargs):
+    def __init__(self, name, version=datasets.Version("0.1.0"), **kwargs):
         """BuilderConfig for Blimp.
 
         Args:
-          paradigm_uid: string, UID of the linguistic paradigm
+          name (str): UID of the linguistic paradigm
           **kwargs: keyword arguments forwarded to super.
         """
-        name = paradigm_uid
-
         description = _DESCRIPTION
         description += f"This configuration includes the paradigm {name}."
 
-        super(BlimpConfig, self).__init__(
-            name=name, description=description, version=datasets.Version("0.1.0"), **kwargs
-        )
+        super().__init__(name=name, description=description, version=version, **kwargs)
 
 
 class Blimp(datasets.GeneratorBasedBuilder):
@@ -136,7 +132,7 @@ class Blimp(datasets.GeneratorBasedBuilder):
         "wh_vs_that_with_gap_long_distance",
     ]
 
-    BUILDER_CONFIGS = [BlimpConfig(paradigm_uid=paradigm) for paradigm in all_paradigms]
+    BUILDER_CONFIGS = [BlimpConfig(paradigm) for paradigm in all_paradigms]
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -155,26 +151,19 @@ class Blimp(datasets.GeneratorBasedBuilder):
                     "pair_id": datasets.Value("int32"),
                 }
             ),
-            supervised_keys=None,
-            # Homepage of the dataset for documentation
             homepage=_PROJECT_URL,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        cfg = self.config
-        download_urls = {cfg.name: _DOWNLOAD_URL + f"data/{cfg.name}.jsonl"}
-
-        downloaded_files = dl_manager.download_and_extract(download_urls)
-
-        return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files[cfg.name]})
-        ]
+        download_urls = _DOWNLOAD_URL + f"data/{self.config.name}.jsonl"
+        downloaded_file = dl_manager.download_and_extract(download_urls)
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_file})]
 
     def _generate_examples(self, filepath):
         """Yields examples."""
-        with open(filepath, "rb") as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             for line in f:
                 line_dict = json.loads(line)
                 id_ = line_dict["UID"] + "_" + line_dict["pairID"]

@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -15,11 +15,12 @@ source_datasets:
 - extended|other-ImageFlickr and SemEval-2012 STS MSR-Video Descriptions
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
+- text-scoring
 - natural-language-inference
 - semantic-similarity-scoring
 paperswithcode_id: null
+pretty_name: SemEval 2014 - Task 1
 ---
 
 # Dataset Card for SemEval 2014 - Task 1

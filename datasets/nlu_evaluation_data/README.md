@@ -1,13 +1,11 @@
 ---
 annotations_creators:
 - expert-generated
-extended:
-- original
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -21,6 +19,7 @@ task_ids:
 - intent-classification
 - multi-class-classification
 paperswithcode_id: null
+pretty_name: NLU Evaluation Data
 ---
 
 # Dataset Card for NLU Evaluation Data

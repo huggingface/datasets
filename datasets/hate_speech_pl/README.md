@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - pl
-licenses:
-- cc-by-nc-sa-1.0
+license:
+- cc-by-nc-sa-3.0
 multilinguality:
 - monolingual
 size_categories:
@@ -15,14 +15,15 @@ source_datasets:
 - original
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
+- text-scoring
 - multi-class-classification
 - multi-label-classification
 - sentiment-classification
 - sentiment-scoring
 - topic-classification
 paperswithcode_id: null
+pretty_name: HateSpeechPl
 ---
 
 
@@ -166,7 +167,7 @@ The dataset contains negative posts only and due to that might underrepresent th
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

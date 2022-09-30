@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- gpl-3.0+
+license:
+- gpl-3.0
 multilinguality:
 - monolingual
 size_categories:
@@ -14,19 +14,18 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 - text-retrieval
 task_ids:
-  all:
-  - dialogue-modeling
-  - utterance-retrieval
-  happy:
-  - dialogue-modeling
-  - utterance-retrieval
-  offmychest:
-  - dialogue-modeling
-  - utterance-retrieval
+- dialogue-modeling
+- utterance-retrieval
 paperswithcode_id: pec
+pretty_name: Persona-Based Empathetic Conversational
+configs:
+- all
+- happy
+- offmychest
 ---
 
 # Dataset Card for PEC
@@ -106,11 +105,11 @@ An example from PEC looks as follows:
 ### Data Splits
 The data is split into a training, validation and test set for each of the three domains. Note that the *all* domain is the concatenation of the *happy* and *offmychest* domains.
 
-| domain     | Tain   | Valid | Test |
-| -----      | ------ | ----- | ---- |
-| happy      | 157195 | 19829 | 22730|
-| offmychest | 123968 | 16004 | 15324|
-| all        | 281163 | 35833 | 38054|
+| domain     |  train | validation |  test |
+|------------|-------:|-----------:|------:|
+| happy      | 157195 |      19829 | 22730 |
+| offmychest | 123968 |      16004 | 15324 |
+| all        | 281163 |      35833 | 38054 |
 
 ## Dataset Creation
 

@@ -3,10 +3,11 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- other-LDC User Agreement for Non-Members
+license:
+- other
+license_details: "LDC User Agreement for Non-Members"
 multilinguality:
 - monolingual
 size_categories:
@@ -14,10 +15,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: null
+pretty_name: Penn Treebank
 ---
 
 # Dataset Card for Penn Treebank
@@ -136,7 +140,7 @@ The text in the dataset is in American English
 
 ### Licensing Information
 
-[Needs More Information]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ### Citation Information
 

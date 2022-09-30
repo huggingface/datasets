@@ -4,10 +4,10 @@ annotations_creators:
 - other
 language_creators:
 - found
-languages:
+language:
 - en
 - ja
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - translation
@@ -16,10 +16,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
+pretty_name: SNOW T15 and T23 (simplified Japanese corpus)
 ---
 
 # Dataset Card for SNOW T15 and T23 (simplified Japanese corpus)

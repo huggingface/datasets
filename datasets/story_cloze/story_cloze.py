@@ -51,7 +51,7 @@ class StoryCloze(datasets.GeneratorBasedBuilder):
         return (
             "To use Story Cloze you have to download it manually. Please fill this "
             "google form (http://goo.gl/forms/aQz39sdDrO). Complete the form. "
-            "Then you will recieve a download link for the dataset. Load it using: "
+            "Then you will receive a download link for the dataset. Load it using: "
             "`datasets.load_dataset('story_cloze', data_dir='path/to/folder/folder_name')`"
         )
 

@@ -136,8 +136,10 @@ class TupleIE(datasets.GeneratorBasedBuilder):
 
         Args:
             tuple_text (str): Format of extraction text:
-            .. code-block::
-                {Context(<context>):}(<arg1>; <rel>; {[L|T]:}<arg2_1>; {[L|T]:}<arg2_2>; ...)
+
+            ```
+            {Context(<context>):}(<arg1>; <rel>; {[L|T]:}<arg2_1>; {[L|T]:}<arg2_2>; ...)
+            ```
 
         .. note::
             * ``{}`` means one can be optionally appear

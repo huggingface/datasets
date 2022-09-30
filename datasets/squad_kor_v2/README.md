@@ -3,10 +3,10 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - ko
-licenses:
-- cc-by-nd-2.0
+license:
+- cc-by-nd-4.0
 multilinguality:
 - monolingual
 size_categories:
@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: null
+pretty_name: KorQuAD v2.1
 ---
 
 # Dataset Card for KorQuAD v2.1

@@ -1,7 +1,8 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: hellaswag
+pretty_name: HellaSwag
 ---
 
 # Dataset Card for "hellaswag"
@@ -33,14 +34,16 @@ paperswithcode_id: hellaswag
 ## Dataset Description
 
 - **Homepage:** [https://rowanzellers.com/hellaswag/](https://rowanzellers.com/hellaswag/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** [https://github.com/rowanz/hellaswag/](https://github.com/rowanz/hellaswag/)
+- **Paper:** [HellaSwag: Can a Machine Really Finish Your Sentence?](https://aclanthology.org/P19-1472.pdf)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 68.18 MB
 - **Size of the generated dataset:** 62.29 MB
 - **Total amount of disk used:** 130.47 MB
 
 ### Dataset Summary
+
+HellaSwag: Can a Machine Really Finish Your Sentence? is a new dataset for commonsense NLI. A paper was published at ACL2019.
 
 ### Supported Tasks and Leaderboards
 
@@ -51,8 +54,6 @@ paperswithcode_id: hellaswag
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -154,7 +155,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+MIT https://github.com/rowanz/hellaswag/blob/master/LICENSE
 
 ### Citation Information
 

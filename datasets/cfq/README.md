@@ -1,6 +1,26 @@
 ---
-languages:
+annotations_creators:
+- no-annotation
+language_creators:
+- expert-generated
+language:
 - en
+license:
+- cc-by-4.0
+multilinguality:
+- monolingual
+pretty_name: Compositional Freebase Questions
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- question-answering
+- other
+task_ids:
+- open-domain-qa
+- closed-domain-qa
+- other-compositionality
 paperswithcode_id: cfq
 ---
 
@@ -34,7 +54,7 @@ paperswithcode_id: cfq
 
 - **Homepage:** [https://github.com/google-research/google-research/tree/master/cfq](https://github.com/google-research/google-research/tree/master/cfq)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** https://arxiv.org/abs/1912.09713
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 2041.62 MB
 - **Size of the generated dataset:** 345.30 MB
@@ -42,12 +62,10 @@ paperswithcode_id: cfq
 
 ### Dataset Summary
 
-The CFQ dataset (and it's splits) for measuring compositional generalization.
-
-See https://arxiv.org/abs/1912.09713.pdf for background.
-
-Example usage:
-data = datasets.load_dataset('cfq/mcd1')
+The Compositional Freebase Questions (CFQ) is a dataset that is specifically designed to measure compositional
+generalization. CFQ is a simple yet realistic, large dataset of natural language questions and answers that also
+provides for each question a corresponding SPARQL query against the Freebase knowledge base. This means that CFQ can
+also be used for semantic parsing.
 
 ### Supported Tasks and Leaderboards
 
@@ -55,11 +73,9 @@ data = datasets.load_dataset('cfq/mcd1')
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+English (`en`).
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -72,8 +88,8 @@ We show detailed information for up to 5 configurations of the dataset.
 An example of 'train' looks as follows.
 ```
 {
-    "query": "SELECT /producer M0 . /director M0 . ",
-    "question": "Who produced and directed M0?"
+  'query': 'SELECT count(*) WHERE {\n?x0 a ns:people.person .\n?x0 ns:influence.influence_node.influenced M1 .\n?x0 ns:influence.influence_node.influenced M2 .\n?x0 ns:people.person.spouse_s/ns:people.marriage.spouse|ns:fictional_universe.fictional_character.married_to/ns:fictional_universe.marriage_of_fictional_characters.spouses ?x1 .\n?x1 a ns:film.cinematographer .\nFILTER ( ?x0 != ?x1 )\n}',
+  'question': 'Did a person marry a cinematographer , influence M1 , and influence M2'
 }
 ```
 
@@ -86,8 +102,8 @@ An example of 'train' looks as follows.
 An example of 'train' looks as follows.
 ```
 {
-    "query": "SELECT /producer M0 . /director M0 . ",
-    "question": "Who produced and directed M0?"
+  'query': 'SELECT count(*) WHERE {\n?x0 ns:people.person.parents|ns:fictional_universe.fictional_character.parents|ns:organization.organization.parent/ns:organization.organization_relationship.parent ?x1 .\n?x1 a ns:people.person .\nM1 ns:business.employer.employees/ns:business.employment_tenure.person ?x0 .\nM1 ns:business.employer.employees/ns:business.employment_tenure.person M2 .\nM1 ns:business.employer.employees/ns:business.employment_tenure.person M3 .\nM1 ns:business.employer.employees/ns:business.employment_tenure.person M4 .\nM5 ns:business.employer.employees/ns:business.employment_tenure.person ?x0 .\nM5 ns:business.employer.employees/ns:business.employment_tenure.person M2 .\nM5 ns:business.employer.employees/ns:business.employment_tenure.person M3 .\nM5 ns:business.employer.employees/ns:business.employment_tenure.person M4\n}',
+  'question': "Did M1 and M5 employ M2 , M3 , and M4 and employ a person 's child"
 }
 ```
 
@@ -135,37 +151,22 @@ An example of 'train' looks as follows.
 
 ### Data Fields
 
-The data fields are the same among all splits.
-
-#### mcd1
-- `question`: a `string` feature.
-- `query`: a `string` feature.
-
-#### mcd2
-- `question`: a `string` feature.
-- `query`: a `string` feature.
-
-#### mcd3
-- `question`: a `string` feature.
-- `query`: a `string` feature.
-
-#### query_complexity_split
-- `question`: a `string` feature.
-- `query`: a `string` feature.
-
-#### query_pattern_split
+The data fields are the same among all splits and configurations:
 - `question`: a `string` feature.
 - `query`: a `string` feature.
 
 ### Data Splits
 
-|         name         |train |test |
-|----------------------|-----:|----:|
-|mcd1                  | 95743|11968|
-|mcd2                  | 95743|11968|
-|mcd3                  | 95743|11968|
-|query_complexity_split|100654| 9512|
-|query_pattern_split   | 94600|12589|
+| name                      |  train |  test |
+|---------------------------|-------:|------:|
+| mcd1                      |  95743 | 11968 |
+| mcd2                      |  95743 | 11968 |
+| mcd3                      |  95743 | 11968 |
+| query_complexity_split    | 100654 |  9512 |
+| query_pattern_split       |  94600 | 12589 |
+| question_complexity_split |  98999 | 10340 |
+| question_pattern_split    |  95654 | 11909 |
+| random_split              |  95744 | 11967 |
 
 ## Dataset Creation
 

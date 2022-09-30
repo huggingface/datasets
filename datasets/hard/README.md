@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - ar
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - multi-class-classification
 paperswithcode_id: hard
+pretty_name: Hotel Arabic-Reviews Dataset
 ---
 
 # Dataset Card for Hard

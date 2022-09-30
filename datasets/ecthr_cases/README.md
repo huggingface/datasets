@@ -4,9 +4,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual
@@ -21,6 +21,7 @@ task_ids:
 - text-classification-other-rationale-extraction
 - text-classification-other-legal-judgment-prediction
 paperswithcode_id: ecthr
+pretty_name: European Court of Human Rights Cases
 ---
 
 # Dataset Card for the ECtHR cases dataset

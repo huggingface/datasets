@@ -4,9 +4,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - de
-licenses:
+license:
 - cc-by-sa-3.0
 multilinguality:
 - monolingual
@@ -15,12 +15,14 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
-- text-scoring
+- token-classification
+- text-classification
 task_ids:
+- text-scoring
 - sentiment-scoring
-- structure-prediction-other-pos-tagging
+- part-of-speech
 paperswithcode_id: null
+pretty_name: SentiWS
 ---
 
 # Dataset Card for SentiWS

@@ -4,9 +4,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - machine-generated
-languages:
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -16,11 +16,13 @@ source_datasets:
 - original
 task_categories:
 - other
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - other-other-token-classification-of-text-errors
 - slot-filling
 paperswithcode_id: null
+pretty_name: YouTube Caption Corrections
 ---
 
 # Dataset Card for YouTube Caption Corrections

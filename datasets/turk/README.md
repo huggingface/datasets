@@ -3,10 +3,10 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- gnu-gpl-v3.0
+license:
+- gpl-3.0
 multilinguality:
 - monolingual
 size_categories:
@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
 - text-simplification
 paperswithcode_id: null
+pretty_name: TURK
 ---
 
 # Dataset Card for TURK

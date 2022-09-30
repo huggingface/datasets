@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - af
 - ar
 - as
@@ -11,7 +11,6 @@ languages:
 - be
 - bg
 - bn
-- bn_IN
 - br
 - ca
 - crh
@@ -22,7 +21,6 @@ languages:
 - de
 - el
 - en
-- en_GB
 - eo
 - es
 - et
@@ -73,7 +71,6 @@ languages:
 - pl
 - ps
 - pt
-- pt_BR
 - ro
 - ru
 - rw
@@ -93,10 +90,15 @@ languages:
 - vi
 - wa
 - xh
-- zh_CN
-- zh_HK
-- zh_TW
-licenses:
+- zh
+language_bcp47:
+- bn-IN
+- en-GB
+- pt-BR
+- zh-CN
+- zh-HK
+- zh-TW
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -105,12 +107,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
+pretty_name: KDE4
 ---
-# Dataset Card Creation Guide
+# Dataset Card for KDE4
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

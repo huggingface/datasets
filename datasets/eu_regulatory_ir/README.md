@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual
@@ -19,6 +19,7 @@ task_ids:
 - document-retrieval
 - text-retrieval-other-document-to-document-retrieval
 paperswithcode_id: null
+pretty_name: the RegIR datasets
 ---
 
 # Dataset Card for the RegIR datasets

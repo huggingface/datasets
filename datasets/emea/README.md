@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - bg
 - cs
 - da
@@ -26,29 +26,25 @@ languages:
 - sk
 - sl
 - sv
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
 size_categories:
-  bg-el:
-  - 1M<n<10M
-  cs-et:
-  - 1M<n<10M
-  de-mt:
-  - 1M<n<10M
-  fr-sk:
-  - 1M<n<10M
-  es-lt:
-  - 1M<n<10M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
 pretty_name: EMEA
+configs:
+- bg-el
+- cs-et
+- de-mt
+- es-lt
+- fr-sk
 ---
 
 # Dataset Card for EMEA

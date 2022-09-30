@@ -3,18 +3,11 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
-  en-es:
-  - en
-  - es
-  en-pt:
-  - en
-  - pt
-  en-pt-es:
-  - en
-  - pt
-  - es
-licenses:
+language:
+- en
+- es
+- pt
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -23,13 +16,17 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
+pretty_name: SciELO
+configs:
+- en-es
+- en-pt
+- en-pt-es
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for SciELO
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

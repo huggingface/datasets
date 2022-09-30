@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual
@@ -19,6 +19,7 @@ task_ids:
 - open-domain-qa
 - extractive-qa
 paperswithcode_id: covidqa
+pretty_name: CovidQaCastorini
 ---
 
 
@@ -50,7 +51,7 @@ paperswithcode_id: covidqa
 
 ## Dataset Description
 
-- **Homepage:** https://covidqa.ai
+- **Homepage:** http://covidqa.ai
 - **Repository:** https://github.com/castorini/pygaggle
 - **Paper:** https://arxiv.org/abs/2004.11339
 - **Point of Contact:** [Castorini research group @UWaterloo](https://github.com/castorini/)
@@ -158,10 +159,9 @@ The listed authors in the homepage are maintaining/supporting the dataset.
 
 [More Information Needed]
 
-The covidqa dataset is licensed under 
-the [Apache License 2.0](https://github.com/castorini/pygaggle/blob/master/LICENSE)
+### Licensing Information
 
-[More Information Needed]
+The dataset is licensed under the [Apache License 2.0](https://github.com/castorini/pygaggle/blob/master/LICENSE).
 
 ### Citation Information
 

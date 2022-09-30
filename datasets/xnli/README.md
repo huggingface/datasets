@@ -1,7 +1,8 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: xnli
+pretty_name: Cross-lingual Natural Language Inference
 ---
 
 # Dataset Card for "xnli"
@@ -57,8 +58,6 @@ labels).
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

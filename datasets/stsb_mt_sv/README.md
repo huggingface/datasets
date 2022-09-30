@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - machine-generated
-languages:
+language:
 - sv
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -15,10 +15,12 @@ size_categories:
 source_datasets:
 - extended|other-sts-b
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
+- text-scoring
 - semantic-similarity-scoring
 paperswithcode_id: null
+pretty_name: Swedish Machine Translated STS-B
 ---
 
 # Dataset Card for Swedish Machine Translated STS-B 

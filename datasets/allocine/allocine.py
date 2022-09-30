@@ -2,7 +2,6 @@
 
 
 import json
-import os
 
 import datasets
 from datasets.tasks import TextClassification
@@ -70,25 +69,38 @@ class AllocineDataset(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        arch_path = dl_manager.download_and_extract(self._DOWNLOAD_URL)
-        data_dir = os.path.join(arch_path, "data")
+        archive_path = dl_manager.download(self._DOWNLOAD_URL)
+        data_dir = "data"
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, self._TRAIN_FILE)}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": f"{data_dir}/{self._TRAIN_FILE}",
+                    "files": dl_manager.iter_archive(archive_path),
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, self._VAL_FILE)}
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "filepath": f"{data_dir}/{self._VAL_FILE}",
+                    "files": dl_manager.iter_archive(archive_path),
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, self._TEST_FILE)}
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "filepath": f"{data_dir}/{self._TEST_FILE}",
+                    "files": dl_manager.iter_archive(archive_path),
+                },
             ),
         ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, filepath, files):
         """Generate Allocine examples."""
-        with open(filepath, encoding="utf-8") as f:
-            for id_, row in enumerate(f):
-                data = json.loads(row)
-                review = data["review"]
-                label = "neg" if data["polarity"] == 0 else "pos"
-                yield id_, {"review": review, "label": label}
+        for path, file in files:
+            if path == filepath:
+                for id_, row in enumerate(file):
+                    data = json.loads(row.decode("utf-8"))
+                    review = data["review"]
+                    label = "neg" if data["polarity"] == 0 else "pos"
+                    yield id_, {"review": review, "label": label}

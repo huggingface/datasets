@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - fr
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -18,6 +18,56 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: allocine
+pretty_name: Allociné
+train-eval-index:
+  - config: allocine
+    task: text-classification
+    task_id: multi_class_classification
+    splits:
+      train_split: train
+      eval_split: test
+    col_mapping:
+      review: text
+      label: target
+    metrics:
+      - type: accuracy
+        name: Accuracy
+      - type: f1
+        name: F1 macro
+        args:
+          average: macro
+      - type: f1
+        name: F1 micro
+        args:
+          average: micro  
+      - type: f1
+        name: F1 weighted
+        args:
+          average: weighted
+      - type: precision
+        name: Precision macro
+        args:
+          average: macro  
+      - type: precision
+        name: Precision micro
+        args:
+          average: micro  
+      - type: precision
+        name: Precision weighted
+        args:
+          average: weighted  
+      - type: recall
+        name: Recall macro
+        args:
+          average: macro  
+      - type: recall
+        name: Recall micro
+        args:
+          average: micro  
+      - type: recall
+        name: Recall weighted
+        args:
+          average: weighted
 ---
 
 # Dataset Card for Allociné

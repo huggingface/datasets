@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - ha
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: Hausa VOA NER Corpus
 ---
 
 # Dataset Card for Hausa VOA NER Corpus

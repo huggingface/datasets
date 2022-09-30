@@ -5,9 +5,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -20,6 +20,55 @@ task_categories:
 task_ids:
 - intent-classification
 paperswithcode_id: sms-spam-collection-data-set
+pretty_name: SMS Spam Collection Data Set
+train-eval-index:
+- config: plain_text
+  task: text-classification
+  task_id: binary_classification
+  splits:
+    train_split: train
+  col_mapping:
+    sms: text
+    label: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 macro
+      args:
+        average: macro
+    - type: f1
+      name: F1 micro
+      args:
+        average: micro
+    - type: f1
+      name: F1 weighted
+      args:
+        average: weighted
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
 ---
 
 # Dataset Card for [Dataset Name]
@@ -58,7 +107,7 @@ paperswithcode_id: sms-spam-collection-data-set
 
 ### Dataset Summary
 
-The SMS Spam Collection v.1 is a public set of SMS labeled messages that have been collected for mobile phone spam research. 
+The SMS Spam Collection v.1 is a public set of SMS labeled messages that have been collected for mobile phone spam research.
 It has one collection composed by 5,574 English, real and non-enconded messages, tagged according being legitimate (ham) or spam.
 
 ### Supported Tasks and Leaderboards

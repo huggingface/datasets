@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - yue
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -14,12 +14,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- sequence-modeling
+- translation
+- text-generation
+- fill-mask
 task_ids:
 - dialogue-modeling
-- machine-translation
 paperswithcode_id: hong-kong-cantonese-corpus
+pretty_name: The Hong Kong Cantonese Corpus (HKCanCor)
 ---
 
 # Dataset Card for The Hong Kong Cantonese Corpus (HKCanCor)

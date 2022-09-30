@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - pt
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -14,10 +14,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: brwac
+pretty_name: BrWaC
 ---
 
 # Dataset Card for BrWaC

@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - code
-licenses:
-- other-C-UDA
+license:
+- c-uda
 multilinguality:
 - other-programming-languages
 size_categories:
@@ -14,9 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- translation
 task_ids:
-- machine-translation
+- translation-other-code-to-code
+pretty_name: CodeXGlueCcCodeToCodeTrans
 ---
 # Dataset Card for "code_x_glue_cc_code_to_code_trans"
 

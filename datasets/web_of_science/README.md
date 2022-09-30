@@ -1,7 +1,8 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: web-of-science-dataset
+pretty_name: Web of Science Dataset
 ---
 
 # Dataset Card for "web_of_science"
@@ -77,8 +78,6 @@ Web of Science Dataset WOS-5736
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

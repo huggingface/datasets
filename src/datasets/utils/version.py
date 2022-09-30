@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,6 +40,12 @@ class Version:
         major (:obj:`str`):
         minor (:obj:`str`):
         patch (:obj:`str`):
+
+    Example:
+
+    ```py
+    >>> VERSION = datasets.Version("1.0.0")
+    ```
     """
 
     version_str: str
@@ -67,12 +72,15 @@ class Version:
         raise AssertionError(f"{other} (type {type(other)}) cannot be compared to version.")
 
     def __eq__(self, other):
-        other = self._validate_operand(other)
-        return self.tuple == other.tuple
+        try:
+            other = self._validate_operand(other)
+        except (AssertionError, ValueError):
+            return False
+        else:
+            return self.tuple == other.tuple
 
     def __ne__(self, other):
-        other = self._validate_operand(other)
-        return self.tuple != other.tuple
+        return not self.__eq__(other)
 
     def __lt__(self, other):
         other = self._validate_operand(other)
@@ -102,7 +110,7 @@ class Version:
 
     @classmethod
     def from_dict(cls, dic):
-        field_names = set(f.name for f in dataclasses.fields(cls))
+        field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in dic.items() if k in field_names})
 
 

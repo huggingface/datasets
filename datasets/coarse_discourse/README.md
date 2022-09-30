@@ -1,4 +1,23 @@
 ---
+annotations_creators:
+- crowdsourced
+language:
+- en
+language_creators:
+- found
+license:
+- cc-by-4.0
+multilinguality:
+- monolingual
+pretty_name: Coarse Discourse
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- multi-class-classification
 paperswithcode_id: coarse-discourse
 ---
 
@@ -30,9 +49,9 @@ paperswithcode_id: coarse-discourse
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/google-research-datasets/coarse-discourse](https://github.com/google-research-datasets/coarse-discourse)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Homepage:**
+- **Repository:** https://github.com/google-research-datasets/coarse-discourse
+- **Paper:** [Characterizing Online Discussion Using Coarse Discourse Sequences](https://research.google/pubs/pub46055/)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 4.42 MB
 - **Size of the generated dataset:** 43.34 MB
@@ -40,7 +59,9 @@ paperswithcode_id: coarse-discourse
 
 ### Dataset Summary
 
-dataset contains discourse annotation and relation on threads from reddit during 2016
+A large corpus of discourse annotations and relations on ~10K forum threads.
+
+We collect and release a corpus of over 9,000 threads comprising over 100,000 comments manually annotated via paid crowdsourcing with discourse acts and randomly sampled from the site Reddit.
 
 ### Supported Tasks and Leaderboards
 
@@ -51,8 +72,6 @@ dataset contains discourse annotation and relation on threads from reddit during
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

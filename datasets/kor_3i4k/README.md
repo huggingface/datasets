@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - ko
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - intent-classification
 paperswithcode_id: null
+pretty_name: 3i4K
 ---
 
 # Dataset Card for 3i4K
@@ -48,10 +49,10 @@ paperswithcode_id: null
 
 ## Dataset Description
 
-- **Homepage: [3i4K](https://github.com/warnikchow/3i4k)**
-- **Repository: [3i4K](https://github.com/warnikchow/3i4k)**
-- **Paper: [Speech Intention Understanding in a Head-final Language: A Disambiguation Utilizing Intonation-dependency](https://arxiv.org/abs/1811.04231)**
-- **Point of Contact: [Won Ik Cho](wicho@hi.snu.ac.kr)**
+- **Homepage:** [3i4K](https://github.com/warnikchow/3i4k)
+- **Repository:** [3i4K](https://github.com/warnikchow/3i4k)
+- **Paper:** [Speech Intention Understanding in a Head-final Language: A Disambiguation Utilizing Intonation-dependency](https://arxiv.org/abs/1811.04231)
+- **Point of Contact:** [Won Ik Cho](wicho@hi.snu.ac.kr)
 
 ### Dataset Summary
 

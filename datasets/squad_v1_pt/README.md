@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - pt
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -19,6 +19,7 @@ task_ids:
 - extractive-qa
 - open-domain-qa
 paperswithcode_id: null
+pretty_name: SquadV1Pt
 ---
 
 # Dataset Card for "squad_v1_pt"
@@ -70,8 +71,6 @@ Portuguese translation of the SQuAD dataset. The translation was performed autom
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

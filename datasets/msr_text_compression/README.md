@@ -3,10 +3,11 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- other-Microsoft Research Data License
+license:
+- other
+license_details: "Microsoft Research Data License Agreement"
 multilinguality:
 - monolingual
 size_categories:
@@ -14,9 +15,9 @@ size_categories:
 source_datasets:
 - extended|other-Open-American-National-Corpus-(OANC1)
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids: []
+pretty_name: MsrTextCompression
 ---
 
 # Dataset Card for [Dataset Name]

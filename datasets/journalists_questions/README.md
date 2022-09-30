@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - other
-languages:
+language:
 - ar
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - text-classification-other-question-identification
 paperswithcode_id: null
+pretty_name: JournalistsQuestions
 ---
 
 # Dataset Card for journalists_questions

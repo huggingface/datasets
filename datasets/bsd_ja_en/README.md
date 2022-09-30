@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
 - ja
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - translation
@@ -15,10 +15,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- translation
 task_ids:
-- machine-translation
+- translation-other-business-conversations-translation
 paperswithcode_id: business-scene-dialogue
+pretty_name: Business Scene Dialogue
 ---
 
 # Dataset Card for Business Scene Dialogue 
@@ -156,7 +157,7 @@ and title of the scenario (title).
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - fa
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -14,13 +14,16 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: null
+pretty_name: FarsiNews
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for FarsiNews
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

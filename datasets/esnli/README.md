@@ -1,7 +1,8 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: e-snli
+pretty_name: e-SNLI
 ---
 
 # Dataset Card for "esnli"
@@ -55,8 +56,6 @@ relations.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

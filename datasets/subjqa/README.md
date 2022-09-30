@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -21,6 +21,7 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: subjqa
+pretty_name: subjqa
 ---
 
 # Dataset Card for subjqa

@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -19,6 +19,7 @@ task_ids:
 - multiple-choice-qa
 - open-domain-qa
 paperswithcode_id: qa-srl
+pretty_name: QA-SRL
 ---
 
 # Dataset Card for QA-SRL

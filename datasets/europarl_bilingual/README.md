@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - bg
 - cs
 - da
@@ -25,7 +25,7 @@ languages:
 - sk
 - sl
 - sv
-licenses:
+license:
 - unknown
 multilinguality:
 - translation
@@ -34,10 +34,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
+pretty_name: europarl-bilingual
 ---
 
 # Dataset Card for europarl-bilingual

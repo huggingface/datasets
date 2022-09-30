@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - other
-languages:
+language:
 - pl
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - other-other-sentences entailment and relatedness
 paperswithcode_id: polish-cdscorpus
+pretty_name: Polish CDSCorpus
 ---
 
 # Dataset Card for [Dataset Name]
@@ -141,7 +142,7 @@ Data is splitted in train/dev/test split.
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

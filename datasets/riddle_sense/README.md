@@ -3,10 +3,10 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- other-non-commercial
+license:
+- other
 multilinguality:
 - monolingual
 pretty_name: RiddleSense
@@ -149,7 +149,7 @@ default
 
 ### Other Known Limitations
 
-[Needs More Information]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -14,13 +14,27 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: weibo-ner
+pretty_name: Weibo NER
+train-eval-index:
+- config: default
+  task: token-classification
+  task_id: entity_extraction
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    tokens: tokens
+    ner_tags: tags
+  metrics:
+    - type: seqeval
+      name: seqeval
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for "Weibo NER"
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

@@ -4,29 +4,32 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
-- fr
+language:
+- ar
+- ca
+- cy
 - de
 - es
-- ca
-- it
-- ru
-- zh-CN
-- pt
-- fa
 - et
+- fa
+- fr
+- id
+- it
+- ja
+- lv
 - mn
 - nl
-- tr
-- ar
-- sv-SE
-- lv
+- pt
+- ru
 - sl
+- sv
 - ta
-- ja
-- id
-- cy
-licenses:
+- tr
+- zh
+language_bcp47:
+- sv-SE
+- zh-CN
+license:
 - cc-by-nc-4.0
 multilinguality:
 - multilingual
@@ -35,9 +38,8 @@ size_categories:
 source_datasets:
 - extended|other-common-voice
 task_categories:
-- speech-processing
-task_ids:
 - automatic-speech-recognition
+task_ids: []
 paperswithcode_id: null
 pretty_name: CoVoST 2
 ---
@@ -189,7 +191,7 @@ A typical data point comprises the path to the audio file, usually called `file`
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset.
 
 ## Considerations for Using the Data
 
@@ -213,7 +215,7 @@ A typical data point comprises the path to the audio file, usually called `file`
 
 ### Licensing Information
 
-cc-by-nc-4.0
+[CC BY-NC 4.0](https://github.com/facebookresearch/covost/blob/main/LICENSE)
 
 ### Citation Information
 

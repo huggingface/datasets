@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - topic-classification
 paperswithcode_id: prachathai-67k
+pretty_name: prachathai67k
 ---
 
 # Dataset Card for `prachathai67k`
@@ -169,7 +170,7 @@ Prachathai.com is a left-leaning, human-right-focused news site, and thus unusua
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

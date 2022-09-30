@@ -1,7 +1,8 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: quarel
+pretty_name: QuaRel
 ---
 
 # Dataset Card for "quarel"
@@ -53,8 +54,6 @@ QuaRel is a crowdsourced dataset of 2771 multiple-choice story questions, includ
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - pt
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -15,11 +15,12 @@ source_datasets:
 - original
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
+- text-scoring
 - natural-language-inference
 - semantic-similarity-scoring
 paperswithcode_id: assin2
+pretty_name: ASSIN 2
 ---
 
 # Dataset Card for ASSIN 2

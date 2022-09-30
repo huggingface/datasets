@@ -1,7 +1,37 @@
 ---
-languages:
+annotations_creators:
+- no-annotation
+language_creators:
+- expert-generated
+language:
 - en
+license:
+- bsd
+multilinguality:
+- monolingual
+pretty_name: SCAN
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text2text-generation
+task_ids:
+- other-multi-turn
 paperswithcode_id: scan
+configs:
+- addprim_jump
+- addprim_turn_left
+- filler_num0
+- filler_num1
+- filler_num2
+- filler_num3
+- length
+- simple
+- template_around_right
+- template_jump_around_right
+- template_opposite_right
+- template_right
 ---
 
 # Dataset Card for "scan"
@@ -61,8 +91,6 @@ data = datasets.load_dataset('scan/length')
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -212,7 +240,6 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
 @inproceedings{Lake2018GeneralizationWS,
   title={Generalization without Systematicity: On the Compositional Skills of
          Sequence-to-Sequence Recurrent Networks},
@@ -221,7 +248,6 @@ The data fields are the same among all splits.
   year={2018},
   url={https://arxiv.org/pdf/1711.00350.pdf},
 }
-
 ```
 
 

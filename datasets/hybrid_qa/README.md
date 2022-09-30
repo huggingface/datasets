@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - question-answering-other-multihop-tabular-text-qa
 paperswithcode_id: hybridqa
+pretty_name: HybridQA
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for HybridQA
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -118,15 +119,32 @@ A typical example looks like this
 
 ### Data Fields
 
-[More Information Needed]
+- `question_id` (str)
+- `question` (str)
+- `table_id` (str)
+- `answer_text` (str)
+- `question_postag` (str)
+- `table` (dict):
+  - `url` (str)
+  - `title` (str)
+  - `header` (list of str)
+  - `data` (list of dict):
+    - `value` (str)
+    - `urls` (list of dict):
+      - `url` (str)
+      - `summary` (str)
+- `section_title` (str)
+- `section_text` (str)
+- `uid` (str)
+- `intro` (str)
 
 ### Data Splits
 
 The dataset is split into `train`, `dev` and `test` splits.
 
-|                 | Tain   | Valid | Test  |
-| --------------- | ------ | ----- | ----- |
-| N. Instances    | 62682  | 3466  | 3463  |
+|                 | train | validation | test |
+| --------------- |------:|-----------:|-----:|
+| N. Instances    | 62682 |       3466 | 3463 |
 
 
 ## Dataset Creation

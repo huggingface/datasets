@@ -4,333 +4,16 @@ annotations_creators:
 - machine-generated
 language_creators:
 - machine-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-3.0
 multilinguality:
 - monolingual
 size_categories:
-  en-qa1:
-  - n<1K
-  en-qa2:
-  - n<1K
-  en-qa3:
-  - n<1K
-  en-qa4:
-  - 1K<n<10K
-  en-qa5:
-  - n<1K
-  en-qa6:
-  - n<1K
-  en-qa7:
-  - n<1K
-  en-qa8:
-  - n<1K
-  en-qa9:
-  - n<1K
-  en-qa10:
-  - n<1K
-  en-qa11:
-  - n<1K
-  en-qa12:
-  - n<1K
-  en-qa13:
-  - n<1K
-  en-qa14:
-  - n<1K
-  en-qa15:
-  - n<1K
-  en-qa16:
-  - 1K<n<10K
-  en-qa17:
-  - n<1K
-  en-qa18:
-  - n<1K
-  en-qa19:
-  - 1K<n<10K
-  en-qa20:
-  - n<1K
-  en-10k-qa1:
-  - 1K<n<10K
-  en-10k-qa2:
-  - 1K<n<10K
-  en-10k-qa3:
-  - 1K<n<10K
-  en-10k-qa4:
-  - 10K<n<100K
-  en-10k-qa5:
-  - 1K<n<10K
-  en-10k-qa6:
-  - 1K<n<10K
-  en-10k-qa7:
-  - 1K<n<10K
-  en-10k-qa8:
-  - 1K<n<10K
-  en-10k-qa9:
-  - 1K<n<10K
-  en-10k-qa10:
-  - 1K<n<10K
-  en-10k-qa11:
-  - 1K<n<10K
-  en-10k-qa12:
-  - 1K<n<10K
-  en-10k-qa13:
-  - 1K<n<10K
-  en-10k-qa14:
-  - 1K<n<10K
-  en-10k-qa15:
-  - 1K<n<10K
-  en-10k-qa16:
-  - 10K<n<100K
-  en-10k-qa17:
-  - 1K<n<10K
-  en-10k-qa18:
-  - 1K<n<10K
-  en-10k-qa19:
-  - 10K<n<100K
-  en-10k-qa20:
-  - 1K<n<10K
-  en-valid-qa1:
-  - n<1K
-  en-valid-qa2:
-  - n<1K
-  en-valid-qa3:
-  - n<1K
-  en-valid-qa4:
-  - 1K<n<10K
-  en-valid-qa5:
-  - n<1K
-  en-valid-qa6:
-  - n<1K
-  en-valid-qa7:
-  - n<1K
-  en-valid-qa8:
-  - n<1K
-  en-valid-qa9:
-  - n<1K
-  en-valid-qa10:
-  - n<1K
-  en-valid-qa11:
-  - n<1K
-  en-valid-qa12:
-  - n<1K
-  en-valid-qa13:
-  - n<1K
-  en-valid-qa14:
-  - n<1K
-  en-valid-qa15:
-  - n<1K
-  en-valid-qa16:
-  - 1K<n<10K
-  en-valid-qa17:
-  - n<1K
-  en-valid-qa18:
-  - n<1K
-  en-valid-qa19:
-  - 1K<n<10K
-  en-valid-qa20:
-  - n<1K
-  en-valid-10k-qa1:
-  - 1K<n<10K
-  en-valid-10k-qa2:
-  - 1K<n<10K
-  en-valid-10k-qa3:
-  - 1K<n<10K
-  en-valid-10k-qa4:
-  - 10K<n<100K
-  en-valid-10k-qa5:
-  - 1K<n<10K
-  en-valid-10k-qa6:
-  - 1K<n<10K
-  en-valid-10k-qa7:
-  - 1K<n<10K
-  en-valid-10k-qa8:
-  - 1K<n<10K
-  en-valid-10k-qa9:
-  - 1K<n<10K
-  en-valid-10k-qa10:
-  - 1K<n<10K
-  en-valid-10k-qa11:
-  - 1K<n<10K
-  en-valid-10k-qa12:
-  - 1K<n<10K
-  en-valid-10k-qa13:
-  - 1K<n<10K
-  en-valid-10k-qa14:
-  - 1K<n<10K
-  en-valid-10k-qa15:
-  - 1K<n<10K
-  en-valid-10k-qa16:
-  - 10K<n<100K
-  en-valid-10k-qa17:
-  - 1K<n<10K
-  en-valid-10k-qa18:
-  - 1K<n<10K
-  en-valid-10k-qa19:
-  - 10K<n<100K
-  en-valid-10k-qa20:
-  - 1K<n<10K
-  hn-qa1:
-  - n<1K
-  hn-qa2:
-  - n<1K
-  hn-qa3:
-  - n<1K
-  hn-qa4:
-  - 1K<n<10K
-  hn-qa5:
-  - n<1K
-  hn-qa6:
-  - n<1K
-  hn-qa7:
-  - n<1K
-  hn-qa8:
-  - n<1K
-  hn-qa9:
-  - n<1K
-  hn-qa10:
-  - n<1K
-  hn-qa11:
-  - n<1K
-  hn-qa12:
-  - n<1K
-  hn-qa13:
-  - n<1K
-  hn-qa14:
-  - n<1K
-  hn-qa15:
-  - n<1K
-  hn-qa16:
-  - 1K<n<10K
-  hn-qa17:
-  - n<1K
-  hn-qa18:
-  - n<1K
-  hn-qa19:
-  - 1K<n<10K
-  hn-qa20:
-  - n<1K
-  hn-10k-qa1:
-  - 1K<n<10K
-  hn-10k-qa2:
-  - 1K<n<10K
-  hn-10k-qa3:
-  - 1K<n<10K
-  hn-10k-qa4:
-  - 10K<n<100K
-  hn-10k-qa5:
-  - 1K<n<10K
-  hn-10k-qa6:
-  - 1K<n<10K
-  hn-10k-qa7:
-  - 1K<n<10K
-  hn-10k-qa8:
-  - 1K<n<10K
-  hn-10k-qa9:
-  - 1K<n<10K
-  hn-10k-qa10:
-  - 1K<n<10K
-  hn-10k-qa11:
-  - 1K<n<10K
-  hn-10k-qa12:
-  - 1K<n<10K
-  hn-10k-qa13:
-  - 1K<n<10K
-  hn-10k-qa14:
-  - 1K<n<10K
-  hn-10k-qa15:
-  - 1K<n<10K
-  hn-10k-qa16:
-  - 10K<n<100K
-  hn-10k-qa17:
-  - 1K<n<10K
-  hn-10k-qa18:
-  - 1K<n<10K
-  hn-10k-qa19:
-  - 10K<n<100K
-  hn-10k-qa20:
-  - 1K<n<10K
-  shuffled-qa1:
-  - n<1K
-  shuffled-qa2:
-  - n<1K
-  shuffled-qa3:
-  - n<1K
-  shuffled-qa4:
-  - 1K<n<10K
-  shuffled-qa5:
-  - n<1K
-  shuffled-qa6:
-  - n<1K
-  shuffled-qa7:
-  - n<1K
-  shuffled-qa8:
-  - n<1K
-  shuffled-qa9:
-  - n<1K
-  shuffled-qa10:
-  - n<1K
-  shuffled-qa11:
-  - n<1K
-  shuffled-qa12:
-  - n<1K
-  shuffled-qa13:
-  - n<1K
-  shuffled-qa14:
-  - n<1K
-  shuffled-qa15:
-  - n<1K
-  shuffled-qa16:
-  - 1K<n<10K
-  shuffled-qa17:
-  - n<1K
-  shuffled-qa18:
-  - n<1K
-  shuffled-qa19:
-  - 1K<n<10K
-  shuffled-qa20:
-  - n<1K
-  shuffled-10k-qa1:
-  - 1K<n<10K
-  shuffled-10k-qa2:
-  - 1K<n<10K
-  shuffled-10k-qa3:
-  - 1K<n<10K
-  shuffled-10k-qa4:
-  - 10K<n<100K
-  shuffled-10k-qa5:
-  - 1K<n<10K
-  shuffled-10k-qa6:
-  - 1K<n<10K
-  shuffled-10k-qa7:
-  - 1K<n<10K
-  shuffled-10k-qa8:
-  - 1K<n<10K
-  shuffled-10k-qa9:
-  - 1K<n<10K
-  shuffled-10k-qa10:
-  - 1K<n<10K
-  shuffled-10k-qa11:
-  - 1K<n<10K
-  shuffled-10k-qa12:
-  - 1K<n<10K
-  shuffled-10k-qa13:
-  - 1K<n<10K
-  shuffled-10k-qa14:
-  - 1K<n<10K
-  shuffled-10k-qa15:
-  - 1K<n<10K
-  shuffled-10k-qa16:
-  - 10K<n<100K
-  shuffled-10k-qa17:
-  - 1K<n<10K
-  shuffled-10k-qa18:
-  - 1K<n<10K
-  shuffled-10k-qa19:
-  - 10K<n<100K
-  shuffled-10k-qa20:
-  - 1K<n<10K
+- 10K<n<100K
+- 1K<n<10K
+- n<1K
 source_datasets:
 - original
 task_categories:
@@ -338,6 +21,167 @@ task_categories:
 task_ids:
 - question-answering-other-chained-qa
 paperswithcode_id: babi-1
+configs:
+- en-10k-qa1
+- en-10k-qa10
+- en-10k-qa11
+- en-10k-qa12
+- en-10k-qa13
+- en-10k-qa14
+- en-10k-qa15
+- en-10k-qa16
+- en-10k-qa17
+- en-10k-qa18
+- en-10k-qa19
+- en-10k-qa2
+- en-10k-qa20
+- en-10k-qa3
+- en-10k-qa4
+- en-10k-qa5
+- en-10k-qa6
+- en-10k-qa7
+- en-10k-qa8
+- en-10k-qa9
+- en-qa1
+- en-qa10
+- en-qa11
+- en-qa12
+- en-qa13
+- en-qa14
+- en-qa15
+- en-qa16
+- en-qa17
+- en-qa18
+- en-qa19
+- en-qa2
+- en-qa20
+- en-qa3
+- en-qa4
+- en-qa5
+- en-qa6
+- en-qa7
+- en-qa8
+- en-qa9
+- en-valid-10k-qa1
+- en-valid-10k-qa10
+- en-valid-10k-qa11
+- en-valid-10k-qa12
+- en-valid-10k-qa13
+- en-valid-10k-qa14
+- en-valid-10k-qa15
+- en-valid-10k-qa16
+- en-valid-10k-qa17
+- en-valid-10k-qa18
+- en-valid-10k-qa19
+- en-valid-10k-qa2
+- en-valid-10k-qa20
+- en-valid-10k-qa3
+- en-valid-10k-qa4
+- en-valid-10k-qa5
+- en-valid-10k-qa6
+- en-valid-10k-qa7
+- en-valid-10k-qa8
+- en-valid-10k-qa9
+- en-valid-qa1
+- en-valid-qa10
+- en-valid-qa11
+- en-valid-qa12
+- en-valid-qa13
+- en-valid-qa14
+- en-valid-qa15
+- en-valid-qa16
+- en-valid-qa17
+- en-valid-qa18
+- en-valid-qa19
+- en-valid-qa2
+- en-valid-qa20
+- en-valid-qa3
+- en-valid-qa4
+- en-valid-qa5
+- en-valid-qa6
+- en-valid-qa7
+- en-valid-qa8
+- en-valid-qa9
+- hn-10k-qa1
+- hn-10k-qa10
+- hn-10k-qa11
+- hn-10k-qa12
+- hn-10k-qa13
+- hn-10k-qa14
+- hn-10k-qa15
+- hn-10k-qa16
+- hn-10k-qa17
+- hn-10k-qa18
+- hn-10k-qa19
+- hn-10k-qa2
+- hn-10k-qa20
+- hn-10k-qa3
+- hn-10k-qa4
+- hn-10k-qa5
+- hn-10k-qa6
+- hn-10k-qa7
+- hn-10k-qa8
+- hn-10k-qa9
+- hn-qa1
+- hn-qa10
+- hn-qa11
+- hn-qa12
+- hn-qa13
+- hn-qa14
+- hn-qa15
+- hn-qa16
+- hn-qa17
+- hn-qa18
+- hn-qa19
+- hn-qa2
+- hn-qa20
+- hn-qa3
+- hn-qa4
+- hn-qa5
+- hn-qa6
+- hn-qa7
+- hn-qa8
+- hn-qa9
+- shuffled-10k-qa1
+- shuffled-10k-qa10
+- shuffled-10k-qa11
+- shuffled-10k-qa12
+- shuffled-10k-qa13
+- shuffled-10k-qa14
+- shuffled-10k-qa15
+- shuffled-10k-qa16
+- shuffled-10k-qa17
+- shuffled-10k-qa18
+- shuffled-10k-qa19
+- shuffled-10k-qa2
+- shuffled-10k-qa20
+- shuffled-10k-qa3
+- shuffled-10k-qa4
+- shuffled-10k-qa5
+- shuffled-10k-qa6
+- shuffled-10k-qa7
+- shuffled-10k-qa8
+- shuffled-10k-qa9
+- shuffled-qa1
+- shuffled-qa10
+- shuffled-qa11
+- shuffled-qa12
+- shuffled-qa13
+- shuffled-qa14
+- shuffled-qa15
+- shuffled-qa16
+- shuffled-qa17
+- shuffled-qa18
+- shuffled-qa19
+- shuffled-qa2
+- shuffled-qa20
+- shuffled-qa3
+- shuffled-qa4
+- shuffled-qa5
+- shuffled-qa6
+- shuffled-qa7
+- shuffled-qa8
+- shuffled-qa9
 ---
 
 

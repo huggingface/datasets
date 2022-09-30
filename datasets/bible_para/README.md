@@ -3,7 +3,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - acu
 - af
 - agr
@@ -50,8 +50,8 @@ languages:
 - id
 - is
 - it
+- ja
 - jak
-- jap
 - jiv
 - kab
 - kbh
@@ -106,7 +106,7 @@ languages:
 - xh
 - zh
 - zu
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - multilingual
@@ -115,13 +115,13 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
+pretty_name: BiblePara
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for BiblePara
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

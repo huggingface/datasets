@@ -12,7 +12,6 @@ from datasets.dataset_dict import DatasetDict
 from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.splits import NamedSplit
 
-from .conftest import s3_test_bucket_name
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
@@ -41,20 +40,6 @@ class DatasetDictTest(TestCase):
             }
         )
 
-    def test_flatten_in_place(self):
-        dset_split = Dataset.from_dict(
-            {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
-            features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
-        )
-        dset = DatasetDict({"train": dset_split, "test": dset_split})
-        dset.flatten_()
-        self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
-        self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
-        self.assertDictEqual(
-            dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
-        )
-        del dset
-
     def test_flatten(self):
         dset_split = Dataset.from_dict(
             {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
@@ -63,7 +48,7 @@ class DatasetDictTest(TestCase):
         dset = DatasetDict({"train": dset_split, "test": dset_split})
         dset = dset.flatten()
         self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
-        self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
+        self.assertListEqual(sorted(dset["train"].features.keys()), ["a.b.c", "foo"])
         self.assertDictEqual(
             dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
         )
@@ -209,17 +194,6 @@ class DatasetDictTest(TestCase):
             self.assertDictEqual(dset_split.format, dset_split2.format)
         del dset, dset2
 
-    def test_cast_in_place(self):
-        dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        features = dset["train"].features
-        features["col_1"] = Value("float64")
-        dset.cast_(features)
-        for dset_split in dset.values():
-            self.assertEqual(dset_split.num_columns, 2)
-            self.assertEqual(dset_split.features["col_1"], Value("float64"))
-            self.assertIsInstance(dset_split[0]["col_1"], float)
-        del dset
-
     def test_cast(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         features = dset["train"].features
@@ -229,19 +203,6 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split.num_columns, 2)
             self.assertEqual(dset_split.features["col_1"], Value("float64"))
             self.assertIsInstance(dset_split[0]["col_1"], float)
-        del dset
-
-    def test_remove_columns_in_place(self):
-        dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        dset.remove_columns_(column_names="col_1")
-        for dset_split in dset.values():
-            self.assertEqual(dset_split.num_columns, 1)
-            self.assertListEqual(list(dset_split.column_names), ["col_2"])
-
-        dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        dset.remove_columns_(column_names=["col_1", "col_2"])
-        for dset_split in dset.values():
-            self.assertEqual(dset_split.num_columns, 0)
         del dset
 
     def test_remove_columns(self):
@@ -255,14 +216,15 @@ class DatasetDictTest(TestCase):
         dset = dset.remove_columns(column_names=["col_1", "col_2"])
         for dset_split in dset.values():
             self.assertEqual(dset_split.num_columns, 0)
-        del dset
 
-    def test_rename_column_in_place(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
         for dset_split in dset.values():
-            self.assertEqual(dset_split.num_columns, 2)
-            self.assertListEqual(list(dset_split.column_names), ["new_name", "col_2"])
+            dset_split._format_columns = ["col_1", "col_2"]
+        dset = dset.remove_columns(column_names=["col_1"])
+        for dset_split in dset.values():
+            self.assertListEqual(dset_split._format_columns, ["col_2"])
+            self.assertEqual(dset_split.num_columns, 1)
+            self.assertListEqual(list(dset_split.column_names), ["col_2"])
         del dset
 
     def test_rename_column(self):
@@ -701,8 +663,13 @@ def test_datasetdict_from_text_split(split, text_path, tmp_path):
     assert all(dataset[split].split == split for split in path.keys())
 
 
+@pytest.mark.skipif(
+    os.name in ["nt", "posix"] and (os.getenv("CIRCLECI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"),
+    reason='On Windows CircleCI or GitHub Actions, it raises botocore.exceptions.EndpointConnectionError: Could not connect to the endpoint URL: "http://127.0.0.1:5555/test"',
+)  # TODO: find what's wrong with CircleCI / GitHub Actions
 @require_s3
-def test_dummy_dataset_serialize_s3(s3, dataset):
+@pytest.mark.integration
+def test_dummy_dataset_serialize_s3(s3, dataset, s3_test_bucket_name):
     dsets = DatasetDict({"train": dataset, "test": dataset.select(range(2))})
     mock_bucket = s3_test_bucket_name
     dataset_path = f"s3://{mock_bucket}/datasets/dict"

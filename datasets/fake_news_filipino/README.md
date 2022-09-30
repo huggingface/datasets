@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - tl
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - fact-checking
 paperswithcode_id: fake-news-filipino-dataset
+pretty_name: Fake News Filipino
 ---
 
 # Dataset Card for Fake News Filipino
@@ -48,11 +49,11 @@ paperswithcode_id: fake-news-filipino-dataset
 
 ## Dataset Description
 
-- **Homepage: [Fake News Filipino homepage](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)**
-- **Repository: [Fake News Filipino repository](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)**
-- **Paper: [LREC 2020 paper](http://www.lrec-conf.org/proceedings/lrec2020/index.html)**
+- **Homepage:** [Fake News Filipino homepage](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
+- **Repository:** [Fake News Filipino repository](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
+- **Paper:** [LREC 2020 paper](http://www.lrec-conf.org/proceedings/lrec2020/index.html)
 - **Leaderboard:**
-- **Point of Contact:[Jan Christian Cruz](mailto:jan_christian_cruz@dlsu.edu.ph)**
+- **Point of Contact:** [Jan Christian Cruz](mailto:jan_christian_cruz@dlsu.edu.ph)
 
 ### Dataset Summary
 

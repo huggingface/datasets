@@ -3,10 +3,10 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
-- CC-BY-NC-SA-3.0
+license:
+- cc-by-nc-sa-3.0
 multilinguality:
 - monolingual
 size_categories:
@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - natural-language-inference
 paperswithcode_id: sick
+pretty_name: Sentences Involving Compositional Knowledge
 ---
 
 # Dataset Card for sick

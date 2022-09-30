@@ -3,10 +3,10 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - ko
-licenses:
-- cc-by-1.0
+license:
+- cc-by-2.0
 multilinguality:
 - monolingual
 size_categories:
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: nsmc
+pretty_name: Naver Sentiment Movie Corpus
 ---
 
 # Dataset Card for Naver sentiment movie corpus

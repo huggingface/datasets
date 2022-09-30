@@ -1,6 +1,24 @@
 ---
-languages:
+annotations_creators:
+- found
+language:
 - en
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: GuardianAuthorship
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- multi-class-classification
+- topic-classification
 paperswithcode_id: null
 ---
 
@@ -53,7 +71,7 @@ train_ds = load_dataset('guardian_authorship', name="cross_topic_<<#>>",
 tests_ds = load_dataset('guardian_authorship', name="cross_topic_<<#>>",
                         split='train[-40%:]+validation[-40%:]+test[-40%:]')
 
-IMPORTANT: train+validation+test[:60%] will generate the wrong splits becasue the data is imbalanced
+IMPORTANT: train+validation+test[:60%] will generate the wrong splits because the data is imbalanced
 
 * See https://huggingface.co/docs/datasets/splits.html for detailed/more examples
 
@@ -66,8 +84,6 @@ IMPORTANT: train+validation+test[:60%] will generate the wrong splits becasue th
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

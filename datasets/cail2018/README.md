@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - zh
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - other-other-judgement-prediction
 paperswithcode_id: chinese-ai-and-law-cail-2018
+pretty_name: CAIL 2018
 ---
 ---
 # Dataset Card for CAIL 2018

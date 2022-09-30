@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -14,13 +14,14 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
-- conditional-text-generation-other-meaning-representtion-to-text
+- text2text-generation-other-meaning-representation-to-text
 paperswithcode_id: e2e
+pretty_name: End-to-End NLG Challenge
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for End-to-End NLG Challenge
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -66,7 +67,7 @@ https://arxiv.org/abs/1706.09254
 
 ### Supported Tasks and Leaderboards
 
-- `conditional-text-generation-other-meaning-representtion-to-text`: The dataset can be used to train a model to generate descriptions in the restaurant domain from meaning representations, which consists in taking as input some data about a restaurant and generate a sentence in natural language that presents the different aspects of the data about the restaurant.. Success on this task is typically measured by achieving a *high* [BLEU](https://huggingface.co/metrics/bleu), [NIST](https://huggingface.co/metrics/nist), [METEOR](https://huggingface.co/metrics/meteor), [Rouge-L](https://huggingface.co/metrics/rouge), [CIDEr](https://huggingface.co/metrics/cider). The TGen model (Dusek and Jurcıcek, 2016a) was used a baseline, had the following scores:
+- `text2text-generation-other-meaning-representation-to-text`: The dataset can be used to train a model to generate descriptions in the restaurant domain from meaning representations, which consists in taking as input some data about a restaurant and generate a sentence in natural language that presents the different aspects of the data about the restaurant.. Success on this task is typically measured by achieving a *high* [BLEU](https://huggingface.co/metrics/bleu), [NIST](https://huggingface.co/metrics/nist), [METEOR](https://huggingface.co/metrics/meteor), [Rouge-L](https://huggingface.co/metrics/rouge), [CIDEr](https://huggingface.co/metrics/cider). The TGen model (Dusek and Jurcıcek, 2016a) was used a baseline, had the following scores:
 
 |          | BLEU	  | NIST   | METEOR | ROUGE_L | CIDEr  |
 | -------- | ------ | ------ | ------ | ------- | ------ |
@@ -102,9 +103,9 @@ Each MR consists of 3–8 attributes (slots), such as name, food or area, and th
 
 The dataset is split into training, validation and testing sets (in a 76.5-8.5-15 ratio), keeping a similar distribution of MR and reference text lengths and ensuring that MRs in different sets are distinct.
 
-|                            | Tain   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| N. Instances               | 42061  | 4672  | 4693 |
+|                            |  train |  validation |  test |
+| -----                      |-------:|------------:|------:|
+| N. Instances               |  42061 |        4672 |  4693 |
 
 ## Dataset Creation
 

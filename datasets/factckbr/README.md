@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - pt
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - fact-checking
 paperswithcode_id: null
+pretty_name: FACTCK BR
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for FACTCK BR
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

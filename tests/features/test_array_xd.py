@@ -10,7 +10,8 @@ from absl.testing import parameterized
 
 import datasets
 from datasets.arrow_writer import ArrowWriter
-from datasets.features import Array2D, Array3D, Array3DExtensionType, Array4D, Array5D, Value, _ArrayXD
+from datasets.features import Array2D, Array3D, Array4D, Array5D, Value
+from datasets.features.features import Array3DExtensionType, PandasArrayExtensionDtype, _ArrayXD
 from datasets.formatting.formatting import NumpyArrowExtractor, SimpleArrowExtractor
 
 
@@ -175,7 +176,7 @@ class ArrayXDTest(unittest.TestCase):
         self.assertIsInstance(matrix_column, list)
         self.assertIsInstance(matrix_column[0], list)
         self.assertIsInstance(matrix_column[0][0], list)
-        self.assertEqual(np.array(matrix_column).shape, (2, *shape_2))
+        self.assertTupleEqual(np.array(matrix_column).shape, (2, *shape_2))
 
         matrix_field_of_first_example = dataset[0]["matrix"]
         self.assertIsInstance(matrix_field_of_first_example, list)
@@ -187,20 +188,20 @@ class ArrayXDTest(unittest.TestCase):
         self.assertIsInstance(matrix_field_of_first_two_examples, list)
         self.assertIsInstance(matrix_field_of_first_two_examples[0], list)
         self.assertIsInstance(matrix_field_of_first_two_examples[0][0], list)
-        self.assertEqual(np.array(matrix_field_of_first_two_examples).shape, (2, *shape_2))
+        self.assertTupleEqual(np.array(matrix_field_of_first_two_examples).shape, (2, *shape_2))
 
         with dataset.formatted_as("numpy"):
-            self.assertEqual(dataset["matrix"].shape, (2, *shape_2))
+            self.assertTupleEqual(dataset["matrix"].shape, (2, *shape_2))
             self.assertEqual(dataset[0]["matrix"].shape, shape_2)
-            self.assertEqual(dataset[:2]["matrix"].shape, (2, *shape_2))
+            self.assertTupleEqual(dataset[:2]["matrix"].shape, (2, *shape_2))
 
         with dataset.formatted_as("pandas"):
             self.assertIsInstance(dataset["matrix"], pd.Series)
             self.assertIsInstance(dataset[0]["matrix"], pd.Series)
             self.assertIsInstance(dataset[:2]["matrix"], pd.Series)
-            self.assertEqual(dataset["matrix"].to_numpy().shape, (2, *shape_2))
-            self.assertEqual(dataset[0]["matrix"].to_numpy().shape, (1, *shape_2))
-            self.assertEqual(dataset[:2]["matrix"].to_numpy().shape, (2, *shape_2))
+            self.assertTupleEqual(dataset["matrix"].to_numpy().shape, (2, *shape_2))
+            self.assertTupleEqual(dataset[0]["matrix"].to_numpy().shape, (1, *shape_2))
+            self.assertTupleEqual(dataset[:2]["matrix"].to_numpy().shape, (2, *shape_2))
 
     def test_write(self, array_feature, shape_1, shape_2):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -267,7 +268,7 @@ class ArrayXDDynamicTest(unittest.TestCase):
 
         for first_dim, single_arr in zip(first_dim_list, pylist):
             self.assertIsInstance(single_arr, np.ndarray)
-            self.assertEqual(single_arr.shape, (first_dim, *fixed_shape))
+            self.assertTupleEqual(single_arr.shape, (first_dim, *fixed_shape))
 
     def test_iter_dataset(self):
         fixed_shape = (2, 2)
@@ -277,7 +278,7 @@ class ArrayXDDynamicTest(unittest.TestCase):
         for first_dim, ds_row in zip(first_dim_list, dataset):
             single_arr = ds_row["image"]
             self.assertIsInstance(single_arr, np.ndarray)
-            self.assertEqual(single_arr.shape, (first_dim, *fixed_shape))
+            self.assertTupleEqual(single_arr.shape, (first_dim, *fixed_shape))
 
     def test_to_pandas_fail(self):
         fixed_shape = (2, 2)
@@ -297,7 +298,7 @@ class ArrayXDDynamicTest(unittest.TestCase):
         for first_dim, ds_row in zip(first_dim_list, dataset):
             single_arr = ds_row["image"]
             self.assertIsInstance(single_arr, np.ndarray)
-            self.assertEqual(single_arr.shape, (first_dim * 2, *fixed_shape))
+            self.assertTupleEqual(single_arr.shape, (first_dim * 2, *fixed_shape))
 
 
 @pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
@@ -305,7 +306,7 @@ def test_table_to_pandas(dtype, dummy_value):
     features = datasets.Features({"foo": datasets.Array2D(dtype=dtype, shape=(2, 2))})
     dataset = datasets.Dataset.from_dict({"foo": [[[dummy_value] * 2] * 2]}, features=features)
     df = dataset._data.to_pandas()
-    assert type(df.foo.dtype) == datasets.features.PandasArrayExtensionDtype
+    assert type(df.foo.dtype) == PandasArrayExtensionDtype
     arr = df.foo.to_numpy()
     np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))
 
@@ -334,10 +335,28 @@ def test_array_xd_with_none():
     dummy_array = np.array([[1, 2], [3, 4]], dtype="int32")
     dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array]}, features=features)
     arr = NumpyArrowExtractor().extract_column(dataset._data)
-    assert isinstance(arr, np.ndarray) and arr.dtype == np.object and arr.shape == (3,)
+    assert isinstance(arr, np.ndarray) and arr.dtype == object and arr.shape == (3,)
     np.testing.assert_equal(arr[0], dummy_array)
     np.testing.assert_equal(arr[2], dummy_array)
     assert np.isnan(arr[1])  # a single np.nan value - np.all not needed
+
+
+@pytest.mark.parametrize(
+    "data, feature, expected",
+    [
+        (np.zeros((2, 2)), None, [[0.0, 0.0], [0.0, 0.0]]),
+        (np.zeros((2, 3)), datasets.Array2D(shape=(2, 3), dtype="float32"), [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+        ([np.zeros(2)], datasets.Array2D(shape=(1, 2), dtype="float32"), [[0.0, 0.0]]),
+        (
+            [np.zeros((2, 3))],
+            datasets.Array3D(shape=(1, 2, 3), dtype="float32"),
+            [[[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]],
+        ),
+    ],
+)
+def test_array_xd_with_np(data, feature, expected):
+    ds = datasets.Dataset.from_dict({"col": [data]}, features=datasets.Features({"col": feature}) if feature else None)
+    assert ds[0]["col"] == expected
 
 
 @pytest.mark.parametrize("with_none", [False, True])

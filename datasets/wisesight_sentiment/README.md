@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - th
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - monolingual
@@ -18,6 +18,56 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: WisesightSentiment
+train-eval-index:
+- config: wisesight_sentiment
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    texts: text
+    category: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 macro
+      args:
+        average: macro
+    - type: f1
+      name: F1 micro
+      args:
+        average: micro
+    - type: f1
+      name: F1 weighted
+      args:
+        average: weighted
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
 ---
 
 # Dataset Card for wisesight_sentiment
@@ -98,7 +148,7 @@ Thai
 
 ### Data Fields
 
-- `texts`: texts 
+- `texts`: texts
 - `category`: sentiment of texts ranging from `pos` (positive; 0), `neu` (neutral; 1), `neg` (negative; 2) and `q` (question; 3)
 
 ### Data Splits
@@ -190,7 +240,7 @@ Outsourced annotators hired by [Wisesight (Thailand) Co., Ltd.](https://github.c
 
 ### Dataset Curators
 
-Thanks [PyThaiNLP](https://github.com/PyThaiNLP/pythainlp) community, [Kitsuchart Pasupa](http://www.it.kmitl.ac.th/~kitsuchart/) (Faculty of Information Technology, King Mongkut's Institute of Technology Ladkrabang), and [Ekapol Chuangsuwanich](https://www.cp.eng.chula.ac.th/en/about/faculty/ekapolc/) (Faculty of Engineering, Chulalongkorn University) for advice. The original Kaggle competition, using the first version of this corpus, can be found at https://www.kaggle.com/c/wisesight-sentiment/ 
+Thanks [PyThaiNLP](https://github.com/PyThaiNLP/pythainlp) community, [Kitsuchart Pasupa](http://www.it.kmitl.ac.th/~kitsuchart/) (Faculty of Information Technology, King Mongkut's Institute of Technology Ladkrabang), and [Ekapol Chuangsuwanich](https://www.cp.eng.chula.ac.th/en/about/faculty/ekapolc/) (Faculty of Engineering, Chulalongkorn University) for advice. The original Kaggle competition, using the first version of this corpus, can be found at https://www.kaggle.com/c/wisesight-sentiment/
 
 ### Licensing Information
 

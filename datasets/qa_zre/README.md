@@ -1,10 +1,27 @@
 ---
-languages:
+annotations_creators:
+- no-annotation
+language_creators:
+- expert-generated
+language:
 - en
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: QaZre
+size_categories:
+- 1M<n<10M
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- question-answering-other-zero-shot-relation-extraction
 paperswithcode_id: null
 ---
 
-# Dataset Card for "qa_zre"
+# Dataset Card for QaZre
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -54,8 +71,6 @@ A dataset reducing relation extraction to simple reading comprehension questions
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default
@@ -88,9 +103,9 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-| name  | train |validation| test |
-|-------|------:|---------:|-----:|
-|default|8400000|      6000|120000|
+| name    |   train | validation |   test |
+|---------|--------:|-----------:|-------:|
+| default | 8400000 |       6000 | 120000 |
 
 ## Dataset Creation
 
@@ -144,7 +159,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Unknown.
 
 ### Citation Information
 

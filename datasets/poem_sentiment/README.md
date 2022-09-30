@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -18,9 +18,59 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: gutenberg-poem-dataset
+pretty_name: Gutenberg Poem Dataset
+train-eval-index:
+- config: default
+  task: text-classification
+  task_id: multi_class_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    verse_text: text
+    label: target
+  metrics:
+    - type: accuracy
+      name: Accuracy
+    - type: f1
+      name: F1 macro
+      args:
+        average: macro
+    - type: f1
+      name: F1 micro
+      args:
+        average: micro
+    - type: f1
+      name: F1 weighted
+      args:
+        average: weighted
+    - type: precision
+      name: Precision macro
+      args:
+        average: macro
+    - type: precision
+      name: Precision micro
+      args:
+        average: micro
+    - type: precision
+      name: Precision weighted
+      args:
+        average: weighted
+    - type: recall
+      name: Recall macro
+      args:
+        average: macro
+    - type: recall
+      name: Recall micro
+      args:
+        average: micro
+    - type: recall
+      name: Recall weighted
+      args:
+        average: weighted
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Gutenberg Poem Dataset
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -78,20 +128,20 @@ Example of one instance in the dataset.
 
 - `id`: index of the example
 - `verse_text`: The text of the poem verse
-- `label`: The sentiment label. Here 
+- `label`: The sentiment label. Here
     - 0 = negative
     - 1 = positive
     - 2 = no impact
     - 3 = mixed (both negative and positive)
-> Note: The original dataset uses different label indices  (negative = -1, no impact = 0, positive = 1) 
+> Note: The original dataset uses different label indices  (negative = -1, no impact = 0, positive = 1)
 
 ### Data Splits
 
 The dataset is split into a `train`, `validation`, and `test` split with the following sizes:
 
-|                            | Tain   | Valid | Test  |
-| -----                      | ------ | ----- | ----- |
-| Number of examples         | 892    | 105   | 104   |
+|                    | train | validation | test |
+|--------------------|------:|-----------:|-----:|
+| Number of examples |   892 |        105 |  104 |
 
 
 

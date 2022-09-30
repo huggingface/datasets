@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - yo
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - topic-classification
 paperswithcode_id: null
+pretty_name: Yoruba Bbc News Topic Classification Dataset (YorubaBbcTopics)
 ---
 
 # Dataset Card for Yoruba BBC News Topic Classification dataset (yoruba_bbc_topics)

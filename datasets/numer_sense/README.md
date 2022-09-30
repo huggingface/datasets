@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -14,10 +14,12 @@ size_categories:
 source_datasets:
 - extended|other
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - slot-filling
 paperswithcode_id: numersense
+pretty_name: NumerSense
 ---
 
 # Dataset Card for [Dataset Name]

@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -15,13 +15,14 @@ source_datasets:
 - original
 task_categories:
 - question-answering
-- structure-prediction
+- token-classification
 task_ids:
 - closed-domain-qa
 - extractive-qa
 - question-answering-other-yes-no-qa
-- structure-prediction-other-output-structure
+- token-classification-other-output-structure
 paperswithcode_id: zest
+pretty_name: ZEST
 ---
 
 # Dataset Card for "ZEST: ZEroShot learning from Task descriptions"

@@ -8,31 +8,33 @@ language_creators:
 - crowdsourced
 - expert-generated
 - machine-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
 size_categories:
-  conceptnet:
-  - 10K<n<100K
-  google_re:
-  - 1K<n<10K
-  squad:
-  - n<1K
-  trex:
-  - 1M<n<10M
+- 10K<n<100K
+- 1K<n<10K
+- 1M<n<10M
+- n<1K
 source_datasets:
 - extended|conceptnet5
 - extended|squad
 task_categories:
 - text-retrieval
-- text-scoring
+- text-classification
 task_ids:
 - fact-checking-retrieval
-- text-scoring-other-probing
+- text-classification-other-probing
+- text-scoring
 paperswithcode_id: lama
+configs:
+- conceptnet
+- google_re
+- squad
+- trex
 ---
 
 # Dataset Card for LAMA: LAnguage Model Analysis - a dataset for probing and analyzing the factual and commonsense knowledge contained in pretrained language models.

@@ -45,11 +45,11 @@ collaboration and spoken interaction. For each dialogue, there are a large numbe
 and semantic ties to the previous dialogues.
 """
 
-_URL = "https://github.com/RevanthRameshkumar/CRD3/archive/master.zip"
+_URL = "https://huggingface.co/datasets/crd3/resolve/72bffe55b4d5bf19b530d3e417447b3384ba3673/data/aligned%20data.zip"
 
 
 def get_train_test_dev_files(files, test_split, train_split, dev_split):
-    test_files = dev_files = train_files = []
+    test_files, dev_files, train_files = [], [], []
     for file in files:
         filename = os.path.split(file)[1].split("_")[0]
         if filename in test_split:
@@ -74,13 +74,13 @@ class CRD3(datasets.GeneratorBasedBuilder):
                     "turn_start": datasets.Value("int32"),
                     "turn_end": datasets.Value("int32"),
                     "alignment_score": datasets.Value("float32"),
-                    "turn_num": datasets.Value("int32"),
-                    "turns": datasets.features.Sequence(
+                    "turns": [
                         {
-                            "names": datasets.Value("string"),
-                            "utterances": datasets.Value("string"),
+                            "names": datasets.features.Sequence(datasets.Value("string")),
+                            "utterances": datasets.features.Sequence(datasets.Value("string")),
+                            "number": datasets.Value("int32"),
                         }
-                    ),
+                    ],
                 }
             ),
             homepage="https://github.com/RevanthRameshkumar/CRD3",
@@ -88,10 +88,12 @@ class CRD3(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        path = dl_manager.download_and_extract(_URL)
-        test_file = os.path.join(path, "CRD3-master", "data", "aligned data", "test_files")
-        train_file = os.path.join(path, "CRD3-master", "data", "aligned data", "train_files")
-        dev_file = os.path.join(path, "CRD3-master", "data", "aligned data", "val_files")
+        root = dl_manager.download_and_extract(_URL)
+        path = os.path.join(root, "aligned data")
+
+        test_file = os.path.join(path, "test_files")
+        train_file = os.path.join(path, "train_files")
+        dev_file = os.path.join(path, "val_files")
         with open(test_file, encoding="utf-8") as f:
             test_splits = [file.replace("\n", "") for file in f.readlines()]
 
@@ -99,9 +101,9 @@ class CRD3(datasets.GeneratorBasedBuilder):
             train_splits = [file.replace("\n", "") for file in f.readlines()]
         with open(dev_file, encoding="utf-8") as f:
             dev_splits = [file.replace("\n", "") for file in f.readlines()]
-        c2 = "CRD3-master/data/aligned data/c=2"
-        c3 = "CRD3-master/data/aligned data/c=3"
-        c4 = "CRD3-master/data/aligned data/c=4"
+        c2 = "c=2"
+        c3 = "c=3"
+        c4 = "c=4"
         files = [os.path.join(path, c2, file) for file in sorted(os.listdir(os.path.join(path, c2)))]
         files.extend([os.path.join(path, c3, file) for file in sorted(os.listdir(os.path.join(path, c3)))])
         files.extend([os.path.join(path, c4, file) for file in sorted(os.listdir(os.path.join(path, c4)))])
@@ -135,19 +137,20 @@ class CRD3(datasets.GeneratorBasedBuilder):
                     turn_start = row["ALIGNMENT"]["TURN START"]
                     turn_end = row["ALIGNMENT"]["TURN END"]
                     score = row["ALIGNMENT"]["ALIGNMENT SCORE"]
-                    for id2, turn in enumerate(row["TURNS"]):
-                        turn_names = turn["NAMES"]
-                        turn_utterances = turn["UTTERANCES"]
-                        turn_num = turn["NUMBER"]
-                        yield str(id0) + "_" + str(id1) + "_" + str(id2), {
-                            "chunk": chunk,
-                            "chunk_id": chunk_id,
-                            "turn_start": turn_start,
-                            "turn_end": turn_end,
-                            "alignment_score": score,
-                            "turn_num": turn_num,
-                            "turns": {
-                                "names": turn_names,
-                                "utterances": turn_utterances,
-                            },
-                        }
+                    for turn in row["TURNS"]:
+                        turn["names"] = turn["NAMES"]
+                        turn["utterances"] = turn["UTTERANCES"]
+                        turn["number"] = turn["NUMBER"]
+
+                        del turn["NAMES"]
+                        del turn["UTTERANCES"]
+                        del turn["NUMBER"]
+
+                    yield str(id0) + "_" + str(id1), {
+                        "chunk": chunk,
+                        "chunk_id": chunk_id,
+                        "turn_start": turn_start,
+                        "turn_end": turn_end,
+                        "alignment_score": score,
+                        "turns": row["TURNS"],
+                    }

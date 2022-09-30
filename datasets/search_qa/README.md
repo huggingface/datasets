@@ -1,6 +1,23 @@
 ---
-languages:
+annotations_creators:
+- found
+language:
 - en
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: SearchQA
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
 paperswithcode_id: searchqa
 ---
 
@@ -32,9 +49,8 @@ paperswithcode_id: searchqa
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/nyu-dl/dl4ir-searchQA](https://github.com/nyu-dl/dl4ir-searchQA)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/nyu-dl/dl4ir-searchQA
+- **Paper:** [SearchQA: A New Q&A Dataset Augmented with Context from a Search Engine](https://arxiv.org/abs/1704.05179)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 6163.54 MB
 - **Size of the generated dataset:** 14573.76 MB
@@ -42,7 +58,6 @@ paperswithcode_id: searchqa
 
 ### Dataset Summary
 
-# pylint: disable=line-too-long
 We publicly release a new large-scale dataset, called SearchQA, for machine comprehension, or question-answering. Unlike recently released datasets, such as DeepMind
 CNN/DailyMail and SQuAD, the proposed SearchQA was constructed to reflect a full pipeline of general question-answering. That is, we start not from an existing article
 and generate a question-answer pair, but start from an existing question-answer pair, crawled from J! Archive, and augment it with text snippets retrieved by Google.
@@ -60,8 +75,6 @@ Following this approach, we built SearchQA, which consists of more than 140k que
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -190,8 +203,7 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
-    @article{DBLP:journals/corr/DunnSHGCC17,
+@article{DBLP:journals/corr/DunnSHGCC17,
     author    = {Matthew Dunn and
                 Levent Sagun and
                 Mike Higgins and
@@ -209,8 +221,7 @@ The data fields are the same among all splits.
     timestamp = {Mon, 13 Aug 2018 16:47:09 +0200},
     biburl    = {https://dblp.org/rec/journals/corr/DunnSHGCC17.bib},
     bibsource = {dblp computer science bibliography, https://dblp.org}
-    }
-
+}
 ```
 
 

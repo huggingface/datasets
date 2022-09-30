@@ -3,9 +3,11 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
+- en
+language_bcp47:
 - en-US
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -15,10 +17,12 @@ source_datasets:
 - original
 task_categories:
 - question-answering
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - open-domain-qa
 - dialogue-modeling
+pretty_name: ConvQuestions
 ---
 
 # Dataset Card for ConvQuestions

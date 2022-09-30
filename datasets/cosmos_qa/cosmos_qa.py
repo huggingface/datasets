@@ -1,4 +1,4 @@
-"""TODO(cosmos_qa): Add a description here."""
+"""Cosmos QA dataset."""
 
 
 import csv
@@ -7,21 +7,31 @@ import json
 import datasets
 
 
-# TODO(cosmos_qa): BibTeX citation
-_CITATION = """\
-@inproceedings{cosmos,
-    title={COSMOS QA: Machine Reading Comprehension
-    with Contextual Commonsense Reasoning},
-    author={Lifu Huang and Ronan Le Bras and Chandra Bhagavatula and Yejin Choi},
-    booktitle ={arXiv:1909.00277v2},
-    year={2019}
-}
-"""
+_HOMEPAGE = "https://wilburone.github.io/cosmos/"
 
-# TODO(cosmos_qa):
 _DESCRIPTION = """\
 Cosmos QA is a large-scale dataset of 35.6K problems that require commonsense-based reading comprehension, formulated as multiple-choice questions. It focuses on reading between the lines over a diverse collection of people's everyday narratives, asking questions concerning on the likely causes or effects of events that require reasoning beyond the exact text spans in the context
 """
+
+_CITATION = """\
+@inproceedings{huang-etal-2019-cosmos,
+    title = "Cosmos {QA}: Machine Reading Comprehension with Contextual Commonsense Reasoning",
+    author = "Huang, Lifu  and
+      Le Bras, Ronan  and
+      Bhagavatula, Chandra  and
+      Choi, Yejin",
+    booktitle = "Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)",
+    month = nov,
+    year = "2019",
+    address = "Hong Kong, China",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/D19-1243",
+    doi = "10.18653/v1/D19-1243",
+    pages = "2391--2401",
+}
+"""
+
+_LICENSE = "CC BY 4.0"
 
 _URL = "https://github.com/wilburOne/cosmosqa/raw/master/data/"
 _URLS = {
@@ -32,17 +42,13 @@ _URLS = {
 
 
 class CosmosQa(datasets.GeneratorBasedBuilder):
-    """TODO(cosmos_qa): Short description of my dataset."""
+    """Cosmos QA dataset."""
 
-    # TODO(cosmos_qa): Set up version.
     VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(cosmos_qa): Specifies the datasets.DatasetInfo object
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # datasets.features.FeatureConnectors
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
@@ -52,47 +58,35 @@ class CosmosQa(datasets.GeneratorBasedBuilder):
                     "answer1": datasets.Value("string"),
                     "answer2": datasets.Value("string"),
                     "answer3": datasets.Value("string"),
-                    "label": datasets.Value("int32")
-                    # These are the features of your dataset like images, labels ...
+                    "label": datasets.Value("int32"),
                 }
             ),
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
-            supervised_keys=None,
-            # Homepage of the dataset for documentation
-            homepage="https://wilburone.github.io/cosmos/",
+            homepage=_HOMEPAGE,
             citation=_CITATION,
+            license=_LICENSE,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO(cosmos_qa): Downloads the data and defines the splits
-        # dl_manager is a datasets.download.DownloadManager that can be used to
-        # download and extract URLs
         urls_to_download = _URLS
         dl_dir = dl_manager.download_and_extract(urls_to_download)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dl_dir["train"], "split": "train"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dl_dir["test"], "split": "test"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dl_dir["dev"], "split": "dev"},
             ),
         ]
 
     def _generate_examples(self, filepath, split):
         """Yields examples."""
-        # TODO(cosmos_qa): Yields (key, example) tuples from the dataset
         with open(filepath, encoding="utf-8") as f:
             if split == "test":
                 for id_, row in enumerate(f):

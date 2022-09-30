@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - other
-languages:
+language:
 - pl
-licenses:
+license:
 - gpl-3.0
 multilinguality:
 - monolingual
@@ -14,13 +14,14 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: NJKP NER
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for NJKP NER
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -80,7 +81,7 @@ Polish
 
 ### Data Instances
 
-Two tsv files (train, dev) with two columns (sentence, target) and one (test) with just one (sentence). 
+Two tsv files (train, dev) with two columns (sentence, target) and one (test) with just one (sentence).
 
 ### Data Fields
 

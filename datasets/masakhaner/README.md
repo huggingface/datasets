@@ -3,29 +3,19 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
-  am:
-  - am
-  ha:
-  - ha
-  ig:
-  - ig
-  rw:
-  - rw
-  lg:
-  - lg
-  luo:
-  - luo
-  pcm:
-  - pcm
-  sw:
-  - sw
-  wo:
-  - wo
-  yo:
-  - yo
+language:
+- am
+- ha
+- ig
+- lg
+- luo
+- pcm
+- rw
+- sw
+- wo
+- yo
 
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -34,11 +24,22 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
 pretty_name: MasakhaNER
+configs:
+- am
+- ha
+- ig
+- lg
+- luo
+- pcm
+- rw
+- sw
+- wo
+- yo
 ---
 
 # Dataset Card for MasakhaNER
@@ -161,18 +162,18 @@ The original splits were named `train`, `dev` and `test` and they correspond to 
 
 The splits have the following sizes :
 
-| Language                           | Tain  | Valid | Test |
-| -----                      | ----- | ----- | ---- |
-| Amharic      | 1750  |  250  |  500 |
-| Hausa        | 1903  |  272  |  545 |
-| Igbo         | 2233  |  319  |  638 |
-| Kinyarwanda  | 2110  |  301  |  604 |
-| Luganda      | 2003  |  200  |  401 |
-| Luo          |  644  |   92  |  185 |
-| Nigerian-Pidgin  | 2100  |  300  |  600 |
-| Swahili     | 2104  |  300  |  602 |
-| Wolof       | 1871  |  267  |  536 |
-| Yoruba      | 2124  |  303  |  608 |
+| Language        | train | validation | test |
+|-----------------|------:|-----------:|-----:|
+| Amharic         |  1750 |        250 |  500 |
+| Hausa           |  1903 |        272 |  545 |
+| Igbo            |  2233 |        319 |  638 |
+| Kinyarwanda     |  2110 |        301 |  604 |
+| Luganda         |  2003 |        200 |  401 |
+| Luo             |   644 |         92 |  185 |
+| Nigerian-Pidgin |  2100 |        300 |  600 |
+| Swahili         |  2104 |        300 |  602 |
+| Wolof           |  1871 |        267 |  536 |
+| Yoruba          |  2124 |        303 |  608 |
 
 ## Dataset Creation
 

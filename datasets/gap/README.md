@@ -1,6 +1,23 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: GAP Benchmark Suite
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- token-classification
+task_ids:
+- coreference-resolution
 paperswithcode_id: gap
 ---
 
@@ -34,8 +51,8 @@ paperswithcode_id: gap
 
 - **Homepage:** [https://github.com/google-research-datasets/gap-coreference](https://github.com/google-research-datasets/gap-coreference)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [Mind the GAP: A Balanced Corpus of Gendered Ambiguous Pronouns](https://arxiv.org/abs/1810.05201)
+- **Point of Contact:** [gap-coreference@google.com](mailto:gap-coreference@google.com)
 - **Size of downloaded dataset files:** 2.29 MB
 - **Size of the generated dataset:** 2.32 MB
 - **Total amount of disk used:** 4.61 MB
@@ -56,8 +73,6 @@ applications.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -164,26 +179,22 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
-@article{DBLP:journals/corr/abs-1810-05201,
-  author    = {Kellie Webster and
-               Marta Recasens and
-               Vera Axelrod and
-               Jason Baldridge},
-  title     = {Mind the {GAP:} {A} Balanced Corpus of Gendered Ambiguous Pronouns},
-  journal   = {CoRR},
-  volume    = {abs/1810.05201},
-  year      = {2018},
-  url       = {http://arxiv.org/abs/1810.05201},
-  archivePrefix = {arXiv},
-  eprint    = {1810.05201},
-  timestamp = {Tue, 30 Oct 2018 20:39:56 +0100},
-  biburl    = {https://dblp.org/rec/bib/journals/corr/abs-1810-05201},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
+@article{webster-etal-2018-mind,
+    title = "Mind the {GAP}: A Balanced Corpus of Gendered Ambiguous Pronouns",
+    author = "Webster, Kellie  and
+      Recasens, Marta  and
+      Axelrod, Vera  and
+      Baldridge, Jason",
+    journal = "Transactions of the Association for Computational Linguistics",
+    volume = "6",
+    year = "2018",
+    address = "Cambridge, MA",
+    publisher = "MIT Press",
+    url = "https://aclanthology.org/Q18-1042",
+    doi = "10.1162/tacl_a_00240",
+    pages = "605--617",
 }
-
 ```
-
 
 ### Contributions
 

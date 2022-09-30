@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- cc-by-sa-2.0
+license:
+- cc-by-sa-3.0
 multilinguality:
 - monolingual
 size_categories:
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - other-other-data-to-text-generation
 paperswithcode_id: kelm
+pretty_name: Corpus for Knowledge-Enhanced Language Model Pre-training (KELM)
 ---
 
 # Dataset Card for Corpus for Knowledge-Enhanced Language Model Pre-training (KELM)

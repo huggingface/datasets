@@ -1,7 +1,24 @@
 ---
-languages:
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
+language:
 - en
+license:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- natural-language-inference
 paperswithcode_id: hans
+pretty_name: Heuristic Analysis for NLI Systems
 ---
 
 # Dataset Card for "hans"
@@ -53,8 +70,6 @@ The HANS dataset is an NLI evaluation set that tests specific hypotheses about i
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

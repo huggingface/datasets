@@ -3,15 +3,16 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- cc-by-3.0-at
+license:
+- cc-by-3.0
 multilinguality:
 - monolingual
 size_categories:
 - 100K<n<1M
-source_datasets: []
+source_datasets:
+- original
 task_categories:
 - question-answering
 task_ids:

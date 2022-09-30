@@ -70,8 +70,8 @@ SOFTWARE.
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
     "ori_pqal": "https://raw.githubusercontent.com/pubmedqa/pubmedqa/master/data/ori_pqal.json",
-    "ori_pqau": "https://drive.google.com/uc?export=download&id=1RsGLINVce-0GsDkCLDuLZmoLuzfmoCuQ",
-    "ori_pqaa": "https://drive.google.com/uc?export=download&id=15v1x6aQDlZymaHGP7cZJZZYFfeJt2NdS",
+    "ori_pqau": "https://huggingface.co/datasets/pubmed_qa/resolve/607a104f8f2bdc1db8e9515d325a83c6aa35d4c1/data/ori_pqau.json",
+    "ori_pqaa": "https://huggingface.co/datasets/pubmed_qa/resolve/607a104f8f2bdc1db8e9515d325a83c6aa35d4c1/data/ori_pqaa.json",
 }
 
 

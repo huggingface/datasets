@@ -3,26 +3,12 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- cc-by-nc-sa-2.0
-- cc-by-nc-2.0
-- cc-by-nd-2.0
-- cc-by-sa-2.0
-- cc-by-nc-nd-2.0
-- cc-by-nc-1.0
-- other-cc0
-- other-hybrid-oa
-- other-els-covid
-- other-no-cc
-- other-gold-oa
-- other-green-oa
-- other-bronze-oa
-- other-biorxiv
-- other-arxiv
-- other-medrxiv
-- other-unk
+license:
+- cc-by-nd-4.0
+- cc-by-sa-4.0
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -34,9 +20,10 @@ task_categories:
 task_ids:
 - other-other-knowledge-extraction
 paperswithcode_id: cord-19
+pretty_name: CORD-19
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for CORD-19
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -146,14 +133,13 @@ Extra fields based on selected configuration during loading:
 
 No annotation provided in this dataset so all instances are provided in training split.
 
-The sizes of each configurations are:
+The sizes of each configuration are:
 
-|          | Tain   |
-| -----    | ------ |
-| metadata | 368618  |
-| fulltext | 368618  |
-| embeddings | 368618  |
-
+|            |  train |
+|------------|-------:|
+| metadata   | 368618 |
+| fulltext   | 368618 |
+| embeddings | 368618 |
 
 ## Dataset Creation
 

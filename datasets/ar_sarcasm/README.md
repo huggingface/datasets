@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - ar
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -20,6 +20,7 @@ task_ids:
 - sentiment-classification
 - text-classification-other-sarcasm-detection
 paperswithcode_id: null
+pretty_name: ArSarcasm
 ---
 
 # Dataset Card for ArSarcasm

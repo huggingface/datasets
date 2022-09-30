@@ -4,9 +4,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - ko
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -15,40 +15,31 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-  ynat:
-  - text-classification
-  sts:
-  - text-scoring
-  nli:
-  - text-classification
-  ner:
-  - structure-prediction
-  re:
-  - structure-prediction
-  dp:
-  - structure-prediction
-  mrc:
-  - question-answering
-  wos:
-  - sequence-modeling
+- fill-mask
+- question-answering
+- text-classification
+- text-generation
+- token-classification
 task_ids:
-  ynat:
-  - topic-classification
-  sts:
-  - semantic-similarity-scoring
-  nli:
-  - natural-language-inference
-  ner:
-  - named-entity-recognition
-  re:
-  - other-relation-extraction
-  dp:
-  - parsing
-  mrc:
-  - extractive-qa
-  wos:
-  - other-dialogue-state-tracking
+- extractive-qa
+- named-entity-recognition
+- natural-language-inference
+- other-dialogue-state-tracking
+- parsing
+- semantic-similarity-scoring
+- text-scoring
+- token-classification-other-relation-extraction
+- topic-classification
 paperswithcode_id: klue
+configs:
+- dp
+- mrc
+- ner
+- nli
+- re
+- sts
+- wos
+- ynat
 ---
 
 # Dataset Card for KLUE

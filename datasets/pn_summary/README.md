@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - fa
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -14,13 +14,15 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- summarization
 - text-classification
 task_ids:
-- summarization
+- news-articles-summarization
+- news-articles-headline-generation
 - text-simplification
 - topic-classification
 paperswithcode_id: pn-summary
+pretty_name: Persian News Summary (PnSummary)
 ---
 
 # Dataset Card for Persian News Summary (pn_summary)
@@ -51,7 +53,6 @@ paperswithcode_id: pn-summary
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/hooshvare/pn-summary/
 - **Repository:** https://github.com/hooshvare/pn-summary/
 - **Paper:** https://arxiv.org/abs/2012.11204
 - **Leaderboard:** [More Information Needed]
