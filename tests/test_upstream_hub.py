@@ -42,7 +42,7 @@ class TestPushToHub:
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
-                    files, [".gitattributes", "data/train-00000-of-00001-*.parquet", "dataset_infos.json"]
+                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
                 )
             )
 
@@ -64,7 +64,7 @@ class TestPushToHub:
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
-                    files, [".gitattributes", "data/train-00000-of-00001-*.parquet", "dataset_infos.json"]
+                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
                 )
             )
 
@@ -100,7 +100,7 @@ class TestPushToHub:
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
-                    files, [".gitattributes", "data/train-00000-of-00001-*.parquet", "dataset_infos.json"]
+                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
                 )
             )
 
@@ -122,7 +122,7 @@ class TestPushToHub:
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
-                    files, [".gitattributes", "data/train-00000-of-00001-*.parquet", "dataset_infos.json"]
+                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
                 )
             )
 
@@ -148,9 +148,9 @@ class TestPushToHub:
                     files,
                     [
                         ".gitattributes",
+                        "README.md",
                         "data/train-00000-of-00002-*.parquet",
                         "data/train-00001-of-00002-*.parquet",
-                        "dataset_infos.json",
                     ],
                 )
             )
@@ -176,9 +176,9 @@ class TestPushToHub:
                     files,
                     [
                         ".gitattributes",
+                        "README.md",
                         "data/train-00000-of-00002-*.parquet",
                         "data/train-00001-of-00002-*.parquet",
-                        "dataset_infos.json",
                     ],
                 )
             )
@@ -221,11 +221,11 @@ class TestPushToHub:
                     files,
                     [
                         ".gitattributes",
+                        "README.md",
                         "data/random-00000-of-00001-*.parquet",
                         "data/train-00000-of-00002-*.parquet",
                         "data/train-00001-of-00002-*.parquet",
                         "datafile.txt",
-                        "dataset_infos.json",
                     ],
                 )
             )
@@ -268,10 +268,10 @@ class TestPushToHub:
                     files,
                     [
                         ".gitattributes",
+                        "README.md",
                         "data/random-00000-of-00001-*.parquet",
                         "data/train-00000-of-00001-*.parquet",
                         "datafile.txt",
-                        "dataset_infos.json",
                     ],
                 )
             )
