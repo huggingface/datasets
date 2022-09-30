@@ -936,6 +936,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_dir: str = None,
         keep_in_memory: bool = False,
         gen_kwargs: Optional[dict] = None,
+        **kwargs,
     ):
         """Create a Dataset from a generator.
 
@@ -945,6 +946,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             gen_kwargs(:obj:`dict`, optional): Keyword arguments to be passed to the `generator` callable.
+            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`GeneratorConfig`.
 
         Returns:
             :class:`Dataset`
@@ -967,6 +969,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             gen_kwargs=gen_kwargs,
+            **kwargs,
         ).read()
 
     @staticmethod
