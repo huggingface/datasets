@@ -2431,8 +2431,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if num_proc is not None and num_proc <= 0:
             raise ValueError("num_proc must be an integer > 0.")
 
-        # If the array is empty we do nothing (but we make sure to remove the requested columns anyway)
+        # If the array is empty we do nothing (but we make sure to handle an empty indices mapping and remove the requested columns anyway)
         if len(self) == 0:
+            if self._indices is not None:  # empty incides mapping
+                self = Dataset(
+                    self.data.slice(0, 0),
+                    info=self.info.copy(),
+                    split=self.split,
+                    fingerprint=new_fingerprint,
+                )
             if remove_columns:
                 return self.remove_columns(remove_columns)
             else:

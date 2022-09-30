@@ -2167,20 +2167,45 @@ class BaseDatasetTest(TestCase):
     def test_flatten_indices(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                self.assertEqual(dset._indices, None)
+                self.assertIsNone(dset._indices)
 
                 tmp_file = os.path.join(tmp_dir, "test.arrow")
                 with dset.select(range(0, 10, 2), indices_cache_file_name=tmp_file) as dset:
                     self.assertEqual(len(dset), 5)
 
-                    self.assertNotEqual(dset._indices, None)
+                    self.assertIsNotNone(dset._indices)
 
                     tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
                     fingerprint = dset._fingerprint
                     dset.set_format("numpy")
                     with dset.flatten_indices(cache_file_name=tmp_file_2) as dset:
                         self.assertEqual(len(dset), 5)
-                        self.assertEqual(dset._indices, None)
+                        self.assertEqual(len(dset.data), len(dset))
+                        self.assertIsNone(dset._indices)
+                        self.assertNotEqual(dset._fingerprint, fingerprint)
+                        self.assertEqual(dset.format["type"], "numpy")
+                        # Test unique works
+                        dset.unique(dset.column_names[0])
+                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
+
+        # Empty indices mapping
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertIsNone(dset._indices, None)
+
+                tmp_file = os.path.join(tmp_dir, "test.arrow")
+                with dset.filter(lambda _: False, cache_file_name=tmp_file) as dset:
+                    self.assertEqual(len(dset), 0)
+
+                    self.assertIsNotNone(dset._indices, None)
+
+                    tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
+                    fingerprint = dset._fingerprint
+                    dset.set_format("numpy")
+                    with dset.flatten_indices(cache_file_name=tmp_file_2) as dset:
+                        self.assertEqual(len(dset), 0)
+                        self.assertEqual(len(dset.data), len(dset))
+                        self.assertIsNone(dset._indices, None)
                         self.assertNotEqual(dset._fingerprint, fingerprint)
                         self.assertEqual(dset.format["type"], "numpy")
                         # Test unique works
