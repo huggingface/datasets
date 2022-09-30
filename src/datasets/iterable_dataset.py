@@ -1339,6 +1339,46 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
+    @staticmethod
+    def from_generator(
+        generator: Callable,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        gen_kwargs: Optional[dict] = None,
+    ):
+        """Create an Iterable Dataset from a generator.
+
+        Args:
+            generator (:obj:`Callable`): A generator function that `yields` examples.
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
+            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            gen_kwargs(:obj:`dict`, optional): Keyword arguments to be passed to the `generator` callable.
+
+        Returns:
+            :class:`IterableDataset`
+
+        Example:
+
+        ```py
+        >>> def gen():
+        ...     yield {"text": "Good", "label": 0}
+        ...     yield {"text": "Bad", "label": 1}
+        ...
+        >>> ds = IterableDataset.from_generator(gen)
+        ```
+        """
+        from .io.generator import GeneratorDatasetInputStream
+
+        return GeneratorDatasetInputStream(
+            generator=generator,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            gen_kwargs=gen_kwargs,
+        ).read(streaming=True)
+
 
 def iterable_dataset(
     ex_iterable: Iterable,

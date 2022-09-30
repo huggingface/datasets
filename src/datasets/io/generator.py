@@ -24,7 +24,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             **kwargs,
         )
 
-    def read(self):
+    def read(self, streaming: bool = False):
         download_config = None
         download_mode = None
         ignore_verifications = False
@@ -40,8 +40,13 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             use_auth_token=use_auth_token,
         )
 
+        # Build iterable dataset
+        if streaming:
+            dataset = self.builder.as_streaming_dataset(split="train")
+
         # Build dataset for splits
-        dataset = self.builder.as_dataset(
-            split="train", ignore_verifications=ignore_verifications, in_memory=self.keep_in_memory
-        )
+        else:
+            dataset = self.builder.as_dataset(
+                split="train", ignore_verifications=ignore_verifications, in_memory=self.keep_in_memory
+            )
         return dataset
