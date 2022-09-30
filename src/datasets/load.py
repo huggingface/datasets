@@ -669,7 +669,12 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
             if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
                 dataset_info_dict = dataset_metadata["dataset_info"][0]
-                builder_kwargs["info"] = DatasetInfo.from_dict(dataset_info_dict)
+                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
+                if "config_name" in dataset_info_dict:
+                    builder_kwargs["config_name"] = dataset_info_dict["config_name"]
+            elif isinstance(dataset_metadata.get("dataset_info"), dict) and dataset_metadata["dataset_info"]:
+                dataset_info_dict = dataset_metadata["dataset_info"]
+                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
         return DatasetModule(module_path, hash, builder_kwargs)
@@ -826,9 +831,15 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
             if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
                 dataset_info_dict = dataset_metadata["dataset_info"][0]
-                builder_kwargs["info"] = DatasetInfo.from_dict(dataset_info_dict)
+                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
+            elif isinstance(dataset_metadata.get("dataset_info"), dict) and dataset_metadata["dataset_info"]:
+                dataset_info_dict = dataset_metadata["dataset_info"]
+                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
+                if "config_name" in dataset_info_dict:
+                    builder_kwargs["config_name"] = dataset_info_dict["config_name"]
+
         except FileNotFoundError:
             pass
         return DatasetModule(module_path, hash, builder_kwargs)
