@@ -357,9 +357,50 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
         else:
             dataset_metadata = DatasetMetadata()
         if total_dataset_infos:
-            total_dataset_infos = {
-                config_name: dset_info._to_yaml_dict() for config_name, dset_info in total_dataset_infos.items()
-            }
+            total_dataset_infos.to_metadata(dataset_metadata)
+            dataset_metadata.to_readme(Path(dataset_readme_path))
+
+    @classmethod
+    def from_directory(cls, dataset_infos_dir):
+        logger.info(f"Loading Dataset Infos from {dataset_infos_dir}")
+        # Load the info from the YAML part of README.md
+        if os.path.exists(os.path.join(dataset_infos_dir, "README.md")):
+            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_infos_dir) / "README.md")
+            return cls.from_metadata(dataset_metadata)
+        elif os.path.exists(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)):
+            # this is just to have backward compatibility with dataset_infos.json files
+            with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
+                return cls(
+                    {
+                        config_name: DatasetInfo.from_dict(dataset_info_dict)
+                        for config_name, dataset_info_dict in json.load(f).items()
+                    }
+                )
+        else:
+            return cls()
+
+    @classmethod
+    def from_metadata(cls, dataset_metadata: DatasetMetadata):
+        if isinstance(dataset_metadata.get("dataset_info"), (list, dict)):
+            if isinstance(dataset_metadata["dataset_info"], list):
+                return cls(
+                    {
+                        dataset_info_yaml_dict.get("config_name", "default"): DatasetInfo._from_yaml_dict(
+                            dataset_info_yaml_dict
+                        )
+                        for dataset_info_yaml_dict in dataset_metadata["dataset_info"]
+                    }
+                )
+            else:
+                dataset_info = DatasetInfo._from_yaml_dict(dataset_metadata["dataset_info"])
+                dataset_info.config_name = dataset_metadata["dataset_info"].get("config_name", "default")
+                return cls({dataset_info.config_name: dataset_info})
+        else:
+            return cls()
+
+    def to_metadata(self, dataset_metadata: DatasetMetadata) -> None:
+        if self:
+            total_dataset_infos = {config_name: dset_info._to_yaml_dict() for config_name, dset_info in self.items()}
             # the config_name from the dataset_infos_dict takes over the config_name of the DatasetInfo
             for config_name, dset_info_yaml_dict in total_dataset_infos.items():
                 dset_info_yaml_dict["config_name"] = config_name
@@ -376,39 +417,6 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
                     dataset_info_yaml_dict.pop("config_name", None)
                     dataset_info_yaml_dict = {"config_name": config_name, **dataset_info_yaml_dict}
                     dataset_metadata["dataset_info"].append(dataset_info_yaml_dict)
-
-            dataset_metadata.to_readme(Path(dataset_readme_path))
-
-    @classmethod
-    def from_directory(cls, dataset_infos_dir):
-        logger.info(f"Loading Dataset Infos from {dataset_infos_dir}")
-        dataset_infos_dict = {}
-        if os.path.exists(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)):
-            # this is just to have backward compatibility with dataset_infos.json files
-            with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
-                dataset_infos_dict.update(
-                    {
-                        config_name: DatasetInfo.from_dict(dataset_info_dict)
-                        for config_name, dataset_info_dict in json.load(f).items()
-                    }
-                )
-        # Load the info from the YAML part of README.md
-        if os.path.exists(os.path.join(dataset_infos_dir, "README.md")):
-            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_infos_dir) / "README.md")
-            if isinstance(dataset_metadata.get("dataset_info"), (list, dict)):
-                if isinstance(dataset_metadata["dataset_info"], list):
-                    dataset_infos_dict = {
-                        dataset_info_yaml_dict.get("config_name", "default"): DatasetInfo._from_yaml_dict(
-                            dataset_info_yaml_dict
-                        )
-                        for dataset_info_yaml_dict in dataset_metadata["dataset_info"]
-                    }
-                else:
-                    dataset_info = DatasetInfo._from_yaml_dict(dataset_metadata["dataset_info"])
-                    dataset_info.config_name = dataset_metadata["dataset_info"].get("config_name", "default")
-                    dataset_infos_dict = {dataset_info.config_name: dataset_info}
-
-        return cls(**dataset_infos_dict)
 
 
 @dataclass
