@@ -102,6 +102,7 @@ from .table import (
 from .tasks import TaskTemplate
 from .utils import logging
 from .utils._hf_hub_fixes import create_repo
+from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size, hf_hub_url
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import asdict, convert_file_size_to_int, unique_values
@@ -1854,17 +1855,64 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         return self.num_rows
 
+    def _iter_batches(self, batch_size: int, decoded: bool = True):
+        """Iterate through the batches of size `batch_size`.
+
+        If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
+        selected format.
+        """
+        if self._indices is None and config.PYARROW_VERSION.major >= 8:
+            # Fast iteration
+            # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
+            format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
+            formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
+            for batch in self.data.to_reader(max_chunksize=batch_size):
+                pa_subtable = pa.Table.from_batches([batch])
+                formatted_output = format_table(
+                    pa_subtable,
+                    range(pa_subtable.num_rows),
+                    formatter=formatter,
+                    format_columns=self._format_columns,
+                    output_all_columns=self._output_all_columns,
+                )
+                yield formatted_output
+        else:
+            for i in range(0, self.num_rows, batch_size):
+                yield self._getitem(
+                    slice(i, i + batch_size),
+                    decoded=decoded,
+                )
+
     def _iter(self, decoded: bool = True):
         """Iterate through the examples.
 
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
         selected format.
         """
-        for index in range(self.num_rows):
-            yield self._getitem(
-                index,
-                decoded=decoded,
-            )
+        if self._indices is None and config.PYARROW_VERSION.major >= 8:
+            # Fast iteration
+            # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
+            format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
+            formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
+            batch_size = config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
+            for batch in self.data.to_reader(max_chunksize=batch_size):
+                for i in range(batch.num_rows):
+                    batch_ex = batch.slice(i, 1)
+                    pa_subtable = pa.Table.from_batches([batch_ex])
+                    formatted_output = format_table(
+                        pa_subtable,
+                        0,
+                        formatter=formatter,
+                        format_columns=self._format_columns,
+                        output_all_columns=self._output_all_columns,
+                    )
+                    yield formatted_output
+        else:
+            for i in range(self.num_rows):
+                yield self._getitem(
+                    i,
+                    decoded=decoded,
+                )
 
     def __iter__(self):
         """Iterate through the examples.
@@ -2805,14 +2853,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
                 if not batched:
-                    pbar_iterable = input_dataset._iter(decoded=False)
                     pbar_total = len(input_dataset)
+                    pbar_iterable = input_dataset._iter(decoded=False)
                 else:
                     num_rows = (
                         len(input_dataset) if not drop_last_batch else len(input_dataset) // batch_size * batch_size
                     )
-                    pbar_iterable = range(0, num_rows, batch_size)
                     pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
+                    pbar_iterable = itertools.islice(
+                        input_dataset._iter_batches(batch_size, decoded=False), pbar_total
+                    )
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
                 pbar = logging.tqdm(
@@ -2835,11 +2885,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             else:
                                 writer.write(example)
                 else:
-                    for i in pbar:
-                        batch = input_dataset._getitem(
-                            slice(i, i + batch_size),
-                            decoded=False,
-                        )
+                    for i, batch in enumerate(pbar):
                         indices = list(
                             range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
                         )  # Something simpler?
@@ -4243,7 +4289,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             shards = shards_with_embedded_external_files(shards)
 
-        files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
+        files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, token=token)
         data_files = [file for file in files if file.startswith("data/")]
 
         def path_in_repo(_index, shard):
