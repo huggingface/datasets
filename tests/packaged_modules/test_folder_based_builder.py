@@ -18,6 +18,7 @@ class DummyFolderBasedBuilder(FolderBasedBuilder):
     BASE_COLUMN_NAME = "base"
     BUILDER_CONFIG_CLASS = FolderBasedBuilderConfig
     EXTENSIONS = [".txt"]
+    CLASSIFICATION_TASK = None
 
 
 @pytest.fixture
