@@ -22,7 +22,9 @@ from pathlib import Path
 from typing import List, Optional, Type, TypeVar, Union
 from urllib.parse import urljoin, urlparse
 
+import huggingface_hub
 import requests
+from huggingface_hub import HfFolder
 
 from .. import __version__, config
 from ..download.download_config import DownloadConfig
@@ -218,7 +220,9 @@ def cached_path(
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
-    ua = f"datasets/{__version__}; python/{config.PY_VERSION}"
+    ua = f"datasets/{__version__}"
+    ua += f"; python/{config.PY_VERSION}"
+    ua += f"; huggingface_hub/{huggingface_hub.__version__}"
     ua += f"; pyarrow/{config.PYARROW_VERSION}"
     if config.TORCH_AVAILABLE:
         ua += f"; torch/{config.TORCH_VERSION}"
@@ -239,13 +243,13 @@ def get_authentication_headers_for_url(url: str, use_auth_token: Optional[Union[
     """Handle the HF authentication"""
     headers = {}
     if url.startswith(config.HF_ENDPOINT):
-        token = None
-        if isinstance(use_auth_token, str):
+        if use_auth_token is False:
+            token = None
+        elif isinstance(use_auth_token, str):
             token = use_auth_token
-        elif bool(use_auth_token):
-            from huggingface_hub import hf_api
+        else:
+            token = HfFolder.get_token()
 
-            token = hf_api.HfFolder.get_token()
         if token:
             headers["authorization"] = f"Bearer {token}"
     return headers

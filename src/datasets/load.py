@@ -29,7 +29,7 @@ from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
 
 import fsspec
 import requests
-from huggingface_hub import HfApi, HfFolder
+from huggingface_hub import HfApi
 
 from . import config
 from .arrow_dataset import Dataset
@@ -62,6 +62,7 @@ from .packaged_modules import (
 )
 from .splits import Split
 from .tasks import TaskTemplate
+from .utils._hf_hub_fixes import dataset_info as hf_api_dataset_info
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
@@ -744,14 +745,11 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        if isinstance(self.download_config.use_auth_token, bool):
-            token = HfFolder.get_token() if self.download_config.use_auth_token else None
-        else:
-            token = self.download_config.use_auth_token
-        hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
+        hfh_dataset_info = hf_api_dataset_info(
+            HfApi(config.HF_ENDPOINT),
             self.name,
             revision=self.revision,
-            token=token if token else "no-token",
+            use_auth_token=self.download_config.use_auth_token,
             timeout=100.0,
         )
         patterns = (
@@ -1112,14 +1110,11 @@ def dataset_module_factory(
             _raise_if_offline_mode_is_enabled()
             hf_api = HfApi(config.HF_ENDPOINT)
             try:
-                if isinstance(download_config.use_auth_token, bool):
-                    token = HfFolder.get_token() if download_config.use_auth_token else None
-                else:
-                    token = download_config.use_auth_token
-                dataset_info = hf_api.dataset_info(
+                dataset_info = hf_api_dataset_info(
+                    hf_api,
                     repo_id=path,
                     revision=revision,
-                    token=token if token else "no-token",
+                    use_auth_token=download_config.use_auth_token,
                     timeout=100.0,
                 )
             except Exception as e:  # noqa: catch any exception of hf_hub and consider that the dataset doesn't exist
