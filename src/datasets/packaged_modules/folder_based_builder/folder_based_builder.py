@@ -217,7 +217,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         "label": datasets.ClassLabel(names=sorted(labels)),
                     }
                 )
-                self.info.task_templates = [self.CLASSIFICATION_TASK]
+                self.info.task_templates = [self.CLASSIFICATION_TASK.align_with_features(self.info.features)]
             else:
                 self.info.features = datasets.Features({self.BASE_COLUMN_NAME: self.BASE_FEATURE})
 
